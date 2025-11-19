@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# Documentation (local development only)
+zdoc/
+
 # testing
 /coverage
 
