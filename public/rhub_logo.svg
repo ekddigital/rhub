@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <!-- EKD Digital Resource Hub Logo - Version 2 (Elegant with Ring) -->
+    <!-- Gold/Brown palette: #C8A061, #D4AF6A, #E8C589 -->
+
+    <defs>
+        <linearGradient id="goldGradientV2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E8C589" />
+            <stop offset="50%" stop-color="#D4AF6A" />
+            <stop offset="100%" stop-color="#C8A061" />
+        </linearGradient>
+        <linearGradient id="darkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2A2520" />
+            <stop offset="100%" stop-color="#14120F" />
+        </linearGradient>
+        <filter id="glowEffectV2">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
+            <feOffset dx="0" dy="0" result="offsetblur" />
+            <feComponentTransfer>
+                <feFuncA type="linear" slope="0.4" />
+            </feComponentTransfer>
+            <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+    </defs>
+
+    <!-- Background (transparent) -->
+    <rect width="1024" height="1024" fill="transparent" />
+
+    <!-- Outer glow ring -->
+    <circle cx="512" cy="512" r="440" fill="none" stroke="#C8A061" stroke-width="4" opacity="0.25"
+        filter="url(#glowEffectV2)" />
+
+    <!-- Main circular background with gold gradient -->
+    <circle cx="512" cy="512" r="400" fill="url(#goldGradientV2)" opacity="0.95" />
+
+    <!-- Inner shadow effect -->
+    <circle cx="512" cy="512" r="400" fill="#1A1A1A" opacity="0.15" />
+
+    <!-- Core darker circle with gradient -->
+    <circle cx="512" cy="512" r="300" fill="url(#darkGradient)" />
+
+    <!-- Decorative gold ring -->
+    <circle cx="512" cy="512" r="310" fill="none" stroke="url(#goldGradientV2)" stroke-width="2.5" opacity="0.7" />
+
+    <!-- Text: rHub with gold gradient -->
+    <text x="512" y="560" font-family="Arial, Helvetica, sans-serif" font-size="180" font-weight="700" 
+          text-anchor="middle" fill="url(#goldGradientV2)" opacity="0.98">
+        <tspan x="512" dy="0">r</tspan><tspan font-size="160">Hub</tspan>
+    </text>
+
+    <title>EKD Digital Resource Hub V2</title>
+    <desc>Resource Hub brand mark - elegant design with decorative ring and gold gradient text</desc>
+</svg>

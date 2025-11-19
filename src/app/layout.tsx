@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     "Research Tools",
   ],
   metadataBase: new URL("https://rhub.ekddigital.com"),
+  icons: {
+    icon: "/rhub_logo.svg",
+    apple: "/rhub_logo.png",
+  },
   openGraph: {
     title: "EKD Digital Resource Hub",
     description:

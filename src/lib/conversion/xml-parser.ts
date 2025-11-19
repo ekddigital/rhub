@@ -156,18 +156,18 @@ function buildAuthors(record: LooseRecord): string | undefined {
   const extractAuthorName = (author: unknown): string => {
     if (typeof author === "string") return author;
     if (!isLooseRecord(author)) return "";
-    
+
     // EndNote XML: author.style.#text
     const style = author.style;
     if (isLooseRecord(style) && typeof style["#text"] === "string") {
       return style["#text"] as string;
     }
-    
+
     // Fallback to direct style field
     if (typeof author.style === "string") {
       return author.style;
     }
-    
+
     return "";
   };
 
@@ -180,7 +180,7 @@ function buildAuthors(record: LooseRecord): string | undefined {
   }
 
   if (typeof authors === "string") return authors;
-  
+
   // Single author object
   if (isLooseRecord(authors)) {
     const authorList = authors.author;
@@ -193,7 +193,7 @@ function buildAuthors(record: LooseRecord): string | undefined {
     }
     return extractAuthorName(authorList);
   }
-  
+
   return undefined;
 }
 
@@ -209,7 +209,7 @@ function extractKeywords(record: LooseRecord): string | undefined {
     | LooseRecord[]
     | undefined;
   if (!keywords) return undefined;
-  
+
   const extractText = (kw: unknown): string => {
     if (typeof kw === "string") return kw;
     if (!isLooseRecord(kw)) return "";
@@ -221,12 +221,9 @@ function extractKeywords(record: LooseRecord): string | undefined {
     if (typeof kw.style === "string") return kw.style;
     return "";
   };
-  
+
   if (Array.isArray(keywords)) {
-    return keywords
-      .map(extractText)
-      .filter(Boolean)
-      .join(", ");
+    return keywords.map(extractText).filter(Boolean).join(", ");
   }
   if (typeof keywords === "string") return keywords;
   return extractText(keywords);

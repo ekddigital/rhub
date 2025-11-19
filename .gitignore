@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# scripts with secrets
+scripts/setup-vercel-env.sh
+scripts/*-secrets.sh
 
 # vercel
 .vercel

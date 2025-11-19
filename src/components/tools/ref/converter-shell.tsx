@@ -97,13 +97,22 @@ export function ConverterShell() {
   function handleDownload() {
     if (!result) return;
 
+    // Extract filename without extension and add EKD Digital branding
+    let cleanName = fileName ?? "ekd-reference";
+
+    // Remove common file extensions (.xml, .ris, .enl, .txt)
+    cleanName = cleanName.replace(/\.(xml|ris|enl|txt)$/i, "");
+
+    // Create branded filename
+    const brandedFileName = `ekddigital_rhub_${cleanName}.bib`;
+
     const blob = new Blob([result.bibtex], {
       type: "text/x-bibtex;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${fileName ?? "ekd-reference"}.bib`;
+    anchor.download = brandedFileName;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -131,7 +140,7 @@ export function ConverterShell() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Paste XML, RIS, or EndNote exports here"
-            className="min-h-80 bg-black/10"
+            className="min-h-80 max-h-[500px] bg-black/10 overflow-y-auto"
           />
           <div className="flex flex-wrap gap-3">
             <Button
@@ -174,7 +183,7 @@ export function ConverterShell() {
               <Badge variant="secondary">{result.durationMs} ms</Badge>
             </div>
             <Textarea
-              className="mt-4 min-h-[260px]"
+              className="mt-4 min-h-[260px] max-h-[500px] overflow-y-auto"
               readOnly
               value={result.bibtex}
             />
