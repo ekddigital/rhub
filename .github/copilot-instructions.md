@@ -35,6 +35,8 @@
 - Implement route groups for organization
 - TypeScript for type safety
 - Tailwind CSS for styling
+- Never use prisma migrate, always use `npx prisma generate && npx prisma db push`
+- Make use of `npm run lint && npx tsc --noEmit && npm run build` to verify code quality
 
 
 ### Brand Colors (EKD Digital)

@@ -1,0 +1,87 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+enum ResourceCategory {
+    CONVERTER
+    DATASET
+    PLAYGROUND
+    API
+    GUIDE
+    UTILITY
+}
+
+enum ResourceStatus {
+    DRAFT
+    LIVE
+    ARCHIVED
+}
+
+enum ResourceActionType {
+    LINK
+    INTERNAL
+    TOOL
+    DOCUMENTATION
+}
+
+enum ConversionStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+}
+
+model Resource {
+    id        String           @id @default(cuid())
+    slug      String           @unique
+    title     String
+    tagline   String
+    summary   String
+    category  ResourceCategory
+    status    ResourceStatus   @default(DRAFT)
+    featured  Boolean          @default(false)
+    metadata  Json?
+    createdAt DateTime         @default(now())
+    updatedAt DateTime         @updatedAt
+    actions   ResourceAction[]
+}
+
+model ResourceAction {
+    id          String             @id @default(cuid())
+    resourceId  String
+    label       String
+    description String?
+    type        ResourceActionType @default(LINK)
+    url         String?
+    config      Json?
+    order       Int                @default(0)
+
+    resource Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+    @@index([resourceId])
+}
+
+model ConversionJob {
+    id           String           @id @default(cuid())
+    resourceSlug String
+    inputFormat  String
+    outputFormat String
+    status       ConversionStatus @default(PENDING)
+    sourceName   String?
+    sourceSize   Int?
+    entryCount   Int?
+    warningCount Int?
+    errorCount   Int?
+    durationMs   Int?
+    errorMessage String?
+    metadata     Json?
+    createdAt    DateTime         @default(now())
+    updatedAt    DateTime         @updatedAt
+
+    @@index([resourceSlug])
+}
