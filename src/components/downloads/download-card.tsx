@@ -10,8 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Download, FileText, Eye, Lock } from "lucide-react";
-import { useState } from "react";
+import { Download, FileText, Eye, Lock, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface DownloadableFile {
   id: string;
@@ -56,23 +56,38 @@ export function DownloadCard({ file }: DownloadCardProps) {
   const [pwd, setPwd] = useState("");
   const [pwdErr, setPwdErr] = useState("");
   const [showPwdInput, setShowPwdInput] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
 
   const now = new Date();
   const isTimeProtected = file.publicUntil && now > new Date(file.publicUntil);
   const isProtected =
     file.accessLevel === "protected" || (isTimeProtected && file.password);
 
-  // Calculate time remaining for public access
-  const getTimeRemaining = () => {
-    if (!file.publicUntil) return null;
-    const publicUntil = new Date(file.publicUntil);
-    const diff = publicUntil.getTime() - now.getTime();
-    if (diff <= 0) return "Password required";
+  // Live countdown timer
+  useEffect(() => {
+    if (!file.publicUntil) return;
 
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m public access`;
-  };
+    const updateTimer = () => {
+      const publicUntil = new Date(file.publicUntil!);
+      const now = new Date();
+      const diff = publicUntil.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setTimeLeft("Password Required");
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [file.publicUntil]);
 
   const handleDownload = async () => {
     if (isProtected && !pwd && !showPwdInput) {
@@ -160,8 +175,16 @@ export function DownloadCard({ file }: DownloadCardProps) {
 
           {/* Time Remaining Alert */}
           {file.publicUntil && (
-            <div className="text-xs p-2 rounded bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold">
-              {getTimeRemaining()}
+            <div className="p-4 rounded-lg border-2 bg-gold/5 border-gold/40 dark:bg-gold/10 dark:border-gold/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-4 h-4 text-gold dark:text-gold" />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                  Public Access Ends In
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-gold dark:text-gold tabular-nums">
+                {timeLeft}
+              </div>
             </div>
           )}
 
@@ -188,16 +211,16 @@ export function DownloadCard({ file }: DownloadCardProps) {
           <Button
             onClick={handleDownload}
             disabled={isDownloading}
-            className="w-full bg-gold hover:bg-gold/90 text-white h-11 font-semibold"
+            className="w-full bg-gold hover:bg-gold/90 dark:bg-gold dark:hover:bg-gold/80 text-dark-brown dark:text-charcoal border-2 border-gold/20 dark:border-gold/30 h-12 font-bold text-base shadow-md hover:shadow-lg transition-all"
           >
             {isProtected && !showPwdInput ? (
               <>
-                <Lock className="w-4 h-4 mr-2" />
+                <Lock className="w-5 h-5 mr-2" />
                 Click to Enter Password
               </>
             ) : (
               <>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="w-5 h-5 mr-2" />
                 {isDownloading ? "Downloading..." : "Download"}
               </>
             )}

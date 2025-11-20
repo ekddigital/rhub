@@ -240,7 +240,7 @@ async function main() {
         "Complete corporate banking information and account opening package for A.N.D Group of Companies LLC. Includes company details, beneficial ownership information, and required documentation for financial institutions. Public access for 3 hours, then password-protected.",
       fileName: "Bank_Info.pdf",
       filePath: "public/secrets/Bank_Info.pdf",
-      fileSize: 0,
+      fileSize: 10849715,
       fileType: "application/pdf",
       category: "Corporate Banking",
       accessLevel: "public",
