@@ -1,6 +1,11 @@
 import { PrismaClient } from "@prisma/client";
+import { createHash } from "crypto";
 
 const prisma = new PrismaClient();
+
+function hashPwd(pwd: string): string {
+  return createHash("sha256").update(pwd).digest("hex");
+}
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -9,6 +14,7 @@ async function main() {
   await prisma.conversionJob.deleteMany();
   await prisma.resourceAction.deleteMany();
   await prisma.resource.deleteMany();
+  await prisma.downloadableFile.deleteMany();
 
   // Seed Reference Converter
   const refConverter = await prisma.resource.create({
@@ -193,6 +199,55 @@ async function main() {
   });
 
   console.log("✅ Created sample conversion job:", sampleJob.id);
+
+  // Create Downloads resource
+  const downloadsResource = await prisma.resource.create({
+    data: {
+      slug: "downloads",
+      title: "Downloads",
+      tagline: "Access important documents and files",
+      summary:
+        "Download essential documents, forms, and resources from EKD Digital and A.N.D Group of Companies. Access corporate information, account opening packages, and more.",
+      category: "DOWNLOAD",
+      status: "LIVE",
+      featured: true,
+      metadata: {
+        fileTypes: ["PDF", "DOC", "XLSX"],
+        categories: ["Corporate", "Banking", "Legal", "Forms"],
+      },
+      actions: {
+        create: [
+          {
+            label: "Browse Downloads",
+            description: "View all available files",
+            type: "INTERNAL",
+            url: "/downloads",
+            order: 1,
+          },
+        ],
+      },
+    },
+  });
+
+  // Create downloadable file for Bank Info (password-protected)
+  const bankInfoFile = await prisma.downloadableFile.create({
+    data: {
+      title: "A.N.D GROUP OF COMPANIES LLC - Corporate Account Opening Package",
+      description:
+        "Complete corporate banking information and account opening package for A.N.D Group of Companies LLC. Includes company details, beneficial ownership information, and required documentation for financial institutions.",
+      fileName: "Bank_Info.pdf",
+      filePath: "public/secrets/Bank_Info.pdf",
+      fileSize: 0, // Will be updated after file is added
+      fileType: "application/pdf",
+      category: "Corporate Banking",
+      accessLevel: "protected",
+      password: hashPwd("UBA"),
+      isActive: true,
+    },
+  });
+
+  console.log("✅ Seeded downloads resource:", downloadsResource.slug);
+  console.log("✅ Created downloadable file:", bankInfoFile.fileName);
   console.log("🎉 Database seeding complete!");
 }
 

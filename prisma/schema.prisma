@@ -14,6 +14,7 @@ enum ResourceCategory {
     API
     GUIDE
     UTILITY
+    DOWNLOAD
 }
 
 enum ResourceStatus {
@@ -106,4 +107,25 @@ model ShortUrl {
     @@index([customSlug])
     @@index([createdAt])
     @@index([isActive])
+}
+
+model DownloadableFile {
+    id          String   @id @default(cuid())
+    title       String
+    description String?  @db.Text
+    fileName    String
+    filePath    String
+    fileSize    Int?
+    fileType    String?
+    category    String?
+    accessLevel String   @default("public") // public, protected, private
+    password    String? // hashed password for protected files
+    downloads   Int      @default(0)
+    isActive    Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    @@index([accessLevel])
+    @@index([isActive])
+    @@index([category])
 }

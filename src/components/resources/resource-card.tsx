@@ -10,6 +10,7 @@ import {
   Shield,
   Sparkles,
   Wand2,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import type { ResourceCategory } from "@prisma/client";
@@ -27,6 +28,7 @@ const categoryIconMap: Record<ResourceCategory, React.ElementType> = {
   API: Wand2,
   GUIDE: FileText,
   UTILITY: BadgeCheck,
+  DOWNLOAD: Download,
 };
 
 export function ResourceCard({ resource }: { resource: ResourceWithActions }) {

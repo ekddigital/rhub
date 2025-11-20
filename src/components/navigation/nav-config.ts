@@ -7,6 +7,7 @@ import {
   Layers,
   Sparkles,
   Link2,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +37,12 @@ export const mainNavItems: NavItem[] = [
     href: "/#resources",
     icon: Layers,
     description: "Browse all available tools",
+  },
+  {
+    name: "Downloads",
+    href: "/downloads",
+    icon: Download,
+    description: "Access important documents",
   },
   {
     name: "Documentation",
