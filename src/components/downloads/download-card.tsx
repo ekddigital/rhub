@@ -23,6 +23,8 @@ interface DownloadableFile {
   fileType: string | null;
   category: string | null;
   accessLevel: string;
+  password: string | null;
+  publicUntil: Date | null;
   downloads: number;
   isActive: boolean;
   createdAt: Date;
@@ -55,7 +57,22 @@ export function DownloadCard({ file }: DownloadCardProps) {
   const [pwdErr, setPwdErr] = useState("");
   const [showPwdInput, setShowPwdInput] = useState(false);
 
-  const isProtected = file.accessLevel === "protected";
+  const now = new Date();
+  const isTimeProtected = file.publicUntil && now > new Date(file.publicUntil);
+  const isProtected =
+    file.accessLevel === "protected" || (isTimeProtected && file.password);
+
+  // Calculate time remaining for public access
+  const getTimeRemaining = () => {
+    if (!file.publicUntil) return null;
+    const publicUntil = new Date(file.publicUntil);
+    const diff = publicUntil.getTime() - now.getTime();
+    if (diff <= 0) return "Password required";
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${minutes}m public access`;
+  };
 
   const handleDownload = async () => {
     if (isProtected && !pwd && !showPwdInput) {
@@ -140,6 +157,13 @@ export function DownloadCard({ file }: DownloadCardProps) {
               </>
             )}
           </div>
+
+          {/* Time Remaining Alert */}
+          {file.publicUntil && (
+            <div className="text-xs p-2 rounded bg-gold/10 text-gold dark:bg-gold/20 dark:text-gold">
+              {getTimeRemaining()}
+            </div>
+          )}
 
           {/* Password Input */}
           {isProtected && showPwdInput && (

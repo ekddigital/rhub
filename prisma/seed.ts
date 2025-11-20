@@ -229,19 +229,23 @@ async function main() {
     },
   });
 
-  // Create downloadable file for Bank Info (password-protected)
+  // Create downloadable file for Bank Info (public for 3 hours, then password-protected)
+  const publicUntil = new Date();
+  publicUntil.setHours(publicUntil.getHours() + 3);
+
   const bankInfoFile = await prisma.downloadableFile.create({
     data: {
       title: "A.N.D GROUP OF COMPANIES LLC - Corporate Account Opening Package",
       description:
-        "Complete corporate banking information and account opening package for A.N.D Group of Companies LLC. Includes company details, beneficial ownership information, and required documentation for financial institutions.",
+        "Complete corporate banking information and account opening package for A.N.D Group of Companies LLC. Includes company details, beneficial ownership information, and required documentation for financial institutions. Public access for 3 hours, then password-protected.",
       fileName: "Bank_Info.pdf",
       filePath: "public/secrets/Bank_Info.pdf",
-      fileSize: 0, // Will be updated after file is added
+      fileSize: 0,
       fileType: "application/pdf",
       category: "Corporate Banking",
-      accessLevel: "protected",
+      accessLevel: "public",
       password: hashPwd("UBA"),
+      publicUntil: publicUntil,
       isActive: true,
     },
   });

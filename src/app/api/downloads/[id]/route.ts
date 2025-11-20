@@ -26,8 +26,14 @@ export async function GET(
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
+    // Check if file should be protected based on time
+    const now = new Date();
+    const isTimeProtected = file.publicUntil && now > file.publicUntil;
+    const needsPassword =
+      (file.accessLevel === "protected" || isTimeProtected) && file.password;
+
     // Check password for protected files
-    if (file.accessLevel === "protected" && file.password) {
+    if (needsPassword) {
       if (!pwd) {
         return NextResponse.json(
           { error: "Password required", requiresPassword: true },
