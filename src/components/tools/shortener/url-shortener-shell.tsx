@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,10 @@ import {
   CheckCircle2,
   ExternalLink,
   BarChart3,
+  QrCode,
+  Download,
 } from "lucide-react";
+import QRCodeLib from "qrcode";
 
 interface ShortenedUrl {
   id: string;
@@ -41,6 +44,33 @@ export function UrlShortenerShell() {
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState<UrlStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [showQrCode, setShowQrCode] = useState(false);
+
+  // Generate QR code when result is available
+  useEffect(() => {
+    if (result?.shortUrl) {
+      generateQRCode(result.shortUrl);
+    }
+  }, [result]);
+
+  const generateQRCode = async (url: string) => {
+    try {
+      // Generate QR code with EKD Digital branding colors
+      const qrDataUrl = await QRCodeLib.toDataURL(url, {
+        width: 400,
+        margin: 2,
+        color: {
+          dark: "#1F1C18", // EKD Dark Brown
+          light: "#FFFFFF",
+        },
+        errorCorrectionLevel: "H", // High error correction to allow logo overlay
+      });
+      setQrCode(qrDataUrl);
+    } catch (err) {
+      console.error("Failed to generate QR code:", err);
+    }
+  };
 
   const handleShorten = async () => {
     if (!url.trim()) {
@@ -112,6 +142,17 @@ export function UrlShortenerShell() {
     } finally {
       setLoadingStats(false);
     }
+  };
+
+  const downloadQRCode = () => {
+    if (!qrCode) return;
+
+    const link = document.createElement("a");
+    link.download = `qr-${
+      result?.customSlug || result?.shortCode || "code"
+    }.png`;
+    link.href = qrCode;
+    link.click();
   };
 
   return (
@@ -289,6 +330,15 @@ export function UrlShortenerShell() {
               </Button>
 
               <Button
+                onClick={() => setShowQrCode(!showQrCode)}
+                variant="outline"
+                className="flex-1 sm:flex-none"
+              >
+                <QrCode className="mr-2 h-4 w-4" />
+                {showQrCode ? "Hide QR Code" : "Show QR Code"}
+              </Button>
+
+              <Button
                 onClick={fetchStats}
                 disabled={loadingStats}
                 variant="outline"
@@ -307,6 +357,40 @@ export function UrlShortenerShell() {
                 )}
               </Button>
             </div>
+
+            {/* QR Code Display */}
+            {showQrCode && qrCode && (
+              <div className="bg-white dark:bg-ekd-charcoal/50 rounded-lg p-6 mt-4">
+                <h4 className="font-medium mb-4 text-ekd-charcoal dark:text-ekd-light-gray text-center">
+                  QR Code
+                </h4>
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative bg-white p-4 rounded-lg shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+                    {/* Logo overlay in center */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-2 rounded-lg shadow-md">
+                      <div className="w-12 h-12 bg-ekd-gold rounded-full flex items-center justify-center">
+                        <span className="text-ekd-charcoal font-bold text-xl">
+                          R
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-ekd-charcoal/70 dark:text-ekd-light-gray/70 text-center max-w-sm">
+                    Scan this QR code to quickly access your shortened URL
+                  </p>
+                  <Button
+                    onClick={downloadQRCode}
+                    variant="default"
+                    className="bg-ekd-gold hover:bg-ekd-gold/90 text-ekd-charcoal"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download QR Code
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Stats Display */}
             {stats && (
