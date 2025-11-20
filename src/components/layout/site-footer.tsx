@@ -20,9 +20,9 @@ const quickLinks = [
 
 const tools = [
   { name: "Reference Converter", href: "/tools/ref" },
+  { name: "URL Shortener", href: "/tools/s" },
   { name: "LaTeX to Word", href: "/tools/latex" },
   { name: "API Playground", href: "/tools/api" },
-  { name: "Citation Generator", href: "/tools/cite" },
 ];
 
 const resources = [

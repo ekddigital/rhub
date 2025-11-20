@@ -85,3 +85,25 @@ model ConversionJob {
 
     @@index([resourceSlug])
 }
+
+model ShortUrl {
+    id          String    @id @default(cuid())
+    originalUrl String    @db.Text
+    shortCode   String    @unique
+    customSlug  String?   @unique
+    clicks      Int       @default(0)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    expiresAt   DateTime?
+    createdBy   String?
+    isActive    Boolean   @default(true)
+
+    // Analytics
+    lastClickAt DateTime?
+    metadata    Json?
+
+    @@index([shortCode])
+    @@index([customSlug])
+    @@index([createdAt])
+    @@index([isActive])
+}

@@ -6,6 +6,7 @@ import {
   FileText,
   Layers,
   Sparkles,
+  Link2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +60,12 @@ export const featuredResources: NavItem[] = [
     description: "Convert citations to BibTeX",
   },
   {
+    name: "URL Shortener",
+    href: "/tools/s",
+    icon: Link2,
+    description: "Create short, branded links",
+  },
+  {
     name: "LaTeX to Word",
     href: "#",
     icon: Wrench,
@@ -80,6 +87,7 @@ export const footerNavSections: NavSection[] = [
     title: "Resources",
     items: [
       { name: "Reference Converter", href: "/tools/ref" },
+      { name: "URL Shortener", href: "/tools/s" },
       { name: "LaTeX to Word", href: "#" },
       { name: "API Playground", href: "#" },
       { name: "All Resources", href: "/#resources" },

@@ -41,6 +41,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  
+  /* EKD Digital Brand Colors */
+  --color-ekd-gold: #c8a061;
+  --color-ekd-maroon: #8e0e00;
+  --color-ekd-dark-brown: #1f1c18;
+  --color-ekd-charcoal: #1a1a1a;
+  --color-ekd-light-gray: #e6e6e6;
+  --color-ekd-deep-navy: #182e5f;
+  --color-ekd-light-gold: #d4af6a;
 }
 
 :root {

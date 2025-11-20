@@ -86,6 +86,49 @@ async function main() {
     },
   });
 
+  // Seed URL Shortener
+  const urlShortener = await prisma.resource.create({
+    data: {
+      slug: "s",
+      title: "URL Shortener",
+      tagline: "Create short, memorable links",
+      summary:
+        "Transform long URLs into short, branded links with custom slugs. Track clicks, set expiration dates, and manage all your links in one place.",
+      category: "UTILITY",
+      status: "LIVE",
+      featured: true,
+      metadata: {
+        features: [
+          "Custom slug support",
+          "Click tracking & analytics",
+          "Optional link expiration",
+          "Instant URL shortening",
+          "Secure & reliable redirects",
+        ],
+        domain: "rhub.ekddigital.com",
+        pathPrefix: "/s/",
+      },
+      actions: {
+        create: [
+          {
+            label: "Shorten URL",
+            description: "Start shortening links now",
+            type: "INTERNAL",
+            url: "/tools/s",
+            order: 1,
+          },
+          {
+            label: "View Docs",
+            description: "Learn about URL shortening",
+            type: "DOCUMENTATION",
+            url: "/docs/s",
+            order: 2,
+          },
+        ],
+      },
+    },
+  });
+
   // Seed API Playground
   const apiPlayground = await prisma.resource.create({
     data: {
@@ -120,6 +163,7 @@ async function main() {
 
   console.log("✅ Seeded resources:", {
     refConverter: refConverter.slug,
+    urlShortener: urlShortener.slug,
     latexConverter: latexConverter.slug,
     apiPlayground: apiPlayground.slug,
   });
