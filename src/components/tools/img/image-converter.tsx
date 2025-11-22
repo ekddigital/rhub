@@ -140,7 +140,7 @@ export function ImageConverter({ conversion }: ImageConverterProps) {
         <Button
           onClick={() => fileInputRef.current?.click()}
           variant="outline"
-          className="w-full h-24 border-2 border-dashed border-gold/40 hover:border-gold hover:bg-gold/5 dark:hover:bg-gold/10"
+          className="w-full h-24 border-2 border-dashed border-gold/40 hover:border-gold hover:bg-gold/10 dark:hover:bg-gold/10"
         >
           <div className="flex flex-col items-center gap-2">
             <FileImage className="w-8 h-8 text-gold" />
@@ -163,7 +163,7 @@ export function ImageConverter({ conversion }: ImageConverterProps) {
             <Button
               onClick={() => setShowAdvanced(!showAdvanced)}
               variant="ghost"
-              className="w-full text-gold hover:text-gold/80 hover:bg-gold/5"
+              className="w-full text-gold hover:text-gold/80 hover:bg-gold/10 dark:hover:bg-gold/10"
               size="sm"
             >
               <Settings className="w-4 h-4 mr-2" />

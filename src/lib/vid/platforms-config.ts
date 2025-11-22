@@ -262,7 +262,7 @@ export function detectPlatform(url: string): Platform | null {
 }
 
 export function getPlatformById(id: string): Platform | undefined {
-  return platforms[id];
+  return Object.values(platforms).find((p) => p.id === id);
 }
 
 export function extractVideoId(url: string, platform: Platform): string | null {
