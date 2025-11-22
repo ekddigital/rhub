@@ -106,8 +106,22 @@ export async function downloadVideo(
 /**
  * YouTube download implementation
  */
+
+// YouTube agent configuration to bypass bot detection
+const ytdlOptions = {
+  requestOptions: {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+      "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    },
+  },
+};
+
 async function getYouTubeInfo(url: string): Promise<VideoInfo> {
-  const info = await ytdl.getInfo(url);
+  const info = await ytdl.getInfo(url, ytdlOptions);
 
   // Get available qualities
   const formats = ytdl.filterFormats(info.formats, "videoandaudio");
@@ -133,7 +147,7 @@ async function downloadYouTube(
   options: DownloadOptions
 ): Promise<DownloadResult> {
   const start = Date.now();
-  const info = await ytdl.getInfo(options.url);
+  const info = await ytdl.getInfo(options.url, ytdlOptions);
 
   let stream;
   let fileName = sanitizeFileName(info.videoDetails.title);
@@ -141,6 +155,7 @@ async function downloadYouTube(
   if (options.format.type === "audio") {
     // Download audio only
     stream = ytdl(options.url, {
+      ...ytdlOptions,
       quality: "highestaudio",
       filter: "audioonly",
     });
@@ -152,6 +167,7 @@ async function downloadYouTube(
     const qualityLabel = videoQuality?.label || "highest";
 
     stream = ytdl(options.url, {
+      ...ytdlOptions,
       quality: qualityLabel.includes("1080p")
         ? "highestvideo"
         : qualityLabel.includes("720p")
