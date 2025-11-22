@@ -7,7 +7,7 @@ export interface ToolConfig {
   tagline: string;
   summary: string;
   category: "converter" | "utility" | "download" | "media";
-  group: "img" | "ref" | "url" | "video" | "audio" | "docs";
+  group: "img" | "ref" | "url" | "vid" | "audio" | "docs";
   status: "live" | "beta" | "coming-soon";
   featured: boolean;
   icon: LucideIcon;
@@ -58,41 +58,32 @@ export const TOOLS: ToolConfig[] = [
     },
   },
 
-  // SVG to PNG
+  // Image Converters Hub
   {
-    slug: "svg-to-png",
-    title: "SVG to PNG",
-    tagline: "Convert SVG vector graphics to PNG images",
+    slug: "img",
+    title: "Image Converters",
+    tagline: "Convert between 8+ image formats",
     summary:
-      "High-quality SVG to PNG conversion with custom dimensions, background colors, and compression.",
+      "Professional image conversion supporting SVG, PNG, JPG, WebP, ICO, GIF, BMP, and TIFF with 25+ conversion routes.",
     category: "converter",
     group: "img",
     status: "live",
     featured: true,
     icon: Image,
-    path: "/tools/img/svg-to-png",
+    path: "/tools/img",
     metadata: {
-      supportedFormats: ["svg"],
-      outputFormats: ["png"],
-      features: ["Custom size", "Background color", "High quality"],
-    },
-  },
-
-  // PNG to SVG (Coming Soon - requires vectorization)
-  {
-    slug: "png-to-svg",
-    title: "PNG to SVG",
-    tagline: "Convert PNG images to SVG vectors",
-    summary:
-      "Convert raster PNG images to scalable SVG vectors. Perfect for logos and icons.",
-    category: "converter",
-    group: "img",
-    status: "coming-soon",
-    featured: false,
-    icon: Image,
-    path: "/tools/img/png-to-svg",
-    metadata: {
-      note: "Vectorization feature in development",
+      supportedFormats: [
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "ico",
+        "gif",
+        "bmp",
+        "tiff",
+      ],
+      totalConversions: 25,
+      features: ["Batch conversion", "Custom dimensions", "Quality control"],
     },
   },
 
@@ -118,22 +109,44 @@ export const TOOLS: ToolConfig[] = [
     },
   },
 
-  // YouTube Downloader (Coming Soon)
+  // YouTube Downloader
   {
-    slug: "youtube-downloader",
+    slug: "yt",
     title: "YouTube Downloader",
     tagline: "Download YouTube videos and audio",
     summary:
-      "Download videos from YouTube in multiple formats and qualities. Extract audio tracks.",
+      "Download videos from YouTube in multiple formats and qualities. Extract audio tracks as MP3 or M4A.",
     category: "media",
-    group: "video",
-    status: "coming-soon",
-    featured: false,
+    group: "vid",
+    status: "live",
+    featured: true,
     icon: Video,
-    path: "/tools/video/youtube-downloader",
+    path: "/tools/vid/yt",
     metadata: {
-      supportedSites: ["YouTube", "Vimeo", "More coming"],
+      supportedSites: ["YouTube"],
       formats: ["MP4", "WebM", "MP3", "M4A"],
+      qualities: ["4K", "1080p", "720p", "480p", "360p"],
+    },
+  },
+
+  // Instagram Downloader
+  {
+    slug: "ig",
+    title: "Instagram Downloader",
+    tagline: "Download Instagram videos and Reels",
+    summary:
+      "Download Instagram Reels, IGTV videos, and posts in MP4 format without watermarks. Supports multiple quality options.",
+    category: "media",
+    group: "vid",
+    status: "live",
+    featured: true,
+    icon: Video,
+    path: "/tools/vid/ig",
+    metadata: {
+      supportedSites: ["Instagram"],
+      formats: ["MP4", "MP3"],
+      qualities: ["1080p", "720p", "480p"],
+      features: ["No watermark", "Reels", "IGTV", "Posts"],
     },
   },
 ];
