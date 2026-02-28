@@ -134,6 +134,7 @@ function useCountdown(deadline: string | null) {
   const [remaining, setRemaining] = useState<number | null>(null);
   useEffect(() => {
     if (!deadline) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRemaining(null);
       return;
     }
@@ -181,6 +182,7 @@ function ScoreInput({
 
   // Keep display in sync when stepper buttons change the value externally
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!focused) setInputStr(value.toFixed(1));
   }, [value, focused]);
 
@@ -465,7 +467,7 @@ function ReadOnlyCell({
                         {/* Comment */}
                         {score.comment && (
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 italic border-l-2 border-slate-200 dark:border-slate-600 pl-2">
-                            "{score.comment}"
+                            &ldquo;{score.comment}&rdquo;
                           </p>
                         )}
                       </div>

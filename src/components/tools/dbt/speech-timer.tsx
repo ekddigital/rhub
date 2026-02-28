@@ -104,6 +104,7 @@ export function SpeechTimer({
   const [editTopic, setEditTopic] = useState(false);
   const [editTopicValue, setEditTopicValue] = useState("");
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalTopic(topicProp ?? "");
   }, [topicProp]);
 

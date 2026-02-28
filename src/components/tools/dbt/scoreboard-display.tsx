@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { SPEECH_TYPES, SCORING, calcFinalDecision, fmtScore } from "@/lib/dbt";
+import {
+  SPEECH_TYPES,
+  SCORING,
+  calcFinalDecision,
+  calcCombinedDecision,
+  fmtScore,
+} from "@/lib/dbt";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -45,6 +51,8 @@ export function ScoreboardDisplay({ roundId, anonymise = false }: Props) {
   const [judgeTotals, setJudgeTotals] = useState<JudgeTotals[]>([]);
   const [audienceVotes, setAudienceVotes] = useState({ pro: 0, con: 0 });
   const [loading, setLoading] = useState(true);
+  /** When true, audience votes are folded into the final decision */
+  const [includeAudience, setIncludeAudience] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -253,6 +261,16 @@ export function ScoreboardDisplay({ roundId, anonymise = false }: Props) {
   }
 
   const decision = calcFinalDecision(judgeTotals);
+  const combined = calcCombinedDecision(judgeTotals, audienceVotes);
+  const hasAudienceVotes = audienceVotes.pro + audienceVotes.con > 0;
+  // Active result — switches to audience-inclusive numbers when toggle is on
+  const activeWinner = includeAudience ? combined.winner : decision.winner;
+  const activeProTotal = includeAudience
+    ? combined.proCombined
+    : decision.proGrandTotal;
+  const activeConTotal = includeAudience
+    ? combined.conCombined
+    : decision.conGrandTotal;
 
   return (
     <div className="border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
@@ -417,63 +435,91 @@ export function ScoreboardDisplay({ roundId, anonymise = false }: Props) {
           <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 text-center border border-emerald-200 dark:border-emerald-800">
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1">
               PRO Total Score
+              {includeAudience && (
+                <span className="ml-1.5 font-normal text-[10px] text-emerald-500 dark:text-emerald-500">
+                  (incl. audience)
+                </span>
+              )}
             </p>
             <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
-              {fmtScore(decision.proGrandTotal)}
+              {fmtScore(activeProTotal)}
             </p>
+            {includeAudience && (
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+                {fmtScore(combined.proJudgeTotal)} judges +{" "}
+                {combined.proAudienceVotes} audience
+              </p>
+            )}
           </div>
           <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4 text-center border border-red-200 dark:border-red-800">
             <p className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 mb-1">
               CON Total Score
+              {includeAudience && (
+                <span className="ml-1.5 font-normal text-[10px] text-red-500 dark:text-red-500">
+                  (incl. audience)
+                </span>
+              )}
             </p>
             <p className="text-3xl font-bold text-red-700 dark:text-red-300">
-              {fmtScore(decision.conGrandTotal)}
+              {fmtScore(activeConTotal)}
             </p>
+            {includeAudience && (
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
+                {fmtScore(combined.conJudgeTotal)} judges +{" "}
+                {combined.conAudienceVotes} audience
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Final Decision */}
-        <div
-          className={cn(
-            "rounded-xl p-6 text-center border-2",
-            decision.winner === "PRO"
-              ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700"
-              : decision.winner === "CON"
-                ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700"
-                : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600",
-          )}
-        >
-          <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">
-            Judges Final Decision
-          </p>
-          <p
-            className={cn(
-              "text-2xl font-bold mt-2",
-              decision.winner === "PRO"
-                ? "text-emerald-700 dark:text-emerald-300"
-                : decision.winner === "CON"
-                  ? "text-red-700 dark:text-red-300"
-                  : "text-slate-600 dark:text-slate-200",
-            )}
-          >
-            {decision.winner === "PRO"
-              ? "PRO Wins"
-              : decision.winner === "CON"
-                ? "CON Wins"
-                : "Tie"}
-          </p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {decision.proWins} – {decision.conWins} judge votes
-          </p>
-        </div>
+        {/* Audience Votes + Combined-Score Toggle */}
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          {/* Header row */}
+          <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+            <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">
+              Audience Vote
+            </p>
+            {/* Combined Score toggle */}
+            <button
+              onClick={() => setIncludeAudience((v) => !v)}
+              disabled={!hasAudienceVotes}
+              title={
+                hasAudienceVotes
+                  ? "Toggle whether audience votes are included in the final decision"
+                  : "No audience votes recorded yet"
+              }
+              className={cn(
+                "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-all border",
+                includeAudience
+                  ? "bg-[#182e5f] border-[#182e5f] text-white shadow-md"
+                  : hasAudienceVotes
+                    ? "bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-[#182e5f] hover:text-[#182e5f] dark:hover:text-[#C8A061]"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 cursor-not-allowed",
+              )}
+            >
+              {/* Toggle pill */}
+              <span
+                className={cn(
+                  "relative inline-flex items-center w-8 h-4 rounded-full transition-colors shrink-0",
+                  includeAudience
+                    ? "bg-[#C8A061]"
+                    : "bg-slate-300 dark:bg-slate-600",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute w-3 h-3 bg-white rounded-full shadow transition-transform",
+                    includeAudience ? "translate-x-4" : "translate-x-0.5",
+                  )}
+                />
+              </span>
+              Combined Score
+            </button>
+          </div>
 
-        {/* Audience votes */}
-        <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 text-center border border-slate-200 dark:border-slate-700">
-          <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500 mb-3">
-            Audience Vote
-          </p>
-          <div className="flex justify-center gap-10">
-            <div className="space-y-0.5">
+          {/* Vote numbers */}
+          <div className="flex justify-center gap-10 px-4 py-4">
+            <div className="space-y-0.5 text-center">
               <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 block">
                 {audienceVotes.pro}
               </span>
@@ -482,7 +528,7 @@ export function ScoreboardDisplay({ roundId, anonymise = false }: Props) {
               </span>
             </div>
             <div className="w-px bg-slate-200 dark:bg-slate-700" />
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 text-center">
               <span className="text-2xl font-bold text-red-600 dark:text-red-400 block">
                 {audienceVotes.con}
               </span>
@@ -491,6 +537,54 @@ export function ScoreboardDisplay({ roundId, anonymise = false }: Props) {
               </span>
             </div>
           </div>
+
+          {/* Toggled-on note */}
+          {includeAudience && (
+            <div className="px-4 pb-3 text-center">
+              <p className="text-[11px] text-[#182e5f] dark:text-[#C8A061] font-semibold">
+                Audience votes are included in the final decision above.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Final Decision */}
+        <div
+          className={cn(
+            "rounded-xl p-6 text-center border-2",
+            activeWinner === "PRO"
+              ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-300 dark:border-emerald-700"
+              : activeWinner === "CON"
+                ? "bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700"
+                : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600",
+          )}
+        >
+          <p className="text-[10px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500">
+            {includeAudience
+              ? "Combined Final Decision"
+              : "Judges Final Decision"}
+          </p>
+          <p
+            className={cn(
+              "text-2xl font-bold mt-2",
+              activeWinner === "PRO"
+                ? "text-emerald-700 dark:text-emerald-300"
+                : activeWinner === "CON"
+                  ? "text-red-700 dark:text-red-300"
+                  : "text-slate-600 dark:text-slate-200",
+            )}
+          >
+            {activeWinner === "PRO"
+              ? "PRO Wins"
+              : activeWinner === "CON"
+                ? "CON Wins"
+                : "Tie"}
+          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {includeAudience
+              ? `${fmtScore(activeProTotal)} – ${fmtScore(activeConTotal)} combined`
+              : `${decision.proWins} – ${decision.conWins} judge votes · ${fmtScore(decision.proGrandTotal)} – ${fmtScore(decision.conGrandTotal)} total`}
+          </p>
         </div>
       </div>
     </div>

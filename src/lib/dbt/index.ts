@@ -13,6 +13,7 @@ export {
   calcJudgeSideTotal,
   determineWinner,
   calcFinalDecision,
+  calcCombinedDecision,
   genOTP,
   fmtScore,
 } from "./utils";

@@ -57,8 +57,9 @@ export function determineWinner(
 }
 
 /**
- * Calculate final decision from multiple judges
- * Each judge votes for a side; majority wins
+ * Calculate final decision from multiple judges.
+ * Winner is determined by the highest accumulated grand total score
+ * (not by majority judge vote count, which is kept only for display).
  */
 export function calcFinalDecision(
   judgeTotals: { proTotal: number; conTotal: number }[],
@@ -82,12 +83,58 @@ export function calcFinalDecision(
     else if (w === "CON") conWins++;
   }
 
+  // Winner is decided by highest grand total, not by judge vote count.
+  const winner =
+    proGrandTotal > conGrandTotal
+      ? ("PRO" as const)
+      : conGrandTotal > proGrandTotal
+        ? ("CON" as const)
+        : ("TIE" as const);
+
   return {
     proWins,
     conWins,
-    winner: proWins > conWins ? "PRO" : conWins > proWins ? "CON" : "TIE",
+    winner,
     proGrandTotal,
     conGrandTotal,
+  };
+}
+
+/**
+ * Calculate the combined decision that merges judge grand totals
+ * with audience vote counts.  Used when the "Combined Score" toggle is on.
+ */
+export function calcCombinedDecision(
+  judgeTotals: { proTotal: number; conTotal: number }[],
+  audienceVotes: { pro: number; con: number },
+): {
+  proJudgeTotal: number;
+  conJudgeTotal: number;
+  proAudienceVotes: number;
+  conAudienceVotes: number;
+  proCombined: number;
+  conCombined: number;
+  winner: "PRO" | "CON" | "TIE";
+} {
+  const base = calcFinalDecision(judgeTotals);
+  const proCombined = base.proGrandTotal + audienceVotes.pro;
+  const conCombined = base.conGrandTotal + audienceVotes.con;
+
+  const winner =
+    proCombined > conCombined
+      ? ("PRO" as const)
+      : conCombined > proCombined
+        ? ("CON" as const)
+        : ("TIE" as const);
+
+  return {
+    proJudgeTotal: base.proGrandTotal,
+    conJudgeTotal: base.conGrandTotal,
+    proAudienceVotes: audienceVotes.pro,
+    conAudienceVotes: audienceVotes.con,
+    proCombined,
+    conCombined,
+    winner,
   };
 }
 

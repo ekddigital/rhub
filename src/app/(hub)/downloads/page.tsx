@@ -61,8 +61,8 @@ export default async function DownloadsPage() {
               Coming Soon
             </h2>
             <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-              We're preparing important documents and resources for you. Check
-              back soon for corporate documents, forms, and educational
+              We&apos;re preparing important documents and resources for you.
+              Check back soon for corporate documents, forms, and educational
               materials.
             </p>
           </div>

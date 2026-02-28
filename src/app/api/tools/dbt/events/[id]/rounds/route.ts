@@ -146,15 +146,15 @@ export async function POST(req: NextRequest, { params }: Params) {
       const emailPromises = round.judgeSlots
         .filter((slot) => slot.judge?.user?.email)
         .map((slot) =>
-        sendGameNotificationEmail(
-          slot.judge!.user.email,
-          event.title,
-          round.title || `Game ${roundNum}`,
-          data.topic,
-          data.startTime || null,
-          data.gameType,
-        ),
-      );
+          sendGameNotificationEmail(
+            slot.judge!.user.email,
+            event.title,
+            round.title || `Game ${roundNum}`,
+            data.topic,
+            data.startTime || null,
+            data.gameType,
+          ),
+        );
       // Fire and forget — don't block response on email delivery
       Promise.allSettled(emailPromises).catch(console.error);
     }
