@@ -7,6 +7,7 @@ import {
   FileCode,
   FileOutput,
   Gavel,
+  CalendarRange,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -26,7 +27,8 @@ export interface ToolConfig {
     | "latex"
     | "word"
     | "doc"
-    | "dbt";
+    | "dbt"
+    | "conf";
   subcategory?:
     | "reference"
     | "latex"
@@ -34,7 +36,8 @@ export interface ToolConfig {
     | "image"
     | "video"
     | "document"
-    | "debate";
+    | "debate"
+    | "conference";
   status: "live" | "beta" | "coming-soon";
   featured: boolean;
   icon: LucideIcon;
@@ -256,6 +259,34 @@ export const TOOLS: ToolConfig[] = [
         "Word to PDF",
         "Formatting preservation",
         "LibreOffice powered",
+      ],
+    },
+  },
+
+  // Conference Management
+  {
+    slug: "conf",
+    title: "Conference Hub",
+    tagline: "LSUIC Conference Planning & Management",
+    summary:
+      "Full conference management system with budget tools, payment tracking, committee management, delegate registration, meeting scheduler, and timeline tracking.",
+    category: "utility",
+    group: "conf",
+    subcategory: "conference",
+    status: "live",
+    featured: true,
+    icon: CalendarRange,
+    path: "/tools/conf",
+    hasSubTools: true,
+    metadata: {
+      features: [
+        "Budget manager with auto-calculations",
+        "Payment tracking with screenshot uploads",
+        "Committee member management",
+        "Delegate registration & fee tracking",
+        "Weekly meeting scheduler",
+        "Timeline & milestone tracking",
+        "CSV/PDF export",
       ],
     },
   },

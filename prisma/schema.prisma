@@ -498,3 +498,274 @@ model CriteriaScore {
     @@unique([speechScoreId, criteriaKey])
     @@index([speechScoreId])
 }
+
+// ==========================================
+// CONFERENCE MANAGEMENT SYSTEM
+// ==========================================
+
+enum ConfStatus {
+    PLANNING
+    ACTIVE
+    COMPLETED
+    CANCELLED
+}
+
+enum BudgetCat {
+    FOOD
+    BEVERAGE
+    SUPPLIES
+    LOGISTICS
+    VENUE
+    TRANSPORT
+    MEDIA
+    ENTERTAINMENT
+    ADMIN
+    MISC
+}
+
+enum BudgetStatus {
+    DRAFT
+    REVIEW
+    APPROVED
+    REJECTED
+}
+
+enum PayMethod {
+    WECHAT
+    ALIPAY
+    BANK
+    CASH
+    OTHER
+}
+
+enum PayStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum DelStatus {
+    REGISTERED
+    CONFIRMED
+    ATTENDED
+    CANCELLED
+}
+
+enum MeetStatus {
+    SCHEDULED
+    IN_PROGRESS
+    DONE
+    CANCELLED
+}
+
+enum ConfRole {
+    CHAIR
+    VICE_CHAIR
+    SECRETARY
+    TREASURER
+    COMMITTEE
+    DELEGATE
+}
+
+model ConfEvent {
+    id        String     @id @default(cuid())
+    name      String // "LSUIC 20th Anniversary National Conference"
+    slug      String     @unique
+    year      Int
+    city      String
+    venue     String
+    venueCn   String? // Chinese name
+    address   String?
+    startsAt  DateTime
+    endsAt    DateTime
+    xrRate    Float      @default(7.2) // ¥ to $ exchange rate
+    status    ConfStatus @default(PLANNING)
+    deposit   Float? // Deposit amount paid
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+
+    budgets    ConfBudget[]
+    delegates  ConfDelegate[]
+    meetings   ConfMeeting[]
+    members    ConfMember[]
+    timeline   ConfTimeline[]
+    payments   ConfPayment[]
+
+    @@index([slug])
+    @@index([status])
+}
+
+model ConfMember {
+    id        String   @id @default(cuid())
+    confId    String
+    userId    String? // Optional link to User account
+    name      String
+    role      ConfRole @default(COMMITTEE)
+    city      String?
+    phone     String?
+    email     String?
+    title     String? // "Cooking Chair", "Sports Chair", etc.
+    isActive  Boolean  @default(true)
+    joinedAt  DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    conf    ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
+    budgets ConfBudget[] @relation("BudgetCreator")
+
+    @@index([confId])
+    @@index([userId])
+}
+
+model ConfBudget {
+    id         String       @id @default(cuid())
+    confId     String
+    createdBy  String // ConfMember id
+    title      String // "Cooking Committee Budget"
+    category   BudgetCat    @default(FOOD)
+    status     BudgetStatus @default(DRAFT)
+    notes      String?      @db.Text
+    approvedBy String?
+    approvedAt DateTime?
+    createdAt  DateTime     @default(now())
+    updatedAt  DateTime     @updatedAt
+
+    conf     ConfEvent        @relation(fields: [confId], references: [id], onDelete: Cascade)
+    creator  ConfMember       @relation("BudgetCreator", fields: [createdBy], references: [id])
+    items    ConfBudgetItem[]
+    payments ConfPayment[]
+
+    @@index([confId])
+    @@index([createdBy])
+    @@index([status])
+}
+
+model ConfBudgetItem {
+    id        String   @id @default(cuid())
+    budgetId  String
+    no        Int // display order number
+    name      String
+    desc      String?
+    qty       Float
+    unit      String // "KG", "carton", "pcs", "days"
+    unitPrice Float // in ¥ RMB always
+    notes     String?
+    isPaid    Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // computed: total = qty × unitPrice (done in app layer)
+    budget   ConfBudget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+    payments ConfPayment[]
+
+    @@index([budgetId])
+}
+
+model ConfPayment {
+    id         String    @id @default(cuid())
+    confId     String
+    budgetId   String?
+    itemId     String?
+    amount     Float // in ¥ RMB
+    paidBy     String // name of payer
+    paidTo     String? // payee name
+    method     PayMethod @default(WECHAT)
+    ref        String? // transaction reference
+    note       String?   @db.Text
+    status     PayStatus @default(PENDING)
+    approvedBy String?
+    approvedAt DateTime?
+    paidAt     DateTime  @default(now())
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+
+    conf   ConfEvent       @relation(fields: [confId], references: [id], onDelete: Cascade)
+    budget ConfBudget?     @relation(fields: [budgetId], references: [id], onDelete: SetNull)
+    item   ConfBudgetItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+    proofs ConfPaymentProof[]
+
+    @@index([confId])
+    @@index([budgetId])
+    @@index([status])
+}
+
+model ConfPaymentProof {
+    id         String   @id @default(cuid())
+    paymentId  String
+    fileName   String
+    filePath   String
+    fileSize   Int?
+    fileType   String? // "image/png", "image/jpeg"
+    uploadedBy String?
+    createdAt  DateTime @default(now())
+
+    payment ConfPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+    @@index([paymentId])
+}
+
+model ConfDelegate {
+    id           String    @id @default(cuid())
+    confId       String
+    userId       String?
+    name         String
+    email        String?
+    university   String?
+    city         String
+    phone        String?
+    wechat       String?
+    arrival      DateTime?
+    departure    DateTime?
+    accommodated Boolean   @default(false)
+    feeAmount    Float? // Registration fee
+    feePaid      Boolean   @default(false)
+    status       DelStatus @default(REGISTERED)
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+    @@index([status])
+    @@index([city])
+}
+
+model ConfMeeting {
+    id        String     @id @default(cuid())
+    confId    String
+    title     String // "Weekly Committee Meeting #1"
+    meetingNo Int
+    scheduled DateTime
+    location  String? // "Online - WeChat" or venue room
+    agenda    String?    @db.Text
+    minutes   String?    @db.Text
+    status    MeetStatus @default(SCHEDULED)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+    @@index([scheduled])
+    @@index([status])
+}
+
+model ConfTimeline {
+    id          String    @id @default(cuid())
+    confId      String
+    title       String // "Committee Formation", "Budget Deadline"
+    description String?   @db.Text
+    date        DateTime
+    endDate     DateTime?
+    category    String? // "planning", "registration", "event", "post-event"
+    isCompleted Boolean   @default(false)
+    completedAt DateTime?
+    sortOrder   Int       @default(0)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+    @@index([date])
+    @@index([category])
+}
