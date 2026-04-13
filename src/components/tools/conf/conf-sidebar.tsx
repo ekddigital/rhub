@@ -9,6 +9,7 @@ import {
   DollarSign,
   LayoutDashboard,
   UserCheck,
+  UserPlus,
   Users,
   Wallet,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   { href: "/tools/conf/payments", label: "Payments", icon: DollarSign },
   { href: "/tools/conf/committee", label: "Committee", icon: Users },
   { href: "/tools/conf/delegates", label: "Delegates", icon: UserCheck },
+  { href: "/tools/conf/delegates/register", label: "Register", icon: UserPlus },
   { href: "/tools/conf/meetings", label: "Meetings", icon: CalendarDays },
   { href: "/tools/conf/timeline", label: "Timeline", icon: Clock },
 ];

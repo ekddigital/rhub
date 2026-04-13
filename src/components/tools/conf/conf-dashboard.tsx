@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Wallet,
   UserCheck,
+  UserPlus,
   CalendarDays,
   FileText,
 } from "lucide-react";
@@ -50,6 +51,13 @@ const NAV_ITEMS = [
     title: "Delegates",
     desc: "Delegate registration, fee tracking, city-based grouping",
     color: "text-orange-500",
+  },
+  {
+    href: "/tools/conf/delegates/register",
+    icon: UserPlus,
+    title: "Registration Portal",
+    desc: "Public form link for participant registration and document upload",
+    color: "text-indigo-500",
   },
   {
     href: "/tools/conf/meetings",

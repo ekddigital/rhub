@@ -59,6 +59,12 @@ const DOC_LINKS = [
     icon: UserCheck,
   },
   {
+    href: "/tools/conf/delegates/register",
+    title: "Public Registration Portal",
+    description: "Shareable participant signup form with uploads and payment declaration.",
+    icon: UserCheck,
+  },
+  {
     href: "/tools/conf/meetings",
     title: "Meetings & Minutes",
     description: "Recurring meeting cadence, agenda flow, and minutes records.",
@@ -136,6 +142,21 @@ export default function ConferenceDocsPage() {
           </Link>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">2026 Workflow Notes</CardTitle>
+          <CardDescription>
+            Registration now captures passport identity, payment state, and booklet media for automated participant operations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>1. Delegates receive a unique conference ID on registration.</p>
+          <p>2. Personal attendance flyer becomes available after payment + booklet photo.</p>
+          <p>3. Pairing requests support same-gender default policy, legal-partner exception flow, and single-room requests.</p>
+          <p>4. Chair/admin controls support manual room assignment with override reason tracking.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

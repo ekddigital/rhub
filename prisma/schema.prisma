@@ -567,6 +567,37 @@ enum ConfRole {
     DELEGATE
 }
 
+enum Gender {
+    MALE
+    FEMALE
+}
+
+enum RoomPref {
+    PAIR
+    SINGLE
+}
+
+enum PairReqType {
+    STANDARD_PAIR
+    LEGAL_PARTNER
+    SINGLE_ROOM
+}
+
+enum PairReqStatus {
+    PENDING
+    ACCEPTED
+    DECLINED
+    CHAIR_APPROVED
+    CHAIR_REJECTED
+    CANCELLED
+}
+
+enum RoomAssignStatus {
+    PENDING
+    ASSIGNED
+    CANCELLED
+}
+
 model ConfEvent {
     id        String     @id @default(cuid())
     name      String // "LSUIC 20th Anniversary National Conference"
@@ -590,6 +621,8 @@ model ConfEvent {
     members    ConfMember[]
     timeline   ConfTimeline[]
     payments   ConfPayment[]
+    pairRequests ConfPairRequest[]
+    roomAssignments ConfRoomAssignment[]
 
     @@index([slug])
     @@index([status])
@@ -605,6 +638,8 @@ model ConfMember {
     phone     String?
     email     String?
     title     String? // "Cooking Chair", "Sports Chair", etc.
+    photoPath String?
+    photoFileName String?
     isActive  Boolean  @default(true)
     joinedAt  DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -708,25 +743,85 @@ model ConfDelegate {
     confId       String
     userId       String?
     name         String
+    passportNo   String?
+    gender       Gender?
+    delegateCode String?   @unique
     email        String?
     university   String?
     city         String
     phone        String?
     wechat       String?
+    passportPhotoPath String?
+    bookletPhotoPath  String?
     arrival      DateTime?
     departure    DateTime?
     accommodated Boolean   @default(false)
     feeAmount    Float? // Registration fee
     feePaid      Boolean   @default(false)
+    roomPref     RoomPref  @default(PAIR)
+    partnerClaimNote String? @db.Text
+    wantsSingleRoom Boolean @default(false)
+    flyerReady   Boolean   @default(false)
+    flyerIssuedAt DateTime?
     status       DelStatus @default(REGISTERED)
     createdAt    DateTime  @default(now())
     updatedAt    DateTime  @updatedAt
 
     conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+    sentPairRequests ConfPairRequest[] @relation("PairRequester")
+    receivedPairRequests ConfPairRequest[] @relation("PairTarget")
+    roomAsA ConfRoomAssignment? @relation("RoomOccupantA")
+    roomAsB ConfRoomAssignment? @relation("RoomOccupantB")
 
     @@index([confId])
     @@index([status])
     @@index([city])
+    @@index([gender])
+    @@index([feePaid])
+}
+
+model ConfPairRequest {
+    id         String       @id @default(cuid())
+    confId     String
+    requesterId String
+    targetId   String?
+    requestType PairReqType @default(STANDARD_PAIR)
+    status     PairReqStatus @default(PENDING)
+    note       String?      @db.Text
+    adminNote  String?      @db.Text
+    respondedAt DateTime?
+    createdAt  DateTime     @default(now())
+    updatedAt  DateTime     @updatedAt
+
+    conf      ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
+    requester ConfDelegate @relation("PairRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+    target    ConfDelegate? @relation("PairTarget", fields: [targetId], references: [id], onDelete: SetNull)
+
+    @@index([confId, status])
+    @@index([requesterId])
+    @@index([targetId])
+}
+
+model ConfRoomAssignment {
+    id          String           @id @default(cuid())
+    confId      String
+    roomCode    String
+    occupantAId String
+    occupantBId String?
+    status      RoomAssignStatus @default(PENDING)
+    isManual    Boolean          @default(false)
+    overrideReason String?       @db.Text
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
+
+    conf      ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
+    occupantA ConfDelegate @relation("RoomOccupantA", fields: [occupantAId], references: [id], onDelete: Cascade)
+    occupantB ConfDelegate? @relation("RoomOccupantB", fields: [occupantBId], references: [id], onDelete: SetNull)
+
+    @@unique([confId, roomCode])
+    @@unique([occupantAId])
+    @@unique([occupantBId])
+    @@index([confId, status])
 }
 
 model ConfMeeting {

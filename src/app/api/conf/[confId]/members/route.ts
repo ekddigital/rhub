@@ -30,10 +30,27 @@ export async function POST(
   try {
     const { confId } = await params;
     const body = await req.json();
-    const { name, role, city, phone, email, title } = body;
+    const { name, role, city, phone, email, title, photoPath, photoFileName } =
+      body;
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+
+    const allowedRoles = [
+      "CHAIR",
+      "VICE_CHAIR",
+      "SECRETARY",
+      "TREASURER",
+      "COMMITTEE",
+      "DELEGATE",
+    ];
+
+    if (role && !allowedRoles.includes(role)) {
+      return NextResponse.json(
+        { error: "Invalid committee role" },
+        { status: 400 },
+      );
     }
 
     const member = await prisma.confMember.create({
@@ -45,6 +62,8 @@ export async function POST(
         phone: phone || null,
         email: email || null,
         title: title || null,
+        photoPath: photoPath || null,
+        photoFileName: photoFileName || null,
       },
     });
 

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 
 // GET /api/conf/[confId]/delegates
 export async function GET(
@@ -30,25 +31,102 @@ export async function POST(
   try {
     const { confId } = await params;
     const body = await req.json();
-    const { name, email, university, city, phone, wechat, feeAmount } = body;
+    const {
+      name,
+      email,
+      university,
+      city,
+      phone,
+      wechat,
+      feeAmount,
+      feePaid,
+      passportNo,
+      gender,
+      roomPref,
+      wantsSingleRoom,
+      partnerClaimNote,
+    } = body;
 
-    if (!name || !city) {
+    if (
+      !name ||
+      !passportNo ||
+      !university ||
+      !city ||
+      !phone ||
+      !wechat ||
+      !email ||
+      !gender
+    ) {
       return NextResponse.json(
-        { error: "name and city are required" },
+        {
+          error:
+            "name, passportNo, university, city, phone, wechat, email, and gender are required",
+        },
         { status: 400 },
       );
     }
+
+    if (!["MALE", "FEMALE"].includes(gender)) {
+      return NextResponse.json(
+        { error: "gender must be MALE or FEMALE" },
+        { status: 400 },
+      );
+    }
+
+    const event = await prisma.confEvent.findUnique({
+      where: { id: confId },
+      select: { id: true, year: true },
+    });
+
+    if (!event) {
+      return NextResponse.json(
+        { error: "Conference not found" },
+        { status: 404 },
+      );
+    }
+
+    const existingPassport = await prisma.confDelegate.findFirst({
+      where: { confId, passportNo },
+      select: { id: true },
+    });
+
+    if (existingPassport) {
+      return NextResponse.json(
+        { error: "A delegate with this passport number already exists" },
+        { status: 409 },
+      );
+    }
+
+    const delegateCode = await getNextDelegateCode(confId, event.year);
+
+    const feePaidBool = Boolean(feePaid);
+    const wantsSingleRoomBool = Boolean(wantsSingleRoom);
+    const resolvedRoomPref = wantsSingleRoomBool
+      ? "SINGLE"
+      : roomPref || "PAIR";
 
     const delegate = await prisma.confDelegate.create({
       data: {
         confId,
         name,
+        passportNo,
+        delegateCode,
+        gender,
         email: email || null,
         university: university || null,
         city,
         phone: phone || null,
         wechat: wechat || null,
         feeAmount: feeAmount ? Number(feeAmount) : null,
+        feePaid: feePaidBool,
+        roomPref: resolvedRoomPref,
+        wantsSingleRoom: wantsSingleRoomBool,
+        partnerClaimNote: partnerClaimNote || null,
+        status: feePaidBool ? "CONFIRMED" : "REGISTERED",
+        flyerReady: canIssueFlyer({
+          feePaid: feePaidBool,
+          bookletPhotoPath: null,
+        }),
       },
     });
 

@@ -8,6 +8,8 @@ import type {
   ConfDelegate,
   ConfMeeting,
   ConfTimeline,
+  ConfPairRequest,
+  ConfRoomAssignment,
   BudgetCat,
   BudgetStatus,
   PayMethod,
@@ -16,6 +18,11 @@ import type {
   DelStatus,
   MeetStatus,
   ConfStatus,
+  Gender,
+  RoomPref,
+  PairReqType,
+  PairReqStatus,
+  RoomAssignStatus,
 } from "@prisma/client";
 
 // Re-export Prisma types
@@ -29,6 +36,8 @@ export type {
   ConfDelegate,
   ConfMeeting,
   ConfTimeline,
+  ConfPairRequest,
+  ConfRoomAssignment,
 };
 
 // Re-export enums
@@ -41,6 +50,11 @@ export {
   DelStatus,
   MeetStatus,
   ConfStatus,
+  Gender,
+  RoomPref,
+  PairReqType,
+  PairReqStatus,
+  RoomAssignStatus,
 };
 
 // Extended types with relations
