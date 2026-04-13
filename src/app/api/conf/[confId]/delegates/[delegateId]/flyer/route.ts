@@ -25,6 +25,9 @@ type EmbeddedFonts = {
 
 let embeddedFontsPromise: Promise<EmbeddedFonts | null> | null = null;
 
+const LIBERIA_INDEPENDENCE_YEAR = 1847;
+const LSUIC_CONFERENCE_EDITION = 20;
+
 function clampText(input: string, maxChars: number) {
   const value = input.trim();
   if (value.length <= maxChars) return value;
@@ -60,6 +63,31 @@ function toDataUri(data: ArrayBuffer | Buffer, mimeType: string) {
       : Buffer.from(data);
   const base64 = binary.toString("base64");
   return `data:${mimeType};base64,${base64}`;
+}
+
+function formatConferenceDateRange(start: Date | null, end: Date | null) {
+  if (!start || !end) return null;
+
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+  const monthLong = new Intl.DateTimeFormat("en-US", { month: "long" });
+
+  if (sameMonth) {
+    return `${monthLong.format(start).toUpperCase()} ${start.getDate()}-${end.getDate()}, ${end.getFullYear()}`;
+  }
+
+  if (sameYear) {
+    return `${monthLong.format(start).toUpperCase()} ${start.getDate()} - ${monthLong.format(end).toUpperCase()} ${end.getDate()}, ${end.getFullYear()}`;
+  }
+
+  return `${monthLong.format(start).toUpperCase()} ${start.getDate()}, ${start.getFullYear()} - ${monthLong.format(end).toUpperCase()} ${end.getDate()}, ${end.getFullYear()}`;
+}
+
+function formatConferenceWeekdayRange(start: Date | null, end: Date | null) {
+  if (!start || !end) return null;
+
+  const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" });
+  return `${weekday.format(start).toUpperCase()} - ${weekday.format(end).toUpperCase()}`;
 }
 
 async function loadPublicConfImageDataUri(candidates: readonly string[]) {
@@ -208,7 +236,7 @@ export async function GET(
 
     const event = await prisma.confEvent.findUnique({
       where: { id: confId },
-      select: { year: true },
+      select: { year: true, startsAt: true, endsAt: true },
     });
 
     const confYear = event?.year || new Date().getFullYear();
@@ -220,7 +248,6 @@ export async function GET(
     const embeddedFonts = await loadEmbeddedFonts();
     const photoDataUri = await fetchImageAsDataUri(photoUrl);
 
-    const fullName = escapeXml(clampText(delegate.name, 34));
     const splitName = delegate.name.trim().split(/\s+/).filter(Boolean);
     const firstName = escapeXml(clampText(splitName[0] || delegate.name, 18));
     const familyName = escapeXml(
@@ -229,17 +256,27 @@ export async function GET(
         24,
       ),
     );
-    const city = escapeXml(clampText(delegate.city || "Jinan, China", 30));
-    const cityHeading = escapeXml(
-      clampText((delegate.city || "Jinan").toUpperCase(), 14),
-    );
-    const university = escapeXml(
-      clampText(delegate.university || "LSUIC Delegate", 44),
-    );
-    const code = escapeXml(delegate.delegateCode || "PENDING-CODE");
+    const cityHeadingRaw = clampText((delegate.city || "Jinan").toUpperCase(), 14);
+    const cityHeading = escapeXml(cityHeadingRaw);
     const cardSubtitle = escapeXml(
       `LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`,
     );
+    const dateRangeLabel = escapeXml(
+      formatConferenceDateRange(event?.startsAt ?? null, event?.endsAt ?? null) ||
+        `JULY 23-27, ${confYear}`,
+    );
+    const weekdayRangeLabel = escapeXml(
+      formatConferenceWeekdayRange(event?.startsAt ?? null, event?.endsAt ?? null) ||
+        "THURSDAY - SUNDAY",
+    );
+    const themeLine = escapeXml(`${cityHeadingRaw} RENAISSANCE ${confYear}`);
+    const delegateStatement = escapeXml(
+      `OF LSUIC ${confYear} CONFERENCE, AND I WILL BE IN ${cityHeadingRaw}`,
+    );
+    const scoreLine = escapeXml(
+      `LSUIC @ ${LSUIC_CONFERENCE_EDITION}, LIB @ ${Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR)}`,
+    );
+    const committeeLine = escapeXml(`${cityHeadingRaw} ${confYear} CONFERENCE COMMITTEE`);
     const encodedConfId = encodeURIComponent(confId);
     const encodedDelegateId = encodeURIComponent(delegateId);
     const downloadBasePath = `/api/conf/${encodedConfId}/delegates/${encodedDelegateId}/flyer`;
@@ -299,12 +336,12 @@ export async function GET(
 
     const photoLayer = photoDataUri
       ? `<g>
-  <rect x="184" y="486" width="712" height="508" rx="30" fill="#EEF2FA"/>
-  <image href="${escapeXml(photoDataUri)}" x="184" y="486" width="712" height="508" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
+  <rect x="184" y="526" width="712" height="468" rx="30" fill="#EEF2FA"/>
+  <image href="${escapeXml(photoDataUri)}" x="184" y="526" width="712" height="468" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
 </g>`
       : `<g>
-  <rect x="184" y="486" width="712" height="508" rx="30" fill="#E9F0FF"/>
-  <text x="540" y="760" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
+  <rect x="184" y="526" width="712" height="468" rx="30" fill="#E9F0FF"/>
+  <text x="540" y="770" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
 </g>`;
 
     const heroLayer = cityBackdropDataUri
@@ -343,7 +380,7 @@ export async function GET(
       <rect x="110" y="116" width="860" height="356" rx="30"/>
     </clipPath>
     <clipPath id="photoClip">
-      <rect x="184" y="486" width="712" height="508" rx="30"/>
+      <rect x="184" y="526" width="712" height="468" rx="30"/>
     </clipPath>
   </defs>
 
@@ -365,6 +402,8 @@ export async function GET(
   <text x="130" y="258" font-size="66" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">CONFIRMED DELEGATE</text>
   <text x="130" y="304" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
   <text x="130" y="340" font-size="22" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#F6F8FF">${cityHeading}, CHINA • OFFICIAL PARTICIPANT CARD</text>
+  <text x="130" y="372" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${dateRangeLabel}</text>
+  <text x="130" y="402" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#DDE8FF">${weekdayRangeLabel}</text>
   <a href="${downloadPngUrl}">
     <rect x="804" y="288" width="68" height="34" rx="9" fill="#C8102E"/>
     <text x="838" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">PNG</text>
@@ -374,27 +413,30 @@ export async function GET(
     <text x="912" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
   </a>
   <text x="540" y="430" text-anchor="middle" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
+  <text x="540" y="460" text-anchor="middle" font-size="24" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${themeLine}</text>
 
-  <rect x="130" y="438" width="820" height="12" fill="#C8102E"/>
-  <rect x="130" y="450" width="820" height="8" fill="#FFFFFF"/>
-  <rect x="130" y="458" width="820" height="12" fill="#003893"/>
+  <rect x="130" y="466" width="820" height="12" fill="#C8102E"/>
+  <rect x="130" y="478" width="820" height="8" fill="#FFFFFF"/>
+  <rect x="130" y="486" width="820" height="12" fill="#003893"/>
 
   <g filter="url(#softShadow)">
-    <rect x="166" y="468" width="748" height="544" rx="36" fill="#F4F8FF" stroke="#D0DCEB" stroke-width="3"/>
+    <rect x="166" y="508" width="748" height="504" rx="36" fill="#F4F8FF" stroke="#D0DCEB" stroke-width="3"/>
   </g>
   ${photoLayer}
 
-  <text x="540" y="1060" text-anchor="middle" font-size="84" font-family="CardScript, Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
-  <text x="540" y="1122" text-anchor="middle" font-size="62" font-family="CardBody, Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
-  <text x="540" y="1158" text-anchor="middle" font-size="20" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#516289">${fullName}</text>
-  <text x="540" y="1190" text-anchor="middle" font-size="38" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#3E4D6C">${university}</text>
-  <text x="540" y="1218" text-anchor="middle" font-size="27" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${city} | ${code}</text>
+  <text x="540" y="1048" text-anchor="middle" font-size="54" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#101827">I am</text>
+  <text x="540" y="1102" text-anchor="middle" font-size="78" font-family="CardScript, Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
+  <text x="540" y="1158" text-anchor="middle" font-size="60" font-family="CardBody, Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
+  <text x="540" y="1198" text-anchor="middle" font-size="54" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
+  <text x="540" y="1230" text-anchor="middle" font-size="20" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${delegateStatement}</text>
+  <text x="540" y="1258" text-anchor="middle" font-size="44" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
+  <text x="540" y="1280" text-anchor="middle" font-size="19" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#1E2F5E">${committeeLine}</text>
 
-  <rect x="130" y="1228" width="820" height="48" rx="16" fill="#C8102E"/>
-  <text x="540" y="1260" text-anchor="middle" font-size="25" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
+  <rect x="130" y="1288" width="820" height="28" rx="12" fill="#C8102E"/>
+  <text x="540" y="1308" text-anchor="middle" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
 
-  <rect x="130" y="1278" width="820" height="44" rx="16" fill="#0B1E78"/>
-  <text x="540" y="1308" text-anchor="middle" font-size="30" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#D7E4FF">Motto: Excellence Through Hard Work</text>
+  <rect x="130" y="1320" width="820" height="24" rx="12" fill="#0B1E78"/>
+  <text x="540" y="1338" text-anchor="middle" font-size="17" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#D7E4FF">Motto: Excellence Through Hard Work</text>
 </svg>`;
 
     if (!delegate.flyerIssuedAt) {
