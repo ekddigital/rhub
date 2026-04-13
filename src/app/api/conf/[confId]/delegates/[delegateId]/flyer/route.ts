@@ -61,6 +61,10 @@ async function fetchImageAsDataUri(imageUrl: string) {
       .get("content-type")
       ?.split(";")[0]
       ?.trim();
+    if (headerMime && !headerMime.startsWith("image/")) {
+      return null;
+    }
+
     const mimeType = headerMime || guessMimeType(imageUrl);
     const bytes = await response.arrayBuffer();
     return toDataUri(bytes, mimeType);

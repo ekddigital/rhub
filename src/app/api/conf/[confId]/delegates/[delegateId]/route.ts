@@ -2,10 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 // GET /api/conf/[confId]/delegates/[delegateId]
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ confId: string; delegateId: string }> },
 ) {
   try {
@@ -24,7 +25,16 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(delegate);
+    const origin = new URL(req.url).origin;
+    return NextResponse.json({
+      ...delegate,
+      passportPhotoPath: delegate.passportPhotoPath
+        ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
+        : null,
+      bookletPhotoPath: delegate.bookletPhotoPath
+        ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+        : null,
+    });
   } catch (error) {
     console.error("Failed to fetch delegate:", error);
     return NextResponse.json(
@@ -139,7 +149,16 @@ export async function PATCH(
       } as never,
     });
 
-    return NextResponse.json(finalDelegate);
+    const origin = new URL(req.url).origin;
+    return NextResponse.json({
+      ...finalDelegate,
+      passportPhotoPath: finalDelegate.passportPhotoPath
+        ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
+        : null,
+      bookletPhotoPath: finalDelegate.bookletPhotoPath
+        ? resolveStoredAssetUrl(finalDelegate.bookletPhotoPath, origin)
+        : null,
+    });
   } catch (error) {
     console.error("Failed to update delegate:", error);
     return NextResponse.json(

@@ -2,10 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 // GET /api/conf/[confId]/delegates
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ confId: string }> },
 ) {
   try {
@@ -17,7 +18,19 @@ export async function GET(
       where: { confId },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(delegates);
+
+    const origin = new URL(req.url).origin;
+    const normalized = delegates.map((delegate) => ({
+      ...delegate,
+      passportPhotoPath: delegate.passportPhotoPath
+        ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
+        : null,
+      bookletPhotoPath: delegate.bookletPhotoPath
+        ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+        : null,
+    }));
+
+    return NextResponse.json(normalized);
   } catch (error) {
     console.error("Failed to fetch delegates:", error);
     return NextResponse.json(

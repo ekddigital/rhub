@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 // POST /api/conf/[confId]/members/[memberId]/photo — upload a committee profile photo
 export async function POST(
@@ -50,15 +51,26 @@ export async function POST(
       projectName: "rhub-conf-members",
     });
 
+    const storedPhotoPath = uploaded.downloadUrl || uploaded.publicUrl;
+
     const updated = await prisma.confMember.update({
       where: { id: memberId },
       data: {
-        photoPath: uploaded.publicUrl,
+        photoPath: storedPhotoPath,
         photoFileName: file.name,
       },
     });
 
-    return NextResponse.json(updated, { status: 201 });
+    const origin = new URL(req.url).origin;
+    return NextResponse.json(
+      {
+        ...updated,
+        photoPath: updated.photoPath
+          ? resolveStoredAssetUrl(updated.photoPath, origin)
+          : null,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Failed to upload member photo:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });

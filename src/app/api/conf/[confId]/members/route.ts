@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 // GET /api/conf/[confId]/members — list all committee members
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ confId: string }> },
 ) {
   try {
@@ -16,7 +17,16 @@ export async function GET(
       where: { confId },
       orderBy: { joinedAt: "asc" },
     });
-    return NextResponse.json(members);
+
+    const origin = new URL(req.url).origin;
+    const normalized = members.map((member) => ({
+      ...member,
+      photoPath: member.photoPath
+        ? resolveStoredAssetUrl(member.photoPath, origin)
+        : null,
+    }));
+
+    return NextResponse.json(normalized);
   } catch (error) {
     console.error("Failed to fetch members:", error);
     return NextResponse.json(
@@ -74,7 +84,16 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(member, { status: 201 });
+    const origin = new URL(req.url).origin;
+    return NextResponse.json(
+      {
+        ...member,
+        photoPath: member.photoPath
+          ? resolveStoredAssetUrl(member.photoPath, origin)
+          : null,
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Failed to create member:", error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 type BookletScope = "all" | "paid" | "confirmed";
 
@@ -139,10 +140,15 @@ export async function GET(
       }
     }
 
+    const origin = new URL(req.url).origin;
+
     const participants = delegates.map((delegate) => {
       const room = roomByDelegate.get(delegate.id);
       return {
         ...delegate,
+        bookletPhotoPath: delegate.bookletPhotoPath
+          ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+          : null,
         roomCode: room?.roomCode || null,
         roommateName: room?.roommateName || null,
         roomType: room?.roomType || null,

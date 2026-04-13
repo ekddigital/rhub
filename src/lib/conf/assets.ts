@@ -17,6 +17,24 @@ function isHttpUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
 
+function extractAssetId(value: string) {
+  const direct = value.match(
+    /\/api\/v1\/assets\/([0-9a-fA-F-]{36})\/download/i,
+  );
+  if (direct?.[1]) return direct[1];
+
+  const fromFilePath = value.match(
+    /\/([0-9a-fA-F-]{36})\.[A-Za-z0-9]+(?:\?.*)?$/,
+  );
+  if (fromFilePath?.[1]) return fromFilePath[1];
+
+  return null;
+}
+
+function buildAssetsDownloadPath(assetId: string) {
+  return `/api/v1/assets/${assetId}/download`;
+}
+
 function toAbsoluteUrl(value: string, origin: string) {
   if (isHttpUrl(value)) return value;
   if (value.startsWith("/")) return `${origin}${value}`;
@@ -24,13 +42,27 @@ function toAbsoluteUrl(value: string, origin: string) {
 }
 
 function normalizeAssetsApiBaseUrl(rawUrl: string) {
-  const clean = rawUrl.trim().replace(/\/+$/, "").replace(/\/upload$/i, "");
+  const clean = rawUrl
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/upload$/i, "");
 
   if (/\/api\/v1\/assets$/i.test(clean)) return clean;
   if (/\/api\/v1$/i.test(clean)) return `${clean}/assets`;
   if (/\/assets$/i.test(clean)) return clean;
 
   return `${clean}/api/v1/assets`;
+}
+
+function resolveAssetsOrigin(fallbackOrigin: string) {
+  const apiUrl = process.env.EKD_DIGITAL_ASSETS_API_URL;
+  if (!apiUrl) return fallbackOrigin;
+
+  try {
+    return new URL(normalizeAssetsApiBaseUrl(apiUrl)).origin;
+  } catch {
+    return fallbackOrigin;
+  }
 }
 
 function pickString(
@@ -115,9 +147,7 @@ export async function uploadFileToEKDDigitalAssets(
   const clientId =
     params.clientId || process.env.EKD_DIGITAL_ASSETS_CLIENT_ID || "andgroupco";
   const projectName =
-    params.projectName ||
-    process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME ||
-    "rhub";
+    params.projectName || process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME || "rhub";
 
   let lastAuthError = "Authentication failed for EKD assets API";
 
@@ -146,7 +176,14 @@ export async function uploadFileToEKDDigitalAssets(
     }
 
     if (response.ok) {
+      const assetId =
+        pickString(payload, ["id", "asset_id", "assetId"]) ?? null;
+      const canonicalDownloadPath = assetId
+        ? buildAssetsDownloadPath(assetId)
+        : undefined;
+
       const primaryUrl =
+        canonicalDownloadPath ||
         pickString(payload, ["public_url", "url", "secure_url"]) ||
         pickString(payload, ["download_url"]);
 
@@ -154,10 +191,17 @@ export async function uploadFileToEKDDigitalAssets(
         throw new Error("Assets API upload succeeded but no URL was returned");
       }
 
-      const downloadUrl = pickString(payload, ["download_url"]);
+      const downloadUrl =
+        canonicalDownloadPath ||
+        pickString(payload, [
+          "download_url",
+          "public_url",
+          "url",
+          "secure_url",
+        ]);
 
       return {
-        id: pickString(payload, ["id", "asset_id", "assetId"]) ?? null,
+        id: assetId,
         publicUrl: toAbsoluteUrl(primaryUrl, assetsOrigin),
         downloadUrl: downloadUrl
           ? toAbsoluteUrl(downloadUrl, assetsOrigin)
@@ -172,14 +216,48 @@ export async function uploadFileToEKDDigitalAssets(
       continue;
     }
 
-    throw new Error(`Assets API upload failed (${response.status}): ${errorMessage}`);
+    throw new Error(
+      `Assets API upload failed (${response.status}): ${errorMessage}`,
+    );
   }
 
   throw new Error(lastAuthError);
 }
 
 export function resolveStoredAssetUrl(pathOrUrl: string, origin: string) {
-  if (isHttpUrl(pathOrUrl)) return pathOrUrl;
+  const assetsOrigin = resolveAssetsOrigin(origin);
+
+  if (isHttpUrl(pathOrUrl)) {
+    try {
+      const parsed = new URL(pathOrUrl);
+      const assetId = extractAssetId(`${parsed.pathname}${parsed.search}`);
+      if (assetId) {
+        return `${parsed.origin}${buildAssetsDownloadPath(assetId)}`;
+      }
+      return pathOrUrl;
+    } catch {
+      return pathOrUrl;
+    }
+  }
+
+  if (pathOrUrl.startsWith("/api/v1/assets/")) {
+    return `${assetsOrigin}${pathOrUrl}`;
+  }
+
+  if (pathOrUrl.startsWith("/assets/")) {
+    const assetId = extractAssetId(pathOrUrl);
+    if (assetId) {
+      return `${assetsOrigin}${buildAssetsDownloadPath(assetId)}`;
+    }
+
+    return `${assetsOrigin}${pathOrUrl}`;
+  }
+
+  const embeddedAssetId = extractAssetId(pathOrUrl);
+  if (embeddedAssetId) {
+    return `${assetsOrigin}${buildAssetsDownloadPath(embeddedAssetId)}`;
+  }
+
   if (pathOrUrl.startsWith("/")) return `${origin}${pathOrUrl}`;
   return `${origin}/${pathOrUrl}`;
 }

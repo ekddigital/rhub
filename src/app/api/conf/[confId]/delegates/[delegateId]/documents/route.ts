@@ -84,7 +84,7 @@ export async function POST(
         isPassport && file.type === "application/pdf" ? "document" : "image",
       projectName: `rhub-conf-delegates-${kind}`,
     });
-    const publicPath = uploaded.publicUrl;
+    const publicPath = uploaded.downloadUrl || uploaded.publicUrl;
 
     const updateData = (
       isPassport
