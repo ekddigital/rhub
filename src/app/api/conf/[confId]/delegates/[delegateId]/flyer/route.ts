@@ -298,7 +298,10 @@ export async function GET(
 </g>`;
 
     const photoLayer = photoDataUri
-      ? `<image href="${escapeXml(photoDataUri)}" x="184" y="486" width="712" height="508" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>`
+      ? `<g>
+  <rect x="184" y="486" width="712" height="508" rx="30" fill="#EEF2FA"/>
+  <image href="${escapeXml(photoDataUri)}" x="184" y="486" width="712" height="508" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
+</g>`
       : `<g>
   <rect x="184" y="486" width="712" height="508" rx="30" fill="#E9F0FF"/>
   <text x="540" y="760" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
@@ -370,7 +373,7 @@ export async function GET(
     <rect x="878" y="288" width="68" height="34" rx="9" fill="#0B1E78"/>
     <text x="912" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
   </a>
-  <text x="130" y="430" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
+  <text x="540" y="430" text-anchor="middle" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
 
   <rect x="130" y="438" width="820" height="12" fill="#C8102E"/>
   <rect x="130" y="450" width="820" height="8" fill="#FFFFFF"/>
