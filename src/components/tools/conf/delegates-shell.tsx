@@ -5,10 +5,12 @@ import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
+  Camera,
   CheckCircle2,
   Copy,
   Download,
   Eye,
+  FileUp,
   Link2,
   MapPin,
   Search,
@@ -47,10 +49,32 @@ type Delegate = {
   delegateCode: string | null;
   email: string | null;
   university: string | null;
+  province: string | null;
   city: string;
   phone: string | null;
   wechat: string | null;
   gender: "MALE" | "FEMALE" | null;
+  attendanceIntent: "YES" | "NO" | "OTHER" | null;
+  travelAssistanceNeeded: "YES" | "NO" | "OTHER" | null;
+  schoolCommunicationNeeded: "YES" | "NO" | "OTHER" | null;
+  schoolCommunicationDetails: string | null;
+  studyYear:
+    | "BACHELOR_1"
+    | "BACHELOR_2"
+    | "BACHELOR_3"
+    | "BACHELOR_4"
+    | "GRADUATE_1"
+    | "GRADUATE_2"
+    | "GRADUATE_3"
+    | "GRADUATE_4"
+    | "OTHER"
+    | null;
+  bringingForeignGuest: "YES" | "NO" | "OTHER" | null;
+  guestNationality: string | null;
+  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+  dietaryNeeds: "YES" | "NO" | "OTHER" | null;
+  dietaryDetails: string | null;
+  additionalComments: string | null;
   feeAmount: number | null;
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
@@ -159,6 +183,7 @@ export function DelegatesShell() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
+  const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
 
   const [requesterId, setRequesterId] = useState("");
   const [targetId, setTargetId] = useState("");
@@ -262,7 +287,7 @@ export function DelegatesShell() {
 
   const handleExportCsv = () => {
     const header =
-      "Conference ID,Name,Passport No,Gender,University,City,Phone,WeChat,Email,Fee Paid,Fee Amount,Room Preference,Status,Flyer Ready";
+      "Conference ID,Name,Passport No,Gender,University,Province,City,Phone,WeChat,Email,Attendance Intent,Travel Assistance,School Communication Needed,School Communication Details,Study Year,Bringing Foreign Guest,Guest Nationality,Accommodation Needed,Dietary Needs,Dietary Details,Additional Comments,Fee Paid,Fee Amount,Room Preference,Status,Flyer Ready";
     const rows = delegates.map((d) =>
       [
         d.delegateCode || "",
@@ -270,10 +295,22 @@ export function DelegatesShell() {
         d.passportNo || "",
         d.gender || "",
         `"${d.university || ""}"`,
+        `"${d.province || ""}"`,
         d.city,
         d.phone || "",
         d.wechat || "",
         d.email || "",
+        d.attendanceIntent || "",
+        d.travelAssistanceNeeded || "",
+        d.schoolCommunicationNeeded || "",
+        `"${d.schoolCommunicationDetails || ""}"`,
+        d.studyYear || "",
+        d.bringingForeignGuest || "",
+        `"${d.guestNationality || ""}"`,
+        d.accommodationNeeded || "",
+        d.dietaryNeeds || "",
+        `"${d.dietaryDetails || ""}"`,
+        `"${d.additionalComments || ""}"`,
         d.feePaid ? "Yes" : "No",
         d.feeAmount || 0,
         d.roomPref,
@@ -291,8 +328,10 @@ export function DelegatesShell() {
     URL.revokeObjectURL(url);
   };
 
-  const handleRegister = async (payload: DelegateRegistrationPayload) => {
-    if (!confId || submitting) return;
+  const handleRegister = async (
+    payload: DelegateRegistrationPayload,
+  ): Promise<boolean> => {
+    if (!confId || submitting) return false;
     setSubmitting(true);
     setError(null);
     setNotice(null);
@@ -303,6 +342,7 @@ export function DelegatesShell() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: payload.name,
+          province: payload.province,
           passportNo: payload.passportNo,
           university: payload.university,
           city: payload.city,
@@ -310,6 +350,17 @@ export function DelegatesShell() {
           wechat: payload.wechat,
           email: payload.email,
           gender: payload.gender,
+          attendanceIntent: payload.attendanceIntent,
+          travelAssistanceNeeded: payload.travelAssistanceNeeded,
+          schoolCommunicationNeeded: payload.schoolCommunicationNeeded,
+          schoolCommunicationDetails: payload.schoolCommunicationDetails,
+          studyYear: payload.studyYear,
+          bringingForeignGuest: payload.bringingForeignGuest,
+          guestNationality: payload.guestNationality,
+          accommodationNeeded: payload.accommodationNeeded,
+          dietaryNeeds: payload.dietaryNeeds,
+          dietaryDetails: payload.dietaryDetails,
+          additionalComments: payload.additionalComments,
           feeAmount: payload.feeAmount,
           feePaid: payload.feePaid,
           roomPref: payload.roomPref,
@@ -364,10 +415,55 @@ export function DelegatesShell() {
           ? "Delegate registered and flyer is now available."
           : "Delegate registered successfully.",
       );
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Registration failed");
+      return false;
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleReplaceDelegateDocument = async (
+    delegateId: string,
+    kind: "passport" | "booklet",
+    file: File | null,
+  ) => {
+    if (!confId || !file || uploadingDocKey) return;
+
+    const key = `${delegateId}:${kind}`;
+    setUploadingDocKey(key);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const fd = new FormData();
+      fd.append("kind", kind);
+      fd.append("file", file);
+
+      const res = await fetch(
+        `/api/conf/${confId}/delegates/${delegateId}/documents`,
+        {
+          method: "POST",
+          body: fd,
+        },
+      );
+
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || `Failed to replace ${kind} file`);
+      }
+
+      await loadDelegates(confId);
+      setNotice(
+        kind === "booklet"
+          ? "Booklet photo updated successfully."
+          : "Passport file updated successfully.",
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Document update failed");
+    } finally {
+      setUploadingDocKey(null);
     }
   };
 
@@ -748,6 +844,58 @@ export function DelegatesShell() {
                       Flyer
                     </Link>
                   )}
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <label
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                      uploadingDocKey ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <Camera className="size-3.5" />
+                    {uploadingDocKey === `${delegate.id}:booklet`
+                      ? "Uploading..."
+                      : "Replace Booklet Photo"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        void handleReplaceDelegateDocument(
+                          delegate.id,
+                          "booklet",
+                          file,
+                        );
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+
+                  <label
+                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                      uploadingDocKey ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <FileUp className="size-3.5" />
+                    {uploadingDocKey === `${delegate.id}:passport`
+                      ? "Uploading..."
+                      : "Replace Passport File"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        void handleReplaceDelegateDocument(
+                          delegate.id,
+                          "passport",
+                          file,
+                        );
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
                 </div>
               </CardContent>
             </Card>

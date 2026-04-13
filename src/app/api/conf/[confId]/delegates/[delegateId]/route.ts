@@ -4,6 +4,29 @@ import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
+const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
+const STUDY_YEARS = [
+  "BACHELOR_1",
+  "BACHELOR_2",
+  "BACHELOR_3",
+  "BACHELOR_4",
+  "GRADUATE_1",
+  "GRADUATE_2",
+  "GRADUATE_3",
+  "GRADUATE_4",
+  "OTHER",
+] as const;
+
+function isResponseChoice(
+  value: unknown,
+): value is (typeof RESPONSE_CHOICES)[number] {
+  return typeof value === "string" && RESPONSE_CHOICES.includes(value as never);
+}
+
+function isStudyYear(value: unknown): value is (typeof STUDY_YEARS)[number] {
+  return typeof value === "string" && STUDY_YEARS.includes(value as never);
+}
+
 // GET /api/conf/[confId]/delegates/[delegateId]
 export async function GET(
   req: Request,
@@ -78,6 +101,8 @@ export async function PATCH(
     if (typeof body.email === "string") updates.email = body.email || null;
     if (typeof body.university === "string")
       updates.university = body.university || null;
+    if (typeof body.province === "string")
+      updates.province = body.province || null;
     if (typeof body.city === "string") updates.city = body.city;
     if (typeof body.phone === "string") updates.phone = body.phone || null;
     if (typeof body.wechat === "string") updates.wechat = body.wechat || null;
@@ -88,6 +113,93 @@ export async function PATCH(
       ["MALE", "FEMALE"].includes(body.gender)
     ) {
       updates.gender = body.gender;
+    }
+
+    if (typeof body.attendanceIntent !== "undefined") {
+      if (!isResponseChoice(body.attendanceIntent)) {
+        return NextResponse.json(
+          { error: "attendanceIntent must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.attendanceIntent = body.attendanceIntent;
+    }
+
+    if (typeof body.travelAssistanceNeeded !== "undefined") {
+      if (!isResponseChoice(body.travelAssistanceNeeded)) {
+        return NextResponse.json(
+          { error: "travelAssistanceNeeded must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.travelAssistanceNeeded = body.travelAssistanceNeeded;
+    }
+
+    if (typeof body.schoolCommunicationNeeded !== "undefined") {
+      if (!isResponseChoice(body.schoolCommunicationNeeded)) {
+        return NextResponse.json(
+          { error: "schoolCommunicationNeeded must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.schoolCommunicationNeeded = body.schoolCommunicationNeeded;
+    }
+
+    if (typeof body.schoolCommunicationDetails === "string") {
+      updates.schoolCommunicationDetails =
+        body.schoolCommunicationDetails || null;
+    }
+
+    if (typeof body.studyYear !== "undefined") {
+      if (!isStudyYear(body.studyYear)) {
+        return NextResponse.json(
+          { error: "studyYear is invalid" },
+          { status: 400 },
+        );
+      }
+      updates.studyYear = body.studyYear;
+    }
+
+    if (typeof body.bringingForeignGuest !== "undefined") {
+      if (!isResponseChoice(body.bringingForeignGuest)) {
+        return NextResponse.json(
+          { error: "bringingForeignGuest must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.bringingForeignGuest = body.bringingForeignGuest;
+    }
+
+    if (typeof body.guestNationality === "string") {
+      updates.guestNationality = body.guestNationality || null;
+    }
+
+    if (typeof body.accommodationNeeded !== "undefined") {
+      if (!isResponseChoice(body.accommodationNeeded)) {
+        return NextResponse.json(
+          { error: "accommodationNeeded must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.accommodationNeeded = body.accommodationNeeded;
+    }
+
+    if (typeof body.dietaryNeeds !== "undefined") {
+      if (!isResponseChoice(body.dietaryNeeds)) {
+        return NextResponse.json(
+          { error: "dietaryNeeds must be YES, NO, or OTHER" },
+          { status: 400 },
+        );
+      }
+      updates.dietaryNeeds = body.dietaryNeeds;
+    }
+
+    if (typeof body.dietaryDetails === "string") {
+      updates.dietaryDetails = body.dietaryDetails || null;
+    }
+
+    if (typeof body.additionalComments === "string") {
+      updates.additionalComments = body.additionalComments || null;
     }
 
     if (typeof body.feeAmount !== "undefined") {

@@ -4,6 +4,29 @@ import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
+const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
+const STUDY_YEARS = [
+  "BACHELOR_1",
+  "BACHELOR_2",
+  "BACHELOR_3",
+  "BACHELOR_4",
+  "GRADUATE_1",
+  "GRADUATE_2",
+  "GRADUATE_3",
+  "GRADUATE_4",
+  "OTHER",
+] as const;
+
+function isResponseChoice(
+  value: unknown,
+): value is (typeof RESPONSE_CHOICES)[number] {
+  return typeof value === "string" && RESPONSE_CHOICES.includes(value as never);
+}
+
+function isStudyYear(value: unknown): value is (typeof STUDY_YEARS)[number] {
+  return typeof value === "string" && STUDY_YEARS.includes(value as never);
+}
+
 // GET /api/conf/[confId]/delegates
 export async function GET(
   req: Request,
@@ -52,9 +75,21 @@ export async function POST(
       name,
       email,
       university,
+      province,
       city,
       phone,
       wechat,
+      attendanceIntent,
+      travelAssistanceNeeded,
+      schoolCommunicationNeeded,
+      schoolCommunicationDetails,
+      studyYear,
+      bringingForeignGuest,
+      guestNationality,
+      accommodationNeeded,
+      dietaryNeeds,
+      dietaryDetails,
+      additionalComments,
       feeAmount,
       feePaid,
       passportNo,
@@ -68,6 +103,7 @@ export async function POST(
       !name ||
       !passportNo ||
       !university ||
+      !province ||
       !city ||
       !phone ||
       !wechat ||
@@ -77,7 +113,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "name, passportNo, university, city, phone, wechat, email, and gender are required",
+            "name, passportNo, university, province, city, phone, wechat, email, and gender are required",
         },
         { status: 400 },
       );
@@ -86,6 +122,88 @@ export async function POST(
     if (!["MALE", "FEMALE"].includes(gender)) {
       return NextResponse.json(
         { error: "gender must be MALE or FEMALE" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(attendanceIntent)) {
+      return NextResponse.json(
+        { error: "attendanceIntent must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(travelAssistanceNeeded)) {
+      return NextResponse.json(
+        { error: "travelAssistanceNeeded must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(schoolCommunicationNeeded)) {
+      return NextResponse.json(
+        { error: "schoolCommunicationNeeded must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (!isStudyYear(studyYear)) {
+      return NextResponse.json(
+        { error: "studyYear is invalid" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(bringingForeignGuest)) {
+      return NextResponse.json(
+        { error: "bringingForeignGuest must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(accommodationNeeded)) {
+      return NextResponse.json(
+        { error: "accommodationNeeded must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (!isResponseChoice(dietaryNeeds)) {
+      return NextResponse.json(
+        { error: "dietaryNeeds must be YES, NO, or OTHER" },
+        { status: 400 },
+      );
+    }
+
+    if (
+      bringingForeignGuest === "YES" &&
+      !String(guestNationality || "").trim()
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "guestNationality is required when bringingForeignGuest is YES",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (
+      schoolCommunicationNeeded === "YES" &&
+      !String(schoolCommunicationDetails || "").trim()
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "schoolCommunicationDetails is required when schoolCommunicationNeeded is YES",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (dietaryNeeds === "YES" && !String(dietaryDetails || "").trim()) {
+      return NextResponse.json(
+        { error: "dietaryDetails is required when dietaryNeeds is YES" },
         { status: 400 },
       );
     }
@@ -131,9 +249,21 @@ export async function POST(
         gender,
         email: email || null,
         university: university || null,
+        province,
         city,
         phone: phone || null,
         wechat: wechat || null,
+        attendanceIntent,
+        travelAssistanceNeeded,
+        schoolCommunicationNeeded,
+        schoolCommunicationDetails: schoolCommunicationDetails || null,
+        studyYear,
+        bringingForeignGuest,
+        guestNationality: guestNationality || null,
+        accommodationNeeded,
+        dietaryNeeds,
+        dietaryDetails: dietaryDetails || null,
+        additionalComments: additionalComments || null,
         feeAmount: feeAmount ? Number(feeAmount) : null,
         feePaid: feePaidBool,
         roomPref: resolvedRoomPref,

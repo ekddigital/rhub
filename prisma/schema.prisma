@@ -94,6 +94,24 @@ enum GameType {
     REAL
 }
 
+enum ResponseChoice {
+    YES
+    NO
+    OTHER
+}
+
+enum StudyYearLevel {
+    BACHELOR_1
+    BACHELOR_2
+    BACHELOR_3
+    BACHELOR_4
+    GRADUATE_1
+    GRADUATE_2
+    GRADUATE_3
+    GRADUATE_4
+    OTHER
+}
+
 enum JournalType {
     ELSEVIER
     SPRINGER_NATURE
@@ -781,9 +799,21 @@ model ConfDelegate {
     delegateCode String?   @unique
     email        String?
     university   String?
+    province     String?
     city         String
     phone        String?
     wechat       String?
+    attendanceIntent ResponseChoice?
+    travelAssistanceNeeded ResponseChoice?
+    schoolCommunicationNeeded ResponseChoice?
+    schoolCommunicationDetails String? @db.Text
+    studyYear    StudyYearLevel?
+    bringingForeignGuest ResponseChoice?
+    guestNationality String?
+    accommodationNeeded ResponseChoice?
+    dietaryNeeds ResponseChoice?
+    dietaryDetails String? @db.Text
+    additionalComments String? @db.Text
     passportPhotoPath String?
     bookletPhotoPath  String?
     arrival      DateTime?

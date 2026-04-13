@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export type DelegateRegistrationPayload = {
   name: string;
+  province: string;
   passportNo: string;
   university: string;
   city: string;
@@ -15,6 +16,26 @@ export type DelegateRegistrationPayload = {
   wechat: string;
   email: string;
   gender: "MALE" | "FEMALE";
+  attendanceIntent: "YES" | "NO" | "OTHER";
+  travelAssistanceNeeded: "YES" | "NO" | "OTHER";
+  schoolCommunicationNeeded: "YES" | "NO" | "OTHER";
+  schoolCommunicationDetails: string;
+  studyYear:
+    | "BACHELOR_1"
+    | "BACHELOR_2"
+    | "BACHELOR_3"
+    | "BACHELOR_4"
+    | "GRADUATE_1"
+    | "GRADUATE_2"
+    | "GRADUATE_3"
+    | "GRADUATE_4"
+    | "OTHER";
+  bringingForeignGuest: "YES" | "NO" | "OTHER";
+  guestNationality: string;
+  accommodationNeeded: "YES" | "NO" | "OTHER";
+  dietaryNeeds: "YES" | "NO" | "OTHER";
+  dietaryDetails: string;
+  additionalComments: string;
   feePaid: boolean;
   feeAmount: number | null;
   roomPref: "PAIR" | "SINGLE";
@@ -27,7 +48,7 @@ type Props = {
   submitting: boolean;
   submitLabel?: string;
   onCancel?: () => void;
-  onSubmit: (payload: DelegateRegistrationPayload) => Promise<void>;
+  onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
 };
 
 export function DelegateRegistrationForm({
@@ -37,6 +58,7 @@ export function DelegateRegistrationForm({
   onSubmit,
 }: Props) {
   const [name, setName] = useState("");
+  const [province, setProvince] = useState("");
   const [passportNo, setPassportNo] = useState("");
   const [university, setUniversity] = useState("");
   const [city, setCity] = useState("");
@@ -44,6 +66,40 @@ export function DelegateRegistrationForm({
   const [wechat, setWechat] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
+  const [attendanceIntent, setAttendanceIntent] = useState<
+    "YES" | "NO" | "OTHER"
+  >("YES");
+  const [travelAssistanceNeeded, setTravelAssistanceNeeded] = useState<
+    "YES" | "NO" | "OTHER"
+  >("NO");
+  const [schoolCommunicationNeeded, setSchoolCommunicationNeeded] = useState<
+    "YES" | "NO" | "OTHER"
+  >("NO");
+  const [schoolCommunicationDetails, setSchoolCommunicationDetails] =
+    useState("");
+  const [studyYear, setStudyYear] = useState<
+    | "BACHELOR_1"
+    | "BACHELOR_2"
+    | "BACHELOR_3"
+    | "BACHELOR_4"
+    | "GRADUATE_1"
+    | "GRADUATE_2"
+    | "GRADUATE_3"
+    | "GRADUATE_4"
+    | "OTHER"
+  >("BACHELOR_1");
+  const [bringingForeignGuest, setBringingForeignGuest] = useState<
+    "YES" | "NO" | "OTHER"
+  >("NO");
+  const [guestNationality, setGuestNationality] = useState("");
+  const [accommodationNeeded, setAccommodationNeeded] = useState<
+    "YES" | "NO" | "OTHER"
+  >("NO");
+  const [dietaryNeeds, setDietaryNeeds] = useState<"YES" | "NO" | "OTHER">(
+    "NO",
+  );
+  const [dietaryDetails, setDietaryDetails] = useState("");
+  const [additionalComments, setAdditionalComments] = useState("");
   const [feePaid, setFeePaid] = useState(false);
   const [feeAmount, setFeeAmount] = useState("");
   const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">("PAIR");
@@ -54,6 +110,7 @@ export function DelegateRegistrationForm({
 
   const resetForm = () => {
     setName("");
+    setProvince("");
     setPassportNo("");
     setUniversity("");
     setCity("");
@@ -61,6 +118,17 @@ export function DelegateRegistrationForm({
     setWechat("");
     setEmail("");
     setGender("MALE");
+    setAttendanceIntent("YES");
+    setTravelAssistanceNeeded("NO");
+    setSchoolCommunicationNeeded("NO");
+    setSchoolCommunicationDetails("");
+    setStudyYear("BACHELOR_1");
+    setBringingForeignGuest("NO");
+    setGuestNationality("");
+    setAccommodationNeeded("NO");
+    setDietaryNeeds("NO");
+    setDietaryDetails("");
+    setAdditionalComments("");
     setFeePaid(false);
     setFeeAmount("");
     setRoomPref("PAIR");
@@ -73,6 +141,7 @@ export function DelegateRegistrationForm({
   const handleSubmit = async () => {
     if (
       !name ||
+      !province ||
       !passportNo ||
       !university ||
       !city ||
@@ -86,26 +155,62 @@ export function DelegateRegistrationForm({
       return;
     }
 
+    if (bringingForeignGuest === "YES" && !guestNationality.trim()) {
+      setError("Please provide the guest nationality.");
+      return;
+    }
+
+    if (
+      schoolCommunicationNeeded === "YES" &&
+      !schoolCommunicationDetails.trim()
+    ) {
+      setError("Please provide details for school/supervisor communication.");
+      return;
+    }
+
+    if (dietaryNeeds === "YES" && !dietaryDetails.trim()) {
+      setError("Please provide your dietary requirement details.");
+      return;
+    }
+
     setError(null);
 
-    await onSubmit({
-      name,
-      passportNo,
-      university,
-      city,
-      phone,
-      wechat,
-      email,
-      gender,
-      feePaid,
-      feeAmount: feeAmount ? Number(feeAmount) : null,
-      roomPref,
-      partnerClaimNote,
-      passportPhoto,
-      bookletPhoto,
-    });
+    try {
+      const submitted = await onSubmit({
+        name,
+        province,
+        passportNo,
+        university,
+        city,
+        phone,
+        wechat,
+        email,
+        gender,
+        attendanceIntent,
+        travelAssistanceNeeded,
+        schoolCommunicationNeeded,
+        schoolCommunicationDetails: schoolCommunicationDetails.trim(),
+        studyYear,
+        bringingForeignGuest,
+        guestNationality: guestNationality.trim(),
+        accommodationNeeded,
+        dietaryNeeds,
+        dietaryDetails: dietaryDetails.trim(),
+        additionalComments: additionalComments.trim(),
+        feePaid,
+        feeAmount: feeAmount ? Number(feeAmount) : null,
+        roomPref,
+        partnerClaimNote,
+        passportPhoto,
+        bookletPhoto,
+      });
 
-    resetForm();
+      if (submitted) {
+        resetForm();
+      }
+    } catch {
+      setError("Submission failed. Please try again.");
+    }
   };
 
   return (
@@ -127,62 +232,7 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>2. Passport Number *</Label>
-          <Input
-            placeholder="Passport number"
-            value={passportNo}
-            onChange={(e) => setPassportNo(e.target.value.toUpperCase())}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>3. University *</Label>
-          <Input
-            placeholder="Current university"
-            value={university}
-            onChange={(e) => setUniversity(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>4. City *</Label>
-          <Input
-            placeholder="Current city"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>5. Phone Number *</Label>
-          <Input
-            placeholder="Phone number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>6. WeChat ID *</Label>
-          <Input
-            placeholder="WeChat ID"
-            value={wechat}
-            onChange={(e) => setWechat(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>7. Email *</Label>
-          <Input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Gender *</Label>
+          <Label>2. Gender *</Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={gender}
@@ -194,7 +244,210 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>8. Completed Conference Payment? *</Label>
+          <Label>3. WeChat ID *</Label>
+          <Input
+            placeholder="WeChat ID"
+            value={wechat}
+            onChange={(e) => setWechat(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>4. Phone Number *</Label>
+          <Input
+            placeholder="Phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>5. Province *</Label>
+          <Input
+            placeholder="Current province"
+            value={province}
+            onChange={(e) => setProvince(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>6. City *</Label>
+          <Input
+            placeholder="Current city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>7. Are you planning to attend the conference? *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={attendanceIntent}
+            onChange={(e) =>
+              setAttendanceIntent(e.target.value as "YES" | "NO" | "OTHER")
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>8. Do you need assistance with travel arrangements? *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={travelAssistanceNeeded}
+            onChange={(e) =>
+              setTravelAssistanceNeeded(
+                e.target.value as "YES" | "NO" | "OTHER",
+              )
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>
+            9. Would you need union communication with your school/supervisor? *
+          </Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={schoolCommunicationNeeded}
+            onChange={(e) =>
+              setSchoolCommunicationNeeded(
+                e.target.value as "YES" | "NO" | "OTHER",
+              )
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>10. Current Year of Study *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={studyYear}
+            onChange={(e) =>
+              setStudyYear(
+                e.target.value as
+                  | "BACHELOR_1"
+                  | "BACHELOR_2"
+                  | "BACHELOR_3"
+                  | "BACHELOR_4"
+                  | "GRADUATE_1"
+                  | "GRADUATE_2"
+                  | "GRADUATE_3"
+                  | "GRADUATE_4"
+                  | "OTHER",
+              )
+            }
+          >
+            <option value="BACHELOR_1">Bachelor 1st Year</option>
+            <option value="BACHELOR_2">Bachelor 2nd Year</option>
+            <option value="BACHELOR_3">Bachelor 3rd Year</option>
+            <option value="BACHELOR_4">Bachelor 4th Year</option>
+            <option value="GRADUATE_1">Graduate 1st Year</option>
+            <option value="GRADUATE_2">Graduate 2nd Year</option>
+            <option value="GRADUATE_3">Graduate 3rd Year</option>
+            <option value="GRADUATE_4">Graduate 4th Year</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>11. Will you bring someone from another country? *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={bringingForeignGuest}
+            onChange={(e) =>
+              setBringingForeignGuest(e.target.value as "YES" | "NO" | "OTHER")
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>12. Do you need accommodation during the conference? *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={accommodationNeeded}
+            onChange={(e) =>
+              setAccommodationNeeded(e.target.value as "YES" | "NO" | "OTHER")
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>
+            13. Do you have special dietary requirements or food allergies? *
+          </Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={dietaryNeeds}
+            onChange={(e) =>
+              setDietaryNeeds(e.target.value as "YES" | "NO" | "OTHER")
+            }
+          >
+            <option value="YES">Yes</option>
+            <option value="NO">No</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Email *</Label>
+          <Input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Passport Number *</Label>
+          <Input
+            placeholder="Passport number"
+            value={passportNo}
+            onChange={(e) => setPassportNo(e.target.value.toUpperCase())}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>University *</Label>
+          <Input
+            placeholder="Current university"
+            value={university}
+            onChange={(e) => setUniversity(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Guest Nationality (required if question 11 is Yes)</Label>
+          <Input
+            placeholder="e.g. Ghanaian, Chinese, etc."
+            value={guestNationality}
+            onChange={(e) => setGuestNationality(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Completed Conference Payment? *</Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={feePaid ? "YES" : "NO"}
@@ -229,6 +482,36 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2 sm:col-span-2">
+          <Label>9 Details (required if question 9 is Yes)</Label>
+          <Textarea
+            placeholder="Explain the communication support you need from the union"
+            value={schoolCommunicationDetails}
+            onChange={(e) => setSchoolCommunicationDetails(e.target.value)}
+            rows={2}
+          />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label>13 Details (required if question 13 is Yes)</Label>
+          <Textarea
+            placeholder="Describe any dietary requirements or allergies"
+            value={dietaryDetails}
+            onChange={(e) => setDietaryDetails(e.target.value)}
+            rows={2}
+          />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label>14. Suggestions or comments for the organizers</Label>
+          <Textarea
+            placeholder="Share your recommendations or feedback"
+            value={additionalComments}
+            onChange={(e) => setAdditionalComments(e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <div className="space-y-2 sm:col-span-2">
           <Label>
             Pairing / Partner Note (for legal partner or special room requests)
           </Label>
@@ -241,19 +524,21 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>9. Upload Passport Photo Page *</Label>
+          <Label>15. Upload Passport Photo Page *</Label>
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp,application/pdf"
             onChange={(e) => setPassportPhoto(e.target.files?.[0] || null)}
           />
           {passportPhoto && (
-            <p className="text-xs text-muted-foreground">{passportPhoto.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {passportPhoto.name}
+            </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label>10. Upload Photo for Conference Booklet *</Label>
+          <Label>16. Upload Photo for Conference Booklet *</Label>
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp"
