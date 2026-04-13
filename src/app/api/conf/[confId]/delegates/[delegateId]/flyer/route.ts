@@ -34,6 +34,56 @@ function clampText(input: string, maxChars: number) {
   return `${value.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
 }
 
+function wrapTextLines(
+  input: string,
+  maxCharsPerLine: number,
+  maxLines: number,
+) {
+  if (maxCharsPerLine < 1 || maxLines < 1) return [];
+
+  const words = input.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [];
+
+  const lines: string[] = [];
+  let currentLine = "";
+  let nextWordIndex = 0;
+
+  while (nextWordIndex < words.length && lines.length < maxLines) {
+    const nextWord = words[nextWordIndex];
+    const candidate = currentLine ? `${currentLine} ${nextWord}` : nextWord;
+
+    if (candidate.length <= maxCharsPerLine) {
+      currentLine = candidate;
+      nextWordIndex += 1;
+      continue;
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+      currentLine = "";
+      continue;
+    }
+
+    lines.push(clampText(nextWord, maxCharsPerLine));
+    nextWordIndex += 1;
+  }
+
+  if (lines.length < maxLines && currentLine) {
+    lines.push(currentLine);
+  }
+
+  if (nextWordIndex < words.length && lines.length > 0) {
+    const lastIndex = lines.length - 1;
+    const linePrefix = clampText(
+      lines[lastIndex],
+      Math.max(4, maxCharsPerLine - 3),
+    );
+    lines[lastIndex] = `${linePrefix.replace(/\.\.\.$/, "")}...`;
+  }
+
+  return lines;
+}
+
 function normalizeConfAssetPath(assetPath: string) {
   return assetPath.replace(/^\/+/, "");
 }
@@ -256,27 +306,51 @@ export async function GET(
         24,
       ),
     );
-    const cityHeadingRaw = clampText((delegate.city || "Jinan").toUpperCase(), 14);
+    const cityHeadingRaw = clampText(
+      (delegate.city || "Jinan").toUpperCase(),
+      14,
+    );
     const cityHeading = escapeXml(cityHeadingRaw);
     const cardSubtitle = escapeXml(
       `LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`,
     );
     const dateRangeLabel = escapeXml(
-      formatConferenceDateRange(event?.startsAt ?? null, event?.endsAt ?? null) ||
-        `JULY 23-27, ${confYear}`,
+      formatConferenceDateRange(
+        event?.startsAt ?? null,
+        event?.endsAt ?? null,
+      ) || `JULY 23-27, ${confYear}`,
     );
     const weekdayRangeLabel = escapeXml(
-      formatConferenceWeekdayRange(event?.startsAt ?? null, event?.endsAt ?? null) ||
-        "THURSDAY - SUNDAY",
+      formatConferenceWeekdayRange(
+        event?.startsAt ?? null,
+        event?.endsAt ?? null,
+      ) || "THURSDAY - SUNDAY",
     );
     const themeLine = escapeXml(`${cityHeadingRaw} RENAISSANCE ${confYear}`);
-    const delegateStatement = escapeXml(
-      `OF LSUIC ${confYear} CONFERENCE, AND I WILL BE IN ${cityHeadingRaw}`,
-    );
+    const delegateStatementLines = [
+      escapeXml(`OF LSUIC ${confYear} CONFERENCE,`),
+      escapeXml(`AND I WILL BE IN ${cityHeadingRaw}`),
+    ];
     const scoreLine = escapeXml(
       `LSUIC @ ${LSUIC_CONFERENCE_EDITION}, LIB @ ${Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR)}`,
     );
-    const committeeLine = escapeXml(`${cityHeadingRaw} ${confYear} CONFERENCE COMMITTEE`);
+    const committeeLineRaw = `${cityHeadingRaw} ${confYear} CONFERENCE COMMITTEE`;
+    const committeeLines = wrapTextLines(committeeLineRaw, 40, 2).map((line) =>
+      escapeXml(line),
+    );
+    const universityLines = wrapTextLines(
+      clampText(
+        (
+          delegate.university || "Liberian Student Union in China"
+        ).toUpperCase(),
+        42,
+      ),
+      26,
+      2,
+    ).map((line) => escapeXml(line));
+    const delegateCodeLabel = escapeXml(
+      clampText(delegate.delegateCode || "N/A", 20),
+    );
     const encodedConfId = encodeURIComponent(confId);
     const encodedDelegateId = encodeURIComponent(delegateId);
     const downloadBasePath = `/api/conf/${encodedConfId}/delegates/${encodedDelegateId}/flyer`;
@@ -336,17 +410,38 @@ export async function GET(
 
     const photoLayer = photoDataUri
       ? `<g>
-  <rect x="184" y="526" width="712" height="468" rx="30" fill="#EEF2FA"/>
-  <image href="${escapeXml(photoDataUri)}" x="184" y="526" width="712" height="468" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
+  <rect x="646" y="560" width="252" height="398" rx="26" fill="#EEF2FA"/>
+  <image href="${escapeXml(photoDataUri)}" x="646" y="560" width="252" height="398" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
   <g clip-path="url(#photoClip)">
-    <rect x="184" y="526" width="210" height="468" fill="url(#photoSideFadeLeft)"/>
-    <rect x="686" y="526" width="210" height="468" fill="url(#photoSideFadeRight)"/>
+    <rect x="646" y="560" width="76" height="398" fill="url(#photoSideFadeLeft)"/>
+    <rect x="822" y="560" width="76" height="398" fill="url(#photoSideFadeRight)"/>
   </g>
 </g>`
       : `<g>
-  <rect x="184" y="526" width="712" height="468" rx="30" fill="#E9F0FF"/>
-  <text x="540" y="770" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
+  <rect x="646" y="560" width="252" height="398" rx="26" fill="#E9F0FF"/>
+  <text x="772" y="768" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
 </g>`;
+
+    const delegateStatementLayer = delegateStatementLines
+      .map(
+        (line, index) =>
+          `<text x="190" y="${846 + index * 30}" font-size="20" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${line}</text>`,
+      )
+      .join("");
+
+    const committeeLayer = committeeLines
+      .map(
+        (line, index) =>
+          `<text x="190" y="${1080 + index * 26}" font-size="19" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#1E2F5E">${line}</text>`,
+      )
+      .join("");
+
+    const universityLayer = universityLines
+      .map(
+        (line, index) =>
+          `<text x="772" y="${1086 + index * 26}" text-anchor="middle" font-size="17" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#1E2F5E">${line}</text>`,
+      )
+      .join("");
 
     const downloadControlsLayer = shouldDownload
       ? ""
@@ -403,51 +498,72 @@ export async function GET(
       <rect x="110" y="116" width="860" height="356" rx="30"/>
     </clipPath>
     <clipPath id="photoClip">
-      <rect x="184" y="526" width="712" height="468" rx="30"/>
+      <rect x="646" y="560" width="252" height="398" rx="26"/>
     </clipPath>
   </defs>
 
+  <!-- Full canvas background layers -->
   <rect width="1080" height="1350" fill="url(#bg)"/>
   ${backdropLayer}
   <rect width="1080" height="1350" fill="url(#overlay)"/>
 
+  <!-- Main white card container -->
   <g filter="url(#cardShadow)">
     <rect x="74" y="78" width="932" height="1194" rx="46" fill="#FFFFFF" fill-opacity="0.97"/>
   </g>
 
+  <!-- Hero/city-view section -->
   ${heroLayer}
   <rect x="110" y="116" width="860" height="356" rx="30" fill="url(#heroShade)"/>
 
+  <!-- Top union title bar + logo -->
   <rect x="110" y="116" width="860" height="70" rx="24" fill="#0B1E78"/>
   <text x="140" y="161" font-size="40" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
   ${logoLayer}
 
-  <text x="130" y="258" font-size="66" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">CONFIRMED DELEGATE</text>
+  <!-- Hero subtitle + theme headline -->
   <text x="130" y="304" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
-  <text x="130" y="340" font-size="22" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#F6F8FF">${cityHeading}, CHINA • OFFICIAL PARTICIPANT CARD</text>
-  <text x="130" y="372" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${dateRangeLabel}</text>
-  <text x="130" y="402" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#DDE8FF">${weekdayRangeLabel}</text>
   ${downloadControlsLayer}
-  <text x="540" y="430" text-anchor="middle" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
-  <text x="540" y="460" text-anchor="middle" font-size="24" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${themeLine}</text>
+  <text x="540" y="438" text-anchor="middle" font-size="60" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="1">${themeLine}</text>
 
-  <rect x="130" y="466" width="820" height="12" fill="#C8102E"/>
-  <rect x="130" y="478" width="820" height="8" fill="#FFFFFF"/>
-  <rect x="130" y="486" width="820" height="12" fill="#003893"/>
+  <!-- <rect x="130" y="466" width="820" height="12" fill="#C8102E"/> -->
+  <!-- <rect x="130" y="478" width="820" height="8" fill="#FFFFFF"/> -->
+  <!-- <rect x="130" y="486" width="820" height="12" fill="#003893"/> -->
 
   <g filter="url(#softShadow)">
-    <rect x="166" y="508" width="748" height="504" rx="36" fill="#F4F8FF" stroke="#D0DCEB" stroke-width="3"/>
+    <rect x="138" y="508" width="804" height="756" rx="36" fill="#F4F8FF" stroke="#D0DCEB" stroke-width="3"/>
   </g>
+  <!-- Left accent guide line -->
+  <rect x="162" y="538" width="8" height="696" rx="4" fill="#C8102E"/>
+  <!-- Right photo/details panel -->
+  <rect x="624" y="536" width="296" height="700" rx="28" fill="#EAF1FF" stroke="#CBD8EF" stroke-width="2"/>
   ${photoLayer}
 
-  <text x="540" y="1048" text-anchor="middle" font-size="54" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#101827">I am</text>
-  <text x="540" y="1102" text-anchor="middle" font-size="78" font-family="CardScript, Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
-  <text x="540" y="1158" text-anchor="middle" font-size="60" font-family="CardBody, Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
-  <text x="540" y="1198" text-anchor="middle" font-size="54" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
-  <text x="540" y="1230" text-anchor="middle" font-size="20" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${delegateStatement}</text>
-  <text x="540" y="1258" text-anchor="middle" font-size="44" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
-  <text x="540" y="1280" text-anchor="middle" font-size="19" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#1E2F5E">${committeeLine}</text>
+  <!-- Left profile identity block -->
+  <text x="190" y="586" font-size="22" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0E2A76">NATIONAL DELEGATE PROFILE</text>
+  <text x="190" y="636" font-size="54" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#101827">I am</text>
+  <text x="190" y="704" font-size="74" font-family="CardScript, Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
+  <text x="190" y="760" font-size="55" font-family="CardBody, Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
+  <text x="190" y="812" font-size="36.5" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
 
+  <!-- Delegate statement + conference date details -->
+  ${delegateStatementLayer}
+  <rect x="190" y="880" width="392" height="2" fill="#D0DBEE"/>
+  <text x="190" y="914" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#103580">CONFERENCE DATES</text>
+  <text x="190" y="952" font-size="24" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0E327F">${dateRangeLabel}</text>
+  <text x="190" y="982" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#28417B">${weekdayRangeLabel}</text>
+  <text x="190" y="1038" font-size="38" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
+  ${committeeLayer}
+
+  <!-- Right-side delegate metadata -->
+  <text x="772" y="998" text-anchor="middle" font-size="17" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#103580">DELEGATE CODE</text>
+  <text x="772" y="1038" text-anchor="middle" font-size="32" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0E327F">${delegateCodeLabel}</text>
+  ${universityLayer}
+  <rect x="662" y="1124" width="220" height="2" fill="#C6D4EE"/>
+  <text x="772" y="1160" text-anchor="middle" font-size="30" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#C8102E">${cityHeading} ${confYear}</text>
+  <text x="772" y="1190" text-anchor="middle" font-size="16" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#1E2F5E">LSUIC NATIONAL CONFERENCE</text>
+
+  <!-- Footer info bars -->
   <rect x="130" y="1288" width="820" height="28" rx="12" fill="#C8102E"/>
   <text x="540" y="1308" text-anchor="middle" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
 
