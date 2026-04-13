@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { getLiberiaIndependenceAnniversary } from "@/lib/conf/delegate-utils";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -8,6 +9,22 @@ const LOGO_CANDIDATES = [
   "lsuic_logo.png",
   "Liberian Student Union emblem in China.png",
 ] as const;
+
+const CITY_BACKDROP_CANDIDATES = [
+  "assets/jinan_city/day_view_landscape.png",
+  "assets/jinan_city/morning_view_landscape.png",
+  "assets/hotel/main_entrance_view.png",
+] as const;
+
+function clampText(input: string, maxChars: number) {
+  const value = input.trim();
+  if (value.length <= maxChars) return value;
+  return `${value.slice(0, Math.max(0, maxChars - 3)).trimEnd()}...`;
+}
+
+function normalizeConfAssetPath(assetPath: string) {
+  return assetPath.replace(/^\/+/, "");
+}
 
 function escapeXml(input: string) {
   return input
@@ -36,18 +53,40 @@ function toDataUri(data: ArrayBuffer | Buffer, mimeType: string) {
   return `data:${mimeType};base64,${base64}`;
 }
 
-async function loadLogoDataUri() {
-  for (const fileName of LOGO_CANDIDATES) {
+function formatOrdinal(value: number) {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) {
+    return `${value}th`;
+  }
+
+  const mod10 = value % 10;
+  if (mod10 === 1) return `${value}st`;
+  if (mod10 === 2) return `${value}nd`;
+  if (mod10 === 3) return `${value}rd`;
+  return `${value}th`;
+}
+
+async function loadPublicConfImageDataUri(candidates: readonly string[]) {
+  for (const assetPath of candidates) {
     try {
-      const filePath = path.join(process.cwd(), "public", "conf", fileName);
+      const normalized = normalizeConfAssetPath(assetPath);
+      const filePath = path.join(process.cwd(), "public", "conf", normalized);
       const data = await readFile(filePath);
-      return toDataUri(data, guessMimeType(fileName));
+      return toDataUri(data, guessMimeType(normalized));
     } catch {
-      // Try the next candidate logo.
+      // Try the next candidate.
     }
   }
 
   return null;
+}
+
+async function loadLogoDataUri() {
+  return loadPublicConfImageDataUri(LOGO_CANDIDATES);
+}
+
+async function loadCityBackdropDataUri() {
+  return loadPublicConfImageDataUri(CITY_BACKDROP_CANDIDATES);
 }
 
 async function fetchImageAsDataUri(imageUrl: string) {
@@ -120,69 +159,124 @@ export async function GET(
       );
     }
 
+    const event = await prisma.confEvent.findUnique({
+      where: { id: confId },
+      select: { year: true },
+    });
+
+    const confYear = event?.year || new Date().getFullYear();
+    const liberiaAnniversary = getLiberiaIndependenceAnniversary(confYear);
+
     const origin = new URL(req.url).origin;
     const photoUrl = resolveStoredAssetUrl(delegate.bookletPhotoPath, origin);
     const logoDataUri = await loadLogoDataUri();
+    const cityBackdropDataUri = await loadCityBackdropDataUri();
     const photoDataUri = await fetchImageAsDataUri(photoUrl);
-    const confTag = "LSUIC 2026";
 
-    const name = escapeXml(delegate.name);
-    const city = escapeXml(delegate.city || "China");
-    const university = escapeXml(delegate.university || "LSUIC Delegate");
+    const name = escapeXml(clampText(delegate.name, 34));
+    const city = escapeXml(clampText(delegate.city || "Jinan, China", 30));
+    const university = escapeXml(
+      clampText(delegate.university || "LSUIC Delegate", 44),
+    );
     const code = escapeXml(delegate.delegateCode || "PENDING-CODE");
-    const logoLayer = logoDataUri
-      ? `<image href="${escapeXml(logoDataUri)}" x="736" y="142" width="196" height="62" preserveAspectRatio="xMidYMid meet"/>`
-      : `<text x="834" y="188" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0A2C8B">LSUIC</text>`;
-    const photoLayer = photoDataUri
-      ? `<image href="${escapeXml(photoDataUri)}" x="208" y="456" width="664" height="500" preserveAspectRatio="xMidYMid slice"/>`
+    const flyerTitle = escapeXml(`LSUIC ${confYear} Delegate Flyer`);
+    const flyerSubtitle = escapeXml(
+      `Celebrating LSUIC 20th Conference and Liberia's ${formatOrdinal(liberiaAnniversary)} Independence`,
+    );
+    const independenceDateLabel = escapeXml(`July 26, ${confYear}`);
+
+    const backdropLayer = cityBackdropDataUri
+      ? `<image href="${escapeXml(cityBackdropDataUri)}" x="0" y="0" width="1080" height="1350" preserveAspectRatio="xMidYMid slice" opacity="0.24"/>`
       : `<g>
-  <rect x="208" y="456" width="664" height="500" fill="#E9F0FF"/>
-  <text x="540" y="720" text-anchor="middle" font-size="36" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
+  <circle cx="120" cy="140" r="220" fill="#5DA6FF" fill-opacity="0.2"/>
+  <circle cx="960" cy="1210" r="260" fill="#7BC5FF" fill-opacity="0.16"/>
+</g>`;
+
+    const logoLayer = logoDataUri
+      ? `<g>
+  <circle cx="898" cy="160" r="74" fill="#FFFFFF" fill-opacity="0.96"/>
+  <circle cx="898" cy="160" r="74" fill="none" stroke="#C8A061" stroke-width="3"/>
+  <image href="${escapeXml(logoDataUri)}" x="840" y="102" width="116" height="116" preserveAspectRatio="xMidYMid meet" clip-path="url(#logoClip)"/>
+</g>`
+      : `<g>
+  <circle cx="898" cy="160" r="74" fill="#FFFFFF" fill-opacity="0.96"/>
+  <circle cx="898" cy="160" r="74" fill="none" stroke="#C8A061" stroke-width="3"/>
+  <text x="898" y="171" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0A2C8B">LSUIC</text>
+</g>`;
+
+    const photoLayer = photoDataUri
+      ? `<image href="${escapeXml(photoDataUri)}" x="184" y="418" width="712" height="524" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>`
+      : `<g>
+  <rect x="184" y="418" width="712" height="524" rx="30" fill="#E9F0FF"/>
+  <text x="540" y="690" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
 </g>`;
 
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0B4FD9"/>
-      <stop offset="60%" stop-color="#1572FF"/>
-      <stop offset="100%" stop-color="#0A2C8B"/>
+      <stop offset="0%" stop-color="#0A1B56"/>
+      <stop offset="58%" stop-color="#0B4FD9"/>
+      <stop offset="100%" stop-color="#0C6AD8"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#DCEBFF" stop-opacity="0.9"/>
+    <linearGradient id="overlay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#061033" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#061033" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#061033" stop-opacity="0.62"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <linearGradient id="goldBand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FDE6A8"/>
+      <stop offset="50%" stop-color="#F5C765"/>
+      <stop offset="100%" stop-color="#DDA842"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#081C5F" flood-opacity="0.35"/>
     </filter>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#142D70" flood-opacity="0.24"/>
+    </filter>
+    <clipPath id="logoClip">
+      <circle cx="898" cy="160" r="58"/>
+    </clipPath>
+    <clipPath id="photoClip">
+      <rect x="184" y="418" width="712" height="524" rx="30"/>
+    </clipPath>
   </defs>
 
   <rect width="1080" height="1350" fill="url(#bg)"/>
-  <circle cx="120" cy="160" r="200" fill="#4FB2FF" fill-opacity="0.22"/>
-  <circle cx="940" cy="1220" r="250" fill="#7BD8FF" fill-opacity="0.16"/>
+  ${backdropLayer}
+  <rect width="1080" height="1350" fill="url(#overlay)"/>
 
-  <rect x="88" y="86" width="904" height="1178" rx="44" fill="url(#accent)" filter="url(#shadow)"/>
+  <g filter="url(#cardShadow)">
+    <rect x="74" y="78" width="932" height="1194" rx="46" fill="#FFFFFF" fill-opacity="0.97"/>
+  </g>
 
-  <rect x="128" y="130" width="280" height="86" rx="24" fill="#EAF3FF"/>
-  <text x="268" y="188" text-anchor="middle" font-size="56" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#2B74D8">#LSUIC</text>
-  <rect x="716" y="130" width="236" height="86" rx="24" fill="#EAF3FF"/>
+  <rect x="110" y="116" width="860" height="88" rx="24" fill="#0B1E78"/>
+  <text x="140" y="170" font-size="32" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
   ${logoLayer}
 
-  <text x="540" y="286" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#A01010">I Will Be At</text>
-  <text x="540" y="358" text-anchor="middle" font-size="84" font-family="Segoe UI, Arial, sans-serif" font-weight="900" fill="#091F7A">${confTag}</text>
+  <text x="130" y="264" font-size="40" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#8E0E00">${flyerTitle}</text>
+  <text x="130" y="312" font-size="28" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-weight="500" fill="#0B1E78">${flyerSubtitle}</text>
 
-  <rect x="166" y="400" width="748" height="620" rx="42" fill="#FFFFFF" stroke="#6CA8FF" stroke-width="10"/>
+  <rect x="130" y="348" width="820" height="24" rx="12" fill="url(#goldBand)"/>
+  <text x="540" y="365" text-anchor="middle" font-size="17" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#172554">#LSUIC  #Jinan2026</text>
+  <text x="540" y="392" text-anchor="middle" font-size="18" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#8E0E00">Special Celebration: Liberia Independence Day | ${independenceDateLabel}</text>
+
+  <g filter="url(#softShadow)">
+    <rect x="166" y="400" width="748" height="560" rx="36" fill="#F4F8FF" stroke="#D0DCEB" stroke-width="3"/>
+  </g>
   ${photoLayer}
 
-  <text x="540" y="1072" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#1A65D8">${name}</text>
-  <text x="540" y="1120" text-anchor="middle" font-size="34" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#36456B">${university}</text>
-  <text x="540" y="1160" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" fill="#3A4A70">${city}  •  ${code}</text>
+  <text x="540" y="1038" text-anchor="middle" font-size="60" font-family="Montserrat, Segoe UI, Arial, sans-serif" font-weight="800" fill="#0D2A73">${name}</text>
+  <text x="540" y="1088" text-anchor="middle" font-size="33" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#3E4D6C">${university}</text>
+  <text x="540" y="1130" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" fill="#2D3D5D">${city} | ${code}</text>
+  <text x="540" y="1168" text-anchor="middle" font-size="24" font-family="Segoe UI, Arial, sans-serif" fill="#52627F">Arcadia Spa Golf International Hotel, Jinan</text>
 
-  <rect x="130" y="1196" width="820" height="48" rx="18" fill="#9B1111"/>
-  <text x="540" y="1230" text-anchor="middle" font-size="28" font-family="Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org  •  Email: info@lsuic.org</text>
+  <rect x="130" y="1192" width="820" height="54" rx="16" fill="#8E0E00"/>
+  <text x="540" y="1226" text-anchor="middle" font-size="26" font-family="Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
 
-  <rect x="154" y="1248" width="772" height="58" rx="18" fill="#0B1E78"/>
-  <text x="540" y="1288" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#BFD8FF">Motto: Excellence Through Hard Work</text>
+  <rect x="130" y="1254" width="820" height="54" rx="16" fill="#0B1E78"/>
+  <text x="540" y="1289" text-anchor="middle" font-size="33" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#D7E4FF">Motto: Excellence Through Hard Work</text>
 </svg>`;
 
     if (!delegate.flyerIssuedAt) {

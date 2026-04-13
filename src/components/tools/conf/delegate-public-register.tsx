@@ -44,6 +44,19 @@ function getLiberiaIndependenceAnniversary(year: number): number {
   return Math.max(0, year - LIBERIA_INDEPENDENCE_YEAR);
 }
 
+function formatOrdinal(value: number): string {
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) {
+    return `${value}th`;
+  }
+
+  const mod10 = value % 10;
+  if (mod10 === 1) return `${value}st`;
+  if (mod10 === 2) return `${value}nd`;
+  if (mod10 === 3) return `${value}rd`;
+  return `${value}th`;
+}
+
 const FEATURED_PHOTOS = [
   "/conf/assets/hotel/main_entrance_view.png",
   "/conf/assets/hotel/conference_hall.jpg",
@@ -82,6 +95,8 @@ export function DelegatePublicRegister() {
   >(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const liberiaAnniversary = getLiberiaIndependenceAnniversary(confYear);
+  const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
+  const independenceDateLabel = `July 26, ${confYear}`;
 
   useEffect(() => {
     const init = async () => {
@@ -353,8 +368,12 @@ export function DelegatePublicRegister() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Format: {`LS20-${liberiaAnniversary}-YY-####`} (20th
-                    conference + Liberia independence anniversary + year +
+                    conference + Liberia {liberiaAnniversaryLabel} independence
+                    anniversary + year +
                     sequence)
+                  </p>
+                  <p className="text-xs font-medium text-[#8E0E00]">
+                    {`Conference celebration includes Liberia Independence Day on ${independenceDateLabel}`}
                   </p>
 
                   {success.flyerReady ? (
@@ -473,7 +492,7 @@ export function DelegatePublicRegister() {
                   height={900}
                   className="h-56 w-full object-cover sm:h-64"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#061338]/35 via-[#061338]/58 to-[#061338]/95" />
+                <div className="absolute inset-0 bg-linear-to-b from-[#061338]/35 via-[#061338]/58 to-[#061338]/95" />
                 <div
                   className="absolute inset-0 opacity-20"
                   style={{
@@ -484,7 +503,7 @@ export function DelegatePublicRegister() {
                 />
                 <div className="absolute inset-x-0 bottom-0 z-10 p-5 text-white">
                   <p className="text-[11px] font-semibold tracking-[0.2em] text-white/80">
-                    {`LSUIC 20th Conference | Liberia @${liberiaAnniversary}`}
+                    {`LSUIC 20th Conference | Liberia ${liberiaAnniversaryLabel} Independence | July 26 Celebration`}
                   </p>
                   <h3
                     className="text-2xl font-bold sm:text-3xl"
@@ -508,7 +527,7 @@ export function DelegatePublicRegister() {
                     height={900}
                     className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/65 via-black/20 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 px-3 py-2 text-xs font-medium text-white/90">
                     Arcadia main entrance - official host venue
                   </div>
@@ -527,7 +546,7 @@ export function DelegatePublicRegister() {
                         height={420}
                         className="h-20 w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/45 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-r from-black/45 to-transparent" />
                       <div className="absolute inset-y-0 left-2 flex items-center text-[11px] font-medium text-white/90">
                         {index === 0
                           ? "City skyline"
