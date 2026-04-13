@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/participants
 // Aggregated participant dashboard payload: delegates, pair requests, room assignments
@@ -9,6 +10,8 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
 
     const [delegates, pairRequests, roomAssignments] = await Promise.all([
       prisma.confDelegate.findMany({

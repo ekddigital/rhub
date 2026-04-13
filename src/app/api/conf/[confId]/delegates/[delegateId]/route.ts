@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/delegates/[delegateId]
 export async function GET(
@@ -9,6 +10,9 @@ export async function GET(
 ) {
   try {
     const { confId, delegateId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const delegate = await prisma.confDelegate.findUnique({
       where: { id: delegateId },
     });
@@ -37,6 +41,9 @@ export async function PATCH(
 ) {
   try {
     const { confId, delegateId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
 
     const current = (await prisma.confDelegate.findUnique({

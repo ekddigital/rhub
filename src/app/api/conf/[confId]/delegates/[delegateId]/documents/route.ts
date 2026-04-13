@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
+import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/documents
 // Upload delegate documents: kind=passport|booklet
@@ -79,24 +78,13 @@ export async function POST(
       );
     }
 
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "conf",
-      "delegates",
-      kind,
-    );
-    await mkdir(uploadDir, { recursive: true });
-
-    const ext = path.extname(file.name) || (isPassport ? ".pdf" : ".jpg");
-    const safeName = `${delegateId}_${Date.now()}${ext}`;
-    const filePath = path.join(uploadDir, safeName);
-
-    const bytes = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
-
-    const publicPath = `/uploads/conf/delegates/${kind}/${safeName}`;
+    const uploaded = await uploadFileToEKDDigitalAssets({
+      file,
+      assetType:
+        isPassport && file.type === "application/pdf" ? "document" : "image",
+      projectName: `rhub-conf-delegates-${kind}`,
+    });
+    const publicPath = uploaded.publicUrl;
 
     const updateData = (
       isPassport

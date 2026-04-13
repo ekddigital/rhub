@@ -89,7 +89,6 @@ export async function GET(req: NextRequest) {
           data: {
             googleId: user.googleId || googleUser.id,
             emailVerified: true,
-            isActive: true,
           },
         });
       }
@@ -102,6 +101,10 @@ export async function GET(req: NextRequest) {
           password: null,
           googleId: googleUser.id,
           role: "USER",
+          accessStatus: "PENDING",
+          canAccessHub: false,
+          canAccessConference: false,
+          canAccessAdmin: false,
           isActive: true,
           emailVerified: true,
         },
@@ -110,6 +113,22 @@ export async function GET(req: NextRequest) {
 
     if (!user.isActive) {
       return NextResponse.redirect(`${siteUrl}/login?error=account_disabled`);
+    }
+
+    if (user.accessStatus === "PENDING") {
+      return NextResponse.redirect(`${siteUrl}/login?error=pending_approval`);
+    }
+
+    if (user.accessStatus === "RESTRICTED") {
+      return NextResponse.redirect(`${siteUrl}/login?error=account_restricted`);
+    }
+
+    if (user.accessStatus === "REJECTED") {
+      return NextResponse.redirect(`${siteUrl}/login?error=account_rejected`);
+    }
+
+    if (!user.canAccessHub) {
+      return NextResponse.redirect(`${siteUrl}/login?error=hub_access_disabled`);
     }
 
     // Create session

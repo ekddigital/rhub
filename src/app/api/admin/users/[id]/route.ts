@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { validateSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  writeAdminAuditEntries,
+  type AdminAuditEntryInput,
+} from "@/lib/admin/audit";
 import { sendRoleChangeEmail } from "@/lib/mail";
 import { z } from "zod";
 
@@ -12,6 +16,7 @@ async function requireAdmin() {
   const user = await validateSession(token);
   if (!user) return null;
   if (!["SUPER_ADMIN", "ADMIN"].includes(user.role)) return null;
+  if (user.canAccessAdmin === false) return null;
   return user;
 }
 
@@ -28,6 +33,13 @@ const updateUserSchema = z.object({
     .optional(),
   isActive: z.boolean().optional(),
   name: z.string().min(2).max(100).optional(),
+  accessStatus: z
+    .enum(["PENDING", "APPROVED", "RESTRICTED", "REJECTED"])
+    .optional(),
+  canAccessHub: z.boolean().optional(),
+  canAccessConference: z.boolean().nullable().optional(),
+  canAccessAdmin: z.boolean().nullable().optional(),
+  accessNote: z.string().max(1000).nullable().optional(),
 });
 
 /**
@@ -55,7 +67,41 @@ export async function PATCH(
     );
   }
 
-  const { role, isActive, name } = parsed.data;
+  const {
+    role,
+    isActive,
+    name,
+    accessStatus,
+    canAccessHub,
+    canAccessConference,
+    canAccessAdmin,
+    accessNote,
+  } = parsed.data;
+
+  const nextName = name !== undefined ? name.trim() : target.name;
+  const nextAccessNote =
+    accessNote !== undefined ? accessNote?.trim() || null : target.accessNote;
+
+  const nextRole = role ?? target.role;
+  const nextStatus = accessStatus ?? target.accessStatus;
+  const nextIsActive = isActive ?? target.isActive;
+
+  if (canAccessAdmin !== undefined && admin.role !== "SUPER_ADMIN") {
+    return NextResponse.json(
+      { error: "Only Super Admins can change admin access flags" },
+      { status: 403 },
+    );
+  }
+
+  if (canAccessHub === true && nextStatus !== "APPROVED") {
+    return NextResponse.json(
+      {
+        error:
+          "Only approved accounts can have hub access enabled. Approve the account first.",
+      },
+      { status: 400 },
+    );
+  }
 
   // Role elevation guard — only SUPER_ADMIN can grant SUPER_ADMIN / ADMIN
   if (
@@ -98,23 +144,153 @@ export async function PATCH(
     }
   }
 
-  const roleChanged = role !== undefined && role !== target.role;
+  let nextCanAccessHub = canAccessHub ?? target.canAccessHub;
+  if (!nextIsActive || nextStatus !== "APPROVED") {
+    nextCanAccessHub = false;
+  }
+
+  let nextCanAccessAdmin =
+    canAccessAdmin !== undefined ? canAccessAdmin : target.canAccessAdmin;
+  if (canAccessAdmin === undefined && role !== undefined) {
+    nextCanAccessAdmin =
+      nextRole === "SUPER_ADMIN" || nextRole === "ADMIN" ? true : null;
+  }
+
+  if (
+    nextCanAccessAdmin === true &&
+    !["SUPER_ADMIN", "ADMIN"].includes(nextRole)
+  ) {
+    return NextResponse.json(
+      {
+        error:
+          "Admin access can only be enabled for ADMIN or SUPER_ADMIN roles.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const nextCanAccessConference =
+    canAccessConference !== undefined
+      ? canAccessConference
+      : target.canAccessConference;
+
+  const roleChanged = nextRole !== target.role;
+
+  const auditEntries: AdminAuditEntryInput[] = [];
+
+  const pushAudit = (
+    action: string,
+    field: string,
+    before: unknown,
+    after: unknown,
+    note?: string,
+  ) => {
+    if (before === after) return;
+
+    auditEntries.push({
+      actorUserId: admin.id,
+      actorEmail: admin.email,
+      targetUserId: target.id,
+      targetEmail: target.email,
+      targetName: target.name,
+      action,
+      field,
+      oldValue: before,
+      newValue: after,
+      note: note ?? null,
+    });
+  };
+
+  pushAudit("NAME_CHANGED", "name", target.name, nextName);
+  pushAudit("ROLE_CHANGED", "role", target.role, nextRole);
+
+  if (target.accessStatus !== nextStatus) {
+    const statusAction =
+      nextStatus === "APPROVED"
+        ? "ACCESS_APPROVED"
+        : nextStatus === "RESTRICTED"
+          ? "ACCESS_RESTRICTED"
+          : nextStatus === "REJECTED"
+            ? "ACCESS_REJECTED"
+            : "ACCESS_PENDING";
+    pushAudit(statusAction, "accessStatus", target.accessStatus, nextStatus);
+  }
+
+  if (target.isActive !== nextIsActive) {
+    pushAudit(
+      nextIsActive ? "ACCOUNT_ENABLED" : "ACCOUNT_DISABLED",
+      "isActive",
+      target.isActive,
+      nextIsActive,
+    );
+  }
+
+  if (target.canAccessHub !== nextCanAccessHub) {
+    pushAudit(
+      nextCanAccessHub ? "HUB_ACCESS_ENABLED" : "HUB_ACCESS_DISABLED",
+      "canAccessHub",
+      target.canAccessHub,
+      nextCanAccessHub,
+    );
+  }
+
+  pushAudit(
+    "CONFERENCE_ACCESS_CHANGED",
+    "canAccessConference",
+    target.canAccessConference,
+    nextCanAccessConference,
+  );
+  pushAudit(
+    "ADMIN_ACCESS_CHANGED",
+    "canAccessAdmin",
+    target.canAccessAdmin,
+    nextCanAccessAdmin,
+  );
+  pushAudit(
+    "ACCESS_NOTE_CHANGED",
+    "accessNote",
+    target.accessNote,
+    nextAccessNote,
+  );
+
+  const updateData: Record<string, unknown> = {
+    role: nextRole,
+    isActive: nextIsActive,
+    accessStatus: nextStatus,
+    canAccessHub: nextCanAccessHub,
+    canAccessConference: nextCanAccessConference,
+    canAccessAdmin: nextCanAccessAdmin,
+    ...(name !== undefined ? { name: nextName } : {}),
+    ...(accessNote !== undefined ? { accessNote: nextAccessNote } : {}),
+    ...(roleChanged ? { roleChangedAt: new Date() } : {}),
+  };
+
+  if (nextStatus === "APPROVED" && target.accessStatus !== "APPROVED") {
+    updateData.approvedAt = new Date();
+    updateData.approvedBy = admin.id;
+  }
+
+  if (nextStatus !== "APPROVED") {
+    updateData.approvedAt = null;
+    updateData.approvedBy = null;
+  }
 
   const updated = await prisma.user.update({
     where: { id },
-    data: {
-      ...(role !== undefined ? { role } : {}),
-      ...(isActive !== undefined ? { isActive } : {}),
-      ...(name !== undefined ? { name: name.trim() } : {}),
-      // Mark the time the role was changed so the client can show a re-login banner
-      ...(roleChanged ? { roleChangedAt: new Date() } : {}),
-    },
+    data: updateData,
     select: {
       id: true,
       name: true,
       email: true,
       role: true,
+      accessStatus: true,
       isActive: true,
+      canAccessHub: true,
+      canAccessConference: true,
+      canAccessAdmin: true,
+      approvedBy: true,
+      approvedAt: true,
+      accessNote: true,
       emailVerified: true,
       createdAt: true,
     },
@@ -127,6 +303,10 @@ export async function PATCH(
     );
   }
 
+  await writeAdminAuditEntries(auditEntries).catch((err) =>
+    console.error("[admin-audit:update-user]", err),
+  );
+
   return NextResponse.json({ user: updated });
 }
 
@@ -134,7 +314,7 @@ export async function PATCH(
  * DELETE /api/admin/users/[id] — delete user (SUPER_ADMIN only)
  */
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const admin = await requireAdmin();
@@ -161,5 +341,18 @@ export async function DELETE(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   await prisma.user.delete({ where: { id } });
+
+  await writeAdminAuditEntries([
+    {
+      actorUserId: admin.id,
+      actorEmail: admin.email,
+      targetUserId: target.id,
+      targetEmail: target.email,
+      targetName: target.name,
+      action: "USER_DELETED",
+      note: `Deleted account with role=${target.role}, accessStatus=${target.accessStatus}`,
+    },
+  ]).catch((err) => console.error("[admin-audit:delete-user]", err));
+
   return NextResponse.json({ message: "User deleted" });
 }

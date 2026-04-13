@@ -14,6 +14,7 @@ import {
   ChevronRight,
   UserCog,
   Settings,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
@@ -24,6 +25,7 @@ interface UserData {
   name: string;
   email: string;
   role: string;
+  canAccessAdmin?: boolean | null;
   roleChangedAt: string | null;
   sessionCreatedAt: string;
 }
@@ -32,6 +34,7 @@ interface AdminStats {
   totalUsers: number;
   activeUsers: number;
   roleBreakdown: Record<string, number>;
+  accessBreakdown: Record<string, number>;
   totalConversions: number;
   totalUrls: number;
   totalDownloads: number;
@@ -61,7 +64,10 @@ function AdminContent() {
           router.replace("/login?redirect=/admin");
           return;
         }
-        if (!["SUPER_ADMIN", "ADMIN"].includes(data.role)) {
+        if (
+          !["SUPER_ADMIN", "ADMIN"].includes(data.role) ||
+          data.canAccessAdmin === false
+        ) {
           router.replace("/dashboard");
           return;
         }
@@ -130,17 +136,34 @@ function AdminContent() {
       bg: "bg-orange-500/10",
       href: "/downloads",
     },
+    {
+      label: "Pending Approvals",
+      value: stats?.accessBreakdown?.PENDING ?? "—",
+      icon: UserCog,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+      href: "/admin/users",
+    },
   ];
 
   const adminActions = [
     {
       icon: UserCog,
-      label: "User Management",
-      description: "Create, edit, and assign roles to users",
+      label: "User & Access Control",
+      description: "Approve users, assign roles, and manage feature access",
       href: "/admin/users",
       show: true,
       color: "text-ekd-gold",
       bg: "bg-ekd-gold/10",
+    },
+    {
+      icon: History,
+      label: "Access Audit Log",
+      description: "Review approval, restriction, and permission change history",
+      href: "/admin/audit",
+      show: true,
+      color: "text-blue-500",
+      bg: "bg-blue-500/10",
     },
     {
       icon: Settings,
@@ -192,7 +215,7 @@ function AdminContent() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Platform Overview
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             {statCards.map((card) => (
               <Link
                 key={card.label}

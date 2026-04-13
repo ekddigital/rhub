@@ -13,19 +13,25 @@ export default function AdminSettingsPage() {
     id: string;
     name: string;
     role: string;
+    canAccessAdmin?: boolean | null;
   } | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
-        if (data.role !== "SUPER_ADMIN") {
+        if (data.role !== "SUPER_ADMIN" || data.canAccessAdmin === false) {
           router.replace(
             data.id ? "/dashboard" : "/login?redirect=/admin/settings",
           );
           return;
         }
-        setAdminUser({ id: data.id, name: data.name, role: data.role });
+        setAdminUser({
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          canAccessAdmin: data.canAccessAdmin,
+        });
         setLoading(false);
       })
       .catch(() => router.replace("/login?redirect=/admin/settings"));

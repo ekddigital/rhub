@@ -6,6 +6,7 @@ interface ShellUser {
   id: string;
   name: string;
   role: string;
+  canAccessAdmin?: boolean | null;
 }
 
 interface AppShellProps {

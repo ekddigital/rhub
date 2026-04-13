@@ -11,6 +11,7 @@ import {
   Shield,
   Users,
   Settings,
+  History,
   Crown,
   Wrench,
 } from "lucide-react";
@@ -21,6 +22,7 @@ interface SidebarUser {
   id: string;
   name: string;
   role: string;
+  canAccessAdmin?: boolean | null;
 }
 
 interface NavItem {
@@ -34,7 +36,8 @@ interface NavSection {
   items: NavItem[];
 }
 
-function buildNav(role: string): NavSection[] {
+function buildNav(user: SidebarUser): NavSection[] {
+  const role = user.role;
   const isJudgeRole = [
     "SUPER_ADMIN",
     "ADMIN",
@@ -42,7 +45,8 @@ function buildNav(role: string): NavSection[] {
     "HEAD_JUDGE",
     "JUDGE",
   ].includes(role);
-  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
+  const isAdmin =
+    ["SUPER_ADMIN", "ADMIN"].includes(role) && user.canAccessAdmin !== false;
   const isSuperAdmin = role === "SUPER_ADMIN";
 
   const sections: NavSection[] = [
@@ -73,6 +77,7 @@ function buildNav(role: string): NavSection[] {
         href: "/admin",
       },
       { icon: Users, label: "User Management", href: "/admin/users" },
+      { icon: History, label: "Access Audit", href: "/admin/audit" },
     ];
     if (isSuperAdmin) {
       adminItems.push({
@@ -89,7 +94,7 @@ function buildNav(role: string): NavSection[] {
 
 export function AppSidebar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
-  const sections = buildNav(user.role);
+  const sections = buildNav(user);
   const roleMeta = getRoleMeta(user.role);
 
   return (
@@ -188,7 +193,7 @@ export function AppSidebar({ user }: { user: SidebarUser }) {
 /** Compact horizontal tab nav for mobile (< md) */
 export function AppMobileNav({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
-  const sections = buildNav(user.role);
+  const sections = buildNav(user);
   const allItems = sections.flatMap((s) => s.items);
 
   return (

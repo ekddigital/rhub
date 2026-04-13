@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireDefaultConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf — list conferences (or get the active one)
 export async function GET() {
   try {
+    const auth = await requireDefaultConferenceApiAccess("participant");
+    if (!auth.ok) return auth.response;
+
     const events = await prisma.confEvent.findMany({
       orderBy: { year: "desc" },
       include: {
@@ -31,6 +35,9 @@ export async function GET() {
 // POST /api/conf — create a new conference
 export async function POST(req: Request) {
   try {
+    const auth = await requireDefaultConferenceApiAccess("manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const {
       name,

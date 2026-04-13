@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { budgetToCsv, csvResponse } from "@/lib/conf/export";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/budgets/[budgetId]/export?format=csv
 export async function GET(
@@ -9,6 +10,9 @@ export async function GET(
 ) {
   try {
     const { confId, budgetId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const url = new URL(req.url);
     const format = url.searchParams.get("format") ?? "csv";
 
@@ -20,7 +24,7 @@ export async function GET(
       },
     });
 
-    if (!budget) {
+    if (!budget || budget.confId !== confId) {
       return NextResponse.json({ error: "Budget not found" }, { status: 404 });
     }
 

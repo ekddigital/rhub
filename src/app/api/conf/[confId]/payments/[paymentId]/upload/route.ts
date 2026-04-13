@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 
 // POST /api/conf/[confId]/payments/[paymentId]/upload — upload payment proof screenshot
 export async function POST(
@@ -9,12 +9,19 @@ export async function POST(
   { params }: { params: Promise<{ confId: string; paymentId: string }> },
 ) {
   try {
-    const { paymentId } = await params;
+    const { confId, paymentId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
 
     const payment = await prisma.confPayment.findUnique({
       where: { id: paymentId },
+      select: {
+        id: true,
+        confId: true,
+      },
     });
-    if (!payment) {
+
+    if (!payment || payment.confId !== confId) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
@@ -47,28 +54,17 @@ export async function POST(
       );
     }
 
-    // Save file to disk
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "conf",
-      "payments",
-    );
-    await mkdir(uploadDir, { recursive: true });
-
-    const ext = path.extname(file.name) || ".png";
-    const safeName = `${paymentId}_${Date.now()}${ext}`;
-    const filePath = path.join(uploadDir, safeName);
-
-    const bytes = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
+    const uploaded = await uploadFileToEKDDigitalAssets({
+      file,
+      assetType: file.type === "application/pdf" ? "document" : "image",
+      projectName: "rhub-conf-payments",
+    });
 
     const proof = await prisma.confPaymentProof.create({
       data: {
         paymentId,
         fileName: file.name,
-        filePath: `/uploads/conf/payments/${safeName}`,
+        filePath: uploaded.publicUrl,
         fileSize: file.size,
         fileType: file.type,
       },

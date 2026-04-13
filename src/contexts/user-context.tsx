@@ -14,6 +14,10 @@ export interface AuthUser {
   email: string;
   name: string;
   role: string;
+  accessStatus?: string;
+  canAccessHub?: boolean;
+  canAccessConference?: boolean | null;
+  canAccessAdmin?: boolean | null;
   roleChangedAt: string | null;
   sessionCreatedAt: string;
 }

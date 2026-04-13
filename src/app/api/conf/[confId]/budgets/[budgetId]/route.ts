@@ -1,12 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 type Params = { params: Promise<{ confId: string; budgetId: string }> };
 
 // GET /api/conf/[confId]/budgets/[budgetId] — single budget with items
 export async function GET(_req: Request, { params }: Params) {
   try {
-    const { budgetId } = await params;
+    const { confId, budgetId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const budget = await prisma.confBudget.findUnique({
       where: { id: budgetId },
       include: {
@@ -19,7 +23,7 @@ export async function GET(_req: Request, { params }: Params) {
       },
     });
 
-    if (!budget) {
+    if (!budget || budget.confId !== confId) {
       return NextResponse.json({ error: "Budget not found" }, { status: 404 });
     }
 
@@ -36,7 +40,19 @@ export async function GET(_req: Request, { params }: Params) {
 // PUT /api/conf/[confId]/budgets/[budgetId] — update budget and items
 export async function PUT(req: Request, { params }: Params) {
   try {
-    const { budgetId } = await params;
+    const { confId, budgetId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
+    const existing = await prisma.confBudget.findUnique({
+      where: { id: budgetId },
+      select: { confId: true },
+    });
+
+    if (!existing || existing.confId !== confId) {
+      return NextResponse.json({ error: "Budget not found" }, { status: 404 });
+    }
+
     const body = await req.json();
     const { title, category, status, notes, items } = body;
 
@@ -117,7 +133,19 @@ export async function PUT(req: Request, { params }: Params) {
 // DELETE /api/conf/[confId]/budgets/[budgetId]
 export async function DELETE(_req: Request, { params }: Params) {
   try {
-    const { budgetId } = await params;
+    const { confId, budgetId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
+    const existing = await prisma.confBudget.findUnique({
+      where: { id: budgetId },
+      select: { confId: true },
+    });
+
+    if (!existing || existing.confId !== confId) {
+      return NextResponse.json({ error: "Budget not found" }, { status: 404 });
+    }
+
     await prisma.confBudget.delete({ where: { id: budgetId } });
     return NextResponse.json({ ok: true });
   } catch (error) {

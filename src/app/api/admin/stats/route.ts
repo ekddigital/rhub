@@ -11,7 +11,11 @@ export async function GET() {
   const token = cookieStore.get("auth_token")?.value;
   if (!token) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const user = await validateSession(token);
-  if (!user || !["SUPER_ADMIN", "ADMIN"].includes(user.role)) {
+  if (
+    !user ||
+    !["SUPER_ADMIN", "ADMIN"].includes(user.role) ||
+    user.canAccessAdmin === false
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -19,6 +23,7 @@ export async function GET() {
     totalUsers,
     activeUsers,
     usersByRole,
+    usersByAccessStatus,
     totalConversions,
     totalUrls,
     totalDownloads,
@@ -26,6 +31,7 @@ export async function GET() {
     prisma.user.count(),
     prisma.user.count({ where: { isActive: true } }),
     prisma.user.groupBy({ by: ["role"], _count: { role: true } }),
+    prisma.user.groupBy({ by: ["accessStatus"], _count: { accessStatus: true } }),
     prisma.laTeXConversion.count(),
     prisma.shortUrl.count(),
     prisma.downloadableFile.aggregate({ _sum: { downloads: true } }),
@@ -35,10 +41,15 @@ export async function GET() {
     usersByRole.map((r) => [r.role, r._count.role]),
   );
 
+  const accessBreakdown = Object.fromEntries(
+    usersByAccessStatus.map((r) => [r.accessStatus, r._count.accessStatus]),
+  );
+
   return NextResponse.json({
     totalUsers,
     activeUsers,
     roleBreakdown,
+    accessBreakdown,
     totalConversions,
     totalUrls,
     totalDownloads: totalDownloads._sum.downloads ?? 0,

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
 function escapeXml(input: string) {
   return input
@@ -57,7 +58,7 @@ export async function GET(
     }
 
     const origin = new URL(req.url).origin;
-    const photoUrl = `${origin}${delegate.bookletPhotoPath}`;
+    const photoUrl = resolveStoredAssetUrl(delegate.bookletPhotoPath, origin);
     const logoUrl = `${origin}/conf/lsuic_logo.png`;
     const confTag = "LSUIC 2026";
 
@@ -92,13 +93,13 @@ export async function GET(
   <rect x="128" y="130" width="280" height="86" rx="24" fill="#EAF3FF"/>
   <text x="268" y="188" text-anchor="middle" font-size="56" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#2B74D8">#LSUIC</text>
   <rect x="716" y="130" width="236" height="86" rx="24" fill="#EAF3FF"/>
-  <image href="${logoUrl}" x="736" y="142" width="196" height="62" preserveAspectRatio="xMidYMid meet"/>
+  <image href="${escapeXml(logoUrl)}" x="736" y="142" width="196" height="62" preserveAspectRatio="xMidYMid meet"/>
 
   <text x="540" y="286" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#A01010">I Will Be At</text>
   <text x="540" y="358" text-anchor="middle" font-size="84" font-family="Segoe UI, Arial, sans-serif" font-weight="900" fill="#091F7A">${confTag}</text>
 
   <rect x="166" y="400" width="748" height="620" rx="42" fill="#FFFFFF" stroke="#6CA8FF" stroke-width="10"/>
-  <image href="${photoUrl}" x="208" y="456" width="664" height="500" preserveAspectRatio="xMidYMid slice"/>
+  <image href="${escapeXml(photoUrl)}" x="208" y="456" width="664" height="500" preserveAspectRatio="xMidYMid slice"/>
 
   <text x="540" y="1072" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#1A65D8">${name}</text>
   <text x="540" y="1120" text-anchor="middle" font-size="34" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#36456B">${university}</text>

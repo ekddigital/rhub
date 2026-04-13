@@ -11,6 +11,8 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const authError = searchParams.get("error");
+  const authEmail = searchParams.get("email");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +21,31 @@ function LoginForm() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    if (!authError) return;
+
+    const mapped: Record<string, string> = {
+      pending_approval: authEmail
+        ? `Your account (${authEmail}) is pending union approval.`
+        : "Your account is pending union approval.",
+      account_restricted:
+        "Your account is currently restricted. Contact an administrator.",
+      account_rejected:
+        "Your account application was not approved.",
+      hub_access_disabled:
+        "Hub access is disabled for your account. Contact an administrator.",
+      account_disabled: "Your account has been disabled.",
+      google_denied: "Google sign-in was cancelled.",
+      token_exchange: "Google sign-in failed while exchanging tokens.",
+      user_info: "Google sign-in failed while fetching your profile.",
+      no_email: "Google account did not provide an email address.",
+      no_code: "Google sign-in did not return an authorization code.",
+      server_error: "An unexpected server error occurred during sign-in.",
+    };
+
+    setError(mapped[authError] || "Sign-in failed. Please try again.");
+  }, [authError, authEmail]);
 
   // Redirect if already logged in
   useEffect(() => {

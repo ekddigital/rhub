@@ -34,6 +34,10 @@ export async function GET() {
       email: user.email,
       name: user.name,
       role: user.role,
+      accessStatus: user.accessStatus,
+      canAccessHub: user.canAccessHub,
+      canAccessConference: user.canAccessConference,
+      canAccessAdmin: user.canAccessAdmin,
       // roleChangedAt lets the client show a "please re-login" banner
       roleChangedAt: user.roleChangedAt ?? null,
       sessionCreatedAt: sessionCreatedAt.toISOString(),

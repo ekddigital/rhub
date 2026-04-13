@@ -85,6 +85,7 @@ export function DelegatePublicRegister() {
       }
 
       const delegateId = createdPayload.id as string;
+      let flyerReady = Boolean(createdPayload.flyerReady);
 
       const uploadDocument = async (
         kind: "passport" | "booklet",
@@ -109,32 +110,18 @@ export function DelegatePublicRegister() {
             responsePayload.error || `Failed to upload ${kind} document`,
           );
         }
+
+        flyerReady = flyerReady || Boolean(responsePayload.flyerReady);
       };
 
       await uploadDocument("passport", payload.passportPhoto);
       await uploadDocument("booklet", payload.bookletPhoto);
 
-      if (payload.feePaid) {
-        await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feePaid: true, status: "CONFIRMED" }),
-        });
-      }
-
-      const finalRes = await fetch(
-        `/api/conf/${confId}/delegates/${delegateId}`,
-        {
-          cache: "no-store",
-        },
-      );
-      const finalPayload = await finalRes.json();
-
       setSuccess({
         confId,
         delegateId,
-        delegateCode: finalPayload.delegateCode || null,
-        flyerReady: Boolean(finalPayload.flyerReady),
+        delegateCode: (createdPayload.delegateCode as string | null) || null,
+        flyerReady,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Registration failed");

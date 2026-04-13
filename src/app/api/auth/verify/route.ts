@@ -38,33 +38,51 @@ export async function POST(req: NextRequest) {
     }
 
     // Mark as verified
-    await prisma.user.update({
+    const verifiedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
         verifyToken: null,
         verifyTokenExp: null,
       },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        accessStatus: true,
+        canAccessHub: true,
+      },
     });
 
-    // Auto-login after verification
-    const sessionToken = await createSession(user.id);
-    const cookieStore = await cookies();
-    cookieStore.set("auth_token", sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
+    const canAutoLogin =
+      verifiedUser.isActive &&
+      verifiedUser.accessStatus === "APPROVED" &&
+      verifiedUser.canAccessHub;
+
+    if (canAutoLogin) {
+      const sessionToken = await createSession(verifiedUser.id);
+      const cookieStore = await cookies();
+      cookieStore.set("auth_token", sessionToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      });
+    }
 
     return NextResponse.json({
-      message: "Email verified",
+      message: canAutoLogin
+        ? "Email verified"
+        : "Email verified. Your account is pending union approval.",
+      requiresApproval: !canAutoLogin,
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
+        id: verifiedUser.id,
+        email: verifiedUser.email,
+        name: verifiedUser.name,
+        role: verifiedUser.role,
       },
     });
   } catch (error) {

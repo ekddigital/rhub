@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 
 // POST /api/conf/[confId]/members/[memberId]/photo — upload a committee profile photo
 export async function POST(
@@ -10,6 +10,8 @@ export async function POST(
 ) {
   try {
     const { confId, memberId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
 
     const member = await prisma.confMember.findUnique({
       where: { id: memberId },
@@ -42,26 +44,16 @@ export async function POST(
       );
     }
 
-    const uploadDir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "conf",
-      "members",
-    );
-    await mkdir(uploadDir, { recursive: true });
-
-    const ext = path.extname(file.name) || ".jpg";
-    const safeName = `${memberId}_${Date.now()}${ext}`;
-    const filePath = path.join(uploadDir, safeName);
-
-    const bytes = await file.arrayBuffer();
-    await writeFile(filePath, Buffer.from(bytes));
+    const uploaded = await uploadFileToEKDDigitalAssets({
+      file,
+      assetType: "image",
+      projectName: "rhub-conf-members",
+    });
 
     const updated = await prisma.confMember.update({
       where: { id: memberId },
       data: {
-        photoPath: `/uploads/conf/members/${safeName}`,
+        photoPath: uploaded.publicUrl,
         photoFileName: file.name,
       },
     });

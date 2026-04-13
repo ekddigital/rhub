@@ -145,6 +145,12 @@ function RegisterForm() {
         );
         return;
       }
+
+      if (data.requiresApproval) {
+        window.location.href = `/login?error=pending_approval&email=${encodeURIComponent(email.trim().toLowerCase())}`;
+        return;
+      }
+
       window.location.href = redirectTo;
     } catch {
       setVerifyError("Network error. Please try again.");

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/delegates
 export async function GET(
@@ -9,6 +10,9 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const delegates = await prisma.confDelegate.findMany({
       where: { confId },
       orderBy: { createdAt: "desc" },

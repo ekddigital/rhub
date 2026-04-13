@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 type BookletScope = "all" | "paid" | "confirmed";
 
@@ -16,6 +17,9 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const scope = parseScope(new URL(req.url).searchParams.get("scope"));
 
     const event = await prisma.confEvent.findUnique({

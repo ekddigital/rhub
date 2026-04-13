@@ -50,6 +50,13 @@ enum UserRole {
     USER
 }
 
+enum AccessApprovalStatus {
+    PENDING
+    APPROVED
+    RESTRICTED
+    REJECTED
+}
+
 enum DebateEventStatus {
     DRAFT
     REGISTRATION
@@ -203,7 +210,14 @@ model User {
     password       String? // bcrypt hashed (null for OAuth-only users)
     name           String
     role           UserRole  @default(USER)
+    accessStatus   AccessApprovalStatus @default(APPROVED)
     isActive       Boolean   @default(true)
+    canAccessHub   Boolean   @default(true)
+    canAccessConference Boolean?
+    canAccessAdmin Boolean?
+    approvedBy     String?
+    approvedAt     DateTime?
+    accessNote     String?   @db.Text
     emailVerified  Boolean   @default(false)
     googleId       String?   @unique
     verifyToken    String?
@@ -220,6 +234,25 @@ model User {
 
     @@index([email])
     @@index([role])
+}
+
+model UserAccessAuditLog {
+    id           String   @id @default(cuid())
+    actorUserId  String
+    actorEmail   String
+    targetUserId String
+    targetEmail  String
+    targetName   String?
+    action       String
+    field        String?
+    oldValue     String?  @db.Text
+    newValue     String?  @db.Text
+    note         String?  @db.Text
+    createdAt    DateTime @default(now())
+
+    @@index([targetUserId, createdAt])
+    @@index([actorUserId, createdAt])
+    @@index([createdAt])
 }
 
 model Session {

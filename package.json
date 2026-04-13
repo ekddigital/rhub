@@ -10,6 +10,8 @@
     "postinstall": "prisma generate",
     "setup:latex": "tsx scripts/setup-latex-remote.ts",
     "cleanup:latex": "tsx scripts/cleanup-latex-temp.ts",
+    "migrate:conf-assets": "tsx scripts/migrate-conf-assets-to-ekd.ts",
+    "migrate:conf-assets:apply": "tsx scripts/migrate-conf-assets-to-ekd.ts --apply",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",

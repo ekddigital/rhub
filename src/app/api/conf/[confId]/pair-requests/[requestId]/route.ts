@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 type Action =
   | "accept"
@@ -35,6 +36,9 @@ export async function PATCH(
 ) {
   try {
     const { confId, requestId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const action = String(body.action || "") as Action;
     const actorDelegateId = body.actorDelegateId

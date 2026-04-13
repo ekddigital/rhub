@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 async function generateRoomCode(confId: string) {
   const count = await prisma.confRoomAssignment.count({ where: { confId } });
@@ -24,6 +25,9 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const assignments = await prisma.confRoomAssignment.findMany({
       where: { confId },
       include: {
@@ -66,6 +70,9 @@ export async function POST(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
 
     const occupantAId = String(body.occupantAId || "");

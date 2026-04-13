@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       where: { email },
     });
 
-    if (!user || !user.isActive) {
+    if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },
@@ -29,6 +29,54 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },
+      );
+    }
+
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { error: "Please verify your email first." },
+        { status: 403 },
+      );
+    }
+
+    if (!user.isActive) {
+      return NextResponse.json(
+        { error: "Your account has been disabled. Contact support." },
+        { status: 403 },
+      );
+    }
+
+    if (user.accessStatus === "PENDING") {
+      return NextResponse.json(
+        {
+          error:
+            "Your account is pending union approval. You will be able to access the system after approval.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (user.accessStatus === "RESTRICTED") {
+      return NextResponse.json(
+        { error: "Your account is currently restricted by an administrator." },
+        { status: 403 },
+      );
+    }
+
+    if (user.accessStatus === "REJECTED") {
+      return NextResponse.json(
+        { error: "Your account application was not approved." },
+        { status: 403 },
+      );
+    }
+
+    if (!user.canAccessHub) {
+      return NextResponse.json(
+        {
+          error:
+            "Hub access is disabled for your account. Contact an administrator.",
+        },
+        { status: 403 },
       );
     }
 

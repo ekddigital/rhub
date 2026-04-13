@@ -2,6 +2,20 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
 
+function hasApprovedHubAccess(user: {
+  isActive: boolean;
+  emailVerified: boolean;
+  accessStatus: string;
+  canAccessHub: boolean;
+}): boolean {
+  return (
+    user.isActive &&
+    user.emailVerified &&
+    user.accessStatus === "APPROVED" &&
+    user.canAccessHub
+  );
+}
+
 export async function hashPwd(pwd: string): Promise<string> {
   return bcrypt.hash(pwd, 10);
 }
@@ -44,6 +58,10 @@ export async function validateSession(token: string) {
     return null;
   }
 
+  if (!hasApprovedHubAccess(session.user)) {
+    return null;
+  }
+
   return session.user;
 }
 
@@ -56,6 +74,10 @@ export async function validateSessionFull(token: string) {
   });
 
   if (!session || session.expiresAt < new Date()) {
+    return null;
+  }
+
+  if (!hasApprovedHubAccess(session.user)) {
     return null;
   }
 

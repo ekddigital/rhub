@@ -35,7 +35,9 @@ function DashboardContent() {
   if (!user) return null;
 
   const roleInfo = getRoleMeta(user.role);
-  const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(user.role);
+  const isAdmin =
+    ["SUPER_ADMIN", "ADMIN"].includes(user.role) &&
+    user.canAccessAdmin !== false;
   const isSuperAdmin = user.role === "SUPER_ADMIN";
   const isJudgeRole = [
     "SUPER_ADMIN",

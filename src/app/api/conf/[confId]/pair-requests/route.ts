@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/pair-requests
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const requests = await prisma.confPairRequest.findMany({
       where: { confId },
       include: {
@@ -50,6 +54,9 @@ export async function POST(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
 
     const requesterId = String(body.requesterId || "");

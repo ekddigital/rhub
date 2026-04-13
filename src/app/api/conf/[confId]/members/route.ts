@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireConferenceApiAccess } from "@/lib/conf/access";
 
 // GET /api/conf/[confId]/members — list all committee members
 export async function GET(
@@ -8,6 +9,9 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
     const members = await prisma.confMember.findMany({
       where: { confId },
       orderBy: { joinedAt: "asc" },
@@ -29,6 +33,9 @@ export async function POST(
 ) {
   try {
     const { confId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
     const body = await req.json();
     const { name, role, city, phone, email, title, photoPath, photoFileName } =
       body;
