@@ -280,7 +280,7 @@ export function BookletShell() {
               alt="LSUIC Logo"
               width={60}
               height={60}
-              className="h-14 w-14 rounded-md border border-border bg-white object-contain p-1"
+              className="h-14 w-14 rounded-full border border-[#C8A061]/40 bg-white object-contain p-2 shadow-sm"
             />
             <div className="space-y-1">
               <p className="text-sm font-semibold uppercase tracking-wide text-[#8E0E00]">

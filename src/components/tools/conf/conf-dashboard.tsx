@@ -159,7 +159,8 @@ export function ConfDashboard() {
               齐河阿尔卡迪亚温泉高尔夫国际酒店 · Shandong Province
             </p>
             <p className="text-xs font-medium text-[#8E0E00]">
-              Special program: Liberia Independence Day celebration on {independenceDateLabel}
+              Special program: Liberia Independence Day celebration on{" "}
+              {independenceDateLabel}
             </p>
           </div>
           <div className="flex items-center gap-4 text-sm">
@@ -167,7 +168,10 @@ export function ConfDashboard() {
               <Calendar className="size-4 text-muted-foreground" />
               <span>July 23–27, 2026</span>
             </div>
-            <Badge variant="outline" className="border-[#8E0E00]/40 text-[#8E0E00]">
+            <Badge
+              variant="outline"
+              className="border-[#8E0E00]/40 text-[#8E0E00]"
+            >
               {`${liberiaAnniversaryLabel} Independence`}
             </Badge>
             <Badge>¥5,000 Deposit Paid</Badge>

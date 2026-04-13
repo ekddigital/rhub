@@ -392,7 +392,9 @@ export function CommitteeShell() {
                 <div className="mt-4">
                   <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
                     <Camera className="size-3.5" />
-                    {uploadingId === member.id ? "Uploading..." : "Upload Photo"}
+                    {uploadingId === member.id
+                      ? "Uploading..."
+                      : "Upload / Replace Photo"}
                     <input
                       type="file"
                       className="hidden"

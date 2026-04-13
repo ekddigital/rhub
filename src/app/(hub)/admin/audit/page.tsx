@@ -194,7 +194,9 @@ function AuditPageContent() {
             disabled={tableLoading}
             className="flex items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
-            <RefreshCw className={cn("h-4 w-4", tableLoading && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-4 w-4", tableLoading && "animate-spin")}
+            />
             Refresh
           </button>
         </div>
@@ -213,18 +215,35 @@ function AuditPageContent() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">When</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Target</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Actor</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Action</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Field</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Change</th>
-                    <th className="text-left px-4 py-3 font-semibold text-foreground">Note</th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      When
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Target
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Actor
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Action
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Field
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Change
+                    </th>
+                    <th className="text-left px-4 py-3 font-semibold text-foreground">
+                      Note
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {entries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-muted/20 transition-colors align-top">
+                    <tr
+                      key={entry.id}
+                      className="hover:bg-muted/20 transition-colors align-top"
+                    >
                       <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
                         {new Date(entry.createdAt).toLocaleString()}
                       </td>

@@ -349,9 +349,7 @@ function UsersContent() {
 
     const targetUsers = users.filter(
       (u) =>
-        selectedUserIds.has(u.id) &&
-        canEditUser(u) &&
-        u.id !== adminUser?.id,
+        selectedUserIds.has(u.id) && canEditUser(u) && u.id !== adminUser?.id,
     );
 
     if (!targetUsers.length) {
@@ -409,7 +407,9 @@ function UsersContent() {
     if (successes.length) {
       const updatedById = new Map(successes.map((r) => [r.id, r.user]));
       setUsers((prev) =>
-        prev.map((u) => (updatedById.has(u.id) ? { ...u, ...updatedById.get(u.id)! } : u)),
+        prev.map((u) =>
+          updatedById.has(u.id) ? { ...u, ...updatedById.get(u.id)! } : u,
+        ),
       );
       setSelectedUserIds((prev) => {
         const next = new Set(prev);
@@ -786,7 +786,9 @@ function UsersContent() {
                               aria-label={`Select ${u.email}`}
                             />
                           ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
+                            <span className="text-xs text-muted-foreground">
+                              -
+                            </span>
                           )}
                         </td>
 
@@ -927,7 +929,8 @@ function UsersContent() {
                             )}
                             {u.approvedAt && (
                               <span className="text-[10px] text-muted-foreground">
-                                Approved {new Date(u.approvedAt).toLocaleDateString()}
+                                Approved{" "}
+                                {new Date(u.approvedAt).toLocaleDateString()}
                               </span>
                             )}
                           </div>

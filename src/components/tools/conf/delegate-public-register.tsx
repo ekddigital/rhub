@@ -401,7 +401,8 @@ export function DelegatePublicRegister() {
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      Your delegate card will be available once payment is confirmed.
+                      Your delegate card will be available once payment is
+                      confirmed.
                     </p>
                   )}
                 </div>

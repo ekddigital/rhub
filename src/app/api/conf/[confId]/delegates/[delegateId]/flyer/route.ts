@@ -168,7 +168,9 @@ export async function GET(
       clampText(delegate.university || "LSUIC Delegate", 44),
     );
     const code = escapeXml(delegate.delegateCode || "PENDING-CODE");
-    const cardSubtitle = escapeXml(`LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`);
+    const cardSubtitle = escapeXml(
+      `LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`,
+    );
 
     const backdropLayer = cityBackdropDataUri
       ? `<image href="${escapeXml(cityBackdropDataUri)}" x="0" y="0" width="1080" height="1350" preserveAspectRatio="xMidYMid slice" opacity="0.24"/>`
