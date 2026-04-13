@@ -140,7 +140,11 @@ export function ConfDashboard() {
           icon={Clock}
         />
         <StatCard label="Conference Year" value="20th" icon={FileText} />
-        <StatCard label="Weekly Meetings" value="Thursdays" icon={CalendarDays} />
+        <StatCard
+          label="Weekly Meetings"
+          value="Thursdays"
+          icon={CalendarDays}
+        />
       </div>
 
       {/* Navigation Grid */}

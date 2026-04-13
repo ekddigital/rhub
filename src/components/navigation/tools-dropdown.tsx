@@ -76,7 +76,8 @@ export function ToolsDropdown() {
     {
       href: "/tools/conf/booklet",
       title: "Booklet Builder",
-      description: "Printable participant cards with IDs, photos, and room details",
+      description:
+        "Printable participant cards with IDs, photos, and room details",
     },
     {
       href: "/tools/conf/meetings",
@@ -358,7 +359,9 @@ export function ToolsDropdown() {
                       href={item.href}
                       className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
                     >
-                      <div className="font-medium text-foreground">{item.title}</div>
+                      <div className="font-medium text-foreground">
+                        {item.title}
+                      </div>
                       <div className="text-xs text-muted-foreground">
                         {item.description}
                       </div>
@@ -382,15 +385,23 @@ export function ToolsDropdown() {
                     href="/tools/dbt"
                     className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
                   >
-                    <div className="font-medium text-foreground">All Events</div>
-                    <div className="text-xs text-muted-foreground">Browse debate events</div>
+                    <div className="font-medium text-foreground">
+                      All Events
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Browse debate events
+                    </div>
                   </Link>
                   <Link
                     href="/tools/dbt/judge"
                     className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
                   >
-                    <div className="font-medium text-foreground">Judge Dashboard</div>
-                    <div className="text-xs text-muted-foreground">Score & manage rounds</div>
+                    <div className="font-medium text-foreground">
+                      Judge Dashboard
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Score & manage rounds
+                    </div>
                   </Link>
                   <Link
                     href="/login?redirect=/tools/dbt"

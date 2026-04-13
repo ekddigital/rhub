@@ -15,7 +15,13 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { fetchDefaultConference } from "@/lib/conf/client";
@@ -96,18 +102,21 @@ export function BookletShell() {
   const [error, setError] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState("");
 
-  const fetchBooklet = useCallback(async (id: string, nextScope: BookletScope) => {
-    const res = await fetch(`/api/conf/${id}/booklet?scope=${nextScope}`, {
-      cache: "no-store",
-    });
+  const fetchBooklet = useCallback(
+    async (id: string, nextScope: BookletScope) => {
+      const res = await fetch(`/api/conf/${id}/booklet?scope=${nextScope}`, {
+        cache: "no-store",
+      });
 
-    if (!res.ok) {
-      const payload = await res.json().catch(() => ({}));
-      throw new Error(payload.error || "Failed to load booklet data");
-    }
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || "Failed to load booklet data");
+      }
 
-    return (await res.json()) as BookletPayload;
-  }, []);
+      return (await res.json()) as BookletPayload;
+    },
+    [],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -122,7 +131,9 @@ export function BookletShell() {
         setCounts(payload.counts);
         setGeneratedAt(payload.generatedAt);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to initialize booklet");
+        setError(
+          e instanceof Error ? e.message : "Failed to initialize booklet",
+        );
       } finally {
         setLoading(false);
       }
@@ -227,7 +238,9 @@ export function BookletShell() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Conference Booklet Builder</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Conference Booklet Builder
+          </h1>
           <p className="text-sm text-muted-foreground">
             Printable participant profiles for LSUIC booklet production.
           </p>
@@ -241,7 +254,12 @@ export function BookletShell() {
             <Download className="size-4" />
             Export CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refresh}
+            disabled={refreshing}
+          >
             <RefreshCcw className="size-4" />
             {refreshing ? "Refreshing..." : "Refresh"}
           </Button>
@@ -268,7 +286,9 @@ export function BookletShell() {
               <p className="text-sm font-semibold uppercase tracking-wide text-[#8E0E00]">
                 LSUIC Participant Booklet
               </p>
-              <p className="text-lg font-bold">{event?.name || "Conference Booklet"}</p>
+              <p className="text-lg font-bold">
+                {event?.name || "Conference Booklet"}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {event?.venue || ""} - {event?.city || ""} - {dateRange}
               </p>
@@ -276,7 +296,8 @@ export function BookletShell() {
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Generated: {generatedAt ? new Date(generatedAt).toLocaleString() : "-"}
+            Generated:{" "}
+            {generatedAt ? new Date(generatedAt).toLocaleString() : "-"}
           </div>
         </CardContent>
       </Card>
@@ -289,7 +310,9 @@ export function BookletShell() {
             </div>
             <div>
               <p className="text-xl font-bold">{counts.total}</p>
-              <p className="text-xs text-muted-foreground">Included Delegates</p>
+              <p className="text-xs text-muted-foreground">
+                Included Delegates
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -335,7 +358,8 @@ export function BookletShell() {
         <CardHeader>
           <CardTitle className="text-base">Booklet Filters</CardTitle>
           <CardDescription>
-            Control roster scope and search for individual delegates before printing.
+            Control roster scope and search for individual delegates before
+            printing.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -372,7 +396,9 @@ export function BookletShell() {
       {filteredParticipants.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-base font-medium">No delegates matched this booklet view.</p>
+            <p className="text-base font-medium">
+              No delegates matched this booklet view.
+            </p>
             <p className="text-sm text-muted-foreground">
               Change the scope or search query, then refresh the roster.
             </p>
@@ -399,17 +425,23 @@ export function BookletShell() {
                   )}
 
                   <div className="min-w-0 flex-1 space-y-1">
-                    <p className="truncate text-base font-semibold">{participant.name}</p>
+                    <p className="truncate text-base font-semibold">
+                      {participant.name}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {participant.delegateCode || "Pending Conference ID"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {participant.university || "University pending"}
                     </p>
-                    <p className="text-xs text-muted-foreground">{participant.city}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {participant.city}
+                    </p>
 
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      <Badge variant={participant.feePaid ? "default" : "outline"}>
+                      <Badge
+                        variant={participant.feePaid ? "default" : "outline"}
+                      >
                         {participant.feePaid ? "Paid" : "Unpaid"}
                       </Badge>
                       <Badge variant="secondary">{participant.status}</Badge>
@@ -425,14 +457,18 @@ export function BookletShell() {
                   <p>Gender: {participant.gender || "-"}</p>
                   <p>
                     Room: {participant.roomCode || "Pending"}
-                    {participant.roommateName ? ` with ${participant.roommateName}` : ""}
+                    {participant.roommateName
+                      ? ` with ${participant.roommateName}`
+                      : ""}
                   </p>
                   <p>
                     Room Type: {participant.roomType || participant.roomPref}
                     {participant.roomManualOverride ? " (manual)" : ""}
                   </p>
                   {participant.roomOverrideReason && (
-                    <p className="text-amber-700">Override: {participant.roomOverrideReason}</p>
+                    <p className="text-amber-700">
+                      Override: {participant.roomOverrideReason}
+                    </p>
                   )}
                 </div>
               </CardContent>

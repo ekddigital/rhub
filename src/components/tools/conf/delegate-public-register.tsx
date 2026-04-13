@@ -79,7 +79,9 @@ export function DelegatePublicRegister() {
 
       const createdPayload = await createRes.json().catch(() => ({}));
       if (!createRes.ok) {
-        throw new Error(createdPayload.error || "Failed to submit registration");
+        throw new Error(
+          createdPayload.error || "Failed to submit registration",
+        );
       }
 
       const delegateId = createdPayload.id as string;
@@ -120,9 +122,12 @@ export function DelegatePublicRegister() {
         });
       }
 
-      const finalRes = await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
-        cache: "no-store",
-      });
+      const finalRes = await fetch(
+        `/api/conf/${confId}/delegates/${delegateId}`,
+        {
+          cache: "no-store",
+        },
+      );
       const finalPayload = await finalRes.json();
 
       setSuccess({
@@ -184,7 +189,9 @@ export function DelegatePublicRegister() {
           <CardContent className="space-y-3 text-sm">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline">Conference ID</Badge>
-              <span className="font-semibold">{success.delegateCode || "Pending"}</span>
+              <span className="font-semibold">
+                {success.delegateCode || "Pending"}
+              </span>
             </div>
             {success.flyerReady ? (
               <div className="flex flex-wrap items-center gap-2">

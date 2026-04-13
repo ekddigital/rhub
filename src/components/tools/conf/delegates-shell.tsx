@@ -174,7 +174,8 @@ export function DelegatesShell() {
   const [manualOverride, setManualOverride] = useState("");
 
   const isAdminControl =
-    user && ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role);
+    user &&
+    ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role);
 
   const loadDelegates = useCallback(async (id: string) => {
     const res = await fetch(`/api/conf/${id}/delegates`, { cache: "no-store" });
@@ -202,9 +203,12 @@ export function DelegatesShell() {
     setAssignments(roomsData);
   }, []);
 
-  const reloadAll = useCallback(async (id: string) => {
-    await Promise.all([loadDelegates(id), loadPairingData(id)]);
-  }, [loadDelegates, loadPairingData]);
+  const reloadAll = useCallback(
+    async (id: string) => {
+      await Promise.all([loadDelegates(id), loadPairingData(id)]);
+    },
+    [loadDelegates, loadPairingData],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -214,7 +218,9 @@ export function DelegatesShell() {
         setConfId(conf.id);
         await reloadAll(conf.id);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to initialize delegates");
+        setError(
+          e instanceof Error ? e.message : "Failed to initialize delegates",
+        );
       } finally {
         setLoading(false);
       }
@@ -418,7 +424,9 @@ export function DelegatesShell() {
       await loadPairingData(confId);
       setNotice("Pairing request submitted.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create pair request");
+      setError(
+        e instanceof Error ? e.message : "Failed to create pair request",
+      );
     } finally {
       setPairingBusy(false);
     }
@@ -455,7 +463,9 @@ export function DelegatesShell() {
       await loadPairingData(confId);
       await loadDelegates(confId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update pair request");
+      setError(
+        e instanceof Error ? e.message : "Failed to update pair request",
+      );
     } finally {
       setPairingBusy(false);
     }
@@ -523,13 +533,20 @@ export function DelegatesShell() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Delegates & Participants</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Delegates & Participants
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {delegates.length} registered · {cities.length} cities · {assignments.length} room assignments
+            {delegates.length} registered · {cities.length} cities ·{" "}
+            {assignments.length} room assignments
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={handleCopyRegistrationLink}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyRegistrationLink}
+          >
             <Link2 className="size-4" />
             Copy Registration Link
           </Button>
@@ -590,7 +607,9 @@ export function DelegatesShell() {
               <Clock className="size-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-xl font-bold">{fmtRmb(totalFees - paidFees)}</p>
+              <p className="text-xl font-bold">
+                {fmtRmb(totalFees - paidFees)}
+              </p>
               <p className="text-xs text-muted-foreground">Outstanding</p>
             </div>
           </CardContent>
@@ -611,9 +630,12 @@ export function DelegatesShell() {
       {showForm && (
         <Card className="border-[#C8A061]/40">
           <CardHeader>
-            <CardTitle className="text-base">Delegate Registration Form</CardTitle>
+            <CardTitle className="text-base">
+              Delegate Registration Form
+            </CardTitle>
             <CardDescription>
-              This mirrors the public registration flow and collects all required conference data.
+              This mirrors the public registration flow and collects all
+              required conference data.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -737,7 +759,8 @@ export function DelegatesShell() {
         <CardHeader>
           <CardTitle className="text-base">Pairing Requests</CardTitle>
           <CardDescription>
-            Requests support same-gender pairing by default. Legal partner exceptions require chair approval.
+            Requests support same-gender pairing by default. Legal partner
+            exceptions require chair approval.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -765,7 +788,10 @@ export function DelegatesShell() {
                 value={requestType}
                 onChange={(e) =>
                   setRequestType(
-                    e.target.value as "STANDARD_PAIR" | "LEGAL_PARTNER" | "SINGLE_ROOM",
+                    e.target.value as
+                      | "STANDARD_PAIR"
+                      | "LEGAL_PARTNER"
+                      | "SINGLE_ROOM",
                   )
                 }
               >
@@ -783,7 +809,11 @@ export function DelegatesShell() {
                 onChange={(e) => setTargetId(e.target.value)}
                 disabled={requestType === "SINGLE_ROOM"}
               >
-                <option value="">{requestType === "SINGLE_ROOM" ? "Not needed" : "Select delegate"}</option>
+                <option value="">
+                  {requestType === "SINGLE_ROOM"
+                    ? "Not needed"
+                    : "Select delegate"}
+                </option>
                 {delegates
                   .filter((d) => d.id !== requesterId)
                   .map((d) => (
@@ -805,7 +835,11 @@ export function DelegatesShell() {
           </div>
 
           <div className="flex justify-end">
-            <Button size="sm" onClick={handleCreatePairRequest} disabled={pairingBusy || !requesterId}>
+            <Button
+              size="sm"
+              onClick={handleCreatePairRequest}
+              disabled={pairingBusy || !requesterId}
+            >
               <Shuffle className="size-4" />
               Submit Pair Request
             </Button>
@@ -813,7 +847,9 @@ export function DelegatesShell() {
 
           <div className="space-y-2">
             {pairRequests.length === 0 && (
-              <p className="text-sm text-muted-foreground">No pairing requests yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No pairing requests yet.
+              </p>
             )}
 
             {pairRequests.map((request) => (
@@ -825,16 +861,24 @@ export function DelegatesShell() {
                   <div>
                     <p className="font-medium">
                       {request.requester.name}
-                      {request.target ? ` → ${request.target.name}` : " (Single room request)"}
+                      {request.target
+                        ? ` → ${request.target.name}`
+                        : " (Single room request)"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {request.requestType} · {new Date(request.createdAt).toLocaleString()}
+                      {request.requestType} ·{" "}
+                      {new Date(request.createdAt).toLocaleString()}
                     </p>
                     {request.note && (
-                      <p className="mt-1 text-xs text-muted-foreground">{request.note}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {request.note}
+                      </p>
                     )}
                   </div>
-                  <Badge variant="outline" className={PAIR_STATUS_COLOR[request.status]}>
+                  <Badge
+                    variant="outline"
+                    className={PAIR_STATUS_COLOR[request.status]}
+                  >
                     {request.status}
                   </Badge>
                 </div>
@@ -861,25 +905,31 @@ export function DelegatesShell() {
                     </>
                   )}
 
-                  {(request.status === "PENDING" || request.status === "ACCEPTED") && isAdminControl && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => handlePairAction(request, "chair-approve")}
-                        disabled={pairingBusy}
-                      >
-                        Chair Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handlePairAction(request, "chair-reject")}
-                        disabled={pairingBusy}
-                      >
-                        Chair Reject
-                      </Button>
-                    </>
-                  )}
+                  {(request.status === "PENDING" ||
+                    request.status === "ACCEPTED") &&
+                    isAdminControl && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            handlePairAction(request, "chair-approve")
+                          }
+                          disabled={pairingBusy}
+                        >
+                          Chair Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() =>
+                            handlePairAction(request, "chair-reject")
+                          }
+                          disabled={pairingBusy}
+                        >
+                          Chair Reject
+                        </Button>
+                      </>
+                    )}
                 </div>
               </div>
             ))}
@@ -891,7 +941,8 @@ export function DelegatesShell() {
         <CardHeader>
           <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
           <CardDescription>
-            Manual pairing is available for admins/chair controls, including legal partner override notes.
+            Manual pairing is available for admins/chair controls, including
+            legal partner override notes.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -941,7 +992,9 @@ export function DelegatesShell() {
               </div>
 
               <div className="space-y-2 xl:col-span-2">
-                <Label>Override Reason (required for cross-gender assignment)</Label>
+                <Label>
+                  Override Reason (required for cross-gender assignment)
+                </Label>
                 <Textarea
                   placeholder="Provide legal partner / approved exception context"
                   value={manualOverride}
@@ -951,7 +1004,11 @@ export function DelegatesShell() {
               </div>
 
               <div className="xl:col-span-5 flex justify-end">
-                <Button size="sm" onClick={handleManualAssignment} disabled={!manualA || pairingBusy}>
+                <Button
+                  size="sm"
+                  onClick={handleManualAssignment}
+                  disabled={!manualA || pairingBusy}
+                >
                   <BedDouble className="size-4" />
                   Assign Room
                 </Button>
@@ -969,7 +1026,9 @@ export function DelegatesShell() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {assignment.occupantA.name}
-                    {assignment.occupantB ? ` + ${assignment.occupantB.name}` : " (Single)"}
+                    {assignment.occupantB
+                      ? ` + ${assignment.occupantB.name}`
+                      : " (Single)"}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {assignment.occupantA.delegateCode || "N/A"}
@@ -978,7 +1037,9 @@ export function DelegatesShell() {
                       : ""}
                   </p>
                   {assignment.overrideReason && (
-                    <p className="mt-2 text-xs text-amber-700">{assignment.overrideReason}</p>
+                    <p className="mt-2 text-xs text-amber-700">
+                      {assignment.overrideReason}
+                    </p>
                   )}
                 </CardContent>
               </Card>
@@ -986,7 +1047,9 @@ export function DelegatesShell() {
           </div>
 
           {assignments.length === 0 && (
-            <p className="text-sm text-muted-foreground">No room assignments yet.</p>
+            <p className="text-sm text-muted-foreground">
+              No room assignments yet.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -995,7 +1058,8 @@ export function DelegatesShell() {
         <CardHeader>
           <CardTitle className="text-base">Registration Link</CardTitle>
           <CardDescription>
-            Share this with participants for self-registration and document submission.
+            Share this with participants for self-registration and document
+            submission.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1003,7 +1067,11 @@ export function DelegatesShell() {
             <code className="rounded bg-muted px-2 py-1 text-xs">
               /tools/conf/delegates/register
             </code>
-            <Button variant="outline" size="sm" onClick={handleCopyRegistrationLink}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyRegistrationLink}
+            >
               <Copy className="size-4" />
               Copy
             </Button>

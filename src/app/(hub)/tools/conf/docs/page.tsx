@@ -61,13 +61,15 @@ const DOC_LINKS = [
   {
     href: "/tools/conf/delegates/register",
     title: "Public Registration Portal",
-    description: "Shareable participant signup form with uploads and payment declaration.",
+    description:
+      "Shareable participant signup form with uploads and payment declaration.",
     icon: UserCheck,
   },
   {
     href: "/tools/conf/booklet",
     title: "Booklet Builder",
-    description: "Build and print participant booklet-ready cards with photos and room details.",
+    description:
+      "Build and print participant booklet-ready cards with photos and room details.",
     icon: BookOpen,
   },
   {
@@ -153,15 +155,28 @@ export default function ConferenceDocsPage() {
         <CardHeader>
           <CardTitle className="text-base">2026 Workflow Notes</CardTitle>
           <CardDescription>
-            Registration now captures passport identity, payment state, and booklet media for automated participant operations.
+            Registration now captures passport identity, payment state, and
+            booklet media for automated participant operations.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>1. Delegates receive a unique conference ID on registration.</p>
-          <p>2. Personal attendance flyer becomes available after payment + booklet photo.</p>
-          <p>3. Pairing requests support same-gender default policy, legal-partner exception flow, and single-room requests.</p>
-          <p>4. Chair/admin controls support manual room assignment with override reason tracking.</p>
-          <p>5. Booklet Builder generates printable participant cards from confirmed registration data.</p>
+          <p>
+            2. Personal attendance flyer becomes available after payment +
+            booklet photo.
+          </p>
+          <p>
+            3. Pairing requests support same-gender default policy,
+            legal-partner exception flow, and single-room requests.
+          </p>
+          <p>
+            4. Chair/admin controls support manual room assignment with override
+            reason tracking.
+          </p>
+          <p>
+            5. Booklet Builder generates printable participant cards from
+            confirmed registration data.
+          </p>
         </CardContent>
       </Card>
     </div>
