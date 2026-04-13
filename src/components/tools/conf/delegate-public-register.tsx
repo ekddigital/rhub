@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Camera,
   CheckCircle2,
+  Download,
   FileImage,
   FileUp,
   Film,
@@ -369,8 +370,7 @@ export function DelegatePublicRegister() {
                   <p className="text-xs text-muted-foreground">
                     Format: {`LS20-${liberiaAnniversary}-YY-####`} (20th
                     conference + Liberia {liberiaAnniversaryLabel} independence
-                    anniversary + year +
-                    sequence)
+                    anniversary + year + sequence)
                   </p>
                   <p className="text-xs font-medium text-[#8E0E00]">
                     {`Conference celebration includes Liberia Independence Day on ${independenceDateLabel}`}
@@ -379,7 +379,7 @@ export function DelegatePublicRegister() {
                   {success.flyerReady ? (
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary" className="text-emerald-700">
-                        Personal flyer ready
+                        Delegate card ready
                       </Badge>
                       <Link
                         href={`/api/conf/${success.confId}/delegates/${success.delegateId}/flyer`}
@@ -388,12 +388,20 @@ export function DelegatePublicRegister() {
                         className="inline-flex items-center gap-1 rounded-md bg-[#0B4FD9]/10 px-2 py-1 text-xs font-medium text-[#0B4FD9]"
                       >
                         <FileImage className="size-3" />
-                        Open Personal Flyer
+                        Preview Delegate Card
+                      </Link>
+                      <Link
+                        href={`/api/conf/${success.confId}/delegates/${success.delegateId}/flyer?download=1`}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#C8102E]/10 px-2 py-1 text-xs font-medium text-[#C8102E]"
+                        download
+                      >
+                        <Download className="size-3" />
+                        Download SVG
                       </Link>
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      Your flyer will be available once payment is confirmed.
+                      Your delegate card will be available once payment is confirmed.
                     </p>
                   )}
                 </div>

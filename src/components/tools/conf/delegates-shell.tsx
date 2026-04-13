@@ -834,15 +834,25 @@ export function DelegatesShell() {
                   </button>
 
                   {delegate.flyerReady && (
-                    <Link
-                      href={`/api/conf/${confId}/delegates/${delegate.id}/flyer`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md bg-[#0B4FD9]/10 px-2 py-1 text-xs font-medium text-[#0B4FD9]"
-                    >
-                      <Eye className="size-3" />
-                      Flyer
-                    </Link>
+                    <>
+                      <Link
+                        href={`/api/conf/${confId}/delegates/${delegate.id}/flyer`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md bg-[#0B4FD9]/10 px-2 py-1 text-xs font-medium text-[#0B4FD9]"
+                      >
+                        <Eye className="size-3" />
+                        View Card
+                      </Link>
+                      <Link
+                        href={`/api/conf/${confId}/delegates/${delegate.id}/flyer?download=1`}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#C8102E]/10 px-2 py-1 text-xs font-medium text-[#C8102E]"
+                        download
+                      >
+                        <Download className="size-3" />
+                        Download
+                      </Link>
+                    </>
                   )}
                 </div>
 
