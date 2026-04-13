@@ -338,11 +338,26 @@ export async function GET(
       ? `<g>
   <rect x="184" y="526" width="712" height="468" rx="30" fill="#EEF2FA"/>
   <image href="${escapeXml(photoDataUri)}" x="184" y="526" width="712" height="468" preserveAspectRatio="xMidYMid meet" clip-path="url(#photoClip)"/>
+  <g clip-path="url(#photoClip)">
+    <rect x="184" y="526" width="210" height="468" fill="url(#photoSideFadeLeft)"/>
+    <rect x="686" y="526" width="210" height="468" fill="url(#photoSideFadeRight)"/>
+  </g>
 </g>`
       : `<g>
   <rect x="184" y="526" width="712" height="468" rx="30" fill="#E9F0FF"/>
   <text x="540" y="770" text-anchor="middle" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
 </g>`;
+
+    const downloadControlsLayer = shouldDownload
+      ? ""
+      : `<a href="${downloadPngUrl}">
+    <rect x="804" y="288" width="68" height="34" rx="9" fill="#C8102E"/>
+    <text x="838" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">PNG</text>
+  </a>
+  <a href="${downloadSvgUrl}">
+    <rect x="878" y="288" width="68" height="34" rx="9" fill="#0B1E78"/>
+    <text x="912" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
+  </a>`;
 
     const heroLayer = cityBackdropDataUri
       ? `<image href="${escapeXml(cityBackdropDataUri)}" x="110" y="116" width="860" height="356" preserveAspectRatio="xMidYMid slice" clip-path="url(#heroClip)"/>`
@@ -366,6 +381,14 @@ export async function GET(
       <stop offset="0%" stop-color="#021033" stop-opacity="0.24"/>
       <stop offset="70%" stop-color="#021033" stop-opacity="0.56"/>
       <stop offset="100%" stop-color="#021033" stop-opacity="0.82"/>
+    </linearGradient>
+    <linearGradient id="photoSideFadeLeft" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#DBE3F2" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#DBE3F2" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="photoSideFadeRight" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#DBE3F2" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#DBE3F2" stop-opacity="0"/>
     </linearGradient>
     <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#081C5F" flood-opacity="0.35"/>
@@ -404,14 +427,7 @@ export async function GET(
   <text x="130" y="340" font-size="22" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#F6F8FF">${cityHeading}, CHINA • OFFICIAL PARTICIPANT CARD</text>
   <text x="130" y="372" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${dateRangeLabel}</text>
   <text x="130" y="402" font-size="18" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#DDE8FF">${weekdayRangeLabel}</text>
-  <a href="${downloadPngUrl}">
-    <rect x="804" y="288" width="68" height="34" rx="9" fill="#C8102E"/>
-    <text x="838" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">PNG</text>
-  </a>
-  <a href="${downloadSvgUrl}">
-    <rect x="878" y="288" width="68" height="34" rx="9" fill="#0B1E78"/>
-    <text x="912" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
-  </a>
+  ${downloadControlsLayer}
   <text x="540" y="430" text-anchor="middle" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
   <text x="540" y="460" text-anchor="middle" font-size="24" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">${themeLine}</text>
 
