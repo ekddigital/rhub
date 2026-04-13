@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  BookOpen,
   DollarSign,
   Users,
   Calendar,
@@ -58,6 +59,13 @@ const NAV_ITEMS = [
     title: "Registration Portal",
     desc: "Public form link for participant registration and document upload",
     color: "text-indigo-500",
+  },
+  {
+    href: "/tools/conf/booklet",
+    icon: BookOpen,
+    title: "Booklet Builder",
+    desc: "Printable participant booklet cards with IDs, photos, and room assignments",
+    color: "text-rose-500",
   },
   {
     href: "/tools/conf/meetings",

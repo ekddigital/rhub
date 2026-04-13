@@ -74,6 +74,11 @@ export function ToolsDropdown() {
       description: "Registration, grouping, and fee tracking",
     },
     {
+      href: "/tools/conf/booklet",
+      title: "Booklet Builder",
+      description: "Printable participant cards with IDs, photos, and room details",
+    },
+    {
       href: "/tools/conf/meetings",
       title: "Meetings",
       description: "Agenda planning and minutes tracking",

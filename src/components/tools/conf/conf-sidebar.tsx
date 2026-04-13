@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Clock,
   DollarSign,
+  FileText,
   LayoutDashboard,
   UserCheck,
   UserPlus,
@@ -29,6 +30,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   { href: "/tools/conf/committee", label: "Committee", icon: Users },
   { href: "/tools/conf/delegates", label: "Delegates", icon: UserCheck },
   { href: "/tools/conf/delegates/register", label: "Register", icon: UserPlus },
+  { href: "/tools/conf/booklet", label: "Booklet", icon: FileText },
   { href: "/tools/conf/meetings", label: "Meetings", icon: CalendarDays },
   { href: "/tools/conf/timeline", label: "Timeline", icon: Clock },
 ];

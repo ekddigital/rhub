@@ -65,6 +65,12 @@ const DOC_LINKS = [
     icon: UserCheck,
   },
   {
+    href: "/tools/conf/booklet",
+    title: "Booklet Builder",
+    description: "Build and print participant booklet-ready cards with photos and room details.",
+    icon: BookOpen,
+  },
+  {
     href: "/tools/conf/meetings",
     title: "Meetings & Minutes",
     description: "Recurring meeting cadence, agenda flow, and minutes records.",
@@ -155,6 +161,7 @@ export default function ConferenceDocsPage() {
           <p>2. Personal attendance flyer becomes available after payment + booklet photo.</p>
           <p>3. Pairing requests support same-gender default policy, legal-partner exception flow, and single-room requests.</p>
           <p>4. Chair/admin controls support manual room assignment with override reason tracking.</p>
+          <p>5. Booklet Builder generates printable participant cards from confirmed registration data.</p>
         </CardContent>
       </Card>
     </div>

@@ -163,6 +163,7 @@ export function AppSidebar({ user }: { user: SidebarUser }) {
           { label: "Image Tools", href: "/tools/img" },
           { label: "Conference Hub", href: "/tools/conf" },
           { label: "Conference Docs", href: "/tools/conf/docs" },
+          { label: "Conference Booklet", href: "/tools/conf/booklet" },
           { label: "Downloads", href: "/downloads" },
         ].map((t) => (
           <Link

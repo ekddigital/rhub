@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
+  BookOpen,
   CheckCircle2,
   Copy,
   Download,
@@ -536,6 +537,12 @@ export function DelegatesShell() {
             <Download className="size-4" />
             Export
           </Button>
+          <Link href="/tools/conf/booklet">
+            <Button variant="outline" size="sm">
+              <BookOpen className="size-4" />
+              Booklet Builder
+            </Button>
+          </Link>
           <Button size="sm" onClick={() => setShowForm((v) => !v)}>
             <Plus className="size-4" />
             Register Delegate

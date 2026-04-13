@@ -97,6 +97,12 @@ export const featuredResources: NavItem[] = [
     icon: CalendarRange,
     description: "Conference planning and operations",
   },
+  {
+    name: "Conference Booklet",
+    href: "/tools/conf/booklet",
+    icon: BookOpen,
+    description: "Printable participant booklet and roster",
+  },
 ];
 
 // Footer navigation sections
@@ -109,6 +115,7 @@ export const footerNavSections: NavSection[] = [
       { name: "URL Shortener", href: "/tools/s" },
       { name: "Image Tools", href: "/tools/img" },
       { name: "Conference Hub", href: "/tools/conf" },
+      { name: "Conference Booklet", href: "/tools/conf/booklet" },
       { name: "Downloads", href: "/downloads" },
     ],
   },
