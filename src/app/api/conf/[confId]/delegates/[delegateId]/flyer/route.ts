@@ -114,8 +114,7 @@ export async function GET(
       (requestUrl.searchParams.get("download") || "").toLowerCase(),
     );
     const wantsPng =
-      (requestUrl.searchParams.get("format") || "svg").toLowerCase() ===
-      "png";
+      (requestUrl.searchParams.get("format") || "svg").toLowerCase() === "png";
 
     const delegate = await prisma.confDelegate.findUnique({
       where: { id: delegateId },
@@ -226,7 +225,7 @@ export async function GET(
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
   <defs>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&amp;family=Poppins:wght@400;500;600;700;800&amp;display=swap');
     </style>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#071B4D"/>
@@ -361,9 +360,12 @@ export async function GET(
     });
   } catch (error) {
     console.error("Failed to build delegate card:", error);
-    return new Response(JSON.stringify({ error: "Failed to generate delegate card" }), {
-      status: 500,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to generate delegate card" }),
+      {
+        status: 500,
+        headers: { "content-type": "application/json" },
+      },
+    );
   }
 }
