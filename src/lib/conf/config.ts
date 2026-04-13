@@ -52,14 +52,14 @@ export const BUDGET_STATUS_LABELS: Record<
 };
 
 export const COMMON_UNITS = [
-  "KG",
-  "carton",
   "pcs",
+  "KG",
+  "L",
+  "carton",
   "bags",
   "bottles",
   "packs",
   "dozen",
-  "L",
   "days",
   "nights",
   "trips",
@@ -68,4 +68,10 @@ export const COMMON_UNITS = [
   "plastics",
   "rolls",
   "boxes",
+  "players",
+  "teams",
+  "persons",
+  "sets",
+  "sessions",
+  "custom",
 ];

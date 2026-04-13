@@ -4,6 +4,7 @@ import {
   BookOpen,
   Image as ImageIcon,
   Download,
+  CalendarRange,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +55,14 @@ export const DASHBOARD_TOOLS: ToolConfig[] = [
     href: "/tools/img",
     color: "text-orange-500",
     bg: "bg-orange-500/10",
+  },
+  {
+    icon: CalendarRange,
+    label: "Conference Hub",
+    description: "LSUIC 2026 — budget, payments, meetings & more",
+    href: "/tools/conf",
+    color: "text-[#8E0E00]",
+    bg: "bg-[#8E0E00]/10",
   },
   {
     icon: Download,

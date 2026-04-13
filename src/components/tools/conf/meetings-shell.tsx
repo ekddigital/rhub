@@ -18,17 +18,19 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/user-context";
 
-type MinutesStatus = "NONE" | "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "CHANGES_REQUESTED";
+type MinutesStatus =
+  | "NONE"
+  | "DRAFT"
+  | "PENDING_APPROVAL"
+  | "APPROVED"
+  | "CHANGES_REQUESTED";
 
 type Meeting = {
   id: string;
@@ -51,37 +53,61 @@ const STATUS_CONFIG = {
     variant: "default" as const,
     icon: AlertCircle,
   },
-  DONE: { label: "Completed", variant: "secondary" as const, icon: CheckCircle2 },
-  CANCELLED: { label: "Cancelled", variant: "destructive" as const, icon: XCircle },
+  DONE: {
+    label: "Completed",
+    variant: "secondary" as const,
+    icon: CheckCircle2,
+  },
+  CANCELLED: {
+    label: "Cancelled",
+    variant: "destructive" as const,
+    icon: XCircle,
+  },
 };
 
 const MEETING_1_MINUTES = `LSUIC 2026 CONFERENCE COMMITTEE
 Meeting #1 Minutes — April 10, 2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Convened by: Enoch Kwateh Dongbo (Chair)
-Location: Online — WeChat
-Time: Evening
+Convened by: Enoch Kwateh Dongbo (Conference Chair)
+Venue:       LSUIC Zoom (ID: 2312312006 · Password: LSUIC2006)
+Scheduled:  21:00 — 22:05 (Friday, April 10, 2026)
+Actual End: ~23:00 (meeting ran approximately 2 hours)
 
-ATTENDEES
+ATTENDEES (18 in total)
 ─────────────────────────────────────────
-• Enoch Kwateh Dongbo — Conference Chair (Jinan)
-• Alfreda Ruth Togbah — Co-Chair (Suzhou)
-• Harris M Bowulo — Financial Secretary / General Secretary (Beijing)
-• Abdul Corneh — PRO / Media Chair (Zhengzhou)
-• Kukor Brooks — Cooking Committee Chair (Jinan)
-• Jefferson T Banquando — Sports Committee Chair (Suzhou)
-• Robert D Molley — Logistics Committee Chair (Qufu)
-• Priscilla Bamu Dweh — Cooking Committee (Suzhou)
-• Williamena Yah SENET — Cooking Committee (Suzhou)
-• Blessing Hawa Washington — Cooking Committee (Nantong)
-• Lisa Y SET — Cooking Committee (Qingdao)
-• Olano — LSUIC President
-• Hon. Noah — NEC Representative
+COMMITTEE                                  [Zoom display name]
+• Enoch Kwateh Dongbo — Conf. Chair · Jinan (Co-host)     → "Enoch"
+• Alfreda Ruth Togbah — Co-Chair · Suzhou                 → "Alfreda Ruth Togbah"
+• Harris M Bowulo — General Secretary (Co-host)           → "HARRIS"
+• Abdul Corneh — PRO / Media Committee Chair              → "Abdul"
+• Kukor Brooks — Cooking Committee Chair · Jinan          → "Kukor  Brooks - Jinan"
+• Jefferson T Banquando — Sports Committee Chair          → "Jeffery"
+• Robert D. Molley — Logistics Committee Chair            → "Amb. Robert D. Molley"
+• Priscilla — Cooking Committee · Suzhou                  → "Priscilla - Suzhou"
+• Williamena Yah MUNYENEH — Cooking Committee             → "Williamena Yah MUNYENEH"
+• Blessing — Cooking Committee · Nantong                  → "Blessing - Nantong"
+• Lisa — Cooking Committee · Qingdao                      → "Lisa - Qingdao"
+
+NEC / OBSERVERS                            [Zoom display name]
+• Olano — LSUIC President (Host)                          → "Olano" / "Olano - Prezo"
+• Mitchell Vampelt — NCG Representative                   → "Mitchell Vampelt - NCG"
+• Hon. Noah D. Mason Jr. — NEC Representative             → "Hon. Noah D. Mason Jr."
+• Hon. Ruphine M. Harmon — NEC Representative             → "Hon. Ruphine M. Harmon"
+• Jenneh Bonah — NEC Representative                               → "JENNEH BONAH"
+• Yvonne — Observer · Nanjing                             → "Yvonne - Nanjing"
+
+AGENDA
+─────────────────────────────────────────
+1. Opening Formalities (10 min) — Opening prayer · Welcome remarks · Self-introductions
+2. Discussion (30 min) — Previous conference review · Committee structure · Meeting schedule ·
+   Sub-committee creation · Timeline & milestones · Cooking committee budget · Action items
+3. AOB (20 min)
+4. Closing Prayer (5 min)
 
 SUMMARY
 ─────────────────────────────────────────
-This was the inaugural meeting of the 2026 LSUIC Conference Committee. All committee members were introduced and outlined their roles. The cooking committee reported approximately 50% preparation completion. The meeting focused on establishing team relationships, communication channels, and the overall planning direction for the Jinan conference — LSUIC's 20th Anniversary Conference.
+This was the inaugural meeting of the 2026 LSUIC Conference Committee, held on LSUIC Zoom. Meeting was originally scheduled for 21:00–22:05 but ran until approximately 23:00 (~2 hours total) due to the volume of discussion. All committee members were introduced and outlined their roles. The meeting focused on establishing team relationships, communication channels, committee structure, and the overall planning direction for the Jinan conference — LSUIC's 20th Anniversary Conference.
 
 KEY DISCUSSIONS
 ─────────────────────────────────────────
@@ -190,7 +216,9 @@ ALL MEMBERS
 NEXT MEETING
 ─────────────────────────────────────────
 Date:    Thursday, April 16, 2026
-Time:    9:00 PM (Online — WeChat)
+Time:    9:00 PM (LSUIC Zoom)
+Link:    https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
+Zoom ID: 2312312006 · Password: LSUIC2006
 Agenda:  Subcommittee reports, confirmation hearing prep, conference fee proposals, initial budget drafts
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -233,10 +261,11 @@ const DATES = buildMeetingDates(14);
 
 const INITIAL_MEETINGS: Meeting[] = DATES.map((date, i) => ({
   id: `meeting_${i + 1}`,
-  title: i === 0 ? "First Committee Meeting" : `Weekly Committee Meeting #${i + 1}`,
+  title:
+    i === 0 ? "First Committee Meeting" : `Weekly Committee Meeting #${i + 1}`,
   meetingNo: i + 1,
   scheduled: date,
-  location: i === 0 ? "Online — WeChat (Friday)" : "Online — WeChat | Thu 9:00 PM",
+  location: i === 0 ? "LSUIC Zoom | Fri 9:00 PM" : "LSUIC Zoom | Thu 9:00 PM",
   agenda: MEETING_TOPICS[i] || "",
   minutes: i === 0 ? MEETING_1_MINUTES : "",
   minutesStatus: (i === 0 ? "PENDING_APPROVAL" : "NONE") as MinutesStatus,
@@ -305,9 +334,7 @@ export function MeetingsShell() {
   const approveMinutes = (id: string) => {
     setMeetings((prev) =>
       prev.map((m) =>
-        m.id === id
-          ? { ...m, minutesStatus: "APPROVED", chairNote: null }
-          : m,
+        m.id === id ? { ...m, minutesStatus: "APPROVED", chairNote: null } : m,
       ),
     );
     setExpandedId(null);
@@ -357,9 +384,12 @@ export function MeetingsShell() {
           <CardContent className="flex items-center gap-3 py-4">
             <LogIn className="size-5 shrink-0 text-amber-500" />
             <div className="flex-1">
-              <p className="text-sm font-medium">Sign in to add or edit meeting minutes</p>
+              <p className="text-sm font-medium">
+                Sign in to add or edit meeting minutes
+              </p>
               <p className="text-xs text-muted-foreground">
-                Approved minutes are visible to everyone. Submitting minutes requires an account.
+                Approved minutes are visible to everyone. Submitting minutes
+                requires an account.
               </p>
             </div>
             <Link href="/login">
@@ -379,7 +409,8 @@ export function MeetingsShell() {
           const isExpanded = expandedId === meeting.id;
           const meetingDate = new Date(meeting.scheduled);
 
-          const hasMinutes = meeting.minutesStatus !== "NONE" && meeting.minutes;
+          const hasMinutes =
+            meeting.minutesStatus !== "NONE" && meeting.minutes;
 
           return (
             <Card
@@ -412,7 +443,10 @@ export function MeetingsShell() {
                           </Badge>
                         )}
                         {meeting.minutesStatus === "PENDING_APPROVAL" && (
-                          <Badge variant="outline" className="h-5 text-xs text-amber-600 border-amber-500/40">
+                          <Badge
+                            variant="outline"
+                            className="h-5 text-xs text-amber-600 border-amber-500/40"
+                          >
                             <Clock className="mr-1 size-3" />
                             Awaiting Approval
                           </Badge>
@@ -455,7 +489,8 @@ export function MeetingsShell() {
 
                 {meeting.agenda && (
                   <p className="mt-2 text-xs text-muted-foreground">
-                    <span className="font-medium">Agenda:</span> {meeting.agenda}
+                    <span className="font-medium">Agenda:</span>{" "}
+                    {meeting.agenda}
                   </p>
                 )}
 
@@ -479,26 +514,28 @@ export function MeetingsShell() {
                         </p>
                       </div>
                     )}
-                    {meeting.minutesStatus === "PENDING_APPROVAL" && canEdit && (
-                      <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
-                        <Clock className="mr-1.5 inline size-3.5" />
-                        Minutes submitted by{" "}
-                        <span className="font-medium">
-                          {meeting.minutesSubmittedBy}
-                        </span>{" "}
-                        — pending Chair confirmation.
-                      </div>
-                    )}
-                    {meeting.minutesStatus === "CHANGES_REQUESTED" && canEdit && (
-                      <div className="mt-3 rounded-md border border-red-500/20 bg-red-500/5 p-3 text-xs">
-                        <p className="font-medium text-red-600 dark:text-red-400">
-                          Chair&apos;s note:
-                        </p>
-                        <p className="mt-0.5 text-muted-foreground">
-                          {meeting.chairNote}
-                        </p>
-                      </div>
-                    )}
+                    {meeting.minutesStatus === "PENDING_APPROVAL" &&
+                      canEdit && (
+                        <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
+                          <Clock className="mr-1.5 inline size-3.5" />
+                          Minutes submitted by{" "}
+                          <span className="font-medium">
+                            {meeting.minutesSubmittedBy}
+                          </span>{" "}
+                          — pending Chair confirmation.
+                        </div>
+                      )}
+                    {meeting.minutesStatus === "CHANGES_REQUESTED" &&
+                      canEdit && (
+                        <div className="mt-3 rounded-md border border-red-500/20 bg-red-500/5 p-3 text-xs">
+                          <p className="font-medium text-red-600 dark:text-red-400">
+                            Chair&apos;s note:
+                          </p>
+                          <p className="mt-0.5 text-muted-foreground">
+                            {meeting.chairNote}
+                          </p>
+                        </div>
+                      )}
                   </>
                 )}
               </CardContent>
@@ -514,7 +551,9 @@ export function MeetingsShell() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="size-4 text-emerald-500" />
-                        <span className="text-sm font-medium">Official Meeting Minutes</span>
+                        <span className="text-sm font-medium">
+                          Official Meeting Minutes
+                        </span>
                         {meeting.minutesSubmittedBy && (
                           <span className="text-xs text-muted-foreground">
                             · recorded by {meeting.minutesSubmittedBy}
@@ -551,7 +590,9 @@ export function MeetingsShell() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-sm">
                         <Clock className="size-4 text-amber-500" />
-                        <span className="font-medium">Submitted for your review</span>
+                        <span className="font-medium">
+                          Submitted for your review
+                        </span>
                         {meeting.minutesSubmittedBy && (
                           <span className="text-muted-foreground">
                             by {meeting.minutesSubmittedBy}
@@ -617,8 +658,8 @@ export function MeetingsShell() {
 
                       {!canApprove && canEdit && (
                         <p className="text-xs text-muted-foreground">
-                          These minutes are awaiting confirmation from the Chair before they
-                          become the official record.
+                          These minutes are awaiting confirmation from the Chair
+                          before they become the official record.
                         </p>
                       )}
 
@@ -653,10 +694,17 @@ export function MeetingsShell() {
                             className="font-mono text-xs"
                           />
                           <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="sm" onClick={() => setExpandedId(null)}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setExpandedId(null)}
+                            >
                               Cancel
                             </Button>
-                            <Button size="sm" onClick={() => submitForApproval(meeting.id)}>
+                            <Button
+                              size="sm"
+                              onClick={() => submitForApproval(meeting.id)}
+                            >
                               <FileText className="size-4" />
                               Re-submit for Approval
                             </Button>
@@ -672,7 +720,8 @@ export function MeetingsShell() {
                   )}
 
                   {/* === NO MINUTES or DRAFT: edit form === */}
-                  {(meeting.minutesStatus === "NONE" || meeting.minutesStatus === "DRAFT") && (
+                  {(meeting.minutesStatus === "NONE" ||
+                    meeting.minutesStatus === "DRAFT") && (
                     <>
                       {canEdit ? (
                         <div className="space-y-3">
@@ -718,7 +767,9 @@ export function MeetingsShell() {
                         <div className="flex items-center gap-3 py-2">
                           <Lock className="size-4 shrink-0 text-muted-foreground" />
                           <div>
-                            <p className="text-sm font-medium">Minutes not yet recorded</p>
+                            <p className="text-sm font-medium">
+                              Minutes not yet recorded
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               Committee members must{" "}
                               <Link href="/login" className="underline">
@@ -740,4 +791,3 @@ export function MeetingsShell() {
     </div>
   );
 }
-

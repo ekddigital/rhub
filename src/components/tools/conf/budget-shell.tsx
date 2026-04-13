@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   Plus,
   Trash2,
-  Download,
-  Send,
-  Save,
   FileSpreadsheet,
+  Save,
+  FolderOpen,
+  PenLine,
+  CheckCircle2,
+  Clock,
+  X,
+  ChevronDown,
+  Pencil,
 } from "lucide-react";
 import {
   Card,
@@ -18,7 +23,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +30,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   BUDGET_CATEGORIES,
   COMMON_UNITS,
-  BUDGET_STATUS_LABELS,
 } from "@/lib/conf/config";
 import {
   calcItemTotal,
@@ -35,89 +38,235 @@ import {
   fmtDual,
 } from "@/lib/conf/currency";
 
+// ── Types ───────────────────────────────────────────────────────────────────
+
 type BudgetItem = {
-  id?: string;
+  id: string;
   no: number;
   name: string;
-  desc: string;
   qty: number;
   unit: string;
+  customUnit: string; // used when unit === "custom"
   unitPrice: number;
   notes: string;
-  isPaid: boolean;
 };
 
-const emptyItem = (no: number): BudgetItem => ({
-  no,
-  name: "",
-  desc: "",
-  qty: 1,
-  unit: "pcs",
-  unitPrice: 0,
-  notes: "",
-  isPaid: false,
-});
+type BudgetDraft = {
+  id: string;
+  title: string;
+  category: string;
+  notes: string;
+  items: BudgetItem[];
+  savedAt: string; // ISO string
+};
+
+// ── localStorage helpers ─────────────────────────────────────────────────────
+
+const LS_KEY = "conf_budget_drafts";
+
+function loadDrafts(): BudgetDraft[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? (JSON.parse(raw) as BudgetDraft[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveDrafts(drafts: BudgetDraft[]) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(drafts));
+  } catch {
+    // storage full — silently ignore
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function newId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function emptyItem(no: number): BudgetItem {
+  return {
+    id: newId(),
+    no,
+    name: "",
+    qty: 1,
+    unit: "pcs",
+    customUnit: "",
+    unitPrice: 0,
+    notes: "",
+  };
+}
+
+function newDraft(): BudgetDraft {
+  return {
+    id: newId(),
+    title: "",
+    category: "FOOD",
+    notes: "",
+    items: [emptyItem(1)],
+    savedAt: new Date().toISOString(),
+  };
+}
+
+function unitLabel(item: BudgetItem) {
+  return item.unit === "custom" ? item.customUnit || "—" : item.unit;
+}
+
+// ── Component ────────────────────────────────────────────────────────────────
 
 export function BudgetShell() {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("FOOD");
-  const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<BudgetItem[]>([emptyItem(1)]);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [drafts, setDrafts] = useState<BudgetDraft[]>([]);
+  const [activeDraft, setActiveDraft] = useState<BudgetDraft>(newDraft());
+  const [showList, setShowList] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const addItem = useCallback(() => {
-    setItems((prev) => [...prev, emptyItem(prev.length + 1)]);
+  // Load from localStorage on mount
+  useEffect(() => {
+    const stored = loadDrafts();
+    setDrafts(stored);
+    if (stored.length > 0) {
+      setActiveDraft(stored[0]);
+    }
   }, []);
 
-  const removeItem = useCallback((idx: number) => {
-    setItems((prev) => {
-      const next = prev.filter((_, i) => i !== idx);
-      return next.map((item, i) => ({ ...item, no: i + 1 }));
-    });
-  }, []);
+  // Auto-save whenever activeDraft changes (debounced 800ms)
+  useEffect(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      persistDraft(activeDraft);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    }, 800);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDraft]);
 
-  const updateItem = useCallback(
-    (
-      idx: number,
-      field: keyof BudgetItem,
-      value: string | number | boolean,
-    ) => {
-      setItems((prev) =>
-        prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)),
-      );
+  const persistDraft = useCallback(
+    (draft: BudgetDraft) => {
+      const updated = draft.savedAt
+        ? { ...draft, savedAt: new Date().toISOString() }
+        : draft;
+      setDrafts((prev) => {
+        const exists = prev.find((d) => d.id === updated.id);
+        const next = exists
+          ? prev.map((d) => (d.id === updated.id ? updated : d))
+          : [updated, ...prev];
+        saveDrafts(next);
+        return next;
+      });
     },
     [],
   );
 
-  const grandTotal = calcBudgetTotal(items);
+  const handleManualSave = useCallback(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    persistDraft(activeDraft);
+    setSaveStatus("saved");
+    setTimeout(() => setSaveStatus("idle"), 2500);
+  }, [activeDraft, persistDraft]);
+
+  const handleNewBudget = useCallback(() => {
+    const draft = newDraft();
+    setActiveDraft(draft);
+    setShowList(false);
+  }, []);
+
+  const handleLoadDraft = useCallback((draft: BudgetDraft) => {
+    setActiveDraft(draft);
+    setShowList(false);
+  }, []);
+
+  const handleDeleteDraft = useCallback(
+    (id: string) => {
+      setDrafts((prev) => {
+        const next = prev.filter((d) => d.id !== id);
+        saveDrafts(next);
+        return next;
+      });
+      if (activeDraft.id === id) {
+        const remaining = drafts.filter((d) => d.id !== id);
+        setActiveDraft(remaining.length > 0 ? remaining[0] : newDraft());
+      }
+    },
+    [activeDraft.id, drafts],
+  );
+
+  // ── Field update helpers ──────────────────────────────────────────────────
+
+  const setTitle = (v: string) =>
+    setActiveDraft((d) => ({ ...d, title: v }));
+  const setCategory = (v: string) =>
+    setActiveDraft((d) => ({ ...d, category: v }));
+  const setNotes = (v: string) =>
+    setActiveDraft((d) => ({ ...d, notes: v }));
+
+  const addItem = useCallback(() => {
+    setActiveDraft((d) => ({
+      ...d,
+      items: [...d.items, emptyItem(d.items.length + 1)],
+    }));
+  }, []);
+
+  const removeItem = useCallback((idx: number) => {
+    setActiveDraft((d) => {
+      const next = d.items.filter((_, i) => i !== idx).map((it, i) => ({
+        ...it,
+        no: i + 1,
+      }));
+      return { ...d, items: next };
+    });
+  }, []);
+
+  const updateItem = useCallback(
+    (idx: number, field: keyof BudgetItem, value: string | number) => {
+      setActiveDraft((d) => ({
+        ...d,
+        items: d.items.map((it, i) =>
+          i === idx ? { ...it, [field]: value } : it,
+        ),
+      }));
+    },
+    [],
+  );
+
+  // ── CSV export ────────────────────────────────────────────────────────────
+
+  const grandTotal = calcBudgetTotal(activeDraft.items);
 
   const handleExportCsv = useCallback(() => {
-    // Build CSV client-side for immediate download
-    const header =
-      "No.,Item,Description,Qty,Unit,Unit Price (¥),Total (¥),Notes";
-    const rows = items.map((item) => {
+    const header = "No.,Item,Qty,Unit,Unit Price (¥),Total (¥),Notes";
+    const rows = activeDraft.items.map((item) => {
       const total = calcItemTotal(item.qty, item.unitPrice);
       return [
         item.no,
         `"${item.name}"`,
-        `"${item.desc}"`,
         item.qty,
-        item.unit,
+        unitLabel(item),
         item.unitPrice,
         total,
         `"${item.notes}"`,
       ].join(",");
     });
-    const csv = `${title || "Budget"}\n${header}\n${rows.join("\n")}\n\n,,,,,GRAND TOTAL,${fmtRmb(grandTotal)},`;
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const title = activeDraft.title || "Budget";
+    const csv = `${title}\n${header}\n${rows.join("\n")}\n\n,,,,GRAND TOTAL,${fmtRmb(grandTotal)},`;
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(title || "budget").replace(/\s+/g, "_")}.csv`;
+    a.download = `${title.replace(/\s+/g, "_")}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [items, title, grandTotal]);
+  }, [activeDraft, grandTotal]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
@@ -134,18 +283,122 @@ export function BudgetShell() {
             Create line-item budgets with auto-calculated totals
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {/* Auto-save indicator */}
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {saveStatus === "saved" ? (
+              <>
+                <CheckCircle2 className="size-3.5 text-emerald-500" />
+                Saved
+              </>
+            ) : (
+              <>
+                <Clock className="size-3.5" />
+                Auto-saving
+              </>
+            )}
+          </span>
+
+          <Button variant="outline" size="sm" onClick={handleManualSave}>
+            <Save className="size-4" />
+            Save Draft
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
-            onClick={handleExportCsv}
-            disabled={items.length === 0}
+            onClick={() => setShowList((v) => !v)}
           >
+            <FolderOpen className="size-4" />
+            Drafts ({drafts.length})
+            <ChevronDown className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`} />
+          </Button>
+
+          <Button size="sm" onClick={handleNewBudget}>
+            <PenLine className="size-4" />
+            New Budget
+          </Button>
+
+          <Button variant="outline" size="sm" onClick={handleExportCsv}>
             <FileSpreadsheet className="size-4" />
             Export CSV
           </Button>
         </div>
       </div>
+
+      {/* Drafts list */}
+      {showList && (
+        <Card className="border-[#C8A061]/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Saved Drafts</CardTitle>
+            <CardDescription className="text-xs">
+              Click a draft to load it. Drafts are saved locally on this device.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {drafts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                No saved drafts yet. Changes auto-save as you type.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {drafts.map((d) => (
+                  <div
+                    key={d.id}
+                    className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
+                      d.id === activeDraft.id
+                        ? "border-[#C8A061]/50 bg-[#C8A061]/5"
+                        : "hover:bg-muted/50 cursor-pointer"
+                    }`}
+                    onClick={() => handleLoadDraft(d)}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {d.title || "Untitled Budget"}
+                        {d.id === activeDraft.id && (
+                          <span className="ml-2 text-xs text-[#C8A061]">
+                            current
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {BUDGET_CATEGORIES[d.category]?.label ?? d.category} ·{" "}
+                        {d.items.length} items ·{" "}
+                        {fmtRmb(calcBudgetTotal(d.items))} · saved{" "}
+                        {new Date(d.savedAt).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => handleLoadDraft(d)}
+                        title="Load"
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteDraft(d.id)}
+                        title="Delete"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Budget Meta */}
       <Card>
@@ -157,8 +410,8 @@ export function BudgetShell() {
             <Label htmlFor="title">Budget Title</Label>
             <Input
               id="title"
-              placeholder="e.g. Cooking Committee Budget"
-              value={title}
+              placeholder="e.g. Sports Committee Budget"
+              value={activeDraft.title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
@@ -167,7 +420,7 @@ export function BudgetShell() {
             <select
               id="category"
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              value={category}
+              value={activeDraft.category}
               onChange={(e) => setCategory(e.target.value)}
             >
               {Object.entries(BUDGET_CATEGORIES).map(([key, { label }]) => (
@@ -181,8 +434,8 @@ export function BudgetShell() {
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
-              placeholder="Additional notes for this budget..."
-              value={notes}
+              placeholder="Additional context for this budget..."
+              value={activeDraft.notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
             />
@@ -190,13 +443,14 @@ export function BudgetShell() {
         </CardContent>
       </Card>
 
-      {/* Line Items Table */}
+      {/* Line Items */}
       <Card>
         <CardHeader className="flex-row items-center justify-between">
           <div>
             <CardTitle className="text-base">Line Items</CardTitle>
             <CardDescription>
-              {items.length} item{items.length !== 1 ? "s" : ""} · Grand Total:{" "}
+              {activeDraft.items.length} item
+              {activeDraft.items.length !== 1 ? "s" : ""} · Grand Total:{" "}
               <span className="font-semibold text-foreground">
                 {fmtDual(grandTotal)}
               </span>
@@ -212,23 +466,22 @@ export function BudgetShell() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                  <th className="w-10 pb-2 pr-2">#</th>
-                  <th className="min-w-[160px] pb-2 pr-2">Item</th>
-                  <th className="min-w-[80px] pb-2 pr-2">Qty</th>
-                  <th className="min-w-[80px] pb-2 pr-2">Unit</th>
-                  <th className="min-w-[100px] pb-2 pr-2">Unit Price (¥)</th>
-                  <th className="min-w-[100px] pb-2 pr-2 text-right">
-                    Total (¥)
-                  </th>
-                  <th className="w-10 pb-2"></th>
+                  <th className="w-8 pb-2 pr-2">#</th>
+                  <th className="min-w-40 pb-2 pr-2">Item</th>
+                  <th className="w-20 pb-2 pr-2">Qty</th>
+                  <th className="min-w-30 pb-2 pr-2">Unit</th>
+                  <th className="w-28 pb-2 pr-2">Unit Price (¥)</th>
+                  <th className="w-24 pb-2 pr-2 text-right">Total (¥)</th>
+                  <th className="w-8 pb-2"></th>
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, idx) => {
+                {activeDraft.items.map((item, idx) => {
                   const total = calcItemTotal(item.qty, item.unitPrice);
+                  const isCustom = item.unit === "custom";
                   return (
-                    <tr key={idx} className="border-b last:border-0">
-                      <td className="py-2 pr-2 text-muted-foreground">
+                    <tr key={item.id} className="border-b last:border-0">
+                      <td className="py-2 pr-2 text-muted-foreground text-xs">
                         {item.no}
                       </td>
                       <td className="py-2 pr-2">
@@ -247,6 +500,7 @@ export function BudgetShell() {
                           type="number"
                           min={0}
                           step="any"
+                          placeholder="0"
                           value={item.qty || ""}
                           onChange={(e) =>
                             updateItem(idx, "qty", Number(e.target.value))
@@ -254,19 +508,32 @@ export function BudgetShell() {
                         />
                       </td>
                       <td className="py-2 pr-2">
-                        <select
-                          className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-                          value={item.unit}
-                          onChange={(e) =>
-                            updateItem(idx, "unit", e.target.value)
-                          }
-                        >
-                          {COMMON_UNITS.map((u) => (
-                            <option key={u} value={u}>
-                              {u}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex gap-1">
+                          <select
+                            className="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+                            style={{ width: isCustom ? "100px" : "100%" }}
+                            value={item.unit}
+                            onChange={(e) =>
+                              updateItem(idx, "unit", e.target.value)
+                            }
+                          >
+                            {COMMON_UNITS.map((u) => (
+                              <option key={u} value={u}>
+                                {u === "custom" ? "custom…" : u}
+                              </option>
+                            ))}
+                          </select>
+                          {isCustom && (
+                            <Input
+                              className="h-8 text-sm min-w-0 flex-1"
+                              placeholder="e.g. players"
+                              value={item.customUnit}
+                              onChange={(e) =>
+                                updateItem(idx, "customUnit", e.target.value)
+                              }
+                            />
+                          )}
+                        </div>
                       </td>
                       <td className="py-2 pr-2">
                         <Input
@@ -274,9 +541,14 @@ export function BudgetShell() {
                           type="number"
                           min={0}
                           step="any"
+                          placeholder="0"
                           value={item.unitPrice || ""}
                           onChange={(e) =>
-                            updateItem(idx, "unitPrice", Number(e.target.value))
+                            updateItem(
+                              idx,
+                              "unitPrice",
+                              Number(e.target.value),
+                            )
                           }
                         />
                       </td>
@@ -284,14 +556,14 @@ export function BudgetShell() {
                         {fmtRmb(total)}
                       </td>
                       <td className="py-2">
-                        {items.length > 1 && (
+                        {activeDraft.items.length > 1 && (
                           <Button
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => removeItem(idx)}
                             className="text-muted-foreground hover:text-destructive"
                           >
-                            <Trash2 className="size-3.5" />
+                            <X className="size-3.5" />
                           </Button>
                         )}
                       </td>
@@ -322,19 +594,35 @@ export function BudgetShell() {
         </CardContent>
       </Card>
 
-      {/* Summary Bar */}
-      <Card className="border-[#C8A061]/30 bg-gradient-to-r from-[#C8A061]/5 to-transparent">
+      {/* Summary / actions bar */}
+      <Card className="border-[#C8A061]/30 bg-linear-to-r from-[#C8A061]/5 to-transparent">
         <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
           <div>
             <p className="text-sm text-muted-foreground">
-              {items.filter((i) => i.name).length} items ·{" "}
-              {BUDGET_CATEGORIES[category]?.label || category}
+              {activeDraft.items.filter((i) => i.name).length} items ·{" "}
+              {BUDGET_CATEGORIES[activeDraft.category]?.label ??
+                activeDraft.category}
             </p>
             <p className="text-xl font-bold">{fmtDual(grandTotal)}</p>
+            {activeDraft.savedAt && (
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Last saved{" "}
+                {new Date(activeDraft.savedAt).toLocaleString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleManualSave}>
+              <Save className="size-4" />
+              Save Draft
+            </Button>
             <Button variant="outline" size="sm" onClick={handleExportCsv}>
-              <Download className="size-4" />
+              <FileSpreadsheet className="size-4" />
               CSV
             </Button>
           </div>
@@ -343,3 +631,4 @@ export function BudgetShell() {
     </div>
   );
 }
+
