@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+const LOGO_CANDIDATES = [
+  "lsuic-logo-primary.png",
+  "lsuic_logo.png",
+  "Liberian Student Union emblem in China.png",
+] as const;
 
 function escapeXml(input: string) {
   return input
@@ -8,6 +16,57 @@ function escapeXml(input: string) {
     .replace(/>/g, "&gt;")
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&apos;");
+}
+
+function guessMimeType(fileNameOrUrl: string) {
+  const value = fileNameOrUrl.toLowerCase();
+  if (value.endsWith(".png")) return "image/png";
+  if (value.endsWith(".jpg") || value.endsWith(".jpeg")) return "image/jpeg";
+  if (value.endsWith(".webp")) return "image/webp";
+  if (value.endsWith(".gif")) return "image/gif";
+  return "application/octet-stream";
+}
+
+function toDataUri(data: ArrayBuffer | Buffer, mimeType: string) {
+  const binary =
+    data instanceof ArrayBuffer
+      ? Buffer.from(new Uint8Array(data))
+      : Buffer.from(data);
+  const base64 = binary.toString("base64");
+  return `data:${mimeType};base64,${base64}`;
+}
+
+async function loadLogoDataUri() {
+  for (const fileName of LOGO_CANDIDATES) {
+    try {
+      const filePath = path.join(process.cwd(), "public", "conf", fileName);
+      const data = await readFile(filePath);
+      return toDataUri(data, guessMimeType(fileName));
+    } catch {
+      // Try the next candidate logo.
+    }
+  }
+
+  return null;
+}
+
+async function fetchImageAsDataUri(imageUrl: string) {
+  try {
+    const response = await fetch(imageUrl, { cache: "no-store" });
+    if (!response.ok) {
+      return null;
+    }
+
+    const headerMime = response.headers
+      .get("content-type")
+      ?.split(";")[0]
+      ?.trim();
+    const mimeType = headerMime || guessMimeType(imageUrl);
+    const bytes = await response.arrayBuffer();
+    return toDataUri(bytes, mimeType);
+  } catch {
+    return null;
+  }
 }
 
 // GET /api/conf/[confId]/delegates/[delegateId]/flyer
@@ -59,13 +118,23 @@ export async function GET(
 
     const origin = new URL(req.url).origin;
     const photoUrl = resolveStoredAssetUrl(delegate.bookletPhotoPath, origin);
-    const logoUrl = `${origin}/conf/lsuic_logo.png`;
+    const logoDataUri = await loadLogoDataUri();
+    const photoDataUri = await fetchImageAsDataUri(photoUrl);
     const confTag = "LSUIC 2026";
 
     const name = escapeXml(delegate.name);
     const city = escapeXml(delegate.city || "China");
     const university = escapeXml(delegate.university || "LSUIC Delegate");
     const code = escapeXml(delegate.delegateCode || "PENDING-CODE");
+    const logoLayer = logoDataUri
+      ? `<image href="${escapeXml(logoDataUri)}" x="736" y="142" width="196" height="62" preserveAspectRatio="xMidYMid meet"/>`
+      : `<text x="834" y="188" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0A2C8B">LSUIC</text>`;
+    const photoLayer = photoDataUri
+      ? `<image href="${escapeXml(photoDataUri)}" x="208" y="456" width="664" height="500" preserveAspectRatio="xMidYMid slice"/>`
+      : `<g>
+  <rect x="208" y="456" width="664" height="500" fill="#E9F0FF"/>
+  <text x="540" y="720" text-anchor="middle" font-size="36" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
+</g>`;
 
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
@@ -93,13 +162,13 @@ export async function GET(
   <rect x="128" y="130" width="280" height="86" rx="24" fill="#EAF3FF"/>
   <text x="268" y="188" text-anchor="middle" font-size="56" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#2B74D8">#LSUIC</text>
   <rect x="716" y="130" width="236" height="86" rx="24" fill="#EAF3FF"/>
-  <image href="${escapeXml(logoUrl)}" x="736" y="142" width="196" height="62" preserveAspectRatio="xMidYMid meet"/>
+  ${logoLayer}
 
   <text x="540" y="286" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#A01010">I Will Be At</text>
   <text x="540" y="358" text-anchor="middle" font-size="84" font-family="Segoe UI, Arial, sans-serif" font-weight="900" fill="#091F7A">${confTag}</text>
 
   <rect x="166" y="400" width="748" height="620" rx="42" fill="#FFFFFF" stroke="#6CA8FF" stroke-width="10"/>
-  <image href="${escapeXml(photoUrl)}" x="208" y="456" width="664" height="500" preserveAspectRatio="xMidYMid slice"/>
+  ${photoLayer}
 
   <text x="540" y="1072" text-anchor="middle" font-size="62" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#1A65D8">${name}</text>
   <text x="540" y="1120" text-anchor="middle" font-size="34" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#36456B">${university}</text>

@@ -83,6 +83,16 @@ function RegisterForm() {
         setError(data.error || "Registration failed. Please try again.");
         return;
       }
+
+      if (data.emailSent === false) {
+        setStep("verify");
+        setVerifyError(
+          "Account created, but we could not send your code yet. Click Resend code below.",
+        );
+        setResendCooldown(0);
+        return;
+      }
+
       setStep("verify");
       setResendCooldown(60);
     } catch {

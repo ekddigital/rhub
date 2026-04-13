@@ -64,9 +64,17 @@ export async function POST(req: NextRequest) {
     const emailSent = await sendVerificationEmail(email, otp);
     if (!emailSent) {
       console.error("[register] Failed to send verification email to:", email);
+      return NextResponse.json(
+        {
+          message:
+            "Account created, but we could not deliver the verification email yet. Please use resend.",
+          emailSent: false,
+        },
+        { status: 202 },
+      );
     }
 
-    return NextResponse.json({ message: "Verification email sent" });
+    return NextResponse.json({ message: "Verification email sent", emailSent: true });
   } catch (error) {
     console.error("Register error:", error);
     return NextResponse.json({ error: "Registration failed" }, { status: 500 });
