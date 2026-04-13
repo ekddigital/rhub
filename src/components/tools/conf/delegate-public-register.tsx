@@ -391,8 +391,16 @@ export function DelegatePublicRegister() {
                         Preview Delegate Card
                       </Link>
                       <Link
-                        href={`/api/conf/${success.confId}/delegates/${success.delegateId}/flyer?download=1`}
+                        href={`/api/conf/${success.confId}/delegates/${success.delegateId}/flyer?format=png&download=1`}
                         className="inline-flex items-center gap-1 rounded-md bg-[#C8102E]/10 px-2 py-1 text-xs font-medium text-[#C8102E]"
+                        download
+                      >
+                        <Download className="size-3" />
+                        Download PNG
+                      </Link>
+                      <Link
+                        href={`/api/conf/${success.confId}/delegates/${success.delegateId}/flyer?download=1`}
+                        className="inline-flex items-center gap-1 rounded-md bg-[#0B1E78]/10 px-2 py-1 text-xs font-medium text-[#0B1E78]"
                         download
                       >
                         <Download className="size-3" />
