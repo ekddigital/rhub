@@ -184,11 +184,14 @@ export async function GET(
     const cardSubtitle = escapeXml(
       `LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`,
     );
+    const encodedConfId = encodeURIComponent(confId);
+    const encodedDelegateId = encodeURIComponent(delegateId);
+    const downloadBasePath = `/api/conf/${encodedConfId}/delegates/${encodedDelegateId}/flyer`;
     const downloadPngUrl = escapeXml(
-      `${origin}/api/conf/${confId}/delegates/${delegateId}/flyer?format=png&download=1`,
+      `${downloadBasePath}?format=png&download=1`,
     );
     const downloadSvgUrl = escapeXml(
-      `${origin}/api/conf/${confId}/delegates/${delegateId}/flyer?download=1`,
+      `${downloadBasePath}?download=1`,
     );
 
     const backdropLayer = cityBackdropDataUri
