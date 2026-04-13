@@ -6,7 +6,15 @@ import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 import { ToolsDropdown } from "./tools-dropdown";
 import { UserMenu } from "./user-menu";
-import { Menu, X, Gavel, Download, BookOpen, Code2 } from "lucide-react";
+import {
+  Menu,
+  X,
+  Gavel,
+  Download,
+  BookOpen,
+  Code2,
+  CalendarRange,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -17,6 +25,7 @@ const navLinks = [
 ];
 
 const mobileLinks = [
+  { label: "Conference Hub", href: "/tools/conf", icon: CalendarRange },
   { label: "Debate Hub", href: "/tools/dbt", icon: Gavel },
   { label: "Downloads", href: "/downloads", icon: Download },
   { label: "Docs", href: "/docs", icon: BookOpen },

@@ -8,6 +8,7 @@ import {
   Link2,
   Download,
   Gavel,
+  CalendarRange,
   type LucideIcon,
 } from "lucide-react";
 
@@ -90,6 +91,12 @@ export const featuredResources: NavItem[] = [
     icon: Gavel,
     description: "Debate scoring & management",
   },
+  {
+    name: "Conference Hub",
+    href: "/tools/conf",
+    icon: CalendarRange,
+    description: "Conference planning and operations",
+  },
 ];
 
 // Footer navigation sections
@@ -101,6 +108,7 @@ export const footerNavSections: NavSection[] = [
       { name: "Converters", href: "/#converters" },
       { name: "URL Shortener", href: "/tools/s" },
       { name: "Image Tools", href: "/tools/img" },
+      { name: "Conference Hub", href: "/tools/conf" },
       { name: "Downloads", href: "/downloads" },
     ],
   },

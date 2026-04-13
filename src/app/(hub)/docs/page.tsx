@@ -56,8 +56,8 @@ const docSections = [
     description: "Browse all available tools",
     items: [
       { name: "Reference Converter", href: "/tools/ref" },
-      { name: "LaTeX to Word (Coming Soon)", href: "#" },
-      { name: "API Playground (Coming Soon)", href: "#" },
+      { name: "Conference Hub", href: "/tools/conf" },
+      { name: "Conference Documentation", href: "/tools/conf/docs" },
       { name: "Request a Tool", href: "#" },
     ],
   },

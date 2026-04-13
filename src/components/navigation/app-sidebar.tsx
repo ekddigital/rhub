@@ -96,7 +96,7 @@ export function AppSidebar({ user }: { user: SidebarUser }) {
     <aside className="w-56 shrink-0 hidden md:flex flex-col gap-1 self-start sticky top-24 min-h-[calc(100vh-8rem)] border-r border-border pr-6">
       {/* User identity */}
       <div className="flex items-center gap-2.5 px-3 py-2.5 mb-1">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-ekd-gold to-ekd-maroon text-white text-xs font-bold shrink-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-ekd-gold to-ekd-maroon text-white text-xs font-bold shrink-0">
           {user.name.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0">
@@ -161,6 +161,8 @@ export function AppSidebar({ user }: { user: SidebarUser }) {
           { label: "URL Shortener", href: "/tools/s" },
           { label: "Reference Tools", href: "/tools/ref" },
           { label: "Image Tools", href: "/tools/img" },
+          { label: "Conference Hub", href: "/tools/conf" },
+          { label: "Conference Docs", href: "/tools/conf/docs" },
           { label: "Downloads", href: "/downloads" },
         ].map((t) => (
           <Link

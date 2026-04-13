@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import {
   DollarSign,
@@ -22,7 +21,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   {
@@ -67,6 +65,13 @@ const NAV_ITEMS = [
     desc: "Conference milestones, deadlines, and progress tracking",
     color: "text-pink-500",
   },
+  {
+    href: "/tools/conf/docs",
+    icon: FileText,
+    title: "Documentation",
+    desc: "Conference planning docs, process guides, and quick references",
+    color: "text-amber-500",
+  },
 ];
 
 export function ConfDashboard() {
@@ -89,7 +94,7 @@ export function ConfDashboard() {
       </div>
 
       {/* Venue Card */}
-      <Card className="border-[#C8A061]/30 bg-gradient-to-r from-[#1F1C18]/5 to-transparent">
+      <Card className="border-[#C8A061]/30 bg-linear-to-r from-[#1F1C18]/5 to-transparent">
         <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -119,7 +124,7 @@ export function ConfDashboard() {
           icon={Clock}
         />
         <StatCard label="Conference Year" value="20th" icon={FileText} />
-        <StatCard label="Weekly Meetings" value="Fridays" icon={CalendarDays} />
+        <StatCard label="Weekly Meetings" value="Thursdays" icon={CalendarDays} />
       </div>
 
       {/* Navigation Grid */}

@@ -41,11 +41,49 @@ export function ToolsDropdown() {
   const refTools = getToolsByGroup("ref");
   const urlTools = getToolsByGroup("url");
   const docTools = getToolsByGroup("doc");
+  const confTools = getToolsByGroup("conf");
 
   // Get featured image conversions
   const featuredImgConversions = getFeaturedConversions().slice(0, 5);
   // Get featured document conversions
   const featuredDocTools = getFeaturedDocumentTools();
+  const confNavItems = [
+    {
+      href: "/tools/conf",
+      title: "Dashboard",
+      description: "Overview of conference planning progress",
+    },
+    {
+      href: "/tools/conf/budget",
+      title: "Budget Manager",
+      description: "Track budget lines and export reports",
+    },
+    {
+      href: "/tools/conf/payments",
+      title: "Payment Tracker",
+      description: "Record and verify conference payments",
+    },
+    {
+      href: "/tools/conf/committee",
+      title: "Committee",
+      description: "Manage committee members and roles",
+    },
+    {
+      href: "/tools/conf/delegates",
+      title: "Delegates",
+      description: "Registration, grouping, and fee tracking",
+    },
+    {
+      href: "/tools/conf/meetings",
+      title: "Meetings",
+      description: "Agenda planning and minutes tracking",
+    },
+    {
+      href: "/tools/conf/timeline",
+      title: "Timeline",
+      description: "Milestones, deadlines, and progress tracking",
+    },
+  ];
 
   return (
     <div
@@ -64,7 +102,7 @@ export function ToolsDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 w-[600px] rounded-lg border-2 border-border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95">
+        <div className="absolute left-0 top-full mt-2 w-150 rounded-lg border-2 border-border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95">
           <div className="grid grid-cols-2 gap-2 p-2">
             {/* Left Column - Main Tools */}
             <div className="space-y-1">
@@ -173,6 +211,29 @@ export function ToolsDropdown() {
                 </Link>
               ))}
 
+              {/* Conference Hub */}
+              {confTools.length > 0 && (
+                <div
+                  className="relative"
+                  onMouseEnter={() => setHoveredGroup("conf")}
+                >
+                  <Link
+                    href="/tools/conf"
+                    className="flex items-center justify-between rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-foreground">
+                        Conference Hub
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Planning, tracking &amp; documentation
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
+
               {/* Debate Hub */}
               <div
                 className="relative"
@@ -277,6 +338,32 @@ export function ToolsDropdown() {
                     className="block rounded-md px-3 py-2 text-sm font-medium text-gold hover:bg-accent border-2 border-transparent hover:border-gold/20"
                   >
                     View all document tools →
+                  </Link>
+                </div>
+              )}
+
+              {hoveredGroup === "conf" && (
+                <div className="space-y-1 animate-in fade-in-0 slide-in-from-left-2">
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                    Conference Hub
+                  </div>
+                  {confNavItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                    >
+                      <div className="font-medium text-foreground">{item.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {item.description}
+                      </div>
+                    </Link>
+                  ))}
+                  <Link
+                    href="/tools/conf/docs"
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-gold hover:bg-accent border-2 border-transparent hover:border-gold/20"
+                  >
+                    Open conference documentation →
                   </Link>
                 </div>
               )}
