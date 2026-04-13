@@ -15,6 +15,16 @@ const CITY_BACKDROP_CANDIDATES = [
   "assets/hotel/main_entrance_view.png",
 ] as const;
 
+type EmbeddedFonts = {
+  headline: string;
+  bodyRegular: string;
+  bodySemiBold: string;
+  bodyBold: string;
+  script: string;
+};
+
+let embeddedFontsPromise: Promise<EmbeddedFonts | null> | null = null;
+
 function clampText(input: string, maxChars: number) {
   const value = input.trim();
   if (value.length <= maxChars) return value;
@@ -73,6 +83,51 @@ async function loadLogoDataUri() {
 
 async function loadCityBackdropDataUri() {
   return loadPublicConfImageDataUri(CITY_BACKDROP_CANDIDATES);
+}
+
+async function loadEmbeddedFonts() {
+  if (!embeddedFontsPromise) {
+    embeddedFontsPromise = (async () => {
+      const readFont = async (fileName: string) => {
+        try {
+          const filePath = path.join(
+            process.cwd(),
+            "public",
+            "conf",
+            "fonts",
+            fileName,
+          );
+          const data = await readFile(filePath);
+          return toDataUri(data, "font/ttf");
+        } catch {
+          return null;
+        }
+      };
+
+      const [headline, bodyRegular, bodySemiBold, bodyBold, script] =
+        await Promise.all([
+          readFont("Oswald-Bold.ttf"),
+          readFont("Poppins-Regular.ttf"),
+          readFont("Poppins-SemiBold.ttf"),
+          readFont("Poppins-Bold.ttf"),
+          readFont("GreatVibes-Regular.ttf"),
+        ]);
+
+      if (!headline || !bodyRegular || !bodySemiBold || !bodyBold || !script) {
+        return null;
+      }
+
+      return {
+        headline,
+        bodyRegular,
+        bodySemiBold,
+        bodyBold,
+        script,
+      };
+    })();
+  }
+
+  return embeddedFontsPromise;
 }
 
 async function fetchImageAsDataUri(imageUrl: string) {
@@ -162,6 +217,7 @@ export async function GET(
     const photoUrl = resolveStoredAssetUrl(delegate.bookletPhotoPath, origin);
     const logoDataUri = await loadLogoDataUri();
     const cityBackdropDataUri = await loadCityBackdropDataUri();
+    const embeddedFonts = await loadEmbeddedFonts();
     const photoDataUri = await fetchImageAsDataUri(photoUrl);
 
     const fullName = escapeXml(clampText(delegate.name, 34));
@@ -190,9 +246,37 @@ export async function GET(
     const downloadPngUrl = escapeXml(
       `${downloadBasePath}?format=png&download=1`,
     );
-    const downloadSvgUrl = escapeXml(
-      `${downloadBasePath}?download=1`,
-    );
+    const downloadSvgUrl = escapeXml(`${downloadBasePath}?download=1`);
+
+    const fontStyleBlock = embeddedFonts
+      ? `<style>
+      @font-face {
+        font-family: 'CardHeadline';
+        src: url('${embeddedFonts.headline}') format('truetype');
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: 'CardBody';
+        src: url('${embeddedFonts.bodyRegular}') format('truetype');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'CardBody';
+        src: url('${embeddedFonts.bodySemiBold}') format('truetype');
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: 'CardBody';
+        src: url('${embeddedFonts.bodyBold}') format('truetype');
+        font-weight: 700;
+      }
+      @font-face {
+        font-family: 'CardScript';
+        src: url('${embeddedFonts.script}') format('truetype');
+        font-weight: 400;
+      }
+    </style>`
+      : "";
 
     const backdropLayer = cityBackdropDataUri
       ? `<image href="${escapeXml(cityBackdropDataUri)}" x="0" y="0" width="1080" height="1350" preserveAspectRatio="xMidYMid slice" opacity="0.24"/>`
@@ -227,9 +311,7 @@ export async function GET(
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
   <defs>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&amp;family=Poppins:wght@400;500;600;700;800&amp;display=swap');
-    </style>
+    ${fontStyleBlock}
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#071B4D"/>
       <stop offset="54%" stop-color="#0A3A99"/>
@@ -274,21 +356,21 @@ export async function GET(
   <rect x="110" y="116" width="860" height="356" rx="30" fill="url(#heroShade)"/>
 
   <rect x="110" y="116" width="860" height="70" rx="24" fill="#0B1E78"/>
-  <text x="140" y="161" font-size="40" font-family="Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
+  <text x="140" y="161" font-size="40" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
   ${logoLayer}
 
-  <text x="130" y="258" font-size="66" font-family="Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">CONFIRMED DELEGATE</text>
-  <text x="130" y="304" font-size="28" font-family="Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
-  <text x="130" y="340" font-size="22" font-family="Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#F6F8FF">${cityHeading}, CHINA • OFFICIAL PARTICIPANT CARD</text>
+  <text x="130" y="258" font-size="66" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">CONFIRMED DELEGATE</text>
+  <text x="130" y="304" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
+  <text x="130" y="340" font-size="22" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="500" fill="#F6F8FF">${cityHeading}, CHINA • OFFICIAL PARTICIPANT CARD</text>
   <a href="${downloadPngUrl}">
     <rect x="804" y="288" width="68" height="34" rx="9" fill="#C8102E"/>
-    <text x="838" y="311" text-anchor="middle" font-size="18" font-family="Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">PNG</text>
+    <text x="838" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">PNG</text>
   </a>
   <a href="${downloadSvgUrl}">
     <rect x="878" y="288" width="68" height="34" rx="9" fill="#0B1E78"/>
-    <text x="912" y="311" text-anchor="middle" font-size="18" font-family="Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
+    <text x="912" y="311" text-anchor="middle" font-size="18" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" fill="#FFFFFF">SVG</text>
   </a>
-  <text x="130" y="430" font-size="100" font-family="Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
+  <text x="130" y="430" font-size="100" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="2">${cityHeading} ${confYear}</text>
 
   <rect x="130" y="438" width="820" height="12" fill="#C8102E"/>
   <rect x="130" y="450" width="820" height="8" fill="#FFFFFF"/>
@@ -299,17 +381,17 @@ export async function GET(
   </g>
   ${photoLayer}
 
-  <text x="540" y="1060" text-anchor="middle" font-size="84" font-family="Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
-  <text x="540" y="1122" text-anchor="middle" font-size="62" font-family="Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="800" fill="#0D2A73">${familyName}</text>
-  <text x="540" y="1158" text-anchor="middle" font-size="20" font-family="Poppins, Segoe UI, Arial, sans-serif" fill="#516289">${fullName}</text>
-  <text x="540" y="1190" text-anchor="middle" font-size="38" font-family="Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#3E4D6C">${university}</text>
-  <text x="540" y="1218" text-anchor="middle" font-size="27" font-family="Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${city} | ${code}</text>
+  <text x="540" y="1060" text-anchor="middle" font-size="84" font-family="CardScript, Brush Script MT, Snell Roundhand, Segoe Script, cursive" fill="#0B4FD9">${firstName}</text>
+  <text x="540" y="1122" text-anchor="middle" font-size="62" font-family="CardBody, Poppins, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
+  <text x="540" y="1158" text-anchor="middle" font-size="20" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#516289">${fullName}</text>
+  <text x="540" y="1190" text-anchor="middle" font-size="38" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#3E4D6C">${university}</text>
+  <text x="540" y="1218" text-anchor="middle" font-size="27" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#2D3D5D">${city} | ${code}</text>
 
   <rect x="130" y="1228" width="820" height="48" rx="16" fill="#C8102E"/>
-  <text x="540" y="1260" text-anchor="middle" font-size="25" font-family="Poppins, Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
+  <text x="540" y="1260" text-anchor="middle" font-size="25" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" fill="#FFFFFF">Website: https://www.lsuic.org | Email: info@lsuic.org</text>
 
   <rect x="130" y="1278" width="820" height="44" rx="16" fill="#0B1E78"/>
-  <text x="540" y="1308" text-anchor="middle" font-size="30" font-family="Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#D7E4FF">Motto: Excellence Through Hard Work</text>
+  <text x="540" y="1308" text-anchor="middle" font-size="30" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="700" fill="#D7E4FF">Motto: Excellence Through Hard Work</text>
 </svg>`;
 
     if (!delegate.flyerIssuedAt) {
