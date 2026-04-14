@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Clock,
   DollarSign,
+  Megaphone,
   FileText,
   LayoutDashboard,
   UserCheck,
@@ -33,6 +34,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   { href: "/tools/conf/booklet", label: "Booklet", icon: FileText },
   { href: "/tools/conf/meetings", label: "Meetings", icon: CalendarDays },
   { href: "/tools/conf/timeline", label: "Timeline", icon: Clock },
+  { href: "/tools/conf/flyers", label: "Flyers", icon: Megaphone },
 ];
 
 function isItemActive(pathname: string, href: string): boolean {

@@ -1,0 +1,545 @@
+
+> rhub@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.104:3000
+- Environments: .env
+✓ Ready in 392ms
+
+○ Compiling / ...
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET / 200 in 4.2s (next.js: 3.3s, proxy.ts: 142ms, application-code: 698ms)
+ GET /api/auth/me?_t=1776169458083 200 in 4.3s (next.js: 332ms, proxy.ts: 3ms, application-code: 4.0s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="en"
+-                         className="light"
+-                         style={{color-scheme:"light"}}
+                        >
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /tools/conf/docs 200 in 750ms (next.js: 690ms, proxy.ts: 11ms, application-code: 49ms)
+ GET /api/auth/me?_t=1776170315513 200 in 4.9s (next.js: 2ms, proxy.ts: 46ms, application-code: 4.9s)
+Me error: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0.vjzae._.js:136:164
+
+  133     return session.user;
+  134 }
+  135 async function validateSessionFull(token) {
+→ 136     const session = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/auth.ts:71:40)
+    at async validateSessionFull (src/lib/auth.ts:71:19)
+    at async GET (src/app/api/auth/me/route.ts:23:20)
+  69 |  *  used by /api/auth/me to detect role changes that occurred after login. */
+  70 | export async function validateSessionFull(token: string) {
+> 71 |   const session = await prisma.session.findUnique({
+     |                                        ^
+  72 |     where: { token },
+  73 |     include: { user: true },
+  74 |   }); {
+  code: 'P1001',
+  meta: { modelName: 'Session', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3'
+}
+ GET /api/auth/me?_t=1776170315518 500 in 10.3s (next.js: 40ms, proxy.ts: 30ms, application-code: 10.2s)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confMember.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:559:147
+
+  556     };
+  557 }
+  558 const [member, delegate] = await Promise.all([
+→ 559     {imported module ./src/lib/prisma.ts}["prisma"].confMember.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:59:23)
+    at async getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async ConferencePage (src/app/(hub)/tools/conf/page.tsx:5:3)
+  57 |
+  58 |   const [member, delegate] = await Promise.all([
+> 59 |     prisma.confMember.findFirst({
+     |                       ^
+  60 |       where: {
+  61 |         confId,
+  62 |         isActive: true, {
+  code: 'P1001',
+  meta: { modelName: 'ConfMember', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '776019018'
+}
+ GET /tools/conf 200 in 13.0s (next.js: 505ms, proxy.ts: 8ms, application-code: 12.5s)
+[browser] Uncaught PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confMember.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:559:147
+
+  556     };
+  557 }
+  558 const [member, delegate] = await Promise.all([
+→ 559     __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confMember.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:59:23)
+    at Promise.all (<anonymous>:1:20)
+    at getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at ConferencePage (src/app/(hub)/tools/conf/page.tsx:5:3)
+  57 |
+  58 |   const [member, delegate] = await Promise.all([
+> 59 |     prisma.confMember.findFirst({
+     |                       ^
+  60 |       where: {
+  61 |         confId,
+  62 |         isActive: true,
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 {imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async ConferencePage (src/app/(hub)/tools/conf/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" }, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '2543947403'
+}
+ GET /tools/conf 200 in 11.1s (next.js: 7ms, proxy.ts: 9ms, application-code: 11.1s)
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf? 200 in 6.5s (next.js: 10ms, proxy.ts: 10ms, application-code: 6.4s)
+ GET /api/auth/me?_t=1776170405688 200 in 1120ms (next.js: 60ms, proxy.ts: 26ms, application-code: 1034ms)
+ GET /api/auth/me?_t=1776170405689 200 in 1762ms (next.js: 43ms, proxy.ts: 18ms, application-code: 1701ms)
+ GET /api/conf/default 503 in 10.3s (next.js: 251ms, proxy.ts: 20ms, application-code: 10.0s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/conf" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="en"
+-                         className="light"
+-                         style={{color-scheme:"light"}}
+                        >
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/assets/jinan_city/morning_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /tools/conf/docs 200 in 112ms (next.js: 9ms, proxy.ts: 8ms, application-code: 94ms)
+ GET /tools/conf/flyers 200 in 2.3s (next.js: 833ms, proxy.ts: 10ms, application-code: 1448ms)
+ GET /tools/conf/timeline 200 in 2.0s (next.js: 619ms, proxy.ts: 7ms, application-code: 1396ms)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].session.findUnique()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:137:162
+
+  134     return token;
+  135 }
+  136 async function validateSession(token) {
+→ 137     const session = await {imported module ./src/lib/prisma.ts}["prisma"].session.findUnique(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/auth.ts:52:40)
+    at async validateSession (src/lib/auth.ts:52:19)
+    at async getSessionUser (src/lib/conf/access.ts:36:16)
+    at async getConferenceAccess (src/lib/conf/access.ts:45:16)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:5:3)
+  50 |
+  51 | export async function validateSession(token: string) {
+> 52 |   const session = await prisma.session.findUnique({
+     |                                        ^
+  53 |     where: { token },
+  54 |     include: { user: true },
+  55 |   }); {
+  code: 'P1001',
+  meta: { modelName: 'Session', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '1159528535'
+}
+ GET /tools/conf/meetings 200 in 10.1s (next.js: 4ms, proxy.ts: 6ms, application-code: 10.1s)
+[browser] Uncaught PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].session.findUnique()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:137:162
+
+  134     return token;
+  135 }
+  136 async function validateSession(token) {
+→ 137     const session = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/auth.ts:52:40)
+    at  validateSession (src/lib/auth.ts:52:19)
+    at  getSessionUser (src/lib/conf/access.ts:36:16)
+    at  getConferenceAccess (src/lib/conf/access.ts:45:16)
+    at  requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at  MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:5:3)
+  50 |
+  51 | export async function validateSession(token: string) {
+> 52 |   const session = await prisma.session.findUnique({
+     |                                        ^
+  53 |     where: { token },
+  54 |     include: { user: true },
+  55 |   });
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 {imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" }, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '3530240699'
+}
+ GET /tools/conf/meetings 200 in 21.9s (next.js: 477ms, proxy.ts: 7ms, application-code: 21.4s)
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 {imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" }, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '3530240699'
+}
+ GET /tools/conf/meetings 500 in 13.5s (next.js: 4ms, proxy.ts: 6ms, application-code: 13.5s)
+[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
+[browser] Uncaught PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__0iyl64g._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at Promise.all (<anonymous>:1:20)
+    at getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" },
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 570ms
+ GET /tools/conf/meetings 200 in 4.7s (next.js: 9ms, proxy.ts: 22ms, application-code: 4.7s)
+ GET /api/auth/me?_t=1776170881814 200 in 544ms (next.js: 10ms, proxy.ts: 5ms, application-code: 529ms)
+ GET /api/auth/me?_t=1776170881813 200 in 1654ms (next.js: 3ms, proxy.ts: 6ms, application-code: 1645ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="en"
+-                         className="light"
+-                         style={{color-scheme:"light"}}
+                        >
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /tools/conf/flyers 200 in 14.6s (next.js: 50ms, proxy.ts: 9ms, application-code: 14.6s)
+ GET /tools/conf/flyers 200 in 5.1s (next.js: 5ms, proxy.ts: 4ms, application-code: 5.1s)
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+✓ Compiled in 240ms
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/delegates 200 in 7.8s (next.js: 1465ms, proxy.ts: 21ms, application-code: 6.3s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html
+                          lang="en"
+-                         className="light"
+-                         style={{color-scheme:"light"}}
+                        >
+                  ...
+ 
+ GET /api/auth/me?_t=1776173234281 200 in 592ms (next.js: 15ms, proxy.ts: 25ms, application-code: 552ms)
+ GET /api/conf/default 200 in 1150ms (next.js: 12ms, proxy.ts: 20ms, application-code: 1118ms)
+ GET /api/auth/me?_t=1776173234281 200 in 2.9s (next.js: 20ms, proxy.ts: 25ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.7s (next.js: 937ms, proxy.ts: 9ms, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 4.3s (next.js: 938ms, proxy.ts: 10ms, application-code: 3.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 6.1s (next.js: 943ms, proxy.ts: 11ms, application-code: 5.1s)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 4.1s (next.js: 1033ms, proxy.ts: 4ms, application-code: 3.1s)
+ GET /api/conf/default 200 in 93ms (next.js: 22ms, proxy.ts: 58ms, application-code: 13ms)
+ GET /api/conf/default 200 in 94ms (next.js: 34ms, proxy.ts: 57ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 3.6s (next.js: 772ms, proxy.ts: 6ms, application-code: 2.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 4.4s (next.js: 772ms, proxy.ts: 5ms, application-code: 3.6s)
+✓ Compiled in 253ms
+✓ Compiled in 566ms
+ GET /tools/conf/flyers 200 in 5.8s (next.js: 3ms, proxy.ts: 100ms, application-code: 5.7s)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 5.7s (next.js: 32ms, proxy.ts: 3ms, application-code: 5.7s)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 6.5s (next.js: 218ms, proxy.ts: 69ms, application-code: 6.2s)
+ GET /tools/conf/flyers 200 in 6.9s (next.js: 148ms, proxy.ts: 63ms, application-code: 6.7s)
+✓ Compiled in 169ms
+ GET /api/conf/default 200 in 1577ms (next.js: 150ms, proxy.ts: 126ms, application-code: 1301ms)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 2.9s (next.js: 156ms, proxy.ts: 56ms, application-code: 2.7s)
+ GET /tools/conf/flyers 200 in 3.2s (next.js: 75ms, proxy.ts: 54ms, application-code: 3.0s)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 2.9s (next.js: 22ms, proxy.ts: 3ms, application-code: 2.8s)
+ GET /tools/conf/flyers 200 in 3.0s (next.js: 3ms, proxy.ts: 41ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 2.4s (next.js: 38ms, proxy.ts: 9ms, application-code: 2.3s)
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserProvider] Component render
+[UserProvider] Rendering - user: null loading: true
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__12r1oy0._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 {imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at async TimelinePage (src/app/(hub)/tools/conf/timeline/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" }, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '375797301'
+}
+ GET /tools/conf/timeline 500 in 15.8s (next.js: 69ms, proxy.ts: 25ms, application-code: 15.7s)
+[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
+[browser] Uncaught PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__12r1oy0._.js:577:149
+
+  574         role: true
+  575     }
+  576 }),
+→ 577 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:70:25)
+    at Promise.all (<anonymous>:1:20)
+    at getConferenceAccess (src/lib/conf/access.ts:58:30)
+    at requireConferencePageAccess (src/lib/conf/access.ts:176:18)
+    at TimelinePage (src/app/(hub)/tools/conf/timeline/page.tsx:5:3)
+  68 |       },
+  69 |     }),
+> 70 |     prisma.confDelegate.findFirst({
+     |                         ^
+  71 |       where: {
+  72 |         confId,
+  73 |         status: { not: "CANCELLED" },

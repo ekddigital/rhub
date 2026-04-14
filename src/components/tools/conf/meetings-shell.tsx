@@ -130,8 +130,8 @@ All 11 appointed committee members were introduced and stated their role and cit
 
 4. Committee Structure & Confirmation Hearings
 • Constitutional limit: minimum 5, maximum 11 appointed committee members.
-• All 11 appointees require NEC confirmation hearing (scheduled for next week).
-• Subcommittees may recruit volunteers — volunteers do NOT require NEC confirmation.
+• All 11 appointees require CoC (Council of Coordinators) confirmation hearing (scheduled for Tuesday, April 14, 2026).
+• Subcommittees may recruit volunteers — volunteers do NOT require CoC confirmation.
 • All subcommittee chairs to create group chats before Thursday, including Chair, Co-Chair, and General Secretary in every group.
 
 5. Subcommittees Established
@@ -139,7 +139,7 @@ All 11 appointed committee members were introduced and stated their role and cit
 • Sports Committee — Jefferson T Banquando (Chair)
 • Logistics Committee — Robert D Molley (Chair)
 • Media & Publicity — Abdul Corneh (Chair)
-• Decoration Committee — Volunteer-led (no NEC confirmation required)
+• Decoration Committee — Volunteer-led (no CoC confirmation required)
 
 6. Conference Improvement Areas (raised by Hon. Noah)
 • Earlier planning and committee formation
@@ -177,7 +177,7 @@ ALL SUBCOMMITTEE CHAIRS
 4. Come to Thursday's meeting with concrete proposals and updates.
 
 ALL COMMITTEE MEMBERS
-5. Prepare for confirmation hearing next week — update your CV in PDF format.
+5. Prepare for confirmation hearing on Tuesday, April 14, 2026 — update your CV in PDF format.
 6. Be prepared to answer questions about your contributions and new ideas for the conference.
 7. Identify volunteers for your committee; recognize them in conference materials.
 8. Collect information about attendee food preferences and allergies for the Cooking Committee.
@@ -207,7 +207,7 @@ PRESIDENT OLANO
 
 ALL MEMBERS
 22. Begin planning and organizing county contest if agreed upon by the committee.
-23. Develop the full conference budget for NEC submission.
+23. Develop the full conference budget for CoC submission.
 24. Begin planning the Awards / Program Night.
 25. Begin planning pool and recreational activities at the hotel.
 26. Begin developing the conference fee structure for discussion next Thursday.
@@ -219,7 +219,7 @@ Date:    Thursday, April 16, 2026
 Time:    9:00 PM (LSUIC Zoom)
 Link:    https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
 Zoom ID: 2312312006 · Password: LSUIC2006
-Agenda:  Subcommittee reports, confirmation hearing prep, conference fee proposals, initial budget drafts
+Agenda:  Subcommittee reports, confirmation hearing recap, conference fee proposals, initial budget drafts
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Meeting adjourned with a prayer led by Enoch.
@@ -241,20 +241,72 @@ function buildMeetingDates(count: number): string[] {
 }
 
 const MEETING_TOPICS = [
-  "Kickoff — roles, timeline, system overview",
-  "Subcommittee reports, confirmation hearing recap, fee proposals",
-  "Delegate outreach plan, venue coordination",
-  "Budget approval, registration system launch",
-  "Progress check, logistics planning",
-  "Mid-point review, payment tracking",
-  "Program / agenda draft, speaker confirmations",
-  "Document review, certificate design",
-  "Final budget review, payment status",
-  "Program finalization, printing prep",
-  "Logistics finalization, travel coordination",
-  "Final review, contingency planning",
-  "Last call — all materials ready",
-  "Pre-conference briefing",
+  "Kickoff - roles, timeline, and system overview",
+  `Theme: Confirmation Hearing and Governance Lock
+- Confirm hearing outcomes and committee confirmations.
+- Verify each subcommittee group chat and reporting lane.
+- Review fee options from RMB 275 baseline and affordability scenarios.
+Decision: Approve governance controls and fee proposal shortlist.`,
+  `Theme: Promotion Readiness and Content Calendar
+- Approve the What to Expect flyer copy and social rollout dates.
+- Finalize hotel photo/video assets for the first promo wave.
+- Confirm spokesperson and posting responsibilities.
+Decision: Publish post-confirmation promotional flyer package.`,
+  `Theme: Signup Campaign Launch
+- Approve signup flyer with delegate link and payment QR placeholders.
+- Confirm Financial Secretary workflow for payment verification.
+- Align media script, captions, and CTA for 170 delegate target.
+Decision: Launch signup flyer and payment communication flow.`,
+  `Theme: Budget and Sponsor Pipeline
+- Review committee budget drafts and priority spending risks.
+- Track sponsor outreach status and county contest concept.
+- Validate food volume assumptions for 170 participants.
+Decision: Lock budget revision actions and sponsor owner list.`,
+  `Theme: Registration and Payment Reconciliation
+- Review signup numbers by city and conversion gaps.
+- Compare paid vs unpaid delegates and approval turnaround.
+- Confirm exceptions handling for proof of payment disputes.
+Decision: Publish weekly payment and registration dashboard updates.`,
+  `Theme: Program Architecture
+- Confirm conference flow across opening, elections, sports, and awards.
+- Review Achievers Awards Night concept and hosting sequence.
+- Confirm Welcome Party and Pool Party program requirements.
+Decision: Approve draft conference program structure.`,
+  `Theme: Logistics and Rooming
+- Finalize roommate selection rules and assignment process.
+- Review transport, hotel room inventory, and late-arrival handling.
+- Validate check-in desk staffing plan.
+Decision: Lock rooming policy and transport escalation flow.`,
+  `Theme: Midpoint Delivery Review
+- Audit overdue action points and unresolved dependencies.
+- Reconfirm committee deadlines to avoid July bottlenecks.
+- Review quality of media output and recruitment pace.
+Decision: Escalate blockers and reset any slipping deadlines.`,
+  `Theme: Materials and Production
+- Freeze booklet, badge, shirt, and signage content.
+- Confirm print quantities from verified registration totals.
+- Validate finance readiness for vendor payment deadlines.
+Decision: Approve production freeze and print run.`,
+  `Theme: Operations Drill
+- Walk through arrival flow, registration desk, and session transitions.
+- Confirm security, crowd control, and emergency contacts.
+- Validate election operations readiness with IEC liaisons.
+Decision: Sign off on dry-run improvements.`,
+  `Theme: Final Readiness Gate
+- Review all critical-open milestones and owners.
+- Confirm communication pack for delegates and volunteers.
+- Verify payment closeout and unresolved balance cases.
+Decision: Make Go or No-Go recommendation to leadership.`,
+  `Theme: Last Call and Contingencies
+- Confirm final delegate roster and travel status.
+- Validate contingency plans for weather, transport, and no-shows.
+- Confirm awards inventory, stage flow, and media run sheet.
+Decision: Lock final contingency checklist.`,
+  `Theme: Pre-Conference Briefing
+- Issue final volunteer and committee deployment assignments.
+- Confirm daily reporting channels for conference week.
+- Align closing expectations and post-event report deadlines.
+Decision: Approve execution handoff for conference week.`,
 ];
 
 const DATES = buildMeetingDates(14);
@@ -488,7 +540,7 @@ export function MeetingsShell() {
                 </div>
 
                 {meeting.agenda && (
-                  <p className="mt-2 text-xs text-muted-foreground">
+                  <p className="mt-2 whitespace-pre-line text-xs text-muted-foreground">
                     <span className="font-medium">Agenda:</span>{" "}
                     {meeting.agenda}
                   </p>

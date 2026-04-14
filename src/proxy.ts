@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Middleware for route protection and auth redirects.
+ * Proxy for route protection and auth redirects.
  *
  * Protected routes (require login):
  *   /tools/dbt/judge
@@ -20,21 +20,20 @@ const PROTECTED_PATTERNS = [
   /^\/profile($|\/)/,
 ];
 
-// Auth routes that logged-in users shouldn't access
+// Auth routes that logged-in users should not access
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 
 // Admin routes
 const ADMIN_PATTERNS = [/^\/admin($|\/)/];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Get auth token from cookies
   const token = request.cookies.get("auth_token")?.value;
 
-  // Validate session by calling the auth API
-  // We use an internal check rather than DB directly in middleware
-  // to keep the middleware fast (no Prisma in Edge runtime)
+  // Validate session using a lightweight cookie check.
+  // Keep proxy execution fast and Edge-safe (no direct Prisma usage here).
   const isAuthenticated = !!token && token.length > 10;
 
   // Redirect logged-in users away from auth pages
@@ -44,7 +43,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectUrl, request.url));
   }
 
-  // Protect judge routes
+  // Protect judge and user routes
   for (const pattern of PROTECTED_PATTERNS) {
     if (pattern.test(pathname)) {
       if (!isAuthenticated) {
@@ -56,7 +55,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect admin routes (already has its own redirect but add middleware layer)
+  // Protect admin routes (already has its own redirect but add proxy layer)
   for (const pattern of ADMIN_PATTERNS) {
     if (pattern.test(pathname)) {
       if (!isAuthenticated) {

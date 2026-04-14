@@ -17,6 +17,7 @@ import {
   CalendarDays,
   FileText,
   Film,
+  Megaphone,
 } from "lucide-react";
 import {
   Card,
@@ -91,6 +92,13 @@ const NAV_ITEMS = [
     title: "Documentation",
     desc: "Conference planning docs, process guides, and quick references",
     color: "text-amber-500",
+  },
+  {
+    href: "/tools/conf/flyers",
+    icon: Megaphone,
+    title: "Flyer Studio",
+    desc: "Edit promo and signup flyers in-system with live preview",
+    color: "text-red-500",
   },
 ];
 

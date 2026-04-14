@@ -7,6 +7,7 @@ import {
   Clock,
   DollarSign,
   LayoutDashboard,
+  Megaphone,
   UserCheck,
   Users,
   Wallet,
@@ -83,6 +84,13 @@ const DOC_LINKS = [
     title: "Timeline Documentation",
     description: "Milestones, deadlines, and progress checkpoints.",
     icon: Clock,
+  },
+  {
+    href: "/tools/conf/flyers",
+    title: "Flyer Studio",
+    description:
+      "System-native editor for promotional and signup flyers with reusable templates.",
+    icon: Megaphone,
   },
 ];
 

@@ -1,0 +1,251 @@
+
+i would like us to also add these other additions to work
+
+note that this was the agenda we use last week and we want to learn from it and things that are not in place that we need to add we can add them accordinlgy
+
+
+so for those we do not have in place from here we can add any that is missing
+
+
+before moving on, note that nextjs uses proxy now instead of middleware, that's the new security so lets make sure we fix things accordinlgy
+
+moreover,
+note that we would also like to make a promotional flyer
+
+Promotional flyer
+
+what to expect at the conference or what will be at the conference
+
+Pool Party
+Achievers Awards Night
+Meet and greet / Welcome Party
+You have the option to pick your roommate
+
+
+before we can start positing informatkion about the conference so that people can signup
+
+i listed a few points, we can add others that miht be missing and we can better fix thinbgs
+
+
+also note that this is the minutes from the last meeting
+
+"""LSUIC 2026 CONFERENCE COMMITTEE
+Meeting #1 Minutes — April 10, 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Convened by: Enoch Kwateh Dongbo (Conference Chair)
+Venue:       LSUIC Zoom (ID: 2312312006 · Password: LSUIC2006)
+Scheduled:  21:00 — 22:05 (Friday, April 10, 2026)
+Actual End: ~23:00 (meeting ran approximately 2 hours)
+
+ATTENDEES (18 in total)
+───────────────────────────────────────
+COMMITTEE                                  [Zoom display name]
+• Enoch Kwateh Dongbo — Conf. Chair · Jinan (Co-host)     → "Enoch"
+• Alfreda Ruth Togbah — Co-Chair · Suzhou                 → "Alfreda Ruth Togbah"
+• Harris M Bowulo — General Secretary (Co-host)           → "HARRIS"
+• Abdul Corneh — PRO / Media Committee Chair              → "Abdul"
+• Kukor Brooks — Cooking Committee Chair · Jinan          → "Kukor  Brooks - Jinan"
+• Jefferson T Banquando — Sports Committee Chair          → "Jeffery"
+• Robert D. Molley — Logistics Committee Chair            → "Amb. Robert D. Molley"
+• Priscilla — Cooking Committee · Suzhou                  → "Priscilla - Suzhou"
+• Williamena Yah MUNYENEH — Cooking Committee             → "Williamena Yah MUNYENEH"
+• Blessing — Cooking Committee · Nantong                  → "Blessing - Nantong"
+• Lisa — Cooking Committee · Qingdao                      → "Lisa - Qingdao"
+
+NEC / OBSERVERS                            [Zoom display name]
+• Olano — LSUIC President (Host)                          → "Olano" / "Olano - Prezo"
+• Mitchell Vampelt — NCG Representative                   → "Mitchell Vampelt - NCG"
+• Hon. Noah D. Mason Jr. — NEC Representative             → "Hon. Noah D. Mason Jr."
+• Hon. Ruphine M. Harmon — NEC Representative             → "Hon. Ruphine M. Harmon"
+• Jenneh Bonah — NEC Representative                               → "JENNEH BONAH"
+• Yvonne — Observer · Nanjing                             → "Yvonne - Nanjing"
+
+AGENDA
+───────────────────────────────────────
+1. Opening Formalities (10 min) — Opening prayer · Welcome remarks · Self-introductions
+2. Discussion (30 min) — Previous conference review · Committee structure · Meeting schedule ·
+   Sub-committee creation · Timeline & milestones · Cooking committee budget · Action items
+3. AOB (20 min)
+4. Closing Prayer (5 min)
+
+SUMMARY
+───────────────────────────────────────
+This was the inaugural meeting of the 2026 LSUIC Conference Committee, held on LSUIC Zoom. Meeting was originally scheduled for 21:00–22:05 but ran until approximately 23:00 (~2 hours total) due to the volume of discussion. All committee members were introduced and outlined their roles. The meeting focused on establishing team relationships, communication channels, committee structure, and the overall planning direction for the Jinan conference — LSUIC's 20th Anniversary Conference.
+
+KEY DISCUSSIONS
+───────────────────────────────────────
+1. Introductions & Roles
+All 11 appointed committee members were introduced and stated their role and city. The committee is constitutionally capped at 11 appointees (maximum as per LSUIC Constitution).
+
+2. Meeting Schedule
+• Initial proposal of Fridays was discussed but raised conflict concerns.
+• Kukor suggested adjusting to 8–9 PM on Fridays to accommodate weekend plans.
+• Harris recommended meetings be 2–2.5 hours given the online format.
+• Hon. Noah recommended Thursdays to ensure NEC participation and weekend productivity.
+• After a vote, Thursday 9–10 PM was selected as the regular meeting time.
+• DECISION: All future meetings will be held on Thursdays at 9:00 PM online.
+
+3. Conference Inventory Review
+• Olano presented an overview of leftover items from the previous conference: food, drinks, and kitchen supplies.
+• Some drink expiration dates need to be verified before use.
+• Olano to send a detailed list with photos to the general group chat.
+
+4. Committee Structure & Confirmation Hearings
+• Constitutional limit: minimum 5, maximum 11 appointed committee members.
+• All 11 appointees require NEC confirmation hearing (scheduled for next week).
+• Subcommittees may recruit volunteers — volunteers do NOT require NEC confirmation.
+• All subcommittee chairs to create group chats before Thursday, including Chair, Co-Chair, and General Secretary in every group.
+
+5. Subcommittees Established
+• Cooking Committee — Kukor Brooks (Chair)
+• Sports Committee — Jefferson T Banquando (Chair)
+• Logistics Committee — Robert D Molley (Chair)
+• Media & Publicity — Abdul Corneh (Chair)
+• Decoration Committee — Volunteer-led (no NEC confirmation required)
+
+6. Conference Improvement Areas (raised by Hon. Noah)
+• Earlier planning and committee formation
+• Better committee preparation and structure
+• Securing sponsors early in the process
+• Setting conference fees earlier
+• Ensuring more food availability and variety for all delegates
+• Creating more engaging and memorable experiences for participants
+
+7. Conference Fee Discussion
+• Last year's fee: ¥275 per delegate.
+• Committee to propose a revised fee structure by the next meeting.
+• Considerations: whether to increase, maintain, or offer tiered/discounted options.
+
+8. Delegate Target
+• Target for 2026 Jinan Conference: 170 attendees.
+
+9. Fundraising Ideas
+• Raffle system — fundraising goal: ¥50,000 RMB.
+• County contest representing Liberia's 15 counties.
+• Sponsor outreach to begin after confirmation hearings.
+
+10. Media & Promotional Plans
+• Media team to begin creating flyers and write-ups immediately.
+• Share conference information on social media after confirmation hearing.
+• Use available photos/videos from Olano for initial promotional content.
+
+ACTION POINTS
+───────────────────────────────────────
+
+ALL SUBCOMMITTEE CHAIRS
+1. Create your subcommittee group chats before Thursday. Include Chairman, Co-Chair, and General Secretary in every group.
+2. Develop a detailed plan of action and submit to Chair, Co-Chair, and General Secretary.
+3. Begin developing budget proposals for your area (plan for 170 people).
+4. Come to Thursday's meeting with concrete proposals and updates.
+
+ALL COMMITTEE MEMBERS
+5. Prepare for confirmation hearing next week — update your CV in PDF format.
+6. Be prepared to answer questions about your contributions and new ideas for the conference.
+7. Identify volunteers for your committee; recognize them in conference materials.
+8. Collect information about attendee food preferences and allergies for the Cooking Committee.
+9. Brainstorm fundraising activities for discussion at the next meeting.
+10. Review these minutes when shared by the General Secretary.
+
+COOKING COMMITTEE (Kukor Brooks)
+11. Plan food quantities and options for approximately 170 people.
+12. Account for dietary restrictions and food preferences.
+13. Submit food list and initial budget proposal by Thursday.
+
+SPORTS COMMITTEE (Jefferson T Banquando)
+14. Begin contacting city leaders and representatives to organize sports activities.
+15. Begin identifying and recruiting players across cities.
+
+LOGISTICS COMMITTEE (Robert D Molley)
+16. Develop logistics framework and recruit additional volunteers.
+17. Begin planning accommodation and conference registration logistics.
+
+MEDIA & PUBLICITY (Abdul Corneh)
+18. Begin media strategy — create flyers and write-ups immediately.
+19. Release content after confirmation hearing, using Olano's photos and videos.
+20. Launch social media campaign to promote the conference.
+
+PRESIDENT OLANO
+21. Send photos and detailed list of leftover items from previous conference to the group chat.
+
+ALL MEMBERS
+22. Begin planning and organizing county contest if agreed upon by the committee.
+23. Develop the full conference budget for NEC submission.
+24. Begin planning the Awards / Program Night.
+25. Begin planning pool and recreational activities at the hotel.
+26. Begin developing the conference fee structure for discussion next Thursday.
+27. Begin planning sponsor outreach strategy (after confirmation hearings).
+
+NEXT MEETING
+───────────────────────────────────────
+Date:    Thursday, April 16, 2026
+Time:    9:00 PM (LSUIC Zoom)
+Link:    https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
+Zoom ID: 2312312006 · Password: LSUIC2006
+Agenda:  Subcommittee reports, confirmation hearing prep, conference fee proposals, initial budget drafts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Meeting adjourned with a prayer led by Enoch.
+Minutes recorded by: Harris M Bowulo (General Secretary)
+
+
+"""
+
+lets maek use of it accorinklgy and see things that we need to add to our timeline
+
+and the meeting agenda for the previous meeting was more like this
+
+CONFERENCE COMMITTEE MEETING AGENDA
+Date: April 10, 2026
+Time: 21:00 – 22:05
+Venue: LSUIC ZOOM
+Presiding: Committee Chairman
+1. OPENING FORMALITIES (10 minutes)
+• Opening Prayer
+• Welcome Remarks by the Chairman
+• Self-Introduction of Members
+2. DISCUSSION (30 minutes)
+• Review of Previous Conference (Lessons + Key Questions + Available Documents)
+• Committee Structure (Main Committees Needed)
+• Meeting Schedule (Set recurring time or agree on flexible schedule)
+• Sub-Committee Creation Process (Guidelines & Approval Flow)
+• Timeline & Key Milestones
+• Cooking Committee Budget: amount, items, responsibilities - 170 persons; meal type
+• Action Items, Next Steps & Next Meeting Date
+3. AOB (20 minutes)
+• 
+4. Closing Prayer (5 minutes)
+
+
+so lets remember it and see how best to better fix thngs for our upcoming meetings
+
+
+also we would like to make a video along with other pictures of the hotel videos and thigns like that for promotional things talking about the ocnference and encouraging people to signup 
+
+don't forget we need to add all of those to our time line accoridnlgy so that we know our target and what we need to complete with in a time frame
+
+additionally
+
+for our weekly meetings, since we are meeitng every thursdays, lets make sure we hav ea good bulleet points of how things should be or what we will discuss or conclude in those meetings
+
+
+
+lets read them all and see how best to fix things and even desing the promotional flyer. we can look at the individual delegate flyer to better understand and we can make things really better overall
+
+lets remember and do that
+
+additionally, we can add to the timeline the right bullet poiints of things tht needs to be completed so that we can have a good road mab
+
+note that hte we will be going for confirmation hearing this week and after the confirmation hearing we will start posting the promotional flyer so that people can kow what to expect at the conference and after that we will start posting the flyer for singup, so which mean we will need to create a signup flyer too and we will embedde that link we have setup already for delegates signup so that they can singup and also we will add a QR Code on it for ht efinancial secratry of LSUIC so that people can do their payment and we would have the financial secratray also having access to the system so that they can approve people who completed 
+
+i mean peolple who truly completed their conference fees and things like that 
+
+remember that last year conference fees as this
+
+Last year fee was ¥275
+
+we are targetting 170 people to signup and come for the confernece and we want things well in place and we would love to drop the priice if possible 
+
+
+
+

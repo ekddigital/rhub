@@ -75,6 +75,72 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     isCompleted: true,
   },
   {
+    id: "2a",
+    title: "Confirmation Hearing Prep Pack Submitted",
+    description:
+      "All appointees submit updated PDF CVs, role defense notes, and contribution plans.",
+    owner: "All Committee Members",
+    date: "2026-04-13",
+    category: "governance",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "2b",
+    title: "CoC Confirmation Hearing Completed",
+    description:
+      "Committee leadership and subcommittee chairs are formally confirmed for public rollout.",
+    owner: "Chair + Council of Coordinators (CoC)",
+    date: "2026-04-14",
+    category: "governance",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "2c",
+    title: "What to Expect Flyer Published",
+    description:
+      "Post-confirmation promo flyer goes live featuring Pool Party, Achievers Awards Night, Welcome Party, and roommate option.",
+    owner: "PRO / Media",
+    date: "2026-04-17",
+    category: "program",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "2d",
+    title: "Hotel Photo and Video Promo Pack Released",
+    description:
+      "Publish short reels and image carousels using hotel tour and Jinan city assets to build trust and excitement.",
+    owner: "PRO / Media + Logistics",
+    date: "2026-04-18",
+    category: "program",
+    isCritical: false,
+    isCompleted: false,
+  },
+  {
+    id: "2e",
+    title: "Signup Flyer with Link and QR Published",
+    description:
+      "Release registration flyer with delegate signup URL and payment QR code for conference fee submission.",
+    owner: "PRO / Media + Secretary",
+    date: "2026-04-20",
+    category: "registration",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "2f",
+    title: "Financial Secretary Approval Workflow Activated",
+    description:
+      "Grant operational access for payment verification so only fully paid delegates are approved as complete.",
+    owner: "Financial Secretary + Admin",
+    date: "2026-04-21",
+    category: "finance",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
     id: "3",
     title: "Approval Workflow Locked",
     description:
@@ -131,7 +197,8 @@ const INITIAL_TIMELINE: TimelineItem[] = [
   {
     id: "8",
     title: "Conference Fee Structure Finalized",
-    description: "Fee tiers and payment policy approved and documented.",
+    description:
+      "Fee tiers and payment policy approved from RMB 275 baseline, including a lower-price option if budget permits.",
     owner: "Chair + Finance Team",
     date: "2026-04-25",
     category: "finance",
@@ -142,7 +209,7 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     id: "9",
     title: "Budget Defense and Approval Gate",
     description:
-      "Consolidated budget defended and signed off with NEC alignment.",
+      "Consolidated budget defended and signed off with CoC alignment.",
     owner: "Chair + Treasurer + Financial Secretary",
     date: "2026-04-28",
     category: "finance",
@@ -151,9 +218,9 @@ const INITIAL_TIMELINE: TimelineItem[] = [
   },
   {
     id: "10",
-    title: "Registration and Fees Announced",
+    title: "Registration Window and Payment Channels Announced",
     description:
-      "Public release of registration form, fee policy, and payment channels.",
+      "Public release of registration form, fee policy, payment instructions, and approval expectations.",
     owner: "Secretary + Media",
     date: "2026-05-01",
     category: "registration",
@@ -162,9 +229,9 @@ const INITIAL_TIMELINE: TimelineItem[] = [
   },
   {
     id: "11",
-    title: "Media Wave 1 Launch",
+    title: "Media Wave 2 - Signup Push",
     description:
-      "First promotion pack: flyers, writeups, and committee messaging.",
+      "Second promotion pack drives signups with highlights, testimonials, and weekly countdown posts.",
     owner: "PRO / Media",
     date: "2026-05-03",
     category: "program",
@@ -173,9 +240,9 @@ const INITIAL_TIMELINE: TimelineItem[] = [
   },
   {
     id: "12",
-    title: "Rooming Policy and Allocation Rules Locked",
+    title: "Rooming and Roommate Selection Rules Locked",
     description:
-      "Finalize pairing policy, single-room rules, and accommodation assignment process.",
+      "Finalize roommate choice process, single-room rules, and accommodation assignment workflow.",
     owner: "Logistics Lead",
     date: "2026-05-08",
     category: "logistics",
@@ -302,7 +369,7 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     id: "24",
     title: "Go/No-Go Decision Meeting",
     description: "Final readiness vote with contingency activation if needed.",
-    owner: "Chair + NEC",
+    owner: "Chair + CoC Leadership",
     date: "2026-06-28",
     category: "governance",
     isCritical: true,
@@ -353,6 +420,17 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     isCompleted: false,
   },
   {
+    id: "27a",
+    title: "Welcome and Meet-and-Greet Party",
+    description:
+      "Host delegates and invited guests for official networking and orientation.",
+    owner: "Program + Media + Logistics",
+    date: "2026-07-23",
+    category: "event",
+    isCritical: false,
+    isCompleted: false,
+  },
+  {
     id: "28",
     title: "Conference Day 2 - Proceedings and Elections",
     description:
@@ -374,9 +452,21 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     isCompleted: false,
   },
   {
+    id: "29a",
+    title: "Pool Party and Recreation Session",
+    description:
+      "Hotel pool networking block with controlled safety and media coverage plan.",
+    owner: "Sports + Logistics + Media",
+    date: "2026-07-25",
+    category: "event",
+    isCritical: false,
+    isCompleted: false,
+  },
+  {
     id: "30",
-    title: "Awards Night and Inaugural Ball",
-    description: "Awards delivery, crowning flow, and formal evening program.",
+    title: "Achievers Awards Night and Inaugural Ball",
+    description:
+      "Awards delivery, crowning flow, and formal evening program with full media capture.",
     owner: "Program + Media + Logistics",
     date: "2026-07-26",
     category: "event",
@@ -398,7 +488,7 @@ const INITIAL_TIMELINE: TimelineItem[] = [
     id: "32",
     title: "Committee Activity Report Submitted",
     description:
-      "Comprehensive conference report delivered to NEC within one week.",
+      "Comprehensive conference report delivered to CoC and executive leadership within one week.",
     owner: "Chair + Secretary",
     date: "2026-08-03",
     category: "post-event",
