@@ -518,11 +518,11 @@ export async function GET(
 
   <!-- Top union title bar + logo -->
   <rect x="110" y="116" width="860" height="70" rx="24" fill="#0B1E78"/>
-  <text x="140" y="161" font-size="40" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
+  <text x="540" y="161" text-anchor="middle" font-size="38" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF">Liberian Student Union in China</text>
   ${logoLayer}
 
   <!-- Hero subtitle + theme headline -->
-  <text x="130" y="304" font-size="28" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
+  <text x="540" y="206" text-anchor="middle" font-size="22" font-family="CardBody, Poppins, Segoe UI, Arial, sans-serif" font-weight="600" fill="#E7EEFF">${cardSubtitle}</text>
   ${downloadControlsLayer}
   <text x="540" y="438" text-anchor="middle" font-size="60" font-family="CardHeadline, Oswald, Montserrat, Segoe UI, Arial, sans-serif" font-weight="700" fill="#FFFFFF" letter-spacing="1">${themeLine}</text>
 
