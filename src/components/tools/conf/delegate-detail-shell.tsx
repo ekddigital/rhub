@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { fmtRmb } from "@/lib/conf/currency";
 
@@ -305,11 +306,10 @@ export function DelegateDetailShell({
           </CardHeader>
           <CardContent className="space-y-4">
             {delegate.bookletPhotoPath ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <AdaptivePhotoFrame
                 src={delegate.bookletPhotoPath}
                 alt={delegate.name}
-                className="h-72 w-full rounded-xl border border-border object-cover"
+                containerClassName="h-72 w-full rounded-xl border border-border"
               />
             ) : (
               <div className="flex h-72 items-center justify-center rounded-xl bg-muted text-3xl font-semibold text-muted-foreground">

@@ -40,6 +40,7 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
+import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
 import { useUser } from "@/contexts/user-context";
 
 type Delegate = {
@@ -794,11 +795,10 @@ export function DelegatesShell() {
               <CardContent className="pt-5">
                 <div className="mb-3 flex items-start gap-3">
                   {delegate.bookletPhotoPath ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <AdaptivePhotoFrame
                       src={delegate.bookletPhotoPath}
                       alt={delegate.name}
-                      className="h-16 w-16 rounded-xl border border-border object-cover"
+                      containerClassName="h-16 w-16 rounded-xl border border-border"
                     />
                   ) : (
                     <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-sm font-bold text-muted-foreground">

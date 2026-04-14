@@ -667,7 +667,7 @@ export function DelegatePublicRegister() {
                         alt="Delegate sample photo"
                         width={640}
                         height={640}
-                        className="h-44 w-full object-cover"
+                        className="h-44 w-full bg-muted object-contain object-top"
                       />
                     </div>
                   ))}

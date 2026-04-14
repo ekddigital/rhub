@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
 import { fetchDefaultConference } from "@/lib/conf/client";
 
 type BookletScope = "all" | "paid" | "confirmed";
@@ -411,12 +412,10 @@ export function BookletShell() {
               <CardContent className="pt-4">
                 <div className="mb-3 flex gap-3">
                   {participant.bookletPhotoPath ? (
-                    <Image
+                    <AdaptivePhotoFrame
                       src={participant.bookletPhotoPath}
                       alt={participant.name}
-                      width={92}
-                      height={116}
-                      className="h-28 w-24 rounded-md border border-border object-cover"
+                      containerClassName="h-28 w-24 rounded-md border border-border"
                     />
                   ) : (
                     <div className="flex h-28 w-24 items-center justify-center rounded-md border border-dashed border-border bg-muted text-xs text-muted-foreground">
