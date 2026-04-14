@@ -37,6 +37,13 @@ export async function GET(
     const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
 
+    if (!auth.access.isManager && auth.access.delegateId !== delegateId) {
+      return NextResponse.json(
+        { error: "You can only view your own delegate profile" },
+        { status: 403 },
+      );
+    }
+
     const delegate = await prisma.confDelegate.findUnique({
       where: { id: delegateId },
     });

@@ -44,6 +44,7 @@ import { useUser } from "@/contexts/user-context";
 
 type Delegate = {
   id: string;
+  userId: string | null;
   name: string;
   passportNo: string | null;
   delegateCode: string | null;
@@ -442,7 +443,7 @@ export function DelegatesShell() {
       fd.append("file", file);
 
       const res = await fetch(
-        `/api/conf/${confId}/delegates/${delegateId}/documents`,
+        `/api/conf/${confId}/delegates/${delegateId}/self-documents`,
         {
           method: "POST",
           body: fd,
@@ -773,6 +774,14 @@ export function DelegatesShell() {
         {filtered.map((delegate) => {
           const config = STATUS_CONFIG[delegate.status];
           const StatusIcon = config.icon;
+          const userEmail = user?.email?.trim().toLowerCase();
+          const delegateEmail = delegate.email?.trim().toLowerCase();
+          const canOpenDetail =
+            Boolean(isAdminControl) ||
+            (Boolean(user?.id) && delegate.userId === user?.id) ||
+            (Boolean(userEmail) &&
+              Boolean(delegateEmail) &&
+              delegateEmail === userEmail);
           const initials = delegate.name
             .split(" ")
             .filter(Boolean)
@@ -822,6 +831,16 @@ export function DelegatesShell() {
                     {config.label}
                   </Badge>
 
+                  {canOpenDetail && (
+                    <Link
+                      href={`/tools/conf/delegates/${delegate.id}`}
+                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                    >
+                      <Eye className="size-3" />
+                      Details
+                    </Link>
+                  )}
+
                   <button
                     className={`rounded-md px-2 py-1 text-xs font-medium ${
                       delegate.feePaid
@@ -864,57 +883,63 @@ export function DelegatesShell() {
                   )}
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <label
-                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
-                      uploadingDocKey ? "pointer-events-none opacity-60" : ""
-                    }`}
-                  >
-                    <Camera className="size-3.5" />
-                    {uploadingDocKey === `${delegate.id}:booklet`
-                      ? "Uploading..."
-                      : "Replace Booklet Photo"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        void handleReplaceDelegateDocument(
-                          delegate.id,
-                          "booklet",
-                          file,
-                        );
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
+                {canOpenDetail && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <label
+                      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                        uploadingDocKey ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      <Camera className="size-3.5" />
+                      {uploadingDocKey === `${delegate.id}:booklet`
+                        ? "Uploading..."
+                        : "Replace Booklet Photo"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          void handleReplaceDelegateDocument(
+                            delegate.id,
+                            "booklet",
+                            file,
+                          );
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
 
-                  <label
-                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
-                      uploadingDocKey ? "pointer-events-none opacity-60" : ""
-                    }`}
-                  >
-                    <FileUp className="size-3.5" />
-                    {uploadingDocKey === `${delegate.id}:passport`
-                      ? "Uploading..."
-                      : "Replace Passport File"}
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/png,image/jpeg,image/webp,application/pdf"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        void handleReplaceDelegateDocument(
-                          delegate.id,
-                          "passport",
-                          file,
-                        );
-                        e.currentTarget.value = "";
-                      }}
-                    />
-                  </label>
-                </div>
+                    {isAdminControl && (
+                      <label
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                          uploadingDocKey
+                            ? "pointer-events-none opacity-60"
+                            : ""
+                        }`}
+                      >
+                        <FileUp className="size-3.5" />
+                        {uploadingDocKey === `${delegate.id}:passport`
+                          ? "Uploading..."
+                          : "Replace Passport File"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/png,image/jpeg,image/webp,application/pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            void handleReplaceDelegateDocument(
+                              delegate.id,
+                              "passport",
+                              file,
+                            );
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           );

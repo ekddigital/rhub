@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { validateSession } from "@/lib/auth";
-import { ensureDefaultConference } from "@/lib/conf/bootstrap";
+import {
+  ensureDefaultConference,
+  isConferenceDatabaseUnavailableError,
+} from "@/lib/conf/bootstrap";
 import { prisma } from "@/lib/prisma";
 
 type AccessScope = "participant" | "manager";
@@ -136,7 +139,20 @@ export async function requireConferenceApiAccess(
 export async function requireDefaultConferenceApiAccess(
   scope: AccessScope = "participant",
 ) {
-  const event = await ensureDefaultConference();
+  let event;
+  try {
+    event = await ensureDefaultConference();
+  } catch (error) {
+    if (isConferenceDatabaseUnavailableError(error)) {
+      return {
+        ok: false as const,
+        response: NextResponse.json({ error: error.message }, { status: 503 }),
+      };
+    }
+
+    throw error;
+  }
+
   return requireConferenceApiAccess(event.id, scope);
 }
 
@@ -144,7 +160,19 @@ export async function requireConferencePageAccess(
   routePath: string,
   scope: AccessScope = "participant",
 ) {
-  const event = await ensureDefaultConference();
+  let event;
+  try {
+    event = await ensureDefaultConference();
+  } catch (error) {
+    if (isConferenceDatabaseUnavailableError(error)) {
+      redirect(
+        `/tools/conf/unavailable?redirect=${encodeURIComponent(routePath)}`,
+      );
+    }
+
+    throw error;
+  }
+
   const access = await getConferenceAccess(event.id);
 
   if (!access.user) {

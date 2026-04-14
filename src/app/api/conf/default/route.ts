@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { ensureDefaultConference, DEFAULT_CONF_SLUG } from "@/lib/conf/bootstrap";
+import {
+  ensureDefaultConference,
+  DEFAULT_CONF_SLUG,
+  isConferenceDatabaseUnavailableError,
+} from "@/lib/conf/bootstrap";
 
 // GET /api/conf/default — ensure and return the LSUIC conference event
 export async function GET() {
@@ -13,6 +17,10 @@ export async function GET() {
       defaultSlug: DEFAULT_CONF_SLUG,
     });
   } catch (error) {
+    if (isConferenceDatabaseUnavailableError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 503 });
+    }
+
     console.error("Failed to initialize default conference:", error);
     return NextResponse.json(
       { error: "Failed to initialize default conference" },
