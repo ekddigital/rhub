@@ -50,6 +50,8 @@ type FlyerStudioState = {
   signup: SignupFlyer;
 };
 
+type ExportFormat = "png" | "svg";
+
 const LOCAL_STORAGE_KEY = "conf-flyer-studio-v1";
 
 const DELEGATE_FLYER_REFERENCE =
@@ -150,11 +152,22 @@ function downloadJson(payload: FlyerStudioState) {
   URL.revokeObjectURL(url);
 }
 
+function downloadDataUrl(dataUrl: string, fileName: string) {
+  const anchor = document.createElement("a");
+  anchor.href = dataUrl;
+  anchor.download = fileName;
+  anchor.click();
+}
+
 export function FlyerStudioShell() {
   const [state, setState] = useState<FlyerStudioState>(DEFAULT_STATE);
   const [loaded, setLoaded] = useState(false);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(
+    null,
+  );
   const importRef = useRef<HTMLInputElement | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -202,6 +215,43 @@ export function FlyerStudioShell() {
   const exportConfig = () => {
     downloadJson(state);
     setSaveNotice("Configuration exported to JSON.");
+  };
+
+  const exportPreviewAs = async (format: ExportFormat) => {
+    if (!previewRef.current || !loaded) {
+      setSaveNotice("Preview is not ready yet. Please try again in a moment.");
+      return;
+    }
+
+    try {
+      setExportingFormat(format);
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+      const fileName = `lsuic-${state.mode}-flyer-${timestamp}.${format}`;
+      const { toPng, toSvg } = await import("html-to-image");
+
+      if (format === "png") {
+        const dataUrl = await toPng(previewRef.current, {
+          backgroundColor: "#FFFFFF",
+          pixelRatio: 2,
+          cacheBust: true,
+        });
+        downloadDataUrl(dataUrl, fileName);
+      } else {
+        const dataUrl = await toSvg(previewRef.current, {
+          backgroundColor: "#FFFFFF",
+          cacheBust: true,
+        });
+        downloadDataUrl(dataUrl, fileName);
+      }
+
+      setSaveNotice(`Flyer exported as ${format.toUpperCase()}.`);
+    } catch {
+      setSaveNotice(
+        `Could not export ${format.toUpperCase()}. Please try again.`,
+      );
+    } finally {
+      setExportingFormat(null);
+    }
   };
 
   const importConfig = async (file: File | null) => {
@@ -574,7 +624,27 @@ export function FlyerStudioShell() {
                 onClick={exportConfig}
               >
                 <Download className="size-4" />
-                Export JSON
+                Export Config JSON
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!loaded || exportingFormat !== null}
+                onClick={() => void exportPreviewAs("png")}
+              >
+                <Download className="size-4" />
+                {exportingFormat === "png" ? "Exporting PNG..." : "Export PNG"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!loaded || exportingFormat !== null}
+                onClick={() => void exportPreviewAs("svg")}
+              >
+                <Download className="size-4" />
+                {exportingFormat === "svg" ? "Exporting SVG..." : "Export SVG"}
               </Button>
               <Button
                 type="button"
@@ -611,7 +681,10 @@ export function FlyerStudioShell() {
             {!loaded ? (
               <div className="h-[560px] animate-pulse rounded-xl bg-muted" />
             ) : state.mode === "promo" ? (
-              <div className="rounded-[30px] bg-linear-to-b from-[#071B4D] via-[#0B4FD9] to-[#0B1E78] p-3 shadow-xl">
+              <div
+                ref={previewRef}
+                className="rounded-[30px] bg-linear-to-b from-[#071B4D] via-[#0B4FD9] to-[#0B1E78] p-3 shadow-xl"
+              >
                 <div className="rounded-[26px] bg-white p-3">
                   <div className="overflow-hidden rounded-2xl border border-[#C4D4EE]">
                     <div className="flex items-center justify-between bg-[#0B1E78] px-3 py-2.5 text-white">
@@ -707,7 +780,10 @@ export function FlyerStudioShell() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-[30px] bg-linear-to-b from-[#071B4D] via-[#0B4FD9] to-[#0B1E78] p-3 shadow-xl">
+              <div
+                ref={previewRef}
+                className="rounded-[30px] bg-linear-to-b from-[#071B4D] via-[#0B4FD9] to-[#0B1E78] p-3 shadow-xl"
+              >
                 <div className="rounded-[26px] bg-white p-3">
                   <div className="overflow-hidden rounded-2xl border border-[#C4D4EE]">
                     <div className="flex items-center justify-between bg-[#0B1E78] px-3 py-2.5 text-white">
