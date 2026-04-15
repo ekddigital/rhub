@@ -33,7 +33,7 @@ export async function POST(
 ) {
   try {
     const { confId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
+    const auth = await requireConferenceApiAccess(confId, "super-admin");
     if (!auth.ok) return auth.response;
 
     const body = await req.json();

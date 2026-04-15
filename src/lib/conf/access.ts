@@ -8,7 +8,7 @@ import {
 } from "@/lib/conf/bootstrap";
 import { prisma } from "@/lib/prisma";
 
-type AccessScope = "participant" | "manager";
+type AccessScope = "participant" | "manager" | "super-admin";
 
 type SessionUser = NonNullable<Awaited<ReturnType<typeof validateSession>>>;
 
@@ -17,6 +17,7 @@ type ConferenceAccess = {
   confId: string;
   isParticipant: boolean;
   isManager: boolean;
+  isSuperAdmin: boolean;
   delegateId: string | null;
   memberId: string | null;
 };
@@ -50,6 +51,7 @@ export async function getConferenceAccess(
       confId,
       isParticipant: false,
       isManager: false,
+      isSuperAdmin: false,
       delegateId: null,
       memberId: null,
     };
@@ -82,6 +84,7 @@ export async function getConferenceAccess(
   const isPlatformManager = PLATFORM_MANAGER_ROLES.has(user.role);
   const isConferenceManager = Boolean(member && member.role !== "DELEGATE");
   const isManager = isPlatformManager || isConferenceManager;
+  const isSuperAdmin = user.role === "SUPER_ADMIN";
   const isParticipant = isManager || Boolean(member) || Boolean(delegate);
 
   return {
@@ -89,6 +92,7 @@ export async function getConferenceAccess(
     confId,
     isParticipant,
     isManager,
+    isSuperAdmin,
     delegateId: delegate?.id ?? null,
     memberId: member?.id ?? null,
   };
@@ -115,6 +119,16 @@ export async function requireConferenceApiAccess(
       ok: false as const,
       response: NextResponse.json(
         { error: "Manager access required" },
+        { status: 403 },
+      ),
+    };
+  }
+
+  if (scope === "super-admin" && !access.isSuperAdmin) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { error: "Super Admin access required" },
         { status: 403 },
       ),
     };

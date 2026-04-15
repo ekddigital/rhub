@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from "react";
 
@@ -37,22 +38,16 @@ const UserContext = createContext<UserContextValue>({
 });
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  console.log("[UserProvider] Component render");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasFetchedRef = useRef(false);
 
   const fetchUser = useCallback(async () => {
-    console.log(
-      "[UserContext] fetchUser called - search:",
-      typeof window !== "undefined" ? window.location.search : "SSR",
-    );
-
     // If just logged out, skip the fetch and immediately show logged-out state
     if (
       typeof window !== "undefined" &&
       window.location.search.includes("logout=1")
     ) {
-      console.log("[UserContext] Logout detected, clearing state");
       setUser(null);
       setLoading(false);
       // Clean up the URL param without triggering a reload
@@ -62,43 +57,32 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // Safety net: never let the loading skeleton show for more than 4 s
     const giveUp = setTimeout(() => {
-      console.log("[UserContext] Timeout - forcing loading=false");
       setLoading(false);
     }, 4000);
 
     try {
-      console.log("[UserContext] Fetching /api/auth/me");
       // Cache-buster ensures the browser never serves a stale /me response
       const res = await fetch(`/api/auth/me?_t=${Date.now()}`, {
         cache: "no-store",
         headers: { "Cache-Control": "no-cache" },
         credentials: "include",
       });
-      console.log("[UserContext] Response status:", res.status);
       const data = await res.json();
-      console.log("[UserContext] Response data:", data);
       setUser(data.id ? (data as AuthUser) : null);
     } catch (err) {
-      console.error("[UserContext] Fetch error:", err);
+      console.error("Failed to fetch current user:", err);
       setUser(null);
     } finally {
       clearTimeout(giveUp);
-      console.log("[UserContext] Setting loading=false");
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    console.log("[UserContext] useEffect triggered");
-    fetchUser();
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    void fetchUser();
   }, [fetchUser]);
-
-  console.log(
-    "[UserProvider] Rendering - user:",
-    user?.name || "null",
-    "loading:",
-    loading,
-  );
 
   return (
     <UserContext.Provider value={{ user, loading, refresh: fetchUser }}>

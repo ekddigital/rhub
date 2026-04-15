@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { validateSessionFull } from "@/lib/auth";
+import {
+  isAuthDatabaseUnavailableError,
+  validateSessionFull,
+} from "@/lib/auth";
 
 // Helper to create a no-cache response
 function noCache(data: unknown, status = 200) {
@@ -43,6 +46,10 @@ export async function GET() {
       sessionCreatedAt: sessionCreatedAt.toISOString(),
     });
   } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      return noCache({ user: null, degraded: true });
+    }
+
     console.error("Me error:", error);
     return noCache({ user: null }, 500);
   }

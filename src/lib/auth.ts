@@ -1,6 +1,72 @@
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+
+const TRANSIENT_AUTH_DB_ERROR_CODES = new Set(["P1001", "P1002", "P2024"]);
+const AUTH_DB_COOLDOWN_MS = 30_000;
+let authDbUnavailableUntil = 0;
+
+export class AuthDatabaseUnavailableError extends Error {
+  declare cause?: unknown;
+
+  constructor(message: string, cause?: unknown) {
+    super(message);
+    this.name = "AuthDatabaseUnavailableError";
+    this.cause = cause;
+  }
+}
+
+export function isAuthDatabaseUnavailableError(
+  error: unknown,
+): error is AuthDatabaseUnavailableError {
+  return error instanceof AuthDatabaseUnavailableError;
+}
+
+function isTransientAuthDatabaseError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return TRANSIENT_AUTH_DB_ERROR_CODES.has(error.code);
+  }
+
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return true;
+  }
+
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes("can't reach database server") ||
+      message.includes("timed out fetching a new connection")
+    );
+  }
+
+  return false;
+}
+
+async function findSessionWithUser(token: string) {
+  if (Date.now() < authDbUnavailableUntil) {
+    throw new AuthDatabaseUnavailableError(
+      "Auth database is temporarily unavailable. Please retry shortly.",
+    );
+  }
+
+  try {
+    return await prisma.session.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+  } catch (error) {
+    if (isTransientAuthDatabaseError(error)) {
+      authDbUnavailableUntil = Date.now() + AUTH_DB_COOLDOWN_MS;
+      throw new AuthDatabaseUnavailableError(
+        "Auth database is temporarily unavailable. Please retry shortly.",
+        error,
+      );
+    }
+
+    throw error;
+  }
+}
 
 function hasApprovedHubAccess(user: {
   isActive: boolean;
@@ -49,10 +115,16 @@ export async function createSession(userId: string): Promise<string> {
 }
 
 export async function validateSession(token: string) {
-  const session = await prisma.session.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  let session;
+  try {
+    session = await findSessionWithUser(token);
+  } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
 
   if (!session || session.expiresAt < new Date()) {
     return null;
@@ -68,10 +140,7 @@ export async function validateSession(token: string) {
 /** Same as validateSession but also returns the session's createdAt timestamp,
  *  used by /api/auth/me to detect role changes that occurred after login. */
 export async function validateSessionFull(token: string) {
-  const session = await prisma.session.findUnique({
-    where: { token },
-    include: { user: true },
-  });
+  const session = await findSessionWithUser(token);
 
   if (!session || session.expiresAt < new Date()) {
     return null;

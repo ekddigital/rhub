@@ -609,6 +609,14 @@ enum MeetStatus {
     CANCELLED
 }
 
+enum ConfMinutesStatus {
+    NONE
+    DRAFT
+    PENDING_APPROVAL
+    APPROVED
+    CHANGES_REQUESTED
+}
+
 enum ConfRole {
     CHAIR
     VICE_CHAIR
@@ -896,6 +904,11 @@ model ConfMeeting {
     location  String? // "Online - WeChat" or venue room
     agenda    String?    @db.Text
     minutes   String?    @db.Text
+    minutesStatus ConfMinutesStatus @default(NONE)
+    minutesSubmittedBy String?
+    chairNote String?    @db.Text
+    minutesApprovedBy String?
+    minutesApprovedAt DateTime?
     status    MeetStatus @default(SCHEDULED)
     createdAt DateTime   @default(now())
     updatedAt DateTime   @updatedAt
@@ -905,16 +918,20 @@ model ConfMeeting {
     @@index([confId])
     @@index([scheduled])
     @@index([status])
+    @@unique([confId, meetingNo])
 }
 
 model ConfTimeline {
     id          String    @id @default(cuid())
     confId      String
+    clientId    String?
     title       String // "Committee Formation", "Budget Deadline"
     description String?   @db.Text
+    responsibleLead String? @db.Text
     date        DateTime
     endDate     DateTime?
     category    String? // "planning", "registration", "event", "post-event"
+    isCritical  Boolean   @default(false)
     isCompleted Boolean   @default(false)
     completedAt DateTime?
     sortOrder   Int       @default(0)
@@ -926,4 +943,5 @@ model ConfTimeline {
     @@index([confId])
     @@index([date])
     @@index([category])
+    @@unique([confId, clientId])
 }

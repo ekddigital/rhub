@@ -1,515 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, CheckCircle2, Circle, Calendar } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  CheckCircle2,
+  Circle,
+  Calendar,
+  Lock,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-type TimelineItem = {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  category: string;
-  owner: string;
-  isCritical: boolean;
-  isCompleted: boolean;
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  governance: "bg-indigo-500",
-  finance: "bg-emerald-500",
-  registration: "bg-cyan-500",
-  logistics: "bg-amber-500",
-  program: "bg-violet-500",
-  event: "bg-emerald-500",
-  "post-event": "bg-slate-500",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  governance: "Governance",
-  finance: "Finance",
-  registration: "Registration",
-  logistics: "Logistics",
-  program: "Program",
-  event: "Conference Days",
-  "post-event": "Post Event",
-};
-
-const INITIAL_TIMELINE: TimelineItem[] = [
-  {
-    id: "0",
-    title: "Hotel Deposit Secured",
-    description:
-      "5,000 RMB advance paid to secure conference hall and accommodation credit.",
-    owner: "Financial Secretary + Treasurer",
-    date: "2026-03-13",
-    category: "finance",
-    isCritical: true,
-    isCompleted: true,
-  },
-  {
-    id: "1",
-    title: "Conference Chair Appointed",
-    description: "Ad hoc committee leadership established for LSUIC 2026.",
-    owner: "National President",
-    date: "2026-04-06",
-    category: "governance",
-    isCritical: true,
-    isCompleted: true,
-  },
-  {
-    id: "2",
-    title: "First Committee Meeting Completed",
-    description:
-      "Kickoff completed with agenda, committee structure, and action points.",
-    owner: "Chair + Secretary",
-    date: "2026-04-10",
-    category: "governance",
-    isCritical: true,
-    isCompleted: true,
-  },
-  {
-    id: "2a",
-    title: "Confirmation Hearing Prep Pack Submitted",
-    description:
-      "All appointees submit updated PDF CVs, role defense notes, and contribution plans.",
-    owner: "All Committee Members",
-    date: "2026-04-13",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "2b",
-    title: "CoC Confirmation Hearing Completed",
-    description:
-      "Committee leadership and subcommittee chairs are formally confirmed for public rollout.",
-    owner: "Chair + Council of Coordinators (CoC)",
-    date: "2026-04-14",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "2c",
-    title: "What to Expect Flyer Published",
-    description:
-      "Post-confirmation promo flyer goes live featuring Pool Party, Achievers Awards Night, Welcome Party, and roommate option.",
-    owner: "PRO / Media",
-    date: "2026-04-17",
-    category: "program",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "2d",
-    title: "Hotel Photo and Video Promo Pack Released",
-    description:
-      "Publish short reels and image carousels using hotel tour and Jinan city assets to build trust and excitement.",
-    owner: "PRO / Media + Logistics",
-    date: "2026-04-18",
-    category: "program",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "2e",
-    title: "Signup Flyer with Link and QR Published",
-    description:
-      "Release registration flyer with delegate signup URL and payment QR code for conference fee submission.",
-    owner: "PRO / Media + Secretary",
-    date: "2026-04-20",
-    category: "registration",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "2f",
-    title: "Financial Secretary Approval Workflow Activated",
-    description:
-      "Grant operational access for payment verification so only fully paid delegates are approved as complete.",
-    owner: "Financial Secretary + Admin",
-    date: "2026-04-21",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "3",
-    title: "Approval Workflow Locked",
-    description:
-      "All spending and decisions pass through Chair, Co-Chair, and Secretary-General.",
-    owner: "Chair + Co-Chair + Secretary",
-    date: "2026-04-17",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "4",
-    title: "Disbursement SLA Published",
-    description:
-      "Funding requests must be released within 24-48 hours after approval.",
-    owner: "Treasurer + Financial Secretary",
-    date: "2026-04-18",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "5",
-    title: "Subcommittee Channels Activated",
-    description:
-      "Every committee group is created with Chair, Co-Chair, and Secretary included.",
-    owner: "All Committee Leaders",
-    date: "2026-04-19",
-    category: "governance",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "6",
-    title: "Master Task Board Published",
-    description:
-      "One workplan with owner, due date, risk, and status for every committee output.",
-    owner: "Secretary + Chair",
-    date: "2026-04-21",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "7",
-    title: "Budget Drafts Submitted",
-    description: "Committee leads submit first pass budget for 170 delegates.",
-    owner: "Cooking, Logistics, Program, Media, Sports",
-    date: "2026-04-24",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "8",
-    title: "Conference Fee Structure Finalized",
-    description:
-      "Fee tiers and payment policy approved from RMB 275 baseline, including a lower-price option if budget permits.",
-    owner: "Chair + Finance Team",
-    date: "2026-04-25",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "9",
-    title: "Budget Defense and Approval Gate",
-    description:
-      "Consolidated budget defended and signed off with CoC alignment.",
-    owner: "Chair + Treasurer + Financial Secretary",
-    date: "2026-04-28",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "10",
-    title: "Registration Window and Payment Channels Announced",
-    description:
-      "Public release of registration form, fee policy, payment instructions, and approval expectations.",
-    owner: "Secretary + Media",
-    date: "2026-05-01",
-    category: "registration",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "11",
-    title: "Media Wave 2 - Signup Push",
-    description:
-      "Second promotion pack drives signups with highlights, testimonials, and weekly countdown posts.",
-    owner: "PRO / Media",
-    date: "2026-05-03",
-    category: "program",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "12",
-    title: "Rooming and Roommate Selection Rules Locked",
-    description:
-      "Finalize roommate choice process, single-room rules, and accommodation assignment workflow.",
-    owner: "Logistics Lead",
-    date: "2026-05-08",
-    category: "logistics",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "13",
-    title: "Transport Plan v1",
-    description: "Inter-city arrival support and local route plan drafted.",
-    owner: "Logistics + Sports",
-    date: "2026-05-12",
-    category: "logistics",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "14",
-    title: "Mid-Point Readiness Review",
-    description: "Cross-committee checkpoint with risk and blocker escalation.",
-    owner: "Chair + Co-Chair",
-    date: "2026-05-15",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "15",
-    title: "Menu and Procurement Plan v1",
-    description:
-      "Meal-by-day plan, quantity model, and dietary handling approved.",
-    owner: "Cooking Chair + Team",
-    date: "2026-05-18",
-    category: "logistics",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "16",
-    title: "Panel and Program Topics Final",
-    description:
-      "Program sequence and speaking sessions frozen for publication.",
-    owner: "Program Lead + Secretary",
-    date: "2026-05-29",
-    category: "program",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "17",
-    title: "Awards Criteria Approved",
-    description: "Awards categories, scoring, and host flow finalized.",
-    owner: "Awards/Program + Media",
-    date: "2026-06-02",
-    category: "program",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "18",
-    title: "Election Operations Plan Signed",
-    description:
-      "IEC coordination, campaign timeline, voting and certification flow fixed.",
-    owner: "Secretary + IEC Liaison",
-    date: "2026-06-05",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "19",
-    title: "Program Finalization Gate",
-    description: "All plenary, elections, sports, and awards slots time-boxed.",
-    owner: "Chair + Program Lead",
-    date: "2026-06-12",
-    category: "program",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "20",
-    title: "Print and Branding Freeze",
-    description:
-      "Booklets, badges, tags, T-shirts, and banners locked for production.",
-    owner: "Media + Logistics",
-    date: "2026-06-20",
-    category: "logistics",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "21",
-    title: "Registration Closes",
-    description:
-      "Final delegate list, payment reconciliation, and rooming base frozen.",
-    owner: "Registration + Finance",
-    date: "2026-06-22",
-    category: "registration",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "22",
-    title: "Final Vendor Payments Complete",
-    description: "Critical venue, transport, and procurement payments cleared.",
-    owner: "Treasurer + Financial Secretary",
-    date: "2026-06-24",
-    category: "finance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "23",
-    title: "Operational Dry Run",
-    description:
-      "Registration desk, transport handoff, and session transitions rehearsed.",
-    owner: "Logistics + Program",
-    date: "2026-06-26",
-    category: "logistics",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "24",
-    title: "Go/No-Go Decision Meeting",
-    description: "Final readiness vote with contingency activation if needed.",
-    owner: "Chair + CoC Leadership",
-    date: "2026-06-28",
-    category: "governance",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "25",
-    title: "Arrival Briefing Pack Released",
-    description:
-      "Final delegate travel guidance, check-in details, and day-1 brief sent before July.",
-    owner: "Secretary + Logistics + Media",
-    date: "2026-06-29",
-    category: "registration",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "25b",
-    title: "Manual Correction Window Opens",
-    description:
-      "July is reserved for manual fixes, contingency handling, and resolving flagged issues only.",
-    owner: "Chair + All Committee Leads",
-    date: "2026-07-01",
-    category: "governance",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "26",
-    title: "Onsite Setup Day",
-    description:
-      "Venue setup, signage, technical checks, and material staging.",
-    owner: "Logistics + Media",
-    date: "2026-07-22",
-    category: "event",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "27",
-    title: "Conference Day 1 - Arrival and Opening",
-    description:
-      "Delegate check-in, opening formalities, and initial sessions.",
-    owner: "Chair + Secretariat",
-    date: "2026-07-23",
-    category: "event",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "27a",
-    title: "Welcome and Meet-and-Greet Party",
-    description:
-      "Host delegates and invited guests for official networking and orientation.",
-    owner: "Program + Media + Logistics",
-    date: "2026-07-23",
-    category: "event",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "28",
-    title: "Conference Day 2 - Proceedings and Elections",
-    description:
-      "Reports, campaigns, voting operations, and election announcements.",
-    owner: "Program + IEC + Secretariat",
-    date: "2026-07-24",
-    category: "event",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "29",
-    title: "Conference Day 3 - Independence and Sports",
-    description: "Independence program, certification, and sports activities.",
-    owner: "Program + Sports",
-    date: "2026-07-25",
-    category: "event",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "29a",
-    title: "Pool Party and Recreation Session",
-    description:
-      "Hotel pool networking block with controlled safety and media coverage plan.",
-    owner: "Sports + Logistics + Media",
-    date: "2026-07-25",
-    category: "event",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "30",
-    title: "Achievers Awards Night and Inaugural Ball",
-    description:
-      "Awards delivery, crowning flow, and formal evening program with full media capture.",
-    owner: "Program + Media + Logistics",
-    date: "2026-07-26",
-    category: "event",
-    isCritical: false,
-    isCompleted: false,
-  },
-  {
-    id: "31",
-    title: "Conference Closeout and Departure",
-    description:
-      "Final delegate support, venue handover, and closure activities.",
-    owner: "Logistics + Secretariat",
-    date: "2026-07-27",
-    category: "event",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "32",
-    title: "Committee Activity Report Submitted",
-    description:
-      "Comprehensive conference report delivered to CoC and executive leadership within one week.",
-    owner: "Chair + Secretary",
-    date: "2026-08-03",
-    category: "post-event",
-    isCritical: true,
-    isCompleted: false,
-  },
-  {
-    id: "33",
-    title: "Post-Conference Audit Completed",
-    description:
-      "Financial audit and reconciled expenditure records finalized.",
-    owner: "Financial Secretary + Treasurer",
-    date: "2026-08-27",
-    category: "post-event",
-    isCritical: true,
-    isCompleted: false,
-  },
-];
+import { TimelineStatCard } from "@/components/tools/conf/timeline/timeline-stat-card";
+import { useUser } from "@/contexts/user-context";
+import {
+  CATEGORY_COLORS,
+  CATEGORY_LABELS,
+  TIMELINE_DB_CACHE_KEY,
+  TIMELINE_LEGACY_MIGRATED_KEY,
+  TIMELINE_STORAGE_KEY,
+  createInitialTimelineItems,
+  getTimelineStats,
+  normalizeTimelineDate,
+  sortTimelineItems,
+  toUiTimelineItem,
+  type TimelineDbRecord,
+  type TimelineItem,
+} from "@/lib/conf/timeline-client";
 
 export function TimelineShell() {
-  const [items, setItems] = useState<TimelineItem[]>(INITIAL_TIMELINE);
+  const { user, loading } = useUser();
+  const [confId, setConfId] = useState<string | null>(null);
+
+  const [items, setItems] = useState<TimelineItem[]>(() => {
+    if (typeof window === "undefined") {
+      return createInitialTimelineItems();
+    }
+
+    const cachedRaw = window.localStorage.getItem(TIMELINE_DB_CACHE_KEY);
+    if (cachedRaw) {
+      try {
+        const parsed = JSON.parse(cachedRaw) as TimelineItem[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Ignore malformed DB cache.
+      }
+    }
+
+    const legacyRaw = window.localStorage.getItem(TIMELINE_STORAGE_KEY);
+    if (legacyRaw) {
+      try {
+        const parsed = JSON.parse(legacyRaw) as Omit<TimelineItem, "dbId">[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((item) => ({ ...item, dbId: null }));
+        }
+      } catch {
+        // Ignore malformed legacy cache.
+      }
+    }
+
+    return createInitialTimelineItems();
+  });
+
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
@@ -518,29 +77,263 @@ export function TimelineShell() {
   const [newOwner, setNewOwner] = useState("");
   const [newCritical, setNewCritical] = useState(false);
 
+  const canEditTimeline = !loading && user?.role === "SUPER_ADMIN";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(TIMELINE_DB_CACHE_KEY, JSON.stringify(items));
+  }, [items]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    async function loadFromDb() {
+      try {
+        const confRes = await fetch("/api/conf/default", { cache: "no-store" });
+        if (!confRes.ok) return;
+        const conf = (await confRes.json()) as { id?: string };
+        if (!conf?.id) return;
+        if (cancelled) return;
+
+        setConfId(conf.id);
+
+        const listRes = await fetch(`/api/conf/${conf.id}/timeline`, {
+          cache: "no-store",
+        });
+        if (!listRes.ok) return;
+
+        const raw = (await listRes.json()) as unknown;
+        if (!Array.isArray(raw) || raw.length === 0) return;
+
+        const mapped = raw.map((entry) =>
+          toUiTimelineItem(entry as TimelineDbRecord),
+        );
+        if (cancelled) return;
+        setItems(mapped);
+      } catch {
+        // Fall back to cached/default timeline.
+      }
+    }
+
+    void loadFromDb();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (loading) return;
+    if (!canEditTimeline) return;
+    if (!confId) return;
+
+    const legacyMigrated =
+      window.localStorage.getItem(TIMELINE_LEGACY_MIGRATED_KEY) === "1";
+    if (legacyMigrated) return;
+
+    const legacyRaw = window.localStorage.getItem(TIMELINE_STORAGE_KEY);
+    if (!legacyRaw) {
+      window.localStorage.setItem(TIMELINE_LEGACY_MIGRATED_KEY, "1");
+      return;
+    }
+
+    let legacyItems: Omit<TimelineItem, "dbId">[] = [];
+    try {
+      const parsed = JSON.parse(legacyRaw) as Omit<TimelineItem, "dbId">[];
+      if (Array.isArray(parsed)) legacyItems = parsed;
+    } catch {
+      legacyItems = [];
+    }
+
+    if (legacyItems.length === 0) {
+      window.localStorage.setItem(TIMELINE_LEGACY_MIGRATED_KEY, "1");
+      window.localStorage.removeItem(TIMELINE_STORAGE_KEY);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function migrateLegacy() {
+      let attempted = false;
+      let failed = false;
+
+      const listRes = await fetch(`/api/conf/${confId}/timeline`, {
+        cache: "no-store",
+      });
+      if (!listRes.ok) return;
+      const raw = (await listRes.json()) as unknown;
+      if (!Array.isArray(raw)) return;
+
+      const byClientId = new Map<string, TimelineDbRecord>();
+      for (const item of raw as TimelineDbRecord[]) {
+        const key = (item?.clientId as string | null) ?? item?.id;
+        if (typeof key === "string" && key.trim()) {
+          byClientId.set(key, item);
+        }
+      }
+
+      for (const legacy of legacyItems) {
+        if (cancelled) return;
+        if (!legacy || typeof legacy.id !== "string") continue;
+
+        const existing = byClientId.get(legacy.id);
+        if (existing) {
+          const updates: Record<string, unknown> = {};
+
+          if (
+            typeof legacy.title === "string" &&
+            legacy.title !== existing.title
+          ) {
+            updates.title = legacy.title.trim();
+          }
+
+          if (
+            typeof legacy.description === "string" &&
+            legacy.description !== (existing.description ?? "")
+          ) {
+            updates.description = legacy.description;
+          }
+
+          if (typeof legacy.date === "string") {
+            const existingDate = normalizeTimelineDate(existing.date);
+            if (legacy.date !== existingDate) updates.date = legacy.date;
+          }
+
+          if (
+            typeof legacy.category === "string" &&
+            legacy.category !== (existing.category ?? "")
+          ) {
+            updates.category = legacy.category;
+          }
+
+          if (
+            typeof legacy.owner === "string" &&
+            legacy.owner !== (existing.responsibleLead ?? "")
+          ) {
+            updates.responsibleLead = legacy.owner;
+          }
+
+          if (
+            typeof legacy.isCritical === "boolean" &&
+            legacy.isCritical !== Boolean(existing.isCritical)
+          ) {
+            updates.isCritical = legacy.isCritical;
+          }
+
+          if (
+            typeof legacy.isCompleted === "boolean" &&
+            legacy.isCompleted !== Boolean(existing.isCompleted)
+          ) {
+            updates.isCompleted = legacy.isCompleted;
+          }
+
+          if (Object.keys(updates).length > 0) {
+            attempted = true;
+            const res = await fetch(
+              `/api/conf/${confId}/timeline/${existing.id}`,
+              {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updates),
+              },
+            );
+            if (!res.ok) failed = true;
+          }
+        } else {
+          if (!legacy.title || !legacy.date) continue;
+          attempted = true;
+          const res = await fetch(`/api/conf/${confId}/timeline`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              clientId: legacy.id,
+              title: legacy.title,
+              description: legacy.description,
+              responsibleLead: legacy.owner,
+              isCritical: legacy.isCritical,
+              date: legacy.date,
+              category: legacy.category,
+            }),
+          });
+          if (!res.ok) failed = true;
+        }
+      }
+
+      if (!attempted || failed) return;
+
+      window.localStorage.setItem(TIMELINE_LEGACY_MIGRATED_KEY, "1");
+      window.localStorage.removeItem(TIMELINE_STORAGE_KEY);
+
+      const refreshed = await fetch(`/api/conf/${confId}/timeline`, {
+        cache: "no-store",
+      });
+      if (!refreshed.ok) return;
+      const refreshedRaw = (await refreshed.json()) as unknown;
+      if (!Array.isArray(refreshedRaw)) return;
+
+      if (cancelled) return;
+      setItems(
+        refreshedRaw.map((entry) =>
+          toUiTimelineItem(entry as TimelineDbRecord),
+        ),
+      );
+    }
+
+    void migrateLegacy();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, canEditTimeline, confId]);
+
   const toggleComplete = (id: string) => {
+    if (!canEditTimeline) return;
+    const current = items.find((item) => item.id === id);
+    const nextCompleted = !current?.isCompleted;
+
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, isCompleted: !item.isCompleted } : item,
       ),
     );
+
+    if (!confId || !current?.dbId) return;
+    void fetch(`/api/conf/${confId}/timeline/${current.dbId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isCompleted: nextCompleted }),
+    });
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
+    if (!canEditTimeline) return;
+    if (!confId) return;
     if (!newTitle || !newDate) return;
-    const item: TimelineItem = {
-      id: `local_${Date.now()}`,
-      title: newTitle,
-      description: newDesc,
-      date: newDate,
-      category: newCategory,
-      owner: newOwner.trim() || "Unassigned",
-      isCritical: newCritical,
-      isCompleted: false,
-    };
-    setItems((prev) =>
-      [...prev, item].sort((a, b) => a.date.localeCompare(b.date)),
-    );
+
+    const clientId = `local_${Date.now()}`;
+    const res = await fetch(`/api/conf/${confId}/timeline`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId,
+        title: newTitle,
+        description: newDesc,
+        date: newDate,
+        category: newCategory,
+        responsibleLead: newOwner.trim() || "Unassigned",
+        isCritical: newCritical,
+      }),
+    });
+
+    if (res.ok) {
+      const created = (await res.json()) as TimelineDbRecord;
+      const createdUi = toUiTimelineItem(created);
+      setItems((prev) => sortTimelineItems([...prev, createdUi]));
+    }
+
     setNewTitle("");
     setNewDesc("");
     setNewDate("");
@@ -550,31 +343,8 @@ export function TimelineShell() {
     setShowForm(false);
   };
 
-  const completed = items.filter((i) => i.isCompleted).length;
-  const progress =
-    items.length > 0 ? Math.round((completed / items.length) * 100) : 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const next14 = new Date(today);
-  next14.setDate(next14.getDate() + 14);
-
-  const overdueOpen = items.filter((item) => {
-    if (item.isCompleted) return false;
-    const due = new Date(item.date);
-    due.setHours(0, 0, 0, 0);
-    return due < today;
-  }).length;
-
-  const dueSoon = items.filter((item) => {
-    if (item.isCompleted) return false;
-    const due = new Date(item.date);
-    due.setHours(0, 0, 0, 0);
-    return due >= today && due <= next14;
-  }).length;
-
-  const criticalOpen = items.filter(
-    (item) => item.isCritical && !item.isCompleted,
-  ).length;
+  const { completed, progress, overdueOpen, dueSoon, criticalOpen } =
+    getTimelineStats(items);
 
   return (
     <div className="space-y-6">
@@ -591,11 +361,26 @@ export function TimelineShell() {
             {completed}/{items.length} milestones completed ({progress}%)
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
-          <Plus className="size-4" />
-          Add Milestone
-        </Button>
+        {canEditTimeline ? (
+          <Button size="sm" onClick={() => setShowForm(!showForm)}>
+            <Plus className="size-4" />
+            Add Milestone
+          </Button>
+        ) : (
+          <Badge variant="outline" className="gap-1">
+            <Lock className="size-3" />
+            Super Admin Editing Only
+          </Badge>
+        )}
       </div>
+
+      {!loading && !canEditTimeline && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="py-3 text-xs text-amber-700 dark:text-amber-400">
+            This roadmap is view-only for non-super-admin accounts.
+          </CardContent>
+        </Card>
+      )}
 
       {/* Progress Bar */}
       <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -606,28 +391,13 @@ export function TimelineShell() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground">Overdue Open</p>
-            <p className="text-xl font-semibold">{overdueOpen}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground">Due in 14 Days</p>
-            <p className="text-xl font-semibold">{dueSoon}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs text-muted-foreground">Critical Open</p>
-            <p className="text-xl font-semibold">{criticalOpen}</p>
-          </CardContent>
-        </Card>
+        <TimelineStatCard label="Overdue Open" value={overdueOpen} />
+        <TimelineStatCard label="Due in 14 Days" value={dueSoon} />
+        <TimelineStatCard label="Critical Open" value={criticalOpen} />
       </div>
 
       {/* Add Form */}
-      {showForm && (
+      {showForm && canEditTimeline && (
         <Card className="border-[#C8A061]/40">
           <CardHeader>
             <CardTitle className="text-base">Add Milestone</CardTitle>
@@ -665,12 +435,16 @@ export function TimelineShell() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label>Owner</Label>
+                <Label>Responsible Lead</Label>
                 <Input
-                  placeholder="e.g. Logistics Chair"
+                  placeholder="e.g. Logistics Chair (person accountable)"
                   value={newOwner}
                   onChange={(e) => setNewOwner(e.target.value)}
                 />
+                <p className="text-[11px] text-muted-foreground">
+                  The responsible lead is the person or team accountable for
+                  closing this milestone.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Priority</Label>
@@ -727,18 +501,30 @@ export function TimelineShell() {
           return (
             <div key={item.id} className="relative flex gap-4 pb-6">
               {/* Dot */}
-              <button
-                className="relative z-10 mt-1 shrink-0"
-                onClick={() => toggleComplete(item.id)}
-              >
-                {item.isCompleted ? (
-                  <CheckCircle2 className="size-9.5 text-[#C8A061]" />
-                ) : (
-                  <Circle
-                    className={`size-9.5 ${isToday ? "text-[#C8A061]" : isPast ? "text-muted-foreground" : "text-border"}`}
-                  />
-                )}
-              </button>
+              {canEditTimeline ? (
+                <button
+                  className="relative z-10 mt-1 shrink-0"
+                  onClick={() => toggleComplete(item.id)}
+                >
+                  {item.isCompleted ? (
+                    <CheckCircle2 className="size-9.5 text-[#C8A061]" />
+                  ) : (
+                    <Circle
+                      className={`size-9.5 ${isToday ? "text-[#C8A061]" : isPast ? "text-muted-foreground" : "text-border"}`}
+                    />
+                  )}
+                </button>
+              ) : (
+                <div className="relative z-10 mt-1 shrink-0">
+                  {item.isCompleted ? (
+                    <CheckCircle2 className="size-9.5 text-[#C8A061]" />
+                  ) : (
+                    <Circle
+                      className={`size-9.5 ${isToday ? "text-[#C8A061]" : isPast ? "text-muted-foreground" : "text-border"}`}
+                    />
+                  )}
+                </div>
+              )}
 
               {/* Content */}
               <Card
@@ -758,7 +544,7 @@ export function TimelineShell() {
                         </p>
                       )}
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Owner: {item.owner}
+                        Responsible Lead: {item.owner}
                       </p>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">

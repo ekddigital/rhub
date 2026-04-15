@@ -1,6 +1,8 @@
 import { Prisma, type ConfEvent } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CONF_2026 } from "@/lib/conf/config";
+import { getDefaultMeetings } from "@/lib/conf/meetings-defaults";
+import { INITIAL_TIMELINE } from "@/lib/conf/timeline-defaults";
 
 export const DEFAULT_CONF_SLUG = "lsuic-2026";
 
@@ -171,6 +173,52 @@ async function bootstrapDefaultConference() {
         title: member.title,
         city: member.city,
       })),
+    });
+  }
+
+  const meetingCount = await prisma.confMeeting.count({
+    where: { confId: event.id },
+  });
+
+  if (meetingCount === 0) {
+    const defaults = getDefaultMeetings();
+    await prisma.confMeeting.createMany({
+      data: defaults.map((meeting) => ({
+        confId: event.id,
+        title: meeting.title,
+        meetingNo: meeting.meetingNo,
+        scheduled: new Date(meeting.scheduled),
+        location: meeting.location,
+        agenda: meeting.agenda || null,
+        minutes: meeting.minutes || null,
+        minutesStatus: meeting.minutesStatus,
+        minutesSubmittedBy: meeting.minutesSubmittedBy,
+        chairNote: meeting.chairNote,
+        status: meeting.status,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  const timelineCount = await prisma.confTimeline.count({
+    where: { confId: event.id },
+  });
+
+  if (timelineCount === 0) {
+    await prisma.confTimeline.createMany({
+      data: INITIAL_TIMELINE.map((item, index) => ({
+        confId: event.id,
+        clientId: item.id,
+        title: item.title,
+        description: item.description || null,
+        responsibleLead: item.owner || null,
+        date: new Date(item.date),
+        category: item.category || null,
+        isCritical: item.isCritical,
+        isCompleted: item.isCompleted,
+        sortOrder: index,
+      })),
+      skipDuplicates: true,
     });
   }
 

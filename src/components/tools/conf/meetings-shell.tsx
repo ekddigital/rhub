@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -24,6 +24,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@/contexts/user-context";
+import {
+  FIRST_MEETING_AGENDA,
+  getDefaultMeetings,
+} from "@/lib/conf/meetings-defaults";
 
 type MinutesStatus =
   | "NONE"
@@ -34,6 +38,7 @@ type MinutesStatus =
 
 type Meeting = {
   id: string;
+  dbId: string | null;
   title: string;
   meetingNo: number;
   scheduled: string;
@@ -44,6 +49,30 @@ type Meeting = {
   minutesSubmittedBy: string | null;
   chairNote: string | null;
   status: "SCHEDULED" | "IN_PROGRESS" | "DONE" | "CANCELLED";
+};
+
+type MeetingProgressSnapshot = Pick<
+  Meeting,
+  | "id"
+  | "minutes"
+  | "minutesStatus"
+  | "minutesSubmittedBy"
+  | "chairNote"
+  | "status"
+>;
+
+type MeetingDbRecord = {
+  id: string;
+  title: string;
+  meetingNo: number;
+  scheduled: string;
+  location: string | null;
+  agenda: string | null;
+  minutes: string | null;
+  minutesStatus: MinutesStatus | null;
+  minutesSubmittedBy: string | null;
+  chairNote: string | null;
+  status: Meeting["status"];
 };
 
 const STATUS_CONFIG = {
@@ -65,290 +94,392 @@ const STATUS_CONFIG = {
   },
 };
 
-const MEETING_1_MINUTES = `LSUIC 2026 CONFERENCE COMMITTEE
-Meeting #1 Minutes — April 10, 2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const MEETING_AGENDA_STORAGE_KEY = "conf-meeting-agendas-v7";
+const MEETING_PROGRESS_STORAGE_KEY = "conf-meeting-progress-v1";
+const MEETINGS_DB_CACHE_KEY = "conf-meetings-db-cache-v1";
+const MEETINGS_LEGACY_MIGRATED_KEY = "conf-meetings-legacy-migrated-v1";
 
-Convened by: Enoch Kwateh Dongbo (Conference Chair)
-Venue:       LSUIC Zoom (ID: 2312312006 · Password: LSUIC2006)
-Scheduled:  21:00 — 22:05 (Friday, April 10, 2026)
-Actual End: ~23:00 (meeting ran approximately 2 hours)
-
-ATTENDEES (18 in total)
-─────────────────────────────────────────
-COMMITTEE                                  [Zoom display name]
-• Enoch Kwateh Dongbo — Conf. Chair · Jinan (Co-host)     → "Enoch"
-• Alfreda Ruth Togbah — Co-Chair · Suzhou                 → "Alfreda Ruth Togbah"
-• Harris M Bowulo — General Secretary (Co-host)           → "HARRIS"
-• Abdul Corneh — PRO / Media Committee Chair              → "Abdul"
-• Kukor Brooks — Cooking Committee Chair · Jinan          → "Kukor  Brooks - Jinan"
-• Jefferson T Banquando — Sports Committee Chair          → "Jeffery"
-• Robert D. Molley — Logistics Committee Chair            → "Amb. Robert D. Molley"
-• Priscilla — Cooking Committee · Suzhou                  → "Priscilla - Suzhou"
-• Williamena Yah MUNYENEH — Cooking Committee             → "Williamena Yah MUNYENEH"
-• Blessing — Cooking Committee · Nantong                  → "Blessing - Nantong"
-• Lisa — Cooking Committee · Qingdao                      → "Lisa - Qingdao"
-
-NEC / OBSERVERS                            [Zoom display name]
-• Olano — LSUIC President (Host)                          → "Olano" / "Olano - Prezo"
-• Mitchell Vampelt — NCG Representative                   → "Mitchell Vampelt - NCG"
-• Hon. Noah D. Mason Jr. — NEC Representative             → "Hon. Noah D. Mason Jr."
-• Hon. Ruphine M. Harmon — NEC Representative             → "Hon. Ruphine M. Harmon"
-• Jenneh Bonah — NEC Representative                               → "JENNEH BONAH"
-• Yvonne — Observer · Nanjing                             → "Yvonne - Nanjing"
-
-AGENDA
-─────────────────────────────────────────
-1. Opening Formalities (10 min) — Opening prayer · Welcome remarks · Self-introductions
-2. Discussion (30 min) — Previous conference review · Committee structure · Meeting schedule ·
-   Sub-committee creation · Timeline & milestones · Cooking committee budget · Action items
-3. AOB (20 min)
-4. Closing Prayer (5 min)
-
-SUMMARY
-─────────────────────────────────────────
-This was the inaugural meeting of the 2026 LSUIC Conference Committee, held on LSUIC Zoom. Meeting was originally scheduled for 21:00–22:05 but ran until approximately 23:00 (~2 hours total) due to the volume of discussion. All committee members were introduced and outlined their roles. The meeting focused on establishing team relationships, communication channels, committee structure, and the overall planning direction for the Jinan conference — LSUIC's 20th Anniversary Conference.
-
-KEY DISCUSSIONS
-─────────────────────────────────────────
-
-1. Introductions & Roles
-All 11 appointed committee members were introduced and stated their role and city. The committee is constitutionally capped at 11 appointees (maximum as per LSUIC Constitution).
-
-2. Meeting Schedule
-• Initial proposal of Fridays was discussed but raised conflict concerns.
-• Kukor suggested adjusting to 8–9 PM on Fridays to accommodate weekend plans.
-• Harris recommended meetings be 2–2.5 hours given the online format.
-• Hon. Noah recommended Thursdays to ensure NEC participation and weekend productivity.
-• After a vote, Thursday 9–10 PM was selected as the regular meeting time.
-• DECISION: All future meetings will be held on Thursdays at 9:00 PM online.
-
-3. Conference Inventory Review
-• Olano presented an overview of leftover items from the previous conference: food, drinks, and kitchen supplies.
-• Some drink expiration dates need to be verified before use.
-• Olano to send a detailed list with photos to the general group chat.
-
-4. Committee Structure & Confirmation Hearings
-• Constitutional limit: minimum 5, maximum 11 appointed committee members.
-• All 11 appointees require CoC (Council of Coordinators) confirmation hearing (scheduled for Tuesday, April 14, 2026).
-• Subcommittees may recruit volunteers — volunteers do NOT require CoC confirmation.
-• All subcommittee chairs to create group chats before Thursday, including Chair, Co-Chair, and General Secretary in every group.
-
-5. Subcommittees Established
-• Cooking Committee — Kukor Brooks (Chair)
-• Sports Committee — Jefferson T Banquando (Chair)
-• Logistics Committee — Robert D Molley (Chair)
-• Media & Publicity — Abdul Corneh (Chair)
-• Decoration Committee — Volunteer-led (no CoC confirmation required)
-
-6. Conference Improvement Areas (raised by Hon. Noah)
-• Earlier planning and committee formation
-• Better committee preparation and structure
-• Securing sponsors early in the process
-• Setting conference fees earlier
-• Ensuring more food availability and variety for all delegates
-• Creating more engaging and memorable experiences for participants
-
-7. Conference Fee Discussion
-• Last year's fee: ¥275 per delegate.
-• Committee to propose a revised fee structure by the next meeting.
-• Considerations: whether to increase, maintain, or offer tiered/discounted options.
-
-8. Delegate Target
-• Target for 2026 Jinan Conference: 170 attendees.
-
-9. Fundraising Ideas
-• Raffle system — fundraising goal: ¥50,000 RMB.
-• County contest representing Liberia's 15 counties.
-• Sponsor outreach to begin after confirmation hearings.
-
-10. Media & Promotional Plans
-• Media team to begin creating flyers and write-ups immediately.
-• Share conference information on social media after confirmation hearing.
-• Use available photos/videos from Olano for initial promotional content.
-
-ACTION POINTS
-─────────────────────────────────────────
-
-ALL SUBCOMMITTEE CHAIRS
-1. Create your subcommittee group chats before Thursday. Include Chairman, Co-Chair, and General Secretary in every group.
-2. Develop a detailed plan of action and submit to Chair, Co-Chair, and General Secretary.
-3. Begin developing budget proposals for your area (plan for 170 people).
-4. Come to Thursday's meeting with concrete proposals and updates.
-
-ALL COMMITTEE MEMBERS
-5. Prepare for confirmation hearing on Tuesday, April 14, 2026 — update your CV in PDF format.
-6. Be prepared to answer questions about your contributions and new ideas for the conference.
-7. Identify volunteers for your committee; recognize them in conference materials.
-8. Collect information about attendee food preferences and allergies for the Cooking Committee.
-9. Brainstorm fundraising activities for discussion at the next meeting.
-10. Review these minutes when shared by the General Secretary.
-
-COOKING COMMITTEE (Kukor Brooks)
-11. Plan food quantities and options for approximately 170 people.
-12. Account for dietary restrictions and food preferences.
-13. Submit food list and initial budget proposal by Thursday.
-
-SPORTS COMMITTEE (Jefferson T Banquando)
-14. Begin contacting city leaders and representatives to organize sports activities.
-15. Begin identifying and recruiting players across cities.
-
-LOGISTICS COMMITTEE (Robert D Molley)
-16. Develop logistics framework and recruit additional volunteers.
-17. Begin planning accommodation and conference registration logistics.
-
-MEDIA & PUBLICITY (Abdul Corneh)
-18. Begin media strategy — create flyers and write-ups immediately.
-19. Release content after confirmation hearing, using Olano's photos and videos.
-20. Launch social media campaign to promote the conference.
-
-PRESIDENT OLANO
-21. Send photos and detailed list of leftover items from previous conference to the group chat.
-
-ALL MEMBERS
-22. Begin planning and organizing county contest if agreed upon by the committee.
-23. Develop the full conference budget for CoC submission.
-24. Begin planning the Awards / Program Night.
-25. Begin planning pool and recreational activities at the hotel.
-26. Begin developing the conference fee structure for discussion next Thursday.
-27. Begin planning sponsor outreach strategy (after confirmation hearings).
-
-NEXT MEETING
-─────────────────────────────────────────
-Date:    Thursday, April 16, 2026
-Time:    9:00 PM (LSUIC Zoom)
-Link:    https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
-Zoom ID: 2312312006 · Password: LSUIC2006
-Agenda:  Subcommittee reports, confirmation hearing recap, conference fee proposals, initial budget drafts
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Meeting adjourned with a prayer led by Enoch.
-Minutes recorded by: Harris M Bowulo (General Secretary)`;
-
-// Meeting schedule: #1 = April 10 (Fri), then Thursdays weekly from April 16
-function buildMeetingDates(count: number): string[] {
-  const dates: string[] = [];
-  // Meeting 1: April 10, 2026 (Friday)
-  dates.push("2026-04-10");
-  // Meetings 2+: weekly Thursdays starting April 16
-  const start = new Date("2026-04-16");
-  for (let i = 1; i < count; i++) {
-    const d = new Date(start);
-    d.setDate(d.getDate() + (i - 1) * 7);
-    dates.push(d.toISOString().split("T")[0]);
-  }
-  return dates;
-}
-
-const MEETING_TOPICS = [
-  "Kickoff - roles, timeline, and system overview",
-  `Theme: Confirmation Hearing and Governance Lock
-- Confirm hearing outcomes and committee confirmations.
-- Verify each subcommittee group chat and reporting lane.
-- Review fee options from RMB 275 baseline and affordability scenarios.
-Decision: Approve governance controls and fee proposal shortlist.`,
-  `Theme: Promotion Readiness and Content Calendar
-- Approve the What to Expect flyer copy and social rollout dates.
-- Finalize hotel photo/video assets for the first promo wave.
-- Confirm spokesperson and posting responsibilities.
-Decision: Publish post-confirmation promotional flyer package.`,
-  `Theme: Signup Campaign Launch
-- Approve signup flyer with delegate link and payment QR placeholders.
-- Confirm Financial Secretary workflow for payment verification.
-- Align media script, captions, and CTA for 170 delegate target.
-Decision: Launch signup flyer and payment communication flow.`,
-  `Theme: Budget and Sponsor Pipeline
-- Review committee budget drafts and priority spending risks.
-- Track sponsor outreach status and county contest concept.
-- Validate food volume assumptions for 170 participants.
-Decision: Lock budget revision actions and sponsor owner list.`,
-  `Theme: Registration and Payment Reconciliation
-- Review signup numbers by city and conversion gaps.
-- Compare paid vs unpaid delegates and approval turnaround.
-- Confirm exceptions handling for proof of payment disputes.
-Decision: Publish weekly payment and registration dashboard updates.`,
-  `Theme: Program Architecture
-- Confirm conference flow across opening, elections, sports, and awards.
-- Review Achievers Awards Night concept and hosting sequence.
-- Confirm Welcome Party and Pool Party program requirements.
-Decision: Approve draft conference program structure.`,
-  `Theme: Logistics and Rooming
-- Finalize roommate selection rules and assignment process.
-- Review transport, hotel room inventory, and late-arrival handling.
-- Validate check-in desk staffing plan.
-Decision: Lock rooming policy and transport escalation flow.`,
-  `Theme: Midpoint Delivery Review
-- Audit overdue action points and unresolved dependencies.
-- Reconfirm committee deadlines to avoid July bottlenecks.
-- Review quality of media output and recruitment pace.
-Decision: Escalate blockers and reset any slipping deadlines.`,
-  `Theme: Materials and Production
-- Freeze booklet, badge, shirt, and signage content.
-- Confirm print quantities from verified registration totals.
-- Validate finance readiness for vendor payment deadlines.
-Decision: Approve production freeze and print run.`,
-  `Theme: Operations Drill
-- Walk through arrival flow, registration desk, and session transitions.
-- Confirm security, crowd control, and emergency contacts.
-- Validate election operations readiness with IEC liaisons.
-Decision: Sign off on dry-run improvements.`,
-  `Theme: Final Readiness Gate
-- Review all critical-open milestones and owners.
-- Confirm communication pack for delegates and volunteers.
-- Verify payment closeout and unresolved balance cases.
-Decision: Make Go or No-Go recommendation to leadership.`,
-  `Theme: Last Call and Contingencies
-- Confirm final delegate roster and travel status.
-- Validate contingency plans for weather, transport, and no-shows.
-- Confirm awards inventory, stage flow, and media run sheet.
-Decision: Lock final contingency checklist.`,
-  `Theme: Pre-Conference Briefing
-- Issue final volunteer and committee deployment assignments.
-- Confirm daily reporting channels for conference week.
-- Align closing expectations and post-event report deadlines.
-Decision: Approve execution handoff for conference week.`,
-];
-
-const DATES = buildMeetingDates(14);
-
-const INITIAL_MEETINGS: Meeting[] = DATES.map((date, i) => ({
-  id: `meeting_${i + 1}`,
-  title:
-    i === 0 ? "First Committee Meeting" : `Weekly Committee Meeting #${i + 1}`,
-  meetingNo: i + 1,
-  scheduled: date,
-  location: i === 0 ? "LSUIC Zoom | Fri 9:00 PM" : "LSUIC Zoom | Thu 9:00 PM",
-  agenda: MEETING_TOPICS[i] || "",
-  minutes: i === 0 ? MEETING_1_MINUTES : "",
-  minutesStatus: (i === 0 ? "PENDING_APPROVAL" : "NONE") as MinutesStatus,
-  minutesSubmittedBy: i === 0 ? "Harris M Bowulo" : null,
-  chairNote: null,
-  status: i === 0 ? "DONE" : ("SCHEDULED" as const),
+const INITIAL_MEETINGS: Meeting[] = getDefaultMeetings().map((meeting) => ({
+  id: `meeting_${meeting.meetingNo}`,
+  dbId: null,
+  title: meeting.title,
+  meetingNo: meeting.meetingNo,
+  scheduled: meeting.scheduled,
+  location: meeting.location ?? "",
+  agenda: meeting.agenda,
+  minutes: meeting.minutes ?? "",
+  minutesStatus: meeting.minutesStatus,
+  minutesSubmittedBy: meeting.minutesSubmittedBy,
+  chairNote: meeting.chairNote,
+  status: meeting.status,
 }));
 
-function isChair(role: string): boolean {
-  return role === "SUPER_ADMIN" || role === "ADMIN";
+function canApproveMinutesRole(role: string): boolean {
+  // "ADMIN" represents chair-level control in the platform role model.
+  return role === "SUPER_ADMIN" || role === "ADMIN" || role === "CHAIR";
+}
+
+function isSuperAdminRole(role: string): boolean {
+  return role === "SUPER_ADMIN";
 }
 
 export function MeetingsShell() {
   const { user, loading } = useUser();
-  const [meetings, setMeetings] = useState<Meeting[]>(INITIAL_MEETINGS);
+  const [confId, setConfId] = useState<string | null>(null);
+  const [meetings, setMeetings] = useState<Meeting[]>(() => {
+    if (typeof window === "undefined") return INITIAL_MEETINGS;
+
+    const cachedRaw = window.localStorage.getItem(MEETINGS_DB_CACHE_KEY);
+    if (cachedRaw) {
+      try {
+        const parsed = JSON.parse(cachedRaw) as Meeting[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch {
+        // Ignore malformed DB cache.
+      }
+    }
+
+    let hydrated = INITIAL_MEETINGS;
+
+    const agendaRaw = window.localStorage.getItem(MEETING_AGENDA_STORAGE_KEY);
+    if (agendaRaw) {
+      try {
+        const savedAgendas = JSON.parse(agendaRaw) as Record<string, string>;
+        hydrated = hydrated.map((meeting) => {
+          const customAgenda = savedAgendas[meeting.id];
+          if (
+            meeting.id === "meeting_1" &&
+            customAgenda?.trim().startsWith("Theme: Kickoff Alignment")
+          ) {
+            return { ...meeting, agenda: FIRST_MEETING_AGENDA };
+          }
+          if (!customAgenda) return meeting;
+          return { ...meeting, agenda: customAgenda };
+        });
+      } catch {
+        // Ignore malformed agenda cache.
+      }
+    }
+
+    const progressRaw = window.localStorage.getItem(
+      MEETING_PROGRESS_STORAGE_KEY,
+    );
+    if (progressRaw) {
+      try {
+        const savedProgress = JSON.parse(
+          progressRaw,
+        ) as MeetingProgressSnapshot[];
+        const progressById = new Map(
+          savedProgress.map((item) => [item.id, item]),
+        );
+
+        hydrated = hydrated.map((meeting) => {
+          const saved = progressById.get(meeting.id);
+          if (!saved) return meeting;
+
+          return {
+            ...meeting,
+            minutes: saved.minutes,
+            minutesStatus: saved.minutesStatus,
+            minutesSubmittedBy: saved.minutesSubmittedBy,
+            chairNote: saved.chairNote,
+            status: saved.status,
+          };
+        });
+      } catch {
+        // Ignore malformed progress cache.
+      }
+    }
+
+    return hydrated;
+  });
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editMinutes, setEditMinutes] = useState("");
   const [chairNote, setChairNote] = useState("");
   const [requestingChanges, setRequestingChanges] = useState(false);
+  const [editingAgendaId, setEditingAgendaId] = useState<string | null>(null);
+  const [agendaDraft, setAgendaDraft] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(
+      MEETINGS_DB_CACHE_KEY,
+      JSON.stringify(meetings),
+    );
+  }, [meetings]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    function normalizeDate(value: unknown): string {
+      if (typeof value !== "string") return "";
+      return value.includes("T") ? value.split("T")[0] : value;
+    }
+
+    function toUiMeeting(db: MeetingDbRecord): Meeting {
+      return {
+        id: `meeting_${db.meetingNo}`,
+        dbId: db.id,
+        title: db.title,
+        meetingNo: db.meetingNo,
+        scheduled: normalizeDate(db.scheduled),
+        location: db.location ?? "",
+        agenda: db.agenda ?? "",
+        minutes: db.minutes ?? "",
+        minutesStatus: (db.minutesStatus ?? "NONE") as MinutesStatus,
+        minutesSubmittedBy: db.minutesSubmittedBy ?? null,
+        chairNote: db.chairNote ?? null,
+        status: db.status,
+      };
+    }
+
+    async function migrateLegacyToDb(
+      activeConfId: string,
+      current: Meeting[],
+    ): Promise<boolean> {
+      const agendaRaw = window.localStorage.getItem(MEETING_AGENDA_STORAGE_KEY);
+      const progressRaw = window.localStorage.getItem(
+        MEETING_PROGRESS_STORAGE_KEY,
+      );
+
+      if (!agendaRaw && !progressRaw) return false;
+
+      let savedAgendas: Record<string, string> = {};
+      if (agendaRaw) {
+        try {
+          savedAgendas = JSON.parse(agendaRaw) as Record<string, string>;
+        } catch {
+          savedAgendas = {};
+        }
+      }
+
+      let savedProgressById = new Map<string, MeetingProgressSnapshot>();
+      if (progressRaw) {
+        try {
+          const parsed = JSON.parse(progressRaw) as MeetingProgressSnapshot[];
+          if (Array.isArray(parsed)) {
+            savedProgressById = new Map(parsed.map((item) => [item.id, item]));
+          }
+        } catch {
+          savedProgressById = new Map();
+        }
+      }
+
+      let attempted = false;
+      let failed = false;
+
+      for (const meeting of current) {
+        if (!meeting.dbId) continue;
+
+        const updates: Record<string, unknown> = {};
+
+        const customAgenda = savedAgendas[meeting.id];
+        if (typeof customAgenda === "string" && customAgenda.trim()) {
+          if (
+            meeting.id === "meeting_1" &&
+            customAgenda.trim().startsWith("Theme: Kickoff Alignment")
+          ) {
+            // Ignore obsolete meeting #1 template.
+          } else if (!meeting.agenda.trim()) {
+            updates.agenda = customAgenda.trim();
+          }
+        }
+
+        const saved = savedProgressById.get(meeting.id);
+        if (saved) {
+          if (
+            typeof saved.minutes === "string" &&
+            saved.minutes &&
+            !meeting.minutes
+          ) {
+            updates.minutes = saved.minutes;
+          }
+
+          if (
+            typeof saved.minutesStatus === "string" &&
+            meeting.minutesStatus === "NONE" &&
+            saved.minutesStatus !== "NONE"
+          ) {
+            updates.minutesStatus = saved.minutesStatus;
+          }
+
+          if (
+            typeof saved.chairNote === "string" &&
+            saved.chairNote &&
+            !meeting.chairNote
+          ) {
+            updates.chairNote = saved.chairNote;
+          }
+
+          if (
+            typeof saved.status === "string" &&
+            meeting.status === "SCHEDULED" &&
+            saved.status !== "SCHEDULED"
+          ) {
+            updates.status = saved.status;
+          }
+        }
+
+        if (Object.keys(updates).length === 0) continue;
+
+        attempted = true;
+        try {
+          const res = await fetch(
+            `/api/conf/${activeConfId}/meetings/${meeting.dbId}`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updates),
+            },
+          );
+          if (!res.ok) {
+            failed = true;
+          }
+        } catch {
+          failed = true;
+        }
+      }
+
+      return attempted && !failed;
+    }
+
+    async function loadFromDb() {
+      try {
+        const confRes = await fetch("/api/conf/default", { cache: "no-store" });
+        if (!confRes.ok) return;
+        const conf = (await confRes.json()) as { id?: string };
+        if (!conf?.id) return;
+        if (cancelled) return;
+
+        setConfId(conf.id);
+
+        const listRes = await fetch(`/api/conf/${conf.id}/meetings`, {
+          cache: "no-store",
+        });
+        if (!listRes.ok) return;
+        const raw = (await listRes.json()) as unknown;
+        if (!Array.isArray(raw) || raw.length === 0) return;
+
+        let mapped = raw.map((entry) => toUiMeeting(entry as MeetingDbRecord));
+
+        const legacyMigrated =
+          window.localStorage.getItem(MEETINGS_LEGACY_MIGRATED_KEY) === "1";
+
+        if (!legacyMigrated) {
+          const didMigrate = await migrateLegacyToDb(conf.id, mapped);
+          if (didMigrate) {
+            window.localStorage.setItem(MEETINGS_LEGACY_MIGRATED_KEY, "1");
+            window.localStorage.removeItem(MEETING_AGENDA_STORAGE_KEY);
+            window.localStorage.removeItem(MEETING_PROGRESS_STORAGE_KEY);
+
+            const refreshed = await fetch(`/api/conf/${conf.id}/meetings`, {
+              cache: "no-store",
+            });
+            if (refreshed.ok) {
+              const rawRefreshed = (await refreshed.json()) as unknown;
+              if (Array.isArray(rawRefreshed) && rawRefreshed.length > 0) {
+                mapped = rawRefreshed.map((entry) =>
+                  toUiMeeting(entry as MeetingDbRecord),
+                );
+              }
+            }
+          }
+        }
+
+        if (cancelled) return;
+        setMeetings(mapped);
+      } catch {
+        // Fall back to cached / default meetings.
+      }
+    }
+
+    void loadFromDb();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const patchMeeting = async (
+    meetingId: string,
+    updates: Record<string, unknown>,
+  ) => {
+    if (!confId) return;
+    const meeting = meetings.find((m) => m.id === meetingId);
+    if (!meeting?.dbId) return;
+
+    try {
+      const res = await fetch(`/api/conf/${confId}/meetings/${meeting.dbId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (!res.ok) return;
+
+      const updated = (await res.json()) as MeetingDbRecord;
+      const scheduled =
+        typeof updated.scheduled === "string" && updated.scheduled.includes("T")
+          ? updated.scheduled.split("T")[0]
+          : (updated.scheduled as string);
+
+      const synced: Meeting = {
+        id: `meeting_${updated.meetingNo}`,
+        dbId: updated.id,
+        title: updated.title,
+        meetingNo: updated.meetingNo,
+        scheduled,
+        location: updated.location ?? "",
+        agenda: updated.agenda ?? "",
+        minutes: updated.minutes ?? "",
+        minutesStatus: (updated.minutesStatus ?? "NONE") as MinutesStatus,
+        minutesSubmittedBy: updated.minutesSubmittedBy ?? null,
+        chairNote: updated.chairNote ?? null,
+        status: updated.status,
+      };
+
+      setMeetings((prev) => prev.map((m) => (m.id === meetingId ? synced : m)));
+    } catch {
+      // Best-effort sync; local cache remains as fallback.
+    }
+  };
 
   const toggleExpand = (id: string) => {
     if (expandedId === id) {
       setExpandedId(null);
       setRequestingChanges(false);
+      setEditingAgendaId(null);
     } else {
       const meeting = meetings.find((m) => m.id === id);
       setExpandedId(id);
       setEditMinutes(meeting?.minutes ?? "");
       setChairNote(meeting?.chairNote ?? "");
+      setAgendaDraft(meeting?.agenda ?? "");
       setRequestingChanges(false);
+      setEditingAgendaId(null);
     }
+  };
+
+  const startAgendaEdit = (meetingId: string) => {
+    const meeting = meetings.find((m) => m.id === meetingId);
+    setEditingAgendaId(meetingId);
+    setAgendaDraft(meeting?.agenda ?? "");
+  };
+
+  const saveAgenda = (meetingId: string) => {
+    const trimmed = agendaDraft.trim();
+    if (!trimmed) return;
+    setMeetings((prev) =>
+      prev.map((meeting) =>
+        meeting.id === meetingId ? { ...meeting, agenda: trimmed } : meeting,
+      ),
+    );
+    setEditingAgendaId(null);
+    void patchMeeting(meetingId, { agenda: trimmed });
   };
 
   const saveDraft = (id: string) => {
@@ -364,6 +495,7 @@ export function MeetingsShell() {
           : m,
       ),
     );
+    void patchMeeting(id, { minutes: editMinutes, minutesStatus: "DRAFT" });
   };
 
   const submitForApproval = (id: string) => {
@@ -381,18 +513,26 @@ export function MeetingsShell() {
       ),
     );
     setExpandedId(null);
+    void patchMeeting(id, {
+      minutes: editMinutes,
+      minutesStatus: "PENDING_APPROVAL",
+      status: "DONE",
+    });
   };
 
   const approveMinutes = (id: string) => {
+    if (!user || !canApproveMinutesRole(user.role)) return;
     setMeetings((prev) =>
       prev.map((m) =>
         m.id === id ? { ...m, minutesStatus: "APPROVED", chairNote: null } : m,
       ),
     );
     setExpandedId(null);
+    void patchMeeting(id, { minutesStatus: "APPROVED" });
   };
 
   const requestChanges = (id: string) => {
+    if (!user || !canApproveMinutesRole(user.role)) return;
     if (!chairNote.trim()) return;
     setMeetings((prev) =>
       prev.map((m) =>
@@ -407,11 +547,35 @@ export function MeetingsShell() {
     );
     setExpandedId(null);
     setRequestingChanges(false);
+    void patchMeeting(id, {
+      minutesStatus: "CHANGES_REQUESTED",
+      chairNote,
+    });
+  };
+
+  const reopenApprovedMinutes = (id: string) => {
+    if (!user || !isSuperAdminRole(user.role)) return;
+    setMeetings((prev) =>
+      prev.map((m) =>
+        m.id === id
+          ? {
+              ...m,
+              minutesStatus: "DRAFT",
+              chairNote: null,
+            }
+          : m,
+      ),
+    );
+    void patchMeeting(id, { minutesStatus: "DRAFT", chairNote: null });
   };
 
   const completed = meetings.filter((m) => m.status === "DONE").length;
   const canEdit = !loading && !!user;
-  const canApprove = !loading && !!user && isChair(user.role);
+  const canApproveMinutes =
+    !loading && !!user && canApproveMinutesRole(user.role);
+  const canReopenApprovedMinutes =
+    !loading && !!user && isSuperAdminRole(user.role);
+  const canEditAgenda = !loading && user?.role === "SUPER_ADMIN";
 
   return (
     <div className="space-y-6">
@@ -598,6 +762,59 @@ export function MeetingsShell() {
                   className="border-t pt-4 pb-4"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  <div className="mb-4 space-y-2 rounded-md border border-[#C8A061]/30 bg-[#C8A061]/5 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Meeting Agenda (Bullet Format)
+                      </p>
+                      {canEditAgenda && editingAgendaId !== meeting.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startAgendaEdit(meeting.id)}
+                        >
+                          <FileText className="size-4" />
+                          Edit Agenda
+                        </Button>
+                      )}
+                    </div>
+
+                    {editingAgendaId === meeting.id ? (
+                      <>
+                        <Textarea
+                          value={agendaDraft}
+                          onChange={(e) => setAgendaDraft(e.target.value)}
+                          rows={10}
+                          className="font-mono text-xs"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingAgendaId(null)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => saveAgenda(meeting.id)}
+                            disabled={!agendaDraft.trim()}
+                          >
+                            Save Agenda
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <pre className="whitespace-pre-wrap text-xs leading-relaxed text-foreground">
+                        {meeting.agenda || "No agenda has been set yet."}
+                      </pre>
+                    )}
+
+                    <p className="text-[11px] text-muted-foreground">
+                      Agenda editing is locked to the Super Admin account.
+                    </p>
+                  </div>
+
                   {/* === APPROVED: read-only for everyone === */}
                   {meeting.minutesStatus === "APPROVED" && (
                     <div className="space-y-3">
@@ -615,24 +832,22 @@ export function MeetingsShell() {
                       <pre className="max-h-125 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-relaxed">
                         {meeting.minutes}
                       </pre>
-                      {/* Chair can still edit approved minutes */}
-                      {canApprove && (
+                      {/* Only Super Admin can re-open approved minutes for editing. */}
+                      {canReopenApprovedMinutes && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setMeetings((prev) =>
-                              prev.map((m) =>
-                                m.id === meeting.id
-                                  ? { ...m, minutesStatus: "DRAFT" }
-                                  : m,
-                              ),
-                            );
-                          }}
+                          onClick={() => reopenApprovedMinutes(meeting.id)}
                         >
                           <FileText className="size-4" />
-                          Edit Minutes
+                          Re-open for Editing
                         </Button>
+                      )}
+                      {!canReopenApprovedMinutes && canApproveMinutes && (
+                        <p className="text-xs text-muted-foreground">
+                          Approved minutes are locked. Only Super Admin can
+                          re-open editing.
+                        </p>
                       )}
                     </div>
                   )}
@@ -658,7 +873,7 @@ export function MeetingsShell() {
                         </pre>
                       )}
 
-                      {canApprove && !requestingChanges && (
+                      {canApproveMinutes && !requestingChanges && (
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -679,7 +894,7 @@ export function MeetingsShell() {
                         </div>
                       )}
 
-                      {canApprove && requestingChanges && (
+                      {canApproveMinutes && requestingChanges && (
                         <div className="space-y-2">
                           <Label>Your note for the Secretary</Label>
                           <Textarea
@@ -708,7 +923,7 @@ export function MeetingsShell() {
                         </div>
                       )}
 
-                      {!canApprove && canEdit && (
+                      {!canApproveMinutes && canEdit && (
                         <p className="text-xs text-muted-foreground">
                           These minutes are awaiting confirmation from the Chair
                           before they become the official record.
