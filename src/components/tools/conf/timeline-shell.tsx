@@ -77,7 +77,11 @@ export function TimelineShell() {
   const [newOwner, setNewOwner] = useState("");
   const [newCritical, setNewCritical] = useState(false);
 
-  const canEditTimeline = !loading && user?.role === "SUPER_ADMIN";
+  const canEditTimeline =
+    !loading &&
+    (user?.role === "SUPER_ADMIN" ||
+      user?.role === "ADMIN" ||
+      user?.role === "CHAIR");
 
   useEffect(() => {
     if (typeof window === "undefined") return;

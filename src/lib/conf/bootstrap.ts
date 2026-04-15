@@ -200,27 +200,21 @@ async function bootstrapDefaultConference() {
     });
   }
 
-  const timelineCount = await prisma.confTimeline.count({
-    where: { confId: event.id },
+  await prisma.confTimeline.createMany({
+    data: INITIAL_TIMELINE.map((item, index) => ({
+      confId: event.id,
+      clientId: item.id,
+      title: item.title,
+      description: item.description || null,
+      responsibleLead: item.owner || null,
+      date: new Date(item.date),
+      category: item.category || null,
+      isCritical: item.isCritical,
+      isCompleted: item.isCompleted,
+      sortOrder: index,
+    })),
+    skipDuplicates: true,
   });
-
-  if (timelineCount === 0) {
-    await prisma.confTimeline.createMany({
-      data: INITIAL_TIMELINE.map((item, index) => ({
-        confId: event.id,
-        clientId: item.id,
-        title: item.title,
-        description: item.description || null,
-        responsibleLead: item.owner || null,
-        date: new Date(item.date),
-        category: item.category || null,
-        isCritical: item.isCritical,
-        isCompleted: item.isCompleted,
-        sortOrder: index,
-      })),
-      skipDuplicates: true,
-    });
-  }
 
   return event;
 }

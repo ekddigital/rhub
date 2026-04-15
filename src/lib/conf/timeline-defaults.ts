@@ -293,6 +293,72 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
     isCompleted: false,
   },
   {
+    id: "19a",
+    title: "Complete Conference Program Outline - Day 1",
+    description:
+      "Finalize Day 1 run-sheet (arrival, opening blocks, speakers, timing, and contingency buffer).",
+    owner: "Program Lead + Secretary",
+    date: "2026-06-13",
+    category: "program",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "19b",
+    title: "Complete Conference Program Outline - Day 2",
+    description:
+      "Finalize Day 2 flow for reports, debate/elections blocks, approvals, and formal close of sessions.",
+    owner: "Program Lead + IEC Liaison",
+    date: "2026-06-14",
+    category: "program",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "19c",
+    title: "Complete Conference Booklet Manual",
+    description:
+      "Publish the final booklet/manual including agenda, committee structure, venue guidance, and emergency contacts.",
+    owner: "Secretary + Media",
+    date: "2026-06-16",
+    category: "program",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "19d",
+    title: "Complete Arrival and Tour Guide",
+    description:
+      "Prepare delegate arrival brief: station/airport routes, hotel check-in workflow, nearby essential locations, and host assignments.",
+    owner: "Logistics + Registration Team",
+    date: "2026-06-17",
+    category: "registration",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "19e",
+    title: "Finalize Conference Package Inventory",
+    description:
+      "Lock package contents and counts: key rings, conference shirts, conference bags/tote bags, name tags, lapel pins, and hand bands.",
+    owner: "Media + Logistics + Finance",
+    date: "2026-06-18",
+    category: "logistics",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "19f",
+    title: "Approve Souvenir Procurement and Delivery Plan",
+    description:
+      "Confirm vendors, quantities, payment dates, and delivery checkpoints to avoid the delayed-souvenir problem reported in prior conferences.",
+    owner: "Treasurer + Financial Secretary + Media",
+    date: "2026-06-19",
+    category: "finance",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
     id: "20",
     title: "Print and Branding Freeze",
     description:

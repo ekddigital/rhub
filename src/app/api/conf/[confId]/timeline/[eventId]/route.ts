@@ -2,6 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 
+function canEditTimelineRole(role: string): boolean {
+  // Chair-level control in the platform role model.
+  return role === "SUPER_ADMIN" || role === "ADMIN" || role === "CHAIR";
+}
+
 // GET /api/conf/[confId]/timeline/[eventId]
 export async function GET(
   _req: Request,
@@ -40,8 +45,23 @@ export async function PATCH(
 ) {
   try {
     const { confId, eventId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "super-admin");
+    const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
+
+    const actor = auth.access.user;
+    if (!actor) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
+
+    if (!canEditTimelineRole(actor.role)) {
+      return NextResponse.json(
+        { error: "Chair or Super Admin access required" },
+        { status: 403 },
+      );
+    }
 
     const current = await prisma.confTimeline.findUnique({
       where: { id: eventId },
