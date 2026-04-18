@@ -256,15 +256,15 @@ function LeaderSection({
 
 function AddressSection({
   section,
-  chairMember,
+  speaker,
+  content,
   confName,
 }: {
   section: BookletSection;
-  chairMember: NecMember | null;
+  speaker: NecMember | null;
+  content: string | null | undefined;
   confName: string;
 }) {
-  const speaker = section.type === "PRESIDENT_ADDRESS" ? null : chairMember;
-
   return (
     <div className="px-10 py-8">
       <PageHeader confName={confName} section={section.title} />
@@ -295,9 +295,9 @@ function AddressSection({
         </div>
       )}
 
-      {section.bodyText ? (
+      {content ? (
         <div className="prose prose-sm max-w-none text-[#1F1C18]/80">
-          {section.bodyText.split("\n").map((line, i) => (
+          {content.split("\n").map((line, i) => (
             <p key={i} className="mb-2 leading-relaxed text-sm">
               {line || <br />}
             </p>
@@ -306,8 +306,9 @@ function AddressSection({
       ) : (
         <div className="rounded-lg border border-dashed border-[#C8A061]/40 bg-[#C8A061]/5 px-4 py-6 text-center">
           <p className="text-xs text-muted-foreground">
-            Address not yet written. Use the{" "}
-            <span className="font-semibold">Section Manager</span> tab to add content.
+            {section.type === "CHAIRMAN_ADDRESS"
+              ? "Chairman's address not yet written. Use the Overview tab to add the address."
+              : "Address not yet written. Use the Section Manager tab to add content."}
           </p>
         </div>
       )}
@@ -590,7 +591,7 @@ function BookletPage({
   hasDivider?: boolean;
 }) {
   return (
-    <div className="relative">
+    <div className="booklet-page relative">
       {children}
       {hasDivider && (
         <div className="mx-10 border-b border-dashed border-[#C8A061]/20" />
@@ -625,18 +626,33 @@ function renderSection(
       );
 
     case "PRESIDENT_ADDRESS":
-    case "NEC":
     case "GUEST_BIO":
+      // Text-only address — admin writes content in Section Manager
       return (
         <BookletPage key={key} hasDivider={!isLast}>
           <AddressSection
             section={section}
-            chairMember={conferenceChair}
+            speaker={null}
+            content={section.bodyText}
             confName={confName}
           />
         </BookletPage>
       );
 
+    case "CHAIRMAN_ADDRESS":
+      // Conference Chairman's personal message — uses ConfMember.bookletBio
+      return (
+        <BookletPage key={key} hasDivider={!isLast}>
+          <AddressSection
+            section={section}
+            speaker={conferenceChair}
+            content={conferenceChair?.bookletBio ?? section.bodyText}
+            confName={confName}
+          />
+        </BookletPage>
+      );
+
+    case "NEC":
     case "COMMITTEE":
     case "COC":
     case "COC_MEMBERS":
@@ -701,8 +717,7 @@ export function BookletPreview({
 }) {
   const [zoom, setZoom] = useState(100);
 
-  const enabledSections = [...(data.booklet?.sections ?? [])]
-    .filter((s) => s.isEnabled)
+  const enabledSections = [...(data.booklet?.sections ?? [])]    .filter((s) => s.isEnabled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   // Split sections: cover first, back cover last, rest in order
@@ -716,8 +731,40 @@ export function BookletPreview({
 
   return (
     <div className="space-y-4">
+      {/* Print CSS — A4 layout */}
+      <style>{`
+        @media print {
+          body > *:not(#booklet-print-root) { display: none !important; }
+          #booklet-print-root {
+            display: block !important;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+          }
+          .booklet-no-print { display: none !important; }
+          .booklet-document {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .booklet-page {
+            page-break-after: always;
+            break-after: page;
+          }
+          .booklet-page:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+        }
+      `}</style>
+
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#C8A061]/20 bg-[#C8A061]/5 px-4 py-2.5">
+      <div className="booklet-no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#C8A061]/20 bg-[#C8A061]/5 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">
             Live Booklet Preview
@@ -798,7 +845,7 @@ export function BookletPreview({
         >
           {/* Booklet document */}
           <div
-            className="w-[680px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="booklet-document w-[680px] overflow-hidden rounded-2xl bg-white shadow-2xl"
             style={{
               boxShadow:
                 "0 20px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(200,160,97,0.2)",
@@ -835,7 +882,7 @@ export function BookletPreview({
       </div>
 
       {/* Letterhead preview strip */}
-      <div className="rounded-xl border border-[#C8A061]/20 bg-white p-4 shadow-sm">
+      <div className="booklet-no-print rounded-xl border border-[#C8A061]/20 bg-white p-4 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold text-[#182e5f]">
             Conference Committee Letterhead

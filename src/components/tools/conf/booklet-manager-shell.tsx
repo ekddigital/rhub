@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  AlertCircle,
   ArrowDown,
   ArrowUp,
   BookOpenText,
@@ -465,6 +466,111 @@ export function BookletManagerShell() {
     }
   };
 
+  // ── Chair bio edit ─────────────────────────────────────────────────────────
+
+  const [chairBioEdit, setChairBioEdit] = useState<{
+    open: boolean;
+    memberId: string;
+    bioText: string;
+    saving: boolean;
+  }>({ open: false, memberId: "", bioText: "", saving: false });
+
+  const openChairBioEdit = (m: NecMember) =>
+    setChairBioEdit({
+      open: true,
+      memberId: m.id,
+      bioText: m.bookletBio ?? "",
+      saving: false,
+    });
+
+  const saveChairBio = async () => {
+    if (!confId || !chairBioEdit.memberId) return;
+    setChairBioEdit((prev) => ({ ...prev, saving: true }));
+    try {
+      const res = await fetch(
+        `/api/conf/${confId}/members/${chairBioEdit.memberId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bookletBio: chairBioEdit.bioText }),
+        },
+      );
+      if (!res.ok) throw new Error("Save failed");
+      setChairBioEdit((prev) => ({ ...prev, open: false }));
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setChairBioEdit((prev) => ({ ...prev, saving: false }));
+    }
+  };
+
+  // ── Seed default leader profiles ──────────────────────────────────────────
+
+  const [seedingLeaders, setSeedingLeaders] = useState(false);
+
+  const seedDefaultLeaders = async () => {
+    if (!confId) return;
+    if (
+      !confirm(
+        "This will add the Liberian President, Chinese President, and Liberian Ambassador profile entries. Continue?",
+      )
+    )
+      return;
+
+    setSeedingLeaders(true);
+    try {
+      const defaults = [
+        {
+          role: "Head of State",
+          name: "H.E. Joseph Nyuma Boakai Sr.",
+          title: "President of the Republic of Liberia",
+          country: "Liberia",
+          photoPath: "/conf/president_boakai_Liberia.png",
+          sortOrder: 1,
+        },
+        {
+          role: "Head of State",
+          name: "H.E. Xi Jinping",
+          title: "President of the People's Republic of China",
+          country: "China",
+          photoPath: "/conf/president_xi_China.png",
+          sortOrder: 2,
+        },
+        {
+          role: "Ambassador",
+          name: "H.E. Ambassador",
+          title: "Ambassador of Liberia to China",
+          country: "Liberia",
+          photoPath: null,
+          sortOrder: 3,
+        },
+      ];
+
+      for (const leader of defaults) {
+        const res = await fetch(`/api/conf/${confId}/booklet/leaders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...leader, isGlobal: false }),
+        });
+        if (!res.ok) {
+          const j = (await res.json().catch(() => ({}))) as Record<
+            string,
+            unknown
+          >;
+          throw new Error(
+            (j.error as string) || `Failed to seed "${leader.name}"`,
+          );
+        }
+      }
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Seed failed");
+    } finally {
+      setSeedingLeaders(false);
+    }
+  };
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -615,6 +721,136 @@ export function BookletManagerShell() {
             </Card>
           </div>
 
+          {/* Booklet Readiness Checklist */}
+          {data &&
+            (() => {
+              const chairMember = data.conferenceChair;
+              const checks = [
+                {
+                  label: "Leader profiles added",
+                  ok: data.counts.leadersStored >= 3,
+                  hint: `${data.counts.leadersStored}/3 profiles stored. Add Liberian President, Chinese President, and Ambassador.`,
+                  action: () => setTab("leaders"),
+                  actionLabel: "Add Leaders",
+                },
+                {
+                  label: "Chairman's address written",
+                  ok: !!chairMember?.bookletBio,
+                  hint: "The General Chairman has not yet written their booklet address.",
+                  action: () => chairMember && openChairBioEdit(chairMember),
+                  actionLabel: "Write Address",
+                },
+                {
+                  label: "Conference schedule added",
+                  ok: data.meetings.length > 0,
+                  hint: "Add meetings/events to populate the schedule section.",
+                  action: () =>
+                    window.location.assign(
+                      window.location.pathname.replace("/booklet", "/meetings"),
+                    ),
+                  actionLabel: "Add Meetings",
+                },
+                {
+                  label: "Confirmed delegates registered",
+                  ok: data.counts.totalDelegates > 0,
+                  hint: "No confirmed delegates yet.",
+                  action: () =>
+                    window.location.assign(
+                      window.location.pathname.replace(
+                        "/booklet",
+                        "/delegates",
+                      ),
+                    ),
+                  actionLabel: "View Delegates",
+                },
+                {
+                  label: "Booklet sections configured",
+                  ok: data.counts.sectionsEnabled >= 5,
+                  hint: `Only ${data.counts.sectionsEnabled} sections enabled. Enable at least 5.`,
+                  action: () => setTab("sections"),
+                  actionLabel: "Configure",
+                },
+                {
+                  label: "Booklet published",
+                  ok: data.booklet?.status === "PUBLISHED",
+                  hint:
+                    data.booklet?.status === "READY"
+                      ? "Booklet is ready — publish when finalized."
+                      : "Booklet is still a draft.",
+                  action: () => setTab("config"),
+                  actionLabel: "Update Status",
+                },
+              ];
+              const passCount = checks.filter((c) => c.ok).length;
+              return (
+                <Card
+                  className={
+                    passCount === checks.length
+                      ? "border-green-500/30 bg-green-500/5"
+                      : "border-amber-500/30 bg-amber-500/5"
+                  }
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base">
+                        Booklet Readiness
+                      </CardTitle>
+                      <span
+                        className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
+                          passCount === checks.length
+                            ? "bg-green-500/20 text-green-700"
+                            : passCount >= 4
+                              ? "bg-amber-500/20 text-amber-700"
+                              : "bg-red-500/20 text-red-700"
+                        }`}
+                      >
+                        {passCount}/{checks.length} complete
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="divide-y">
+                    {checks.map((c, i) => (
+                      <div key={i} className="flex items-center gap-3 py-2.5">
+                        <span
+                          className={
+                            c.ok ? "text-green-600" : "text-muted-foreground"
+                          }
+                        >
+                          {c.ok ? (
+                            <CheckCircle2 className="size-4" />
+                          ) : (
+                            <AlertCircle className="size-4 text-amber-500" />
+                          )}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm font-medium ${c.ok ? "text-[#1F1C18]" : "text-muted-foreground"}`}
+                          >
+                            {c.label}
+                          </p>
+                          {!c.ok && (
+                            <p className="text-xs text-muted-foreground">
+                              {c.hint}
+                            </p>
+                          )}
+                        </div>
+                        {!c.ok && c.action && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] text-[#C8A061] hover:bg-[#C8A061]/10 shrink-0"
+                            onClick={c.action}
+                          >
+                            {c.actionLabel}
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
           {/* Booklet section preview list */}
           <Card>
             <CardHeader>
@@ -735,13 +971,71 @@ export function BookletManagerShell() {
                         </Badge>
                       )}
                       {!m.hasRegistered && (
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                        <Badge
+                          variant="outline"
+                          className="text-xs text-muted-foreground"
+                        >
                           Not registered
                         </Badge>
+                      )}
+                      {m.role === "CHAIR" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] text-[#C8A061] hover:bg-[#C8A061]/10"
+                          onClick={() => openChairBioEdit(m)}
+                        >
+                          {m.bookletBio ? "Edit Address" : "Write Address"}
+                        </Button>
                       )}
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── Chairman address editor ── */}
+          {chairBioEdit.open && (
+            <Card className="border-[#C8A061]/40 bg-[#C8A061]/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-[#182e5f]">
+                  Chairman&apos;s Address — Booklet Message
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  This message will appear in the &quot;Chairman&apos;s
+                  Address&quot; section of the booklet.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Textarea
+                  rows={10}
+                  placeholder="Dear delegates, dignitaries, and honored guests..."
+                  value={chairBioEdit.bioText}
+                  onChange={(e) =>
+                    setChairBioEdit((p) => ({ ...p, bioText: e.target.value }))
+                  }
+                  className="resize-y font-serif text-sm"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setChairBioEdit((p) => ({ ...p, open: false }))
+                    }
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-[#C8A061] text-white hover:bg-[#B8903A]"
+                    onClick={saveChairBio}
+                    disabled={chairBioEdit.saving}
+                  >
+                    {chairBioEdit.saving ? "Saving…" : "Save Address"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -759,7 +1053,8 @@ export function BookletManagerShell() {
       )}
 
       {/* ══════════════════════════════════════ LEADERS TAB ══════════════════════════════════════ */}
-      {tab === "leaders" && (        <div className="space-y-4">
+      {tab === "leaders" && (
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
@@ -767,10 +1062,28 @@ export function BookletManagerShell() {
                 leadership that appear in every booklet.
               </p>
             </div>
-            <Button size="sm" onClick={openLeaderCreate}>
-              <Plus className="size-4" />
-              Add Leader
-            </Button>
+            <div className="flex items-center gap-2">
+              {(data?.counts.leadersStored ?? 0) === 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={seedDefaultLeaders}
+                  disabled={seedingLeaders}
+                  className="text-xs"
+                >
+                  {seedingLeaders ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Crown className="size-4" />
+                  )}
+                  {seedingLeaders ? "Seeding…" : "Seed Profiles"}
+                </Button>
+              )}
+              <Button size="sm" onClick={openLeaderCreate}>
+                <Plus className="size-4" />
+                Add Leader
+              </Button>
+            </div>
           </div>
 
           {/* Leader form */}

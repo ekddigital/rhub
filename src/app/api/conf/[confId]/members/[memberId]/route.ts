@@ -27,6 +27,7 @@ export async function PATCH(
       canAssignCommittee,
       canApprovePayments,
       userId, // link to a platform User
+      bookletBio, // Conference Chairman's address/message for the booklet
     } = body;
 
     const existing = await prisma.confMember.findUnique({
@@ -104,6 +105,7 @@ export async function PATCH(
     if (canApprovePayments !== undefined)
       updateData.canApprovePayments = Boolean(canApprovePayments);
     if (userId !== undefined) updateData.userId = userId || null;
+    if (bookletBio !== undefined) updateData.bookletBio = bookletBio || null;
 
     const updated = await prisma.confMember.update({
       where: { id: memberId },
