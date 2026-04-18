@@ -115,7 +115,11 @@ function coerceState(value: unknown): FlyerStudioState {
     : DEFAULT_STATE.signup.steps;
 
   return {
-    mode: (["promo", "signup", "countdown"] as FlyerMode[]).includes(raw.mode as FlyerMode) ? (raw.mode as FlyerMode) : "promo",
+    mode: (["promo", "signup", "countdown"] as FlyerMode[]).includes(
+      raw.mode as FlyerMode,
+    )
+      ? (raw.mode as FlyerMode)
+      : "promo",
     promo: {
       ...DEFAULT_STATE.promo,
       ...rawPromo,
@@ -238,7 +242,10 @@ export function FlyerStudioShell() {
 
     try {
       setExportingFormat(format);
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+      const timestamp = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace(/[T:]/g, "-");
       const fileName = `lsuic-${state.mode}-flyer-${timestamp}.${format}`;
       const { toPng, toSvg } = await import("html-to-image");
 
@@ -341,7 +348,9 @@ export function FlyerStudioShell() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {state.mode === "countdown" ? "Countdown Flyer" : "Flyer Controls"}
+              {state.mode === "countdown"
+                ? "Countdown Flyer"
+                : "Flyer Controls"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -368,7 +377,11 @@ export function FlyerStudioShell() {
                   type="button"
                   variant={state.mode === "countdown" ? "default" : "outline"}
                   onClick={() => setMode("countdown")}
-                  className={state.mode === "countdown" ? "bg-[#C8A061] hover:bg-[#B8904F] text-white border-transparent" : ""}
+                  className={
+                    state.mode === "countdown"
+                      ? "bg-[#C8A061] hover:bg-[#B8904F] text-white border-transparent"
+                      : ""
+                  }
                 >
                   <Timer className="size-4" />
                   Countdown
@@ -380,21 +393,32 @@ export function FlyerStudioShell() {
               /* ── Countdown controls ── */
               <div className="space-y-4">
                 <div className="rounded-xl border border-[#C8A061]/30 bg-[#182e5f]/5 p-4 text-center">
-                  <p className="text-5xl font-black text-[#182e5f]">{daysUntilConf()}</p>
+                  <p className="text-5xl font-black text-[#182e5f]">
+                    {daysUntilConf()}
+                  </p>
                   <p className="mt-1 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
                     Days Remaining
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Auto-calculated from July 23, 2026. Updates daily — no manual editing needed.
+                    Auto-calculated from July 23, 2026. Updates daily — no
+                    manual editing needed.
                   </p>
                 </div>
                 <div className="space-y-2 rounded-lg border p-3 text-sm text-muted-foreground">
-                  <p className="font-semibold text-foreground">About this flyer</p>
+                  <p className="font-semibold text-foreground">
+                    About this flyer
+                  </p>
                   <ul className="list-inside list-disc space-y-1 text-xs">
-                    <li>1080 × 1080 square PNG — WhatsApp, WeChat, Telegram ready</li>
-                    <li>Branded with LSUIC logo, Jinan cityscape, and gold accents</li>
+                    <li>
+                      1080 × 1080 square PNG — WhatsApp, WeChat, Telegram ready
+                    </li>
+                    <li>
+                      Branded with LSUIC logo, Jinan cityscape, and gold accents
+                    </li>
                     <li>Share daily to build conference excitement</li>
-                    <li>Download a fresh copy each day for the updated number</li>
+                    <li>
+                      Download a fresh copy each day for the updated number
+                    </li>
                   </ul>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -405,7 +429,9 @@ export function FlyerStudioShell() {
                     className="w-full gap-2 bg-[#C8A061] text-white hover:bg-[#B8904F]"
                   >
                     <Download className="size-4" />
-                    {downloadingCountdown ? "Downloading…" : "Download PNG (1080×1080)"}
+                    {downloadingCountdown
+                      ? "Downloading…"
+                      : "Download PNG (1080×1080)"}
                   </Button>
                   {confId && (
                     <a
@@ -427,349 +453,364 @@ export function FlyerStudioShell() {
             ) : (
               /* ── Promo / Signup controls ── */
               <>
-              <div className="space-y-2">
-              <p className="text-xs font-semibold tracking-wide text-[#0B1E78]">
-                Delegate Flyer Color System
-              </p>
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-6 w-6 rounded border"
-                  style={{ backgroundColor: "#C8102E" }}
-                />
-                <span
-                  className="h-6 w-6 rounded border"
-                  style={{ backgroundColor: "#FFFFFF" }}
-                />
-                <span
-                  className="h-6 w-6 rounded border"
-                  style={{ backgroundColor: "#0B1E78" }}
-                />
-                <span
-                  className="h-6 w-6 rounded border"
-                  style={{ backgroundColor: "#0B4FD9" }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Keep all conference flyer designs within Liberia red, white, and
-                blue for consistency.
-              </p>
-            </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold tracking-wide text-[#0B1E78]">
+                    Delegate Flyer Color System
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-6 w-6 rounded border"
+                      style={{ backgroundColor: "#C8102E" }}
+                    />
+                    <span
+                      className="h-6 w-6 rounded border"
+                      style={{ backgroundColor: "#FFFFFF" }}
+                    />
+                    <span
+                      className="h-6 w-6 rounded border"
+                      style={{ backgroundColor: "#0B1E78" }}
+                    />
+                    <span
+                      className="h-6 w-6 rounded border"
+                      style={{ backgroundColor: "#0B4FD9" }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Keep all conference flyer designs within Liberia red, white,
+                    and blue for consistency.
+                  </p>
+                </div>
 
-            {state.mode === "promo" ? (
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Conference Tag</Label>
-                  <Input
-                    value={state.promo.conferenceTag}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, conferenceTag: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Title</Label>
-                  <Input
-                    value={state.promo.title}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, title: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Subtitle</Label>
-                  <Input
-                    value={state.promo.subtitle}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, subtitle: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Highlights (one per line)</Label>
-                  <Textarea
-                    rows={5}
-                    value={promoHighlightsValue}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: {
-                          ...prev.promo,
-                          highlights: normalizeListInput(e.target.value),
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Call To Action</Label>
-                  <Textarea
-                    rows={2}
-                    value={state.promo.cta}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, cta: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Footer</Label>
-                  <Input
-                    value={state.promo.footer}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, footer: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Website</Label>
-                  <Input
-                    value={state.promo.website}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, website: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Motto</Label>
-                  <Input
-                    value={state.promo.motto}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        promo: { ...prev.promo, motto: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Conference Tag</Label>
-                  <Input
-                    value={state.signup.conferenceTag}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: {
-                          ...prev.signup,
-                          conferenceTag: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Title</Label>
-                  <Input
-                    value={state.signup.title}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, title: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Subtitle</Label>
-                  <Input
-                    value={state.signup.subtitle}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, subtitle: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Registration Steps (one per line)</Label>
-                  <Textarea
-                    rows={4}
-                    value={signupStepsValue}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: {
-                          ...prev.signup,
-                          steps: normalizeListInput(e.target.value),
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Signup Link</Label>
-                  <Input
-                    value={state.signup.signupLink}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, signupLink: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Payment Instruction</Label>
-                  <Input
-                    value={state.signup.paymentInstruction}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: {
-                          ...prev.signup,
-                          paymentInstruction: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Verification Note</Label>
-                  <Textarea
-                    rows={2}
-                    value={state.signup.verificationNote}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: {
-                          ...prev.signup,
-                          verificationNote: e.target.value,
-                        },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Footer</Label>
-                  <Input
-                    value={state.signup.footer}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, footer: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Website</Label>
-                  <Input
-                    value={state.signup.website}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, website: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Motto</Label>
-                  <Input
-                    value={state.signup.motto}
-                    onChange={(e) =>
-                      setState((prev) => ({
-                        ...prev,
-                        signup: { ...prev.signup, motto: e.target.value },
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            )}
+                {state.mode === "promo" ? (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label>Conference Tag</Label>
+                      <Input
+                        value={state.promo.conferenceTag}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: {
+                              ...prev.promo,
+                              conferenceTag: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Title</Label>
+                      <Input
+                        value={state.promo.title}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, title: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Subtitle</Label>
+                      <Input
+                        value={state.promo.subtitle}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, subtitle: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Highlights (one per line)</Label>
+                      <Textarea
+                        rows={5}
+                        value={promoHighlightsValue}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: {
+                              ...prev.promo,
+                              highlights: normalizeListInput(e.target.value),
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Call To Action</Label>
+                      <Textarea
+                        rows={2}
+                        value={state.promo.cta}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, cta: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Footer</Label>
+                      <Input
+                        value={state.promo.footer}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, footer: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Website</Label>
+                      <Input
+                        value={state.promo.website}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, website: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Motto</Label>
+                      <Input
+                        value={state.promo.motto}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            promo: { ...prev.promo, motto: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label>Conference Tag</Label>
+                      <Input
+                        value={state.signup.conferenceTag}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              conferenceTag: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Title</Label>
+                      <Input
+                        value={state.signup.title}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: { ...prev.signup, title: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Subtitle</Label>
+                      <Input
+                        value={state.signup.subtitle}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              subtitle: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Registration Steps (one per line)</Label>
+                      <Textarea
+                        rows={4}
+                        value={signupStepsValue}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              steps: normalizeListInput(e.target.value),
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Signup Link</Label>
+                      <Input
+                        value={state.signup.signupLink}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              signupLink: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Payment Instruction</Label>
+                      <Input
+                        value={state.signup.paymentInstruction}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              paymentInstruction: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Verification Note</Label>
+                      <Textarea
+                        rows={2}
+                        value={state.signup.verificationNote}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: {
+                              ...prev.signup,
+                              verificationNote: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Footer</Label>
+                      <Input
+                        value={state.signup.footer}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: { ...prev.signup, footer: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Website</Label>
+                      <Input
+                        value={state.signup.website}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: { ...prev.signup, website: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Motto</Label>
+                      <Input
+                        value={state.signup.motto}
+                        onChange={(e) =>
+                          setState((prev) => ({
+                            ...prev,
+                            signup: { ...prev.signup, motto: e.target.value },
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
 
-            <div className="flex flex-wrap gap-2 border-t pt-3">
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={saveNow}
-              >
-                <Save className="size-4" />
-                Save
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={resetDefaults}
-              >
-                <RefreshCcw className="size-4" />
-                Reset
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={exportConfig}
-              >
-                <Download className="size-4" />
-                Export Config JSON
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!loaded || exportingFormat !== null}
-                onClick={() => void exportPreviewAs("png")}
-              >
-                <Download className="size-4" />
-                {exportingFormat === "png" ? "Exporting PNG..." : "Export PNG"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!loaded || exportingFormat !== null}
-                onClick={() => void exportPreviewAs("svg")}
-              >
-                <Download className="size-4" />
-                {exportingFormat === "svg" ? "Exporting SVG..." : "Export SVG"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => importRef.current?.click()}
-              >
-                Import JSON
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={startPrint}
-              >
-                Print / PDF
-              </Button>
-              <input
-                ref={importRef}
-                type="file"
-                accept="application/json"
-                className="hidden"
-                onChange={(e) => void importConfig(e.target.files?.[0] || null)}
-              />
-            </div>
+                <div className="flex flex-wrap gap-2 border-t pt-3">
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={saveNow}
+                  >
+                    <Save className="size-4" />
+                    Save
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={resetDefaults}
+                  >
+                    <RefreshCcw className="size-4" />
+                    Reset
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={exportConfig}
+                  >
+                    <Download className="size-4" />
+                    Export Config JSON
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!loaded || exportingFormat !== null}
+                    onClick={() => void exportPreviewAs("png")}
+                  >
+                    <Download className="size-4" />
+                    {exportingFormat === "png"
+                      ? "Exporting PNG..."
+                      : "Export PNG"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!loaded || exportingFormat !== null}
+                    onClick={() => void exportPreviewAs("svg")}
+                  >
+                    <Download className="size-4" />
+                    {exportingFormat === "svg"
+                      ? "Exporting SVG..."
+                      : "Export SVG"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => importRef.current?.click()}
+                  >
+                    Import JSON
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={startPrint}
+                  >
+                    Print / PDF
+                  </Button>
+                  <input
+                    ref={importRef}
+                    type="file"
+                    accept="application/json"
+                    className="hidden"
+                    onChange={(e) =>
+                      void importConfig(e.target.files?.[0] || null)
+                    }
+                  />
+                </div>
               </>
             )}
           </CardContent>
@@ -778,7 +819,8 @@ export function FlyerStudioShell() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Live Preview — {state.mode === "countdown" ? "Countdown" : "1080×1080 Square"}
+              Live Preview —{" "}
+              {state.mode === "countdown" ? "Countdown" : "1080×1080 Square"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -891,7 +933,9 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
           >
             {state.promo.title}
           </h2>
-          <p className="mt-0.5 text-[9px] text-white/85">{state.promo.subtitle}</p>
+          <p className="mt-0.5 text-[9px] text-white/85">
+            {state.promo.subtitle}
+          </p>
         </div>
       </div>
 
@@ -920,7 +964,9 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
         </div>
         {state.promo.cta && (
           <div className="shrink-0 rounded-lg bg-[#C8102E] px-3 py-2">
-            <p className="text-[9px] font-medium text-white">{state.promo.cta}</p>
+            <p className="text-[9px] font-medium text-white">
+              {state.promo.cta}
+            </p>
           </div>
         )}
       </div>
@@ -991,7 +1037,9 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
           >
             {state.signup.title}
           </h2>
-          <p className="mt-0.5 text-[9px] text-white/85">{state.signup.subtitle}</p>
+          <p className="mt-0.5 text-[9px] text-white/85">
+            {state.signup.subtitle}
+          </p>
         </div>
       </div>
 
@@ -1022,7 +1070,9 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
             ))}
             {state.signup.verificationNote && (
               <div className="shrink-0 rounded-lg bg-[#C8102E] px-2.5 py-1.5">
-                <p className="text-[8px] text-white">{state.signup.verificationNote}</p>
+                <p className="text-[8px] text-white">
+                  {state.signup.verificationNote}
+                </p>
               </div>
             )}
           </div>
@@ -1033,10 +1083,14 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
             </p>
             <div className="flex flex-1 flex-col gap-1.5">
               <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-[#CCDAEF] bg-[#F0F5FF]">
-                <p className="text-[7px] font-semibold text-[#0B1E78]">Signup QR</p>
+                <p className="text-[7px] font-semibold text-[#0B1E78]">
+                  Signup QR
+                </p>
               </div>
               <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-[#CCDAEF] bg-[#F0F5FF]">
-                <p className="text-[7px] font-semibold text-[#0B1E78]">Payment QR</p>
+                <p className="text-[7px] font-semibold text-[#0B1E78]">
+                  Payment QR
+                </p>
               </div>
             </div>
             <p className="text-[7.5px] font-semibold leading-tight text-[#C8102E]">
@@ -1070,5 +1124,8 @@ function daysUntilConf(): number {
   target.setHours(0, 0, 0, 0);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86_400_000));
+  return Math.max(
+    0,
+    Math.ceil((target.getTime() - now.getTime()) / 86_400_000),
+  );
 }

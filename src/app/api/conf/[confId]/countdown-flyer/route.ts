@@ -46,6 +46,7 @@ const BACKDROP_CANDIDATES = [
 ];
 
 type Fonts = { headline: string; body: string; script: string } | null;
+
 let fontsCache: Promise<Fonts> | null = null;
 
 async function loadFonts(): Promise<Fonts> {
@@ -66,6 +67,8 @@ async function loadFonts(): Promise<Fonts> {
   }
   return fontsCache;
 }
+
+
 
 async function loadAsset(candidates: string[]) {
   for (const c of candidates) {
@@ -268,8 +271,17 @@ export async function GET(
   });
 
   if (wantsPng) {
-    const { default: sharp } = await import("sharp");
-    const png = await sharp(Buffer.from(svg)).png({ quality: 95 }).toBuffer();
+    const { Resvg } = await import("@resvg/resvg-js");
+    const fontsDir = path.join(process.cwd(), "public", "conf", "fonts");
+    const resvg = new Resvg(svg, {
+      fitTo: { mode: "width", value: 1080 },
+      font: {
+        fontDirs: [fontsDir],
+        loadSystemFonts: false,
+        defaultFontFamily: "Oswald",
+      },
+    });
+    const png = resvg.render().asPng();
     return new Response(new Uint8Array(png), {
       headers: {
         "content-type": "image/png",

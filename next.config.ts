@@ -4,6 +4,7 @@ import path from "path";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  serverExternalPackages: ["@resvg/resvg-js"],
   images: {
     remotePatterns: [
       {
