@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
+  <!-- Background -->
+  <rect width="100" height="120" fill="#002868"/>
+  <!-- Subtle inner border -->
+  <rect x="3" y="3" width="94" height="114" rx="2" fill="none" stroke="#E8EEF8" stroke-width="0.5" opacity="0.15"/>
+  <!-- Head -->
+  <circle cx="50" cy="40" r="18" fill="#E8EEF8" opacity="0.55"/>
+  <!-- Neck -->
+  <rect x="44" y="55" width="12" height="8" rx="1" fill="#E8EEF8" opacity="0.45"/>
+  <!-- Shoulders / body -->
+  <path d="M 8 120 Q 10 76 50 74 Q 90 76 92 120 Z" fill="#E8EEF8" opacity="0.35"/>
+  <!-- Collar / shirt detail -->
+  <path d="M 34 80 Q 50 72 66 80 L 58 94 Q 50 92 42 94 Z" fill="#C8A061" opacity="0.25"/>
+  <!-- Photo placeholder text -->
+  <text x="50" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" font-weight="600" fill="#E8EEF8" opacity="0.4" letter-spacing="1">PHOTO</text>
+</svg>

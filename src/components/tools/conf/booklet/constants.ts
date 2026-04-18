@@ -20,6 +20,11 @@ export const ASSETS = {
   cityMorning: "/conf/assets/jinan_city/morning_view_landscape.png",
   hotelEntrance: "/conf/assets/hotel/main_entrance_view.png",
   hotelConferenceHall: "/conf/assets/hotel/conference_hall.jpg",
+  // State dignitaries — shown on booklet cover
+  presidentBoakai: "/conf/president_boakai_Liberia.png",
+  presidentXi: "/conf/president_xi_China.png",
+  // Placeholder for delegates who have not yet uploaded a photo
+  placeholderDelegate: "/conf/placeholder-delegate.svg",
 } as const;
 
 // ─── Liberian flag stripe patterns ───────────────────────────────────────────

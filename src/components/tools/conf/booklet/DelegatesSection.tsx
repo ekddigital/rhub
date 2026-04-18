@@ -86,8 +86,8 @@ export function DelegatesSection({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "10px",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "12px",
           }}
         >
           {delegates.map((d) => (
@@ -98,27 +98,42 @@ export function DelegatesSection({
                 flexDirection: "column",
                 alignItems: "center",
                 textAlign: "center",
-                padding: "10px 6px",
-                borderRadius: "8px",
+                padding: "14px 8px 10px",
+                borderRadius: "10px",
                 border: `1px solid ${C.border}`,
                 background: C.lightBlue,
+                boxShadow: `0 1px 4px rgba(0,40,104,0.06)`,
               }}
             >
-              <Avatar
-                src={d.bookletPhotoPath}
-                name={d.name}
-                size={52}
-                square
-                borderColor={C.blue}
-              />
+              {/* Photo — 80px passport-style; silhouette shown until delegate links account */}
               <div
                 style={{
-                  fontSize: "9.5px",
-                  fontWeight: 600,
+                  width: "80px",
+                  height: "90px",
+                  borderRadius: "7px",
+                  overflow: "hidden",
+                  border: `2px solid ${C.blue}30`,
+                  marginBottom: "2px",
+                  flexShrink: 0,
+                }}
+              >
+                <Avatar
+                  src={d.bookletPhotoPath}
+                  name={d.name}
+                  size={90}
+                  square
+                  silhouette
+                  borderColor={C.blue}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 700,
                   color: C.blue,
-                  marginTop: "7px",
+                  marginTop: "8px",
                   lineHeight: 1.3,
-                  maxHeight: "28px",
+                  maxHeight: "30px",
                   overflow: "hidden",
                   width: "100%",
                   textAlign: "center",
