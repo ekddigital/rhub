@@ -119,3 +119,27 @@ This project is proprietary software owned by EKD Digital.
 ---
 
 _Built with ❤️ by [EKD Digital](https://ekddigital.com) — Empowering researchers with better tools._
+
+---
+
+## 📋 Changelog
+
+### 2026-04-19 — Conference Booklet Layout Overhaul
+
+**Cover Page (`CoverPage.tsx`)**
+- Removed president photo strip (H.E. Boakai + H.E. Xi Jinping) from the cover
+- Increased org name label size (10.5px → 12.5px) and conference title (30px → 36px)
+- Enlarged subtitle (13px → 15px) and date/venue frosted card (font 16px → 20px)
+- Upgraded theme box: larger padding, bolder border, bigger label + italic text (12px → 14.5px), label renamed "Conference Theme"
+
+**Leader Portrait Pages (`LeaderSection.tsx`)**
+- Page header `sectionLabel` now shows the individual leader's official title (e.g. "President of the Republic of Liberia") instead of the generic section title — each page has its own correct header
+- `LeaderPortraitPage` component no longer accepts a `sectionLabel` prop; it derives it directly from `leader.title`
+
+**Committee Section (`CommitteeSection.tsx`)**
+- Fully redesigned to use a 2-page layout when general committee members exist:
+  - **Page 1**: Full-width Chairman hero card (96px avatar, blue background, gold badge, bio) + key officers (Vice-Chair, Secretary, Treasurer) in a 3-column grid with larger 64px avatars
+  - **Page 2**: General committee members in a 3-column portrait grid with 56px avatars, name, title, and city
+- Placeholders (`silhouette={true}`) auto-shown for members without photos; replaced live when photos are uploaded
+- Page counter in `index.tsx` updated to allocate 2 pages for committee sections with general members
+

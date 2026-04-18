@@ -124,7 +124,7 @@ async function selectTemplate(
   const templateName =
     templateMap[detection.journalType] || "generic_publication.yaml";
   const templatePath = path.join(
-    process.cwd(),
+    /* turbopackIgnore: true */ process.cwd(),
     "src/lib/latex/templates",
     templateName
   );

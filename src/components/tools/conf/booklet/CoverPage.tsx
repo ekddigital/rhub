@@ -204,12 +204,12 @@ export function CoverPage({
         {/* Org name */}
         <div
           style={{
-            fontSize: "10.5px",
+            fontSize: "12.5px",
             fontWeight: 800,
-            letterSpacing: "0.26em",
+            letterSpacing: "0.24em",
             textTransform: "uppercase",
             color: C.gold,
-            marginBottom: "10px",
+            marginBottom: "12px",
           }}
         >
           Liberian Student Union in China
@@ -228,13 +228,13 @@ export function CoverPage({
         {/* Conference / booklet title */}
         <div
           style={{
-            fontSize: "30px",
+            fontSize: "36px",
             fontWeight: 900,
             color: C.white,
-            lineHeight: 1.15,
-            maxWidth: "520px",
-            marginBottom: "14px",
-            textShadow: "0 2px 20px rgba(0,0,0,0.6)",
+            lineHeight: 1.12,
+            maxWidth: "540px",
+            marginBottom: "16px",
+            textShadow: "0 2px 24px rgba(0,0,0,0.7)",
             letterSpacing: "-0.01em",
           }}
         >
@@ -244,10 +244,10 @@ export function CoverPage({
         {bookletSubtitle && (
           <div
             style={{
-              fontSize: "13px",
+              fontSize: "15px",
               fontWeight: 600,
               color: C.gold,
-              marginBottom: "10px",
+              marginBottom: "14px",
               letterSpacing: "0.04em",
             }}
           >
@@ -258,33 +258,33 @@ export function CoverPage({
         {theme && (
           <div
             style={{
-              padding: "7px 18px",
-              borderRadius: "6px",
-              background: `${C.gold}18`,
-              border: `1px solid ${C.gold}30`,
-              maxWidth: "460px",
-              marginBottom: "12px",
+              padding: "14px 28px",
+              borderRadius: "8px",
+              background: `${C.gold}20`,
+              border: `1.5px solid ${C.gold}50`,
+              maxWidth: "500px",
+              marginBottom: "18px",
             }}
           >
             <div
               style={{
-                fontSize: "9px",
+                fontSize: "9.5px",
                 fontWeight: 800,
-                letterSpacing: "0.18em",
+                letterSpacing: "0.22em",
                 textTransform: "uppercase",
                 color: C.gold,
-                marginBottom: "4px",
+                marginBottom: "7px",
               }}
             >
-              Conference Vision
+              Conference Theme
             </div>
             <div
               style={{
-                fontSize: "12px",
+                fontSize: "14.5px",
                 fontStyle: "italic",
                 fontWeight: 600,
-                color: `${C.white}CC`,
-                lineHeight: 1.6,
+                color: C.white,
+                lineHeight: 1.55,
               }}
             >
               &ldquo;{theme}&rdquo;
@@ -295,201 +295,31 @@ export function CoverPage({
         {/* Red rule */}
         <div
           style={{
-            width: "80px",
+            width: "100px",
             height: "2px",
             background: `linear-gradient(90deg, transparent, ${C.red}, transparent)`,
-            marginBottom: "16px",
+            marginBottom: "24px",
           }}
         />
-
-        {/* ── Presidents of Liberia & China ── */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            gap: "18px",
-            marginBottom: "16px",
-          }}
-        >
-          {/* President of Liberia */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <div
-              style={{
-                width: "72px",
-                height: "88px",
-                borderRadius: "7px",
-                overflow: "hidden",
-                border: `3px solid ${C.red}70`,
-                boxShadow: `0 0 0 2px ${C.white}15, 0 4px 18px rgba(0,0,0,0.45)`,
-                flexShrink: 0,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={ASSETS.presidentBoakai}
-                alt="H.E. Joseph N. Boakai, President of Liberia"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center top",
-                }}
-              />
-            </div>
-            <div style={{ textAlign: "center", maxWidth: "82px" }}>
-              <div
-                style={{
-                  fontSize: "7px",
-                  fontWeight: 800,
-                  color: C.white,
-                  lineHeight: 1.3,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                H.E. Joseph N. Boakai
-              </div>
-              <div
-                style={{
-                  fontSize: "6.5px",
-                  color: `${C.white}65`,
-                  marginTop: "2px",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                President of Liberia
-              </div>
-            </div>
-          </div>
-
-          {/* Connector */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              paddingTop: "24px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "9px",
-                color: `${C.white}30`,
-                letterSpacing: "0.04em",
-              }}
-            >
-              🇱🇷
-            </div>
-            <div
-              style={{
-                width: "1px",
-                height: "16px",
-                background: `${C.white}20`,
-              }}
-            />
-            <div style={{ fontSize: "14px" }}>🤝</div>
-            <div
-              style={{
-                width: "1px",
-                height: "16px",
-                background: `${C.white}20`,
-              }}
-            />
-            <div
-              style={{
-                fontSize: "9px",
-                color: `${C.white}30`,
-                letterSpacing: "0.04em",
-              }}
-            >
-              🇨🇳
-            </div>
-          </div>
-
-          {/* President of China */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <div
-              style={{
-                width: "72px",
-                height: "88px",
-                borderRadius: "7px",
-                overflow: "hidden",
-                border: `3px solid ${C.red}70`,
-                boxShadow: `0 0 0 2px ${C.white}15, 0 4px 18px rgba(0,0,0,0.45)`,
-                flexShrink: 0,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={ASSETS.presidentXi}
-                alt="H.E. Xi Jinping, President of China"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center top",
-                }}
-              />
-            </div>
-            <div style={{ textAlign: "center", maxWidth: "82px" }}>
-              <div
-                style={{
-                  fontSize: "7px",
-                  fontWeight: 800,
-                  color: C.white,
-                  lineHeight: 1.3,
-                  letterSpacing: "0.02em",
-                }}
-              >
-                H.E. Xi Jinping
-              </div>
-              <div
-                style={{
-                  fontSize: "6.5px",
-                  color: `${C.white}65`,
-                  marginTop: "2px",
-                  letterSpacing: "0.02em",
-                }}
-              >
-                President of China
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Date + Venue frosted card */}
         <div
           style={{
-            padding: "16px 36px",
-            borderRadius: "12px",
-            border: `1px solid ${C.white}22`,
-            background: `${C.white}0D`,
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-            marginBottom: "22px",
+            padding: "20px 44px",
+            borderRadius: "14px",
+            border: `1px solid ${C.white}28`,
+            background: `${C.white}10`,
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            marginBottom: "24px",
           }}
         >
           <div
             style={{
-              fontSize: "16px",
+              fontSize: "20px",
               fontWeight: 800,
               color: C.white,
-              marginBottom: "8px",
+              marginBottom: "10px",
               letterSpacing: "0.02em",
             }}
           >
@@ -497,8 +327,8 @@ export function CoverPage({
           </div>
           <div
             style={{
-              fontSize: "10px",
-              color: `${C.white}85`,
+              fontSize: "12px",
+              color: `${C.white}90`,
               letterSpacing: "0.06em",
             }}
           >
@@ -506,9 +336,9 @@ export function CoverPage({
           </div>
           <div
             style={{
-              fontSize: "10px",
-              color: `${C.white}65`,
-              marginTop: "3px",
+              fontSize: "11px",
+              color: `${C.white}70`,
+              marginTop: "4px",
             }}
           >
             {event.city}, People&apos;s Republic of China

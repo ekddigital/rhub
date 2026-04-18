@@ -423,7 +423,7 @@ export async function ensureRemoteTemplates(): Promise<{
 
   for (const templateName of templates) {
     const localPath = path.join(
-      process.cwd(),
+      /* turbopackIgnore: true */ process.cwd(),
       "src/lib/latex/templates",
       templateName
     );

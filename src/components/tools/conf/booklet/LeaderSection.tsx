@@ -26,14 +26,12 @@ function resolvePhoto(leader: LeaderProfile): string | null {
 //   • "HIS EXCELLENCY" (role) → bold name → bold title — all centred below
 function LeaderPortraitPage({
   leader,
-  sectionLabel,
   confName,
   confYear,
   pageNum,
   totalPages,
 }: {
   leader: LeaderProfile;
-  sectionLabel: string;
   confName: string;
   confYear: number;
   pageNum: number;
@@ -54,7 +52,7 @@ function LeaderPortraitPage({
     <A4Page
       pageNum={pageNum}
       totalPages={totalPages}
-      sectionLabel={sectionLabel}
+      sectionLabel={leader.title}
       confName={confName}
       confYear={confYear}
     >
@@ -338,7 +336,6 @@ export function LeaderSection({
         <LeaderPortraitPage
           key={l.id}
           leader={l}
-          sectionLabel={section.title}
           confName={confName}
           confYear={confYear}
           pageNum={startPageNum + idx}

@@ -1,6 +1,10 @@
 // API Route: /api/tools/latex/convert
 // Handles LaTeX to Word conversion requests
 
+// Force Node.js runtime — this route uses fs, path, os, child_process.
+// This prevents Turbopack from tracing the entire project via dynamic fs ops.
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
           error:
             "Pandoc is not installed on the remote server. Please contact support.",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: `Failed to setup remote templates: ${templatesResult.error}`,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { success: false, error: "No file provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
           error:
             "Invalid file type. Please upload a .tex, .latex, or .zip file.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
             maxSize / (1024 * 1024)
           }MB.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -147,25 +151,25 @@ export async function POST(request: NextRequest) {
       if (tempDir) {
         cleanupTempDir(tempDir).catch(console.error);
       }
-      
+
       return NextResponse.json(
         {
           success: false,
-          error: result.errorMessage || 'Conversion failed - check server logs',
+          error: result.errorMessage || "Conversion failed - check server logs",
           warnings: result.warnings,
           durationMs: result.durationMs,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     // Read the output file
     const outputFile = result.outputFile!;
     const outputBuffer = await fs.readFile(outputFile);
-    
+
     // Convert to base64 for JSON response
-    const base64File = outputBuffer.toString('base64');
-    
+    const base64File = outputBuffer.toString("base64");
+
     // Cleanup temp directory
     if (tempDir) {
       cleanupTempDir(tempDir).catch(console.error);
@@ -199,7 +203,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : "Conversion failed",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -86,7 +86,10 @@ function renderSection(
           key={key}
           section={section}
           members={committeeMembers}
-          {...commonSingle}
+          startPageNum={startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
         />
       );
 
@@ -136,10 +139,38 @@ export function BookletPreview({
     (s) => s.type === "BACK_COVER" && s.isEnabled,
   );
 
-  // Count pages properly: LEADER sections consume leaders.length pages each
+  // Count pages properly: LEADER sections → leaders.length pages each
+  // Committee sections → 2 pages when there are general members (role=COMMITTEE), else 1
   const leaderCount = data.leaders.length;
+  const committeeTypes = [
+    "NEC",
+    "COMMITTEE",
+    "COC",
+    "COC_MEMBERS",
+    "CITY_PRESIDENTS",
+    "JUDICIAL",
+  ];
+  function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
+    const relevant = s.committeeScope
+      ? data.committeeMembers.filter(
+          (m) =>
+            m.committeeScope === s.committeeScope ||
+            (s.type === "NEC" &&
+              ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(
+                m.role,
+              )),
+        )
+      : data.committeeMembers;
+    const hasGeneral = relevant.some(
+      (m) =>
+        !["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(m.role),
+    );
+    return hasGeneral ? 2 : 1;
+  }
   const bodyPageCount = enabledSections.reduce((sum, s) => {
     if (s.type === "LEADER") return sum + Math.max(1, leaderCount);
+    if (committeeTypes.includes(s.type))
+      return sum + committeeSectionPageCount(s);
     return sum + 1;
   }, 0);
   const totalPages =
@@ -323,6 +354,8 @@ export function BookletPreview({
                 const startPage = runningPage;
                 if (s.type === "LEADER") {
                   runningPage += Math.max(1, leaderCount);
+                } else if (committeeTypes.includes(s.type)) {
+                  runningPage += committeeSectionPageCount(s);
                 } else {
                   runningPage += 1;
                 }
