@@ -50,6 +50,27 @@ function isTransientDatabaseError(error: unknown): boolean {
   return false;
 }
 
+// Global leader profiles — state dignitaries shown in every conference booklet.
+// confId: null means they appear for all conferences.
+const DEFAULT_GLOBAL_LEADERS = [
+  {
+    role: "H.E.",
+    name: "Joseph Nyuma Boakai Sr.",
+    title: "President of the Republic of Liberia",
+    country: "Liberia",
+    photoPath: "/conf/president_boakai_Liberia.png",
+    sortOrder: 1,
+  },
+  {
+    role: "H.E.",
+    name: "Xi Jinping",
+    title: "President of the People's Republic of China",
+    country: "China",
+    photoPath: "/conf/president_xi_China.png",
+    sortOrder: 2,
+  },
+] as const;
+
 const DEFAULT_MEMBERS = [
   {
     name: "Enoch Kwateh Dongbo",
@@ -195,6 +216,27 @@ async function bootstrapDefaultConference() {
         minutesSubmittedBy: meeting.minutesSubmittedBy,
         chairNote: meeting.chairNote,
         status: meeting.status,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  // Seed global leader profiles (state dignitaries) if not yet present.
+  // These are confId: null so they appear across all conferences.
+  const leaderCount = await prisma.confLeaderProfile.count({
+    where: { confId: null, isActive: true },
+  });
+  if (leaderCount === 0) {
+    await prisma.confLeaderProfile.createMany({
+      data: DEFAULT_GLOBAL_LEADERS.map((l) => ({
+        confId: null,
+        role: l.role,
+        name: l.name,
+        title: l.title,
+        country: l.country,
+        photoPath: l.photoPath,
+        sortOrder: l.sortOrder,
+        isActive: true,
       })),
       skipDuplicates: true,
     });
