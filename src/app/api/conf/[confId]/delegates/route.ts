@@ -97,6 +97,7 @@ export async function POST(
       roomPref,
       wantsSingleRoom,
       partnerClaimNote,
+      conferencePosition,
     } = body;
 
     if (
@@ -269,6 +270,7 @@ export async function POST(
         roomPref: resolvedRoomPref,
         wantsSingleRoom: wantsSingleRoomBool,
         partnerClaimNote: partnerClaimNote || null,
+        conferencePosition: conferencePosition || null,
         status: feePaidBool ? "CONFIRMED" : "REGISTERED",
         flyerReady: canIssueFlyer({
           feePaid: feePaidBool,

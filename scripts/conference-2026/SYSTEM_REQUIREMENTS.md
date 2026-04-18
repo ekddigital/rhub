@@ -434,17 +434,20 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 ### 10.4 Conference Logistics Directives
 
 #### Feeding & Catering
+
 - Committee must define the **exact menu** for each meal: Day 1–4, lunch and dinner
 - Cooking schedule: Who cooks on which day?
 - Food delivery time must be published — delegates should know exactly when meals are served
 - Nanjing 2025 reference items (from remaining items doc): soft drinks, juice, mayonnaise, disposable pans/spoons, cooking pots, rice cooker, silver trays, containers, sugar, black oven — **reuse this list for Jinan procurement planning**
 
 #### Meet & Greet (Day 1 Protocol)
+
 - All delegates **arrive by 8:00 AM**
 - Outdoor activities run **8:00 AM – 12:00 noon** before room assignments
 - First day is not just arrival/rooms — there must be an organized welcome activity with food
 
 #### Room Assignment (Platform Feature Required)
+
 - The system must support a **room assignment app/page**:
   - Which delegate is in which room
   - Room mates
@@ -456,6 +459,7 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 - **This is an explicit NEC directive — must be built**
 
 #### Dinner Night Program
+
 - Red-carpet entrance
 - Achievers' Awards
 - Leadership Awards
@@ -463,6 +467,7 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 - Full dinner program outline to be published in the system
 
 #### Sports Program
+
 - Football match (field + jerseys required — must be in budget)
 - Intercity games
 - Veterans games
@@ -470,14 +475,17 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 - Need to introduce **new games** — to be determined by sports committee
 
 ### 10.5 Member Positions
+
 - Committee list is the authoritative source — see Committee section of the platform
 - Position assignment must be documented and visible to NEC
 
 ### 10.6 Conference Location
+
 - **Arcadia Spa Golf Hotel, Jinan, Shandong Province**
 - Supporting visuals: city view videos and photos already in the system (`/conf/assets/jinan_city/`)
 
 ### 10.7 Budget Breakdown Requirement
+
 - Committee must provide a line-by-line breakdown of what is needed **per day**
 - NEC requires seeing what food items will be procured each day — not just a total
 - This reinforces the need for the Budget module with committee-level granularity
@@ -491,57 +499,59 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 
 ### 11.1 Wuhan 2024 — Conference Structure (Reference Baseline)
 
-| Day | Schedule |
-|-----|----------|
-| Day 1 (July 24) | 2:00 PM Arrival → 6:00 PM Networking Dinner |
+| Day             | Schedule                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| Day 1 (July 24) | 2:00 PM Arrival → 6:00 PM Networking Dinner                                                      |
 | Day 2 (July 25) | Breakfast 6–8 AM → Opening Ceremony 9 AM → Candidate Presentations → Debate → Dinner → Elections |
-| Day 3 (July 26) | Independence Day Celebration → Election Results & Swearing In → Lunch → Sports → Cultural Night |
-| Day 4 (July 27) | Closing Ceremony → Lunch → Departure 2:00 PM |
+| Day 3 (July 26) | Independence Day Celebration → Election Results & Swearing In → Lunch → Sports → Cultural Night  |
+| Day 4 (July 27) | Closing Ceremony → Lunch → Departure 2:00 PM                                                     |
 
 **Key sessions:** Opening Ceremony, Panel Discussion, Debate, Elections, Independence Day Celebration, Sports, Cultural Night, Closing Ceremony.
 
 ### 11.2 Wuhan 2024 — Budget Lessons
 
-| Category | Approved Budget | Actual Spent | Variance |
-|----------|----------------|--------------|----------|
-| Accommodation | 16,800 RMB | 3,000 RMB (deposit) | 13,800 to pay on arrival |
-| Conference Room | 4,000 RMB | 0 | 4,000 to pay on arrival |
-| Food & Drinks | 14,000 RMB | 5,500 RMB | 8,500 remaining |
-| Souvenirs | 7,000 RMB | 7,999.83 RMB | **-999.83 over budget** |
-| Banners & Decor | 1,500 RMB | 0 | Funds not released |
-| Transportation | 800 RMB | 0 | — |
-| Miscellaneous | 500 RMB | 0 | — |
-| **TOTAL** | **44,600 RMB** | **16,499.83 RMB** | First disbursement only |
+| Category        | Approved Budget | Actual Spent        | Variance                 |
+| --------------- | --------------- | ------------------- | ------------------------ |
+| Accommodation   | 16,800 RMB      | 3,000 RMB (deposit) | 13,800 to pay on arrival |
+| Conference Room | 4,000 RMB       | 0                   | 4,000 to pay on arrival  |
+| Food & Drinks   | 14,000 RMB      | 5,500 RMB           | 8,500 remaining          |
+| Souvenirs       | 7,000 RMB       | 7,999.83 RMB        | **-999.83 over budget**  |
+| Banners & Decor | 1,500 RMB       | 0                   | Funds not released       |
+| Transportation  | 800 RMB         | 0                   | —                        |
+| Miscellaneous   | 500 RMB         | 0                   | —                        |
+| **TOTAL**       | **44,600 RMB**  | **16,499.83 RMB**   | First disbursement only  |
 
 **Critical issues from 2024 (must not repeat in 2026):**
+
 - NEC removed event logistics/coordination budget → no funds for banners and hall decoration. **Must be included from the start in Jinan budget.**
 - Souvenir category went over budget — procurement process needs better vendor research and bulk-order planning earlier
 - Total first-year budget was 49,800 RMB, negotiated down to 43,100 RMB — keep this range in mind for 2026
 
 ### 11.3 Wuhan 2024 — Satisfaction Survey Results
 
-| Aspect | Rating |
-|--------|--------|
-| Overall Experience | Good |
-| Venue | Neutral |
-| Meals | Very Satisfied |
-| Accommodation | Very Satisfied |
-| Event Organization | Satisfied |
-| Opening Ceremony | Good |
-| Panel Discussion | Good |
-| Debate | Good |
-| Elections | **Average** |
-| Independence Day Celebration | Good |
-| Sports Events | **Average** |
-| Cultural Night | Good |
-| Closing Ceremony | Good |
-| Communication | Excellent |
+| Aspect                       | Rating         |
+| ---------------------------- | -------------- |
+| Overall Experience           | Good           |
+| Venue                        | Neutral        |
+| Meals                        | Very Satisfied |
+| Accommodation                | Very Satisfied |
+| Event Organization           | Satisfied      |
+| Opening Ceremony             | Good           |
+| Panel Discussion             | Good           |
+| Debate                       | Good           |
+| Elections                    | **Average**    |
+| Independence Day Celebration | Good           |
+| Sports Events                | **Average**    |
+| Cultural Night               | Good           |
+| Closing Ceremony             | Good           |
+| Communication                | Excellent      |
 
 **What delegates enjoyed most:** Awards' Night  
 **What they enjoyed least:** Conference activities timing; venue was "poorly selected"; presiding officer/CoC handling of sessions needs improvement  
 **Key suggestion:** Decentralize communication to City → Province → National level
 
 **Implications for 2026:**
+
 - Election process needs better structure and moderation — consider digital voting via the platform
 - Sports needs more organization and variety (NEC has already addressed this with expanded games list)
 - CoC/presiding officer training or guidelines should be prepared in advance
@@ -551,32 +561,32 @@ This is the 20th Anniversary National Conference — all materials, flyers, book
 
 Items that were left unprocured or pending from Nanjing 2025. **Use as procurement checklist for Jinan:**
 
-| Category | Item | Notes |
-|----------|------|-------|
-| Beverages | Soft Drinks (3 packs = 36 bottles) | 1x Sprite, 2x Coke |
-| Beverages | NFC Juice (1 carton = 10 bottles) | Banana & Apple |
-| Cooking supplies | Mayonnaise (1 jar) | |
-| Cooking supplies | Hand Gloves (1 pack = 100 pcs) | For cooking & serving |
-| Serving supplies | Disposable Pans (150 pcs) | For serving/storing food |
-| Baking | Baking Powder (3 cups) | For bread |
-| Serving | Plastic Disposable Spoons (1,100 pcs) | For eating/serving |
-| Equipment | Cooking Pot — Big (1 pc) | In Hangzhou — needs transport |
-| Equipment | Rice Cooker (1 pc) | At Kuai-di pickup point |
-| Serving | Silver Tray (4 pcs) | |
-| Storage | Tub/Container (3 pcs) | Big containers |
-| Cooking | Sugar (2 jars) | |
-| Baking | Black Oven (2 pcs) | For baking |
+| Category         | Item                                  | Notes                         |
+| ---------------- | ------------------------------------- | ----------------------------- |
+| Beverages        | Soft Drinks (3 packs = 36 bottles)    | 1x Sprite, 2x Coke            |
+| Beverages        | NFC Juice (1 carton = 10 bottles)     | Banana & Apple                |
+| Cooking supplies | Mayonnaise (1 jar)                    |                               |
+| Cooking supplies | Hand Gloves (1 pack = 100 pcs)        | For cooking & serving         |
+| Serving supplies | Disposable Pans (150 pcs)             | For serving/storing food      |
+| Baking           | Baking Powder (3 cups)                | For bread                     |
+| Serving          | Plastic Disposable Spoons (1,100 pcs) | For eating/serving            |
+| Equipment        | Cooking Pot — Big (1 pc)              | In Hangzhou — needs transport |
+| Equipment        | Rice Cooker (1 pc)                    | At Kuai-di pickup point       |
+| Serving          | Silver Tray (4 pcs)                   |                               |
+| Storage          | Tub/Container (3 pcs)                 | Big containers                |
+| Cooking          | Sugar (2 jars)                        |                               |
+| Baking           | Black Oven (2 pcs)                    | For baking                    |
 
 ### 11.5 Honorees & Awards — 2023/2024 Precedent
 
 The following award categories have been established — replicate and expand for 2026:
 
-| Award | Recipients Type |
-|-------|----------------|
-| Presidential Award of Service | NEC leadership (President, VP, Sec-Gen, Financial Sec, Deputy Sec-Gen, Chaplain) |
-| Senior Coordinator Recognition | CoC (Senior Coordinator, Coordinating Secretary, Senior Adjudicator) |
-| City President Appreciation | City Presidents across China |
-| Certificate of Appreciation | Provincial Coordinators, Deputy Coordinators |
+| Award                          | Recipients Type                                                                  |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| Presidential Award of Service  | NEC leadership (President, VP, Sec-Gen, Financial Sec, Deputy Sec-Gen, Chaplain) |
+| Senior Coordinator Recognition | CoC (Senior Coordinator, Coordinating Secretary, Senior Adjudicator)             |
+| City President Appreciation    | City Presidents across China                                                     |
+| Certificate of Appreciation    | Provincial Coordinators, Deputy Coordinators                                     |
 
 **2026 must include:** 20th Anniversary Special Recognition category — to mark the milestone.
 
@@ -688,15 +698,443 @@ The following features are explicitly or implicitly required based on the NEC di
 > All source documents have been converted to PNG images and OCR'd for searchability.
 > Location: `scripts/conference-2026/images/others/` and `scripts/conference-2026/ocr/others/`
 
-| Document | Key Contents | Status |
-|----------|-------------|--------|
-| NEC View and Vision for the conference(1).pdf | Official NEC directives, theme, fee, logistics requirements | ✅ OCR'd |
-| LSUIC Wuhan 2024 Conference concept.pdf | Conference structure, day-by-day agenda, objectives | ✅ OCR'd |
-| Revised Conference Budget & Spending Report.pdf | Wuhan 2024 budget breakdown, lessons learned | ✅ OCR'd |
-| Nanjing 2025 Conference Remaining Items.pdf | Procurement checklist, cooking committee items | ✅ OCR'd |
-| Wuhan Convergence 2024 Satisfaction Survey.pdf | Delegate feedback, ratings, improvement suggestions | ✅ OCR'd |
-| Updated Honorees of The Year 2023.pdf | Award categories, precedent for 2026 awards night | ✅ OCR'd |
-| 20240715_NEC Election Budget_LSUIC_IEC.pdf | NEC election budget breakdown | ✅ OCR'd |
-| 18th Annual General Conference Booklet.pdf | Full 18th conference booklet (15 pages) | ✅ OCR'd |
+| Document                                        | Key Contents                                                | Status   |
+| ----------------------------------------------- | ----------------------------------------------------------- | -------- |
+| NEC View and Vision for the conference(1).pdf   | Official NEC directives, theme, fee, logistics requirements | ✅ OCR'd |
+| LSUIC Wuhan 2024 Conference concept.pdf         | Conference structure, day-by-day agenda, objectives         | ✅ OCR'd |
+| Revised Conference Budget & Spending Report.pdf | Wuhan 2024 budget breakdown, lessons learned                | ✅ OCR'd |
+| Nanjing 2025 Conference Remaining Items.pdf     | Procurement checklist, cooking committee items              | ✅ OCR'd |
+| Wuhan Convergence 2024 Satisfaction Survey.pdf  | Delegate feedback, ratings, improvement suggestions         | ✅ OCR'd |
+| Updated Honorees of The Year 2023.pdf           | Award categories, precedent for 2026 awards night           | ✅ OCR'd |
+| 20240715_NEC Election Budget_LSUIC_IEC.pdf      | NEC election budget breakdown                               | ✅ OCR'd |
+| 18th Annual General Conference Booklet.pdf      | Full 18th conference booklet (15 pages)                     | ✅ OCR'd |
 
 _Document maintained in: `scripts/conference-2026/SYSTEM_REQUIREMENTS.md`_
+
+---
+
+## 14. Conference Booklet — Automatic Generation System
+
+> **Source:** Leadership directive — "Dynamic Automatic Generation of Conference Booklets" (April 2026)  
+> **Priority:** HIGH — Core deliverable for the 2026 20th Anniversary Conference
+
+### 14.1 Overview
+
+The conference booklet is the official printed and digital program guide distributed to all delegates. For the 2026 20th Anniversary Conference, the booklet is generated **automatically** from live system data — eliminating manual typesetting.
+
+**Design reference:** 18th Annual General Conference Booklet (Wuhan 2024) — `scripts/conference-2026/ocr/others/18th_Annual_General_Conference_Booklet-*.txt` and matching images in `images/others/`.
+
+The booklet system:
+
+- Pulls all leadership, delegate, and committee data from the live database
+- Pre-stores fixed leadership (Liberian President, Chinese President, Ambassador) independently of registration
+- Updates dynamically as registrations and role assignments are completed
+- Exports a print-ready PDF (A4) on demand
+- Accessible to Super Admin and Conference Chair
+
+---
+
+### 14.2 Booklet Structure (Based on 18th Conference Reference)
+
+Each section is independently toggleable and reorderable by the admin.
+
+| #   | Section Type                          | Data Source                                    | Notes                                |
+| --- | ------------------------------------- | ---------------------------------------------- | ------------------------------------ |
+| 1   | Cover Page                            | `ConfEvent` (name, theme, logo, year)          | Auto-generated                       |
+| 2   | President of Liberia                  | `ConfLeaderProfile` (pre-stored)               | Joseph Nyuma Boakai Sr.              |
+| 3   | President of China                    | `ConfLeaderProfile` (pre-stored)               | Xi Jinping                           |
+| 4   | Liberian Ambassador to China          | `ConfLeaderProfile` (pre-stored)               | From stored data                     |
+| 5   | NEC Leadership                        | `ConfMember` (NEC exec roles)                  | Auto from member assignments         |
+| 6   | President's Address                   | `ConfMember.bookletBio` (National President)   | Rich text, manually entered          |
+| 7   | Guest Speaker Biography               | `ConfBookletSection.bodyText`                  | Free-text entry                      |
+| 8   | Council of Coordinators — Leadership  | `ConfMember` (committeeScope = "CoC")          | Auto from assignments                |
+| 9   | Council of Coordinators — Members     | `ConfMember` (committeeScope = "CoC Province") | With province/role labels            |
+| 10  | City Presidents                       | `ConfMember` (committeeScope = "City")         | With city labels                     |
+| 11  | Judicial Board                        | `ConfMember` (committeeScope = "Judicial")     | With position labels                 |
+| 12  | Planning & Program Committee (PPC)    | `ConfMember` (committeeScope = "PPC")          | With roles                           |
+| 13  | Academic Excellence Committee (AEC)   | `ConfMember` (committeeScope = "AEC")          | With roles                           |
+| 14  | Ways, Means & Finance Committee (WMF) | `ConfMember` (committeeScope = "WMF")          | With roles                           |
+| 15  | Conference Schedule / Program         | `ConfMeeting` + `ConfTimeline`                 | Auto from agenda data                |
+| 16  | Delegate Roster                       | `ConfDelegate` (status = CONFIRMED)            | Auto-updated as registrations arrive |
+| 17  | Sponsors & Partners                   | `ConfBookletSection.bodyText`                  | Optional                             |
+| 18  | Back Cover                            | `ConfEvent` + logo                             | Auto-generated                       |
+
+---
+
+### 14.3 New Database Models
+
+#### `ConfLeaderProfile` — Pre-stored Fixed Leadership
+
+```prisma
+model ConfLeaderProfile {
+  id            String    @id @default(cuid())
+  confId        String?
+  role          String    // "President of Liberia", "President of China", "Ambassador"
+  name          String
+  title         String    // Full official title
+  bio           String?   @db.Text
+  photoPath     String?
+  photoFileName String?
+  country       String?
+  sortOrder     Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  conf ConfEvent? @relation(fields: [confId], references: [id], onDelete: Cascade)
+}
+```
+
+#### `ConfBooklet` — One Per Conference
+
+```prisma
+enum BookletStatus { DRAFT READY PUBLISHED }
+
+model ConfBooklet {
+  id              String        @id @default(cuid())
+  confId          String        @unique
+  title           String        @default("Conference Booklet")
+  subtitle        String?
+  theme           String?
+  coverImagePath  String?
+  status          BookletStatus @default(DRAFT)
+  lastGeneratedAt DateTime?
+  generatedBy     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  conf     ConfEvent           @relation(fields: [confId], references: [id], onDelete: Cascade)
+  sections ConfBookletSection[]
+}
+```
+
+#### `ConfBookletSection` — Configurable Sections
+
+```prisma
+model ConfBookletSection {
+  id             String   @id @default(cuid())
+  bookletId      String
+  type           String   // "COVER"|"LEADER"|"NEC"|"PRESIDENT_ADDRESS"|"GUEST_BIO"
+                          // |"COC"|"COC_MEMBERS"|"CITY_PRESIDENTS"|"JUDICIAL"
+                          // |"COMMITTEE"|"SCHEDULE"|"DELEGATES"|"SPONSORS"|"BACK_COVER"
+  title          String
+  subtitle       String?
+  bodyText       String?  @db.Text
+  isEnabled      Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  committeeScope String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  booklet ConfBooklet @relation(fields: [bookletId], references: [id], onDelete: Cascade)
+  @@index([bookletId])
+}
+```
+
+#### Field Addition to `ConfMember`
+
+```prisma
+bookletBio String? @db.Text  // President's address / biography for the booklet
+```
+
+#### `ConfEvent` additions
+
+```prisma
+booklet        ConfBooklet?
+leaderProfiles ConfLeaderProfile[]
+```
+
+---
+
+### 14.4 Section Query Logic (Auto Data Binding)
+
+| Section                  | Query                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| NEC Leadership           | `ConfMember WHERE role IN (CHAIR, VICE_CHAIR, SECRETARY, TREASURER, ...) ORDER BY role` |
+| President's Address      | `ConfMember WHERE role = CHAIR` → `bookletBio`                                          |
+| CoC Leadership           | `ConfMember WHERE committeeScope = 'CoC'`                                               |
+| CoC Members              | `ConfMember WHERE committeeScope = 'CoC Province' ORDER BY city`                        |
+| City Presidents          | `ConfMember WHERE committeeScope = 'City' ORDER BY city`                                |
+| Judicial Board           | `ConfMember WHERE committeeScope = 'Judicial'`                                          |
+| Committees (PPC/AEC/WMF) | `ConfMember WHERE committeeScope = {section.committeeScope}`                            |
+| Delegate Roster          | `ConfDelegate WHERE status = CONFIRMED ORDER BY name`                                   |
+| Schedule                 | `ConfMeeting ORDER BY scheduled`                                                        |
+
+---
+
+### 14.5 Manual Assignment → Auto Placement Flow
+
+1. Admin opens `/tools/conf/booklet` → Section Manager
+2. Clicks a section (e.g., "City Presidents") → **Assign Member**
+3. Searches existing `ConfMember` records → selects person
+4. System sets `committeeScope = "City"` on that member and saves
+5. Booklet preview immediately shows that person in the correct section with their photo
+
+---
+
+### 14.6 Photo Handling
+
+| Person Type                   | Source                          | Upload Method                    |
+| ----------------------------- | ------------------------------- | -------------------------------- |
+| Heads of State / Ambassador   | `ConfLeaderProfile.photoPath`   | Admin via leader profile manager |
+| NEC / CoC / Committee Members | `ConfMember.photoPath`          | Admin on member record           |
+| Delegates                     | `ConfDelegate.bookletPhotoPath` | Delegate during registration     |
+
+Missing photos → placeholder silhouette. Section always renders.
+
+---
+
+### 14.7 PDF Generation
+
+**Browser print:** `/tools/conf/booklet/preview` has `@media print` CSS — print → Save as PDF.
+
+**Server-side download:** `GET /api/conf/[confId]/booklet?format=pdf`
+
+- Uses `puppeteer` for headless rendering
+- A4 portrait output
+- Returns `Content-Disposition: attachment`
+
+---
+
+### 14.8 Real-Time Delegate Sync
+
+- Delegate registers → uploads photo → status = `CONFIRMED`
+- Immediately appears in the booklet Delegate Roster
+- Admin sees readiness summary: **"X delegates confirmed · Y leadership slots filled · Booklet status: DRAFT/READY"**
+- Click **Regenerate PDF** for updated copy
+
+---
+
+### 14.9 UI Routes
+
+| Route                                       | Purpose                                       | Access             |
+| ------------------------------------------- | --------------------------------------------- | ------------------ |
+| `/tools/conf/booklet`                       | Booklet overview — section status + readiness | Chair, Super Admin |
+| `/tools/conf/booklet/preview`               | Full live print-styled booklet preview        | Chair, Super Admin |
+| `/tools/conf/booklet/leaders`               | Manage pre-stored fixed leadership profiles   | Super Admin        |
+| `/tools/conf/booklet/sections`              | Reorder, toggle, edit section body text       | Chair, Super Admin |
+| `GET /api/conf/[confId]/booklet`            | Full booklet JSON                             | Authenticated      |
+| `PATCH /api/conf/[confId]/booklet`          | Update config                                 | Chair              |
+| `POST /api/conf/[confId]/booklet/leaders`   | Add/update leader profile                     | Super Admin        |
+| `PATCH /api/conf/[confId]/booklet/sections` | Bulk section update                           | Chair              |
+| `GET /api/conf/[confId]/booklet?format=pdf` | Download PDF                                  | Chair              |
+
+---
+
+### 14.10 Implementation Checklist
+
+| Component | Status |
+|-----------|--------|
+| `ConfLeaderProfile` model | ✅ Done |
+| `ConfBooklet` + `ConfBookletSection` models | ✅ Done |
+| `BookletStatus` enum | ✅ Done |
+| `ConfMember.bookletBio` field | ✅ Done |
+| `ConfEvent` → `booklet` + `leaderProfiles` relations | ✅ Done |
+| DB push (schema synchronized) | ✅ Done |
+| `GET /api/conf/[confId]/booklet/config` (auto-init booklet + sections) | ✅ Done |
+| `PATCH /api/conf/[confId]/booklet/config` (update title/theme/status) | ✅ Done |
+| `GET/POST /api/conf/[confId]/booklet/leaders` | ✅ Done |
+| `PATCH/DELETE /api/conf/[confId]/booklet/leaders/[leaderId]` | ✅ Done |
+| `GET/PATCH /api/conf/[confId]/booklet/sections` (bulk reorder/toggle) | ✅ Done |
+| `PATCH/DELETE /api/conf/[confId]/booklet/sections/[sectionId]` | ✅ Done |
+| `GET /api/conf/[confId]/booklet/data` (full preview payload) | ✅ Done |
+| `BookletManagerShell` — Overview, Leaders, Sections, Config tabs | ✅ Done |
+| Booklet page routing (`/tools/conf/booklet?view=manager`) | ✅ Done |
+| `ConfDelegate.conferencePosition` field | 🔄 To implement |
+| Position dropdown in delegate registration form | 🔄 To implement |
+| Position → booklet section auto-mapping | 🔄 To implement |
+| Print-styled booklet preview page | 🔄 To implement |
+| PDF download via browser print | 🔄 To implement |
+
+---
+
+## 15. Static Assets — Leadership Photos & Official Seals
+
+> **Added:** April 2026  
+> **Location:** `public/conf/`
+
+All assets in `public/conf/` are served statically and referenced directly in booklet templates, flyers, and UI components.
+
+### 15.1 Current Asset Inventory
+
+| File | Subject | Usage |
+|------|---------|-------|
+| `public/conf/lsuic_logo.png` | LSUIC Official Logo (white background) | Booklet cover, letterhead, flyers |
+| `public/conf/lsuic_logo_backup.png` | LSUIC Logo backup copy | Fallback |
+| `public/conf/president_boakai_Liberia.png` | President of Liberia — H.E. Joseph Nyuma Boakai Sr. | Booklet Page 2 (Leader section) |
+| `public/conf/president_xi_China.png` | President of China — Xi Jinping | Booklet Page 3 (Leader section) |
+| `public/conf/liberia-seal.svg` | Official Seal of the Republic of Liberia | Booklet decorative, formal documents |
+
+### 15.2 Usage in Booklet System
+
+The leader photos map directly to `ConfLeaderProfile` records:
+
+| Profile `role` | Photo Asset |
+|----------------|------------|
+| `"President of Liberia"` | `president_boakai_Liberia.png` |
+| `"President of China"` | `president_xi_China.png` |
+| `"Liberian Ambassador to China"` | Upload via leader profile manager |
+
+**Implementation note:** When a `ConfLeaderProfile` is created for the Liberian/Chinese presidents, the `photoPath` should be pre-set to `/conf/president_boakai_Liberia.png` and `/conf/president_xi_China.png` respectively. These are static public assets — no upload needed.
+
+The `liberia-seal.svg` can be used as a watermark or decorative element on the booklet cover and the President of Liberia page.
+
+### 15.3 Asset Seeding Plan
+
+The three permanent leader profiles (Liberian President, Chinese President, Ambassador) should be seeded via the admin panel using the **Leader Profile Manager** at `/tools/conf/booklet?view=manager`. For the two presidents, the photoPath values are:
+
+```
+/conf/president_boakai_Liberia.png   ← already in public/
+/conf/president_xi_China.png          ← already in public/
+```
+
+No upload required for these — just reference the path in the `ConfLeaderProfile.photoPath` field.
+
+---
+
+## 16. Delegate Registration — Conference Position Field
+
+> **Requirement origin:** Leadership directive, April 19 2026  
+> **Purpose:** Allow delegates to declare their LSUIC/leadership position during registration so the system can auto-route them to the correct booklet section and alert admins.
+
+### 16.1 Problem Statement
+
+Currently, delegate registration captures personal/logistical information but has no field for **organizational position**. As a result:
+- City Presidents, NEC officers, and committee chairs registering as delegates are indistinguishable from regular delegates
+- Admin must manually cross-reference the member/leadership list to find who goes where in the booklet
+- Leadership assignment to booklet sections is entirely manual
+
+### 16.2 Solution: `conferencePosition` Field
+
+Add a `conferencePosition String?` field to `ConfDelegate`. During registration, a delegate selects their position from a dropdown. The system uses this to:
+1. **Flag** them in the delegates list (admin sees role tag immediately)
+2. **Auto-suggest** their placement in the correct booklet section
+3. **Assist admins** in quickly assigning them as `ConfMember` in the right `committeeScope`
+
+### 16.3 Position Options (Dropdown Values)
+
+These are the canonical position values stored in `conferencePosition`:
+
+| Value | Display Label | Booklet Section Mapping |
+|-------|--------------|------------------------|
+| `""` (empty) | None — Regular Delegate | Delegate Roster only |
+| `"National President"` | National President | NEC Leadership → `ConfMember.role = CHAIR` |
+| `"National Vice President"` | National Vice President | NEC Leadership → `ConfMember.role = VICE_CHAIR` |
+| `"Secretary General"` | Secretary General | NEC Leadership → `ConfMember.role = SECRETARY` |
+| `"Deputy Secretary General"` | Deputy Secretary General | NEC Leadership |
+| `"Financial Secretary"` | Financial Secretary | NEC Leadership → `ConfMember.role = TREASURER` |
+| `"National Treasurer"` | National Treasurer | NEC Leadership |
+| `"Chaplain General"` | Chaplain General | NEC Leadership |
+| `"Senior Coordinator"` | Senior Coordinator | CoC Leadership → `committeeScope = "CoC"` |
+| `"Province Coordinator"` | Province Coordinator | CoC Members → `committeeScope = "CoC Province"` |
+| `"City President"` | City President | City Presidents → `committeeScope = "City"` |
+| `"Senior Adjudicator"` | Senior Adjudicator | Judicial Board → `committeeScope = "Judicial"` |
+| `"Adjudicator"` | Adjudicator | Judicial Board → `committeeScope = "Judicial"` |
+| `"PPC Chair"` | Planning & Program Committee Chair | PPC → `committeeScope = "PPC"` |
+| `"PPC Member"` | Planning & Program Committee Member | PPC |
+| `"AEC Chair"` | Academic Excellence Committee Chair | AEC → `committeeScope = "AEC"` |
+| `"AEC Member"` | Academic Excellence Committee Member | AEC |
+| `"WMF Chair"` | Ways, Means & Finance Committee Chair | WMF → `committeeScope = "WMF"` |
+| `"WMF Member"` | Ways, Means & Finance Committee Member | WMF |
+| `"Guest Speaker"` | Guest Speaker / Special Invitee | Guest Speaker Biography section |
+| `"Other"` | Other (specify in comments) | Admin review |
+
+### 16.4 Schema Change
+
+```prisma
+// In model ConfDelegate — add:
+conferencePosition String?  // Declared LSUIC role/position (see position list)
+```
+
+### 16.5 Registration Form Change
+
+- **Field label:** "14. Do you hold any official LSUIC position? (optional)"
+- **Type:** `<select>` dropdown — defaults to empty (none)
+- **Placement:** After study year, before accommodation question
+- **Note shown to user:** _"If you hold a position, selecting it helps us place you in the correct section of the conference booklet."_
+
+### 16.6 Admin Dashboard — Flagged Delegates
+
+Delegates with a non-empty `conferencePosition` should be highlighted in the admin delegates list with a badge showing their position. An admin should be able to click **"Add to Booklet"** which creates a `ConfMember` record with the appropriate `committeeScope` derived from the position mapping table above.
+
+### 16.7 Implementation Checklist
+
+| Task | Status |
+|------|--------|
+| `ConfDelegate.conferencePosition String?` schema field | 🔄 To implement |
+| DB push | 🔄 To implement |
+| `DelegateRegistrationPayload` type update | 🔄 To implement |
+| Position dropdown in `DelegateRegistrationForm` | 🔄 To implement |
+| API `POST /delegates` — accept + store `conferencePosition` | 🔄 To implement |
+| Delegates admin list — position badge for flagged delegates | 🔄 To implement |
+| "Add to Booklet" action in admin delegates view | 🔄 To implement |
+
+---
+
+## 17. Full Implementation Roadmap — Booklet System
+
+> **Target:** Ready before 2026 LSUIC 20th Anniversary National Conference (Jinan)  
+> **Current status:** Phase 1 complete, Phase 2 in progress
+
+### Phase 1 — Foundation ✅ Complete
+
+| # | Task | Status |
+|---|------|--------|
+| 1.1 | Design booklet structure from 18th conference OCR reference | ✅ Done |
+| 1.2 | Document all requirements in SYSTEM_REQUIREMENTS.md | ✅ Done |
+| 1.3 | Add `ConfBooklet`, `ConfBookletSection`, `ConfLeaderProfile` schema models | ✅ Done |
+| 1.4 | Add `ConfMember.bookletBio`, `ConfEvent.booklet`, `ConfEvent.leaderProfiles` | ✅ Done |
+| 1.5 | Run `prisma db push` — schema in sync | ✅ Done |
+| 1.6 | Build all API routes (config, leaders, sections, data) | ✅ Done |
+| 1.7 | Build `BookletManagerShell` (Overview / Leaders / Sections / Config tabs) | ✅ Done |
+| 1.8 | Add static assets: `president_boakai_Liberia.png`, `president_xi_China.png`, `liberia-seal.svg` | ✅ Done |
+
+### Phase 2 — Registration Position Field 🔄 In Progress
+
+| # | Task | Status |
+|---|------|--------|
+| 2.1 | Add `ConfDelegate.conferencePosition` to schema + DB push | 🔄 Next |
+| 2.2 | Add position dropdown to `DelegateRegistrationForm` | 🔄 Next |
+| 2.3 | Update delegate POST API to accept `conferencePosition` | 🔄 Next |
+| 2.4 | Show position badge in admin delegates list | 🔄 Next |
+
+### Phase 3 — Leader Profiles Seeding 📋 Planned
+
+| # | Task | Status |
+|---|------|--------|
+| 3.1 | Seed Liberian President profile (`photoPath = /conf/president_boakai_Liberia.png`) | 📋 Planned |
+| 3.2 | Seed Chinese President profile (`photoPath = /conf/president_xi_China.png`) | 📋 Planned |
+| 3.3 | Add Ambassador profile + upload photo via leader manager | 📋 Planned |
+| 3.4 | Verify all 3 leaders appear in booklet overview | 📋 Planned |
+
+### Phase 4 — Booklet Preview Page 📋 Planned
+
+| # | Task | Status |
+|---|------|--------|
+| 4.1 | Create `/tools/conf/booklet/preview` print-styled page | 📋 Planned |
+| 4.2 | Cover page — LSUIC logo + seal, conference name, year, theme | 📋 Planned |
+| 4.3 | Leader pages (full-page layout per leader, photo + title) | 📋 Planned |
+| 4.4 | NEC Leadership grid (photo grid, roles) | 📋 Planned |
+| 4.5 | President's Address (text block with signature) | 📋 Planned |
+| 4.6 | Committee pages (photo + name + role grid per committee) | 📋 Planned |
+| 4.7 | Delegate Roster (confirmed delegates list) | 📋 Planned |
+| 4.8 | Print CSS (`@media print`) — A4 layout, page breaks | 📋 Planned |
+| 4.9 | Browser print-to-PDF button | 📋 Planned |
+
+### Phase 5 — Admin Quality-of-Life 📋 Planned
+
+| # | Task | Status |
+|---|------|--------|
+| 5.1 | Delegates list — position badge for flagged delegates | 📋 Planned |
+| 5.2 | "Add to Booklet" quick-action on delegates with declared positions | 📋 Planned |
+| 5.3 | Booklet readiness checklist on conf dashboard | 📋 Planned |
+| 5.4 | Missing photo warnings per section | 📋 Planned |
+
+### Phase 6 — Final Polish 📋 Planned
+
+| # | Task | Status |
+|---|------|--------|
+| 6.1 | Liberia seal as decorative element on cover + presidential pages | 📋 Planned |
+| 6.2 | LSUIC branding (gold/maroon colors) throughout preview | 📋 Planned |
+| 6.3 | Test full booklet with real data | 📋 Planned |
+| 6.4 | Final print quality review | 📋 Planned |

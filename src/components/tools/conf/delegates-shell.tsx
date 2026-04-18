@@ -84,6 +84,7 @@ type Delegate = {
   partnerClaimNote: string | null;
   passportPhotoPath: string | null;
   bookletPhotoPath: string | null;
+  conferencePosition: string | null;
   flyerReady: boolean;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
@@ -368,6 +369,7 @@ export function DelegatesShell() {
           roomPref: payload.roomPref,
           wantsSingleRoom: payload.roomPref === "SINGLE",
           partnerClaimNote: payload.partnerClaimNote,
+          conferencePosition: payload.conferencePosition || null,
         }),
       });
 
@@ -830,6 +832,12 @@ export function DelegatesShell() {
                     <StatusIcon className="mr-1 size-3" />
                     {config.label}
                   </Badge>
+
+                  {delegate.conferencePosition && (
+                    <Badge variant="outline" className="border-[#C8A061]/50 text-[#C8A061] bg-[#C8A061]/10 text-xs">
+                      {delegate.conferencePosition}
+                    </Badge>
+                  )}
 
                   {canOpenDetail && (
                     <Link

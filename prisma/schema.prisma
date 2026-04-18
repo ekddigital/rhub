@@ -711,6 +711,8 @@ model ConfEvent {
     roomAssignments ConfRoomAssignment[]
     financeAuditLogs ConfFinanceAuditLog[]
     reports    ConfReport[]
+    booklet        ConfBooklet?
+    leaderProfiles ConfLeaderProfile[]
 
     @@index([slug])
     @@index([status])
@@ -731,6 +733,9 @@ model ConfMember {
     isActive  Boolean  @default(true)
     joinedAt  DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    // Booklet
+    bookletBio  String?  @db.Text // President's address / bio shown in the booklet
 
     // Committee scope & permissions
     committeeScope      String?  // "Cooking", "Sports", "Logistics", "Media", "Transport", etc.
@@ -880,6 +885,7 @@ model ConfDelegate {
     additionalComments String? @db.Text
     passportPhotoPath String?
     bookletPhotoPath  String?
+    conferencePosition String?  // Declared LSUIC role (e.g. "City President", "National President", etc.)
     arrival      DateTime?
     departure    DateTime?
     accommodated Boolean   @default(false)
@@ -1062,4 +1068,76 @@ model ConfReportEntry {
 
     @@index([reportId])
     @@index([paymentId])
+}
+
+// ==========================================
+// CONFERENCE BOOKLET SYSTEM
+// ==========================================
+
+enum BookletStatus {
+    DRAFT
+    READY
+    PUBLISHED
+}
+
+/// Pre-stored fixed leadership figures (heads of state, ambassador)
+/// that appear in every booklet independently of registration.
+model ConfLeaderProfile {
+    id            String   @id @default(cuid())
+    confId        String?  // null = global/shared; set confId to override per-conference
+    role          String   // "President of Liberia", "President of China", "Ambassador"
+    name          String
+    title         String   // Full official title
+    bio           String?  @db.Text
+    photoPath     String?
+    photoFileName String?
+    country       String?
+    sortOrder     Int      @default(0)
+    isActive      Boolean  @default(true)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+
+    conf ConfEvent? @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+}
+
+/// One booklet per conference — tracks config + generation state.
+model ConfBooklet {
+    id              String        @id @default(cuid())
+    confId          String        @unique
+    title           String        @default("Conference Booklet")
+    subtitle        String?
+    theme           String?
+    coverImagePath  String?
+    status          BookletStatus @default(DRAFT)
+    lastGeneratedAt DateTime?
+    generatedBy     String?
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @updatedAt
+
+    conf     ConfEvent           @relation(fields: [confId], references: [id], onDelete: Cascade)
+    sections ConfBookletSection[]
+}
+
+/// Each configurable section in the booklet.
+model ConfBookletSection {
+    id             String   @id @default(cuid())
+    bookletId      String
+    /// "COVER"|"LEADER"|"NEC"|"PRESIDENT_ADDRESS"|"GUEST_BIO"
+    /// |"COC"|"COC_MEMBERS"|"CITY_PRESIDENTS"|"JUDICIAL"
+    /// |"COMMITTEE"|"SCHEDULE"|"DELEGATES"|"SPONSORS"|"BACK_COVER"
+    type           String
+    title          String
+    subtitle       String?
+    bodyText       String?  @db.Text
+    isEnabled      Boolean  @default(true)
+    sortOrder      Int      @default(0)
+    committeeScope String?  // For COMMITTEE type: "AEC", "PPC", "WMF", "CoC", etc.
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    booklet ConfBooklet @relation(fields: [bookletId], references: [id], onDelete: Cascade)
+
+    @@index([bookletId])
 }

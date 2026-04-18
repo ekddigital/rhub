@@ -42,6 +42,7 @@ export type DelegateRegistrationPayload = {
   partnerClaimNote: string;
   passportPhoto: File | null;
   bookletPhoto: File | null;
+  conferencePosition: string;
 };
 
 type Props = {
@@ -106,6 +107,7 @@ export function DelegateRegistrationForm({
   const [partnerClaimNote, setPartnerClaimNote] = useState("");
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
   const [bookletPhoto, setBookletPhoto] = useState<File | null>(null);
+  const [conferencePosition, setConferencePosition] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
@@ -135,6 +137,7 @@ export function DelegateRegistrationForm({
     setPartnerClaimNote("");
     setPassportPhoto(null);
     setBookletPhoto(null);
+    setConferencePosition("");
     setError(null);
   };
 
@@ -203,6 +206,7 @@ export function DelegateRegistrationForm({
         partnerClaimNote,
         passportPhoto,
         bookletPhoto,
+        conferencePosition,
       });
 
       if (submitted) {
@@ -362,8 +366,58 @@ export function DelegateRegistrationForm({
           </select>
         </div>
 
+        <div className="space-y-2 sm:col-span-2">
+          <Label>11. Do you hold any official LSUIC position? (optional)</Label>
+          <p className="text-xs text-muted-foreground">
+            If you hold a leadership or committee role, selecting it helps place you in the correct section of the conference booklet.
+          </p>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            value={conferencePosition}
+            onChange={(e) => setConferencePosition(e.target.value)}
+          >
+            <option value="">None — Regular Delegate</option>
+            <optgroup label="NEC Executive">
+              <option value="National President">National President</option>
+              <option value="National Vice President">National Vice President</option>
+              <option value="Secretary General">Secretary General</option>
+              <option value="Deputy Secretary General">Deputy Secretary General</option>
+              <option value="Financial Secretary">Financial Secretary</option>
+              <option value="National Treasurer">National Treasurer</option>
+              <option value="Chaplain General">Chaplain General</option>
+            </optgroup>
+            <optgroup label="Council of Coordinators">
+              <option value="Senior Coordinator">Senior Coordinator</option>
+              <option value="Province Coordinator">Province Coordinator</option>
+            </optgroup>
+            <optgroup label="City Leadership">
+              <option value="City President">City President</option>
+            </optgroup>
+            <optgroup label="Judicial Board">
+              <option value="Senior Adjudicator">Senior Adjudicator</option>
+              <option value="Adjudicator">Adjudicator</option>
+            </optgroup>
+            <optgroup label="Planning &amp; Program Committee (PPC)">
+              <option value="PPC Chair">PPC Chair</option>
+              <option value="PPC Member">PPC Member</option>
+            </optgroup>
+            <optgroup label="Academic Excellence Committee (AEC)">
+              <option value="AEC Chair">AEC Chair</option>
+              <option value="AEC Member">AEC Member</option>
+            </optgroup>
+            <optgroup label="Ways, Means &amp; Finance Committee (WMF)">
+              <option value="WMF Chair">WMF Chair</option>
+              <option value="WMF Member">WMF Member</option>
+            </optgroup>
+            <optgroup label="Special">
+              <option value="Guest Speaker">Guest Speaker / Special Invitee</option>
+              <option value="Other">Other (describe in comments)</option>
+            </optgroup>
+          </select>
+        </div>
+
         <div className="space-y-2">
-          <Label>11. Will you bring someone from another country? *</Label>
+          <Label>12. Will you bring someone from another country? *</Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={bringingForeignGuest}
@@ -378,7 +432,7 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>12. Do you need accommodation during the conference? *</Label>
+          <Label>13. Do you need accommodation during the conference? *</Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={accommodationNeeded}
@@ -394,7 +448,7 @@ export function DelegateRegistrationForm({
 
         <div className="space-y-2">
           <Label>
-            13. Do you have special dietary requirements or food allergies? *
+            14. Do you have special dietary requirements or food allergies? *
           </Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
@@ -492,7 +546,7 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label>13 Details (required if question 13 is Yes)</Label>
+          <Label>14 Details (required if question 14 is Yes)</Label>
           <Textarea
             placeholder="Describe any dietary requirements or allergies"
             value={dietaryDetails}

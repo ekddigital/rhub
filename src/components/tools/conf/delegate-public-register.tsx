@@ -173,6 +173,7 @@ export function DelegatePublicRegister() {
           roomPref: payload.roomPref,
           wantsSingleRoom: payload.roomPref === "SINGLE",
           partnerClaimNote: payload.partnerClaimNote,
+          conferencePosition: payload.conferencePosition || null,
         }),
       });
 
