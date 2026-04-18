@@ -1,6 +1,21 @@
-import { C } from "./constants";
+import { ASSETS, C } from "./constants";
 import { A4Page } from "./A4Page";
 import type { BookletSection, LeaderProfile } from "./types";
+
+// Country → known static dignitary photo (fallback when photoPath is null in DB)
+const COUNTRY_PHOTO_MAP: Record<string, string> = {
+  liberia: ASSETS.presidentBoakai,
+  china: ASSETS.presidentXi,
+};
+
+function resolvePhoto(leader: LeaderProfile): string | null {
+  if (leader.photoPath) return leader.photoPath;
+  const country = leader.country?.toLowerCase() ?? "";
+  for (const [key, path] of Object.entries(COUNTRY_PHOTO_MAP)) {
+    if (country.includes(key)) return path;
+  }
+  return null;
+}
 
 // ─── Single full-page portrait for one dignitary ──────────────────────────────
 function LeaderPortraitPage({
@@ -19,12 +34,11 @@ function LeaderPortraitPage({
   totalPages: number;
 }) {
   // Map country to flag emoji for quick recognition
-  const flagEmoji =
-    leader.country?.toLowerCase().includes("liberia")
-      ? "🇱🇷"
-      : leader.country?.toLowerCase().includes("china")
-        ? "🇨🇳"
-        : null;
+  const flagEmoji = leader.country?.toLowerCase().includes("liberia")
+    ? "🇱🇷"
+    : leader.country?.toLowerCase().includes("china")
+      ? "🇨🇳"
+      : null;
 
   return (
     <A4Page
@@ -119,10 +133,10 @@ function LeaderPortraitPage({
             zIndex: 1,
           }}
         >
-          {leader.photoPath ? (
+          {resolvePhoto(leader) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={leader.photoPath}
+              src={resolvePhoto(leader)!}
               alt={leader.name}
               style={{
                 width: "310px",
@@ -153,7 +167,11 @@ function LeaderPortraitPage({
                 {flagEmoji ?? "👤"}
               </div>
               <div
-                style={{ fontSize: "11px", color: C.muted, fontStyle: "italic" }}
+                style={{
+                  fontSize: "11px",
+                  color: C.muted,
+                  fontStyle: "italic",
+                }}
               >
                 Photo to be added
               </div>
