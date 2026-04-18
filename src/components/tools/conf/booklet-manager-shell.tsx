@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import {
   ArrowDown,
   ArrowUp,
@@ -97,8 +96,8 @@ type BookletData = {
   };
   booklet: (BookletConfig & { sections: BookletSection[] }) | null;
   leaders: LeaderProfile[];
-  necMembers: NecMember[];
-  nationalPresident: NecMember | null;
+  committeeMembers: NecMember[];
+  conferenceChair: NecMember | null;
   membersByScope: Record<string, NecMember[]>;
   delegates: {
     id: string;
@@ -653,20 +652,24 @@ export function BookletManagerShell() {
             </CardContent>
           </Card>
 
-          {/* NEC Members */}
-          {(data?.necMembers ?? []).length > 0 && (
+          {/* Conference Committee Members */}
+          {(data?.committeeMembers ?? []).length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">NEC Leadership</CardTitle>
+                <CardTitle className="text-base">
+                  Conference Committee
+                </CardTitle>
                 <CardDescription>
-                  Members assigned to NEC executive roles.
+                  Organizing committee members who have signed up for the
+                  conference.
                 </CardDescription>
               </CardHeader>
               <CardContent className="divide-y">
-                {(data?.necMembers ?? []).map((m) => (
+                {(data?.committeeMembers ?? []).map((m) => (
                   <div key={m.id} className="flex items-center gap-3 py-2.5">
                     {m.photoPath ? (
-                      <Image
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         src={m.photoPath}
                         alt={m.name}
                         width={36}
@@ -681,16 +684,29 @@ export function BookletManagerShell() {
                     <div>
                       <p className="text-sm font-medium">{m.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {m.role}
-                        {m.title ? ` · ${m.title}` : ""}
+                        {m.role === "CHAIR"
+                          ? "Conference Chair"
+                          : m.role === "VICE_CHAIR"
+                            ? "Co-Chair"
+                            : m.role === "SECRETARY"
+                              ? "Secretary"
+                              : (m.title ?? m.role)}
+                        {m.committeeScope ? ` · ${m.committeeScope}` : ""}
                         {m.city ? ` · ${m.city}` : ""}
                       </p>
                     </div>
-                    {m.bookletBio && (
-                      <Badge variant="secondary" className="ml-auto text-xs">
-                        Address written
-                      </Badge>
-                    )}
+                    <div className="ml-auto flex items-center gap-1.5">
+                      {m.role === "CHAIR" && (
+                        <Badge className="bg-[#C8A061]/20 text-[#C8A061] border-[#C8A061]/30 text-xs">
+                          Conference Chair
+                        </Badge>
+                      )}
+                      {m.bookletBio && (
+                        <Badge variant="secondary" className="text-xs">
+                          Address written
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -861,7 +877,8 @@ export function BookletManagerShell() {
                   <CardContent className="pt-4">
                     <div className="flex items-start gap-3">
                       {l.photoPath ? (
-                        <Image
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
                           src={l.photoPath}
                           alt={l.name}
                           width={64}

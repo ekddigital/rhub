@@ -3,18 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
-const NEC_ROLES = [
-  "CHAIR",
-  "VICE_CHAIR",
-  "SECRETARY",
-  "TREASURER",
-  "COMMITTEE",
-] as const;
-
 // GET /api/conf/[confId]/booklet/data
-// Returns the complete data payload needed to render a booklet preview:
-// event, booklet config, sections, leaders, NEC members, committee members
-// grouped by committeeScope, confirmed delegates, and meetings.
+// Returns the complete data payload needed to render a booklet preview.
+//
+// Structure:
+//   - event              — conference event details
+//   - booklet            — booklet config + ordered sections
+//   - leaders            — ConfLeaderProfile entries (heads of state, ambassador, etc.)
+//   - committeeMembers   — ConfMember entries who have signed up as delegates
+//                          (Conference Chair + all committee members; NOT the NEC)
+//   - conferenceChair    — the ConfMember with role CHAIR (Conference Chair)
+//   - membersByScope     — committeeMembers grouped by committeeScope
+//   - delegates          — CONFIRMED/ATTENDED delegates for the booklet roster
+//   - meetings           — scheduled meetings
+//   - counts             — summary counters
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
@@ -26,7 +28,7 @@ export async function GET(
 
     const origin = new URL(req.url).origin;
 
-    const [event, booklet, leaders, members, delegates, meetings] =
+    const [event, booklet, leaders, members, delegates, allDelegateUserIds, meetings] =
       await Promise.all([
         prisma.confEvent.findUnique({
           where: { id: confId },
@@ -58,6 +60,7 @@ export async function GET(
           orderBy: { sortOrder: "asc" },
         }),
 
+        // Conference Committee members (all roles — CHAIR = Conference Chair)
         prisma.confMember.findMany({
           where: { confId, isActive: true },
           orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
@@ -71,9 +74,11 @@ export async function GET(
             photoPath: true,
             photoFileName: true,
             bookletBio: true,
+            userId: true,
           },
         }),
 
+        // Booklet roster: only CONFIRMED/ATTENDED delegates
         prisma.confDelegate.findMany({
           where: {
             confId,
@@ -89,7 +94,14 @@ export async function GET(
             gender: true,
             bookletPhotoPath: true,
             status: true,
+            userId: true,
           },
+        }),
+
+        // All delegate userIds (any status) — used to filter committee members
+        prisma.confDelegate.findMany({
+          where: { confId, userId: { not: null } },
+          select: { userId: true },
         }),
 
         prisma.confMeeting.findMany({
@@ -134,28 +146,34 @@ export async function GET(
         : null,
     }));
 
-    // Group members by committeeScope for easy section rendering
-    const membersByScope: Record<string, typeof resolvedMembers> = {};
-    const necMembers: typeof resolvedMembers = [];
+    // Build Set of userIds that have any delegate registration for this conference
+    const signedUpUserIds = new Set(
+      allDelegateUserIds.map((d) => d.userId).filter(Boolean) as string[],
+    );
 
-    for (const member of resolvedMembers) {
-      if (NEC_ROLES.includes(member.role as (typeof NEC_ROLES)[number])) {
-        necMembers.push(member);
-      }
+    // Committee members: only include those who have signed up as delegates
+    // (matched by userId). Members without a userId are excluded until they register.
+    const committeeMembers = resolvedMembers.filter(
+      (m) => m.userId !== null && signedUpUserIds.has(m.userId),
+    );
+
+    // Conference Chair is the CHAIR-role member (Enoch). NOT an NEC member.
+    const conferenceChair = committeeMembers.find((m) => m.role === "CHAIR") ?? null;
+
+    // Group all (unfiltered) members by committeeScope for section rendering
+    const membersByScope: Record<string, typeof resolvedMembers> = {};
+    for (const member of committeeMembers) {
       const scope = member.committeeScope ?? "_unassigned";
       if (!membersByScope[scope]) membersByScope[scope] = [];
       membersByScope[scope].push(member);
     }
 
-    // National president for the address section
-    const nationalPresident = resolvedMembers.find((m) => m.role === "CHAIR");
-
     return NextResponse.json({
       event,
       booklet,
       leaders: resolvedLeaders,
-      necMembers,
-      nationalPresident: nationalPresident ?? null,
+      committeeMembers,
+      conferenceChair,
       membersByScope,
       delegates: resolvedDelegates,
       meetings,

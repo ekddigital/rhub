@@ -1138,3 +1138,146 @@ Delegates with a non-empty `conferencePosition` should be highlighted in the adm
 | 6.2 | LSUIC branding (gold/maroon colors) throughout preview | 📋 Planned |
 | 6.3 | Test full booklet with real data | 📋 Planned |
 | 6.4 | Final print quality review | 📋 Planned |
+
+---
+
+## Section 18 — Document & Asset Inventory (OCR Archive)
+
+All images from `scripts/conference-2026/images/` have been OCR'd and stored in `scripts/conference-2026/ocr/`. Total: **189 image files** across 5 subdirectories. This section documents key files and their findings.
+
+### 18.1 Committee Members Documents
+
+**Path:** `scripts/conference-2026/images/committee-members/`
+
+#### LSUIC Constitution (2020 Amendment)
+- **Files:** `LSUIC_Amended_Constitution_of_2020-01.png` through `-46.png` (46 pages)
+- **Summary:** Full constitution of LSUIC. Covers sovereignty, membership, NEC structure (National President, Vice President, Secretary General, Deputy Secretary General, Financial Secretary, Treasurer, Chaplain General), City structure, Committees (CoC, AEC, PPC, WMF, Judicial Board), finances, conference procedure.
+- **Key reference:** Article 25 governs delegate contributions for conferences.
+
+#### Mr. Enoch Kwateh Dongbo — Appointment Letter
+- **Files:** `Mr._Enoch_Appointment-1.png` through `-4.png` (4 pages)
+- **Issued by:** Olano Teah Bloh, National President, LSUIC 2025–2026
+- **Key finding:** Enoch is appointed as **General Conference Chairman** — he is NOT a member of the NEC (National Executive Committee). He was commissioned by the National President to plan and execute the 19th LSUIC Annual General Conference.
+- **Conference Committee members appointed** (from appointment letter):
+
+| Name | Position | City | Province |
+|------|----------|------|----------|
+| Enoch Kwateh Dongbo | **General Chairman** (Conference Chair) | Jinan | Shandong |
+| Alfreda Ruth Togbah | General Co-Chair | Suzhou | Jiangsu |
+| Harris M Bowulo | General Secretary | Beijing | Beijing |
+| Abdul Corneh | PRO & Media | Zhengzhou | Henan |
+| Kukor Brooks | Cooking Team Chair | Jinan | Shandong |
+| Jefferson T Banquando | Chair on Sports | Suzhou | Jiangsu |
+| Lisa Y SET | Member, Cooking Team | Qingdao | Shandong |
+| Blessing Hawa Washington | Member, Cooking Team | Nantong | Jiangsu |
+| Robert D Molley | Chair on Logistics | Qufu | Shandong |
+| Priscilla Bamu Dweh | Member, Cooking Team | Suzhou | Jiangsu |
+| Williamena Yah SENET | Member, Cooking Team | Suzhou | Jiangsu |
+
+- **Chairman responsibilities per the letter:** Budget Management, Delegates Management, Program Execution, Reporting, City/District coordination
+- **CC on the letter:** Council of Coordinators, NEC, National Secretariat, Judicial Board
+
+> ⚠️ **Important:** In the system, Enoch's `ConfMember.role = "CHAIR"` means **Conference Chair** (not NEC Chair). The NEC is a separate body stored in `ConfLeaderProfile`. The booklet display has been corrected to label him "Conference Chair" and the committee section renamed from "NEC Leadership" → "Conference Committee".
+
+#### NEC Members (National Executive Committee)
+Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on all official documents:
+
+| Name | Role | City | Province |
+|------|------|------|----------|
+| Olano Teah Bloh | National President | Nanjing | Jiangsu |
+| Ruphine M. Harmon | National Vice President | Jinan | Shandong |
+| C. Nathaniel Willie II | National Secretary General | Chengdu | Sichuan |
+| Jenkins G. Wilson | Acting National Deputy Secretary General | Xuzhou | Jiangsu |
+| Noah D. Mason | National Financial Secretary General | Ningbo | Zhejiang |
+| Jenneh Bonah | National Treasurer | Jinan | Shandong |
+| Mitchell Vampelt | National Chaplain General | Suzhou | Jiangsu |
+
+---
+
+### 18.2 Meeting Documents
+
+**Path:** `scripts/conference-2026/images/meetings/`
+
+#### First Conference Committee Meeting Agenda
+- **Files:** `conference_agenda-1.png`, `conference_agenda-2.png`
+- **Date:** April 10, 2026
+- **Presiding:** Committee Chairman (Enoch)
+- **Key agenda items:**
+  1. Opening formalities (prayer, welcome, introductions) — 10 min
+  2. Review of previous conferences (lessons learned, budgets, attendance) — 20 min
+  3. Key financial proposals (accommodation: 5,000 RMB deposit, 85 rooms; budget headcount 170 persons; conference hall 2 days @ 4,000 RMB; transport 1,000 RMB; cooking budget) — 60 min
+  4. Award night planning (Miss LSUIC, Best Dressed, award categories) — 30 min
+  5. Committee structure & sub-committees (Finance, Logistics, Program, Awards, Transport & Accommodation, Communication) — 30 min
+
+---
+
+### 18.3 Venue Documents
+
+**Path:** `scripts/conference-2026/images/venue/`
+
+#### Hotel Deposit Payment Agreement
+- **Files:** `Hotel_Agreement-1.png`, `Hotel_Agreement-2.png`
+- **Date signed:** March 13, 2026
+- **Parties:** LSUIC (represented by Noah D. Mason, National Financial Secretary General)
+- **Terms:** Deposit paid for conference venue; 85 rooms confirmed
+- **Significance:** Hotel booking confirmed before the first committee meeting
+
+#### Hotel Presentation (Venue Slides)
+- **Files:** `Hotel_Presentation-01.png` through `-23.png` (23 pages)
+- **Hotel:** RiseSun Hotel (日出酒店)
+- **Content:** Chinese-language presentation showing hotel facilities, room types, pricing (approx. 45–80 RMB per person range noted), banquet hall capacity, catering options
+- **Note:** Primary language is Chinese; OCR text is mostly transliterated Chinese characters
+
+#### HonorPrint / Credentials Letter
+- **Files:** `HonorPrint_20260314_145922-1.png`, `-2.png`
+- **Date:** March 14, 2026
+- **From:** Office of the National Financial Secretary General (Noah D. Mason)
+- **Purpose:** Official LSUIC credentials/certification document (likely a letter of introduction or financial authorization for venue negotiations)
+
+#### Recent WeChat Photos (Venue)
+- **Files:** `Weixin_Image_20260410145410.jpg`, `145415.jpg`, `145421.jpg`, `145441.jpg`, `145450.png`
+- **Date captured:** April 10, 2026
+- **Content:** Physical venue photos (hotel rooms, conference hall, venue exterior). OCR was not extractable from photos.
+
+---
+
+### 18.4 Others (Historical Reference)
+
+**Path:** `scripts/conference-2026/images/others/`
+
+Key documents (all previously referenced in earlier planning):
+- **18th Annual General Conference Booklet** (15 pages) — template for the 19th booklet
+- **Nanjing Renaissance 2025 Final Report** (40 pages) — previous conference full report
+- **LSUIC Financial Policy Document** (12 pages) — financial governance reference
+- **LSUIC Conference Assessment Report** (15 pages) — past conference evaluation
+- **NEC Budget Deliberation Outcome 2025–2026** (2 pages) — approved budget baseline
+- **Wuhan 2024 Conference documents** — execution plan, budget, satisfaction survey
+- **LSUIC Financial Policy Document** (12 pages)
+- **Cooking Committee Financial Report 2025** (8 pages)
+- **Updated Honorees of the Year 2023** (4 pages)
+- **WeChat Images** (`Weixin_Image_20260410144732.jpg` through `145001.jpg`) — 5 recent photos
+
+---
+
+### 18.5 Previous Conference Reference
+
+**Path:** `scripts/conference-2026/images/previous-conf/`
+
+- Constitution pages, budget documents, execution plans
+- 2025 NEC election budget (IEC reference)
+- Wuhan 2024 concept documents
+
+---
+
+### 18.6 OCR Coverage Summary
+
+| Category | Image Files | OCR Files | Notes |
+|----------|-------------|-----------|-------|
+| committee-members | 50 | 50 | Constitution (46 pages) + Enoch appointment (4 pages) |
+| meetings | 2 | 2 | First committee meeting agenda |
+| others | 98 | 98 | Historical conference documents |
+| previous-conf | 16 | 16 | Previous conference reference material |
+| venue | 32 | 31 | Hotel agreement, presentation, venue photos; `address.txt` is empty |
+| **Total** | **189** | **188** | All images OCR'd |
+
+> `address.txt` in venue is an empty placeholder file (not an image, no content).

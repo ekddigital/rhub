@@ -369,7 +369,8 @@ export function DelegateRegistrationForm({
         <div className="space-y-2 sm:col-span-2">
           <Label>11. Do you hold any official LSUIC position? (optional)</Label>
           <p className="text-xs text-muted-foreground">
-            If you hold a leadership or committee role, selecting it helps place you in the correct section of the conference booklet.
+            If you hold a leadership or committee role, selecting it helps place
+            you in the correct section of the conference booklet.
           </p>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
@@ -379,9 +380,13 @@ export function DelegateRegistrationForm({
             <option value="">None — Regular Delegate</option>
             <optgroup label="NEC Executive">
               <option value="National President">National President</option>
-              <option value="National Vice President">National Vice President</option>
+              <option value="National Vice President">
+                National Vice President
+              </option>
               <option value="Secretary General">Secretary General</option>
-              <option value="Deputy Secretary General">Deputy Secretary General</option>
+              <option value="Deputy Secretary General">
+                Deputy Secretary General
+              </option>
               <option value="Financial Secretary">Financial Secretary</option>
               <option value="National Treasurer">National Treasurer</option>
               <option value="Chaplain General">Chaplain General</option>
@@ -410,7 +415,9 @@ export function DelegateRegistrationForm({
               <option value="WMF Member">WMF Member</option>
             </optgroup>
             <optgroup label="Special">
-              <option value="Guest Speaker">Guest Speaker / Special Invitee</option>
+              <option value="Guest Speaker">
+                Guest Speaker / Special Invitee
+              </option>
               <option value="Other">Other (describe in comments)</option>
             </optgroup>
           </select>
