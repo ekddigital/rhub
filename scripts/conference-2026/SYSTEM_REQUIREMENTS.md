@@ -1281,3 +1281,190 @@ Key documents (all previously referenced in earlier planning):
 | **Total** | **189** | **188** | All images OCR'd |
 
 > `address.txt` in venue is an empty placeholder file (not an image, no content).
+
+---
+
+## Section 19 — LSUIC Constitutional Structure (Full Reference)
+
+*Source: LSUIC Amended Constitution of 2020, all 46 pages read and archived in `scripts/conference-2026/ocr/committee-members/`*
+
+### 19.1 Organizational Bodies
+
+| Body | Type | Members | Selection |
+|------|------|---------|-----------|
+| **NEC** | Standing executive | 7 elected officers | Elected at General Conference |
+| **CoC** | Council of all Provincial Coordinators | Variable | Elected per province; officers elected at CoC first sitting |
+| **Judicial Board** | Judicial body | 5 appointed | Appointed by National President with CoC consent |
+| **Board of Advisors** | Advisory body | 8 members | Appointed roles (Embassy, MoE, MoFA, LACTS, business community, past president) |
+
+### 19.2 NEC (National Executive Committee) — 7 Elected Officers
+
+| Office | Current (2025–2026) | City | Phone |
+|--------|---------------------|------|-------|
+| National President | Olano Teah Bloh | Nanjing, Jiangsu | 18351981723 |
+| National Vice President | Ruphine M. Harmon | Jinan, Shandong | 18651615822 |
+| National Secretary General | C. Nathaniel Willie II | Chengdu, Sichuan | 18581578335 |
+| Acting National Deputy Secretary General | Jenkins G. Wilson | Xuzhou, Jiangsu | 18556169627 |
+| National Financial Secretary General | Noah D. Mason | Ningbo, Zhejiang | 19825661023 |
+| National Treasurer | Jenneh Bonah | Jinan, Shandong | 18906417225 |
+| National Chaplain General | Mitchell Vampelt | Suzhou, Jiangsu | 15601544001 |
+
+### 19.3 CoC (Council of Coordinators)
+
+- All Provincial Coordinators form the full CoC (Article 15)
+- Three officers elected at first CoC sitting: **Senior Coordinator**, **Deputy Senior Coordinator**, **Coordinating Secretary**
+- CoC precedes NEC — meets before NEC monthly meeting
+- Consents to Judicial Board appointments
+
+### 19.4 Judicial Board — Article 16
+
+5 members appointed by National President with CoC consent:
+1. Senior Adjudicator (2-year term)
+2. Associate Adjudicator (2-year term)
+3. Assistant Adjudicator (2-year term)
+4. Adjudicator 1 (1-year term)
+5. Adjudicator 2 (1-year term)
+
+### 19.5 Standing Committees (Article 23)
+
+| Committee | Type | Mandate |
+|-----------|------|---------|
+| **AEC** — Academic Excellence Committee | Standing | Promote academic achievement |
+| **WMF** — Ways, Means & Finance Committee | Standing | Financial oversight and fundraising |
+| **Audit Committee** | Standing | Audits all LSUIC accounts; reports to NEC + CoC |
+| **PPC** — Planning & Program Committee | Ad hoc | Plans and implements programs; becomes **Conference Committee** when organizing General Conference |
+| **IEC** — Independent Elections Commission | Ad hoc | Conducts elections; set up 90–60 days before conference |
+| **Students Container Committee** | Ad hoc | Coordinates transportation of graduating students' belongings to Liberia |
+| **Scholarly Literature Committee** | Ad hoc | Books, articles, scholarly programs |
+
+> **Key:** The Conference Committee (Section 16 of this doc) is constitutionally the PPC — "Also be referred to as Conference Committee especially when organized to execute the General Conference and other similar conferences." (Art. 23j.i)
+
+### 19.6 Board of Advisors — Article 17
+
+8 members (appointed roles):
+1. Representative of Liberian Embassy in China — **Chair of Board**
+2. Representative of Liberian Ministry of Education — **Co-Chair of Board**
+3. Representative of Liberian Ministry of Foreign Affairs
+4. Representative of LACTS (Liberian Association of Chinese Trained Students)
+5. Representative of Liberian Business Community in China
+6. Former LSUIC National President (most recent)
+7. Prominent Liberian in China nominated by NEC
+8. National President of LSUIC — **Board Secretary** (no voting right)
+
+### 19.7 Elections & Tenure (Articles 28–32)
+
+- All levels: democratic election by secret ballot, simple majority
+- **Tenure:** 1 academic year per term; maximum 2 consecutive terms
+- Officers must show valid Liberian passport for citizenship proof
+- NEC President + VP must hold bachelor's degree; others: undergraduate studies or high school diploma
+- IEC set up not sooner than 90 days, not later than 60 days before conference
+
+### 19.8 Conference Finance (Articles 24–27)
+
+- Funds: membership dues + fundraising + donations + other lawful income
+- All members contribute toward conference budget (accommodation + feeding)
+- Three signatories: National President, Secretary General, Treasurer
+- President + Treasurer sign all pay vouchers
+- Student loan program possible if financially viable (with guarantors + payment bond)
+
+---
+
+## Section 20 — Conference Committee Letterhead
+
+### 20.1 Design Specification
+
+Modeled after the official NEC letterhead format (from OCR of `Mr._Enoch_Appointment-3.txt`).
+
+**Layout (A4, 96dpi = 794×1123px):**
+
+| Zone | Content |
+|------|---------|
+| Gold top bar (7px) | `#C8A061` gradient |
+| Left: LSUIC logo | Circular clip, 108×108px, ring-bordered |
+| Center: Organization name | "LIBERIAN STUDENT UNION IN CHINA (LSUIC)" |
+| Center: Conference name | Conference event name (gold color) |
+| Center: Venue + Date | Venue, city, date range |
+| Center: Office label | "Office of the Conference Chairman" |
+| Center: Motto + Contact | "Promoting Education, Unity and Development" · Est. July 2008 |
+| Right sidebar: Committee list | All `ConfMember` records (gold separator), top roles first |
+| Navy bottom bar (5px) | `#182e5f` |
+
+**Right sidebar order:** CHAIR → VICE_CHAIR → SECRETARY → TREASURER → COMMITTEE
+
+### 20.2 API Endpoint
+
+```
+GET /api/conf/[confId]/letterhead
+```
+
+Query params:
+- `?mode=header` — header-only (~218px tall)
+- `?mode=page` — full A4 page with body area (default)
+- `?format=svg` — return raw SVG
+- `?format=png` — return PNG via resvg-js (default)
+
+### 20.3 Integration Points
+
+- **Booklet Preview tab** — letterhead preview strip at bottom of Live Preview
+- **Future PDF exports** — all generated documents should embed this letterhead as the first page header
+- **Booklet generation** — when implemented, prefix each page with the header variant
+
+### 20.4 Implementation Checklist
+
+- [x] `GET /api/conf/[confId]/letterhead` — SVG builder + PNG renderer
+- [x] Letterhead preview strip in Booklet Preview tab
+- [ ] Integrate into DOCX/Word export templates
+- [ ] Integrate into PDF generation pipeline
+- [ ] Print-quality resolution option (`?scale=2` for 2x PNG)
+- [ ] QR code in footer linking to conference registration page
+
+---
+
+## Section 21 — Booklet Live Preview
+
+### 21.1 Overview
+
+A beautiful in-browser booklet preview renders all enabled sections in a realistic magazine/program format.
+
+**Route:** `/tools/conf/booklet` → click "Live Preview" tab
+
+### 21.2 Preview Sections Rendered
+
+| Section Type | Visual Treatment |
+|---|---|
+| `COVER` | Full dark-navy gradient, gold accents, LSUIC logo, conference name, theme, dates |
+| `LEADER` | 2-column grid of leader cards with photo, name, title, country badge |
+| `PRESIDENT_ADDRESS` / `GUEST_BIO` / `NEC` | Gold quote mark, speaker photo + name, body text with line breaks |
+| `COMMITTEE` / `COC` / `COC_MEMBERS` | 2-column member cards; CHAIR in gold, VICE_CHAIR in navy |
+| `SCHEDULE` | Timeline with numbered dots, date/time/location per meeting |
+| `DELEGATES` | 5-column photo grid with name, city, delegate code |
+| `SPONSORS` / generic | Styled text body |
+| `BACK_COVER` | Gold gradient, logo, conference name, motto |
+
+### 21.3 Toolbar Features
+
+- Zoom in/out (60%–150%) with live transform scaling
+- Link to Letterhead PNG download
+- Print/PDF button (`window.print()`)
+- Live status badge (DRAFT / READY / PUBLISHED)
+- Section count display
+
+### 21.4 Booklet Manager Tabs
+
+| Tab | Purpose |
+|-----|---------|
+| Overview | Stats dashboard + section readiness + committee member list |
+| **Live Preview** | Full visual booklet preview (new) |
+| Leadership Profiles | CRUD for heads of state, ambassadors |
+| Section Manager | Reorder, enable/disable, edit section text |
+| Settings | Title, subtitle, theme, publication status |
+
+### 21.5 Committee Member Display Fix
+
+Previously, committee members (VICE_CHAIR, SECRETARY, COMMITTEE roles) were hidden unless they had registered as delegates. This was incorrect.
+
+**Fix applied:**
+- Data API now returns **ALL active `ConfMember`** records, each with a `hasRegistered: boolean` flag
+- Admin views show all members; members without delegate registration get a "Not registered" badge
+- Role labels corrected: VICE_CHAIR → "General Co-Chair", SECRETARY → "General Secretary", CHAIR → "General Chairman"
+

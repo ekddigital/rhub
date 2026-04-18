@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Crown,
   Eye,
+  FileText,
   Globe,
   LayoutList,
   Loader2,
@@ -32,12 +33,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { BookletPreview } from "@/components/tools/conf/booklet-preview";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type BookletStatus = "DRAFT" | "READY" | "PUBLISHED";
+export type BookletStatus = "DRAFT" | "READY" | "PUBLISHED";
 
-type BookletConfig = {
+export type BookletConfig = {
   id: string;
   confId: string;
   title: string;
@@ -48,7 +50,7 @@ type BookletConfig = {
   lastGeneratedAt: string | null;
 };
 
-type BookletSection = {
+export type BookletSection = {
   id: string;
   bookletId: string;
   type: string;
@@ -60,7 +62,7 @@ type BookletSection = {
   committeeScope: string | null;
 };
 
-type LeaderProfile = {
+export type LeaderProfile = {
   id: string;
   confId: string | null;
   role: string;
@@ -73,7 +75,7 @@ type LeaderProfile = {
   isActive: boolean;
 };
 
-type NecMember = {
+export type NecMember = {
   id: string;
   name: string;
   role: string;
@@ -82,9 +84,24 @@ type NecMember = {
   committeeScope: string | null;
   photoPath: string | null;
   bookletBio: string | null;
+  hasRegistered?: boolean;
 };
 
-type BookletData = {
+const COMMITTEE_ROLE_LABELS: Record<string, string> = {
+  CHAIR: "General Chairman",
+  VICE_CHAIR: "General Co-Chair",
+  SECRETARY: "General Secretary",
+  TREASURER: "Treasurer",
+  COMMITTEE: "",
+};
+
+function getCommitteeRoleLabel(m: NecMember): string {
+  const base = COMMITTEE_ROLE_LABELS[m.role];
+  if (base !== undefined && base !== "") return base;
+  return m.title ?? m.role;
+}
+
+export type BookletData = {
   event: {
     id: string;
     name: string;
@@ -109,6 +126,13 @@ type BookletData = {
     bookletPhotoPath: string | null;
     status: string;
   }[];
+  meetings: {
+    id: string;
+    title: string;
+    scheduled: string;
+    location: string | null;
+    agenda: string | null;
+  }[];
   counts: {
     totalDelegates: number;
     totalMembers: number;
@@ -118,7 +142,7 @@ type BookletData = {
   };
 };
 
-type ActiveTab = "overview" | "leaders" | "sections" | "config";
+type ActiveTab = "overview" | "preview" | "leaders" | "sections" | "config";
 
 // ─── Status badge helper ──────────────────────────────────────────────────────
 
@@ -506,6 +530,7 @@ export function BookletManagerShell() {
         {(
           [
             { id: "overview", label: "Overview", icon: Eye },
+            { id: "preview", label: "Live Preview", icon: FileText },
             { id: "leaders", label: "Leadership Profiles", icon: Crown },
             { id: "sections", label: "Section Manager", icon: LayoutList },
             { id: "config", label: "Settings", icon: Settings },
@@ -660,8 +685,7 @@ export function BookletManagerShell() {
                   Conference Committee
                 </CardTitle>
                 <CardDescription>
-                  Organizing committee members who have signed up for the
-                  conference.
+                  All organizing committee members for this conference.
                 </CardDescription>
               </CardHeader>
               <CardContent className="divide-y">
@@ -684,13 +708,7 @@ export function BookletManagerShell() {
                     <div>
                       <p className="text-sm font-medium">{m.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {m.role === "CHAIR"
-                          ? "Conference Chair"
-                          : m.role === "VICE_CHAIR"
-                            ? "Co-Chair"
-                            : m.role === "SECRETARY"
-                              ? "Secretary"
-                              : (m.title ?? m.role)}
+                        {getCommitteeRoleLabel(m)}
                         {m.committeeScope ? ` · ${m.committeeScope}` : ""}
                         {m.city ? ` · ${m.city}` : ""}
                       </p>
@@ -698,12 +716,27 @@ export function BookletManagerShell() {
                     <div className="ml-auto flex items-center gap-1.5">
                       {m.role === "CHAIR" && (
                         <Badge className="bg-[#C8A061]/20 text-[#C8A061] border-[#C8A061]/30 text-xs">
-                          Conference Chair
+                          Chairman
+                        </Badge>
+                      )}
+                      {m.role === "VICE_CHAIR" && (
+                        <Badge className="bg-[#182e5f]/20 text-[#182e5f] border-[#182e5f]/30 text-xs">
+                          Co-Chair
+                        </Badge>
+                      )}
+                      {m.role === "SECRETARY" && (
+                        <Badge className="bg-[#8E0E00]/20 text-[#8E0E00] border-[#8E0E00]/30 text-xs">
+                          Secretary
                         </Badge>
                       )}
                       {m.bookletBio && (
                         <Badge variant="secondary" className="text-xs">
                           Address written
+                        </Badge>
+                      )}
+                      {!m.hasRegistered && (
+                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                          Not registered
                         </Badge>
                       )}
                     </div>
@@ -715,9 +748,18 @@ export function BookletManagerShell() {
         </div>
       )}
 
+      {/* ══════════════════════════════════════ PREVIEW TAB ══════════════════════════════════════ */}
+      {tab === "preview" && data && (
+        <BookletPreview data={data} confId={confId} />
+      )}
+      {tab === "preview" && !data && (
+        <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
+          No booklet data available
+        </div>
+      )}
+
       {/* ══════════════════════════════════════ LEADERS TAB ══════════════════════════════════════ */}
-      {tab === "leaders" && (
-        <div className="space-y-4">
+      {tab === "leaders" && (        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">

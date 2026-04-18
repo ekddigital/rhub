@@ -10,8 +10,9 @@ import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 //   - event              — conference event details
 //   - booklet            — booklet config + ordered sections
 //   - leaders            — ConfLeaderProfile entries (heads of state, ambassador, etc.)
-//   - committeeMembers   — ConfMember entries who have signed up as delegates
+//   - committeeMembers   — ALL active ConfMember entries for this conference
 //                          (Conference Chair + all committee members; NOT the NEC)
+//                          Each member has a `hasRegistered` flag (true if signed up as delegate)
 //   - conferenceChair    — the ConfMember with role CHAIR (Conference Chair)
 //   - membersByScope     — committeeMembers grouped by committeeScope
 //   - delegates          — CONFIRMED/ATTENDED delegates for the booklet roster
@@ -28,7 +29,7 @@ export async function GET(
 
     const origin = new URL(req.url).origin;
 
-    const [event, booklet, leaders, members, delegates, allDelegateUserIds, meetings] =
+    const [event, booklet, leaders, members, delegates, registeredDelegateUserIds, meetings] =
       await Promise.all([
         prisma.confEvent.findUnique({
           where: { id: confId },
@@ -98,7 +99,7 @@ export async function GET(
           },
         }),
 
-        // All delegate userIds (any status) — used to filter committee members
+        // All delegate userIds (any status) — used to mark which committee members have registered
         prisma.confDelegate.findMany({
           where: { confId, userId: { not: null } },
           select: { userId: true },
@@ -148,14 +149,16 @@ export async function GET(
 
     // Build Set of userIds that have any delegate registration for this conference
     const signedUpUserIds = new Set(
-      allDelegateUserIds.map((d) => d.userId).filter(Boolean) as string[],
+      registeredDelegateUserIds.map((d) => d.userId).filter(Boolean) as string[],
     );
 
-    // Committee members: only include those who have signed up as delegates
-    // (matched by userId). Members without a userId are excluded until they register.
-    const committeeMembers = resolvedMembers.filter(
-      (m) => m.userId !== null && signedUpUserIds.has(m.userId),
-    );
+    // Committee members: ALL active members, each annotated with hasRegistered flag.
+    // Admin views show all members; the flag indicates who has signed up as a delegate.
+    const committeeMembers = resolvedMembers.map((m) => ({
+      ...m,
+      hasRegistered:
+        m.userId !== null && signedUpUserIds.has(m.userId as string),
+    }));
 
     // Conference Chair is the CHAIR-role member (Enoch). NOT an NEC member.
     const conferenceChair = committeeMembers.find((m) => m.role === "CHAIR") ?? null;
