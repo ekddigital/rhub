@@ -8,7 +8,7 @@ import {
 } from "@/lib/conf/bootstrap";
 import { prisma } from "@/lib/prisma";
 
-type AccessScope = "participant" | "manager" | "super-admin";
+type AccessScope = "participant" | "manager" | "chair" | "super-admin";
 
 type SessionUser = NonNullable<Awaited<ReturnType<typeof validateSession>>>;
 
@@ -17,9 +17,14 @@ type ConferenceAccess = {
   confId: string;
   isParticipant: boolean;
   isManager: boolean;
+  isChair: boolean;
   isSuperAdmin: boolean;
   delegateId: string | null;
   memberId: string | null;
+  memberRole: string | null;
+  committeeScope: string | null;
+  canApprovePayments: boolean;
+  canAssignCommittee: boolean;
 };
 
 const PLATFORM_MANAGER_ROLES = new Set([
@@ -51,9 +56,14 @@ export async function getConferenceAccess(
       confId,
       isParticipant: false,
       isManager: false,
+      isChair: false,
       isSuperAdmin: false,
       delegateId: null,
       memberId: null,
+      memberRole: null,
+      committeeScope: null,
+      canApprovePayments: false,
+      canAssignCommittee: false,
     };
   }
 
@@ -67,6 +77,9 @@ export async function getConferenceAccess(
       select: {
         id: true,
         role: true,
+        committeeScope: true,
+        canApprovePayments: true,
+        canAssignCommittee: true,
       },
     }),
     prisma.confDelegate.findFirst({
@@ -85,6 +98,9 @@ export async function getConferenceAccess(
   const isConferenceManager = Boolean(member && member.role !== "DELEGATE");
   const isManager = isPlatformManager || isConferenceManager;
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isChair =
+    isSuperAdmin ||
+    Boolean(member && (member.role === "CHAIR" || member.role === "VICE_CHAIR"));
   const isParticipant = isManager || Boolean(member) || Boolean(delegate);
 
   return {
@@ -92,9 +108,16 @@ export async function getConferenceAccess(
     confId,
     isParticipant,
     isManager,
+    isChair,
     isSuperAdmin,
     delegateId: delegate?.id ?? null,
     memberId: member?.id ?? null,
+    memberRole: member?.role ?? null,
+    committeeScope: member?.committeeScope ?? null,
+    canApprovePayments:
+      isSuperAdmin || Boolean(member?.canApprovePayments),
+    canAssignCommittee:
+      isSuperAdmin || Boolean(member?.canAssignCommittee),
   };
 }
 
@@ -119,6 +142,16 @@ export async function requireConferenceApiAccess(
       ok: false as const,
       response: NextResponse.json(
         { error: "Manager access required" },
+        { status: 403 },
+      ),
+    };
+  }
+
+  if (scope === "chair" && !access.isChair) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { error: "Chair access required" },
         { status: 403 },
       ),
     };

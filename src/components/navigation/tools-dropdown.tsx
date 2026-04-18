@@ -89,6 +89,16 @@ export function ToolsDropdown() {
       title: "Timeline",
       description: "Milestones, deadlines, and progress tracking",
     },
+    {
+      href: "/tools/conf/finance/audit",
+      title: "Finance Audit Log",
+      description: "Full history of all financial actions and approvals",
+    },
+    {
+      href: "/tools/conf/finance/reports",
+      title: "Report Builder",
+      description: "Build and export custom financial reports",
+    },
   ];
 
   return (

@@ -10,10 +10,14 @@ import type {
   ConfTimeline,
   ConfPairRequest,
   ConfRoomAssignment,
+  ConfFinanceAuditLog,
+  ConfReport,
+  ConfReportEntry,
   BudgetCat,
   BudgetStatus,
   PayMethod,
   PayStatus,
+  PaymentType,
   ConfRole,
   DelStatus,
   MeetStatus,
@@ -38,6 +42,9 @@ export type {
   ConfTimeline,
   ConfPairRequest,
   ConfRoomAssignment,
+  ConfFinanceAuditLog,
+  ConfReport,
+  ConfReportEntry,
 };
 
 // Re-export enums
@@ -46,6 +53,7 @@ export {
   BudgetStatus,
   PayMethod,
   PayStatus,
+  PaymentType,
   ConfRole,
   DelStatus,
   MeetStatus,
@@ -68,6 +76,8 @@ export type PaymentWithProofs = ConfPayment & {
   proofs: ConfPaymentProof[];
   budget?: ConfBudget | null;
   item?: ConfBudgetItem | null;
+  submittedBy?: ConfMember | null;
+  committeeApprover?: ConfMember | null;
 };
 
 export type EventWithRelations = ConfEvent & {
@@ -118,4 +128,27 @@ export type CreatePaymentInput = {
   method: PayMethod;
   ref?: string;
   note?: string;
+  paymentType?: PaymentType;
+  incomeSource?: string;
+  committeeScope?: string;
+  submittedByMemberId?: string;
+};
+
+// Report types
+export type ReportWithEntries = ConfReport & {
+  entries: (ConfReportEntry & {
+    payment:
+      | (ConfPayment & {
+          proofs: ConfPaymentProof[];
+        })
+      | null;
+  })[];
+};
+
+// Audit log type
+export type AuditLogEntry = ConfFinanceAuditLog;
+
+// Committee member with permissions
+export type MemberWithPermissions = ConfMember & {
+  user?: { id: string; name: string; email: string } | null;
 };

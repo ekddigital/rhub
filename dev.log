@@ -24,3 +24,346 @@ Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
  GET /api/conf/default 200 in 1884ms (next.js: 19ms, proxy.ts: 6ms, application-code: 1859ms)
  GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.5s (next.js: 712ms, proxy.ts: 6ms, application-code: 2.8s)
  PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings/cmnzmv9pe0000rwk8jrtpslpi 200 in 8.3s (next.js: 728ms, proxy.ts: 27ms, application-code: 7.5s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/meetings 200 in 15.1s (next.js: 29ms, proxy.ts: 42ms, application-code: 15.0s)
+ GET /api/auth/me?_t=1776240324160 200 in 1204ms (next.js: 16ms, proxy.ts: 8ms, application-code: 1180ms)
+ GET /api/conf/default 200 in 2.0s (next.js: 6ms, proxy.ts: 11ms, application-code: 2.0s)
+ GET /api/conf/default 200 in 2.0s (next.js: 17ms, proxy.ts: 20ms, application-code: 1993ms)
+ GET /api/auth/me?_t=1776240324160 200 in 2.1s (next.js: 19ms, proxy.ts: 7ms, application-code: 2.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 2.6s (next.js: 11ms, proxy.ts: 1529µs, application-code: 2.6s)
+[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RedirectErrorBoundary router={{...}}>
+      <InnerLayoutRouter url="/tools/con..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+        <SegmentViewNode type="page" pagePath="(hub)/tool...">
+          <SegmentTrieNode>
+          <MeetingsPage>
+            <div className="py-6">
+              <MeetingsShell>
+                <div className="space-y-6">
+                  <div>
+                  <div className="space-y-3">
+                    <Card className={"transiti..."}>
+                      <div data-slot="card" className="bg-card te...">
+                        <CardContent className="cursor-poi..." onClick={function onClick}>
+                          <div data-slot="card-content" className="px-6 curso..." onClick={function onClick}>
+                            <div className="flex items...">
+                              <div className="flex items...">
+                                <div
++                                 className="flex size-10 items-center justify-center rounded-lg text-sm font-bold bg-..."
+-                                 className="flex size-10 items-center justify-center rounded-lg text-sm font-bold bg-..."
+                                >
+                                <div>
+                                  <div className="flex items...">
+                                    <p>
+                                    <Badge className="h-5 gap-1 ...">
+                                      <span
+                                        data-slot="badge"
++                                       className={"inline-flex items-center justify-center rounded-full border px-2 ..."}
+-                                       className={"inline-flex items-center justify-center rounded-full border px-2 ..."}
+                                      >
+                                        <ShieldCheck className="size-3">
+                                          <svg
+                                            ref={null}
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width={24}
+                                            height={24}
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
++                                           className="lucide lucide-shield-check size-3"
+-                                           className="lucide lucide-clock mr-1 size-3"
+                                            aria-hidden="true"
+                                          >
+                                            <path
++                                             d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1..."
+-                                             d="M12 6v6l4 2"
+                                            >
++                                           <path d="m9 12 2 2 4-4">
+-                                           <circle cx="12" cy="12" r="10">
+                                        ...
+                                  ...
+                              ...
+                            ...
+                    ...
+        ...
+      ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at path (<anonymous>)
+    at Array.map (<anonymous>)
+    at <unknown> (src/components/tools/conf/meetings-shell.tsx:657:29)
+    at Array.map (<anonymous>)
+    at MeetingsShell (src/components/tools/conf/meetings-shell.tsx:622:19)
+    at MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:9:7)
+  655 |                         {meeting.minutesStatus === "APPROVED" && (
+  656 |                           <Badge className="h-5 gap-1 bg-emerald-500/15 text-xs text-emer...
+> 657 |                             <ShieldCheck className="size-3" />
+      |                             ^
+  658 |                             Final
+  659 |                           </Badge>
+  660 |                         )}
+✓ Compiled in 1470ms
+✓ Compiled in 646ms
+✓ Compiled in 1344ms
+ GET /api/conf/default 200 in 3.9s (next.js: 36ms, proxy.ts: 83ms, application-code: 3.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 4.0s (next.js: 34ms, proxy.ts: 10ms, application-code: 4.0s)
+✓ Compiled in 1177ms
+ GET /api/conf/default 200 in 1486ms (next.js: 48ms, proxy.ts: 201ms, application-code: 1237ms)
+ GET /tools/conf/meetings 200 in 4.2s (next.js: 200ms, proxy.ts: 185ms, application-code: 3.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.2s (next.js: 47ms, proxy.ts: 3ms, application-code: 3.2s)
+ GET /tools/conf/meetings 200 in 4.8s (next.js: 1604µs, proxy.ts: 63ms, application-code: 4.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline 200 in 5.9s (next.js: 808ms, proxy.ts: 4ms, application-code: 5.1s)
+✓ Compiled in 753ms
+✓ Compiled in 525ms
+✓ Compiled in 1094ms
+ GET /tools/conf/meetings 200 in 6.2s (next.js: 90ms, proxy.ts: 121ms, application-code: 5.9s)
+ GET /tools/conf/meetings 200 in 6.3s (next.js: 3ms, proxy.ts: 4ms, application-code: 6.3s)
+ GET /tools/conf/meetings 200 in 7.0s (next.js: 7ms, proxy.ts: 24ms, application-code: 6.9s)
+✓ Compiled in 178ms
+ GET /tools/conf/meetings 200 in 3.3s (next.js: 29ms, proxy.ts: 13ms, application-code: 3.3s)
+ GET /tools/conf/meetings 200 in 3.6s (next.js: 7ms, proxy.ts: 4ms, application-code: 3.6s)
+ GET /tools/conf/meetings 200 in 4.4s (next.js: 9ms, proxy.ts: 7ms, application-code: 4.4s)
+ GET /tools/conf/meetings 200 in 4.4s (next.js: 1923µs, proxy.ts: 5ms, application-code: 4.4s)
+ PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000jrwk8i0j6uvpb 200 in 7.4s (next.js: 991ms, proxy.ts: 18ms, application-code: 6.4s)
+ PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000jrwk8i0j6uvpb 200 in 9.2s (next.js: 204ms, proxy.ts: 2ms, application-code: 9.0s)
+ PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000lrwk8lq6q7znl 200 in 5.0s (next.js: 15ms, proxy.ts: 6ms, application-code: 4.9s)
+○ Compiling /tools/conf/delegates/register ...
+ GET /tools/conf/delegates/register 200 in 3.9s (next.js: 3.6s, proxy.ts: 102ms, application-code: 144ms)
+ GET /api/conf/default 200 in 11.4s (next.js: 176ms, proxy.ts: 102ms, application-code: 11.2s)
+ GET /api/conf/default 200 in 11.4s (next.js: 204ms, proxy.ts: 105ms, application-code: 11.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 1532ms (next.js: 847ms, proxy.ts: 9ms, application-code: 677ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 4.6s (next.js: 846ms, proxy.ts: 7ms, application-code: 3.8s)
+ GET /tools/conf 200 in 19.0s (next.js: 75ms, proxy.ts: 10ms, application-code: 18.9s)
+ GET /api/conf/default 200 in 4.7s (next.js: 15ms, proxy.ts: 19ms, application-code: 4.7s)
+ GET /api/conf/default 200 in 4.7s (next.js: 16ms, proxy.ts: 16ms, application-code: 4.7s)
+ GET /tools/conf/payments 200 in 4.7s (next.js: 1038ms, proxy.ts: 4ms, application-code: 3.7s)
+ GET /tools/conf 200 in 1799ms (next.js: 11ms, proxy.ts: 8ms, application-code: 1780ms)
+ GET /api/conf/default 200 in 58ms (next.js: 29ms, proxy.ts: 12ms, application-code: 17ms)
+ GET /api/conf/default 200 in 79ms (next.js: 50ms, proxy.ts: 22ms, application-code: 7ms)
+ GET /tools/conf/budget 200 in 1989ms (next.js: 744ms, proxy.ts: 4ms, application-code: 1240ms)
+ GET /tools/conf 200 in 1710ms (next.js: 9ms, proxy.ts: 5ms, application-code: 1696ms)
+ GET /api/conf/default 200 in 150ms (next.js: 45ms, proxy.ts: 52ms, application-code: 52ms)
+ GET /api/conf/default 200 in 154ms (next.js: 69ms, proxy.ts: 77ms, application-code: 8ms)
+ GET /tools/conf/delegates 200 in 2.7s (next.js: 1075ms, proxy.ts: 5ms, application-code: 1651ms)
+ GET /api/conf/default 200 in 80ms (next.js: 49ms, proxy.ts: 20ms, application-code: 10ms)
+ GET /api/conf/default 200 in 108ms (next.js: 78ms, proxy.ts: 21ms, application-code: 9ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.8s (next.js: 1102ms, proxy.ts: 18ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 4.4s (next.js: 1117ms, proxy.ts: 15ms, application-code: 3.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 4.6s (next.js: 1128ms, proxy.ts: 20ms, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 11.2s (next.js: 1124ms, proxy.ts: 20ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 11.2s (next.js: 1138ms, proxy.ts: 20ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 13.6s (next.js: 1116ms, proxy.ts: 13ms, application-code: 12.5s)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 2.9s (next.js: 1176ms, proxy.ts: 6ms, application-code: 1742ms)
+ GET /api/conf/default 200 in 69ms (next.js: 25ms, proxy.ts: 29ms, application-code: 15ms)
+ GET /api/conf/default 200 in 63ms (next.js: 40ms, proxy.ts: 19ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 401 in 886ms (next.js: 865ms, proxy.ts: 9ms, application-code: 12ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 401 in 888ms (next.js: 867ms, proxy.ts: 9ms, application-code: 12ms)
+ GET /tools/conf/delegates 200 in 1469ms (next.js: 7ms, proxy.ts: 6ms, application-code: 1456ms)
+ GET /api/conf/default 200 in 53ms (next.js: 11ms, proxy.ts: 7ms, application-code: 35ms)
+ GET /api/conf/default 200 in 69ms (next.js: 53ms, proxy.ts: 8ms, application-code: 7ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 50ms (next.js: 35ms, proxy.ts: 9ms, application-code: 6ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 74ms (next.js: 40ms, proxy.ts: 12ms, application-code: 21ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 82ms (next.js: 48ms, proxy.ts: 11ms, application-code: 23ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 111ms (next.js: 87ms, proxy.ts: 16ms, application-code: 8ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 115ms (next.js: 96ms, proxy.ts: 15ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 116ms (next.js: 97ms, proxy.ts: 14ms, application-code: 6ms)
+ GET /tools/conf 200 in 2.2s (next.js: 5ms, proxy.ts: 6ms, application-code: 2.2s)
+ GET /api/conf/default 200 in 54ms (next.js: 5ms, proxy.ts: 45ms, application-code: 4ms)
+ GET /api/conf/default 200 in 23ms (next.js: 10ms, proxy.ts: 9ms, application-code: 4ms)
+ GET /tools/conf/delegates/register 200 in 32ms (next.js: 6ms, proxy.ts: 4ms, application-code: 22ms)
+ GET /api/conf/default 200 in 70ms (next.js: 14ms, proxy.ts: 50ms, application-code: 6ms)
+ GET /api/conf/default 200 in 73ms (next.js: 19ms, proxy.ts: 48ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 884ms (next.js: 38ms, proxy.ts: 11ms, application-code: 835ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 1052ms (next.js: 35ms, proxy.ts: 8ms, application-code: 1008ms)
+ GET /tools/conf/delegates 200 in 5.8s (next.js: 4ms, proxy.ts: 5ms, application-code: 5.8s)
+ GET /api/conf/default 200 in 42ms (next.js: 14ms, proxy.ts: 18ms, application-code: 10ms)
+ GET /api/conf/default 200 in 48ms (next.js: 23ms, proxy.ts: 19ms, application-code: 7ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.8s (next.js: 30ms, proxy.ts: 15ms, application-code: 2.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.1s (next.js: 34ms, proxy.ts: 19ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 3.7s (next.js: 68ms, proxy.ts: 6ms, application-code: 3.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.8s (next.js: 32ms, proxy.ts: 17ms, application-code: 3.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 6.5s (next.js: 65ms, proxy.ts: 11ms, application-code: 6.5s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/delegates/register 200 in 426ms (next.js: 5ms, proxy.ts: 7ms, application-code: 414ms)
+ GET /api/conf/default 200 in 21ms (next.js: 6ms, proxy.ts: 12ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 10.6s (next.js: 38ms, proxy.ts: 16ms, application-code: 10.5s)
+ GET /api/auth/me?_t=1776258454729 200 in 630ms (next.js: 83ms, proxy.ts: 9ms, application-code: 538ms)
+ GET /api/auth/me?_t=1776258454730 200 in 776ms (next.js: 94ms, proxy.ts: 7ms, application-code: 675ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 2.2s (next.js: 12ms, proxy.ts: 4ms, application-code: 2.2s)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.confDelegate.findFirst()` invocation:
+
+
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at async getConferenceAccess (src/lib/conf/access.ts:60:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:190:18)
+    at async DelegatesPage (src/app/(hub)/tools/conf/delegates/page.tsx:5:3)
+  58 |   }
+  59 |
+> 60 |   const [member, delegate] = await Promise.all([
+     |                              ^
+  61 |     prisma.confMember.findFirst({
+  62 |       where: {
+  63 |         confId, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '783069240'
+}
+ GET /tools/conf/delegates 200 in 16.8s (next.js: 6ms, proxy.ts: 10ms, application-code: 16.7s)
+[browser] Uncaught PrismaClientKnownRequestError: 
+Invalid `prisma.confDelegate.findFirst()` invocation:
+
+
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at Promise.all (<anonymous>:1:20)
+    at getConferenceAccess (src/lib/conf/bootstrap.ts:255:1)
+    at requireConferencePageAccess (src/lib/conf/access.ts:128:12)
+    at DelegatesPage (src/app/(hub)/tools/conf/delegates/page.tsx:5:3)
+  253 |
+  254 |   return inFlightDefaultConference;
+> 255 | }
+      | ^
+  256 |
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/delegates 200 in 2.5s (next.js: 12ms, proxy.ts: 29ms, application-code: 2.5s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/delegates 200 in 12.6s (next.js: 4ms, proxy.ts: 5ms, application-code: 12.5s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           data-new-gr-c-s-check-loaded="14.1283.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1776258765448 200 in 789ms (next.js: 54ms, proxy.ts: 26ms, application-code: 709ms)
+ GET /api/auth/me?_t=1776258765448 200 in 2.1s (next.js: 50ms, proxy.ts: 23ms, application-code: 2.0s)
+ GET /api/conf/default 200 in 7.5s (next.js: 27ms, proxy.ts: 32ms, application-code: 7.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.0s (next.js: 15ms, proxy.ts: 18ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 8.1s (next.js: 31ms, proxy.ts: 6ms, application-code: 8.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 15.1s (next.js: 24ms, proxy.ts: 17ms, application-code: 15.0s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/meetings 200 in 10.5s (next.js: 8ms, proxy.ts: 6ms, application-code: 10.5s)
+ GET /api/conf/default 200 in 106ms (next.js: 48ms, proxy.ts: 48ms, application-code: 10ms)
+ GET /api/conf/default 200 in 116ms (next.js: 24ms, proxy.ts: 82ms, application-code: 9ms)
+ GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 17.7s (next.js: 41ms, proxy.ts: 24ms, application-code: 17.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.1s (next.js: 57ms, proxy.ts: 7ms, application-code: 3.0s)
+ GET /api/conf/default 200 in 28ms (next.js: 9ms, proxy.ts: 12ms, application-code: 8ms)
+ GET /api/auth/me?_t=1776258814139 200 in 718ms (next.js: 16ms, proxy.ts: 13ms, application-code: 689ms)
+ GET /api/auth/me?_t=1776258814139 200 in 719ms (next.js: 21ms, proxy.ts: 13ms, application-code: 685ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline 200 in 5.7s (next.js: 35ms, proxy.ts: 56ms, application-code: 5.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 3.3s (next.js: 7ms, proxy.ts: 1541µs, application-code: 3.3s)
+ PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings/cmnzmv9pe0001rwk8cfboncid 200 in 20.4s (next.js: 93ms, proxy.ts: 18ms, application-code: 20.3s)
+ GET /tools/conf/delegates 200 in 15.1s (next.js: 11ms, proxy.ts: 8ms, application-code: 15.1s)
+ GET /api/conf/default 200 in 4.3s (next.js: 14ms, proxy.ts: 43ms, application-code: 4.2s)
+ GET /api/conf/default 200 in 4.3s (next.js: 20ms, proxy.ts: 40ms, application-code: 4.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 4.2s (next.js: 39ms, proxy.ts: 12ms, application-code: 4.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 5.4s (next.js: 46ms, proxy.ts: 14ms, application-code: 5.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 5.8s (next.js: 30ms, proxy.ts: 12ms, application-code: 5.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 6.5s (next.js: 25ms, proxy.ts: 14ms, application-code: 6.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 12.1s (next.js: 40ms, proxy.ts: 14ms, application-code: 12.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 14.5s (next.js: 41ms, proxy.ts: 14ms, application-code: 14.4s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 4.1s (next.js: 1409ms, proxy.ts: 10ms, application-code: 2.7s)
+ GET /api/auth/me?_t=1776259923650 200 in 644ms (next.js: 10ms, proxy.ts: 7ms, application-code: 628ms)
+ GET /api/auth/me?_t=1776259923650 200 in 650ms (next.js: 8ms, proxy.ts: 6ms, application-code: 635ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer 200 in 10.4s (next.js: 1956ms, proxy.ts: 37ms, application-code: 8.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer?format=png&download=1 200 in 7.4s (next.js: 16ms, proxy.ts: 10ms, application-code: 7.4s)

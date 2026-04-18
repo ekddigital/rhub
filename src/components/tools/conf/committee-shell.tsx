@@ -12,6 +12,12 @@ import {
   Shield,
   Users,
   Crown,
+  Settings2,
+  Link2,
+  Search,
+  CheckCircle2,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import {
   Card,
@@ -35,6 +41,26 @@ type Member = {
   email: string | null;
   photoPath: string | null;
   joinedAt: string;
+  // Enhanced fields
+  committeeScope: string | null;
+  canAssignCommittee: boolean;
+  canApprovePayments: boolean;
+  userId: string | null;
+};
+
+type UserSearchResult = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
+type AccessInfo = {
+  isSuperAdmin: boolean;
+  isChair: boolean;
+  canAssignCommittee: boolean;
+  memberId: string | null;
+  committeeScope: string | null;
 };
 
 const ROLE_CONFIG: Record<
@@ -53,7 +79,7 @@ const ROLE_CONFIG: Record<
   DELEGATE: { label: "Delegate", icon: Users, color: "text-gray-500" },
 };
 
-export function CommitteeShell() {
+export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [confId, setConfId] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,6 +88,13 @@ export function CommitteeShell() {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  // Per-member permissions panel
+  const [permPanelId, setPermPanelId] = useState<string | null>(null);
+  const [permSaving, setPermSaving] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
+  const [userSearching, setUserSearching] = useState(false);
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("COMMITTEE");
@@ -188,6 +221,60 @@ export function CommitteeShell() {
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setUploadingId(null);
+    }
+  };
+
+  const searchUsers = async (q: string) => {
+    if (!q.trim() || q.length < 2) {
+      setUserResults([]);
+      return;
+    }
+    setUserSearching(true);
+    try {
+      const res = await fetch(
+        `/api/admin/users?q=${encodeURIComponent(q)}&limit=10`,
+      );
+      if (res.ok) {
+        const data = (await res.json()) as { users: UserSearchResult[] };
+        setUserResults(data.users ?? []);
+      }
+    } finally {
+      setUserSearching(false);
+    }
+  };
+
+  const handleUpdatePermissions = async (
+    memberId: string,
+    patch: Partial<{
+      role: string;
+      committeeScope: string | null;
+      canAssignCommittee: boolean;
+      canApprovePayments: boolean;
+      userId: string | null;
+      title: string | null;
+    }>,
+  ) => {
+    if (!confId) return;
+    setPermSaving(true);
+    try {
+      const res = await fetch(`/api/conf/${confId}/members/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? "Failed to update");
+      }
+      const updated = (await res.json()) as Member;
+      setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+      setPermPanelId(null);
+      setUserSearch("");
+      setUserResults([]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Update failed");
+    } finally {
+      setPermSaving(false);
     }
   };
 
@@ -363,9 +450,25 @@ export function CommitteeShell() {
                     </div>
                   </div>
 
-                  <Badge variant="outline" className="text-[11px]">
-                    {config.label}
-                  </Badge>
+                  <div className="flex items-start gap-1.5">
+                    <Badge variant="outline" className="text-[11px]">
+                      {config.label}
+                    </Badge>
+                    {(accessInfo?.isSuperAdmin || accessInfo?.canAssignCommittee) && (
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        className="h-6 w-6 opacity-60 hover:opacity-100"
+                        onClick={() =>
+                          setPermPanelId(
+                            permPanelId === member.id ? null : member.id,
+                          )
+                        }
+                      >
+                        <Settings2 className="size-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -389,12 +492,53 @@ export function CommitteeShell() {
                   )}
                 </div>
 
-                <div className="mt-4">
+                {/* Permission badges */}
+                {(member.committeeScope ||
+                  member.canApprovePayments ||
+                  member.canAssignCommittee ||
+                  member.userId) && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {member.committeeScope && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {member.committeeScope} Committee
+                      </Badge>
+                    )}
+                    {member.canApprovePayments && (
+                      <Badge
+                        variant="outline"
+                        className="border-blue-500/40 text-[10px] text-blue-600 dark:text-blue-400"
+                      >
+                        <Shield className="mr-0.5 size-2.5" />
+                        Approver
+                      </Badge>
+                    )}
+                    {member.canAssignCommittee && (
+                      <Badge
+                        variant="outline"
+                        className="border-amber-500/40 text-[10px] text-amber-600 dark:text-amber-400"
+                      >
+                        <Crown className="mr-0.5 size-2.5" />
+                        Can Assign
+                      </Badge>
+                    )}
+                    {member.userId && (
+                      <Badge
+                        variant="outline"
+                        className="border-green-500/40 text-[10px] text-green-600 dark:text-green-400"
+                      >
+                        <Link2 className="mr-0.5 size-2.5" />
+                        Account Linked
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap gap-2">
                   <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
                     <Camera className="size-3.5" />
                     {uploadingId === member.id
                       ? "Uploading..."
-                      : "Upload / Replace Photo"}
+                      : "Upload Photo"}
                     <input
                       type="file"
                       className="hidden"
@@ -405,6 +549,30 @@ export function CommitteeShell() {
                     />
                   </label>
                 </div>
+
+                {/* Permissions Panel */}
+                {permPanelId === member.id && (
+                  <MemberPermissionsPanel
+                    member={member}
+                    isSuperAdmin={accessInfo?.isSuperAdmin ?? false}
+                    saving={permSaving}
+                    userSearch={userSearch}
+                    userResults={userResults}
+                    userSearching={userSearching}
+                    onUserSearch={(q) => {
+                      setUserSearch(q);
+                      void searchUsers(q);
+                    }}
+                    onSave={(patch) =>
+                      handleUpdatePermissions(member.id, patch)
+                    }
+                    onClose={() => {
+                      setPermPanelId(null);
+                      setUserSearch("");
+                      setUserResults([]);
+                    }}
+                  />
+                )}
               </CardContent>
             </Card>
           );
@@ -429,6 +597,236 @@ export function CommitteeShell() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ── Member Permissions Panel ──────────────────────────────────────────────────
+
+function MemberPermissionsPanel({
+  member,
+  isSuperAdmin,
+  saving,
+  userSearch,
+  userResults,
+  userSearching,
+  onUserSearch,
+  onSave,
+  onClose,
+}: {
+  member: Member;
+  isSuperAdmin: boolean;
+  saving: boolean;
+  userSearch: string;
+  userResults: UserSearchResult[];
+  userSearching: boolean;
+  onUserSearch: (q: string) => void;
+  onSave: (
+    patch: Partial<{
+      role: string;
+      committeeScope: string | null;
+      canAssignCommittee: boolean;
+      canApprovePayments: boolean;
+      userId: string | null;
+      title: string | null;
+    }>,
+  ) => void;
+  onClose: () => void;
+}) {
+  const [role, setRole] = useState(member.role);
+  const [committeeScope, setCommitteeScope] = useState(
+    member.committeeScope ?? "",
+  );
+  const [canApprove, setCanApprove] = useState(member.canApprovePayments);
+  const [canAssign, setCanAssign] = useState(member.canAssignCommittee);
+  const [linkedUserId, setLinkedUserId] = useState<string | null>(
+    member.userId,
+  );
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(
+    null,
+  );
+  const [title, setTitle] = useState(member.title ?? "");
+
+  const handleSave = () => {
+    const patch: Parameters<typeof onSave>[0] = {
+      role,
+      committeeScope: committeeScope || null,
+      canApprovePayments: canApprove,
+      title: title || null,
+    };
+    if (isSuperAdmin) {
+      patch.canAssignCommittee = canAssign;
+      patch.userId = linkedUserId;
+    }
+    onSave(patch);
+  };
+
+  return (
+    <div className="mt-3 rounded-lg border border-[#C8A061]/30 bg-muted/30 p-3 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Permissions &amp; Assignment
+        </p>
+        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Role</Label>
+          <select
+            className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            {["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER", "COMMITTEE", "DELEGATE"].map(
+              (r) => (
+                <option key={r} value={r}>
+                  {r.replace("_", " ")}
+                </option>
+              ),
+            )}
+          </select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-xs">Title / Position</Label>
+          <Input
+            className="h-8 text-xs"
+            placeholder="e.g. Cooking Committee Chair"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1 sm:col-span-2">
+          <Label className="text-xs">Committee Scope</Label>
+          <Input
+            className="h-8 text-xs"
+            placeholder="e.g. Cooking, Sports, Logistics, Media"
+            value={committeeScope}
+            onChange={(e) => setCommitteeScope(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <label className="flex cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={canApprove}
+            onChange={(e) => setCanApprove(e.target.checked)}
+            className="rounded"
+          />
+          <Shield className="size-3 text-blue-500" />
+          Can approve payments
+        </label>
+        {isSuperAdmin && (
+          <label className="flex cursor-pointer items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={canAssign}
+              onChange={(e) => setCanAssign(e.target.checked)}
+              className="rounded"
+            />
+            <Crown className="size-3 text-amber-500" />
+            Can assign committee members
+          </label>
+        )}
+      </div>
+
+      {/* User account linking (super admin only) */}
+      {isSuperAdmin && (
+        <div className="space-y-2 border-t pt-2">
+          <Label className="text-xs flex items-center gap-1">
+            <Link2 className="size-3" />
+            Link to Platform User Account
+          </Label>
+
+          {linkedUserId && !selectedUser && (
+            <div className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+              <CheckCircle2 className="size-3" />
+              Currently linked (ID: {linkedUserId.slice(0, 8)}…)
+              <button
+                className="text-red-500 underline"
+                onClick={() => setLinkedUserId(null)}
+              >
+                Unlink
+              </button>
+            </div>
+          )}
+
+          <div className="relative">
+            <Search className="absolute left-2 top-2 size-3 text-muted-foreground" />
+            <Input
+              className="h-8 pl-6 text-xs"
+              placeholder="Search by name or email..."
+              value={userSearch}
+              onChange={(e) => onUserSearch(e.target.value)}
+            />
+          </div>
+
+          {userSearching && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="size-3 animate-spin" />
+              Searching...
+            </div>
+          )}
+
+          {userResults.length > 0 && (
+            <div className="space-y-1">
+              {userResults.map((u) => (
+                <button
+                  key={u.id}
+                  className={`flex w-full items-center justify-between rounded-md border px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent ${linkedUserId === u.id ? "border-green-500/40 bg-green-500/10" : "border-border"}`}
+                  onClick={() => {
+                    setLinkedUserId(u.id);
+                    setSelectedUser(u);
+                  }}
+                >
+                  <div>
+                    <span className="font-medium">{u.name}</span>
+                    <span className="ml-1 text-muted-foreground">
+                      {u.email}
+                    </span>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {u.role}
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selectedUser && linkedUserId === selectedUser.id && (
+            <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+              <CheckCircle2 className="size-3" />
+              Will link to: {selectedUser.name} ({selectedUser.email})
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Save/cancel */}
+      <div className="flex justify-end gap-2 border-t pt-2">
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          className="h-7 text-xs"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : (
+            <AlertCircle className="size-3" />
+          )}
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
     </div>
   );
 }

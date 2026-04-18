@@ -591,8 +591,14 @@ enum PayMethod {
 
 enum PayStatus {
     PENDING
+    COMMITTEE_APPROVED
     APPROVED
     REJECTED
+}
+
+enum PaymentType {
+    EXPENSE
+    INCOME
 }
 
 enum DelStatus {
@@ -682,6 +688,8 @@ model ConfEvent {
     payments   ConfPayment[]
     pairRequests ConfPairRequest[]
     roomAssignments ConfRoomAssignment[]
+    financeAuditLogs ConfFinanceAuditLog[]
+    reports    ConfReport[]
 
     @@index([slug])
     @@index([status])
@@ -703,11 +711,19 @@ model ConfMember {
     joinedAt  DateTime @default(now())
     updatedAt DateTime @updatedAt
 
+    // Committee scope & permissions
+    committeeScope      String?  // "Cooking", "Sports", "Logistics", "Media", "Transport", etc.
+    canAssignCommittee  Boolean  @default(false) // Chair can assign members within their scope
+    canApprovePayments  Boolean  @default(false) // Can perform Level-1 approval
+
     conf    ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
     budgets ConfBudget[] @relation("BudgetCreator")
+    submittedPayments   ConfPayment[] @relation("PaymentSubmitter")
+    committeeApprovals  ConfPayment[] @relation("CommitteeApprover")
 
     @@index([confId])
     @@index([userId])
+    @@index([committeeScope])
 }
 
 model ConfBudget {
@@ -755,31 +771,50 @@ model ConfBudgetItem {
 }
 
 model ConfPayment {
-    id         String    @id @default(cuid())
+    id         String      @id @default(cuid())
     confId     String
     budgetId   String?
     itemId     String?
     amount     Float // in ¥ RMB
     paidBy     String // name of payer
     paidTo     String? // payee name
-    method     PayMethod @default(WECHAT)
+    method     PayMethod   @default(WECHAT)
     ref        String? // transaction reference
-    note       String?   @db.Text
-    status     PayStatus @default(PENDING)
+    note       String?     @db.Text
+    status     PayStatus   @default(PENDING)
     approvedBy String?
     approvedAt DateTime?
-    paidAt     DateTime  @default(now())
-    createdAt  DateTime  @default(now())
-    updatedAt  DateTime  @updatedAt
+    paidAt     DateTime    @default(now())
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
 
-    conf   ConfEvent       @relation(fields: [confId], references: [id], onDelete: Cascade)
-    budget ConfBudget?     @relation(fields: [budgetId], references: [id], onDelete: SetNull)
-    item   ConfBudgetItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
-    proofs ConfPaymentProof[]
+    // Payment type & income tracking
+    paymentType  PaymentType @default(EXPENSE)
+    incomeSource String? // For INCOME: "Fundraising", "Donation", "Sponsorship", etc.
+
+    // Committee scoping
+    committeeScope      String? // "Cooking", "Sports", "Logistics", etc.
+    submittedByMemberId String? // ConfMember who submitted
+
+    // Two-tier approval
+    committeeApprovedBy String? // ConfMember id (Level-1 approval)
+    committeeApprovedAt DateTime?
+    isLocked            Boolean  @default(false) // true once finally approved — immutable
+
+    conf      ConfEvent       @relation(fields: [confId], references: [id], onDelete: Cascade)
+    budget    ConfBudget?     @relation(fields: [budgetId], references: [id], onDelete: SetNull)
+    item      ConfBudgetItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+    proofs    ConfPaymentProof[]
+    submittedBy    ConfMember? @relation("PaymentSubmitter", fields: [submittedByMemberId], references: [id], onDelete: SetNull)
+    committeeApprover ConfMember? @relation("CommitteeApprover", fields: [committeeApprovedBy], references: [id], onDelete: SetNull)
+    reportEntries  ConfReportEntry[]
 
     @@index([confId])
     @@index([budgetId])
     @@index([status])
+    @@index([paymentType])
+    @@index([committeeScope])
+    @@index([isLocked])
 }
 
 model ConfPaymentProof {
@@ -944,4 +979,66 @@ model ConfTimeline {
     @@index([date])
     @@index([category])
     @@unique([confId, clientId])
+}
+
+// ==========================================
+// CONFERENCE FINANCE AUDIT & REPORTING
+// ==========================================
+
+model ConfFinanceAuditLog {
+    id          String   @id @default(cuid())
+    confId      String
+    actorUserId String?
+    actorName   String
+    action      String   // e.g. "PAYMENT_CREATED", "PAYMENT_FINAL_APPROVED"
+    entityType  String   // "payment", "budget", "report", "member"
+    entityId    String
+    details     Json?    // before/after values or contextual data
+    note        String?  @db.Text // rejection reason, comment, etc.
+    createdAt   DateTime @default(now())
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+    @@index([actorUserId])
+    @@index([entityType, entityId])
+    @@index([createdAt])
+}
+
+model ConfReport {
+    id             String    @id @default(cuid())
+    confId         String
+    title          String
+    description    String?   @db.Text
+    dateFrom       DateTime?
+    dateTo         DateTime?
+    committeeScope String?   // filter by committee, null = all
+    paymentTypes   String?   // "EXPENSE,INCOME" or single value
+    generalComment String?   @db.Text
+    status         String    @default("draft") // "draft", "published"
+    createdByName  String?
+    createdByUserId String?
+    createdAt      DateTime  @default(now())
+    updatedAt      DateTime  @updatedAt
+
+    conf    ConfEvent         @relation(fields: [confId], references: [id], onDelete: Cascade)
+    entries ConfReportEntry[]
+
+    @@index([confId])
+    @@index([status])
+    @@index([createdAt])
+}
+
+model ConfReportEntry {
+    id           String  @id @default(cuid())
+    reportId     String
+    paymentId    String?
+    lineComment  String? @db.Text
+    displayOrder Int     @default(0)
+
+    report  ConfReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+    payment ConfPayment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+    @@index([reportId])
+    @@index([paymentId])
 }

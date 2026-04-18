@@ -14,6 +14,8 @@ import {
   UserPlus,
   Users,
   Wallet,
+  ClipboardList,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +37,8 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   { href: "/tools/conf/meetings", label: "Meetings", icon: CalendarDays },
   { href: "/tools/conf/timeline", label: "Timeline", icon: Clock },
   { href: "/tools/conf/flyers", label: "Flyers", icon: Megaphone },
+  { href: "/tools/conf/finance/audit", label: "Audit Log", icon: ClipboardList },
+  { href: "/tools/conf/finance/reports", label: "Report Builder", icon: BarChart3 },
 ];
 
 function isItemActive(pathname: string, href: string): boolean {
