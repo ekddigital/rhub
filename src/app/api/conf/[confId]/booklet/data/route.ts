@@ -125,12 +125,25 @@ export async function GET(
       );
     }
 
-    // Resolve photo URLs
+    // Resolve photo URLs.
+    // Public static files (e.g. /conf/president_boakai_Liberia.png) must be
+    // kept as relative paths — on the server the internal origin (localhost)
+    // differs from the browser's origin, so absolutising them produces URLs
+    // the browser can never reach.  Only proper asset-server paths need
+    // resolveStoredAssetUrl.
+    function resolveLeaderPhoto(photoPath: string): string {
+      if (
+        photoPath.startsWith("/conf/") ||
+        photoPath.startsWith("/public/")
+      ) {
+        return photoPath; // relative — browser resolves against its own origin
+      }
+      return resolveStoredAssetUrl(photoPath, origin);
+    }
+
     const resolvedLeaders = leaders.map((l) => ({
       ...l,
-      photoPath: l.photoPath
-        ? resolveStoredAssetUrl(l.photoPath, origin)
-        : null,
+      photoPath: l.photoPath ? resolveLeaderPhoto(l.photoPath) : null,
     }));
 
     const resolvedMembers = members.map((m) => ({

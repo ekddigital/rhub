@@ -1239,12 +1239,20 @@ export function BookletManagerShell() {
                           width={64}
                           height={64}
                           className="h-16 w-16 rounded-lg object-cover"
+                          onError={(e) => {
+                            // On load failure fall back to the Globe placeholder
+                            (e.currentTarget as HTMLImageElement).style.display = "none";
+                            const sib = e.currentTarget.nextElementSibling as HTMLElement | null;
+                            if (sib) sib.style.display = "flex";
+                          }}
                         />
-                      ) : (
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-muted">
-                          <Globe className="size-6 text-muted-foreground" />
-                        </div>
-                      )}
+                      ) : null}
+                      <div
+                        className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-muted"
+                        style={{ display: l.photoPath ? "none" : "flex" }}
+                      >
+                        <Globe className="size-6 text-muted-foreground" />
+                      </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#8E0E00]">
                           {l.role}

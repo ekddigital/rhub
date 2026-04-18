@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ASSETS, C } from "./constants";
 import { A4Page } from "./A4Page";
 import type { BookletSection, LeaderProfile } from "./types";
@@ -17,7 +18,12 @@ function resolvePhoto(leader: LeaderProfile): string | null {
   return null;
 }
 
-// ─── Single full-page portrait for one dignitary ──────────────────────────────
+// ─── Single full-page portrait ─────────────────────────────────────────────
+// Design mirrors the LSUIC 18th Annual General Conference Booklet (pages 2–4):
+//   • White page
+//   • Light-blue diagonal X-line decorations in corners / centre
+//   • Large photo — clean rectangle, no border-radius, no shadow
+//   • "HIS EXCELLENCY" (role) → bold name → bold title — all centred below
 function LeaderPortraitPage({
   leader,
   sectionLabel,
@@ -33,12 +39,16 @@ function LeaderPortraitPage({
   pageNum: number;
   totalPages: number;
 }) {
-  // Map country to flag emoji for quick recognition
+  const [imgFailed, setImgFailed] = useState(false);
+
   const flagEmoji = leader.country?.toLowerCase().includes("liberia")
     ? "🇱🇷"
     : leader.country?.toLowerCase().includes("china")
       ? "🇨🇳"
       : null;
+
+  const photo = resolvePhoto(leader);
+  const showPhoto = !!photo && !imgFailed;
 
   return (
     <A4Page
@@ -48,167 +58,159 @@ function LeaderPortraitPage({
       confName={confName}
       confYear={confYear}
     >
-      {/* Full-page dignitary portrait layout — mirrors 18th Annual reference */}
+      {/* ── Layout wrapper ─────────────────────────────────────────────────── */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          minHeight: "820px", // fill most of the A4 content area
           position: "relative",
-          padding: "0 48px",
+          /* cancel the A4Page content-area padding so the photo can be wider */
+          margin: "-28px -40px 0",
+          padding: "0",
         }}
       >
-        {/* ── Geometric cross decoration (top area, like reference) ── */}
+        {/* ── Geometric X-line background — same light-blue cross as reference ── */}
         <div
           style={{
             position: "absolute",
-            top: "0",
-            left: "0",
-            right: "0",
-            height: "360px",
+            inset: 0,
             pointerEvents: "none",
             overflow: "hidden",
           }}
         >
-          {/* Diagonal line 1 — top-left to bottom-right */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-120px",
-              left: "-80px",
-              width: "130%",
-              height: "2px",
-              background: `linear-gradient(90deg, transparent 0%, ${C.blue}18 30%, ${C.blue}18 70%, transparent 100%)`,
-              transform: "rotate(30deg)",
-              transformOrigin: "center",
-            }}
-          />
-          {/* Diagonal line 2 — top-right to bottom-left */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-120px",
-              right: "-80px",
-              width: "130%",
-              height: "2px",
-              background: `linear-gradient(90deg, transparent 0%, ${C.blue}18 30%, ${C.blue}18 70%, transparent 100%)`,
-              transform: "rotate(-30deg)",
-              transformOrigin: "center",
-            }}
-          />
-          {/* Extra line pair for depth */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-40px",
-              left: "-80px",
-              width: "130%",
-              height: "1px",
-              background: `linear-gradient(90deg, transparent 0%, ${C.blue}0A 30%, ${C.blue}0A 70%, transparent 100%)`,
-              transform: "rotate(30deg)",
-              transformOrigin: "center",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: "-40px",
-              right: "-80px",
-              width: "130%",
-              height: "1px",
-              background: `linear-gradient(90deg, transparent 0%, ${C.blue}0A 30%, ${C.blue}0A 70%, transparent 100%)`,
-              transform: "rotate(-30deg)",
-              transformOrigin: "center",
-            }}
-          />
+          {/* Upper X pair */}
+          {[
+            { top: "-60px", left: "-60px", rotate: "32deg" },
+            { top: "-60px", right: "-60px", rotate: "-32deg" },
+            { top: "160px", left: "-60px", rotate: "32deg" },
+            { top: "160px", right: "-60px", rotate: "-32deg" },
+          ].map((s, i) => (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                top: s.top,
+                left: s.left ?? undefined,
+                right: s.right ?? undefined,
+                width: "480px",
+                height: "1.5px",
+                background: `linear-gradient(90deg, transparent 0%, ${C.blue}22 40%, ${C.blue}22 60%, transparent 100%)`,
+                transform: `rotate(${s.rotate})`,
+                transformOrigin: "center",
+              }}
+            />
+          ))}
         </div>
 
-        {/* ── Portrait photo ── */}
+        {/* ── Photo / Placeholder ────────────────────────────────────────────── */}
         <div
           style={{
             position: "relative",
-            marginBottom: "36px",
             zIndex: 1,
+            marginTop: "32px",
+            marginBottom: "28px",
           }}
         >
-          {resolvePhoto(leader) ? (
+          {showPhoto ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={resolvePhoto(leader)!}
+              src={photo}
               alt={leader.name}
+              onError={() => setImgFailed(true)}
               style={{
-                width: "310px",
-                height: "380px",
+                /* Matches the reference proportions: fills most of the content
+                   width, clean rectangle, no round corners, no shadow */
+                width: "480px",
+                height: "580px",
                 objectFit: "cover",
                 objectPosition: "center top",
-                borderRadius: "4px",
-                boxShadow:
-                  "0 8px 40px rgba(0,40,104,0.22), 0 2px 12px rgba(0,0,0,0.18)",
+                display: "block",
               }}
             />
           ) : (
+            /* ── Designed placeholder — professional "photo pending" box ── */
             <div
               style={{
-                width: "310px",
-                height: "380px",
-                borderRadius: "4px",
-                background: `linear-gradient(145deg, ${C.blue}22, ${C.blue}08)`,
-                border: `2px dashed ${C.border}`,
+                width: "480px",
+                height: "580px",
+                background: `linear-gradient(160deg, ${C.lightBlue} 0%, #C8D5EC 100%)`,
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                flexDirection: "column",
-                gap: "12px",
+                gap: "20px",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
-              <div style={{ fontSize: "48px", opacity: 0.3 }}>
-                {flagEmoji ?? "👤"}
+              {/* Faint LSUIC logo watermark */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={ASSETS.lsuicLogo}
+                alt=""
+                style={{
+                  position: "absolute",
+                  width: "220px",
+                  height: "220px",
+                  objectFit: "contain",
+                  opacity: 0.06,
+                }}
+              />
+              {/* Flag emoji — large, centred */}
+              <div style={{ fontSize: "72px", zIndex: 1 }}>
+                {flagEmoji ?? "🏛️"}
               </div>
+              {/* "PHOTO PENDING" label */}
               <div
                 style={{
                   fontSize: "11px",
-                  color: C.muted,
-                  fontStyle: "italic",
+                  fontWeight: 700,
+                  color: C.blue,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.18em",
+                  zIndex: 1,
+                  opacity: 0.6,
                 }}
               >
-                Photo to be added
+                Photo Pending
               </div>
             </div>
           )}
         </div>
 
-        {/* ── Name & title block ── */}
+        {/* ── Name / title block — matches reference layout exactly ──────────── */}
         <div
           style={{
             textAlign: "center",
             zIndex: 1,
+            padding: "0 40px",
+            paddingBottom: "24px",
           }}
         >
-          {/* Honorific / role label */}
+          {/* Honorific / role — e.g. "HIS EXCELLENCY" */}
           {leader.role && (
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 800,
-                color: C.blue,
-                letterSpacing: "0.02em",
-                marginBottom: "6px",
+                color: C.darkBlue,
+                letterSpacing: "0.04em",
                 textTransform: "uppercase",
+                marginBottom: "6px",
               }}
             >
               {leader.role}
             </div>
           )}
 
-          {/* Full name — large, bold, dark navy */}
+          {/* Full name — large bold */}
           <div
             style={{
-              fontSize: "26px",
+              fontSize: "28px",
               fontWeight: 900,
               color: C.darkBlue,
-              lineHeight: 1.15,
+              lineHeight: 1.1,
               marginBottom: "10px",
               letterSpacing: "-0.01em",
             }}
@@ -216,38 +218,31 @@ function LeaderPortraitPage({
             {leader.name}
           </div>
 
-          {/* Thin gold divider */}
+          {/* Official title — bold small-caps */}
           <div
             style={{
-              width: "72px",
-              height: "2px",
-              background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
-              margin: "0 auto 12px",
-            }}
-          />
-
-          {/* Title (official position) */}
-          <div
-            style={{
-              fontSize: "14px",
+              fontSize: "13px",
               fontWeight: 700,
-              color: C.blue,
-              lineHeight: 1.4,
-              maxWidth: "460px",
-              marginBottom: flagEmoji ? "12px" : "0",
+              color: C.darkBlue,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              lineHeight: 1.45,
+              maxWidth: "440px",
+              margin: "0 auto",
             }}
           >
             {leader.title}
           </div>
 
-          {/* Country flag + name */}
+          {/* Country + flag */}
           {(flagEmoji ?? leader.country) && (
             <div
               style={{
+                marginTop: "10px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "6px",
+                gap: "5px",
                 fontSize: "12px",
                 color: C.muted,
               }}
@@ -259,16 +254,16 @@ function LeaderPortraitPage({
             </div>
           )}
 
-          {/* Bio (if provided) — shown below, with subtle top border */}
+          {/* Bio — shown when provided */}
           {leader.bio && (
             <div
               style={{
-                marginTop: "20px",
-                paddingTop: "16px",
+                marginTop: "18px",
+                paddingTop: "14px",
                 borderTop: `1px solid ${C.border}`,
-                maxWidth: "480px",
+                maxWidth: "460px",
                 fontSize: "10.5px",
-                lineHeight: 1.75,
+                lineHeight: 1.8,
                 color: C.text,
                 textAlign: "left",
               }}
