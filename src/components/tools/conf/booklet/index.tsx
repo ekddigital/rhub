@@ -20,10 +20,12 @@ import { DelegatesSection } from "./DelegatesSection";
 import { TextSection } from "./TextSection";
 
 // ─── Section dispatcher ───────────────────────────────────────────────────────
+// startPageNum: the page number of the FIRST page this section occupies.
+// For LEADER sections this spans leaders.length pages.
 function renderSection(
   section: BookletSection,
   data: BookletData,
-  pageNum: number,
+  startPageNum: number,
   totalPages: number,
 ) {
   const { event, leaders, committeeMembers, conferenceChair, delegates } = data;
@@ -31,7 +33,10 @@ function renderSection(
   const confName = event.name;
   const confYear = event.year;
   const key = section.id;
-  const common = { pageNum, totalPages, confName, confYear };
+  const common = { startPageNum, totalPages, confName, confYear };
+  // Alias for sections that are always single-page
+  const pageNum = startPageNum;
+  const commonSingle = { pageNum, totalPages, confName, confYear };
 
   switch (section.type) {
     case "LEADER":
@@ -40,7 +45,10 @@ function renderSection(
           key={key}
           section={section}
           leaders={leaders}
-          {...common}
+          startPageNum={common.startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
         />
       );
 
@@ -52,7 +60,7 @@ function renderSection(
           section={section}
           speaker={null}
           content={section.bodyText}
-          {...common}
+          {...commonSingle}
         />
       );
 
@@ -63,7 +71,7 @@ function renderSection(
           section={section}
           speaker={conferenceChair}
           content={conferenceChair?.bookletBio ?? section.bodyText}
-          {...common}
+          {...commonSingle}
         />
       );
 
@@ -78,7 +86,7 @@ function renderSection(
           key={key}
           section={section}
           members={committeeMembers}
-          {...common}
+          {...commonSingle}
         />
       );
 
@@ -88,7 +96,7 @@ function renderSection(
           key={key}
           section={section}
           meetings={meetings}
-          {...common}
+          {...commonSingle}
         />
       );
 
@@ -98,12 +106,12 @@ function renderSection(
           key={key}
           section={section}
           delegates={delegates}
-          {...common}
+          {...commonSingle}
         />
       );
 
     default:
-      return <TextSection key={key} section={section} {...common} />;
+      return <TextSection key={key} section={section} {...commonSingle} />;
   }
 }
 
@@ -128,9 +136,14 @@ export function BookletPreview({
     (s) => s.type === "BACK_COVER" && s.isEnabled,
   );
 
-  // Total: cover(1) + TOC(1) + body sections + backCover
+  // Count pages properly: LEADER sections consume leaders.length pages each
+  const leaderCount = data.leaders.length;
+  const bodyPageCount = enabledSections.reduce((sum, s) => {
+    if (s.type === "LEADER") return sum + Math.max(1, leaderCount);
+    return sum + 1;
+  }, 0);
   const totalPages =
-    (hasCover ? 1 : 0) + 1 + enabledSections.length + (hasBackCover ? 1 : 0);
+    (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
 
   const letterheadUrl = `/api/conf/${confId}/letterhead?mode=header&format=png`;
 
@@ -303,9 +316,19 @@ export function BookletPreview({
               totalPages={totalPages}
             />
 
-            {enabledSections.map((s, i) =>
-              renderSection(s, data, (hasCover ? 1 : 0) + 2 + i, totalPages),
-            )}
+            {(() => {
+              // Build a running page counter so multi-page sections get correct numbers
+              let runningPage = (hasCover ? 1 : 0) + 2; // cover=1, TOC=1
+              return enabledSections.map((s) => {
+                const startPage = runningPage;
+                if (s.type === "LEADER") {
+                  runningPage += Math.max(1, leaderCount);
+                } else {
+                  runningPage += 1;
+                }
+                return renderSection(s, data, startPage, totalPages);
+              });
+            })()}
 
             {hasBackCover && (
               <BackCoverPage event={data.event} totalPages={totalPages} />
