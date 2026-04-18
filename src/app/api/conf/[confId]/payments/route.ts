@@ -21,15 +21,27 @@ export async function GET(
     const payments = await prisma.confPayment.findMany({
       where: {
         confId,
-        ...(paymentType ? { paymentType: paymentType as "EXPENSE" | "INCOME" } : {}),
+        ...(paymentType
+          ? { paymentType: paymentType as "EXPENSE" | "INCOME" }
+          : {}),
         ...(committeeScope ? { committeeScope } : {}),
-        ...(status ? { status: status as "PENDING" | "COMMITTEE_APPROVED" | "APPROVED" | "REJECTED" } : {}),
+        ...(status
+          ? {
+              status: status as
+                | "PENDING"
+                | "COMMITTEE_APPROVED"
+                | "APPROVED"
+                | "REJECTED",
+            }
+          : {}),
       },
       include: {
         proofs: true,
         budget: { select: { id: true, title: true } },
         item: { select: { id: true, name: true } },
-        submittedBy: { select: { id: true, name: true, role: true, committeeScope: true } },
+        submittedBy: {
+          select: { id: true, name: true, role: true, committeeScope: true },
+        },
         committeeApprover: { select: { id: true, name: true, role: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -79,7 +91,10 @@ export async function POST(
 
     const allowedTypes = ["EXPENSE", "INCOME"];
     if (paymentType && !allowedTypes.includes(paymentType)) {
-      return NextResponse.json({ error: "Invalid paymentType" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid paymentType" },
+        { status: 400 },
+      );
     }
 
     const payment = await prisma.confPayment.create({

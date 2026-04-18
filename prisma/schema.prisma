@@ -241,9 +241,11 @@ model User {
     verifyToken    String?
     verifyTokenExp DateTime?
     roleChangedAt  DateTime? // set when admin changes this user's role
+    canImpersonate Boolean   @default(false) // VA / exec-level: can impersonate any user
     createdAt      DateTime  @default(now())
     updatedAt      DateTime  @updatedAt
     sessions       Session[]
+    impersonationLogs ImpersonationLog[] @relation("ImpersonationActor")
 
     // Debate relations
     createdEvents DebateEvent[]      @relation("EventCreator")
@@ -274,17 +276,36 @@ model UserAccessAuditLog {
 }
 
 model Session {
-    id        String   @id @default(cuid())
-    userId    String
-    token     String   @unique
-    expiresAt DateTime
-    createdAt DateTime @default(now())
+    id                   String  @id @default(cuid())
+    userId               String
+    token                String  @unique
+    expiresAt            DateTime
+    createdAt            DateTime @default(now())
+    impersonatingUserId  String? // set when this session is actively impersonating
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@index([userId])
     @@index([token])
     @@index([expiresAt])
+}
+
+model ImpersonationLog {
+    id             String    @id @default(cuid())
+    actorUserId    String
+    actorName      String
+    targetUserId   String
+    targetName     String
+    targetEmail    String
+    startedAt      DateTime  @default(now())
+    endedAt        DateTime?
+    note           String?   @db.Text
+
+    actor User @relation("ImpersonationActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+
+    @@index([actorUserId])
+    @@index([targetUserId])
+    @@index([startedAt])
 }
 
 // LaTeX to Word Conversion Models

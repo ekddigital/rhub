@@ -53,7 +53,9 @@ async function findSessionWithUser(token: string) {
   try {
     return await prisma.session.findUnique({
       where: { token },
-      include: { user: true },
+      include: {
+        user: true,
+      },
     });
   } catch (error) {
     if (isTransientAuthDatabaseError(error)) {
@@ -134,7 +136,59 @@ export async function validateSession(token: string) {
     return null;
   }
 
+  // If the admin is impersonating someone, return the target user instead.
+  if (session.impersonatingUserId) {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: session.impersonatingUserId },
+    });
+    if (targetUser && hasApprovedHubAccess(targetUser)) {
+      return targetUser;
+    }
+  }
+
   return session.user;
+}
+
+/**
+ * Like validateSession but also returns impersonation metadata.
+ * Use this in API routes/pages that need to know who the real actor is.
+ */
+export async function validateSessionWithContext(token: string) {
+  let session;
+  try {
+    session = await findSessionWithUser(token);
+  } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      return null;
+    }
+    throw error;
+  }
+
+  if (!session || session.expiresAt < new Date()) {
+    return null;
+  }
+
+  if (!hasApprovedHubAccess(session.user)) {
+    return null;
+  }
+
+  const realUser = session.user;
+  let effectiveUser = session.user;
+
+  if (session.impersonatingUserId) {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: session.impersonatingUserId },
+    });
+    if (targetUser && hasApprovedHubAccess(targetUser)) {
+      effectiveUser = targetUser;
+    }
+  }
+
+  return {
+    effectiveUser,
+    realUser,
+    isImpersonating: effectiveUser.id !== realUser.id,
+  };
 }
 
 /** Same as validateSession but also returns the session's createdAt timestamp,

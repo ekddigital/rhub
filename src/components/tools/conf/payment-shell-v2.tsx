@@ -67,7 +67,12 @@ type Payment = {
   paidAt: string;
   createdAt: string;
   proofs: Proof[];
-  submittedBy: { id: string; name: string; role: string; committeeScope: string | null } | null;
+  submittedBy: {
+    id: string;
+    name: string;
+    role: string;
+    committeeScope: string | null;
+  } | null;
   committeeApprover: { id: string; name: string; role: string } | null;
   budget: { id: string; title: string } | null;
 };
@@ -131,7 +136,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<PaymentType | "ALL">("ALL");
-  const [filterStatus, setFilterStatus] = useState<PaymentStatus | "ALL">("ALL");
+  const [filterStatus, setFilterStatus] = useState<PaymentStatus | "ALL">(
+    "ALL",
+  );
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -150,16 +157,19 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadPayments = useCallback(async (id: string) => {
-    const params = new URLSearchParams();
-    if (filterType !== "ALL") params.set("type", filterType);
-    if (filterStatus !== "ALL") params.set("status", filterStatus);
-    const res = await fetch(`/api/conf/${id}/payments?${params}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error("Failed to load payments");
-    return (await res.json()) as Payment[];
-  }, [filterType, filterStatus]);
+  const loadPayments = useCallback(
+    async (id: string) => {
+      const params = new URLSearchParams();
+      if (filterType !== "ALL") params.set("type", filterType);
+      if (filterStatus !== "ALL") params.set("status", filterStatus);
+      const res = await fetch(`/api/conf/${id}/payments?${params}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Failed to load payments");
+      return (await res.json()) as Payment[];
+    },
+    [filterType, filterStatus],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -259,7 +269,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     }
   };
 
-  const handleApprove = async (paymentId: string, level: "committee" | "final") => {
+  const handleApprove = async (
+    paymentId: string,
+    level: "committee" | "final",
+  ) => {
     if (!confId || actionLoading) return;
     setActionLoading(paymentId + level);
     try {
@@ -439,28 +452,38 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               className="h-7 text-xs"
               onClick={() => setFilterType(t)}
             >
-              {t === "ALL" ? "All Types" : t === "EXPENSE" ? "Expenses" : "Income"}
+              {t === "ALL"
+                ? "All Types"
+                : t === "EXPENSE"
+                  ? "Expenses"
+                  : "Income"}
             </Button>
           ))}
         </div>
         <div className="flex gap-1">
-          {(["ALL", "PENDING", "COMMITTEE_APPROVED", "APPROVED", "REJECTED"] as const).map(
-            (s) => (
-              <Button
-                key={s}
-                size="sm"
-                variant={filterStatus === s ? "default" : "outline"}
-                className="h-7 text-xs"
-                onClick={() => setFilterStatus(s)}
-              >
-                {s === "ALL"
-                  ? "All Status"
-                  : s === "COMMITTEE_APPROVED"
+          {(
+            [
+              "ALL",
+              "PENDING",
+              "COMMITTEE_APPROVED",
+              "APPROVED",
+              "REJECTED",
+            ] as const
+          ).map((s) => (
+            <Button
+              key={s}
+              size="sm"
+              variant={filterStatus === s ? "default" : "outline"}
+              className="h-7 text-xs"
+              onClick={() => setFilterStatus(s)}
+            >
+              {s === "ALL"
+                ? "All Status"
+                : s === "COMMITTEE_APPROVED"
                   ? "Cmt. Approved"
                   : s.charAt(0) + s.slice(1).toLowerCase()}
-              </Button>
-            ),
-          )}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -553,7 +576,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 </div>
               )}
               <div className="space-y-2">
-                <Label>{paymentType === "EXPENSE" ? "Paid By *" : "Received From *"}</Label>
+                <Label>
+                  {paymentType === "EXPENSE" ? "Paid By *" : "Received From *"}
+                </Label>
                 <Input
                   placeholder={
                     paymentType === "EXPENSE"
@@ -565,10 +590,14 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{paymentType === "EXPENSE" ? "Paid To" : "Received By"}</Label>
+                <Label>
+                  {paymentType === "EXPENSE" ? "Paid To" : "Received By"}
+                </Label>
                 <Input
                   placeholder={
-                    paymentType === "EXPENSE" ? "Recipient" : "Who received the funds"
+                    paymentType === "EXPENSE"
+                      ? "Recipient"
+                      : "Who received the funds"
                   }
                   value={paidTo}
                   onChange={(e) => setPaidTo(e.target.value)}
@@ -687,7 +716,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         {payments.map((payment) => {
           const config = STATUS_CONFIG[payment.status] ?? STATUS_CONFIG.PENDING;
           const StatusIcon = config.icon;
-          const isExpense = payment.paymentType === "EXPENSE" || !payment.paymentType;
+          const isExpense =
+            payment.paymentType === "EXPENSE" || !payment.paymentType;
           const isRejecting = rejectingId === payment.id;
 
           return (
@@ -708,7 +738,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </span>
                       <Badge
                         variant="outline"
-                        className={isExpense ? "border-red-500/40 text-red-600 dark:text-red-400" : "border-green-500/40 text-green-600 dark:text-green-400"}
+                        className={
+                          isExpense
+                            ? "border-red-500/40 text-red-600 dark:text-red-400"
+                            : "border-green-500/40 text-green-600 dark:text-green-400"
+                        }
                       >
                         {isExpense ? "Expense" : "Income"}
                       </Badge>
@@ -763,7 +797,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                       <span>
-                        {PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ?? payment.method}
+                        {PAY_METHODS[
+                          payment.method as keyof typeof PAY_METHODS
+                        ] ?? payment.method}
                       </span>
                       {payment.ref && <span>· Ref: {payment.ref}</span>}
                       <span>
@@ -835,7 +871,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 {/* Approval Actions */}
                 {!payment.isLocked &&
                   payment.status !== "REJECTED" &&
-                  (accessInfo?.canApprovePayments || accessInfo?.isChair || accessInfo?.isSuperAdmin) && (
+                  (accessInfo?.canApprovePayments ||
+                    accessInfo?.isChair ||
+                    accessInfo?.isSuperAdmin) && (
                     <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
                       {/* Committee-level approve (Level 1) */}
                       {payment.status === "PENDING" &&
@@ -869,9 +907,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                             variant="outline"
                             className="h-7 border-green-500/40 text-green-600 hover:bg-green-500/10 text-xs"
                             onClick={() => handleApprove(payment.id, "final")}
-                            disabled={
-                              actionLoading === payment.id + "final"
-                            }
+                            disabled={actionLoading === payment.id + "final"}
                           >
                             {actionLoading === payment.id + "final" ? (
                               <Loader2 className="size-3 animate-spin" />

@@ -58,7 +58,9 @@ export function ReportBuilderShell() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [scopeFilter, setScopeFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"ALL" | "EXPENSE" | "INCOME">("ALL");
+  const [typeFilter, setTypeFilter] = useState<"ALL" | "EXPENSE" | "INCOME">(
+    "ALL",
+  );
 
   // Step 2: selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -93,8 +95,14 @@ export function ReportBuilderShell() {
     return payments.filter((p) => {
       if (typeFilter !== "ALL" && p.paymentType !== typeFilter) return false;
       if (scopeFilter && p.committeeScope !== scopeFilter) return false;
-      if (dateFrom && p.paidAt && new Date(p.paidAt) < new Date(dateFrom)) return false;
-      if (dateTo && p.paidAt && new Date(p.paidAt) > new Date(dateTo + "T23:59:59")) return false;
+      if (dateFrom && p.paidAt && new Date(p.paidAt) < new Date(dateFrom))
+        return false;
+      if (
+        dateTo &&
+        p.paidAt &&
+        new Date(p.paidAt) > new Date(dateTo + "T23:59:59")
+      )
+        return false;
       return true;
     });
   }, [payments, typeFilter, scopeFilter, dateFrom, dateTo]);
@@ -145,7 +153,8 @@ export function ReportBuilderShell() {
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         committeeScope: scopeFilter || undefined,
-        paymentTypes: typeFilter === "ALL" ? ["EXPENSE", "INCOME"] : [typeFilter],
+        paymentTypes:
+          typeFilter === "ALL" ? ["EXPENSE", "INCOME"] : [typeFilter],
         generalComment: generalComment.trim() || undefined,
         paymentIds: Array.from(selectedIds),
         lineComments,
@@ -167,7 +176,16 @@ export function ReportBuilderShell() {
 
   const handleExportCSV = () => {
     const rows = [
-      ["#", "Description", "Type", "Amount", "Currency", "Status", "Scope", "Comment"],
+      [
+        "#",
+        "Description",
+        "Type",
+        "Amount",
+        "Currency",
+        "Status",
+        "Scope",
+        "Comment",
+      ],
       ...selectedPayments.map((p, i) => [
         String(i + 1),
         p.description,
@@ -185,7 +203,9 @@ export function ReportBuilderShell() {
       [],
       ["General Comment:", generalComment],
     ];
-    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = rows
+      .map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -307,7 +327,11 @@ export function ReportBuilderShell() {
                     className="h-8 text-xs"
                     onClick={() => setTypeFilter(t)}
                   >
-                    {t === "ALL" ? "All" : t === "EXPENSE" ? "Expenses" : "Income"}
+                    {t === "ALL"
+                      ? "All"
+                      : t === "EXPENSE"
+                        ? "Expenses"
+                        : "Income"}
                   </Button>
                 ))}
               </div>
@@ -337,10 +361,20 @@ export function ReportBuilderShell() {
               {selectedIds.size} of {filteredPayments.length} selected
             </p>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={selectAll}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={selectAll}
+              >
                 Select All
               </Button>
-              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={clearAll}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs"
+                onClick={clearAll}
+              >
                 Clear
               </Button>
             </div>
@@ -365,7 +399,9 @@ export function ReportBuilderShell() {
                     <Square className="size-4 shrink-0 text-muted-foreground" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="truncate text-sm font-medium">{p.description}</p>
+                    <p className="truncate text-sm font-medium">
+                      {p.description}
+                    </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                       {p.paidAt && (
                         <span>
@@ -468,7 +504,11 @@ export function ReportBuilderShell() {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+            <Button
+              variant="outline"
+              onClick={() => setStep(2)}
+              className="flex-1"
+            >
               <ChevronLeft className="mr-1 size-4" />
               Back
             </Button>

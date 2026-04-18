@@ -18,6 +18,8 @@ import {
   FileText,
   Film,
   Megaphone,
+  Download,
+  ImageIcon,
 } from "lucide-react";
 import {
   Card,
@@ -113,6 +115,7 @@ const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
 export function ConfDashboard() {
   const [confYear, setConfYear] = useState(2026);
+  const [confId, setConfId] = useState("");
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
@@ -125,6 +128,7 @@ export function ConfDashboard() {
         const conf = await fetchDefaultConference();
         if (mounted) {
           setConfYear(conf.year);
+          setConfId(conf.id);
         }
       } catch {
         // Keep default year if conference metadata is unavailable.
@@ -288,6 +292,9 @@ export function ConfDashboard() {
         />
       </div>
 
+      {/* Countdown Flyer */}
+      {confId && <CountdownFlyerCard confId={confId} />}
+
       {/* Navigation Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {NAV_ITEMS.map((item) => (
@@ -355,4 +362,51 @@ function formatOrdinal(value: number): string {
   if (mod10 === 2) return `${value}nd`;
   if (mod10 === 3) return `${value}rd`;
   return `${value}th`;
+}
+
+// ── Countdown Flyer Card ──────────────────────────────────────────────────────
+
+function CountdownFlyerCard({ confId }: { confId: string }) {
+  const days = daysUntilConf();
+  const svgUrl = `/api/conf/${confId}/countdown-flyer`;
+  const pngDownloadUrl = `/api/conf/${confId}/countdown-flyer?format=png&download=1`;
+
+  return (
+    <Card className="overflow-hidden border-[#C8A061]/30 bg-linear-to-br from-[#182e5f]/10 via-transparent to-[#C8A061]/5">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ImageIcon className="size-5 text-[#C8A061]" />
+            Daily Countdown Flyer
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-[#C8A061]/40 text-[#C8A061]"
+            >
+              {days} days to go
+            </Badge>
+            <a href={pngDownloadUrl} download>
+              <button className="flex items-center gap-1.5 rounded-md bg-[#C8A061] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90">
+                <Download className="size-3.5" />
+                Download PNG
+              </button>
+            </a>
+          </div>
+        </div>
+        <CardDescription className="text-xs">
+          Auto-updates daily. Download and share directly via messaging or
+          social platforms.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pb-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={svgUrl}
+          alt={`${days} days countdown flyer`}
+          className="mx-auto max-h-[340px] w-auto rounded-xl border border-[#C8A061]/20 shadow-md"
+        />
+      </CardContent>
+    </Card>
+  );
 }

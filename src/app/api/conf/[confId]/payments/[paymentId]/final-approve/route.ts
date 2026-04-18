@@ -34,7 +34,9 @@ export async function POST(
       payment.status !== "COMMITTEE_APPROVED"
     ) {
       return NextResponse.json(
-        { error: `Cannot final-approve a payment with status: ${payment.status}` },
+        {
+          error: `Cannot final-approve a payment with status: ${payment.status}`,
+        },
         { status: 409 },
       );
     }

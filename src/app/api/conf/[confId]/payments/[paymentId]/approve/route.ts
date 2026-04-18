@@ -53,7 +53,10 @@ export async function POST(
         committeeApprovedBy: memberId,
         committeeApprovedAt: new Date(),
       },
-      include: { proofs: true, submittedBy: { select: { id: true, name: true } } },
+      include: {
+        proofs: true,
+        submittedBy: { select: { id: true, name: true } },
+      },
     });
 
     await logFinanceAction({

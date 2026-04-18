@@ -3,12 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, Loader2, AlertCircle, Filter } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchDefaultConference } from "@/lib/conf/client";
@@ -101,7 +96,9 @@ export function FinanceAuditShell() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Finance Audit Log</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Finance Audit Log
+          </h1>
           <p className="text-sm text-muted-foreground">
             Full history of all financial actions and approvals
           </p>
@@ -162,12 +159,18 @@ export function FinanceAuditShell() {
                       >
                         {ACTION_LABELS[log.action] ?? log.action}
                       </span>
-                      <Badge variant="outline" className="text-[10px] capitalize">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] capitalize"
+                      >
                         {log.entityType}
                       </Badge>
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
-                      by <span className="font-medium text-foreground">{log.actorName}</span>
+                      by{" "}
+                      <span className="font-medium text-foreground">
+                        {log.actorName}
+                      </span>
                       {" · "}
                       <span>
                         {new Date(log.createdAt).toLocaleString("en-US", {
@@ -187,7 +190,10 @@ export function FinanceAuditShell() {
                     {log.details && Object.keys(log.details).length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-2">
                         {Object.entries(log.details)
-                          .filter(([, v]) => v !== null && v !== undefined && v !== "")
+                          .filter(
+                            ([, v]) =>
+                              v !== null && v !== undefined && v !== "",
+                          )
                           .slice(0, 4)
                           .map(([k, v]) => (
                             <span

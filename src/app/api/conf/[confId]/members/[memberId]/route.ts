@@ -85,10 +85,7 @@ export async function PATCH(
         select: { id: true },
       });
       if (!user) {
-        return NextResponse.json(
-          { error: "User not found" },
-          { status: 404 },
-        );
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
     }
 
@@ -130,7 +127,10 @@ export async function PATCH(
       });
     }
 
-    if (committeeScope !== undefined && committeeScope !== existing.committeeScope) {
+    if (
+      committeeScope !== undefined &&
+      committeeScope !== existing.committeeScope
+    ) {
       await logFinanceAction({
         confId,
         actorUserId: auth.access.user?.id,

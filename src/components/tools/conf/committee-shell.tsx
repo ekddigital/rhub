@@ -19,12 +19,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +116,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setConfId(conf.id);
         await loadMembers(conf.id);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to initialize committee");
+        setError(
+          e instanceof Error ? e.message : "Failed to initialize committee",
+        );
       } finally {
         setLoading(false);
       }
@@ -440,7 +437,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </div>
                     )}
                     <div>
-                      <p className="font-semibold leading-tight">{member.name}</p>
+                      <p className="font-semibold leading-tight">
+                        {member.name}
+                      </p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <RoleIcon className={`size-3.5 ${config.color}`} />
                         <span className="text-xs text-muted-foreground">
@@ -454,7 +453,8 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     <Badge variant="outline" className="text-[11px]">
                       {config.label}
                     </Badge>
-                    {(accessInfo?.isSuperAdmin || accessInfo?.canAssignCommittee) && (
+                    {(accessInfo?.isSuperAdmin ||
+                      accessInfo?.canAssignCommittee) && (
                       <Button
                         size="icon-sm"
                         variant="ghost"
@@ -544,7 +544,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       className="hidden"
                       accept="image/png,image/jpeg,image/webp"
                       onChange={(e) =>
-                        handleReplacePhoto(member.id, e.target.files?.[0] || null)
+                        handleReplacePhoto(
+                          member.id,
+                          e.target.files?.[0] || null,
+                        )
                       }
                     />
                   </label>
@@ -667,7 +670,12 @@ function MemberPermissionsPanel({
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Permissions &amp; Assignment
         </p>
-        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 text-xs"
+          onClick={onClose}
+        >
           Close
         </Button>
       </div>
@@ -680,13 +688,18 @@ function MemberPermissionsPanel({
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
-            {["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER", "COMMITTEE", "DELEGATE"].map(
-              (r) => (
-                <option key={r} value={r}>
-                  {r.replace("_", " ")}
-                </option>
-              ),
-            )}
+            {[
+              "CHAIR",
+              "VICE_CHAIR",
+              "SECRETARY",
+              "TREASURER",
+              "COMMITTEE",
+              "DELEGATE",
+            ].map((r) => (
+              <option key={r} value={r}>
+                {r.replace("_", " ")}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -810,7 +823,12 @@ function MemberPermissionsPanel({
 
       {/* Save/cancel */}
       <div className="flex justify-end gap-2 border-t pt-2">
-        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs"
+          onClick={onClose}
+        >
           Cancel
         </Button>
         <Button

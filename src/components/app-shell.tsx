@@ -1,6 +1,7 @@
 "use client";
 
 import { AppSidebar, AppMobileNav } from "@/components/navigation/app-sidebar";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 
 interface ShellUser {
   id: string;
@@ -22,6 +23,7 @@ interface AppShellProps {
 export function AppShell({ user, children }: AppShellProps) {
   return (
     <>
+      <ImpersonationBanner />
       <AppMobileNav user={user} />
       <div className="flex items-start">
         <AppSidebar user={user} />
