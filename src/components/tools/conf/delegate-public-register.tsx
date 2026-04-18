@@ -661,14 +661,18 @@ export function DelegatePublicRegister() {
                   {samplePhotos.map((item) => (
                     <div
                       key={item.id}
-                      className="overflow-hidden rounded-xl border border-border"
+                      className="overflow-hidden rounded-xl border border-border bg-muted"
                     >
-                      <Image
+                      {/* Use <img> instead of <Image> — asset server photos require direct URL */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
                         src={item.imageUrl}
                         alt="Delegate sample photo"
-                        width={640}
-                        height={640}
-                        className="h-44 w-full bg-muted object-contain object-top"
+                        className="h-44 w-full object-contain object-top"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
                       />
                     </div>
                   ))}
