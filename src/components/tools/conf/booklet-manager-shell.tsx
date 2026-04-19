@@ -82,6 +82,10 @@ export type NecMember = {
   role: string;
   title: string | null;
   city: string | null;
+  province?: string | null;
+  university?: string | null;
+  delegateCode?: string | null;
+  conferencePosition?: string | null;
   committeeScope: string | null;
   photoPath: string | null;
   bookletBio: string | null;
@@ -114,6 +118,7 @@ export type BookletData = {
   };
   booklet: (BookletConfig & { sections: BookletSection[] }) | null;
   leaders: LeaderProfile[];
+  necMembers: NecMember[];
   committeeMembers: NecMember[];
   conferenceChair: NecMember | null;
   membersByScope: Record<string, NecMember[]>;
@@ -122,7 +127,9 @@ export type BookletData = {
     name: string;
     delegateCode: string | null;
     university: string | null;
+    province: string | null;
     city: string;
+    conferencePosition: string | null;
     gender: string | null;
     bookletPhotoPath: string | null;
     status: string;

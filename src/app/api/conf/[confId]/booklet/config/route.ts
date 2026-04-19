@@ -37,7 +37,7 @@ const DEFAULT_SECTIONS = [
   },
   {
     type: "COMMITTEE",
-    title: "Planning & Program Committee",
+    title: "Conference Committee",
     subtitle: "PPC",
     sortOrder: 13,
     committeeScope: "PPC",

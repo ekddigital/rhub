@@ -133,7 +133,7 @@ function ChairHeroCard({ chair }: { chair: NecMember }) {
               letterSpacing: "0.03em",
             }}
           >
-            {chair.title ?? roleLabel(chair)}
+            {chair.conferencePosition?.trim() ?? chair.title ?? roleLabel(chair)}
           </div>
         )}
 
@@ -147,8 +147,34 @@ function ChairHeroCard({ chair }: { chair: NecMember }) {
             }}
           >
             📍 {chair.city}
+            {chair.province ? `, ${chair.province}` : ""}
           </div>
         )}
+
+        <div
+          style={{
+            fontSize: "10px",
+            color: `${C.white}75`,
+            marginBottom: "6px",
+          }}
+        >
+          🎓 {chair.university?.trim() || "Member"}
+        </div>
+
+        <div
+          style={{
+            marginBottom: "8px",
+            fontSize: "8px",
+            fontFamily: "monospace",
+            color: chair.delegateCode ? C.gold : `${C.white}80`,
+            background: chair.delegateCode ? `${C.gold}20` : `${C.white}15`,
+            padding: "2px 8px",
+            borderRadius: "5px",
+            display: "inline-block",
+          }}
+        >
+          {chair.delegateCode ?? "ID pending"}
+        </div>
 
         {/* Bio */}
         {chair.bookletBio && (
@@ -221,19 +247,42 @@ function OfficerCard({
             letterSpacing: "0.08em",
           }}
         >
-          {roleLabel(member)}
+          {member.conferencePosition?.trim() || roleLabel(member)}
         </div>
-        {member.city && (
-          <div
-            style={{
-              fontSize: "9px",
-              color: C.muted,
-              marginTop: "3px",
-            }}
-          >
-            {member.city}
-          </div>
-        )}
+        <div
+          style={{
+            fontSize: "8.5px",
+            color: C.muted,
+            marginTop: "3px",
+            lineHeight: 1.3,
+          }}
+        >
+          {(member.city ?? "Member") +
+            (member.province ? `, ${member.province}` : "")}
+        </div>
+        <div
+          style={{
+            fontSize: "8.5px",
+            color: C.muted,
+            lineHeight: 1.3,
+          }}
+        >
+          {member.university?.trim() || "Member"}
+        </div>
+        <div
+          style={{
+            marginTop: "4px",
+            fontSize: "7.5px",
+            fontFamily: "monospace",
+            color: member.delegateCode ? C.red : C.muted,
+            background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
+            padding: "1px 6px",
+            borderRadius: "4px",
+            display: "inline-block",
+          }}
+        >
+          {member.delegateCode ?? "ID pending"}
+        </div>
       </div>
     </div>
   );
@@ -282,12 +331,30 @@ function MemberCard({ member }: { member: NecMember }) {
               lineHeight: 1.4,
             }}
           >
-            {member.title && (
-              <div style={{ fontWeight: 500 }}>{member.title}</div>
-            )}
-            {member.city && <div>{member.city}</div>}
+            <div style={{ fontWeight: 500 }}>
+              {member.conferencePosition?.trim() || member.title || "Member"}
+            </div>
+            <div>
+              {(member.city ?? "Member") +
+                (member.province ? `, ${member.province}` : "")}
+            </div>
+            <div>{member.university?.trim() || "Member"}</div>
           </div>
         )}
+        <div
+          style={{
+            marginTop: "4px",
+            fontSize: "7.5px",
+            fontFamily: "monospace",
+            color: member.delegateCode ? C.red : C.muted,
+            background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
+            padding: "1px 6px",
+            borderRadius: "4px",
+            display: "inline-block",
+          }}
+        >
+          {member.delegateCode ?? "ID pending"}
+        </div>
       </div>
     </div>
   );
@@ -309,6 +376,8 @@ export function CommitteeSection({
   startPageNum: number;
   totalPages: number;
 }) {
+  const isNecSection = section.type === "NEC";
+
   // Filter by scope if defined
   const filtered = section.committeeScope
     ? members.filter(
@@ -383,7 +452,9 @@ export function CommitteeSection({
               marginBottom: "18px",
             }}
           >
-            Conference Chair not yet assigned.
+            {isNecSection
+              ? "NEC board lead not yet assigned."
+              : "Conference Chair not yet assigned."}
           </div>
         )}
 
@@ -443,7 +514,7 @@ export function CommitteeSection({
                 background: `linear-gradient(${C.blue}, ${C.red})`,
               }}
             />
-            Committee Members
+            {isNecSection ? "NEC Board Members" : "Committee Members"}
           </div>
 
           <div
@@ -462,4 +533,3 @@ export function CommitteeSection({
     </>
   );
 }
-

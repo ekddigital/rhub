@@ -38,7 +38,8 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export function roleLabel(m: NecMember) {
+  if (m.title && m.title.trim().length > 0) return m.title;
   const base = ROLE_LABELS[m.role];
   if (base !== undefined && base !== "") return base;
-  return m.title ?? m.committeeScope ?? "Committee Member";
+  return m.committeeScope ?? "Committee Member";
 }

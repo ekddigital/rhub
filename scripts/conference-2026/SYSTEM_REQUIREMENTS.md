@@ -1468,3 +1468,52 @@ Previously, committee members (VICE_CHAIR, SECRETARY, COMMITTEE roles) were hidd
 - Admin views show all members; members without delegate registration get a "Not registered" badge
 - Role labels corrected: VICE_CHAIR → "General Co-Chair", SECRETARY → "General Secretary", CHAIR → "General Chairman"
 
+---
+
+## Section 22 — NEC Separation and Booklet Identity Fields (April 2026 Update)
+
+### 22.1 Data Separation Rule (Mandatory)
+
+- **NEC Board** must be rendered from a dedicated NEC dataset (`necMembers`) and must not use Conference Committee (`ConfMember`) data.
+- **Conference Committee** must remain separate and continue to use `committeeMembers` (`ConfMember`) data.
+- `ConfMember.role = CHAIR` represents **Conference Chair**, not NEC President.
+
+### 22.2 NEC Board Source of Truth
+
+- NEC board roster follows official NEC/letterhead directives:
+  - Olano Teah Bloh — National President
+  - Ruphine M. Harmon — National Vice President
+  - C. Nathaniel Willie II — National Secretary General
+  - Jenkins G. Wilson — Acting National Deputy Secretary General
+  - Noah D. Mason — National Financial Secretary General
+  - Jenneh Bonah — National Treasurer
+  - Mitchell Vampelt — National Chaplain General
+- NEC photos default to placeholder until linked signup/photo exists.
+
+### 22.3 Identity Fields Required in Booklet Cards
+
+For booklet people cards (where applicable), include:
+
+- Name
+- Position/role
+- Conference ID (`delegateCode`) — show `ID pending` if missing
+- School/University (`university`) — show `Member` if missing
+- City and Province — show `Member` fallback where needed
+
+Applies to:
+
+- NEC board cards
+- Conference committee cards
+- Delegate/participant roster cards
+
+### 22.4 Delegate Space Inclusion Rule
+
+- Delegate roster must include **all signed-up participants** (statuses: `REGISTERED`, `CONFIRMED`, `ATTENDED`), excluding `CANCELLED`.
+- Missing booklet photo uses placeholder silhouette and updates automatically once participant uploads photo.
+
+### 22.5 Rendering/UX Rules
+
+- NEC section header and labels must be NEC-specific (not conference chair wording).
+- Conference committee sections must keep committee-specific labels and hierarchy.
+- Role/position text should prefer explicit `conferencePosition`/`title` when available, not global fallback labels.
+

@@ -59,7 +59,7 @@ export function DelegatesSection({
               fontWeight: 700,
             }}
           >
-            {delegates.length} Delegates
+            {delegates.length} Participants
           </div>
         </div>
         {section.bodyText && (
@@ -80,7 +80,7 @@ export function DelegatesSection({
             fontSize: "11px",
           }}
         >
-          No confirmed delegates yet.
+          No signed-up participants yet.
         </div>
       ) : (
         <div
@@ -133,7 +133,7 @@ export function DelegatesSection({
                   color: C.blue,
                   marginTop: "8px",
                   lineHeight: 1.3,
-                  maxHeight: "30px",
+                  maxHeight: "32px",
                   overflow: "hidden",
                   width: "100%",
                   textAlign: "center",
@@ -141,17 +141,55 @@ export function DelegatesSection({
               >
                 {d.name}
               </div>
-              {d.city && (
+
+              <div
+                style={{
+                  marginTop: "3px",
+                  fontSize: "8px",
+                  color: C.blue,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {d.conferencePosition?.trim() || "Member"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: "3px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "2px",
+                  width: "100%",
+                }}
+              >
                 <div
-                  style={{ fontSize: "8px", color: C.muted, marginTop: "2px" }}
+                  style={{
+                    fontSize: "8px",
+                    color: C.muted,
+                    lineHeight: 1.35,
+                  }}
                 >
-                  {d.city}
+                  {(d.city ? d.city : "Member") +
+                    (d.province ? `, ${d.province}` : "")}
                 </div>
-              )}
+
+                <div
+                  style={{
+                    fontSize: "8px",
+                    color: C.muted,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {d.university?.trim() || "Member"}
+                </div>
+              </div>
+
               {d.delegateCode && (
                 <div
                   style={{
-                    marginTop: "5px",
+                    marginTop: "6px",
                     padding: "1px 6px",
                     borderRadius: "4px",
                     background: `${C.red}15`,
@@ -162,6 +200,22 @@ export function DelegatesSection({
                   }}
                 >
                   {d.delegateCode}
+                </div>
+              )}
+              {!d.delegateCode && (
+                <div
+                  style={{
+                    marginTop: "6px",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                    background: `${C.border}60`,
+                    color: C.muted,
+                    fontSize: "7.5px",
+                    fontFamily: "monospace",
+                    fontWeight: 600,
+                  }}
+                >
+                  ID pending
                 </div>
               )}
             </div>
@@ -179,7 +233,7 @@ export function DelegatesSection({
             fontStyle: "italic",
           }}
         >
-          {delegates.length} confirmed delegate
+          {delegates.length} signed-up participant
           {delegates.length !== 1 ? "s" : ""} as of{" "}
           {new Date().toLocaleDateString("en-US", {
             month: "long",

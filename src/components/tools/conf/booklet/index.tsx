@@ -28,7 +28,14 @@ function renderSection(
   startPageNum: number,
   totalPages: number,
 ) {
-  const { event, leaders, committeeMembers, conferenceChair, delegates } = data;
+  const {
+    event,
+    leaders,
+    necMembers,
+    committeeMembers,
+    conferenceChair,
+    delegates,
+  } = data;
   const meetings = data.meetings ?? [];
   const confName = event.name;
   const confYear = event.year;
@@ -76,6 +83,18 @@ function renderSection(
       );
 
     case "NEC":
+      return (
+        <CommitteeSection
+          key={key}
+          section={section}
+          members={necMembers}
+          startPageNum={startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
+        />
+      );
+
     case "COMMITTEE":
     case "COC":
     case "COC_MEMBERS":
@@ -143,32 +162,34 @@ export function BookletPreview({
   // Committee sections → 2 pages when there are general members (role=COMMITTEE), else 1
   const leaderCount = data.leaders.length;
   const committeeTypes = [
-    "NEC",
     "COMMITTEE",
     "COC",
     "COC_MEMBERS",
     "CITY_PRESIDENTS",
     "JUDICIAL",
   ];
+  const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+
+  function sectionMembersForPageCount(s: (typeof enabledSections)[0]) {
+    if (s.type === "NEC") return data.necMembers;
+    if (s.committeeScope) {
+      return data.committeeMembers.filter(
+        (m) => m.committeeScope === s.committeeScope,
+      );
+    }
+    return data.committeeMembers;
+  }
+
   function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
-    const relevant = s.committeeScope
-      ? data.committeeMembers.filter(
-          (m) =>
-            m.committeeScope === s.committeeScope ||
-            (s.type === "NEC" &&
-              ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(
-                m.role,
-              )),
-        )
-      : data.committeeMembers;
+    const relevant = sectionMembersForPageCount(s);
     const hasGeneral = relevant.some(
-      (m) =>
-        !["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(m.role),
+      (m) => !KEY_ROLES.includes(m.role),
     );
     return hasGeneral ? 2 : 1;
   }
   const bodyPageCount = enabledSections.reduce((sum, s) => {
     if (s.type === "LEADER") return sum + Math.max(1, leaderCount);
+    if (s.type === "NEC") return sum + committeeSectionPageCount(s);
     if (committeeTypes.includes(s.type))
       return sum + committeeSectionPageCount(s);
     return sum + 1;
@@ -354,6 +375,8 @@ export function BookletPreview({
                 const startPage = runningPage;
                 if (s.type === "LEADER") {
                   runningPage += Math.max(1, leaderCount);
+                } else if (s.type === "NEC") {
+                  runningPage += committeeSectionPageCount(s);
                 } else if (committeeTypes.includes(s.type)) {
                   runningPage += committeeSectionPageCount(s);
                 } else {
