@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,11 @@ type Props = {
    * Defaults to true to preserve existing behavior.
    */
   isManagerMode?: boolean;
+  /**
+   * Unique key for localStorage draft. Use delegateId for edit mode,
+   * or a stable string like "new" for new registrations.
+   */
+  draftKey?: string;
   onCancel?: () => void;
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
 };
@@ -74,9 +79,11 @@ export function DelegateRegistrationForm({
   defaultFeeAmount = 250,
   initialValues,
   isManagerMode = true,
+  draftKey,
   onCancel,
   onSubmit,
 }: Props) {
+  const STORAGE_KEY = `conf-delegate-draft:${draftKey ?? "new"}`;
   const isEditMode = Boolean(initialValues);
 
   const [name, setName] = useState(initialValues?.name ?? "");
@@ -134,6 +141,62 @@ export function DelegateRegistrationForm({
   const [bookletPhoto, setBookletPhoto] = useState<File | null>(null);
   const [conferencePosition, setConferencePosition] = useState(initialValues?.conferencePosition ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [draftRestored, setDraftRestored] = useState(false);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof d.name === "string") setName(d.name);
+      if (typeof d.province === "string") setProvince(d.province);
+      if (typeof d.passportNo === "string") setPassportNo(d.passportNo);
+      if (typeof d.university === "string") setUniversity(d.university);
+      if (typeof d.city === "string") setCity(d.city);
+      if (typeof d.phone === "string") setPhone(d.phone);
+      if (typeof d.wechat === "string") setWechat(d.wechat);
+      if (typeof d.email === "string") setEmail(d.email);
+      if (d.gender === "MALE" || d.gender === "FEMALE") setGender(d.gender);
+      if (d.attendanceIntent === "YES" || d.attendanceIntent === "NO" || d.attendanceIntent === "OTHER") setAttendanceIntent(d.attendanceIntent);
+      if (d.travelAssistanceNeeded === "YES" || d.travelAssistanceNeeded === "NO" || d.travelAssistanceNeeded === "OTHER") setTravelAssistanceNeeded(d.travelAssistanceNeeded);
+      if (d.schoolCommunicationNeeded === "YES" || d.schoolCommunicationNeeded === "NO" || d.schoolCommunicationNeeded === "OTHER") setSchoolCommunicationNeeded(d.schoolCommunicationNeeded);
+      if (typeof d.schoolCommunicationDetails === "string") setSchoolCommunicationDetails(d.schoolCommunicationDetails);
+      if (["BACHELOR_1","BACHELOR_2","BACHELOR_3","BACHELOR_4","GRADUATE_1","GRADUATE_2","GRADUATE_3","GRADUATE_4","OTHER"].includes(d.studyYear as string)) setStudyYear(d.studyYear as typeof studyYear);
+      if (d.bringingForeignGuest === "YES" || d.bringingForeignGuest === "NO" || d.bringingForeignGuest === "OTHER") setBringingForeignGuest(d.bringingForeignGuest);
+      if (typeof d.guestNationality === "string") setGuestNationality(d.guestNationality);
+      if (d.accommodationNeeded === "YES" || d.accommodationNeeded === "NO" || d.accommodationNeeded === "OTHER") setAccommodationNeeded(d.accommodationNeeded);
+      if (d.dietaryNeeds === "YES" || d.dietaryNeeds === "NO" || d.dietaryNeeds === "OTHER") setDietaryNeeds(d.dietaryNeeds);
+      if (typeof d.dietaryDetails === "string") setDietaryDetails(d.dietaryDetails);
+      if (typeof d.additionalComments === "string") setAdditionalComments(d.additionalComments);
+      if (typeof d.feePaid === "boolean") setFeePaid(d.feePaid);
+      if (typeof d.feeAmount === "string") setFeeAmount(d.feeAmount);
+      if (d.roomPref === "PAIR" || d.roomPref === "SINGLE") setRoomPref(d.roomPref);
+      if (typeof d.partnerClaimNote === "string") setPartnerClaimNote(d.partnerClaimNote);
+      if (typeof d.conferencePosition === "string") setConferencePosition(d.conferencePosition);
+      setDraftRestored(true);
+    } catch {
+      // ignore corrupt drafts
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [STORAGE_KEY]);
+
+  // Auto-save to localStorage (debounced 1.5 s)
+  useEffect(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      try {
+        const draft = { name, province, passportNo, university, city, phone, wechat, email, gender, attendanceIntent, travelAssistanceNeeded, schoolCommunicationNeeded, schoolCommunicationDetails, studyYear, bringingForeignGuest, guestNationality, accommodationNeeded, dietaryNeeds, dietaryDetails, additionalComments, feePaid, feeAmount, roomPref, partnerClaimNote, conferencePosition };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      } catch { /* quota / SSR */ }
+    }, 1500);
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [STORAGE_KEY, name, province, passportNo, university, city, phone, wechat, email, gender, attendanceIntent, travelAssistanceNeeded, schoolCommunicationNeeded, schoolCommunicationDetails, studyYear, bringingForeignGuest, guestNationality, accommodationNeeded, dietaryNeeds, dietaryDetails, additionalComments, feePaid, feeAmount, roomPref, partnerClaimNote, conferencePosition]);
 
   const resetForm = () => {
     setName(initialValues?.name ?? "");
@@ -168,49 +231,40 @@ export function DelegateRegistrationForm({
     setBookletPhoto(null);
     setConferencePosition(initialValues?.conferencePosition ?? "");
     setError(null);
+    setFieldErrors({});
+    setDraftRestored(false);
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   };
 
   const handleSubmit = async () => {
     // In edit mode, photos are optional (existing files are kept server-side)
     const requirePhotos = !isEditMode;
+    const errs: Record<string, string> = {};
 
-    if (
-      !name ||
-      !province ||
-      !passportNo ||
-      !university ||
-      !city ||
-      !phone ||
-      !wechat ||
-      !email ||
-      (requirePhotos && (!passportPhoto || !bookletPhoto))
-    ) {
-      setError(
-        requirePhotos
-          ? "Please complete all required fields and uploads."
-          : "Please complete all required fields.",
-      );
+    if (!name.trim()) errs.name = "Full name is required.";
+    if (!province.trim()) errs.province = "Province is required.";
+    if (!city.trim()) errs.city = "City is required.";
+    if (!phone.trim()) errs.phone = "Phone number is required.";
+    if (!wechat.trim()) errs.wechat = "WeChat ID is required.";
+    if (!email.trim()) errs.email = "Email address is required.";
+    if (!passportNo.trim()) errs.passportNo = "Passport number is required.";
+    if (!university.trim()) errs.university = "University is required.";
+    if (requirePhotos && !passportPhoto) errs.passportPhoto = "Passport photo page is required.";
+    if (requirePhotos && !bookletPhoto) errs.bookletPhoto = "Conference booklet photo is required.";
+    if (bringingForeignGuest === "YES" && !guestNationality.trim())
+      errs.guestNationality = "Guest nationality is required when bringing a foreign guest.";
+    if (schoolCommunicationNeeded === "YES" && !schoolCommunicationDetails.trim())
+      errs.schoolCommunicationDetails = "Please provide details for school/supervisor communication.";
+    if (dietaryNeeds === "YES" && !dietaryDetails.trim())
+      errs.dietaryDetails = "Please describe your dietary requirements.";
+
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      setError(`Please fix ${Object.keys(errs).length} field${Object.keys(errs).length > 1 ? "s" : ""} below.`);
       return;
     }
 
-    if (bringingForeignGuest === "YES" && !guestNationality.trim()) {
-      setError("Please provide the guest nationality.");
-      return;
-    }
-
-    if (
-      schoolCommunicationNeeded === "YES" &&
-      !schoolCommunicationDetails.trim()
-    ) {
-      setError("Please provide details for school/supervisor communication.");
-      return;
-    }
-
-    if (dietaryNeeds === "YES" && !dietaryDetails.trim()) {
-      setError("Please provide your dietary requirement details.");
-      return;
-    }
-
+    setFieldErrors({});
     setError(null);
 
     const parsedFeeAmount = feeAmount.trim()
@@ -254,6 +308,10 @@ export function DelegateRegistrationForm({
       });
 
       // In edit mode the parent handles closing the form; only reset on fresh creation.
+      if (submitted) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+        setDraftRestored(false);
+      }
       if (submitted && !isEditMode) {
         resetForm();
       }
@@ -264,6 +322,20 @@ export function DelegateRegistrationForm({
 
   return (
     <div className="space-y-4">
+      {draftRestored && (
+        <div className="flex items-center justify-between rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+          <span>Draft restored from auto-save. Your unsaved changes have been recovered.</span>
+          <button
+            type="button"
+            className="ml-4 shrink-0 text-xs underline opacity-70 hover:opacity-100"
+            onClick={() => {
+              resetForm();
+            }}
+          >
+            Discard draft
+          </button>
+        </div>
+      )}
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
           {error}
@@ -276,8 +348,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Enter full legal name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => { setName(e.target.value); setFieldErrors((p) => ({ ...p, name: "" })); }}
+            className={fieldErrors.name ? "border-red-500" : ""}
           />
+          {fieldErrors.name && <p className="text-xs text-red-600">{fieldErrors.name}</p>}
         </div>
 
         <div className="space-y-2">
@@ -297,8 +371,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="WeChat ID"
             value={wechat}
-            onChange={(e) => setWechat(e.target.value)}
+            onChange={(e) => { setWechat(e.target.value); setFieldErrors((p) => ({ ...p, wechat: "" })); }}
+            className={fieldErrors.wechat ? "border-red-500" : ""}
           />
+          {fieldErrors.wechat && <p className="text-xs text-red-600">{fieldErrors.wechat}</p>}
         </div>
 
         <div className="space-y-2">
@@ -306,8 +382,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Phone number"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => { setPhone(e.target.value); setFieldErrors((p) => ({ ...p, phone: "" })); }}
+            className={fieldErrors.phone ? "border-red-500" : ""}
           />
+          {fieldErrors.phone && <p className="text-xs text-red-600">{fieldErrors.phone}</p>}
         </div>
 
         <div className="space-y-2">
@@ -315,8 +393,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Current province"
             value={province}
-            onChange={(e) => setProvince(e.target.value)}
+            onChange={(e) => { setProvince(e.target.value); setFieldErrors((p) => ({ ...p, province: "" })); }}
+            className={fieldErrors.province ? "border-red-500" : ""}
           />
+          {fieldErrors.province && <p className="text-xs text-red-600">{fieldErrors.province}</p>}
         </div>
 
         <div className="space-y-2">
@@ -324,8 +404,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Current city"
             value={city}
-            onChange={(e) => setCity(e.target.value)}
+            onChange={(e) => { setCity(e.target.value); setFieldErrors((p) => ({ ...p, city: "" })); }}
+            className={fieldErrors.city ? "border-red-500" : ""}
           />
+          {fieldErrors.city && <p className="text-xs text-red-600">{fieldErrors.city}</p>}
         </div>
 
         <div className="space-y-2">
@@ -423,6 +505,10 @@ export function DelegateRegistrationForm({
             onChange={(e) => setConferencePosition(e.target.value)}
           >
             <option value="">None — Regular Delegate</option>
+            <optgroup label="Conference Leadership">
+              <option value="Conference Chair">Conference Chair</option>
+              <option value="Deputy Conference Chair">Deputy Conference Chair</option>
+            </optgroup>
             <optgroup label="NEC Executive">
               <option value="National President">National President</option>
               <option value="National Vice President">
@@ -521,8 +607,10 @@ export function DelegateRegistrationForm({
             type="email"
             placeholder="Email address"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: "" })); }}
+            className={fieldErrors.email ? "border-red-500" : ""}
           />
+          {fieldErrors.email && <p className="text-xs text-red-600">{fieldErrors.email}</p>}
         </div>
 
         <div className="space-y-2">
@@ -530,8 +618,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Passport number"
             value={passportNo}
-            onChange={(e) => setPassportNo(e.target.value.toUpperCase())}
+            onChange={(e) => { setPassportNo(e.target.value.toUpperCase()); setFieldErrors((p) => ({ ...p, passportNo: "" })); }}
+            className={fieldErrors.passportNo ? "border-red-500" : ""}
           />
+          {fieldErrors.passportNo && <p className="text-xs text-red-600">{fieldErrors.passportNo}</p>}
         </div>
 
         <div className="space-y-2">
@@ -539,8 +629,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="Current university"
             value={university}
-            onChange={(e) => setUniversity(e.target.value)}
+            onChange={(e) => { setUniversity(e.target.value); setFieldErrors((p) => ({ ...p, university: "" })); }}
+            className={fieldErrors.university ? "border-red-500" : ""}
           />
+          {fieldErrors.university && <p className="text-xs text-red-600">{fieldErrors.university}</p>}
         </div>
 
         <div className="space-y-2">
@@ -548,8 +640,10 @@ export function DelegateRegistrationForm({
           <Input
             placeholder="e.g. Ghanaian, Chinese, etc."
             value={guestNationality}
-            onChange={(e) => setGuestNationality(e.target.value)}
+            onChange={(e) => { setGuestNationality(e.target.value); setFieldErrors((p) => ({ ...p, guestNationality: "" })); }}
+            className={fieldErrors.guestNationality ? "border-red-500" : ""}
           />
+          {fieldErrors.guestNationality && <p className="text-xs text-red-600">{fieldErrors.guestNationality}</p>}
         </div>
 
         {isManagerMode && (
@@ -599,9 +693,11 @@ export function DelegateRegistrationForm({
           <Textarea
             placeholder="Explain the communication support you need from the union"
             value={schoolCommunicationDetails}
-            onChange={(e) => setSchoolCommunicationDetails(e.target.value)}
+            onChange={(e) => { setSchoolCommunicationDetails(e.target.value); setFieldErrors((p) => ({ ...p, schoolCommunicationDetails: "" })); }}
             rows={2}
+            className={fieldErrors.schoolCommunicationDetails ? "border-red-500" : ""}
           />
+          {fieldErrors.schoolCommunicationDetails && <p className="text-xs text-red-600">{fieldErrors.schoolCommunicationDetails}</p>}
         </div>
 
         <div className="space-y-2 sm:col-span-2">
@@ -609,9 +705,11 @@ export function DelegateRegistrationForm({
           <Textarea
             placeholder="Describe any dietary requirements or allergies"
             value={dietaryDetails}
-            onChange={(e) => setDietaryDetails(e.target.value)}
+            onChange={(e) => { setDietaryDetails(e.target.value); setFieldErrors((p) => ({ ...p, dietaryDetails: "" })); }}
             rows={2}
+            className={fieldErrors.dietaryDetails ? "border-red-500" : ""}
           />
+          {fieldErrors.dietaryDetails && <p className="text-xs text-red-600">{fieldErrors.dietaryDetails}</p>}
         </div>
 
         <div className="space-y-2 sm:col-span-2">
@@ -643,8 +741,10 @@ export function DelegateRegistrationForm({
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp,application/pdf"
-            onChange={(e) => setPassportPhoto(e.target.files?.[0] || null)}
+            onChange={(e) => { setPassportPhoto(e.target.files?.[0] || null); setFieldErrors((p) => ({ ...p, passportPhoto: "" })); }}
+            className={fieldErrors.passportPhoto ? "border-red-500" : ""}
           />
+          {fieldErrors.passportPhoto && <p className="text-xs text-red-600">{fieldErrors.passportPhoto}</p>}
           {passportPhoto && (
             <p className="text-xs text-muted-foreground">
               {passportPhoto.name}
@@ -659,8 +759,10 @@ export function DelegateRegistrationForm({
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp"
-            onChange={(e) => setBookletPhoto(e.target.files?.[0] || null)}
+            onChange={(e) => { setBookletPhoto(e.target.files?.[0] || null); setFieldErrors((p) => ({ ...p, bookletPhoto: "" })); }}
+            className={fieldErrors.bookletPhoto ? "border-red-500" : ""}
           />
+          {fieldErrors.bookletPhoto && <p className="text-xs text-red-600">{fieldErrors.bookletPhoto}</p>}
           {bookletPhoto && (
             <p className="text-xs text-muted-foreground">{bookletPhoto.name}</p>
           )}

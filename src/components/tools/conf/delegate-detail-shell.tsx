@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
+import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { fmtRmb } from "@/lib/conf/currency";
 import {
@@ -263,6 +264,8 @@ export function DelegateDetailShell({
         roomPref: payload.roomPref,
         partnerClaimNote: payload.partnerClaimNote,
         conferencePosition: payload.conferencePosition,
+        feeAmount: payload.feeAmount,
+        feePaid: payload.feePaid,
       };
 
       const res = await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
@@ -469,22 +472,18 @@ export function DelegateDetailShell({
             </CardHeader>
             <CardContent className="space-y-3">
               {delegate.passportPhotoPath ? (
-                delegate.passportPhotoPath.toLowerCase().endsWith(".pdf") ? (
-                  <a
-                    href={delegate.passportPhotoPath}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent"
-                  >
-                    <Eye className="size-4" /> View Passport Document (PDF)
-                  </a>
-                ) : (
+                <>
                   <AdaptivePhotoFrame
-                    src={delegate.passportPhotoPath}
+                    src={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
                     alt={`${delegate.name} passport`}
                     containerClassName="h-52 w-full rounded-xl border border-border"
                   />
-                )
+                  <PassportViewerModal
+                    proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
+                    isPdf={delegate.passportPhotoPath.toLowerCase().endsWith(".pdf")}
+                    label="Full View"
+                  />
+                </>
               ) : (
                 <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
                   No passport document uploaded
@@ -577,7 +576,12 @@ export function DelegateDetailShell({
                 <p className="mt-1">
                   University: {asText(delegate.university)}
                 </p>
-                <p className="mt-1">Passport: {asText(delegate.passportNo)}</p>
+                {canManage && (
+                  <p className="mt-1 flex items-center gap-1">
+                    <Lock className="size-3 text-muted-foreground" />
+                    Passport: {asText(delegate.passportNo)}
+                  </p>
+                )}
               </div>
 
               <div className="rounded-lg border border-border p-3 text-sm">
@@ -693,6 +697,7 @@ export function DelegateDetailShell({
               key={`edit-${delegate.id}`}
               submitting={editSubmitting}
               submitLabel="Save Changes"
+              draftKey={`edit-${delegate.id}`}
               initialValues={{
                 name: delegate.name,
                 province: delegate.province ?? "",

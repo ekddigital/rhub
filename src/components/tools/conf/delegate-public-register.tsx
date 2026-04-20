@@ -633,6 +633,7 @@ export function DelegatePublicRegister() {
                 submitting={submitting}
                 defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
+                draftKey="public-new"
                 onSubmit={handleSubmit}
               />
             </CardContent>

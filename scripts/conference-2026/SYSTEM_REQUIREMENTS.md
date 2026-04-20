@@ -1190,7 +1190,7 @@ All images from `scripts/conference-2026/images/` have been OCR'd and stored in 
 | Blessing Hawa Washington | Member, Cooking Team                    | Nantong   | Jiangsu  |
 | Robert D Molley          | Chair on Logistics                      | Qufu      | Shandong |
 | Priscilla Bamu Dweh      | Member, Cooking Team                    | Suzhou    | Jiangsu  |
-| Willimena Y. Munyenneh   | Member, Cooking Team                    | Suzhou    | Jiangsu  |
+| Willimena Yah Munyenneh  | Member, Cooking Team                    | Suzhou    | Jiangsu  |
 
 - **Chairman responsibilities per the letter:** Budget Management, Delegates Management, Program Execution, Reporting, City/District coordination
 - **CC on the letter:** Council of Coordinators, NEC, National Secretariat, Judicial Board

@@ -2831,3 +2831,6 @@ Please make sure your database server is running at `31.97.41.230:9909`.
  GET /api/auth/google?state=%2Fdashboard 307 in 166ms (next.js: 156ms, proxy.ts: 5ms, application-code: 6ms)
 ✓ Compiled in 139ms
 ✓ Compiled in 900ms
+✓ Compiled in 314ms
+✓ Compiled in 189ms
+✓ Compiled in 987ms

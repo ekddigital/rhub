@@ -133,7 +133,7 @@ const DEFAULT_MEMBERS = [
     city: "Suzhou",
   },
   {
-    name: "Willimena Y. Munyenneh",
+    name: "Willimena Yah Munyenneh",
     role: "COMMITTEE" as const,
     title: "Cooking",
     city: "Suzhou",
@@ -200,8 +200,34 @@ async function bootstrapDefaultConference() {
   // Idempotent name corrections — fixes historical misspellings on every bootstrap run.
   await prisma.confMember.updateMany({
     where: { confId: event.id, name: "Williamena Yah SENET" },
-    data: { name: "Willimena Y. Munyenneh" },
+    data: { name: "Willimena Yah Munyenneh" },
   });
+  await prisma.confMember.updateMany({
+    where: { confId: event.id, name: "Willimena Y. Munyenneh" },
+    data: { name: "Willimena Yah Munyenneh" },
+  });
+
+  // Idempotent delegate code migration — fixes old prefix formats to LSUICNC{YY}-{NNNN}.
+  {
+    const yearShort = String(event.year).slice(-2);
+    const oldPrefixPattern = `LSUIC${yearShort}-`;
+    const oldDelegates = await prisma.confDelegate.findMany({
+      where: {
+        confId: event.id,
+        delegateCode: { startsWith: oldPrefixPattern },
+      },
+      select: { id: true, delegateCode: true },
+    });
+    for (const d of oldDelegates) {
+      const match = d.delegateCode!.match(/-(\d+)$/);
+      if (!match) continue;
+      const num = String(parseInt(match[1])).padStart(4, "0");
+      await prisma.confDelegate.update({
+        where: { id: d.id },
+        data: { delegateCode: `LSUICNC${yearShort}-${num}` },
+      });
+    }
+  }
 
   const meetingCount = await prisma.confMeeting.count({
     where: { confId: event.id },

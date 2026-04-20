@@ -658,6 +658,7 @@ export function DelegatesShell() {
               submitting={submitting}
               submitLabel="Register Delegate"
               defaultFeeAmount={defaultFeeAmount}
+              draftKey="manager-new"
               onCancel={() => setShowForm(false)}
               onSubmit={handleRegister}
             />

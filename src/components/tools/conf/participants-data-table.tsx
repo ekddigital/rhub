@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { fmtRmb } from "@/lib/conf/currency";
 import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
+import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
 
 export type ParticipantRow = {
   id: string;
@@ -513,14 +514,11 @@ export function ParticipantsDataTable({
                       <td className="px-3 py-3">
                         <p>{row.passportNo || "-"}</p>
                         {row.passportPhotoPath ? (
-                          <a
-                            href={row.passportPhotoPath}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
-                          >
-                            <Eye className="size-3" /> View File
-                          </a>
+                          <PassportViewerModal
+                            proxyUrl={`/api/conf/${confId}/delegates/${row.id}/passport-view`}
+                            isPdf={row.passportPhotoPath.toLowerCase().endsWith(".pdf")}
+                            label="View File"
+                          />
                         ) : (
                           <p className="text-muted-foreground">No file</p>
                         )}
