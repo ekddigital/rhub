@@ -277,7 +277,8 @@ export function DelegateDetailShell({
       const updated = await res.json().catch(() => ({}));
       if (!res.ok)
         throw new Error(
-          (updated as { error?: string }).error || "Failed to update registration",
+          (updated as { error?: string }).error ||
+            "Failed to update registration",
         );
 
       if (payload.passportPhoto) {
@@ -392,110 +393,112 @@ export function DelegateDetailShell({
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Conference Photo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {delegate.bookletPhotoPath ? (
-              <AdaptivePhotoFrame
-                src={delegate.bookletPhotoPath}
-                alt={delegate.name}
-                containerClassName="h-72 w-full rounded-xl border border-border"
-              />
-            ) : (
-              <div className="flex h-72 items-center justify-center rounded-xl bg-muted text-3xl font-semibold text-muted-foreground">
-                {initials || "DL"}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label
-                className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
-                  uploadingKind ? "pointer-events-none opacity-60" : ""
-                }`}
-              >
-                <Camera className="size-4" />
-                {uploadingKind === "booklet"
-                  ? "Uploading..."
-                  : "Change Conference Photo"}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    void handleUpload("booklet", file);
-                    e.currentTarget.value = "";
-                  }}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Conference Photo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {delegate.bookletPhotoPath ? (
+                <AdaptivePhotoFrame
+                  src={delegate.bookletPhotoPath}
+                  alt={delegate.name}
+                  containerClassName="h-72 w-full rounded-xl border border-border"
                 />
-              </label>
+              ) : (
+                <div className="flex h-72 items-center justify-center rounded-xl bg-muted text-3xl font-semibold text-muted-foreground">
+                  {initials || "DL"}
+                </div>
+              )}
 
-              {canManage && (
+              <div className="space-y-2">
                 <label
                   className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
                     uploadingKind ? "pointer-events-none opacity-60" : ""
                   }`}
                 >
-                  <FileUp className="size-4" />
-                  {uploadingKind === "passport"
+                  <Camera className="size-4" />
+                  {uploadingKind === "booklet"
                     ? "Uploading..."
-                    : "Replace Passport File"}
+                    : "Change Conference Photo"}
                   <input
                     type="file"
                     className="hidden"
-                    accept="image/png,image/jpeg,image/webp,application/pdf"
+                    accept="image/png,image/jpeg,image/webp"
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
-                      void handleUpload("passport", file);
+                      void handleUpload("booklet", file);
                       e.currentTarget.value = "";
                     }}
                   />
                 </label>
-              )}
-            </div>
 
-            <p className="text-xs text-muted-foreground">
-              Linked delegate accounts can update their conference photo from
-              this page. Managers can also replace passport files.
-            </p>
-          </CardContent>
-        </Card>
+                {canManage && (
+                  <label
+                    className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                      uploadingKind ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <FileUp className="size-4" />
+                    {uploadingKind === "passport"
+                      ? "Uploading..."
+                      : "Replace Passport File"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        void handleUpload("passport", file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
 
-        {canManage && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                Passport Document
-                <Lock className="size-3.5 text-muted-foreground" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {delegate.passportPhotoPath ? (
-                <>
-                  <AdaptivePhotoFrame
-                    src={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
-                    alt={`${delegate.name} passport`}
-                    containerClassName="h-52 w-full rounded-xl border border-border"
-                  />
-                  <PassportViewerModal
-                    proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
-                    isPdf={delegate.passportPhotoPath.toLowerCase().endsWith(".pdf")}
-                    label="Full View"
-                  />
-                </>
-              ) : (
-                <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
-                  No passport document uploaded
-                </div>
-              )}
               <p className="text-xs text-muted-foreground">
-                <Lock className="inline size-3 mr-1" />
-                Visible to conference managers only.
+                Linked delegate accounts can update their conference photo from
+                this page. Managers can also replace passport files.
               </p>
             </CardContent>
           </Card>
-        )}
+
+          {canManage && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  Passport Document
+                  <Lock className="size-3.5 text-muted-foreground" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {delegate.passportPhotoPath ? (
+                  <>
+                    <AdaptivePhotoFrame
+                      src={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
+                      alt={`${delegate.name} passport`}
+                      containerClassName="h-52 w-full rounded-xl border border-border"
+                    />
+                    <PassportViewerModal
+                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
+                      isPdf={delegate.passportPhotoPath
+                        .toLowerCase()
+                        .endsWith(".pdf")}
+                      label="Full View"
+                    />
+                  </>
+                ) : (
+                  <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                    No passport document uploaded
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  <Lock className="inline size-3 mr-1" />
+                  Visible to conference managers only.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <Card>
@@ -709,8 +712,7 @@ export function DelegateDetailShell({
                 email: delegate.email ?? "",
                 gender: delegate.gender ?? "MALE",
                 attendanceIntent: delegate.attendanceIntent ?? "YES",
-                travelAssistanceNeeded:
-                  delegate.travelAssistanceNeeded ?? "NO",
+                travelAssistanceNeeded: delegate.travelAssistanceNeeded ?? "NO",
                 schoolCommunicationNeeded:
                   delegate.schoolCommunicationNeeded ?? "NO",
                 schoolCommunicationDetails:
