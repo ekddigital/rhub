@@ -28,10 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  BUDGET_CATEGORIES,
-  COMMON_UNITS,
-} from "@/lib/conf/config";
+import { BUDGET_CATEGORIES, COMMON_UNITS } from "@/lib/conf/config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -148,22 +145,19 @@ export function BudgetShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDraft]);
 
-  const persistDraft = useCallback(
-    (draft: BudgetDraft) => {
-      const updated = draft.savedAt
-        ? { ...draft, savedAt: new Date().toISOString() }
-        : draft;
-      setDrafts((prev) => {
-        const exists = prev.find((d) => d.id === updated.id);
-        const next = exists
-          ? prev.map((d) => (d.id === updated.id ? updated : d))
-          : [updated, ...prev];
-        saveDrafts(next);
-        return next;
-      });
-    },
-    [],
-  );
+  const persistDraft = useCallback((draft: BudgetDraft) => {
+    const updated = draft.savedAt
+      ? { ...draft, savedAt: new Date().toISOString() }
+      : draft;
+    setDrafts((prev) => {
+      const exists = prev.find((d) => d.id === updated.id);
+      const next = exists
+        ? prev.map((d) => (d.id === updated.id ? updated : d))
+        : [updated, ...prev];
+      saveDrafts(next);
+      return next;
+    });
+  }, []);
 
   const handleManualSave = useCallback(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -200,12 +194,10 @@ export function BudgetShell() {
 
   // ── Field update helpers ──────────────────────────────────────────────────
 
-  const setTitle = (v: string) =>
-    setActiveDraft((d) => ({ ...d, title: v }));
+  const setTitle = (v: string) => setActiveDraft((d) => ({ ...d, title: v }));
   const setCategory = (v: string) =>
     setActiveDraft((d) => ({ ...d, category: v }));
-  const setNotes = (v: string) =>
-    setActiveDraft((d) => ({ ...d, notes: v }));
+  const setNotes = (v: string) => setActiveDraft((d) => ({ ...d, notes: v }));
 
   const addItem = useCallback(() => {
     setActiveDraft((d) => ({
@@ -216,10 +208,12 @@ export function BudgetShell() {
 
   const removeItem = useCallback((idx: number) => {
     setActiveDraft((d) => {
-      const next = d.items.filter((_, i) => i !== idx).map((it, i) => ({
-        ...it,
-        no: i + 1,
-      }));
+      const next = d.items
+        .filter((_, i) => i !== idx)
+        .map((it, i) => ({
+          ...it,
+          no: i + 1,
+        }));
       return { ...d, items: next };
     });
   }, []);
@@ -326,7 +320,9 @@ export function BudgetShell() {
           >
             <FolderOpen className="size-4" />
             Drafts ({drafts.length})
-            <ChevronDown className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
+            />
           </Button>
 
           <Button size="sm" onClick={handleNewBudget}>
@@ -397,7 +393,10 @@ export function BudgetShell() {
                         })}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="flex items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -568,11 +567,7 @@ export function BudgetShell() {
                           placeholder="0"
                           value={item.unitPrice || ""}
                           onChange={(e) =>
-                            updateItem(
-                              idx,
-                              "unitPrice",
-                              Number(e.target.value),
-                            )
+                            updateItem(idx, "unitPrice", Number(e.target.value))
                           }
                         />
                       </td>
@@ -619,69 +614,187 @@ export function BudgetShell() {
       </Card>
 
       {/* A4 print area (hidden on screen, shown on print) */}
-      <div
-        className="budget-print-area"
-        style={{ display: "none" }}
-      >
+      <div className="budget-print-area" style={{ display: "none" }}>
         {/* Print header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingBottom: 10, borderBottom: "2px solid #C8A061" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 16,
+            paddingBottom: 10,
+            borderBottom: "2px solid #C8A061",
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/conf/lsuic_logo.png" alt="LSUIC" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <img
+            src="/conf/lsuic_logo.png"
+            alt="LSUIC"
+            style={{ width: 56, height: 56, objectFit: "contain" }}
+          />
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>LIBERIAN STUDENT UNION IN CHINA (LSUIC)</div>
-            <div style={{ fontSize: 10, color: "#C8A061", fontWeight: 600 }}>LSUIC 20th Anniversary National Conference — Jinan, China 2026</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>
+              LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+            </div>
+            <div style={{ fontSize: 10, color: "#C8A061", fontWeight: 600 }}>
+              LSUIC 20th Anniversary National Conference — Jinan, China 2026
+            </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/conf/liberia-seal.svg" alt="Seal" style={{ width: 52, height: 52, objectFit: "contain" }} />
+          <img
+            src="/conf/liberia-seal.svg"
+            alt="Seal"
+            style={{ width: 52, height: 52, objectFit: "contain" }}
+          />
         </div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: "#002868", marginBottom: 4 }}>
+        <div
+          style={{
+            fontSize: 16,
+            fontWeight: 700,
+            color: "#002868",
+            marginBottom: 4,
+          }}
+        >
           {activeDraft.title || "Budget Proposal"}
         </div>
         <div style={{ fontSize: 10, color: "#555", marginBottom: 2 }}>
-          Category: {BUDGET_CATEGORIES[activeDraft.category]?.label ?? activeDraft.category}
+          Category:{" "}
+          {BUDGET_CATEGORIES[activeDraft.category]?.label ??
+            activeDraft.category}
         </div>
         <div style={{ fontSize: 10, color: "#555", marginBottom: 12 }}>
-          Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          Date:{" "}
+          {new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
         </div>
         {activeDraft.notes && (
-          <div style={{ fontSize: 10, color: "#444", marginBottom: 14, fontStyle: "italic" }}>{activeDraft.notes}</div>
+          <div
+            style={{
+              fontSize: 10,
+              color: "#444",
+              marginBottom: 14,
+              fontStyle: "italic",
+            }}
+          >
+            {activeDraft.notes}
+          </div>
         )}
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+        <table
+          style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}
+        >
           <thead>
             <tr style={{ background: "#002868", color: "#fff" }}>
-              <th style={{ padding: "6px 8px", textAlign: "left", width: 30 }}>#</th>
+              <th style={{ padding: "6px 8px", textAlign: "left", width: 30 }}>
+                #
+              </th>
               <th style={{ padding: "6px 8px", textAlign: "left" }}>Item</th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 50 }}>Qty</th>
-              <th style={{ padding: "6px 8px", textAlign: "left", width: 70 }}>Unit</th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>Unit Price (¥)</th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>Total (¥)</th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 50 }}>
+                Qty
+              </th>
+              <th style={{ padding: "6px 8px", textAlign: "left", width: 70 }}>
+                Unit
+              </th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>
+                Unit Price (¥)
+              </th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>
+                Total (¥)
+              </th>
             </tr>
           </thead>
           <tbody>
             {activeDraft.items.map((item, idx) => (
-              <tr key={item.id} style={{ background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF", borderBottom: "0.5px solid #e0e0e0" }}>
+              <tr
+                key={item.id}
+                style={{
+                  background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF",
+                  borderBottom: "0.5px solid #e0e0e0",
+                }}
+              >
                 <td style={{ padding: "5px 8px", color: "#666" }}>{item.no}</td>
                 <td style={{ padding: "5px 8px" }}>{item.name || "—"}</td>
-                <td style={{ padding: "5px 8px", textAlign: "right" }}>{item.qty}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right" }}>
+                  {item.qty}
+                </td>
                 <td style={{ padding: "5px 8px" }}>{unitLabel(item)}</td>
-                <td style={{ padding: "5px 8px", textAlign: "right" }}>{fmtRmb(item.unitPrice)}</td>
-                <td style={{ padding: "5px 8px", textAlign: "right", fontWeight: 600 }}>{fmtRmb(calcItemTotal(item.qty, item.unitPrice))}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right" }}>
+                  {fmtRmb(item.unitPrice)}
+                </td>
+                <td
+                  style={{
+                    padding: "5px 8px",
+                    textAlign: "right",
+                    fontWeight: 600,
+                  }}
+                >
+                  {fmtRmb(calcItemTotal(item.qty, item.unitPrice))}
+                </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr style={{ borderTop: "2px solid #002868" }}>
-              <td colSpan={5} style={{ padding: "8px", textAlign: "right", fontWeight: 700, fontSize: 11 }}>GRAND TOTAL</td>
-              <td style={{ padding: "8px", textAlign: "right", fontWeight: 800, fontSize: 13, color: "#C8A061" }}>{fmtRmb(grandTotal)}</td>
+              <td
+                colSpan={5}
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontWeight: 700,
+                  fontSize: 11,
+                }}
+              >
+                GRAND TOTAL
+              </td>
+              <td
+                style={{
+                  padding: "8px",
+                  textAlign: "right",
+                  fontWeight: 800,
+                  fontSize: 13,
+                  color: "#C8A061",
+                }}
+              >
+                {fmtRmb(grandTotal)}
+              </td>
             </tr>
           </tfoot>
         </table>
-        <div style={{ marginTop: 40, display: "flex", justifyContent: "flex-end", gap: 80 }}>
+        <div
+          style={{
+            marginTop: 40,
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 80,
+          }}
+        >
           <div style={{ textAlign: "center" }}>
-            <div style={{ borderTop: "1px solid #002868", paddingTop: 4, fontSize: 9, color: "#555", width: 160 }}>Prepared By</div>
+            <div
+              style={{
+                borderTop: "1px solid #002868",
+                paddingTop: 4,
+                fontSize: 9,
+                color: "#555",
+                width: 160,
+              }}
+            >
+              Prepared By
+            </div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ borderTop: "1px solid #002868", paddingTop: 4, fontSize: 9, color: "#555", width: 160 }}>Approved By</div>
+            <div
+              style={{
+                borderTop: "1px solid #002868",
+                paddingTop: 4,
+                fontSize: 9,
+                color: "#555",
+                width: 160,
+              }}
+            >
+              Approved By
+            </div>
           </div>
         </div>
       </div>
@@ -723,4 +836,3 @@ export function BudgetShell() {
     </div>
   );
 }
-

@@ -49,6 +49,7 @@ type Member = {
   title: string | null;
   city: string | null;
   committeeScope: string | null;
+  phone: string | null;
 };
 
 type ConfInfo = {
@@ -115,8 +116,17 @@ const C = {
 };
 
 const FLAG_STRIPES_11 = [
-  "#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30",
-  "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
 ] as const;
 
 const ROLE_LABELS: Record<string, string> = {
@@ -148,22 +158,25 @@ function LetterA4Preview({
   draft,
   members,
   confInfo,
+  forPrint = false,
 }: {
   draft: LetterDraft;
   members: Member[];
   confInfo: ConfInfo | null;
+  forPrint?: boolean;
 }) {
   const PAGE_W = 794;
   const PAGE_H = 1123;
   const STRIPE_H = 14;
-  const HEADER_H = 138;
+  const HEADER_H = 158; // taller to fit officer phone row
   const GOLD_BAR = 2.5;
   const OFFICE_ROW = 26;
   const NAVY_BAR = 7;
   const RED_BAR = 3;
-  const TOTAL_HEADER = STRIPE_H + HEADER_H + GOLD_BAR + OFFICE_ROW + NAVY_BAR + RED_BAR;
+  const TOTAL_HEADER =
+    STRIPE_H + HEADER_H + GOLD_BAR + OFFICE_ROW + NAVY_BAR + RED_BAR;
   const FOOTER_H = 32;
-  const SIDEBAR_W = 185;
+  const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
   const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
 
   const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
@@ -172,8 +185,23 @@ function LetterA4Preview({
     ...members.filter((m) => !KEY_ORDER.includes(m.role)),
   ] as Member[];
 
-  const dateRange =
-    confInfo ? fmtDateRange(confInfo.startsAt, confInfo.endsAt) : "July 23 – 27, 2026";
+  // Officers whose phones go in the header
+  const chair = members.find((m) => m.role === "CHAIR");
+  const viceChair = members.find((m) => m.role === "VICE_CHAIR");
+  const secretary = members.find((m) => m.role === "SECRETARY");
+  const officerPhones = [
+    chair && chair.phone ? { label: "Chair", phone: chair.phone } : null,
+    viceChair && viceChair.phone
+      ? { label: "Co-Chair", phone: viceChair.phone }
+      : null,
+    secretary && secretary.phone
+      ? { label: "Secretary", phone: secretary.phone }
+      : null,
+  ].filter(Boolean) as { label: string; phone: string }[];
+
+  const dateRange = confInfo
+    ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
+    : "July 23 – 27, 2026";
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
   return (
@@ -181,12 +209,12 @@ function LetterA4Preview({
       className="letter-page"
       style={{
         width: PAGE_W,
-        height: PAGE_H,
+        height: forPrint ? "auto" : PAGE_H,
         background: C.white,
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
-        boxShadow: "0 4px 32px rgba(0,0,0,0.18)",
+        overflow: forPrint ? "visible" : "hidden",
+        boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
         fontFamily: "'Helvetica Neue', Arial, sans-serif",
       }}
     >
@@ -219,13 +247,9 @@ function LetterA4Preview({
         {/* LSUIC Logo */}
         <div
           style={{
-            width: 104,
-            height: 104,
-            borderRadius: "50%",
-            border: `2.5px solid ${C.gold}`,
-            overflow: "hidden",
             flexShrink: 0,
-            background: "#fff",
+            width: 108,
+            height: 108,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -235,7 +259,7 @@ function LetterA4Preview({
           <img
             src="/conf/lsuic_logo.png"
             alt="LSUIC"
-            style={{ width: "90%", height: "90%", objectFit: "contain" }}
+            style={{ width: 108, height: 108, objectFit: "contain" }}
             onError={(e) => {
               const el = e.target as HTMLImageElement;
               el.style.display = "none";
@@ -278,18 +302,34 @@ function LetterA4Preview({
           <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
             Email: ekd@ekddigital.com · lsuic2006@gmail.com
           </div>
+          {officerPhones.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 16,
+                marginTop: 5,
+                flexWrap: "wrap" as const,
+              }}
+            >
+              {officerPhones.map(({ label, phone }) => (
+                <span
+                  key={label}
+                  style={{ fontSize: 8.5, color: C.navy, fontWeight: 600 }}
+                >
+                  {label}: {phone}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Liberia National Seal */}
         <div
           style={{
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            border: `2px solid ${C.gold}`,
-            overflow: "hidden",
             flexShrink: 0,
-            background: "#fff",
+            width: 104,
+            height: 104,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -299,7 +339,7 @@ function LetterA4Preview({
           <img
             src="/conf/liberia-seal.svg"
             alt="Liberia Seal"
-            style={{ width: "88%", height: "88%", objectFit: "contain" }}
+            style={{ width: 104, height: 104, objectFit: "contain" }}
             onError={(e) => {
               const el = e.target as HTMLImageElement;
               el.style.display = "none";
@@ -345,95 +385,161 @@ function LetterA4Preview({
       <div
         style={{
           display: "flex",
-          height: BODY_H,
+          height: forPrint ? "auto" : BODY_H,
           flexShrink: 0,
-          overflow: "hidden",
+          overflow: forPrint ? "visible" : "hidden",
         }}
       >
-        {/* Left sidebar */}
+        {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
         <div
           style={{
             width: SIDEBAR_W,
-            background: C.darkNavy,
-            padding: "16px 10px",
+            background: C.white,
             flexShrink: 0,
-            overflow: "hidden",
+            overflow: forPrint ? "visible" : "hidden",
+            display: "flex",
+            borderRight: `1px solid #dde3ef`,
           }}
         >
+          {/* Vertical accent strips */}
+          <div style={{ display: "flex", flexShrink: 0, height: "100%" }}>
+            <div style={{ width: 8, background: C.navy }} />
+            <div style={{ width: 3, background: C.red }} />
+          </div>
+
+          {/* Member list */}
           <div
             style={{
-              fontSize: 7,
-              fontWeight: 700,
-              color: C.gold,
-              letterSpacing: "1px",
-              textTransform: "uppercase" as const,
-              marginBottom: 6,
+              flex: 1,
+              padding: "12px 8px 12px 9px",
+              overflowY: forPrint ? "visible" : "hidden",
             }}
           >
-            CONFERENCE COMMITTEE
-          </div>
-          <div
-            style={{
-              height: 0.8,
-              background: C.gold,
-              marginBottom: 10,
-            }}
-          />
-          {sortedMembers.map((m) => (
-            <div key={m.id} style={{ marginBottom: 8 }}>
-              <div
-                style={{
-                  fontSize: 8,
-                  fontWeight: 600,
-                  color: C.white,
-                  fontStyle: "italic",
-                  lineHeight: 1.3,
-                }}
-              >
-                {m.name}
-              </div>
-              <div style={{ fontSize: 7.5, color: C.gold, lineHeight: 1.3 }}>
-                {memberLabel(m)}
-              </div>
-              {m.city && (
+            <div
+              style={{
+                fontSize: 7.5,
+                fontWeight: 800,
+                color: C.navy,
+                letterSpacing: "0.8px",
+                textTransform: "uppercase" as const,
+                textAlign: "center",
+                marginBottom: 5,
+              }}
+            >
+              CONFERENCE COMMITTEE
+            </div>
+            <div
+              style={{
+                height: 1,
+                background: C.navy,
+                opacity: 0.25,
+                marginBottom: 9,
+              }}
+            />
+            {sortedMembers.map((m) => (
+              <div key={m.id} style={{ marginBottom: 6, textAlign: "center" }}>
+                {/* Name: bold italic navy, largest */}
                 <div
                   style={{
-                    fontSize: 7,
-                    color: C.sideAccent,
-                    lineHeight: 1.3,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: C.navy,
+                    fontStyle: "italic",
+                    lineHeight: 1.25,
+                    wordBreak: "break-word" as const,
                   }}
                 >
-                  {m.city}, China
+                  {m.name}
                 </div>
-              )}
-              <div
-                style={{
-                  height: 0.5,
-                  background: C.divider,
-                  marginTop: 6,
-                }}
-              />
-            </div>
-          ))}
+                {/* Role: italic navy, slightly smaller */}
+                <div
+                  style={{
+                    fontSize: 9.5,
+                    color: C.navy,
+                    fontStyle: "italic",
+                    lineHeight: 1.3,
+                    opacity: 0.8,
+                  }}
+                >
+                  {memberLabel(m)}
+                </div>
+                {/* City */}
+                {m.city && (
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: "#444",
+                      fontStyle: "italic",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {m.city}, China
+                  </div>
+                )}
+                {/* Phone: bold italic, prominent — matches reference */}
+                {m.phone && (
+                  <div
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: C.navy,
+                      fontStyle: "italic",
+                      lineHeight: 1.4,
+                      marginTop: 2,
+                    }}
+                  >
+                    {m.phone}
+                  </div>
+                )}
+                {/* Thin divider */}
+                <div
+                  style={{
+                    height: 0.8,
+                    background: C.navy,
+                    opacity: 0.15,
+                    marginTop: 6,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Main letter content */}
         <div
           style={{
             flex: 1,
-            padding: "24px 32px 16px",
-            overflow: "hidden",
+            padding: "24px 32px 24px",
+            overflow: forPrint ? "visible" : "hidden",
           }}
         >
           {/* Date (right-aligned) */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
-            <span style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
-              {draft.date || new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginBottom: 14,
+            }}
+          >
+            <span style={{ fontSize: 11, color: C.muted, fontStyle: "italic" }}>
+              {draft.date ||
+                new Date().toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
             </span>
           </div>
 
           {/* To / From / Re */}
-          <div style={{ fontSize: 9.5, color: "#222", lineHeight: 1.8, marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 12,
+              color: "#222",
+              lineHeight: 1.8,
+              marginBottom: 6,
+            }}
+          >
             {draft.to && (
               <div>
                 <strong style={{ color: C.navy }}>To:</strong>{" "}
@@ -460,9 +566,9 @@ function LetterA4Preview({
           {/* Body text */}
           <div
             style={{
-              fontSize: 10,
+              fontSize: 12,
               color: "#222",
-              lineHeight: 1.75,
+              lineHeight: 1.8,
               whiteSpace: "pre-wrap",
             }}
           >
@@ -489,7 +595,14 @@ function LetterA4Preview({
           justifyContent: "center",
         }}
       >
-        <div style={{ height: 2, background: C.red, width: "100%", marginBottom: 4 }} />
+        <div
+          style={{
+            height: 2,
+            background: C.red,
+            width: "100%",
+            marginBottom: 4,
+          }}
+        />
         <div
           style={{
             fontSize: 8,
@@ -518,7 +631,7 @@ export function LetterComposerShell() {
   const [activeDraft, setActiveDraft] = useState<LetterDraft>(newDraft);
   const [showList, setShowList] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
-  const [zoom, setZoom] = useState(65);
+  const [zoom, setZoom] = useState(72);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Fetch conf data ──────────────────────────────────────────────────────
@@ -544,7 +657,9 @@ export function LetterComposerShell() {
         const defRes = await fetch("/api/conf/default");
         if (defRes.ok) {
           // fetch detailed info
-          const detRes = await fetch(`/api/conf/${conf.id}/booklet/data`).catch(() => null);
+          const detRes = await fetch(`/api/conf/${conf.id}/booklet/data`).catch(
+            () => null,
+          );
           if (detRes?.ok) {
             const data = await detRes.json();
             if (data?.event) {
@@ -642,12 +757,57 @@ export function LetterComposerShell() {
     window.print();
   }, []);
 
+  // Open a clean popup window with just the A4 letter, then auto-print
+  // so the user stays on the composer page and only needs one click to save.
+  const handleDownloadPdf = useCallback(() => {
+    const root = document.getElementById("letter-print-root");
+    if (!root) {
+      window.print();
+      return;
+    }
+    const popup = window.open(
+      "",
+      "_blank",
+      `width=860,height=1000,scrollbars=no,menubar=no,toolbar=no,status=no`,
+    );
+    if (!popup) {
+      // Popups blocked — fall back to same-window print
+      window.print();
+      return;
+    }
+    popup.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href="${window.location.origin}">
+  <title>LSUIC Letter</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    @page { size: A4 portrait; margin: 0; }
+    @media print { body { width: 210mm; height: 297mm; overflow: hidden; } }
+  </style>
+</head>
+<body>
+  ${root.innerHTML}
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 400);
+    });
+  <\/script>
+</body>
+</html>`);
+    popup.document.close();
+  }, []);
+
   // ── Loading / error ──────────────────────────────────────────────────────
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="text-sm text-muted-foreground">Loading conference data…</div>
+        <div className="text-sm text-muted-foreground">
+          Loading conference data…
+        </div>
       </div>
     );
   }
@@ -664,17 +824,29 @@ export function LetterComposerShell() {
 
   return (
     <div className="space-y-6">
-      {/* Print CSS */}
+      {/* Print CSS.
+           #letter-print-root is always rendered but positioned off-screen
+           so images load. In print mode we hide the whole app shell with
+           visibility:hidden (works even on app-shell divs we don't own),
+           then reveal only the print root. */}
       <style>{`
+        #letter-print-root {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: 794px;
+          pointer-events: none;
+        }
         @media print {
-          body * { visibility: hidden; }
-          .letter-document, .letter-document * { visibility: visible; }
-          .letter-no-print { display: none !important; }
-          .letter-document {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
+          body * { visibility: hidden !important; }
+          #letter-print-root,
+          #letter-print-root * { visibility: visible !important; }
+          #letter-print-root {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 210mm !important;
+            pointer-events: auto !important;
           }
           .letter-page {
             width: 210mm !important;
@@ -696,15 +868,20 @@ export function LetterComposerShell() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Letter Composer</h1>
           <p className="text-sm text-muted-foreground">
-            Write official correspondence with the LSUIC letterhead — download as PDF
+            Write official correspondence with the LSUIC letterhead — download
+            as PDF
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             {saveStatus === "saved" ? (
-              <><CheckCircle2 className="size-3.5 text-emerald-500" /> Saved</>
+              <>
+                <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
+              </>
             ) : (
-              <><Clock className="size-3.5" /> Auto-saving</>
+              <>
+                <Clock className="size-3.5" /> Auto-saving
+              </>
             )}
           </span>
           <Button variant="outline" size="sm" onClick={handleManualSave}>
@@ -717,12 +894,18 @@ export function LetterComposerShell() {
           >
             <FolderOpen className="size-4" />
             Drafts ({drafts.length})
-            <ChevronDown className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`} />
+            <ChevronDown
+              className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
+            />
           </Button>
           <Button size="sm" onClick={handleNew}>
             <Plus className="size-4" /> New Letter
           </Button>
-          <Button size="sm" onClick={handlePrint} className="bg-[#002868] hover:bg-[#001A4E]">
+          <Button
+            size="sm"
+            onClick={handlePrint}
+            className="bg-[#002868] hover:bg-[#001A4E]"
+          >
             <Printer className="size-4" /> Print / PDF
           </Button>
         </div>
@@ -793,8 +976,8 @@ export function LetterComposerShell() {
         </Card>
       )}
 
-      {/* ── Main layout: form + preview ── */}
-      <div className="letter-no-print grid grid-cols-[380px,1fr] gap-6 items-start">
+      {/* ── Main layout: form (left) + preview (right) ── */}
+      <div className="letter-no-print grid grid-cols-[360px,1fr] gap-6 items-start">
         {/* ── Left: form fields ── */}
         <div className="space-y-4 sticky top-24">
           <Card>
@@ -859,7 +1042,8 @@ export function LetterComposerShell() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Letter Body</CardTitle>
               <CardDescription className="text-xs">
-                Paste or type your content. Use blank lines to separate paragraphs.
+                Paste or type your content. Use blank lines to separate
+                paragraphs.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -880,14 +1064,15 @@ export function LetterComposerShell() {
             <Button
               size="sm"
               className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
-              onClick={handlePrint}
+              onClick={handleDownloadPdf}
             >
               <Printer className="size-4" />
-              Print / Download PDF
+              Download PDF
             </Button>
           </div>
           <p className="text-[10px] text-muted-foreground text-center">
-            In the print dialog, choose &quot;Save as PDF&quot; to download.
+            Opens in a new window — choose &quot;Save as PDF&quot; in the print
+            dialog.
           </p>
         </div>
 
@@ -947,12 +1132,13 @@ export function LetterComposerShell() {
         </div>
       </div>
 
-      {/* ── Print-only view (full page) ── */}
-      <div className="letter-document" style={{ display: "none" }}>
+      {/* ── Print root — rendered off-screen (not display:none so visibility trick works) ── */}
+      <div id="letter-print-root">
         <LetterA4Preview
           draft={activeDraft}
           members={members}
           confInfo={confInfo}
+          forPrint={true}
         />
       </div>
     </div>

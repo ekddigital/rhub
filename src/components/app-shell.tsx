@@ -22,13 +22,13 @@ interface AppShellProps {
  */
 export function AppShell({ user, children }: AppShellProps) {
   return (
-    <>
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <ImpersonationBanner />
       <AppMobileNav user={user} />
       <div className="flex items-start">
         <AppSidebar user={user} />
         <div className="flex-1 min-w-0 pl-8">{children}</div>
       </div>
-    </>
+    </div>
   );
 }

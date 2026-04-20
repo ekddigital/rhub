@@ -62,8 +62,8 @@ export function ConfSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-1 self-start sticky top-24 min-h-[calc(100vh-8rem)] border-r border-border pr-6">
-      <p className="px-3 pt-1 pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+    <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-1 self-start sticky top-24 min-h-[calc(100vh-8rem)] border-r border-border pl-4 sm:pl-5 lg:pl-6 pr-4">
+      <p className="px-2 pt-1 pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
         Conference Hub
       </p>
       {CONF_NAV_ITEMS.map((item) => {

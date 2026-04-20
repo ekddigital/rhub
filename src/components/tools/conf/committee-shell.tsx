@@ -18,6 +18,9 @@ import {
   CheckCircle2,
   Loader2,
   AlertCircle,
+  Pencil,
+  X,
+  Check,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -90,6 +93,50 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
   const [userSearching, setUserSearching] = useState(false);
+
+  // Inline edit for contact details (phone / city / email / name)
+  const [editMemberId, setEditMemberId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  const openEdit = (m: Member) => {
+    setEditMemberId(m.id);
+    setEditName(m.name);
+    setEditPhone(m.phone ?? "");
+    setEditCity(m.city ?? "");
+    setEditEmail(m.email ?? "");
+  };
+
+  const handleEditSave = async (memberId: string) => {
+    if (!confId || editSaving) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/conf/${confId}/members/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim() || undefined,
+          phone: editPhone.trim() || null,
+          city: editCity.trim() || null,
+          email: editEmail.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? "Failed to save");
+      }
+      const updated = (await res.json()) as Member;
+      setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+      setEditMemberId(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("COMMITTEE");
@@ -534,6 +581,20 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 )}
 
                 <div className="mt-3 flex flex-wrap gap-2">
+                  {/* Edit contact details button */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1.5 text-xs"
+                    onClick={() =>
+                      editMemberId === member.id
+                        ? setEditMemberId(null)
+                        : openEdit(member)
+                    }
+                  >
+                    <Pencil className="size-3" />
+                    Edit Details
+                  </Button>
                   <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
                     <Camera className="size-3.5" />
                     {uploadingId === member.id
@@ -552,6 +613,72 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     />
                   </label>
                 </div>
+
+                {/* Inline edit panel */}
+                {editMemberId === member.id && (
+                  <div className="mt-3 space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                    <p className="text-xs font-semibold text-foreground">
+                      Edit Contact Details
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Full Name</Label>
+                        <Input
+                          className="h-7 text-xs"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Full name"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Phone</Label>
+                        <Input
+                          className="h-7 text-xs"
+                          value={editPhone}
+                          onChange={(e) => setEditPhone(e.target.value)}
+                          placeholder="e.g. +8615812345678"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">City</Label>
+                        <Input
+                          className="h-7 text-xs"
+                          value={editCity}
+                          onChange={(e) => setEditCity(e.target.value)}
+                          placeholder="e.g. Jinan"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px]">Email</Label>
+                        <Input
+                          className="h-7 text-xs"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          placeholder="email@example.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 pt-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs"
+                        onClick={() => setEditMemberId(null)}
+                      >
+                        <X className="size-3" /> Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs bg-[#002868] hover:bg-[#001A4E]"
+                        onClick={() => void handleEditSave(member.id)}
+                        disabled={editSaving}
+                      >
+                        <Check className="size-3" />
+                        {editSaving ? "Saving…" : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Permissions Panel */}
                 {permPanelId === member.id && (

@@ -18,9 +18,9 @@ export default function ConferenceLayout({
   return (
     <>
       <ConfMobileNav />
-      <div className="flex items-start mt-2">
+      <div className="flex items-start min-h-[calc(100vh-8rem)]">
         <ConfSidebar />
-        <div className="flex-1 min-w-0 lg:pl-8">{children}</div>
+        <div className="flex-1 min-w-0 px-6 lg:px-10 pb-10">{children}</div>
       </div>
     </>
   );

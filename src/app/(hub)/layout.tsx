@@ -12,9 +12,7 @@ export default function HubLayout({ children }: { children: ReactNode }) {
           <div className="absolute right-0 top-64 h-72 w-72 rounded-full bg-linear-to-br from-[#182E5F]/40 via-[#1F1C18]/30 to-transparent blur-3xl" />
         </div>
         <SiteHeader />
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-          {children}
-        </main>
+        <main className="flex-1 w-full pt-8 pb-20">{children}</main>
         <SiteFooter />
       </div>
     </UserProvider>

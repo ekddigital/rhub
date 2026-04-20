@@ -1324,3 +1324,317 @@ Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
  GET /tools/conf/payments 200 in 3.4s (next.js: 4ms, proxy.ts: 5ms, application-code: 3.4s)
  GET /tools/conf/payments 200 in 3.2s (next.js: 4ms, proxy.ts: 8ms, application-code: 3.1s)
  GET /tools/conf/payments 200 in 2.3s (next.js: 1496µs, proxy.ts: 1698µs, application-code: 2.3s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/payments 200 in 18.0s (next.js: 9ms, proxy.ts: 13ms, application-code: 18.0s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1776659741489 200 in 745ms (next.js: 83ms, proxy.ts: 52ms, application-code: 609ms)
+ GET /api/conf/default 200 in 3.4s (next.js: 50ms, proxy.ts: 62ms, application-code: 3.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/payments? 200 in 2.1s (next.js: 40ms, proxy.ts: 2ms, application-code: 2.0s)
+ GET /api/auth/me?_t=1776659741490 200 in 7.3s (next.js: 87ms, proxy.ts: 20ms, application-code: 7.2s)
+ GET /tools/conf/letters 200 in 1978ms (next.js: 704ms, proxy.ts: 3ms, application-code: 1271ms)
+ GET /api/conf/default 200 in 20ms (next.js: 1007µs, proxy.ts: 16ms, application-code: 3ms)
+ GET /api/conf/default 200 in 22ms (next.js: 8ms, proxy.ts: 10ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 265ms (next.js: 213ms, proxy.ts: 5ms, application-code: 48ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 27ms (next.js: 3ms, proxy.ts: 1586µs, application-code: 22ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.5s (next.js: 681ms, proxy.ts: 4ms, application-code: 1784ms)
+ GET /api/conf/default 200 in 14ms (next.js: 4ms, proxy.ts: 6ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 15ms, proxy.ts: 6ms, application-code: 2.0s)
+ GET /api/conf/default 200 in 80ms (next.js: 63ms, proxy.ts: 10ms, application-code: 7ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 12.6s (next.js: 39ms, proxy.ts: 3ms, application-code: 12.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.2s (next.js: 8ms, proxy.ts: 3ms, application-code: 3.2s)
+✓ Compiled in 400ms
+✓ Compiled in 257ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 19.2s (next.js: 23ms, proxy.ts: 11ms, application-code: 19.2s)
+ GET /api/auth/me?_t=1776664303328 200 in 663ms (next.js: 11ms, proxy.ts: 9ms, application-code: 643ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/conf/default 200 in 5.2s (next.js: 5ms, proxy.ts: 9ms, application-code: 5.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 73ms (next.js: 23ms, proxy.ts: 7ms, application-code: 43ms)
+ GET /api/auth/me?_t=1776664303328 200 in 6.2s (next.js: 13ms, proxy.ts: 8ms, application-code: 6.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.7s (next.js: 58ms, proxy.ts: 7ms, application-code: 2.6s)
+ GET /api/conf/default 200 in 13ms (next.js: 3ms, proxy.ts: 5ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 6.9s (next.js: 8ms, proxy.ts: 4ms, application-code: 6.9s)
+✓ Compiled in 495ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/default 200 in 13.7s (next.js: 8ms, proxy.ts: 13ms, application-code: 13.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 81ms (next.js: 16ms, proxy.ts: 7ms, application-code: 59ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.8s (next.js: 66ms, proxy.ts: 5ms, application-code: 3.7s)
+ GET /tools/conf/letters 200 in 13.8s (next.js: 14ms, proxy.ts: 8ms, application-code: 13.8s)
+ GET /api/conf/default 200 in 10ms (next.js: 4ms, proxy.ts: 3ms, application-code: 2ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 76ms (next.js: 6ms, proxy.ts: 4ms, application-code: 66ms)
+ GET /api/auth/me?_t=1776664971645 200 in 599ms (next.js: 10ms, proxy.ts: 3ms, application-code: 587ms)
+ GET /api/auth/me?_t=1776664971645 200 in 1209ms (next.js: 7ms, proxy.ts: 3ms, application-code: 1198ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1617ms (next.js: 60ms, proxy.ts: 4ms, application-code: 1553ms)
+ GET /api/conf/default 200 in 7ms (next.js: 1775µs, proxy.ts: 3ms, application-code: 3ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 8.3s (next.js: 5ms, proxy.ts: 1710µs, application-code: 8.2s)
+✓ Compiled in 365ms
+✓ Compiled in 246ms
+ GET /api/conf/default 200 in 9.7s (next.js: 5ms, proxy.ts: 14ms, application-code: 9.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 98ms (next.js: 13ms, proxy.ts: 8ms, application-code: 77ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 9.8s (next.js: 76ms, proxy.ts: 5ms, application-code: 9.7s)
+ GET /api/conf/default 200 in 13ms (next.js: 5ms, proxy.ts: 4ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 9.1s (next.js: 8ms, proxy.ts: 3ms, application-code: 9.1s)
+✓ Compiled in 396ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 6.6s (next.js: 18ms, proxy.ts: 11ms, application-code: 6.6s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/conf/default 200 in 19ms (next.js: 6ms, proxy.ts: 4ms, application-code: 8ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 65ms (next.js: 11ms, proxy.ts: 10ms, application-code: 44ms)
+ GET /api/auth/me?_t=1776665450236 200 in 630ms (next.js: 15ms, proxy.ts: 4ms, application-code: 611ms)
+ GET /api/auth/me?_t=1776665450236 200 in 1248ms (next.js: 17ms, proxy.ts: 4ms, application-code: 1227ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.3s (next.js: 44ms, proxy.ts: 9ms, application-code: 3.3s)
+ GET /api/conf/default 200 in 5ms (next.js: 1390µs, proxy.ts: 1410µs, application-code: 1906µs)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.7s (next.js: 3ms, proxy.ts: 1141µs, application-code: 2.7s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 13.3s (next.js: 14ms, proxy.ts: 11ms, application-code: 13.3s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1776665672749 200 in 629ms (next.js: 12ms, proxy.ts: 7ms, application-code: 610ms)
+ GET /api/auth/me?_t=1776665672749 200 in 6.1s (next.js: 14ms, proxy.ts: 4ms, application-code: 6.1s)
+ GET /api/conf/default 200 in 8.6s (next.js: 3ms, proxy.ts: 8ms, application-code: 8.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 64ms (next.js: 13ms, proxy.ts: 5ms, application-code: 46ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.6s (next.js: 52ms, proxy.ts: 5ms, application-code: 3.6s)
+ GET /api/conf/default 200 in 12ms (next.js: 4ms, proxy.ts: 4ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 6.5s (next.js: 6ms, proxy.ts: 2ms, application-code: 6.5s)
+✓ Compiled in 396ms
+ GET /tools/conf/letters 200 in 13.5s (next.js: 7ms, proxy.ts: 8ms, application-code: 13.4s)
+ GET /tools/conf/delegates 200 in 13.9s (next.js: 28ms, proxy.ts: 3ms, application-code: 13.9s)
+ GET /tools/conf/letters 200 in 3.0s (next.js: 8ms, proxy.ts: 5ms, application-code: 3.0s)
+ GET /tools/conf/delegates 200 in 2.4s (next.js: 5ms, proxy.ts: 2ms, application-code: 2.4s)
+ GET /tools/conf/letters 200 in 16.9s (next.js: 10ms, proxy.ts: 3ms, application-code: 16.9s)
+ GET /tools/conf/delegates 200 in 17.2s (next.js: 18ms, proxy.ts: 3ms, application-code: 17.2s)
+ GET /tools/conf/delegates 200 in 17.3s (next.js: 44ms, proxy.ts: 7ms, application-code: 17.2s)
+ GET /tools/conf/letters 200 in 17.9s (next.js: 3ms, proxy.ts: 3ms, application-code: 17.9s)
+ GET /tools/conf/letters 200 in 1666ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1659ms)
+ GET /tools/conf/delegates 200 in 1675ms (next.js: 35ms, proxy.ts: 3ms, application-code: 1637ms)
+ GET /tools/conf/delegates 200 in 1221ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1215ms)
+ GET /tools/conf/letters 200 in 2.5s (next.js: 1905µs, proxy.ts: 2ms, application-code: 2.5s)
+✓ Compiled in 189ms
+ GET /tools/conf/delegates 200 in 1373ms (next.js: 47ms, proxy.ts: 5ms, application-code: 1321ms)
+ GET /tools/conf/letters 200 in 1347ms (next.js: 11ms, proxy.ts: 51ms, application-code: 1285ms)
+ GET /tools/conf/delegates 200 in 1546ms (next.js: 21ms, proxy.ts: 3ms, application-code: 1522ms)
+ GET /tools/conf/letters 200 in 1801ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1796ms)
+ GET /tools/conf/delegates 200 in 1860ms (next.js: 56ms, proxy.ts: 33ms, application-code: 1771ms)
+ GET /tools/conf/letters 200 in 2.2s (next.js: 8ms, proxy.ts: 13ms, application-code: 2.2s)
+ GET /tools/conf/delegates 200 in 1333ms (next.js: 5ms, proxy.ts: 3ms, application-code: 1325ms)
+ GET /tools/conf/letters 200 in 1361ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1356ms)
+ GET /tools/conf/letters 200 in 1855ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1846ms)
+ GET /tools/conf/letters 200 in 1231ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1225ms)
+ GET /tools/conf/delegates 200 in 2.0s (next.js: 4ms, proxy.ts: 4ms, application-code: 1994ms)
+ GET /tools/conf/delegates 200 in 1844ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1838ms)
+✓ Compiled in 107ms
+✓ Compiled in 364ms
+ GET /tools/conf/booklet 200 in 1700ms (next.js: 44ms, proxy.ts: 6ms, application-code: 1650ms)
+ GET /api/conf/default 200 in 2.7s (next.js: 5ms, proxy.ts: 35ms, application-code: 2.6s)
+ GET /api/conf/default 200 in 2.7s (next.js: -3438µs, proxy.ts: 34ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 3.0s (next.js: 58ms, proxy.ts: 6ms, application-code: 2.9s)
+✓ Compiled in 503ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 4.9s (next.js: 55ms, proxy.ts: 14ms, application-code: 4.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.9s (next.js: 8ms, proxy.ts: 3ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.4s (next.js: 7ms, proxy.ts: 3ms, application-code: 3.4s)
+✓ Compiled in 398ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=header&format=png 200 in 5.8s (next.js: 958ms, proxy.ts: 13ms, application-code: 4.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=page&format=png 200 in 7.7s (next.js: 860ms, proxy.ts: 9ms, application-code: 6.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=continuation&format=png 200 in 8.8s (next.js: 956ms, proxy.ts: 13ms, application-code: 7.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=page&format=png 200 in 9.2s (next.js: 954ms, proxy.ts: 7ms, application-code: 8.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=header&format=png 200 in 9.5s (next.js: 881ms, proxy.ts: 9ms, application-code: 8.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letterhead?mode=continuation&format=png 200 in 9.9s (next.js: 872ms, proxy.ts: 6ms, application-code: 9.0s)
+✓ Compiled in 408ms
+✓ Compiled in 296ms
+ GET /tools/conf/letters 200 in 1519ms (next.js: 10ms, proxy.ts: 10ms, application-code: 1498ms)
+ GET /tools/conf/booklet 200 in 1917ms (next.js: 69ms, proxy.ts: 9ms, application-code: 1839ms)
+ GET /tools/conf/letters 200 in 2.5s (next.js: 89ms, proxy.ts: 62ms, application-code: 2.4s)
+ GET /tools/conf/letters 200 in 2.2s (next.js: 49ms, proxy.ts: 318ms, application-code: 1805ms)
+ GET /tools/conf/booklet 200 in 2.7s (next.js: 230ms, proxy.ts: 65ms, application-code: 2.4s)
+ GET /tools/conf/booklet 200 in 2.5s (next.js: 97ms, proxy.ts: 345ms, application-code: 2.1s)
+ GET /tools/conf/booklet 200 in 1383ms (next.js: 11ms, proxy.ts: 18ms, application-code: 1354ms)
+ GET /tools/conf/letters 200 in 2.0s (next.js: 15ms, proxy.ts: 7ms, application-code: 1986ms)
+ GET /tools/conf/letters 200 in 1608ms (next.js: 5ms, proxy.ts: 8ms, application-code: 1595ms)
+ GET /tools/conf/letters 200 in 1647ms (next.js: 113ms, proxy.ts: 71ms, application-code: 1463ms)
+ GET /tools/conf/booklet 200 in 1324ms (next.js: 20ms, proxy.ts: 18ms, application-code: 1286ms)
+ GET /tools/conf/booklet 200 in 1897ms (next.js: 60ms, proxy.ts: 71ms, application-code: 1765ms)
