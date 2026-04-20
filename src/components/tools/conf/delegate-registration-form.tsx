@@ -45,10 +45,25 @@ export type DelegateRegistrationPayload = {
   conferencePosition: string;
 };
 
+/** Pre-populated field values for edit mode (files are not pre-populated). */
+export type InitialFormValues = Partial<
+  Omit<DelegateRegistrationPayload, "passportPhoto" | "bookletPhoto">
+>;
+
 type Props = {
   submitting: boolean;
   submitLabel?: string;
   defaultFeeAmount?: number;
+  /**
+   * Pre-populate fields for edit mode. When provided, file uploads become
+   * optional (the server keeps the existing files if none are supplied).
+   */
+  initialValues?: InitialFormValues;
+  /**
+   * When false, hides manager-only fields (feePaid, feeAmount).
+   * Defaults to true to preserve existing behavior.
+   */
+  isManagerMode?: boolean;
   onCancel?: () => void;
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
 };
@@ -57,29 +72,33 @@ export function DelegateRegistrationForm({
   submitting,
   submitLabel = "Submit Registration",
   defaultFeeAmount = 250,
+  initialValues,
+  isManagerMode = true,
   onCancel,
   onSubmit,
 }: Props) {
-  const [name, setName] = useState("");
-  const [province, setProvince] = useState("");
-  const [passportNo, setPassportNo] = useState("");
-  const [university, setUniversity] = useState("");
-  const [city, setCity] = useState("");
-  const [phone, setPhone] = useState("");
-  const [wechat, setWechat] = useState("");
-  const [email, setEmail] = useState("");
-  const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
+  const isEditMode = Boolean(initialValues);
+
+  const [name, setName] = useState(initialValues?.name ?? "");
+  const [province, setProvince] = useState(initialValues?.province ?? "");
+  const [passportNo, setPassportNo] = useState(initialValues?.passportNo ?? "");
+  const [university, setUniversity] = useState(initialValues?.university ?? "");
+  const [city, setCity] = useState(initialValues?.city ?? "");
+  const [phone, setPhone] = useState(initialValues?.phone ?? "");
+  const [wechat, setWechat] = useState(initialValues?.wechat ?? "");
+  const [email, setEmail] = useState(initialValues?.email ?? "");
+  const [gender, setGender] = useState<"MALE" | "FEMALE">(initialValues?.gender ?? "MALE");
   const [attendanceIntent, setAttendanceIntent] = useState<
     "YES" | "NO" | "OTHER"
-  >("YES");
+  >(initialValues?.attendanceIntent ?? "YES");
   const [travelAssistanceNeeded, setTravelAssistanceNeeded] = useState<
     "YES" | "NO" | "OTHER"
-  >("NO");
+  >(initialValues?.travelAssistanceNeeded ?? "NO");
   const [schoolCommunicationNeeded, setSchoolCommunicationNeeded] = useState<
     "YES" | "NO" | "OTHER"
-  >("NO");
+  >(initialValues?.schoolCommunicationNeeded ?? "NO");
   const [schoolCommunicationDetails, setSchoolCommunicationDetails] =
-    useState("");
+    useState(initialValues?.schoolCommunicationDetails ?? "");
   const [studyYear, setStudyYear] = useState<
     | "BACHELOR_1"
     | "BACHELOR_2"
@@ -90,60 +109,71 @@ export function DelegateRegistrationForm({
     | "GRADUATE_3"
     | "GRADUATE_4"
     | "OTHER"
-  >("BACHELOR_1");
+  >(initialValues?.studyYear ?? "BACHELOR_1");
   const [bringingForeignGuest, setBringingForeignGuest] = useState<
     "YES" | "NO" | "OTHER"
-  >("NO");
-  const [guestNationality, setGuestNationality] = useState("");
+  >(initialValues?.bringingForeignGuest ?? "NO");
+  const [guestNationality, setGuestNationality] = useState(initialValues?.guestNationality ?? "");
   const [accommodationNeeded, setAccommodationNeeded] = useState<
     "YES" | "NO" | "OTHER"
-  >("NO");
+  >(initialValues?.accommodationNeeded ?? "NO");
   const [dietaryNeeds, setDietaryNeeds] = useState<"YES" | "NO" | "OTHER">(
-    "NO",
+    initialValues?.dietaryNeeds ?? "NO",
   );
-  const [dietaryDetails, setDietaryDetails] = useState("");
-  const [additionalComments, setAdditionalComments] = useState("");
-  const [feePaid, setFeePaid] = useState(false);
-  const [feeAmount, setFeeAmount] = useState(String(defaultFeeAmount));
-  const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">("PAIR");
-  const [partnerClaimNote, setPartnerClaimNote] = useState("");
+  const [dietaryDetails, setDietaryDetails] = useState(initialValues?.dietaryDetails ?? "");
+  const [additionalComments, setAdditionalComments] = useState(initialValues?.additionalComments ?? "");
+  const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
+  const [feeAmount, setFeeAmount] = useState(
+    initialValues?.feeAmount != null
+      ? String(initialValues.feeAmount)
+      : String(defaultFeeAmount),
+  );
+  const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">(initialValues?.roomPref ?? "PAIR");
+  const [partnerClaimNote, setPartnerClaimNote] = useState(initialValues?.partnerClaimNote ?? "");
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
   const [bookletPhoto, setBookletPhoto] = useState<File | null>(null);
-  const [conferencePosition, setConferencePosition] = useState("");
+  const [conferencePosition, setConferencePosition] = useState(initialValues?.conferencePosition ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const resetForm = () => {
-    setName("");
-    setProvince("");
-    setPassportNo("");
-    setUniversity("");
-    setCity("");
-    setPhone("");
-    setWechat("");
-    setEmail("");
-    setGender("MALE");
-    setAttendanceIntent("YES");
-    setTravelAssistanceNeeded("NO");
-    setSchoolCommunicationNeeded("NO");
-    setSchoolCommunicationDetails("");
-    setStudyYear("BACHELOR_1");
-    setBringingForeignGuest("NO");
-    setGuestNationality("");
-    setAccommodationNeeded("NO");
-    setDietaryNeeds("NO");
-    setDietaryDetails("");
-    setAdditionalComments("");
-    setFeePaid(false);
-    setFeeAmount(String(defaultFeeAmount));
-    setRoomPref("PAIR");
-    setPartnerClaimNote("");
+    setName(initialValues?.name ?? "");
+    setProvince(initialValues?.province ?? "");
+    setPassportNo(initialValues?.passportNo ?? "");
+    setUniversity(initialValues?.university ?? "");
+    setCity(initialValues?.city ?? "");
+    setPhone(initialValues?.phone ?? "");
+    setWechat(initialValues?.wechat ?? "");
+    setEmail(initialValues?.email ?? "");
+    setGender(initialValues?.gender ?? "MALE");
+    setAttendanceIntent(initialValues?.attendanceIntent ?? "YES");
+    setTravelAssistanceNeeded(initialValues?.travelAssistanceNeeded ?? "NO");
+    setSchoolCommunicationNeeded(initialValues?.schoolCommunicationNeeded ?? "NO");
+    setSchoolCommunicationDetails(initialValues?.schoolCommunicationDetails ?? "");
+    setStudyYear(initialValues?.studyYear ?? "BACHELOR_1");
+    setBringingForeignGuest(initialValues?.bringingForeignGuest ?? "NO");
+    setGuestNationality(initialValues?.guestNationality ?? "");
+    setAccommodationNeeded(initialValues?.accommodationNeeded ?? "NO");
+    setDietaryNeeds(initialValues?.dietaryNeeds ?? "NO");
+    setDietaryDetails(initialValues?.dietaryDetails ?? "");
+    setAdditionalComments(initialValues?.additionalComments ?? "");
+    setFeePaid(initialValues?.feePaid ?? false);
+    setFeeAmount(
+      initialValues?.feeAmount != null
+        ? String(initialValues.feeAmount)
+        : String(defaultFeeAmount),
+    );
+    setRoomPref(initialValues?.roomPref ?? "PAIR");
+    setPartnerClaimNote(initialValues?.partnerClaimNote ?? "");
     setPassportPhoto(null);
     setBookletPhoto(null);
-    setConferencePosition("");
+    setConferencePosition(initialValues?.conferencePosition ?? "");
     setError(null);
   };
 
   const handleSubmit = async () => {
+    // In edit mode, photos are optional (existing files are kept server-side)
+    const requirePhotos = !isEditMode;
+
     if (
       !name ||
       !province ||
@@ -153,10 +183,13 @@ export function DelegateRegistrationForm({
       !phone ||
       !wechat ||
       !email ||
-      !passportPhoto ||
-      !bookletPhoto
+      (requirePhotos && (!passportPhoto || !bookletPhoto))
     ) {
-      setError("Please complete all required fields and uploads.");
+      setError(
+        requirePhotos
+          ? "Please complete all required fields and uploads."
+          : "Please complete all required fields.",
+      );
       return;
     }
 
@@ -220,7 +253,8 @@ export function DelegateRegistrationForm({
         conferencePosition,
       });
 
-      if (submitted) {
+      // In edit mode the parent handles closing the form; only reset on fresh creation.
+      if (submitted && !isEditMode) {
         resetForm();
       }
     } catch {
@@ -518,31 +552,35 @@ export function DelegateRegistrationForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>Completed Conference Payment? *</Label>
-          <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-            value={feePaid ? "YES" : "NO"}
-            onChange={(e) => setFeePaid(e.target.value === "YES")}
-          >
-            <option value="NO">No</option>
-            <option value="YES">Yes</option>
-          </select>
-        </div>
+        {isManagerMode && (
+          <div className="space-y-2">
+            <Label>Completed Conference Payment? *</Label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              value={feePaid ? "YES" : "NO"}
+              onChange={(e) => setFeePaid(e.target.value === "YES")}
+            >
+              <option value="NO">No</option>
+              <option value="YES">Yes</option>
+            </select>
+          </div>
+        )}
 
-        <div className="space-y-2">
-          <Label>Conference Fee Amount (optional)</Label>
-          <Input
-            type="number"
-            min={0}
-            placeholder="Amount in RMB"
-            value={feeAmount}
-            onChange={(e) => setFeeAmount(e.target.value)}
-          />
-          <p className="text-xs text-muted-foreground">
-            Default conference fee is {defaultFeeAmount} RMB.
-          </p>
-        </div>
+        {isManagerMode && (
+          <div className="space-y-2">
+            <Label>Conference Fee Amount (optional)</Label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Amount in RMB"
+              value={feeAmount}
+              onChange={(e) => setFeeAmount(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Default conference fee is {defaultFeeAmount} RMB.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label>Room Preference</Label>
@@ -599,7 +637,9 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>15. Upload Passport Photo Page *</Label>
+          <Label>
+            15. Upload Passport Photo Page {isEditMode ? "(optional — replaces current)" : "*"}
+          </Label>
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp,application/pdf"
@@ -613,7 +653,9 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2">
-          <Label>16. Upload Photo for Conference Booklet *</Label>
+          <Label>
+            16. Upload Photo for Conference Booklet {isEditMode ? "(optional — replaces current)" : "*"}
+          </Label>
           <Input
             type="file"
             accept="image/png,image/jpeg,image/webp"

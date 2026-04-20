@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Download, ExternalLink, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -366,23 +366,22 @@ export function BookletPreview({
               totalPages={totalPages}
             />
 
-            {(() => {
-              // Build a running page counter so multi-page sections get correct numbers
-              let runningPage = (hasCover ? 1 : 0) + 2; // cover=1, TOC=1
-              return enabledSections.map((s) => {
-                const startPage = runningPage;
-                if (s.type === "LEADER") {
-                  runningPage += Math.max(1, leaderCount);
-                } else if (s.type === "NEC") {
-                  runningPage += committeeSectionPageCount(s);
-                } else if (committeeTypes.includes(s.type)) {
-                  runningPage += committeeSectionPageCount(s);
-                } else {
-                  runningPage += 1;
-                }
-                return renderSection(s, data, startPage, totalPages);
-              });
-            })()}
+            {enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
+              ({ nodes, rp }, s) => {
+                const startPage = rp;
+                const delta =
+                  s.type === "LEADER"
+                    ? Math.max(1, leaderCount)
+                    : s.type === "NEC" || committeeTypes.includes(s.type)
+                      ? committeeSectionPageCount(s)
+                      : 1;
+                return {
+                  nodes: [...nodes, renderSection(s, data, startPage, totalPages)],
+                  rp: rp + delta,
+                };
+              },
+              { nodes: [], rp: (hasCover ? 1 : 0) + 2 } as { nodes: ReactNode[]; rp: number },
+            ).nodes}
 
             {hasBackCover && (
               <BackCoverPage event={data.event} totalPages={totalPages} />

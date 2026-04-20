@@ -81,8 +81,16 @@ export async function PATCH(
 ) {
   try {
     const { confId, delegateId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
+    // Participants can edit their own record; managers can edit any record.
+    const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
+
+    if (!auth.access.isManager && auth.access.delegateId !== delegateId) {
+      return NextResponse.json(
+        { error: "You can only edit your own registration" },
+        { status: 403 },
+      );
+    }
 
     const body = await req.json();
 
@@ -210,13 +218,19 @@ export async function PATCH(
     }
 
     if (typeof body.feeAmount !== "undefined") {
-      updates.feeAmount = body.feeAmount ? Number(body.feeAmount) : null;
+      // Manager-only: participants cannot change fee amounts
+      if (auth.access.isManager) {
+        updates.feeAmount = body.feeAmount ? Number(body.feeAmount) : null;
+      }
     }
 
     if (typeof body.feePaid === "boolean") {
-      updates.feePaid = body.feePaid;
-      if (body.feePaid && current.status === "REGISTERED") {
-        updates.status = "CONFIRMED";
+      // Manager-only: participants cannot self-mark as paid
+      if (auth.access.isManager) {
+        updates.feePaid = body.feePaid;
+        if (body.feePaid && current.status === "REGISTERED") {
+          updates.status = "CONFIRMED";
+        }
       }
     }
 
@@ -224,7 +238,10 @@ export async function PATCH(
       typeof body.status === "string" &&
       ["REGISTERED", "CONFIRMED", "ATTENDED", "CANCELLED"].includes(body.status)
     ) {
-      updates.status = body.status;
+      // Manager-only: participants cannot change their own status
+      if (auth.access.isManager) {
+        updates.status = body.status;
+      }
     }
 
     if (

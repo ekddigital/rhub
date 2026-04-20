@@ -133,7 +133,7 @@ const DEFAULT_MEMBERS = [
     city: "Suzhou",
   },
   {
-    name: "Williamena Yah SENET",
+    name: "Willimena Y. Munyenneh",
     role: "COMMITTEE" as const,
     title: "Cooking",
     city: "Suzhou",
@@ -196,6 +196,12 @@ async function bootstrapDefaultConference() {
       })),
     });
   }
+
+  // Idempotent name corrections — fixes historical misspellings on every bootstrap run.
+  await prisma.confMember.updateMany({
+    where: { confId: event.id, name: "Williamena Yah SENET" },
+    data: { name: "Willimena Y. Munyenneh" },
+  });
 
   const meetingCount = await prisma.confMeeting.count({
     where: { confId: event.id },

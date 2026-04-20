@@ -864,282 +864,284 @@ export function LetterComposerShell() {
 
       {/* ── Viewport frame: header + 2-panel body ── */}
       <div className="flex flex-col h-[calc(100vh-8rem)] gap-0">
-
-      {/* ── Header ── */}
-      <div className="letter-no-print flex items-center gap-4 shrink-0 pb-3 mb-3 border-b border-border/30">
-        <Link href="/tools/conf">
-          <Button variant="ghost" size="icon-sm">
-            <ArrowLeft className="size-4" />
-          </Button>
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">Letter Composer</h1>
-          <p className="text-sm text-muted-foreground">
-            Write official correspondence with the LSUIC letterhead — download
-            as PDF
-          </p>
+        {/* ── Header ── */}
+        <div className="letter-no-print flex items-center gap-4 shrink-0 pb-3 mb-3 border-b border-border/30">
+          <Link href="/tools/conf">
+            <Button variant="ghost" size="icon-sm">
+              <ArrowLeft className="size-4" />
+            </Button>
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Letter Composer
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Write official correspondence with the LSUIC letterhead — download
+              as PDF
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {saveStatus === "saved" ? (
+                <>
+                  <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
+                </>
+              ) : (
+                <>
+                  <Clock className="size-3.5" /> Auto-saving
+                </>
+              )}
+            </span>
+            <Button variant="outline" size="sm" onClick={handleManualSave}>
+              <Save className="size-4" /> Save Draft
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowList((v) => !v)}
+            >
+              <FolderOpen className="size-4" />
+              Drafts ({drafts.length})
+              <ChevronDown
+                className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
+              />
+            </Button>
+            <Button size="sm" onClick={handleNew}>
+              <Plus className="size-4" /> New Letter
+            </Button>
+            <Button
+              size="sm"
+              onClick={handlePrint}
+              className="bg-[#002868] hover:bg-[#001A4E]"
+            >
+              <Printer className="size-4" /> Print / PDF
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {saveStatus === "saved" ? (
-              <>
-                <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
-              </>
-            ) : (
-              <>
-                <Clock className="size-3.5" /> Auto-saving
-              </>
-            )}
-          </span>
-          <Button variant="outline" size="sm" onClick={handleManualSave}>
-            <Save className="size-4" /> Save Draft
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowList((v) => !v)}
-          >
-            <FolderOpen className="size-4" />
-            Drafts ({drafts.length})
-            <ChevronDown
-              className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
-            />
-          </Button>
-          <Button size="sm" onClick={handleNew}>
-            <Plus className="size-4" /> New Letter
-          </Button>
-          <Button
-            size="sm"
-            onClick={handlePrint}
-            className="bg-[#002868] hover:bg-[#001A4E]"
-          >
-            <Printer className="size-4" /> Print / PDF
-          </Button>
-        </div>
-      </div>
 
-      {/* ── Drafts list ── */}
-      {showList && (
-        <Card className="letter-no-print border-[#C8A061]/30 shrink-0 mb-3">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Saved Drafts</CardTitle>
-            <CardDescription className="text-xs">
-              Click a draft to load it. Drafts are saved locally on this device.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {drafts.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-2">
-                No saved drafts yet.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {drafts.map((d) => (
-                  <div
-                    key={d.id}
-                    className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors cursor-pointer ${
-                      d.id === activeDraft.id
-                        ? "border-[#C8A061]/50 bg-[#C8A061]/5"
-                        : "hover:bg-muted/50"
-                    }`}
-                    onClick={() => handleLoad(d)}
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {d.title || d.re || "Untitled Letter"}
-                        {d.id === activeDraft.id && (
-                          <span className="ml-2 text-xs text-[#C8A061]">
-                            current
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {d.date}
-                        {d.to ? ` · To: ${d.to.split("\n")[0]}` : ""}
-                        {d.savedAt
-                          ? ` · saved ${new Date(d.savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
-                          : ""}
-                      </p>
-                    </div>
-                    <div
-                      className="flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDelete(d.id)}
-                        title="Delete draft"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ── Main layout: form (left) + preview (right) ── */}
-      <div className="letter-no-print flex gap-6 flex-1 min-h-0">
-        {/* ── Left: form fields ── */}
-        <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <FileText className="size-4 text-[#C8A061]" />
-                Letter Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs">Draft Label (internal)</Label>
-                <Input
-                  placeholder="e.g. Committee Action Items Apr 20"
-                  className="h-8 text-sm"
-                  value={activeDraft.title}
-                  onChange={(e) => set("title")(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Date</Label>
-                <Input
-                  placeholder="e.g. April 20, 2026"
-                  className="h-8 text-sm"
-                  value={activeDraft.date}
-                  onChange={(e) => set("date")(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">To</Label>
-                <Textarea
-                  placeholder="e.g. All Committee Members&#10;LSUIC 2026 Conference"
-                  className="text-sm resize-none"
-                  rows={2}
-                  value={activeDraft.to}
-                  onChange={(e) => set("to")(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">From</Label>
-                <Textarea
-                  placeholder="e.g. Enoch Kwateh Dongbo&#10;Conference Chair, LSUIC 2026"
-                  className="text-sm resize-none"
-                  rows={2}
-                  value={activeDraft.from}
-                  onChange={(e) => set("from")(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Subject / Re</Label>
-                <Input
-                  placeholder="e.g. Committee Action Items — Week of April 20"
-                  className="h-8 text-sm"
-                  value={activeDraft.re}
-                  onChange={(e) => set("re")(e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Letter Body</CardTitle>
+        {/* ── Drafts list ── */}
+        {showList && (
+          <Card className="letter-no-print border-[#C8A061]/30 shrink-0 mb-3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Saved Drafts</CardTitle>
               <CardDescription className="text-xs">
-                Paste or type your content. Use blank lines to separate
-                paragraphs.
+                Click a draft to load it. Drafts are saved locally on this
+                device.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea
-                placeholder="Type or paste your letter content here…"
-                className="text-sm resize-none font-mono"
-                rows={18}
-                value={activeDraft.body}
-                onChange={(e) => set("body")(e.target.value)}
-              />
-              <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
-                {activeDraft.body.length} characters
-              </p>
+              {drafts.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">
+                  No saved drafts yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {drafts.map((d) => (
+                    <div
+                      key={d.id}
+                      className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors cursor-pointer ${
+                        d.id === activeDraft.id
+                          ? "border-[#C8A061]/50 bg-[#C8A061]/5"
+                          : "hover:bg-muted/50"
+                      }`}
+                      onClick={() => handleLoad(d)}
+                    >
+                      <div>
+                        <p className="text-sm font-medium">
+                          {d.title || d.re || "Untitled Letter"}
+                          {d.id === activeDraft.id && (
+                            <span className="ml-2 text-xs text-[#C8A061]">
+                              current
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {d.date}
+                          {d.to ? ` · To: ${d.to.split("\n")[0]}` : ""}
+                          {d.savedAt
+                            ? ` · saved ${new Date(d.savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                            : ""}
+                        </p>
+                      </div>
+                      <div
+                        className="flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDelete(d.id)}
+                          title="Delete draft"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
+        )}
 
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
-              onClick={handleDownloadPdf}
-            >
-              <Printer className="size-4" />
-              Download PDF
-            </Button>
-          </div>
-          <p className="text-[10px] text-muted-foreground text-center">
-            Opens in a new window — choose &quot;Save as PDF&quot; in the print
-            dialog.
-          </p>
-        </div>
+        {/* ── Main layout: form (left) + preview (right) ── */}
+        <div className="letter-no-print flex gap-6 flex-1 min-h-0">
+          {/* ── Left: form fields ── */}
+          <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <FileText className="size-4 text-[#C8A061]" />
+                  Letter Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Draft Label (internal)</Label>
+                  <Input
+                    placeholder="e.g. Committee Action Items Apr 20"
+                    className="h-8 text-sm"
+                    value={activeDraft.title}
+                    onChange={(e) => set("title")(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Date</Label>
+                  <Input
+                    placeholder="e.g. April 20, 2026"
+                    className="h-8 text-sm"
+                    value={activeDraft.date}
+                    onChange={(e) => set("date")(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">To</Label>
+                  <Textarea
+                    placeholder="e.g. All Committee Members&#10;LSUIC 2026 Conference"
+                    className="text-sm resize-none"
+                    rows={2}
+                    value={activeDraft.to}
+                    onChange={(e) => set("to")(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">From</Label>
+                  <Textarea
+                    placeholder="e.g. Enoch Kwateh Dongbo&#10;Conference Chair, LSUIC 2026"
+                    className="text-sm resize-none"
+                    rows={2}
+                    value={activeDraft.from}
+                    onChange={(e) => set("from")(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Subject / Re</Label>
+                  <Input
+                    placeholder="e.g. Committee Action Items — Week of April 20"
+                    className="h-8 text-sm"
+                    value={activeDraft.re}
+                    onChange={(e) => set("re")(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* ── Right: A4 preview ── */}
-        <div className="flex-1 min-w-0 overflow-y-auto pb-6">
-          {/* Zoom controls */}
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-xs font-semibold text-[#002868]">
-              Live A4 Preview
-            </p>
-            <div className="flex items-center gap-1 rounded-lg border border-border overflow-hidden">
-              <button
-                onClick={() => setZoom((z) => Math.max(40, z - 5))}
-                className="px-2 py-1 text-xs hover:bg-muted/50"
-                title="Zoom out"
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Letter Body</CardTitle>
+                <CardDescription className="text-xs">
+                  Paste or type your content. Use blank lines to separate
+                  paragraphs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="Type or paste your letter content here…"
+                  className="text-sm resize-none font-mono"
+                  rows={18}
+                  value={activeDraft.body}
+                  onChange={(e) => set("body")(e.target.value)}
+                />
+                <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
+                  {activeDraft.body.length} characters
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
+                onClick={handleDownloadPdf}
               >
-                <ZoomOut className="size-3.5" />
-              </button>
-              <span className="px-2 text-xs font-mono">{zoom}%</span>
-              <button
-                onClick={() => setZoom((z) => Math.min(120, z + 5))}
-                className="px-2 py-1 text-xs hover:bg-muted/50"
-                title="Zoom in"
-              >
-                <ZoomIn className="size-3.5" />
-              </button>
+                <Printer className="size-4" />
+                Download PDF
+              </Button>
             </div>
+            <p className="text-[10px] text-muted-foreground text-center">
+              Opens in a new window — choose &quot;Save as PDF&quot; in the
+              print dialog.
+            </p>
           </div>
 
-          {/* Preview viewport */}
-          <div
-            style={{
-              background: "#c8c8c8",
-              borderRadius: 12,
-              padding: 24,
-              overflowX: "auto",
-            }}
-          >
+          {/* ── Right: A4 preview ── */}
+          <div className="flex-1 min-w-0 overflow-y-auto pb-6">
+            {/* Zoom controls */}
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold text-[#002868]">
+                Live A4 Preview
+              </p>
+              <div className="flex items-center gap-1 rounded-lg border border-border overflow-hidden">
+                <button
+                  onClick={() => setZoom((z) => Math.max(40, z - 5))}
+                  className="px-2 py-1 text-xs hover:bg-muted/50"
+                  title="Zoom out"
+                >
+                  <ZoomOut className="size-3.5" />
+                </button>
+                <span className="px-2 text-xs font-mono">{zoom}%</span>
+                <button
+                  onClick={() => setZoom((z) => Math.min(120, z + 5))}
+                  className="px-2 py-1 text-xs hover:bg-muted/50"
+                  title="Zoom in"
+                >
+                  <ZoomIn className="size-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Preview viewport */}
             <div
-              className="letter-document"
               style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: "top center",
-                width: 794,
-                margin: "0 auto",
-                marginBottom:
-                  zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
+                background: "#c8c8c8",
+                borderRadius: 12,
+                padding: 24,
+                overflowX: "auto",
               }}
             >
-              <LetterA4Preview
-                draft={activeDraft}
-                members={members}
-                confInfo={confInfo}
-              />
+              <div
+                className="letter-document"
+                style={{
+                  transform: `scale(${zoom / 100})`,
+                  transformOrigin: "top center",
+                  width: 794,
+                  margin: "0 auto",
+                  marginBottom:
+                    zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
+                }}
+              >
+                <LetterA4Preview
+                  draft={activeDraft}
+                  members={members}
+                  confInfo={confInfo}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      </div>{/* end flex flex-col viewport frame */}
+      {/* end flex flex-col viewport frame */}
 
       {/* ── Print root — rendered off-screen (not display:none so visibility trick works) ── */}
       <div id="letter-print-root">

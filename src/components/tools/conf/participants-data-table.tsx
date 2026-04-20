@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Camera,
@@ -145,18 +145,12 @@ export function ParticipantsDataTable({
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, query, statusFilter, paidFilter]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+  const effectivePage = Math.min(Math.max(1, page), totalPages);
 
   const pageRows = useMemo(() => {
-    const start = (page - 1) * pageSize;
+    const start = (effectivePage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
-  }, [filtered, page, pageSize]);
+  }, [filtered, effectivePage, pageSize]);
 
   const exportRows = useMemo(() => {
     return filtered.map((row) => ({
@@ -366,7 +360,7 @@ export function ParticipantsDataTable({
     downloadBlob("conference-participants.xls", blob);
   };
 
-  const offset = (page - 1) * pageSize;
+  const offset = (effectivePage - 1) * pageSize;
   const normalizedUserEmail = normalizeForSearch(currentUserEmail);
 
   return (
@@ -399,16 +393,16 @@ export function ParticipantsDataTable({
               className="pl-9"
               placeholder="Search name, passport, phone, email, city, or ID"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
             />
           </div>
 
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as "ALL" | ParticipantRow["status"])
-            }
+            onChange={(e) => {
+              setStatusFilter(e.target.value as "ALL" | ParticipantRow["status"]); setPage(1);
+            }}
           >
             <option value="ALL">All status</option>
             <option value="REGISTERED">Registered</option>
@@ -420,9 +414,9 @@ export function ParticipantsDataTable({
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={paidFilter}
-            onChange={(e) =>
-              setPaidFilter(e.target.value as "ALL" | "PAID" | "UNPAID")
-            }
+            onChange={(e) => {
+              setPaidFilter(e.target.value as "ALL" | "PAID" | "UNPAID"); setPage(1);
+            }}
           >
             <option value="ALL">All payment</option>
             <option value="PAID">Paid only</option>
@@ -432,7 +426,7 @@ export function ParticipantsDataTable({
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
             value={String(pageSize)}
-            onChange={(e) => setPageSize(Number(e.target.value))}
+            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
           >
             <option value="10">10 / page</option>
             <option value="20">20 / page</option>
@@ -668,19 +662,19 @@ export function ParticipantsDataTable({
               size="sm"
               className="h-7 px-2 text-xs"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page <= 1}
+              disabled={effectivePage <= 1}
             >
               Prev
             </Button>
             <span>
-              Page {page} / {totalPages}
+              Page {effectivePage} / {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
               className="h-7 px-2 text-xs"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page >= totalPages}
+              disabled={effectivePage >= totalPages}
             >
               Next
             </Button>

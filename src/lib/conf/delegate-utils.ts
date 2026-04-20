@@ -1,18 +1,19 @@
 import { prisma } from "@/lib/prisma";
 
-const LSUIC_CONFERENCE_EDITION = 20;
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
 export function getLiberiaIndependenceAnniversary(year: number): number {
   return Math.max(0, year - LIBERIA_INDEPENDENCE_YEAR);
 }
 
+/**
+ * Returns the delegate code prefix for a given conference year.
+ * Format: LSUICNC{YY} — LSUIC National Conference + 2-digit year.
+ * Example: LSUICNC26 (for 2026) → full code LSUICNC26-0001
+ */
 export function delegateCodePrefix(year: number): string {
   const yearShort = String(year).slice(-2);
-  const liberiaAnniversary = getLiberiaIndependenceAnniversary(year);
-
-  // Example for 2026: LS20-179-26-0001 (edition-anniversary-year-sequence)
-  return `LS${String(LSUIC_CONFERENCE_EDITION).padStart(2, "0")}-${liberiaAnniversary}-${yearShort}`;
+  return `LSUICNC${yearShort}`;
 }
 
 export async function getNextDelegateCode(confId: string, year: number) {

@@ -8,8 +8,10 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  Edit,
   Eye,
   FileUp,
+  Lock,
   MapPin,
   Mail,
   MessageSquare,
@@ -23,6 +25,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { fmtRmb } from "@/lib/conf/currency";
+import {
+  DelegateRegistrationForm,
+  type DelegateRegistrationPayload,
+} from "@/components/tools/conf/delegate-registration-form";
 
 type Delegate = {
   id: string;
@@ -67,6 +73,7 @@ type Delegate = {
   passportPhotoPath: string | null;
   bookletPhotoPath: string | null;
   flyerReady: boolean;
+  conferencePosition: string | null;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
   updatedAt: string;
@@ -139,10 +146,13 @@ export function DelegateDetailShell({
   canSelfEdit,
 }: Props) {
   const [confId, setConfId] = useState("");
+  const [defaultFee, setDefaultFee] = useState(250);
   const [delegate, setDelegate] = useState<Delegate | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const [uploadingKind, setUploadingKind] = useState<
     "booklet" | "passport" | null
   >(null);
@@ -154,6 +164,7 @@ export function DelegateDetailShell({
     try {
       const conf = await fetchDefaultConference();
       setConfId(conf.id);
+      setDefaultFee(conf.delegateFee ?? 250);
 
       const res = await fetch(`/api/conf/${conf.id}/delegates/${delegateId}`, {
         cache: "no-store",
@@ -216,6 +227,72 @@ export function DelegateDetailShell({
       setError(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setUploadingKind(null);
+    }
+  };
+
+  const handleEditSubmit = async (
+    payload: DelegateRegistrationPayload,
+  ): Promise<boolean> => {
+    if (!confId || editSubmitting) return false;
+    setEditSubmitting(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const body: Record<string, unknown> = {
+        name: payload.name,
+        province: payload.province,
+        passportNo: payload.passportNo,
+        university: payload.university,
+        city: payload.city,
+        phone: payload.phone,
+        wechat: payload.wechat,
+        email: payload.email,
+        gender: payload.gender,
+        attendanceIntent: payload.attendanceIntent,
+        travelAssistanceNeeded: payload.travelAssistanceNeeded,
+        schoolCommunicationNeeded: payload.schoolCommunicationNeeded,
+        schoolCommunicationDetails: payload.schoolCommunicationDetails,
+        studyYear: payload.studyYear,
+        bringingForeignGuest: payload.bringingForeignGuest,
+        guestNationality: payload.guestNationality,
+        accommodationNeeded: payload.accommodationNeeded,
+        dietaryNeeds: payload.dietaryNeeds,
+        dietaryDetails: payload.dietaryDetails,
+        additionalComments: payload.additionalComments,
+        roomPref: payload.roomPref,
+        partnerClaimNote: payload.partnerClaimNote,
+        conferencePosition: payload.conferencePosition,
+      };
+
+      const res = await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const updated = await res.json().catch(() => ({}));
+      if (!res.ok)
+        throw new Error(
+          (updated as { error?: string }).error || "Failed to update registration",
+        );
+
+      if (payload.passportPhoto) {
+        await handleUpload("passport", payload.passportPhoto);
+      }
+      if (payload.bookletPhoto) {
+        await handleUpload("booklet", payload.bookletPhoto);
+      }
+
+      setDelegate(updated as Delegate);
+      setNotice("Registration updated successfully.");
+      setIsEditing(false);
+      return true;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Update failed");
+      return false;
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -285,6 +362,17 @@ export function DelegateDetailShell({
         <Badge variant={canManage ? "default" : "secondary"}>
           {canManage ? "Manager View" : "Self-Service View"}
         </Badge>
+
+        {canSelfEdit && !isEditing && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsEditing(true)}
+          >
+            <Edit className="size-4" />
+            Edit Registration
+          </Button>
+        )}
       </div>
 
       {notice && (
@@ -300,6 +388,7 @@ export function DelegateDetailShell({
       )}
 
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Conference Photo</CardTitle>
@@ -369,6 +458,46 @@ export function DelegateDetailShell({
             </p>
           </CardContent>
         </Card>
+
+        {canManage && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                Passport Document
+                <Lock className="size-3.5 text-muted-foreground" />
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {delegate.passportPhotoPath ? (
+                delegate.passportPhotoPath.toLowerCase().endsWith(".pdf") ? (
+                  <a
+                    href={delegate.passportPhotoPath}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent"
+                  >
+                    <Eye className="size-4" /> View Passport Document (PDF)
+                  </a>
+                ) : (
+                  <AdaptivePhotoFrame
+                    src={delegate.passportPhotoPath}
+                    alt={`${delegate.name} passport`}
+                    containerClassName="h-52 w-full rounded-xl border border-border"
+                  />
+                )
+              ) : (
+                <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                  No passport document uploaded
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                <Lock className="inline size-3 mr-1" />
+                Visible to conference managers only.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        </div>
 
         <Card>
           <CardHeader>
@@ -499,6 +628,11 @@ export function DelegateDetailShell({
                 <p className="mt-1">
                   Fee paid: {delegate.feePaid ? "Yes" : "No"}
                 </p>
+                {!delegate.feePaid && (
+                  <p className="mt-1 font-semibold text-amber-600">
+                    Outstanding: {fmtRmb(delegate.feeAmount ?? defaultFee)}
+                  </p>
+                )}
                 <p className="mt-1">Current status: {status.label}</p>
                 <p className="mt-1">
                   Flyer ready: {delegate.flyerReady ? "Yes" : "No"}
@@ -548,6 +682,55 @@ export function DelegateDetailShell({
           </CardContent>
         </Card>
       </div>
+
+      {isEditing && delegate && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Edit Registration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DelegateRegistrationForm
+              key={`edit-${delegate.id}`}
+              submitting={editSubmitting}
+              submitLabel="Save Changes"
+              initialValues={{
+                name: delegate.name,
+                province: delegate.province ?? "",
+                passportNo: delegate.passportNo ?? "",
+                university: delegate.university ?? "",
+                city: delegate.city,
+                phone: delegate.phone ?? "",
+                wechat: delegate.wechat ?? "",
+                email: delegate.email ?? "",
+                gender: delegate.gender ?? "MALE",
+                attendanceIntent: delegate.attendanceIntent ?? "YES",
+                travelAssistanceNeeded:
+                  delegate.travelAssistanceNeeded ?? "NO",
+                schoolCommunicationNeeded:
+                  delegate.schoolCommunicationNeeded ?? "NO",
+                schoolCommunicationDetails:
+                  delegate.schoolCommunicationDetails ?? "",
+                studyYear: delegate.studyYear ?? "BACHELOR_1",
+                bringingForeignGuest: delegate.bringingForeignGuest ?? "NO",
+                guestNationality: delegate.guestNationality ?? "",
+                accommodationNeeded: delegate.accommodationNeeded ?? "NO",
+                dietaryNeeds: delegate.dietaryNeeds ?? "NO",
+                dietaryDetails: delegate.dietaryDetails ?? "",
+                additionalComments: delegate.additionalComments ?? "",
+                feePaid: delegate.feePaid,
+                feeAmount: delegate.feeAmount,
+                roomPref: delegate.roomPref,
+                partnerClaimNote: delegate.partnerClaimNote ?? "",
+                conferencePosition: delegate.conferencePosition ?? "",
+              }}
+              defaultFeeAmount={defaultFee}
+              isManagerMode={canManage}
+              onCancel={() => setIsEditing(false)}
+              onSubmit={handleEditSubmit}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
