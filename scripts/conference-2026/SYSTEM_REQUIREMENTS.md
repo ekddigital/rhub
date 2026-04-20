@@ -1545,3 +1545,120 @@ Applies to:
 - NEC section header and labels must be NEC-specific (not conference chair wording).
 - Conference committee sections must keep committee-specific labels and hierarchy.
 - Role/position text should prefer explicit `conferencePosition`/`title` when available, not global fallback labels.
+
+---
+
+## Section 23 — Participant Registry Table & Registration Account Workflow (April 2026)
+
+### 23.1 Participant Registry Table (Manager View)
+
+**Route:** `/tools/conf/delegates`
+
+The delegates module must provide a robust table view for all registered participants with dynamic controls for management operations.
+
+Required capabilities:
+
+- Full list of participants with key registration fields in one table
+- Mandatory columns:
+  - Conference ID (`delegateCode`)
+  - Full name
+  - Passport number
+  - Passport file link (image/PDF)
+  - Conference booklet photo preview
+  - Phone, email, WeChat
+  - City/province, university
+  - Fee amount, fee-paid status
+  - Registration status (`REGISTERED` / `CONFIRMED` / `ATTENDED` / `CANCELLED`)
+  - Flyer readiness
+- Search across name, ID, passport number, phone, email, city, and university
+- Filters for registration status and payment state
+- Pagination with selectable page size
+- Multi-format export:
+  - CSV
+  - TXT (tabular text)
+  - Excel-compatible export (`.xls`)
+- Row-level actions:
+  - Open details page
+  - Toggle fee paid/unpaid (manager authorized)
+  - Replace booklet photo
+  - Replace passport file (manager authorized)
+
+### 23.2 Registration Fee Policy
+
+- Default conference registration fee is **250 RMB**.
+- Registration forms must auto-fill the fee amount field with this default value.
+- If no fee is explicitly supplied at submission time, backend delegate creation must persist `250` as `feeAmount` fallback.
+- Fee defaults are exposed by default conference bootstrap API for consistent UI use.
+
+### 23.3 Conference Registration + System Account Workflow (Target)
+
+#### Step 1 — Conference Registration
+
+- Participant submits full registration form with unique email and required uploads.
+- Registration data is persisted in `ConfDelegate`.
+
+#### Step 2 — Account Creation Link Delivery
+
+- After successful registration, system should send a one-time account-creation link to the same registration email.
+- Participant sets password and activates platform login.
+
+#### Step 3 — Account Login
+
+- Participant logs in with registered email and password.
+- Before full payment confirmation: limited access view only.
+
+### 23.4 Role-Based Approval Workflow (Target)
+
+- Chairman/Super Admin defines authorized approvers (e.g., Financial Secretary, Vice Chair, Secretary, designated staff).
+- Authorized approvers review payment records and update participant payment state.
+- Final confirmation is allowed only when full fee obligation is satisfied.
+
+### 23.5 Payment States and Confirmation Rules (Target)
+
+- Required payment states:
+  - `UNPAID`
+  - `PARTIAL`
+  - `FULLY_PAID`
+  - `CONFIRMED`
+- Only `FULLY_PAID` participants can be switched to `CONFIRMED` by authorized approvers.
+- `UNPAID` and `PARTIAL` remain pending and cannot receive official confirmation flyer.
+
+### 23.6 Conditional Flyer Generation Rule
+
+- Official delegate flyer generation is conditional.
+- Flyer is generated only after final approval for full payment completion.
+- Pending/partial participants see a pending prompt instead of official confirmed flyer.
+
+### 23.7 Real-Time Payment Metrics (Manager/Audit View)
+
+Management dashboards should continuously compute and expose:
+
+- Total registered participants
+- Total fully paid participants
+- Total confirmed participants
+- Aggregate collected amount
+- Outstanding amount
+
+Visibility scope:
+
+- Chairman / Super Admin
+- Explicitly authorized approvers
+
+### 23.8 Post-Approval Access Activation (Target)
+
+After final payment confirmation:
+
+- Unlock full participant hub permissions (materials, schedules, profile updates, flyer management)
+- Persist approval and payment audit trail for historical and compliance review
+
+### 23.9 Implementation Status Snapshot
+
+| Area | Status |
+| --- | --- |
+| Participant registry table with pagination | ✅ Implemented |
+| Passport + booklet photo visibility in registry table | ✅ Implemented |
+| CSV / TXT / Excel export from participant registry | ✅ Implemented |
+| Default 250 RMB auto-fill + backend fallback | ✅ Implemented |
+| Auto account-creation email link after registration | 🔄 Planned |
+| Partial payment state model + final confirmation gate | 🔄 Planned |
+| Full post-payment permission unlock automation | 🔄 Planned |

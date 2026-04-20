@@ -4,6 +4,7 @@ import {
   DEFAULT_CONF_SLUG,
   isConferenceDatabaseUnavailableError,
 } from "@/lib/conf/bootstrap";
+import { CONF_2026 } from "@/lib/conf/config";
 
 // GET /api/conf/default — ensure and return the LSUIC conference event
 export async function GET() {
@@ -14,6 +15,7 @@ export async function GET() {
       slug: event.slug,
       year: event.year,
       name: event.name,
+      delegateFee: CONF_2026.delegateFee,
       defaultSlug: DEFAULT_CONF_SLUG,
     });
   } catch (error) {

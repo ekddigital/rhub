@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { CONF_2026 } from "@/lib/conf/config";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -236,6 +237,12 @@ export async function POST(
     const delegateCode = await getNextDelegateCode(confId, event.year);
 
     const feePaidBool = Boolean(feePaid);
+    const parsedFeeAmount =
+      typeof feeAmount === "number" ? feeAmount : Number(feeAmount);
+    const resolvedFeeAmount =
+      Number.isFinite(parsedFeeAmount) && parsedFeeAmount > 0
+        ? parsedFeeAmount
+        : CONF_2026.delegateFee;
     const wantsSingleRoomBool = Boolean(wantsSingleRoom);
     const resolvedRoomPref = wantsSingleRoomBool
       ? "SINGLE"
@@ -265,7 +272,7 @@ export async function POST(
         dietaryNeeds,
         dietaryDetails: dietaryDetails || null,
         additionalComments: additionalComments || null,
-        feeAmount: feeAmount ? Number(feeAmount) : null,
+        feeAmount: resolvedFeeAmount,
         feePaid: feePaidBool,
         roomPref: resolvedRoomPref,
         wantsSingleRoom: wantsSingleRoomBool,

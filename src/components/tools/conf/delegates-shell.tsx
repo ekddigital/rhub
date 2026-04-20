@@ -1,24 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   BookOpen,
-  Camera,
   CheckCircle2,
   Copy,
-  Download,
   Eye,
-  FileUp,
   Link2,
-  MapPin,
-  Search,
   UserCheck,
   Users,
   BedDouble,
   Shuffle,
-  XCircle,
   Clock,
   Plus,
 } from "lucide-react";
@@ -40,7 +34,7 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
-import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
+import { ParticipantsDataTable } from "@/components/tools/conf/participants-data-table";
 import { useUser } from "@/contexts/user-context";
 
 type Delegate = {
@@ -144,25 +138,6 @@ type RoomAssignment = {
   } | null;
 };
 
-const STATUS_CONFIG = {
-  REGISTERED: { label: "Registered", variant: "outline" as const, icon: Clock },
-  CONFIRMED: {
-    label: "Confirmed",
-    variant: "default" as const,
-    icon: CheckCircle2,
-  },
-  ATTENDED: {
-    label: "Attended",
-    variant: "secondary" as const,
-    icon: UserCheck,
-  },
-  CANCELLED: {
-    label: "Cancelled",
-    variant: "destructive" as const,
-    icon: XCircle,
-  },
-};
-
 const PAIR_STATUS_COLOR: Record<PairRequest["status"], string> = {
   PENDING: "text-yellow-600",
   ACCEPTED: "text-blue-600",
@@ -175,6 +150,7 @@ const PAIR_STATUS_COLOR: Record<PairRequest["status"], string> = {
 export function DelegatesShell() {
   const { user } = useUser();
   const [confId, setConfId] = useState("");
+  const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
   const [assignments, setAssignments] = useState<RoomAssignment[]>([]);
@@ -185,7 +161,6 @@ export function DelegatesShell() {
 
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [search, setSearch] = useState("");
   const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
 
   const [requesterId, setRequesterId] = useState("");
@@ -244,6 +219,7 @@ export function DelegatesShell() {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
+        setDefaultFeeAmount(conf.delegateFee || 250);
         await reloadAll(conf.id);
       } catch (e) {
         setError(
@@ -256,20 +232,6 @@ export function DelegatesShell() {
 
     void init();
   }, [reloadAll]);
-
-  const filtered = useMemo(() => {
-    if (!search) return delegates;
-    const q = search.toLowerCase();
-    return delegates.filter((d) => {
-      return (
-        d.name.toLowerCase().includes(q) ||
-        (d.delegateCode || "").toLowerCase().includes(q) ||
-        d.city.toLowerCase().includes(q) ||
-        (d.university || "").toLowerCase().includes(q) ||
-        (d.passportNo || "").toLowerCase().includes(q)
-      );
-    });
-  }, [delegates, search]);
 
   const totalFees = delegates.reduce((sum, d) => sum + (d.feeAmount || 0), 0);
   const paidFees = delegates
@@ -286,49 +248,6 @@ export function DelegatesShell() {
     } catch {
       setError("Could not copy link. Please copy from browser address bar.");
     }
-  };
-
-  const handleExportCsv = () => {
-    const header =
-      "Conference ID,Name,Passport No,Gender,University,Province,City,Phone,WeChat,Email,Attendance Intent,Travel Assistance,School Communication Needed,School Communication Details,Study Year,Bringing Foreign Guest,Guest Nationality,Accommodation Needed,Dietary Needs,Dietary Details,Additional Comments,Fee Paid,Fee Amount,Room Preference,Status,Flyer Ready";
-    const rows = delegates.map((d) =>
-      [
-        d.delegateCode || "",
-        `"${d.name}"`,
-        d.passportNo || "",
-        d.gender || "",
-        `"${d.university || ""}"`,
-        `"${d.province || ""}"`,
-        d.city,
-        d.phone || "",
-        d.wechat || "",
-        d.email || "",
-        d.attendanceIntent || "",
-        d.travelAssistanceNeeded || "",
-        d.schoolCommunicationNeeded || "",
-        `"${d.schoolCommunicationDetails || ""}"`,
-        d.studyYear || "",
-        d.bringingForeignGuest || "",
-        `"${d.guestNationality || ""}"`,
-        d.accommodationNeeded || "",
-        d.dietaryNeeds || "",
-        `"${d.dietaryDetails || ""}"`,
-        `"${d.additionalComments || ""}"`,
-        d.feePaid ? "Yes" : "No",
-        d.feeAmount || 0,
-        d.roomPref,
-        d.status,
-        d.flyerReady ? "Yes" : "No",
-      ].join(","),
-    );
-    const csv = `${header}\n${rows.join("\n")}`;
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "conference-participants.csv";
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const handleRegister = async (
@@ -650,10 +569,6 @@ export function DelegatesShell() {
             <Link2 className="size-4" />
             Copy Registration Link
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportCsv}>
-            <Download className="size-4" />
-            Export
-          </Button>
           <Link href="/tools/conf/booklet">
             <Button variant="outline" size="sm">
               <BookOpen className="size-4" />
@@ -742,23 +657,12 @@ export function DelegatesShell() {
             <DelegateRegistrationForm
               submitting={submitting}
               submitLabel="Register Delegate"
+              defaultFeeAmount={defaultFeeAmount}
               onCancel={() => setShowForm(false)}
               onSubmit={handleRegister}
             />
           </CardContent>
         </Card>
-      )}
-
-      {delegates.length > 0 && (
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search by name, conference ID, passport no, city, or university..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
       )}
 
       {delegates.length === 0 && !showForm && (
@@ -773,186 +677,22 @@ export function DelegatesShell() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {filtered.map((delegate) => {
-          const config = STATUS_CONFIG[delegate.status];
-          const StatusIcon = config.icon;
-          const userEmail = user?.email?.trim().toLowerCase();
-          const delegateEmail = delegate.email?.trim().toLowerCase();
-          const canOpenDetail =
-            Boolean(isAdminControl) ||
-            (Boolean(user?.id) && delegate.userId === user?.id) ||
-            (Boolean(userEmail) &&
-              Boolean(delegateEmail) &&
-              delegateEmail === userEmail);
-          const initials = delegate.name
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((n) => n[0]?.toUpperCase())
-            .join("");
-
-          return (
-            <Card key={delegate.id} className="overflow-hidden">
-              <CardContent className="pt-5">
-                <div className="mb-3 flex items-start gap-3">
-                  {delegate.bookletPhotoPath ? (
-                    <AdaptivePhotoFrame
-                      src={delegate.bookletPhotoPath}
-                      alt={delegate.name}
-                      containerClassName="h-16 w-16 rounded-xl border border-border"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-sm font-bold text-muted-foreground">
-                      {initials || "DL"}
-                    </div>
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{delegate.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {delegate.delegateCode || "Pending ID"}
-                    </p>
-                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MapPin className="size-3" />
-                      {delegate.city}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p>Passport: {delegate.passportNo || "—"}</p>
-                  <p>University: {delegate.university || "—"}</p>
-                  <p>Gender: {delegate.gender || "—"}</p>
-                  <p>Room preference: {delegate.roomPref}</p>
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge variant={config.variant}>
-                    <StatusIcon className="mr-1 size-3" />
-                    {config.label}
-                  </Badge>
-
-                  {delegate.conferencePosition && (
-                    <Badge variant="outline" className="border-[#C8A061]/50 text-[#C8A061] bg-[#C8A061]/10 text-xs">
-                      {delegate.conferencePosition}
-                    </Badge>
-                  )}
-
-                  {canOpenDetail && (
-                    <Link
-                      href={`/tools/conf/delegates/${delegate.id}`}
-                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground hover:bg-accent"
-                    >
-                      <Eye className="size-3" />
-                      Details
-                    </Link>
-                  )}
-
-                  <button
-                    className={`rounded-md px-2 py-1 text-xs font-medium ${
-                      delegate.feePaid
-                        ? "bg-green-500/10 text-green-600"
-                        : "bg-yellow-500/10 text-yellow-700"
-                    }`}
-                    onClick={() => togglePaid(delegate)}
-                  >
-                    {delegate.feePaid ? "Paid" : "Unpaid"}
-                  </button>
-
-                  {delegate.flyerReady && (
-                    <>
-                      <Link
-                        href={`/api/conf/${confId}/delegates/${delegate.id}/flyer`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md bg-[#0B4FD9]/10 px-2 py-1 text-xs font-medium text-[#0B4FD9]"
-                      >
-                        <Eye className="size-3" />
-                        View Card
-                      </Link>
-                      <Link
-                        href={`/api/conf/${confId}/delegates/${delegate.id}/flyer?format=png&download=1`}
-                        className="inline-flex items-center gap-1 rounded-md bg-[#C8102E]/10 px-2 py-1 text-xs font-medium text-[#C8102E]"
-                        download
-                      >
-                        <Download className="size-3" />
-                        PNG
-                      </Link>
-                      <Link
-                        href={`/api/conf/${confId}/delegates/${delegate.id}/flyer?download=1`}
-                        className="inline-flex items-center gap-1 rounded-md bg-[#0B1E78]/10 px-2 py-1 text-xs font-medium text-[#0B1E78]"
-                        download
-                      >
-                        <Download className="size-3" />
-                        SVG
-                      </Link>
-                    </>
-                  )}
-                </div>
-
-                {canOpenDetail && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <label
-                      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
-                        uploadingDocKey ? "pointer-events-none opacity-60" : ""
-                      }`}
-                    >
-                      <Camera className="size-3.5" />
-                      {uploadingDocKey === `${delegate.id}:booklet`
-                        ? "Uploading..."
-                        : "Replace Booklet Photo"}
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          void handleReplaceDelegateDocument(
-                            delegate.id,
-                            "booklet",
-                            file,
-                          );
-                          e.currentTarget.value = "";
-                        }}
-                      />
-                    </label>
-
-                    {isAdminControl && (
-                      <label
-                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
-                          uploadingDocKey
-                            ? "pointer-events-none opacity-60"
-                            : ""
-                        }`}
-                      >
-                        <FileUp className="size-3.5" />
-                        {uploadingDocKey === `${delegate.id}:passport`
-                          ? "Uploading..."
-                          : "Replace Passport File"}
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/png,image/jpeg,image/webp,application/pdf"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0] || null;
-                            void handleReplaceDelegateDocument(
-                              delegate.id,
-                              "passport",
-                              file,
-                            );
-                            e.currentTarget.value = "";
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {delegates.length > 0 && (
+        <ParticipantsDataTable
+          delegates={delegates}
+          confId={confId}
+          currentUserId={user?.id ?? null}
+          currentUserEmail={user?.email ?? null}
+          isAdminControl={Boolean(isAdminControl)}
+          uploadingDocKey={uploadingDocKey}
+          onTogglePaid={(row) => {
+            const delegate = delegates.find((item) => item.id === row.id);
+            if (!delegate) return;
+            void togglePaid(delegate);
+          }}
+          onReplaceDocument={handleReplaceDelegateDocument}
+        />
+      )}
 
       <Card>
         <CardHeader>

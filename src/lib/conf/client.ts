@@ -3,6 +3,7 @@ export type DefaultConference = {
   slug: string;
   year: number;
   name: string;
+  delegateFee: number;
   defaultSlug: string;
 };
 

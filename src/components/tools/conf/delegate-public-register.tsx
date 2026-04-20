@@ -85,6 +85,7 @@ const FEATURED_VIDEOS = [
 export function DelegatePublicRegister() {
   const [confId, setConfId] = useState("");
   const [confYear, setConfYear] = useState(new Date().getFullYear());
+  const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [samplePhotos, setSamplePhotos] = useState<DelegatePhotoSample[]>([]);
@@ -105,6 +106,7 @@ export function DelegatePublicRegister() {
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
         setConfYear(conf.year);
+        setDefaultFeeAmount(conf.delegateFee || 250);
 
         setSamplesLoading(true);
         const sampleRes = await fetch(
@@ -629,6 +631,7 @@ export function DelegatePublicRegister() {
             <CardContent>
               <DelegateRegistrationForm
                 submitting={submitting}
+                defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
                 onSubmit={handleSubmit}
               />

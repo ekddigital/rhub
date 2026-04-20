@@ -48,6 +48,7 @@ export type DelegateRegistrationPayload = {
 type Props = {
   submitting: boolean;
   submitLabel?: string;
+  defaultFeeAmount?: number;
   onCancel?: () => void;
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
 };
@@ -55,6 +56,7 @@ type Props = {
 export function DelegateRegistrationForm({
   submitting,
   submitLabel = "Submit Registration",
+  defaultFeeAmount = 250,
   onCancel,
   onSubmit,
 }: Props) {
@@ -102,7 +104,7 @@ export function DelegateRegistrationForm({
   const [dietaryDetails, setDietaryDetails] = useState("");
   const [additionalComments, setAdditionalComments] = useState("");
   const [feePaid, setFeePaid] = useState(false);
-  const [feeAmount, setFeeAmount] = useState("");
+  const [feeAmount, setFeeAmount] = useState(String(defaultFeeAmount));
   const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">("PAIR");
   const [partnerClaimNote, setPartnerClaimNote] = useState("");
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
@@ -132,7 +134,7 @@ export function DelegateRegistrationForm({
     setDietaryDetails("");
     setAdditionalComments("");
     setFeePaid(false);
-    setFeeAmount("");
+    setFeeAmount(String(defaultFeeAmount));
     setRoomPref("PAIR");
     setPartnerClaimNote("");
     setPassportPhoto(null);
@@ -178,6 +180,15 @@ export function DelegateRegistrationForm({
 
     setError(null);
 
+    const parsedFeeAmount = feeAmount.trim()
+      ? Number(feeAmount)
+      : defaultFeeAmount;
+
+    if (!Number.isFinite(parsedFeeAmount) || parsedFeeAmount < 0) {
+      setError("Conference fee amount must be a valid number.");
+      return;
+    }
+
     try {
       const submitted = await onSubmit({
         name,
@@ -201,7 +212,7 @@ export function DelegateRegistrationForm({
         dietaryDetails: dietaryDetails.trim(),
         additionalComments: additionalComments.trim(),
         feePaid,
-        feeAmount: feeAmount ? Number(feeAmount) : null,
+        feeAmount: parsedFeeAmount,
         roomPref,
         partnerClaimNote,
         passportPhoto,
@@ -528,6 +539,9 @@ export function DelegateRegistrationForm({
             value={feeAmount}
             onChange={(e) => setFeeAmount(e.target.value)}
           />
+          <p className="text-xs text-muted-foreground">
+            Default conference fee is {defaultFeeAmount} RMB.
+          </p>
         </div>
 
         <div className="space-y-2">
