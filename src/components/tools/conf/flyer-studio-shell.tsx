@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowLeft,
   CalendarDays,
@@ -929,12 +928,12 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between bg-[#0B1E78] px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#C8A061] bg-white">
-            <Image
+          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#C8A061] bg-white flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/conf/lsuic_logo.png"
               alt="LSUIC logo"
-              fill
-              className="object-contain p-0.5"
+              className="w-full h-full object-contain p-0.5"
             />
           </div>
           <div>
@@ -958,12 +957,11 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
 
       {/* Hero */}
       <div className="relative shrink-0" style={{ height: "26%" }}>
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/conf/assets/jinan_city/day_view_landscape.png"
           alt="Jinan city"
-          fill
-          className="object-cover"
-          sizes="540px"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#021033]/10 via-[#021033]/50 to-[#071B4D]/95" />
         <div className="absolute inset-x-0 bottom-0 px-4 pb-3">
@@ -1043,12 +1041,12 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
       {/* Header */}
       <div className="flex shrink-0 items-center justify-between bg-[#0B1E78] px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#C8A061] bg-white">
-            <Image
+          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border-2 border-[#C8A061] bg-white flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/conf/lsuic_logo.png"
               alt="LSUIC logo"
-              fill
-              className="object-contain p-0.5"
+              className="w-full h-full object-contain p-0.5"
             />
           </div>
           <div>
@@ -1072,12 +1070,11 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
 
       {/* Hero */}
       <div className="relative shrink-0" style={{ height: "20%" }}>
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/conf/assets/hotel/conference_hall.jpg"
           alt="Conference hall"
-          fill
-          className="object-cover"
-          sizes="540px"
+          className="absolute inset-0 h-full w-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#021033]/10 via-[#021033]/50 to-[#071B4D]/95" />
         <div className="absolute inset-x-0 bottom-0 px-4 pb-3">

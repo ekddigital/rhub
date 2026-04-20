@@ -1640,3 +1640,1039 @@ https://react.dev/link/hydration-mismatch
  GET /tools/conf/booklet 200 in 1897ms (next.js: 60ms, proxy.ts: 71ms, application-code: 1765ms)
 ✓ Compiled in 361ms
 ✓ Compiled in 156ms
+✓ Compiled in 1086ms
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/booklet 500 in 1302ms (next.js: 990ms, proxy.ts: 159ms, application-code: 154ms)
+ GET /tools/conf/letters 500 in 1323ms (next.js: 1211ms, proxy.ts: 93ms, application-code: 18ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/booklet 500 in 228ms (next.js: 123ms, proxy.ts: 22ms, application-code: 84ms)
+ GET /tools/conf/letters 500 in 228ms (next.js: 175ms, proxy.ts: 18ms, application-code: 35ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/letters 500 in 221ms (next.js: 45ms, proxy.ts: 123ms, application-code: 53ms)
+ GET /tools/conf/booklet 500 in 208ms (next.js: 57ms, proxy.ts: 116ms, application-code: 36ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/booklet 500 in 173ms (proxy.ts: 26ms)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  [90m1106 |[0m           </div>
+  [90m1107 |[0m
+[31m[1m>[0m [90m1108 |[0m           {[90m/* Preview viewport */[0m}
+  [90m     |[0m           [31m[1m^[0m
+  [90m1109 |[0m           <div
+  [90m1110 |[0m             style={{
+  [90m1111 |[0m               background: [32m"#c8c8c8"[0m,
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/letters 500 in 311ms (next.js: 68ms, proxy.ts: 183ms, application-code: 59ms)
+ GET /tools/conf/booklet 500 in 313ms (next.js: 95ms, proxy.ts: 195ms, application-code: 23ms)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1108:11)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+Expected '</', got '{'
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1108:11
+  1106 |           </div>
+  1107 |
+> 1108 |           {/* Preview viewport */}
+       |           ^
+  1109 |           <div
+  1110 |             style={{
+  1111 |               background: "#c8c8c8",
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+✓ Compiled in 685ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/booklet 200 in 16.2s (next.js: 110ms, proxy.ts: 57ms, application-code: 16.0s)
+ GET /tools/conf/letters 200 in 16.5s (next.js: 82ms, proxy.ts: 449ms, application-code: 15.9s)
+ GET /api/auth/me?_t=1776667063350 200 in 723ms (next.js: 177ms, proxy.ts: 10ms, application-code: 535ms)
+ GET /api/auth/me?_t=1776667064158 200 in 575ms (next.js: 11ms, proxy.ts: 5ms, application-code: 558ms)
+ GET /api/conf/default 200 in 2.1s (next.js: 92ms, proxy.ts: 11ms, application-code: 1964ms)
+ GET /api/conf/default 200 in 1263ms (next.js: 7ms, proxy.ts: 6ms, application-code: 1250ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 173ms (next.js: 36ms, proxy.ts: 9ms, application-code: 127ms)
+ GET /api/auth/me?_t=1776667063350 200 in 3.2s (next.js: 186ms, proxy.ts: 16ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 2.9s (next.js: 110ms, proxy.ts: 9ms, application-code: 2.8s)
+ GET /api/auth/me?_t=1776667064158 200 in 6.2s (next.js: 13ms, proxy.ts: 5ms, application-code: 6.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 6.0s (next.js: 149ms, proxy.ts: 8ms, application-code: 5.8s)
+ GET /api/conf/default 200 in 15ms (next.js: 3ms, proxy.ts: 7ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 4.5s (next.js: 59ms, proxy.ts: 5ms, application-code: 4.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.7s (next.js: 7ms, proxy.ts: 5ms, application-code: 3.7s)
+✓ Compiled in 430ms
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/letters 500 in 250ms (next.js: 130ms, proxy.ts: 95ms, application-code: 26ms)
+ GET /tools/conf/booklet 500 in 247ms (next.js: 140ms, proxy.ts: 93ms, application-code: 14ms)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+ GET /tools/conf/booklet 500 in 188ms (next.js: 116ms, proxy.ts: 13ms, application-code: 59ms)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+ GET /tools/conf/letters 500 in 190ms (next.js: 133ms, proxy.ts: 13ms, application-code: 44ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+ GET /tools/conf/letters 500 in 216ms (next.js: 68ms, proxy.ts: 101ms, application-code: 47ms)
+ GET /tools/conf/booklet 500 in 171ms (next.js: 42ms, proxy.ts: 83ms, application-code: 46ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  [90m1147 |[0m     </div>
+  [90m1148 |[0m   );
+[31m[1m>[0m [90m1149 |[0m }
+  [90m     |[0m [31m[1m^[0m
+  [90m1150 |[0m
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/booklet 500 in 170ms (proxy.ts: 32ms)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:1149:1)
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+[browser] ./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:1149:1
+  1147 |     </div>
+  1148 |   );
+> 1149 | }
+       | ^
+  1150 |
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx 
+✓ Compiled in 818ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 6.9s (next.js: 103ms, proxy.ts: 17ms, application-code: 6.7s)
+ GET /tools/conf/booklet 200 in 7.4s (next.js: 555ms, proxy.ts: 12ms, application-code: 6.8s)
+ GET /api/auth/me?_t=1776667174589 200 in 909ms (next.js: 98ms, proxy.ts: 36ms, application-code: 775ms)
+ GET /api/auth/me?_t=1776667174588 200 in 1025ms (next.js: 100ms, proxy.ts: 35ms, application-code: 889ms)
+ GET /api/auth/me?_t=1776667175241 200 in 710ms (next.js: 8ms, proxy.ts: 4ms, application-code: 698ms)
+ GET /api/auth/me?_t=1776667175242 200 in 1640ms (next.js: 12ms, proxy.ts: 5ms, application-code: 1622ms)
+ GET /api/conf/default 200 in 5.5s (next.js: 59ms, proxy.ts: 49ms, application-code: 5.4s)
+ GET /api/conf/default 200 in 4.9s (next.js: 4ms, proxy.ts: 4ms, application-code: 4.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 110ms (next.js: 22ms, proxy.ts: 4ms, application-code: 84ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1624ms (next.js: 98ms, proxy.ts: 5ms, application-code: 1521ms)
+ GET /api/conf/default 200 in 7ms (next.js: 1510µs, proxy.ts: 3ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 4.5s (next.js: 74ms, proxy.ts: 5ms, application-code: 4.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.1s (next.js: 7ms, proxy.ts: 4ms, application-code: 3.1s)

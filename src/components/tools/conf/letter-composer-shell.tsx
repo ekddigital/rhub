@@ -823,7 +823,7 @@ export function LetterComposerShell() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Print CSS.
            #letter-print-root is always rendered but positioned off-screen
            so images load. In print mode we hide the whole app shell with
@@ -858,8 +858,11 @@ export function LetterComposerShell() {
         }
       `}</style>
 
+      {/* ── Viewport frame: header + 2-panel body ── */}
+      <div className="flex flex-col h-[calc(100vh-8rem)] gap-0">
+
       {/* ── Header ── */}
-      <div className="letter-no-print flex items-center gap-4">
+      <div className="letter-no-print flex items-center gap-4 shrink-0 pb-3 mb-3 border-b border-border/30">
         <Link href="/tools/conf">
           <Button variant="ghost" size="icon-sm">
             <ArrowLeft className="size-4" />
@@ -913,7 +916,7 @@ export function LetterComposerShell() {
 
       {/* ── Drafts list ── */}
       {showList && (
-        <Card className="letter-no-print border-[#C8A061]/30">
+        <Card className="letter-no-print border-[#C8A061]/30 shrink-0 mb-3">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Saved Drafts</CardTitle>
             <CardDescription className="text-xs">
@@ -977,9 +980,9 @@ export function LetterComposerShell() {
       )}
 
       {/* ── Main layout: form (left) + preview (right) ── */}
-      <div className="letter-no-print grid grid-cols-[360px,1fr] gap-6 items-start">
+      <div className="letter-no-print flex gap-6 flex-1 min-h-0">
         {/* ── Left: form fields ── */}
-        <div className="space-y-4 sticky top-24">
+        <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -1077,7 +1080,7 @@ export function LetterComposerShell() {
         </div>
 
         {/* ── Right: A4 preview ── */}
-        <div>
+        <div className="flex-1 min-w-0 overflow-y-auto pb-6">
           {/* Zoom controls */}
           <div className="mb-3 flex items-center justify-between">
             <p className="text-xs font-semibold text-[#002868]">
@@ -1131,6 +1134,8 @@ export function LetterComposerShell() {
           </div>
         </div>
       </div>
+
+      </div>{/* end flex flex-col viewport frame */}
 
       {/* ── Print root — rendered off-screen (not display:none so visibility trick works) ── */}
       <div id="letter-print-root">
