@@ -2784,3 +2784,29 @@ Please make sure your database server is running at `31.97.41.230:9909`.
   meta: { modelName: 'ConfMember', database_location: '31.97.41.230:9909' },
   clientVersion: '6.19.3'
 }
+GET /booklet/data error: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confMember.findMany()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0g.4nbw._.js:2057:153
+
+  2054     }
+  2055 }),
+  2056 // Conference Committee members (all roles — CHAIR = Conference Chair)
+→ 2057 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confMember.findMany(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/app/api/conf/[confId]/booklet/data/route.ts:136:25)
+    at async GET (src/app/api/conf/[confId]/booklet/data/route.ts:104:9)
+  134 |
+  135 |       // Conference Committee members (all roles — CHAIR = Conference Chair)
+> 136 |       prisma.confMember.findMany({
+      |                         ^
+  137 |         where: { confId, isActive: true },
+  138 |         orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
+  139 |         select: { {
+  code: 'P1001',
+  meta: { modelName: 'ConfMember', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3'
+}
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 500 in 4.1min (next.js: 3ms, proxy.ts: 1843µs, application-code: 4.1min)
+✓ Compiled in 1300ms

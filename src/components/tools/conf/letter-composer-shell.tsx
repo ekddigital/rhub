@@ -783,9 +783,13 @@ export function LetterComposerShell() {
   <title>LSUIC Letter</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    html, body { width: 794px; background: #888; }
+    .letter-page { box-shadow: none !important; display: block !important; }
     @page { size: A4 portrait; margin: 0; }
-    @media print { body { width: 210mm; height: 297mm; overflow: hidden; } }
+    @media print {
+      html, body { background: #fff !important; width: 210mm; height: 297mm; overflow: hidden; }
+      .letter-page { width: 210mm !important; height: 297mm !important; box-shadow: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -1143,7 +1147,6 @@ export function LetterComposerShell() {
           draft={activeDraft}
           members={members}
           confInfo={confInfo}
-          forPrint={true}
         />
       </div>
     </div>
