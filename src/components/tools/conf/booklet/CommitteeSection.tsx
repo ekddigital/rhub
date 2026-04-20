@@ -133,7 +133,9 @@ function ChairHeroCard({ chair }: { chair: NecMember }) {
               letterSpacing: "0.03em",
             }}
           >
-            {chair.conferencePosition?.trim() ?? chair.title ?? roleLabel(chair)}
+            {chair.conferencePosition?.trim() ??
+              chair.title ??
+              roleLabel(chair)}
           </div>
         )}
 

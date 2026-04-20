@@ -1,93 +1,30 @@
 import { prisma } from "@/lib/prisma";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
-// ── Helpers (reused from delegate flyer pattern) ──────────────────────────────
-
-function escapeXml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
-
-function guessMime(fileName: string) {
-  const f = fileName.toLowerCase();
-  if (f.endsWith(".png")) return "image/png";
-  if (f.endsWith(".jpg") || f.endsWith(".jpeg")) return "image/jpeg";
-  if (f.endsWith(".webp")) return "image/webp";
-  return "application/octet-stream";
-}
-
-function toDataUri(data: Buffer, mime: string) {
-  return `data:${mime};base64,${data.toString("base64")}`;
-}
-
-async function readPublicFile(...parts: string[]) {
-  try {
-    const fp = path.join(process.cwd(), "public", ...parts);
-    return await readFile(fp);
-  } catch {
-    return null;
-  }
-}
-
-const LOGO_CANDIDATES = [
-  "conf/lsuic-logo-primary.png",
-  "conf/lsuic_logo.png",
-  "conf/Liberian Student Union emblem in China.png",
-];
-
-const BACKDROP_CANDIDATES = [
-  "conf/assets/jinan_city/day_view_landscape.png",
-  "conf/assets/hotel/main_entrance_view.png",
-];
-
-type Fonts = { headline: string; body: string; script: string } | null;
-
-let fontsCache: Promise<Fonts> | null = null;
-
-async function loadFonts(): Promise<Fonts> {
-  if (!fontsCache) {
-    fontsCache = (async () => {
-      const readFont = async (name: string) => {
-        const buf = await readPublicFile("conf", "fonts", name);
-        return buf ? toDataUri(buf, "font/ttf") : null;
-      };
-      const [headline, body, script] = await Promise.all([
-        readFont("Oswald-Bold.ttf"),
-        readFont("Poppins-Bold.ttf"),
-        readFont("GreatVibes-Regular.ttf"),
-      ]);
-      if (!headline || !body) return null;
-      return { headline, body, script: script ?? headline };
-    })();
-  }
-  return fontsCache;
-}
-
-
-
-async function loadAsset(candidates: string[]) {
-  for (const c of candidates) {
-    const buf = await readPublicFile(c);
-    if (buf) return toDataUri(buf, guessMime(c));
-  }
-  return null;
-}
+import { CONF_2026 } from "@/lib/conf/config";
+import {
+  escapeXml,
+  loadLogoDataUri,
+  loadBackdropDataUri,
+  loadFlyerFonts,
+  buildFontFaceBlock,
+  buildLogoLayer,
+  renderResvgPng,
+  type FlyerFonts,
+} from "@/lib/conf/svg-assets";
 
 // ── Day calculation ───────────────────────────────────────────────────────────
 
 function daysUntil(target: Date): number {
+  const t = new Date(target);
+  t.setHours(0, 0, 0, 0);
   const now = new Date();
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const diff = Math.ceil(
-    (target.setHours(0, 0, 0, 0) - now.setHours(0, 0, 0, 0)) / msPerDay,
-  );
-  return Math.max(0, diff);
+  now.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((t.getTime() - now.getTime()) / 86_400_000));
 }
+
+// Sub-theme displayed on flyer — pulled from single source of truth
+const FLYER_SUB_THEME = CONF_2026.subTheme
+  .replace(", and ", " · ")
+  .replace(", ", " · ");
 
 // ── SVG template ─────────────────────────────────────────────────────────────
 
@@ -98,7 +35,7 @@ function buildCountdownSvg(opts: {
   venueLabel: string;
   logoUri: string | null;
   backdropUri: string | null;
-  fonts: Fonts;
+  fonts: FlyerFonts | null;
   today: string;
 }) {
   const {
@@ -112,27 +49,27 @@ function buildCountdownSvg(opts: {
     today,
   } = opts;
 
-  const subLabel =
-    days === 0 ? "The conference is today!" : days === 1 ? "TO GO" : "TO GO";
+  const subLabel = days === 0 ? "TODAY!" : "TO GO";
+  const countdownDisplay = days === 0 ? "🎉" : String(days);
+  const numFontSize = days >= 100 ? 220 : 260;
 
-  const fontBlock = fonts
-    ? `<style>
-      @font-face { font-family:'H'; src:url('${fonts.headline}') format('truetype'); font-weight:700; }
-      @font-face { font-family:'B'; src:url('${fonts.body}') format('truetype'); font-weight:700; }
-      @font-face { font-family:'S'; src:url('${fonts.script}') format('truetype'); font-weight:400; }
-    </style>`
-    : "";
+  // Logo geometry — larger circle for crisp rendering
+  const LOGO_CX = 540;
+  const LOGO_CY = 174;
+  const LOGO_R = 96; // diameter 192 (was 144)
+  const LOGO_RING_R = LOGO_R + 4; // 100
+
+  const fontBlock = buildFontFaceBlock(fonts);
 
   const backdropLayer = backdropUri
-    ? `<image href="${escapeXml(backdropUri)}" x="0" y="0" width="1080" height="1080" preserveAspectRatio="xMidYMid slice" opacity="0.18"/>`
+    ? `<image href="${escapeXml(backdropUri)}" x="0" y="0" width="1080" height="1080" preserveAspectRatio="xMinYMid slice" opacity="0.15" image-rendering="optimizeQuality"/>`
     : "";
 
-  const logoLayer = logoUri
-    ? `<clipPath id="lc"><circle cx="540" cy="148" r="72"/></clipPath>
-       <circle cx="540" cy="148" r="74" fill="#FFFFFF" fill-opacity="0.92" stroke="#C8A061" stroke-width="3"/>
-       <image href="${escapeXml(logoUri)}" x="468" y="76" width="144" height="144" preserveAspectRatio="xMidYMid meet" clip-path="url(#lc)"/>`
-    : `<circle cx="540" cy="148" r="74" fill="#FFFFFF" fill-opacity="0.92" stroke="#C8A061" stroke-width="3"/>
-       <text x="540" y="162" text-anchor="middle" font-family="H,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700" fill="#0A2C8B">LSUIC</text>`;
+  // buildLogoLayer handles the clip, white ring, and image with correct zoom + vertical offset.
+  const logoLayer = buildLogoLayer(LOGO_CX, LOGO_CY, LOGO_R, logoUri, { clipId: "lc" });
+
+  // Derive positions relative to logo bottom
+  const logoBtm = LOGO_CY + LOGO_RING_R; // 278
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
@@ -147,15 +84,14 @@ function buildCountdownSvg(opts: {
       <stop offset="0%" stop-color="#C8A061"/>
       <stop offset="100%" stop-color="#D4AF6A"/>
     </linearGradient>
-    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#C8A061" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#C8A061" stop-opacity="0"/>
-    </linearGradient>
     <filter id="ds" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="4" stdDeviation="18" flood-color="#000000" flood-opacity="0.5"/>
     </filter>
     <filter id="gf" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="32"/>
+    </filter>
+    <filter id="logoGlow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#C8A061" flood-opacity="0.45"/>
     </filter>
   </defs>
 
@@ -164,60 +100,77 @@ function buildCountdownSvg(opts: {
   ${backdropLayer}
 
   <!-- Gold radial glow behind number -->
-  <ellipse cx="540" cy="540" rx="320" ry="320" fill="#C8A061" opacity="0.07" filter="url(#gf)"/>
+  <ellipse cx="540" cy="592" rx="300" ry="280" fill="#C8A061" opacity="0.06" filter="url(#gf)"/>
 
-  <!-- Outer decorative ring -->
-  <circle cx="540" cy="540" r="350" fill="none" stroke="#C8A061" stroke-width="2" stroke-opacity="0.25" stroke-dasharray="12 8"/>
-  <circle cx="540" cy="540" r="320" fill="none" stroke="#C8A061" stroke-width="1" stroke-opacity="0.15"/>
+  <!-- Decorative rings -->
+  <circle cx="540" cy="540" r="356" fill="none" stroke="#C8A061" stroke-width="1.5" stroke-opacity="0.2" stroke-dasharray="10 8"/>
+  <circle cx="540" cy="540" r="328" fill="none" stroke="#C8A061" stroke-width="0.8" stroke-opacity="0.12"/>
 
-  <!-- Gold top accent line -->
-  <rect x="160" y="42" width="760" height="3" rx="2" fill="url(#ring)"/>
-  <!-- Gold bottom accent line -->
-  <rect x="160" y="1035" width="760" height="3" rx="2" fill="url(#ring)"/>
+  <!-- Gold accent lines -->
+  <rect x="140" y="38" width="800" height="3" rx="2" fill="url(#ring)"/>
+  <rect x="140" y="1039" width="800" height="3" rx="2" fill="url(#ring)"/>
+
+  <!-- Logo gold glow ring -->
+  <circle cx="${LOGO_CX}" cy="${LOGO_CY}" r="${LOGO_RING_R + 7}" fill="none" stroke="#C8A061" stroke-width="1.2" stroke-opacity="0.4" filter="url(#logoGlow)"/>
 
   <!-- Logo -->
   ${logoLayer}
 
+  <!-- 20th Anniversary label -->
+  <text x="540" y="${logoBtm + 28}" text-anchor="middle"
+    font-family="Poppins,Segoe UI,Arial,sans-serif" font-size="13"
+    fill="#C8A061" letter-spacing="3" opacity="0.92">✦  20TH ANNIVERSARY  ✦</text>
+
   <!-- Conference name -->
-  <text x="540" y="254" text-anchor="middle"
-    font-family="H,Oswald,Segoe UI,Arial,sans-serif" font-size="26" font-weight="700"
-    fill="#C8A061" letter-spacing="4">${escapeXml(confName.toUpperCase())}</text>
+  <text x="540" y="${logoBtm + 52}" text-anchor="middle"
+    font-family="Oswald,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700"
+    fill="#C8A061" letter-spacing="3">${escapeXml(confName.toUpperCase())}</text>
+
+  <!-- Theme — "Jinan 2026: Legacy and Influence" -->
+  <text x="540" y="${logoBtm + 94}" text-anchor="middle"
+    font-family="Oswald,Segoe UI,Arial,sans-serif" font-size="30" font-weight="700"
+    fill="#FFFFFF" opacity="1.0">${escapeXml(CONF_2026.theme)}</text>
+
+  <!-- Sub-theme — script, gold -->
+  <text x="540" y="${logoBtm + 128}" text-anchor="middle"
+    font-family="'Great Vibes',Georgia,serif" font-size="17"
+    fill="#C8A061" opacity="0.90">${escapeXml(FLYER_SUB_THEME)}</text>
 
   <!-- Big countdown number -->
-  <text x="540" y="590" text-anchor="middle"
-    font-family="H,Oswald,Segoe UI,Arial,sans-serif" font-size="${days >= 100 ? 220 : 260}" font-weight="700"
-    fill="#FFFFFF" filter="url(#ds)">${days === 0 ? "🎉" : String(days)}</text>
+  <text x="540" y="644" text-anchor="middle"
+    font-family="Oswald,Segoe UI,Arial,sans-serif" font-size="${numFontSize}" font-weight="700"
+    fill="#FFFFFF" filter="url(#ds)">${countdownDisplay}</text>
 
   <!-- TO GO label -->
-  <text x="540" y="660" text-anchor="middle"
-    font-family="H,Oswald,Segoe UI,Arial,sans-serif" font-size="52" font-weight="700"
+  <text x="540" y="713" text-anchor="middle"
+    font-family="Oswald,Segoe UI,Arial,sans-serif" font-size="52" font-weight="700"
     fill="#C8A061" letter-spacing="8">${escapeXml(subLabel)}</text>
 
   <!-- Divider dots -->
-  <circle cx="500" cy="704" r="4" fill="#C8A061" opacity="0.6"/>
-  <circle cx="540" cy="704" r="4" fill="#C8A061"/>
-  <circle cx="580" cy="704" r="4" fill="#C8A061" opacity="0.6"/>
+  <circle cx="500" cy="757" r="4" fill="#C8A061" opacity="0.5"/>
+  <circle cx="540" cy="757" r="4" fill="#C8A061"/>
+  <circle cx="580" cy="757" r="4" fill="#C8A061" opacity="0.5"/>
 
   <!-- Date label -->
-  <text x="540" y="766" text-anchor="middle"
-    font-family="B,Poppins,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700"
-    fill="#FFFFFF" opacity="0.85">${escapeXml(dateLabel)}</text>
+  <text x="540" y="818" text-anchor="middle"
+    font-family="Poppins,Segoe UI,Arial,sans-serif" font-size="28" font-weight="700"
+    fill="#FFFFFF" opacity="0.95">${escapeXml(dateLabel)}</text>
 
   <!-- Venue label -->
-  <text x="540" y="810" text-anchor="middle"
-    font-family="B,Poppins,Segoe UI,Arial,sans-serif" font-size="20"
-    fill="#C8A061" opacity="0.7">${escapeXml(venueLabel)}</text>
+  <text x="540" y="858" text-anchor="middle"
+    font-family="Poppins,Segoe UI,Arial,sans-serif" font-size="19"
+    fill="#C8A061" opacity="0.85">${escapeXml(venueLabel)}</text>
 
-  <!-- Maroon EKD tag line -->
-  <rect x="390" y="870" width="300" height="44" rx="10" fill="#8E0E00" opacity="0.85"/>
-  <text x="540" y="898" text-anchor="middle"
-    font-family="B,Poppins,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700"
-    fill="#FFFFFF">LSUIC CONFERENCE 2026</text>
+  <!-- Conference badge -->
+  <rect x="370" y="886" width="340" height="46" rx="10" fill="#8E0E00" opacity="0.9"/>
+  <text x="540" y="915" text-anchor="middle"
+    font-family="Poppins,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700"
+    fill="#FFFFFF" letter-spacing="1">LSUIC CONFERENCE 2026</text>
 
-  <!-- Generated date watermark -->
-  <text x="540" y="1010" text-anchor="middle"
-    font-family="B,Poppins,Segoe UI,Arial,sans-serif" font-size="14"
-    fill="#FFFFFF" opacity="0.3">Generated ${escapeXml(today)} · ekddigital.com</text>
+  <!-- Generated date -->
+  <text x="540" y="1013" text-anchor="middle"
+    font-family="Poppins,Segoe UI,Arial,sans-serif" font-size="13"
+    fill="#FFFFFF" opacity="0.22">Generated ${escapeXml(today)}</text>
 </svg>`;
 }
 
@@ -234,23 +187,28 @@ export async function GET(
     (url.searchParams.get("download") ?? "").toLowerCase(),
   );
 
-  const event = await prisma.confEvent.findUnique({
-    where: { id: confId },
-    select: { name: true, year: true, startsAt: true, endsAt: true },
-  });
+  const [event] = await Promise.all([
+    prisma.confEvent.findUnique({
+      where: { id: confId },
+      select: { name: true, year: true, startsAt: true, endsAt: true },
+    }),
+  ]);
 
-  const startsAt = event?.startsAt ?? new Date(`${event?.year ?? 2026}-07-23`);
+  const event_ = event;
+
+  const startsAt =
+    event_?.startsAt ?? new Date(`${event_?.year ?? 2026}-07-23`);
   const days = daysUntil(new Date(startsAt));
 
   const dateLabel =
-    event?.startsAt && event?.endsAt
-      ? `${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(event.startsAt)} – ${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(event.endsAt)}`
+    event_?.startsAt && event_?.endsAt
+      ? `${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(event_.startsAt)} \u2013 ${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(event_.endsAt)}`
       : "July 23–27, 2026";
 
   const [logoUri, backdropUri, fonts] = await Promise.all([
-    loadAsset(LOGO_CANDIDATES),
-    loadAsset(BACKDROP_CANDIDATES),
-    loadFonts(),
+    loadLogoDataUri(),
+    loadBackdropDataUri(),
+    loadFlyerFonts(),
   ]);
 
   const today = new Intl.DateTimeFormat("en-US", {
@@ -261,9 +219,9 @@ export async function GET(
 
   const svg = buildCountdownSvg({
     days,
-    confName: event?.name ?? "LSUIC National Conference",
+    confName: event_?.name ?? CONF_2026.name,
     dateLabel,
-    venueLabel: "Arcadia Spa Golf Hotel · Jinan, Shandong",
+    venueLabel: CONF_2026.venueShort,
     logoUri,
     backdropUri,
     fonts,
@@ -271,18 +229,8 @@ export async function GET(
   });
 
   if (wantsPng) {
-    const { Resvg } = await import("@resvg/resvg-js");
-    const fontsDir = path.join(process.cwd(), "public", "conf", "fonts");
-    const resvg = new Resvg(svg, {
-      fitTo: { mode: "width", value: 1080 },
-      font: {
-        fontDirs: [fontsDir],
-        loadSystemFonts: false,
-        defaultFontFamily: "Oswald",
-      },
-    });
-    const png = resvg.render().asPng();
-    return new Response(new Uint8Array(png), {
+    const png = await renderResvgPng(svg, 2160); // 2× for crisp Retina output
+    return new Response(png.buffer as ArrayBuffer, {
       headers: {
         "content-type": "image/png",
         ...(download

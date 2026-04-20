@@ -369,18 +369,26 @@ The system generates a branded promotional graphic showing the number of days re
 ### 9.2 Features
 
 - Auto-computed daily countdown from `ConfEvent.startsAt` — no manual update needed.
-- Renders as an SVG in-browser or converts to PNG via `sharp` on demand.
+- Renders as an SVG in-browser or converts to PNG via `@resvg/resvg-js` on demand.
 - 1080×1080 square canvas (Instagram/WhatsApp-friendly).
 - Design elements:
-  - Deep navy gradient background with Jinan city backdrop at low opacity
-  - Gold ring and decorative dash circle
-  - Centered LSUIC logo
+  - Deep navy gradient background with Jinan city backdrop at low opacity (0.15)
+  - Gold ring and decorative dash circle centered on canvas
+  - **LSUIC logo at 192px diameter** (fully-opaque white circle base, gold border, gold glow filter) — crisp at all export sizes
+  - **"✦ 20TH ANNIVERSARY ✦"** label below logo
+  - Conference name in gold Oswald below anniversary label
+  - **Theme line** "Jinan 2026: Legacy and Influence" in italic below conference name
   - Giant countdown number in Oswald Bold (white, drop-shadow)
   - "TO GO" label in gold
-  - Conference dates and venue below
-  - Maroon EKD Digital badge
-  - Generated-date watermark
+  - Conference dates and venue below the number
+  - Maroon "LSUIC CONFERENCE 2026" badge
+  - **Conference leadership row** — Conference Chair, Co-Chair, Secretary names pulled live from DB (fallback to defaults if DB empty)
+  - **No external branding** — generated-date watermark only (ekddigital.com removed)
 - When `days === 0`, shows "TODAY!" instead of a number.
+
+### 9.2a Leadership Data Source
+
+The flyer queries `ConfMember` with `role IN (CHAIR, VICE_CHAIR, SECRETARY)` and `isActive = true` for the given conference. If no matching active members exist, the leadership row is omitted entirely — no hardcoded fallback names are shown.
 
 ### 9.3 Access
 
@@ -408,6 +416,12 @@ Cache-control is `no-store` so the browser always fetches the latest countdown n
 
 > **Source:** _NEC View and Vision for the conference (official document, April 2026)_  
 > This section governs all planning, system features, and event execution. All platform features and decisions must align with these directives.
+
+### 10.0 Core Values
+
+> **Peace · Togetherness · Love · Support · Willingness · Passion · Service**
+
+These are the declared core values of LSUIC 2026. All conference communications, committee behavior expectations, and platform copy should reflect these values.
 
 ### 10.1 Official Theme
 
@@ -923,28 +937,28 @@ Missing photos → placeholder silhouette. Section always renders.
 
 ### 14.10 Implementation Checklist
 
-| Component | Status |
-|-----------|--------|
-| `ConfLeaderProfile` model | ✅ Done |
-| `ConfBooklet` + `ConfBookletSection` models | ✅ Done |
-| `BookletStatus` enum | ✅ Done |
-| `ConfMember.bookletBio` field | ✅ Done |
-| `ConfEvent` → `booklet` + `leaderProfiles` relations | ✅ Done |
-| DB push (schema synchronized) | ✅ Done |
-| `GET /api/conf/[confId]/booklet/config` (auto-init booklet + sections) | ✅ Done |
-| `PATCH /api/conf/[confId]/booklet/config` (update title/theme/status) | ✅ Done |
-| `GET/POST /api/conf/[confId]/booklet/leaders` | ✅ Done |
-| `PATCH/DELETE /api/conf/[confId]/booklet/leaders/[leaderId]` | ✅ Done |
-| `GET/PATCH /api/conf/[confId]/booklet/sections` (bulk reorder/toggle) | ✅ Done |
-| `PATCH/DELETE /api/conf/[confId]/booklet/sections/[sectionId]` | ✅ Done |
-| `GET /api/conf/[confId]/booklet/data` (full preview payload) | ✅ Done |
-| `BookletManagerShell` — Overview, Leaders, Sections, Config tabs | ✅ Done |
-| Booklet page routing (`/tools/conf/booklet?view=manager`) | ✅ Done |
-| `ConfDelegate.conferencePosition` field | 🔄 To implement |
-| Position dropdown in delegate registration form | 🔄 To implement |
-| Position → booklet section auto-mapping | 🔄 To implement |
-| Print-styled booklet preview page | 🔄 To implement |
-| PDF download via browser print | 🔄 To implement |
+| Component                                                              | Status          |
+| ---------------------------------------------------------------------- | --------------- |
+| `ConfLeaderProfile` model                                              | ✅ Done         |
+| `ConfBooklet` + `ConfBookletSection` models                            | ✅ Done         |
+| `BookletStatus` enum                                                   | ✅ Done         |
+| `ConfMember.bookletBio` field                                          | ✅ Done         |
+| `ConfEvent` → `booklet` + `leaderProfiles` relations                   | ✅ Done         |
+| DB push (schema synchronized)                                          | ✅ Done         |
+| `GET /api/conf/[confId]/booklet/config` (auto-init booklet + sections) | ✅ Done         |
+| `PATCH /api/conf/[confId]/booklet/config` (update title/theme/status)  | ✅ Done         |
+| `GET/POST /api/conf/[confId]/booklet/leaders`                          | ✅ Done         |
+| `PATCH/DELETE /api/conf/[confId]/booklet/leaders/[leaderId]`           | ✅ Done         |
+| `GET/PATCH /api/conf/[confId]/booklet/sections` (bulk reorder/toggle)  | ✅ Done         |
+| `PATCH/DELETE /api/conf/[confId]/booklet/sections/[sectionId]`         | ✅ Done         |
+| `GET /api/conf/[confId]/booklet/data` (full preview payload)           | ✅ Done         |
+| `BookletManagerShell` — Overview, Leaders, Sections, Config tabs       | ✅ Done         |
+| Booklet page routing (`/tools/conf/booklet?view=manager`)              | ✅ Done         |
+| `ConfDelegate.conferencePosition` field                                | 🔄 To implement |
+| Position dropdown in delegate registration form                        | 🔄 To implement |
+| Position → booklet section auto-mapping                                | 🔄 To implement |
+| Print-styled booklet preview page                                      | 🔄 To implement |
+| PDF download via browser print                                         | 🔄 To implement |
 
 ---
 
@@ -957,22 +971,22 @@ All assets in `public/conf/` are served statically and referenced directly in bo
 
 ### 15.1 Current Asset Inventory
 
-| File | Subject | Usage |
-|------|---------|-------|
-| `public/conf/lsuic_logo.png` | LSUIC Official Logo (white background) | Booklet cover, letterhead, flyers |
-| `public/conf/lsuic_logo_backup.png` | LSUIC Logo backup copy | Fallback |
-| `public/conf/president_boakai_Liberia.png` | President of Liberia — H.E. Joseph Nyuma Boakai Sr. | Booklet Page 2 (Leader section) |
-| `public/conf/president_xi_China.png` | President of China — Xi Jinping | Booklet Page 3 (Leader section) |
-| `public/conf/liberia-seal.svg` | Official Seal of the Republic of Liberia | Booklet decorative, formal documents |
+| File                                       | Subject                                             | Usage                                |
+| ------------------------------------------ | --------------------------------------------------- | ------------------------------------ |
+| `public/conf/lsuic_logo.png`               | LSUIC Official Logo (white background)              | Booklet cover, letterhead, flyers    |
+| `public/conf/lsuic_logo_backup.png`        | LSUIC Logo backup copy                              | Fallback                             |
+| `public/conf/president_boakai_Liberia.png` | President of Liberia — H.E. Joseph Nyuma Boakai Sr. | Booklet Page 2 (Leader section)      |
+| `public/conf/president_xi_China.png`       | President of China — Xi Jinping                     | Booklet Page 3 (Leader section)      |
+| `public/conf/liberia-seal.svg`             | Official Seal of the Republic of Liberia            | Booklet decorative, formal documents |
 
 ### 15.2 Usage in Booklet System
 
 The leader photos map directly to `ConfLeaderProfile` records:
 
-| Profile `role` | Photo Asset |
-|----------------|------------|
-| `"President of Liberia"` | `president_boakai_Liberia.png` |
-| `"President of China"` | `president_xi_China.png` |
+| Profile `role`                   | Photo Asset                       |
+| -------------------------------- | --------------------------------- |
+| `"President of Liberia"`         | `president_boakai_Liberia.png`    |
+| `"President of China"`           | `president_xi_China.png`          |
 | `"Liberian Ambassador to China"` | Upload via leader profile manager |
 
 **Implementation note:** When a `ConfLeaderProfile` is created for the Liberian/Chinese presidents, the `photoPath` should be pre-set to `/conf/president_boakai_Liberia.png` and `/conf/president_xi_China.png` respectively. These are static public assets — no upload needed.
@@ -1000,6 +1014,7 @@ No upload required for these — just reference the path in the `ConfLeaderProfi
 ### 16.1 Problem Statement
 
 Currently, delegate registration captures personal/logistical information but has no field for **organizational position**. As a result:
+
 - City Presidents, NEC officers, and committee chairs registering as delegates are indistinguishable from regular delegates
 - Admin must manually cross-reference the member/leadership list to find who goes where in the booklet
 - Leadership assignment to booklet sections is entirely manual
@@ -1007,6 +1022,7 @@ Currently, delegate registration captures personal/logistical information but ha
 ### 16.2 Solution: `conferencePosition` Field
 
 Add a `conferencePosition String?` field to `ConfDelegate`. During registration, a delegate selects their position from a dropdown. The system uses this to:
+
 1. **Flag** them in the delegates list (admin sees role tag immediately)
 2. **Auto-suggest** their placement in the correct booklet section
 3. **Assist admins** in quickly assigning them as `ConfMember` in the right `committeeScope`
@@ -1015,29 +1031,29 @@ Add a `conferencePosition String?` field to `ConfDelegate`. During registration,
 
 These are the canonical position values stored in `conferencePosition`:
 
-| Value | Display Label | Booklet Section Mapping |
-|-------|--------------|------------------------|
-| `""` (empty) | None — Regular Delegate | Delegate Roster only |
-| `"National President"` | National President | NEC Leadership → `ConfMember.role = CHAIR` |
-| `"National Vice President"` | National Vice President | NEC Leadership → `ConfMember.role = VICE_CHAIR` |
-| `"Secretary General"` | Secretary General | NEC Leadership → `ConfMember.role = SECRETARY` |
-| `"Deputy Secretary General"` | Deputy Secretary General | NEC Leadership |
-| `"Financial Secretary"` | Financial Secretary | NEC Leadership → `ConfMember.role = TREASURER` |
-| `"National Treasurer"` | National Treasurer | NEC Leadership |
-| `"Chaplain General"` | Chaplain General | NEC Leadership |
-| `"Senior Coordinator"` | Senior Coordinator | CoC Leadership → `committeeScope = "CoC"` |
-| `"Province Coordinator"` | Province Coordinator | CoC Members → `committeeScope = "CoC Province"` |
-| `"City President"` | City President | City Presidents → `committeeScope = "City"` |
-| `"Senior Adjudicator"` | Senior Adjudicator | Judicial Board → `committeeScope = "Judicial"` |
-| `"Adjudicator"` | Adjudicator | Judicial Board → `committeeScope = "Judicial"` |
-| `"PPC Chair"` | Planning & Program Committee Chair | PPC → `committeeScope = "PPC"` |
-| `"PPC Member"` | Planning & Program Committee Member | PPC |
-| `"AEC Chair"` | Academic Excellence Committee Chair | AEC → `committeeScope = "AEC"` |
-| `"AEC Member"` | Academic Excellence Committee Member | AEC |
-| `"WMF Chair"` | Ways, Means & Finance Committee Chair | WMF → `committeeScope = "WMF"` |
-| `"WMF Member"` | Ways, Means & Finance Committee Member | WMF |
-| `"Guest Speaker"` | Guest Speaker / Special Invitee | Guest Speaker Biography section |
-| `"Other"` | Other (specify in comments) | Admin review |
+| Value                        | Display Label                          | Booklet Section Mapping                         |
+| ---------------------------- | -------------------------------------- | ----------------------------------------------- |
+| `""` (empty)                 | None — Regular Delegate                | Delegate Roster only                            |
+| `"National President"`       | National President                     | NEC Leadership → `ConfMember.role = CHAIR`      |
+| `"National Vice President"`  | National Vice President                | NEC Leadership → `ConfMember.role = VICE_CHAIR` |
+| `"Secretary General"`        | Secretary General                      | NEC Leadership → `ConfMember.role = SECRETARY`  |
+| `"Deputy Secretary General"` | Deputy Secretary General               | NEC Leadership                                  |
+| `"Financial Secretary"`      | Financial Secretary                    | NEC Leadership → `ConfMember.role = TREASURER`  |
+| `"National Treasurer"`       | National Treasurer                     | NEC Leadership                                  |
+| `"Chaplain General"`         | Chaplain General                       | NEC Leadership                                  |
+| `"Senior Coordinator"`       | Senior Coordinator                     | CoC Leadership → `committeeScope = "CoC"`       |
+| `"Province Coordinator"`     | Province Coordinator                   | CoC Members → `committeeScope = "CoC Province"` |
+| `"City President"`           | City President                         | City Presidents → `committeeScope = "City"`     |
+| `"Senior Adjudicator"`       | Senior Adjudicator                     | Judicial Board → `committeeScope = "Judicial"`  |
+| `"Adjudicator"`              | Adjudicator                            | Judicial Board → `committeeScope = "Judicial"`  |
+| `"PPC Chair"`                | Planning & Program Committee Chair     | PPC → `committeeScope = "PPC"`                  |
+| `"PPC Member"`               | Planning & Program Committee Member    | PPC                                             |
+| `"AEC Chair"`                | Academic Excellence Committee Chair    | AEC → `committeeScope = "AEC"`                  |
+| `"AEC Member"`               | Academic Excellence Committee Member   | AEC                                             |
+| `"WMF Chair"`                | Ways, Means & Finance Committee Chair  | WMF → `committeeScope = "WMF"`                  |
+| `"WMF Member"`               | Ways, Means & Finance Committee Member | WMF                                             |
+| `"Guest Speaker"`            | Guest Speaker / Special Invitee        | Guest Speaker Biography section                 |
+| `"Other"`                    | Other (specify in comments)            | Admin review                                    |
 
 ### 16.4 Schema Change
 
@@ -1059,15 +1075,15 @@ Delegates with a non-empty `conferencePosition` should be highlighted in the adm
 
 ### 16.7 Implementation Checklist
 
-| Task | Status |
-|------|--------|
-| `ConfDelegate.conferencePosition String?` schema field | 🔄 To implement |
-| DB push | 🔄 To implement |
-| `DelegateRegistrationPayload` type update | 🔄 To implement |
-| Position dropdown in `DelegateRegistrationForm` | 🔄 To implement |
+| Task                                                        | Status          |
+| ----------------------------------------------------------- | --------------- |
+| `ConfDelegate.conferencePosition String?` schema field      | 🔄 To implement |
+| DB push                                                     | 🔄 To implement |
+| `DelegateRegistrationPayload` type update                   | 🔄 To implement |
+| Position dropdown in `DelegateRegistrationForm`             | 🔄 To implement |
 | API `POST /delegates` — accept + store `conferencePosition` | 🔄 To implement |
 | Delegates admin list — position badge for flagged delegates | 🔄 To implement |
-| "Add to Booklet" action in admin delegates view | 🔄 To implement |
+| "Add to Booklet" action in admin delegates view             | 🔄 To implement |
 
 ---
 
@@ -1078,66 +1094,66 @@ Delegates with a non-empty `conferencePosition` should be highlighted in the adm
 
 ### Phase 1 — Foundation ✅ Complete
 
-| # | Task | Status |
-|---|------|--------|
-| 1.1 | Design booklet structure from 18th conference OCR reference | ✅ Done |
-| 1.2 | Document all requirements in SYSTEM_REQUIREMENTS.md | ✅ Done |
-| 1.3 | Add `ConfBooklet`, `ConfBookletSection`, `ConfLeaderProfile` schema models | ✅ Done |
-| 1.4 | Add `ConfMember.bookletBio`, `ConfEvent.booklet`, `ConfEvent.leaderProfiles` | ✅ Done |
-| 1.5 | Run `prisma db push` — schema in sync | ✅ Done |
-| 1.6 | Build all API routes (config, leaders, sections, data) | ✅ Done |
-| 1.7 | Build `BookletManagerShell` (Overview / Leaders / Sections / Config tabs) | ✅ Done |
+| #   | Task                                                                                            | Status  |
+| --- | ----------------------------------------------------------------------------------------------- | ------- |
+| 1.1 | Design booklet structure from 18th conference OCR reference                                     | ✅ Done |
+| 1.2 | Document all requirements in SYSTEM_REQUIREMENTS.md                                             | ✅ Done |
+| 1.3 | Add `ConfBooklet`, `ConfBookletSection`, `ConfLeaderProfile` schema models                      | ✅ Done |
+| 1.4 | Add `ConfMember.bookletBio`, `ConfEvent.booklet`, `ConfEvent.leaderProfiles`                    | ✅ Done |
+| 1.5 | Run `prisma db push` — schema in sync                                                           | ✅ Done |
+| 1.6 | Build all API routes (config, leaders, sections, data)                                          | ✅ Done |
+| 1.7 | Build `BookletManagerShell` (Overview / Leaders / Sections / Config tabs)                       | ✅ Done |
 | 1.8 | Add static assets: `president_boakai_Liberia.png`, `president_xi_China.png`, `liberia-seal.svg` | ✅ Done |
 
 ### Phase 2 — Registration Position Field 🔄 In Progress
 
-| # | Task | Status |
-|---|------|--------|
+| #   | Task                                                      | Status  |
+| --- | --------------------------------------------------------- | ------- |
 | 2.1 | Add `ConfDelegate.conferencePosition` to schema + DB push | 🔄 Next |
-| 2.2 | Add position dropdown to `DelegateRegistrationForm` | 🔄 Next |
-| 2.3 | Update delegate POST API to accept `conferencePosition` | 🔄 Next |
-| 2.4 | Show position badge in admin delegates list | 🔄 Next |
+| 2.2 | Add position dropdown to `DelegateRegistrationForm`       | 🔄 Next |
+| 2.3 | Update delegate POST API to accept `conferencePosition`   | 🔄 Next |
+| 2.4 | Show position badge in admin delegates list               | 🔄 Next |
 
 ### Phase 3 — Leader Profiles Seeding 📋 Planned
 
-| # | Task | Status |
-|---|------|--------|
+| #   | Task                                                                               | Status     |
+| --- | ---------------------------------------------------------------------------------- | ---------- |
 | 3.1 | Seed Liberian President profile (`photoPath = /conf/president_boakai_Liberia.png`) | 📋 Planned |
-| 3.2 | Seed Chinese President profile (`photoPath = /conf/president_xi_China.png`) | 📋 Planned |
-| 3.3 | Add Ambassador profile + upload photo via leader manager | 📋 Planned |
-| 3.4 | Verify all 3 leaders appear in booklet overview | 📋 Planned |
+| 3.2 | Seed Chinese President profile (`photoPath = /conf/president_xi_China.png`)        | 📋 Planned |
+| 3.3 | Add Ambassador profile + upload photo via leader manager                           | 📋 Planned |
+| 3.4 | Verify all 3 leaders appear in booklet overview                                    | 📋 Planned |
 
 ### Phase 4 — Booklet Preview Page 📋 Planned
 
-| # | Task | Status |
-|---|------|--------|
-| 4.1 | Create `/tools/conf/booklet/preview` print-styled page | 📋 Planned |
+| #   | Task                                                         | Status     |
+| --- | ------------------------------------------------------------ | ---------- |
+| 4.1 | Create `/tools/conf/booklet/preview` print-styled page       | 📋 Planned |
 | 4.2 | Cover page — LSUIC logo + seal, conference name, year, theme | 📋 Planned |
-| 4.3 | Leader pages (full-page layout per leader, photo + title) | 📋 Planned |
-| 4.4 | NEC Leadership grid (photo grid, roles) | 📋 Planned |
-| 4.5 | President's Address (text block with signature) | 📋 Planned |
-| 4.6 | Committee pages (photo + name + role grid per committee) | 📋 Planned |
-| 4.7 | Delegate Roster (confirmed delegates list) | 📋 Planned |
-| 4.8 | Print CSS (`@media print`) — A4 layout, page breaks | 📋 Planned |
-| 4.9 | Browser print-to-PDF button | 📋 Planned |
+| 4.3 | Leader pages (full-page layout per leader, photo + title)    | 📋 Planned |
+| 4.4 | NEC Leadership grid (photo grid, roles)                      | 📋 Planned |
+| 4.5 | President's Address (text block with signature)              | 📋 Planned |
+| 4.6 | Committee pages (photo + name + role grid per committee)     | 📋 Planned |
+| 4.7 | Delegate Roster (confirmed delegates list)                   | 📋 Planned |
+| 4.8 | Print CSS (`@media print`) — A4 layout, page breaks          | 📋 Planned |
+| 4.9 | Browser print-to-PDF button                                  | 📋 Planned |
 
 ### Phase 5 — Admin Quality-of-Life 📋 Planned
 
-| # | Task | Status |
-|---|------|--------|
-| 5.1 | Delegates list — position badge for flagged delegates | 📋 Planned |
+| #   | Task                                                               | Status     |
+| --- | ------------------------------------------------------------------ | ---------- |
+| 5.1 | Delegates list — position badge for flagged delegates              | 📋 Planned |
 | 5.2 | "Add to Booklet" quick-action on delegates with declared positions | 📋 Planned |
-| 5.3 | Booklet readiness checklist on conf dashboard | 📋 Planned |
-| 5.4 | Missing photo warnings per section | 📋 Planned |
+| 5.3 | Booklet readiness checklist on conf dashboard                      | 📋 Planned |
+| 5.4 | Missing photo warnings per section                                 | 📋 Planned |
 
 ### Phase 6 — Final Polish 📋 Planned
 
-| # | Task | Status |
-|---|------|--------|
+| #   | Task                                                             | Status     |
+| --- | ---------------------------------------------------------------- | ---------- |
 | 6.1 | Liberia seal as decorative element on cover + presidential pages | 📋 Planned |
-| 6.2 | LSUIC branding (gold/maroon colors) throughout preview | 📋 Planned |
-| 6.3 | Test full booklet with real data | 📋 Planned |
-| 6.4 | Final print quality review | 📋 Planned |
+| 6.2 | LSUIC branding (gold/maroon colors) throughout preview           | 📋 Planned |
+| 6.3 | Test full booklet with real data                                 | 📋 Planned |
+| 6.4 | Final print quality review                                       | 📋 Planned |
 
 ---
 
@@ -1150,29 +1166,31 @@ All images from `scripts/conference-2026/images/` have been OCR'd and stored in 
 **Path:** `scripts/conference-2026/images/committee-members/`
 
 #### LSUIC Constitution (2020 Amendment)
+
 - **Files:** `LSUIC_Amended_Constitution_of_2020-01.png` through `-46.png` (46 pages)
 - **Summary:** Full constitution of LSUIC. Covers sovereignty, membership, NEC structure (National President, Vice President, Secretary General, Deputy Secretary General, Financial Secretary, Treasurer, Chaplain General), City structure, Committees (CoC, AEC, PPC, WMF, Judicial Board), finances, conference procedure.
 - **Key reference:** Article 25 governs delegate contributions for conferences.
 
 #### Mr. Enoch Kwateh Dongbo — Appointment Letter
+
 - **Files:** `Mr._Enoch_Appointment-1.png` through `-4.png` (4 pages)
 - **Issued by:** Olano Teah Bloh, National President, LSUIC 2025–2026
 - **Key finding:** Enoch is appointed as **General Conference Chairman** — he is NOT a member of the NEC (National Executive Committee). He was commissioned by the National President to plan and execute the 19th LSUIC Annual General Conference.
 - **Conference Committee members appointed** (from appointment letter):
 
-| Name | Position | City | Province |
-|------|----------|------|----------|
-| Enoch Kwateh Dongbo | **General Chairman** (Conference Chair) | Jinan | Shandong |
-| Alfreda Ruth Togbah | General Co-Chair | Suzhou | Jiangsu |
-| Harris M Bowulo | General Secretary | Beijing | Beijing |
-| Abdul Corneh | PRO & Media | Zhengzhou | Henan |
-| Kukor Brooks | Cooking Team Chair | Jinan | Shandong |
-| Jefferson T Banquando | Chair on Sports | Suzhou | Jiangsu |
-| Lisa Y SET | Member, Cooking Team | Qingdao | Shandong |
-| Blessing Hawa Washington | Member, Cooking Team | Nantong | Jiangsu |
-| Robert D Molley | Chair on Logistics | Qufu | Shandong |
-| Priscilla Bamu Dweh | Member, Cooking Team | Suzhou | Jiangsu |
-| Williamena Yah SENET | Member, Cooking Team | Suzhou | Jiangsu |
+| Name                     | Position                                | City      | Province |
+| ------------------------ | --------------------------------------- | --------- | -------- |
+| Enoch Kwateh Dongbo      | **General Chairman** (Conference Chair) | Jinan     | Shandong |
+| Alfreda Ruth Togbah      | General Co-Chair                        | Suzhou    | Jiangsu  |
+| Harris M Bowulo          | General Secretary                       | Beijing   | Beijing  |
+| Abdul Corneh             | PRO & Media                             | Zhengzhou | Henan    |
+| Kukor Brooks             | Cooking Team Chair                      | Jinan     | Shandong |
+| Jefferson T Banquando    | Chair on Sports                         | Suzhou    | Jiangsu  |
+| Lisa Y SET               | Member, Cooking Team                    | Qingdao   | Shandong |
+| Blessing Hawa Washington | Member, Cooking Team                    | Nantong   | Jiangsu  |
+| Robert D Molley          | Chair on Logistics                      | Qufu      | Shandong |
+| Priscilla Bamu Dweh      | Member, Cooking Team                    | Suzhou    | Jiangsu  |
+| Williamena Yah SENET     | Member, Cooking Team                    | Suzhou    | Jiangsu  |
 
 - **Chairman responsibilities per the letter:** Budget Management, Delegates Management, Program Execution, Reporting, City/District coordination
 - **CC on the letter:** Council of Coordinators, NEC, National Secretariat, Judicial Board
@@ -1180,17 +1198,18 @@ All images from `scripts/conference-2026/images/` have been OCR'd and stored in 
 > ⚠️ **Important:** In the system, Enoch's `ConfMember.role = "CHAIR"` means **Conference Chair** (not NEC Chair). The NEC is a separate body stored in `ConfLeaderProfile`. The booklet display has been corrected to label him "Conference Chair" and the committee section renamed from "NEC Leadership" → "Conference Committee".
 
 #### NEC Members (National Executive Committee)
+
 Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on all official documents:
 
-| Name | Role | City | Province |
-|------|------|------|----------|
-| Olano Teah Bloh | National President | Nanjing | Jiangsu |
-| Ruphine M. Harmon | National Vice President | Jinan | Shandong |
-| C. Nathaniel Willie II | National Secretary General | Chengdu | Sichuan |
-| Jenkins G. Wilson | Acting National Deputy Secretary General | Xuzhou | Jiangsu |
-| Noah D. Mason | National Financial Secretary General | Ningbo | Zhejiang |
-| Jenneh Bonah | National Treasurer | Jinan | Shandong |
-| Mitchell Vampelt | National Chaplain General | Suzhou | Jiangsu |
+| Name                   | Role                                     | City    | Province |
+| ---------------------- | ---------------------------------------- | ------- | -------- |
+| Olano Teah Bloh        | National President                       | Nanjing | Jiangsu  |
+| Ruphine M. Harmon      | National Vice President                  | Jinan   | Shandong |
+| C. Nathaniel Willie II | National Secretary General               | Chengdu | Sichuan  |
+| Jenkins G. Wilson      | Acting National Deputy Secretary General | Xuzhou  | Jiangsu  |
+| Noah D. Mason          | National Financial Secretary General     | Ningbo  | Zhejiang |
+| Jenneh Bonah           | National Treasurer                       | Jinan   | Shandong |
+| Mitchell Vampelt       | National Chaplain General                | Suzhou  | Jiangsu  |
 
 ---
 
@@ -1199,6 +1218,7 @@ Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on 
 **Path:** `scripts/conference-2026/images/meetings/`
 
 #### First Conference Committee Meeting Agenda
+
 - **Files:** `conference_agenda-1.png`, `conference_agenda-2.png`
 - **Date:** April 10, 2026
 - **Presiding:** Committee Chairman (Enoch)
@@ -1216,6 +1236,7 @@ Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on 
 **Path:** `scripts/conference-2026/images/venue/`
 
 #### Hotel Deposit Payment Agreement
+
 - **Files:** `Hotel_Agreement-1.png`, `Hotel_Agreement-2.png`
 - **Date signed:** March 13, 2026
 - **Parties:** LSUIC (represented by Noah D. Mason, National Financial Secretary General)
@@ -1223,18 +1244,21 @@ Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on 
 - **Significance:** Hotel booking confirmed before the first committee meeting
 
 #### Hotel Presentation (Venue Slides)
+
 - **Files:** `Hotel_Presentation-01.png` through `-23.png` (23 pages)
 - **Hotel:** RiseSun Hotel (日出酒店)
 - **Content:** Chinese-language presentation showing hotel facilities, room types, pricing (approx. 45–80 RMB per person range noted), banquet hall capacity, catering options
 - **Note:** Primary language is Chinese; OCR text is mostly transliterated Chinese characters
 
 #### HonorPrint / Credentials Letter
+
 - **Files:** `HonorPrint_20260314_145922-1.png`, `-2.png`
 - **Date:** March 14, 2026
 - **From:** Office of the National Financial Secretary General (Noah D. Mason)
 - **Purpose:** Official LSUIC credentials/certification document (likely a letter of introduction or financial authorization for venue negotiations)
 
 #### Recent WeChat Photos (Venue)
+
 - **Files:** `Weixin_Image_20260410145410.jpg`, `145415.jpg`, `145421.jpg`, `145441.jpg`, `145450.png`
 - **Date captured:** April 10, 2026
 - **Content:** Physical venue photos (hotel rooms, conference hall, venue exterior). OCR was not extractable from photos.
@@ -1246,6 +1270,7 @@ Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on 
 **Path:** `scripts/conference-2026/images/others/`
 
 Key documents (all previously referenced in earlier planning):
+
 - **18th Annual General Conference Booklet** (15 pages) — template for the 19th booklet
 - **Nanjing Renaissance 2025 Final Report** (40 pages) — previous conference full report
 - **LSUIC Financial Policy Document** (12 pages) — financial governance reference
@@ -1271,14 +1296,14 @@ Key documents (all previously referenced in earlier planning):
 
 ### 18.6 OCR Coverage Summary
 
-| Category | Image Files | OCR Files | Notes |
-|----------|-------------|-----------|-------|
-| committee-members | 50 | 50 | Constitution (46 pages) + Enoch appointment (4 pages) |
-| meetings | 2 | 2 | First committee meeting agenda |
-| others | 98 | 98 | Historical conference documents |
-| previous-conf | 16 | 16 | Previous conference reference material |
-| venue | 32 | 31 | Hotel agreement, presentation, venue photos; `address.txt` is empty |
-| **Total** | **189** | **188** | All images OCR'd |
+| Category          | Image Files | OCR Files | Notes                                                               |
+| ----------------- | ----------- | --------- | ------------------------------------------------------------------- |
+| committee-members | 50          | 50        | Constitution (46 pages) + Enoch appointment (4 pages)               |
+| meetings          | 2           | 2         | First committee meeting agenda                                      |
+| others            | 98          | 98        | Historical conference documents                                     |
+| previous-conf     | 16          | 16        | Previous conference reference material                              |
+| venue             | 32          | 31        | Hotel agreement, presentation, venue photos; `address.txt` is empty |
+| **Total**         | **189**     | **188**   | All images OCR'd                                                    |
 
 > `address.txt` in venue is an empty placeholder file (not an image, no content).
 
@@ -1286,28 +1311,28 @@ Key documents (all previously referenced in earlier planning):
 
 ## Section 19 — LSUIC Constitutional Structure (Full Reference)
 
-*Source: LSUIC Amended Constitution of 2020, all 46 pages read and archived in `scripts/conference-2026/ocr/committee-members/`*
+_Source: LSUIC Amended Constitution of 2020, all 46 pages read and archived in `scripts/conference-2026/ocr/committee-members/`_
 
 ### 19.1 Organizational Bodies
 
-| Body | Type | Members | Selection |
-|------|------|---------|-----------|
-| **NEC** | Standing executive | 7 elected officers | Elected at General Conference |
-| **CoC** | Council of all Provincial Coordinators | Variable | Elected per province; officers elected at CoC first sitting |
-| **Judicial Board** | Judicial body | 5 appointed | Appointed by National President with CoC consent |
-| **Board of Advisors** | Advisory body | 8 members | Appointed roles (Embassy, MoE, MoFA, LACTS, business community, past president) |
+| Body                  | Type                                   | Members            | Selection                                                                       |
+| --------------------- | -------------------------------------- | ------------------ | ------------------------------------------------------------------------------- |
+| **NEC**               | Standing executive                     | 7 elected officers | Elected at General Conference                                                   |
+| **CoC**               | Council of all Provincial Coordinators | Variable           | Elected per province; officers elected at CoC first sitting                     |
+| **Judicial Board**    | Judicial body                          | 5 appointed        | Appointed by National President with CoC consent                                |
+| **Board of Advisors** | Advisory body                          | 8 members          | Appointed roles (Embassy, MoE, MoFA, LACTS, business community, past president) |
 
 ### 19.2 NEC (National Executive Committee) — 7 Elected Officers
 
-| Office | Current (2025–2026) | City | Phone |
-|--------|---------------------|------|-------|
-| National President | Olano Teah Bloh | Nanjing, Jiangsu | 18351981723 |
-| National Vice President | Ruphine M. Harmon | Jinan, Shandong | 18651615822 |
-| National Secretary General | C. Nathaniel Willie II | Chengdu, Sichuan | 18581578335 |
-| Acting National Deputy Secretary General | Jenkins G. Wilson | Xuzhou, Jiangsu | 18556169627 |
-| National Financial Secretary General | Noah D. Mason | Ningbo, Zhejiang | 19825661023 |
-| National Treasurer | Jenneh Bonah | Jinan, Shandong | 18906417225 |
-| National Chaplain General | Mitchell Vampelt | Suzhou, Jiangsu | 15601544001 |
+| Office                                   | Current (2025–2026)    | City             | Phone       |
+| ---------------------------------------- | ---------------------- | ---------------- | ----------- |
+| National President                       | Olano Teah Bloh        | Nanjing, Jiangsu | 18351981723 |
+| National Vice President                  | Ruphine M. Harmon      | Jinan, Shandong  | 18651615822 |
+| National Secretary General               | C. Nathaniel Willie II | Chengdu, Sichuan | 18581578335 |
+| Acting National Deputy Secretary General | Jenkins G. Wilson      | Xuzhou, Jiangsu  | 18556169627 |
+| National Financial Secretary General     | Noah D. Mason          | Ningbo, Zhejiang | 19825661023 |
+| National Treasurer                       | Jenneh Bonah           | Jinan, Shandong  | 18906417225 |
+| National Chaplain General                | Mitchell Vampelt       | Suzhou, Jiangsu  | 15601544001 |
 
 ### 19.3 CoC (Council of Coordinators)
 
@@ -1319,6 +1344,7 @@ Key documents (all previously referenced in earlier planning):
 ### 19.4 Judicial Board — Article 16
 
 5 members appointed by National President with CoC consent:
+
 1. Senior Adjudicator (2-year term)
 2. Associate Adjudicator (2-year term)
 3. Assistant Adjudicator (2-year term)
@@ -1327,21 +1353,22 @@ Key documents (all previously referenced in earlier planning):
 
 ### 19.5 Standing Committees (Article 23)
 
-| Committee | Type | Mandate |
-|-----------|------|---------|
-| **AEC** — Academic Excellence Committee | Standing | Promote academic achievement |
-| **WMF** — Ways, Means & Finance Committee | Standing | Financial oversight and fundraising |
-| **Audit Committee** | Standing | Audits all LSUIC accounts; reports to NEC + CoC |
-| **PPC** — Planning & Program Committee | Ad hoc | Plans and implements programs; becomes **Conference Committee** when organizing General Conference |
-| **IEC** — Independent Elections Commission | Ad hoc | Conducts elections; set up 90–60 days before conference |
-| **Students Container Committee** | Ad hoc | Coordinates transportation of graduating students' belongings to Liberia |
-| **Scholarly Literature Committee** | Ad hoc | Books, articles, scholarly programs |
+| Committee                                  | Type     | Mandate                                                                                            |
+| ------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------- |
+| **AEC** — Academic Excellence Committee    | Standing | Promote academic achievement                                                                       |
+| **WMF** — Ways, Means & Finance Committee  | Standing | Financial oversight and fundraising                                                                |
+| **Audit Committee**                        | Standing | Audits all LSUIC accounts; reports to NEC + CoC                                                    |
+| **PPC** — Planning & Program Committee     | Ad hoc   | Plans and implements programs; becomes **Conference Committee** when organizing General Conference |
+| **IEC** — Independent Elections Commission | Ad hoc   | Conducts elections; set up 90–60 days before conference                                            |
+| **Students Container Committee**           | Ad hoc   | Coordinates transportation of graduating students' belongings to Liberia                           |
+| **Scholarly Literature Committee**         | Ad hoc   | Books, articles, scholarly programs                                                                |
 
 > **Key:** The Conference Committee (Section 16 of this doc) is constitutionally the PPC — "Also be referred to as Conference Committee especially when organized to execute the General Conference and other similar conferences." (Art. 23j.i)
 
 ### 19.6 Board of Advisors — Article 17
 
 8 members (appointed roles):
+
 1. Representative of Liberian Embassy in China — **Chair of Board**
 2. Representative of Liberian Ministry of Education — **Co-Chair of Board**
 3. Representative of Liberian Ministry of Foreign Affairs
@@ -1377,17 +1404,17 @@ Modeled after the official NEC letterhead format (from OCR of `Mr._Enoch_Appoint
 
 **Layout (A4, 96dpi = 794×1123px):**
 
-| Zone | Content |
-|------|---------|
-| Gold top bar (7px) | `#C8A061` gradient |
-| Left: LSUIC logo | Circular clip, 108×108px, ring-bordered |
-| Center: Organization name | "LIBERIAN STUDENT UNION IN CHINA (LSUIC)" |
-| Center: Conference name | Conference event name (gold color) |
-| Center: Venue + Date | Venue, city, date range |
-| Center: Office label | "Office of the Conference Chairman" |
-| Center: Motto + Contact | "Promoting Education, Unity and Development" · Est. July 2008 |
-| Right sidebar: Committee list | All `ConfMember` records (gold separator), top roles first |
-| Navy bottom bar (5px) | `#182e5f` |
+| Zone                          | Content                                                       |
+| ----------------------------- | ------------------------------------------------------------- |
+| Gold top bar (7px)            | `#C8A061` gradient                                            |
+| Left: LSUIC logo              | Circular clip, 108×108px, ring-bordered                       |
+| Center: Organization name     | "LIBERIAN STUDENT UNION IN CHINA (LSUIC)"                     |
+| Center: Conference name       | Conference event name (gold color)                            |
+| Center: Venue + Date          | Venue, city, date range                                       |
+| Center: Office label          | "Office of the Conference Chairman"                           |
+| Center: Motto + Contact       | "Promoting Education, Unity and Development" · Est. July 2008 |
+| Right sidebar: Committee list | All `ConfMember` records (gold separator), top roles first    |
+| Navy bottom bar (5px)         | `#182e5f`                                                     |
 
 **Right sidebar order:** CHAIR → VICE_CHAIR → SECRETARY → TREASURER → COMMITTEE
 
@@ -1398,6 +1425,7 @@ GET /api/conf/[confId]/letterhead
 ```
 
 Query params:
+
 - `?mode=header` — header-only (~218px tall)
 - `?mode=page` — full A4 page with body area (default)
 - `?format=svg` — return raw SVG
@@ -1430,16 +1458,16 @@ A beautiful in-browser booklet preview renders all enabled sections in a realist
 
 ### 21.2 Preview Sections Rendered
 
-| Section Type | Visual Treatment |
-|---|---|
-| `COVER` | Full dark-navy gradient, gold accents, LSUIC logo, conference name, theme, dates |
-| `LEADER` | 2-column grid of leader cards with photo, name, title, country badge |
-| `PRESIDENT_ADDRESS` / `GUEST_BIO` / `NEC` | Gold quote mark, speaker photo + name, body text with line breaks |
-| `COMMITTEE` / `COC` / `COC_MEMBERS` | 2-column member cards; CHAIR in gold, VICE_CHAIR in navy |
-| `SCHEDULE` | Timeline with numbered dots, date/time/location per meeting |
-| `DELEGATES` | 5-column photo grid with name, city, delegate code |
-| `SPONSORS` / generic | Styled text body |
-| `BACK_COVER` | Gold gradient, logo, conference name, motto |
+| Section Type                              | Visual Treatment                                                                 |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `COVER`                                   | Full dark-navy gradient, gold accents, LSUIC logo, conference name, theme, dates |
+| `LEADER`                                  | 2-column grid of leader cards with photo, name, title, country badge             |
+| `PRESIDENT_ADDRESS` / `GUEST_BIO` / `NEC` | Gold quote mark, speaker photo + name, body text with line breaks                |
+| `COMMITTEE` / `COC` / `COC_MEMBERS`       | 2-column member cards; CHAIR in gold, VICE_CHAIR in navy                         |
+| `SCHEDULE`                                | Timeline with numbered dots, date/time/location per meeting                      |
+| `DELEGATES`                               | 5-column photo grid with name, city, delegate code                               |
+| `SPONSORS` / generic                      | Styled text body                                                                 |
+| `BACK_COVER`                              | Gold gradient, logo, conference name, motto                                      |
 
 ### 21.3 Toolbar Features
 
@@ -1451,19 +1479,20 @@ A beautiful in-browser booklet preview renders all enabled sections in a realist
 
 ### 21.4 Booklet Manager Tabs
 
-| Tab | Purpose |
-|-----|---------|
-| Overview | Stats dashboard + section readiness + committee member list |
-| **Live Preview** | Full visual booklet preview (new) |
-| Leadership Profiles | CRUD for heads of state, ambassadors |
-| Section Manager | Reorder, enable/disable, edit section text |
-| Settings | Title, subtitle, theme, publication status |
+| Tab                 | Purpose                                                     |
+| ------------------- | ----------------------------------------------------------- |
+| Overview            | Stats dashboard + section readiness + committee member list |
+| **Live Preview**    | Full visual booklet preview (new)                           |
+| Leadership Profiles | CRUD for heads of state, ambassadors                        |
+| Section Manager     | Reorder, enable/disable, edit section text                  |
+| Settings            | Title, subtitle, theme, publication status                  |
 
 ### 21.5 Committee Member Display Fix
 
 Previously, committee members (VICE_CHAIR, SECRETARY, COMMITTEE roles) were hidden unless they had registered as delegates. This was incorrect.
 
 **Fix applied:**
+
 - Data API now returns **ALL active `ConfMember`** records, each with a `hasRegistered: boolean` flag
 - Admin views show all members; members without delegate registration get a "Not registered" badge
 - Role labels corrected: VICE_CHAIR → "General Co-Chair", SECRETARY → "General Secretary", CHAIR → "General Chairman"
@@ -1516,4 +1545,3 @@ Applies to:
 - NEC section header and labels must be NEC-specific (not conference chair wording).
 - Conference committee sections must keep committee-specific labels and hierarchy.
 - Role/position text should prefer explicit `conferencePosition`/`title` when available, not global fallback labels.
-

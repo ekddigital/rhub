@@ -2,328 +2,27 @@
 > rhub@0.1.0 dev
 > next dev
 
-⚠ Port 3000 is in use by process 4568, using available port 3001 instead.
 ▲ Next.js 16.2.3 (Turbopack)
-- Local:         http://localhost:3001
-- Network:       http://192.168.1.101:3001
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.7:3000
 - Environments: .env
-✓ Ready in 487ms
+✓ Ready in 452ms
 
-○ Compiling /tools/conf ...
+○ Compiling /tools/conf/flyers ...
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf 200 in 20.8s (next.js: 6.9s, proxy.ts: 108ms, application-code: 13.8s)
- GET /api/auth/me?_t=1776232340087 200 in 920ms (next.js: 420ms, proxy.ts: 14ms, application-code: 486ms)
- GET /api/conf/default 200 in 3.0s (next.js: 380ms, proxy.ts: 15ms, application-code: 2.6s)
- GET /api/auth/me?_t=1776232340088 200 in 3.7s (next.js: 439ms, proxy.ts: 15ms, application-code: 3.2s)
-[browser] Image with src "/conf/assets/jinan_city/morning_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
-Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-✓ Compiled in 293ms
- GET /tools/conf/meetings 200 in 7.9s (next.js: 1331ms, proxy.ts: 8ms, application-code: 6.6s)
- GET /api/conf/default 200 in 1898ms (next.js: 12ms, proxy.ts: 18ms, application-code: 1868ms)
- GET /api/conf/default 200 in 1884ms (next.js: 19ms, proxy.ts: 6ms, application-code: 1859ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.5s (next.js: 712ms, proxy.ts: 6ms, application-code: 2.8s)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings/cmnzmv9pe0000rwk8jrtpslpi 200 in 8.3s (next.js: 728ms, proxy.ts: 27ms, application-code: 7.5s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/meetings 200 in 15.1s (next.js: 29ms, proxy.ts: 42ms, application-code: 15.0s)
- GET /api/auth/me?_t=1776240324160 200 in 1204ms (next.js: 16ms, proxy.ts: 8ms, application-code: 1180ms)
- GET /api/conf/default 200 in 2.0s (next.js: 6ms, proxy.ts: 11ms, application-code: 2.0s)
- GET /api/conf/default 200 in 2.0s (next.js: 17ms, proxy.ts: 20ms, application-code: 1993ms)
- GET /api/auth/me?_t=1776240324160 200 in 2.1s (next.js: 19ms, proxy.ts: 7ms, application-code: 2.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 2.6s (next.js: 11ms, proxy.ts: 1529µs, application-code: 2.6s)
-[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
-[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <RedirectErrorBoundary router={{...}}>
-      <InnerLayoutRouter url="/tools/con..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
-        <SegmentViewNode type="page" pagePath="(hub)/tool...">
-          <SegmentTrieNode>
-          <MeetingsPage>
-            <div className="py-6">
-              <MeetingsShell>
-                <div className="space-y-6">
-                  <div>
-                  <div className="space-y-3">
-                    <Card className={"transiti..."}>
-                      <div data-slot="card" className="bg-card te...">
-                        <CardContent className="cursor-poi..." onClick={function onClick}>
-                          <div data-slot="card-content" className="px-6 curso..." onClick={function onClick}>
-                            <div className="flex items...">
-                              <div className="flex items...">
-                                <div
-+                                 className="flex size-10 items-center justify-center rounded-lg text-sm font-bold bg-..."
--                                 className="flex size-10 items-center justify-center rounded-lg text-sm font-bold bg-..."
-                                >
-                                <div>
-                                  <div className="flex items...">
-                                    <p>
-                                    <Badge className="h-5 gap-1 ...">
-                                      <span
-                                        data-slot="badge"
-+                                       className={"inline-flex items-center justify-center rounded-full border px-2 ..."}
--                                       className={"inline-flex items-center justify-center rounded-full border px-2 ..."}
-                                      >
-                                        <ShieldCheck className="size-3">
-                                          <svg
-                                            ref={null}
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width={24}
-                                            height={24}
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth={2}
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-+                                           className="lucide lucide-shield-check size-3"
--                                           className="lucide lucide-clock mr-1 size-3"
-                                            aria-hidden="true"
-                                          >
-                                            <path
-+                                             d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1..."
--                                             d="M12 6v6l4 2"
-                                            >
-+                                           <path d="m9 12 2 2 4-4">
--                                           <circle cx="12" cy="12" r="10">
-                                        ...
-                                  ...
-                              ...
-                            ...
-                    ...
-        ...
-      ...
-
-    at <unknown> (https://react.dev/link/hydration-mismatch)
-    at path (<anonymous>)
-    at Array.map (<anonymous>)
-    at <unknown> (src/components/tools/conf/meetings-shell.tsx:657:29)
-    at Array.map (<anonymous>)
-    at MeetingsShell (src/components/tools/conf/meetings-shell.tsx:622:19)
-    at MeetingsPage (src/app/(hub)/tools/conf/meetings/page.tsx:9:7)
-  655 |                         {meeting.minutesStatus === "APPROVED" && (
-  656 |                           <Badge className="h-5 gap-1 bg-emerald-500/15 text-xs text-emer...
-> 657 |                             <ShieldCheck className="size-3" />
-      |                             ^
-  658 |                             Final
-  659 |                           </Badge>
-  660 |                         )}
-✓ Compiled in 1470ms
-✓ Compiled in 646ms
-✓ Compiled in 1344ms
- GET /api/conf/default 200 in 3.9s (next.js: 36ms, proxy.ts: 83ms, application-code: 3.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 4.0s (next.js: 34ms, proxy.ts: 10ms, application-code: 4.0s)
-✓ Compiled in 1177ms
- GET /api/conf/default 200 in 1486ms (next.js: 48ms, proxy.ts: 201ms, application-code: 1237ms)
- GET /tools/conf/meetings 200 in 4.2s (next.js: 200ms, proxy.ts: 185ms, application-code: 3.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.2s (next.js: 47ms, proxy.ts: 3ms, application-code: 3.2s)
- GET /tools/conf/meetings 200 in 4.8s (next.js: 1604µs, proxy.ts: 63ms, application-code: 4.7s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline 200 in 5.9s (next.js: 808ms, proxy.ts: 4ms, application-code: 5.1s)
-✓ Compiled in 753ms
-✓ Compiled in 525ms
-✓ Compiled in 1094ms
- GET /tools/conf/meetings 200 in 6.2s (next.js: 90ms, proxy.ts: 121ms, application-code: 5.9s)
- GET /tools/conf/meetings 200 in 6.3s (next.js: 3ms, proxy.ts: 4ms, application-code: 6.3s)
- GET /tools/conf/meetings 200 in 7.0s (next.js: 7ms, proxy.ts: 24ms, application-code: 6.9s)
-✓ Compiled in 178ms
- GET /tools/conf/meetings 200 in 3.3s (next.js: 29ms, proxy.ts: 13ms, application-code: 3.3s)
- GET /tools/conf/meetings 200 in 3.6s (next.js: 7ms, proxy.ts: 4ms, application-code: 3.6s)
- GET /tools/conf/meetings 200 in 4.4s (next.js: 9ms, proxy.ts: 7ms, application-code: 4.4s)
- GET /tools/conf/meetings 200 in 4.4s (next.js: 1923µs, proxy.ts: 5ms, application-code: 4.4s)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000jrwk8i0j6uvpb 200 in 7.4s (next.js: 991ms, proxy.ts: 18ms, application-code: 6.4s)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000jrwk8i0j6uvpb 200 in 9.2s (next.js: 204ms, proxy.ts: 2ms, application-code: 9.0s)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline/cmnzmvazp000lrwk8lq6q7znl 200 in 5.0s (next.js: 15ms, proxy.ts: 6ms, application-code: 4.9s)
-○ Compiling /tools/conf/delegates/register ...
- GET /tools/conf/delegates/register 200 in 3.9s (next.js: 3.6s, proxy.ts: 102ms, application-code: 144ms)
- GET /api/conf/default 200 in 11.4s (next.js: 176ms, proxy.ts: 102ms, application-code: 11.2s)
- GET /api/conf/default 200 in 11.4s (next.js: 204ms, proxy.ts: 105ms, application-code: 11.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 1532ms (next.js: 847ms, proxy.ts: 9ms, application-code: 677ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 4.6s (next.js: 846ms, proxy.ts: 7ms, application-code: 3.8s)
- GET /tools/conf 200 in 19.0s (next.js: 75ms, proxy.ts: 10ms, application-code: 18.9s)
- GET /api/conf/default 200 in 4.7s (next.js: 15ms, proxy.ts: 19ms, application-code: 4.7s)
- GET /api/conf/default 200 in 4.7s (next.js: 16ms, proxy.ts: 16ms, application-code: 4.7s)
- GET /tools/conf/payments 200 in 4.7s (next.js: 1038ms, proxy.ts: 4ms, application-code: 3.7s)
- GET /tools/conf 200 in 1799ms (next.js: 11ms, proxy.ts: 8ms, application-code: 1780ms)
- GET /api/conf/default 200 in 58ms (next.js: 29ms, proxy.ts: 12ms, application-code: 17ms)
- GET /api/conf/default 200 in 79ms (next.js: 50ms, proxy.ts: 22ms, application-code: 7ms)
- GET /tools/conf/budget 200 in 1989ms (next.js: 744ms, proxy.ts: 4ms, application-code: 1240ms)
- GET /tools/conf 200 in 1710ms (next.js: 9ms, proxy.ts: 5ms, application-code: 1696ms)
- GET /api/conf/default 200 in 150ms (next.js: 45ms, proxy.ts: 52ms, application-code: 52ms)
- GET /api/conf/default 200 in 154ms (next.js: 69ms, proxy.ts: 77ms, application-code: 8ms)
- GET /tools/conf/delegates 200 in 2.7s (next.js: 1075ms, proxy.ts: 5ms, application-code: 1651ms)
- GET /api/conf/default 200 in 80ms (next.js: 49ms, proxy.ts: 20ms, application-code: 10ms)
- GET /api/conf/default 200 in 108ms (next.js: 78ms, proxy.ts: 21ms, application-code: 9ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.8s (next.js: 1102ms, proxy.ts: 18ms, application-code: 2.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 4.4s (next.js: 1117ms, proxy.ts: 15ms, application-code: 3.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 4.6s (next.js: 1128ms, proxy.ts: 20ms, application-code: 3.5s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 11.2s (next.js: 1124ms, proxy.ts: 20ms, application-code: 10.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 11.2s (next.js: 1138ms, proxy.ts: 20ms, application-code: 10.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 13.6s (next.js: 1116ms, proxy.ts: 13ms, application-code: 12.5s)
- GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 2.9s (next.js: 1176ms, proxy.ts: 6ms, application-code: 1742ms)
- GET /api/conf/default 200 in 69ms (next.js: 25ms, proxy.ts: 29ms, application-code: 15ms)
- GET /api/conf/default 200 in 63ms (next.js: 40ms, proxy.ts: 19ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 401 in 886ms (next.js: 865ms, proxy.ts: 9ms, application-code: 12ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 401 in 888ms (next.js: 867ms, proxy.ts: 9ms, application-code: 12ms)
- GET /tools/conf/delegates 200 in 1469ms (next.js: 7ms, proxy.ts: 6ms, application-code: 1456ms)
- GET /api/conf/default 200 in 53ms (next.js: 11ms, proxy.ts: 7ms, application-code: 35ms)
- GET /api/conf/default 200 in 69ms (next.js: 53ms, proxy.ts: 8ms, application-code: 7ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 50ms (next.js: 35ms, proxy.ts: 9ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 401 in 74ms (next.js: 40ms, proxy.ts: 12ms, application-code: 21ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 82ms (next.js: 48ms, proxy.ts: 11ms, application-code: 23ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 111ms (next.js: 87ms, proxy.ts: 16ms, application-code: 8ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 115ms (next.js: 96ms, proxy.ts: 15ms, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 116ms (next.js: 97ms, proxy.ts: 14ms, application-code: 6ms)
- GET /tools/conf 200 in 2.2s (next.js: 5ms, proxy.ts: 6ms, application-code: 2.2s)
- GET /api/conf/default 200 in 54ms (next.js: 5ms, proxy.ts: 45ms, application-code: 4ms)
- GET /api/conf/default 200 in 23ms (next.js: 10ms, proxy.ts: 9ms, application-code: 4ms)
- GET /tools/conf/delegates/register 200 in 32ms (next.js: 6ms, proxy.ts: 4ms, application-code: 22ms)
- GET /api/conf/default 200 in 70ms (next.js: 14ms, proxy.ts: 50ms, application-code: 6ms)
- GET /api/conf/default 200 in 73ms (next.js: 19ms, proxy.ts: 48ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 884ms (next.js: 38ms, proxy.ts: 11ms, application-code: 835ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 1052ms (next.js: 35ms, proxy.ts: 8ms, application-code: 1008ms)
- GET /tools/conf/delegates 200 in 5.8s (next.js: 4ms, proxy.ts: 5ms, application-code: 5.8s)
- GET /api/conf/default 200 in 42ms (next.js: 14ms, proxy.ts: 18ms, application-code: 10ms)
- GET /api/conf/default 200 in 48ms (next.js: 23ms, proxy.ts: 19ms, application-code: 7ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.8s (next.js: 30ms, proxy.ts: 15ms, application-code: 2.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.1s (next.js: 34ms, proxy.ts: 19ms, application-code: 3.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 3.7s (next.js: 68ms, proxy.ts: 6ms, application-code: 3.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.8s (next.js: 32ms, proxy.ts: 17ms, application-code: 3.7s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 6.5s (next.js: 65ms, proxy.ts: 11ms, application-code: 6.5s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates/register 200 in 426ms (next.js: 5ms, proxy.ts: 7ms, application-code: 414ms)
- GET /api/conf/default 200 in 21ms (next.js: 6ms, proxy.ts: 12ms, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 10.6s (next.js: 38ms, proxy.ts: 16ms, application-code: 10.5s)
- GET /api/auth/me?_t=1776258454729 200 in 630ms (next.js: 83ms, proxy.ts: 9ms, application-code: 538ms)
- GET /api/auth/me?_t=1776258454730 200 in 776ms (next.js: 94ms, proxy.ts: 7ms, application-code: 675ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/photo-samples?limit=8 200 in 2.2s (next.js: 12ms, proxy.ts: 4ms, application-code: 2.2s)
-⨯ Error [PrismaClientKnownRequestError]: 
-Invalid `prisma.confDelegate.findFirst()` invocation:
-
-
-Can't reach database server at `31.97.41.230:9909`
-
-Please make sure your database server is running at `31.97.41.230:9909`.
-    at async getConferenceAccess (src/lib/conf/access.ts:60:30)
-    at async requireConferencePageAccess (src/lib/conf/access.ts:190:18)
-    at async DelegatesPage (src/app/(hub)/tools/conf/delegates/page.tsx:5:3)
-  58 |   }
-  59 |
-> 60 |   const [member, delegate] = await Promise.all([
-     |                              ^
-  61 |     prisma.confMember.findFirst({
-  62 |       where: {
-  63 |         confId, {
-  code: 'P1001',
-  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
-  clientVersion: '6.19.3',
-  digest: '783069240'
-}
- GET /tools/conf/delegates 200 in 16.8s (next.js: 6ms, proxy.ts: 10ms, application-code: 16.7s)
-[browser] Uncaught PrismaClientKnownRequestError: 
-Invalid `prisma.confDelegate.findFirst()` invocation:
-
-
-Can't reach database server at `31.97.41.230:9909`
-
-Please make sure your database server is running at `31.97.41.230:9909`.
-    at Promise.all (<anonymous>:1:20)
-    at getConferenceAccess (src/lib/conf/bootstrap.ts:255:1)
-    at requireConferencePageAccess (src/lib/conf/access.ts:128:12)
-    at DelegatesPage (src/app/(hub)/tools/conf/delegates/page.tsx:5:3)
-  253 |
-  254 |   return inFlightDefaultConference;
-> 255 | }
-      | ^
-  256 |
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 200 in 2.5s (next.js: 12ms, proxy.ts: 29ms, application-code: 2.5s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 200 in 12.6s (next.js: 4ms, proxy.ts: 5ms, application-code: 12.5s)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           data-new-gr-c-s-check-loaded="14.1283.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
- 
- GET /api/auth/me?_t=1776258765448 200 in 789ms (next.js: 54ms, proxy.ts: 26ms, application-code: 709ms)
- GET /api/auth/me?_t=1776258765448 200 in 2.1s (next.js: 50ms, proxy.ts: 23ms, application-code: 2.0s)
- GET /api/conf/default 200 in 7.5s (next.js: 27ms, proxy.ts: 32ms, application-code: 7.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.0s (next.js: 15ms, proxy.ts: 18ms, application-code: 2.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 8.1s (next.js: 31ms, proxy.ts: 6ms, application-code: 8.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 15.1s (next.js: 24ms, proxy.ts: 17ms, application-code: 15.0s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/meetings 200 in 10.5s (next.js: 8ms, proxy.ts: 6ms, application-code: 10.5s)
- GET /api/conf/default 200 in 106ms (next.js: 48ms, proxy.ts: 48ms, application-code: 10ms)
- GET /api/conf/default 200 in 116ms (next.js: 24ms, proxy.ts: 82ms, application-code: 9ms)
- GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 17.7s (next.js: 41ms, proxy.ts: 24ms, application-code: 17.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings 200 in 3.1s (next.js: 57ms, proxy.ts: 7ms, application-code: 3.0s)
- GET /api/conf/default 200 in 28ms (next.js: 9ms, proxy.ts: 12ms, application-code: 8ms)
- GET /api/auth/me?_t=1776258814139 200 in 718ms (next.js: 16ms, proxy.ts: 13ms, application-code: 689ms)
- GET /api/auth/me?_t=1776258814139 200 in 719ms (next.js: 21ms, proxy.ts: 13ms, application-code: 685ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/timeline 200 in 5.7s (next.js: 35ms, proxy.ts: 56ms, application-code: 5.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 3.3s (next.js: 7ms, proxy.ts: 1541µs, application-code: 3.3s)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/meetings/cmnzmv9pe0001rwk8cfboncid 200 in 20.4s (next.js: 93ms, proxy.ts: 18ms, application-code: 20.3s)
- GET /tools/conf/delegates 200 in 15.1s (next.js: 11ms, proxy.ts: 8ms, application-code: 15.1s)
- GET /api/conf/default 200 in 4.3s (next.js: 14ms, proxy.ts: 43ms, application-code: 4.2s)
- GET /api/conf/default 200 in 4.3s (next.js: 20ms, proxy.ts: 40ms, application-code: 4.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 4.2s (next.js: 39ms, proxy.ts: 12ms, application-code: 4.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 5.4s (next.js: 46ms, proxy.ts: 14ms, application-code: 5.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 5.8s (next.js: 30ms, proxy.ts: 12ms, application-code: 5.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 6.5s (next.js: 25ms, proxy.ts: 14ms, application-code: 6.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 12.1s (next.js: 40ms, proxy.ts: 14ms, application-code: 12.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 14.5s (next.js: 41ms, proxy.ts: 14ms, application-code: 14.4s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/flyers 200 in 4.1s (next.js: 1409ms, proxy.ts: 10ms, application-code: 2.7s)
- GET /api/auth/me?_t=1776259923650 200 in 644ms (next.js: 10ms, proxy.ts: 7ms, application-code: 628ms)
- GET /api/auth/me?_t=1776259923650 200 in 650ms (next.js: 8ms, proxy.ts: 6ms, application-code: 635ms)
+ GET /tools/conf/flyers 200 in 23.3s (next.js: 7.6s, proxy.ts: 124ms, application-code: 15.5s)
+ GET /tools/conf/booklet 200 in 24.4s (next.js: 8.0s, proxy.ts: 125ms, application-code: 16.3s)
+ GET /api/auth/me?_t=1776648449484 200 in 1054ms (next.js: 456ms, proxy.ts: 21ms, application-code: 577ms)
+ GET /api/auth/me?_t=1776648449484 200 in 1622ms (next.js: 446ms, proxy.ts: 26ms, application-code: 1151ms)
+ GET /api/conf/default 200 in 5.1s (next.js: 408ms, proxy.ts: 23ms, application-code: 4.7s)
+ GET /api/conf/default 200 in 4.2s (next.js: 7ms, proxy.ts: 3ms, application-code: 4.2s)
+ GET /api/auth/me?_t=1776648450462 200 in 6.2s (next.js: 27ms, proxy.ts: 4ms, application-code: 6.1s)
+ GET /api/auth/me?_t=1776648450462 200 in 6.8s (next.js: 37ms, proxy.ts: 5ms, application-code: 6.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 3.2s (next.js: 749ms, proxy.ts: 12ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.5s (next.js: 582ms, proxy.ts: 3ms, application-code: 2.9s)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -362,8 +61,700 @@ https://react.dev/link/hydration-mismatch
                   ...
  
 [browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
-[browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
 [browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer 200 in 10.4s (next.js: 1956ms, proxy.ts: 37ms, application-code: 8.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer?format=png&download=1 200 in 7.4s (next.js: 16ms, proxy.ts: 10ms, application-code: 7.4s)
+✓ Compiled in 992ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 1985ms (next.js: 12ms, proxy.ts: 8ms, application-code: 1965ms)
+ GET /api/conf/default 200 in 15ms (next.js: 6ms, proxy.ts: 5ms, application-code: 3ms)
+ GET /api/auth/me?_t=1776648502522 200 in 565ms (next.js: 10ms, proxy.ts: 7ms, application-code: 549ms)
+ GET /api/auth/me?_t=1776648502522 200 in 566ms (next.js: 15ms, proxy.ts: 7ms, application-code: 544ms)
+✓ Compiled in 343ms
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 1460ms (next.js: 13ms, proxy.ts: 5ms, application-code: 1443ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/default 200 in 35ms (next.js: 22ms, proxy.ts: 7ms, application-code: 5ms)
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+ GET /api/auth/me?_t=1776648523254 200 in 649ms (next.js: 20ms, proxy.ts: 16ms, application-code: 613ms)
+ GET /api/auth/me?_t=1776648523254 200 in 940ms (next.js: 21ms, proxy.ts: 20ms, application-code: 900ms)
+ GET /tools/conf/flyers 200 in 1579ms (next.js: 2ms, proxy.ts: 5ms, application-code: 1573ms)
+ GET /api/conf/default 200 in 32ms (next.js: 8ms, proxy.ts: 17ms, application-code: 7ms)
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+ GET /api/auth/me?_t=1776648524672 200 in 607ms (next.js: 17ms, proxy.ts: 17ms, application-code: 573ms)
+ GET /api/auth/me?_t=1776648524672 200 in 661ms (next.js: 14ms, proxy.ts: 18ms, application-code: 629ms)
+✓ Compiled in 402ms
+✓ Compiled in 255ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 19.1s (next.js: 17ms, proxy.ts: 13ms, application-code: 19.1s)
+ GET /api/auth/me?_t=1776649046735 200 in 769ms (next.js: 23ms, proxy.ts: 7ms, application-code: 739ms)
+ GET /api/conf/default 200 in 3.6s (next.js: 37ms, proxy.ts: 7ms, application-code: 3.6s)
+ GET /api/auth/me?_t=1776649046736 200 in 5.6s (next.js: 32ms, proxy.ts: 6ms, application-code: 5.6s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+✓ Compiled in 375ms
+✓ Compiled in 288ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 10.2s (next.js: 12ms, proxy.ts: 7ms, application-code: 10.2s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 10.1s (next.js: 3ms, proxy.ts: 3ms, application-code: 10.1s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 10.0s (next.js: 3ms, proxy.ts: 3ms, application-code: 10.0s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 84ms (next.js: 5ms, proxy.ts: 3ms, application-code: 76ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 135ms (next.js: 1330µs, proxy.ts: 1440µs, application-code: 133ms)
+ GET /tools/conf/flyers 307 in 66ms (next.js: 2ms, proxy.ts: 3ms, application-code: 61ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 65ms (next.js: 1431µs, proxy.ts: 1669µs, application-code: 62ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 68ms (next.js: 1378µs, proxy.ts: 1551µs, application-code: 65ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 59ms (next.js: 1298µs, proxy.ts: 1445µs, application-code: 57ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 62ms (next.js: 1280µs, proxy.ts: 1321µs, application-code: 59ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 116ms (next.js: 1826µs, proxy.ts: 3ms, application-code: 111ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 67ms (next.js: 1209µs, proxy.ts: 1477µs, application-code: 64ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 67ms (next.js: 1321µs, proxy.ts: 1382µs, application-code: 65ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 64ms (next.js: 1153µs, proxy.ts: 1386µs, application-code: 61ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 61ms (next.js: 1197µs, proxy.ts: 1486µs, application-code: 59ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 50ms (next.js: 1128µs, proxy.ts: 1524µs, application-code: 48ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 53ms (next.js: 1200µs, proxy.ts: 1311µs, application-code: 51ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 46ms (next.js: 1313µs, proxy.ts: 1333µs, application-code: 43ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 48ms (next.js: 1305µs, proxy.ts: 1717µs, application-code: 45ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 52ms (next.js: 1315µs, proxy.ts: 1766µs, application-code: 49ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 72ms (next.js: 3ms, proxy.ts: 5ms, application-code: 64ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 124ms (next.js: 1380µs, proxy.ts: 1716µs, application-code: 121ms)
+ GET /tools/conf/flyers 307 in 77ms (next.js: 3ms, proxy.ts: 4ms, application-code: 71ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 45ms (next.js: 1339µs, proxy.ts: 1277µs, application-code: 43ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 44ms (next.js: 1083µs, proxy.ts: 1459µs, application-code: 42ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 47ms (next.js: 1270µs, proxy.ts: 1574µs, application-code: 44ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 44ms (next.js: 1183µs, proxy.ts: 1421µs, application-code: 41ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 49ms (next.js: 1096µs, proxy.ts: 1537µs, application-code: 46ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 49ms (next.js: 1469µs, proxy.ts: 1414µs, application-code: 46ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 307 in 49ms (next.js: 1134µs, proxy.ts: 1398µs, application-code: 47ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 7.0s (next.js: 7ms, proxy.ts: 4ms, application-code: 7.0s)
+ GET /api/auth/me?_t=1776649407983 200 in 559ms (next.js: 11ms, proxy.ts: 6ms, application-code: 541ms)
+ GET /api/conf/default 200 in 3.4s (next.js: 7ms, proxy.ts: 5ms, application-code: 3.4s)
+ GET /api/auth/me?_t=1776649407983 200 in 6.7s (next.js: 14ms, proxy.ts: 6ms, application-code: 6.7s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /tools/conf/delegates 200 in 2.5s (next.js: 761ms, proxy.ts: 8ms, application-code: 1698ms)
+ GET /api/conf/default 200 in 45ms (next.js: 14ms, proxy.ts: 22ms, application-code: 9ms)
+ GET /api/conf/default 200 in 54ms (next.js: 23ms, proxy.ts: 20ms, application-code: 11ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.6s (next.js: 898ms, proxy.ts: 21ms, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 3.8s (next.js: 903ms, proxy.ts: 23ms, application-code: 2.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.8s (next.js: 909ms, proxy.ts: 23ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 4.2s (next.js: 915ms, proxy.ts: 23ms, application-code: 3.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 8.3s (next.js: 914ms, proxy.ts: 22ms, application-code: 7.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 9.9s (next.js: 909ms, proxy.ts: 20ms, application-code: 9.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer?format=png&download=1 200 in 6.6s (next.js: 655ms, proxy.ts: 6ms, application-code: 5.9s)
+ GET /tools/conf/delegates 200 in 12.4s (next.js: 90ms, proxy.ts: 79ms, application-code: 12.2s)
+ GET /tools/conf/flyers 200 in 12.6s (next.js: 31ms, proxy.ts: 6ms, application-code: 12.6s)
+ GET /tools/conf/delegates 200 in 2.2s (next.js: 9ms, proxy.ts: 10ms, application-code: 2.1s)
+ GET /tools/conf/delegates 200 in 14.2s (next.js: 7ms, proxy.ts: 9ms, application-code: 14.2s)
+ GET /tools/conf/flyers 200 in 14.8s (next.js: 207ms, proxy.ts: 37ms, application-code: 14.6s)
+ GET /tools/conf/flyers 200 in 2.4s (next.js: 4ms, proxy.ts: 11ms, application-code: 2.4s)
+ GET /tools/conf/flyers 200 in 15.3s (next.js: 36ms, proxy.ts: 15ms, application-code: 15.2s)
+ GET /tools/conf/delegates 200 in 15.3s (next.js: 12ms, proxy.ts: 13ms, application-code: 15.3s)
+ GET /tools/conf/delegates 200 in 1375ms (next.js: 24ms, proxy.ts: 4ms, application-code: 1348ms)
+ GET /tools/conf/flyers 200 in 1695ms (next.js: 1691µs, proxy.ts: 4ms, application-code: 1689ms)
+ GET /tools/conf/flyers 200 in 1747ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1742ms)
+ GET /tools/conf/flyers 200 in 1296ms (next.js: 1563µs, proxy.ts: 3ms, application-code: 1291ms)
+ GET /tools/conf/delegates 200 in 1588ms (next.js: 1394µs, proxy.ts: 1859µs, application-code: 1584ms)
+ GET /tools/conf/delegates 200 in 1566ms (next.js: 4ms, proxy.ts: 1817µs, application-code: 1561ms)
+ GET /tools/conf/flyers 200 in 1446ms (next.js: 1406µs, proxy.ts: 1801µs, application-code: 1443ms)
+ GET /tools/conf/delegates 200 in 1422ms (next.js: 3ms, proxy.ts: 1503µs, application-code: 1418ms)
+ GET /tools/conf/flyers 200 in 1446ms (next.js: 1286µs, proxy.ts: 1536µs, application-code: 1444ms)
+ GET /tools/conf/delegates 200 in 1337ms (next.js: 1194µs, proxy.ts: 1608µs, application-code: 1334ms)
+ GET /tools/conf/delegates 200 in 1475ms (next.js: 1266µs, proxy.ts: 3ms, application-code: 1470ms)
+ GET /tools/conf/flyers 200 in 1731ms (next.js: 1657µs, proxy.ts: 1771µs, application-code: 1727ms)
+ GET /tools/conf/flyers 200 in 1531ms (next.js: 3ms, proxy.ts: 1755µs, application-code: 1526ms)
+ GET /tools/conf/delegates 200 in 1501ms (next.js: 1452µs, proxy.ts: 1974µs, application-code: 1497ms)
+ GET /tools/conf/flyers 200 in 1520ms (next.js: 6ms, proxy.ts: 4ms, application-code: 1510ms)
+ GET /tools/conf/flyers 200 in 1395ms (next.js: 1667µs, proxy.ts: 2ms, application-code: 1391ms)
+ GET /tools/conf/delegates 200 in 1886ms (next.js: 1699µs, proxy.ts: 1983µs, application-code: 1883ms)
+ GET /tools/conf/delegates 200 in 1432ms (next.js: 20ms, proxy.ts: 2ms, application-code: 1410ms)
+ GET /tools/conf/delegates 200 in 1271ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1266ms)
+ GET /tools/conf/flyers 200 in 1548ms (next.js: 1204µs, proxy.ts: 1518µs, application-code: 1545ms)
+ GET /tools/conf/flyers 200 in 1799ms (next.js: 1531µs, proxy.ts: 1511µs, application-code: 1796ms)
+ GET /tools/conf/delegates 200 in 1550ms (next.js: 1231µs, proxy.ts: 1559µs, application-code: 1547ms)
+ GET /tools/conf/flyers 200 in 1509ms (next.js: 6ms, proxy.ts: 7ms, application-code: 1496ms)
+ GET /tools/conf/delegates 200 in 1413ms (next.js: 32ms, proxy.ts: 4ms, application-code: 1376ms)
+ GET /tools/conf/flyers 200 in 1414ms (next.js: 4ms, proxy.ts: 4ms, application-code: 1406ms)
+ GET /tools/conf/delegates 200 in 2.1s (next.js: 32ms, proxy.ts: 6ms, application-code: 2.1s)
+ GET /tools/conf/flyers 200 in 1508ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1501ms)
+ GET /tools/conf/delegates 200 in 1522ms (next.js: 4ms, proxy.ts: 7ms, application-code: 1512ms)
+ GET /tools/conf/flyers 200 in 1522ms (next.js: 34ms, proxy.ts: 7ms, application-code: 1481ms)
+ GET /tools/conf/delegates 200 in 1502ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1495ms)
+ GET /tools/conf/flyers 200 in 1503ms (next.js: 30ms, proxy.ts: 3ms, application-code: 1470ms)
+ GET /tools/conf/delegates 200 in 1435ms (next.js: 2ms, proxy.ts: 11ms, application-code: 1422ms)
+ GET /tools/conf/flyers 200 in 1366ms (next.js: 1583µs, proxy.ts: 2ms, application-code: 1362ms)
+ GET /tools/conf/delegates 200 in 1257ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1252ms)
+ GET /tools/conf/flyers 200 in 1342ms (next.js: 24ms, proxy.ts: 3ms, application-code: 1315ms)
+ GET /tools/conf/delegates 200 in 1306ms (next.js: 5ms, proxy.ts: 2ms, application-code: 1299ms)
+ GET /tools/conf/flyers 200 in 1343ms (next.js: 1546µs, proxy.ts: 26ms, application-code: 1316ms)
+ GET /tools/conf/delegates 200 in 1334ms (next.js: 4ms, proxy.ts: 2ms, application-code: 1328ms)
+ GET /tools/conf/flyers 200 in 1088ms (next.js: 1722µs, proxy.ts: 2ms, application-code: 1084ms)
+ GET /tools/conf/delegates 200 in 1212ms (next.js: 1850µs, proxy.ts: 4ms, application-code: 1206ms)
+ GET /tools/conf/flyers 200 in 1381ms (next.js: 1468µs, proxy.ts: 2ms, application-code: 1377ms)
+ GET /tools/conf/flyers 200 in 1383ms (next.js: 1958µs, proxy.ts: 2ms, application-code: 1379ms)
+ GET /tools/conf/delegates 200 in 1431ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1426ms)
+ GET /tools/conf/delegates 200 in 1391ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1382ms)
+ GET /tools/conf/flyers 200 in 1332ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1325ms)
+ GET /tools/conf/flyers 200 in 1292ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1286ms)
+ GET /tools/conf/delegates 200 in 1293ms (next.js: 4ms, proxy.ts: 6ms, application-code: 1283ms)
+ GET /tools/conf/flyers 200 in 1304ms (next.js: 1452µs, proxy.ts: 1914µs, application-code: 1301ms)
+ GET /tools/conf/delegates 200 in 1295ms (next.js: 1627µs, proxy.ts: 2ms, application-code: 1291ms)
+ GET /tools/conf/flyers 200 in 1285ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1278ms)
+ GET /tools/conf/delegates 200 in 2.7s (next.js: 5ms, proxy.ts: 3ms, application-code: 2.7s)
+ GET /tools/conf/delegates 200 in 1364ms (next.js: 1737µs, proxy.ts: 2ms, application-code: 1359ms)
+ GET /tools/conf/flyers 200 in 1368ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1364ms)
+ GET /tools/conf/delegates 200 in 1424ms (next.js: 1396µs, proxy.ts: 1625µs, application-code: 1421ms)
+ GET /tools/conf/delegates 200 in 1214ms (next.js: 1914µs, proxy.ts: 3ms, application-code: 1209ms)
+ GET /tools/conf/flyers 200 in 1749ms (next.js: 1789µs, proxy.ts: 3ms, application-code: 1744ms)
+ GET /tools/conf/flyers 200 in 1710ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1702ms)
+ GET /tools/conf/delegates 200 in 1527ms (next.js: 1368µs, proxy.ts: 1935µs, application-code: 1524ms)
+ GET /tools/conf/flyers 200 in 1545ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1540ms)
+ GET /tools/conf/delegates 200 in 1490ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1485ms)
+ GET /tools/conf/flyers 200 in 1468ms (next.js: 1835µs, proxy.ts: 1931µs, application-code: 1464ms)
+ GET /tools/conf/delegates 200 in 1822ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1817ms)
+ GET /tools/conf/flyers 200 in 1520ms (next.js: 1441µs, proxy.ts: 1687µs, application-code: 1517ms)
+ GET /tools/conf/delegates 200 in 1457ms (next.js: 1645µs, proxy.ts: 3ms, application-code: 1453ms)
+ GET /tools/conf/flyers 200 in 1432ms (next.js: 1480µs, proxy.ts: 1792µs, application-code: 1428ms)
+ GET /tools/conf/delegates 200 in 1390ms (next.js: 1592µs, proxy.ts: 1860µs, application-code: 1386ms)
+ GET /tools/conf/flyers 200 in 1409ms (next.js: 1867µs, proxy.ts: 2ms, application-code: 1405ms)
+ GET /tools/conf/delegates 200 in 1342ms (next.js: 1923µs, proxy.ts: 2ms, application-code: 1338ms)
+ GET /tools/conf/delegates 200 in 1271ms (next.js: 1360µs, proxy.ts: 24ms, application-code: 1245ms)
+ GET /tools/conf/flyers 200 in 1411ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1405ms)
+ GET /tools/conf/flyers 200 in 1311ms (next.js: 7ms, proxy.ts: 4ms, application-code: 1300ms)
+ GET /tools/conf/delegates 200 in 1370ms (next.js: 1596µs, proxy.ts: 32ms, application-code: 1336ms)
+ GET /tools/conf/flyers 200 in 1317ms (next.js: 4ms, proxy.ts: 5ms, application-code: 1308ms)
+ GET /tools/conf/delegates 200 in 1300ms (next.js: 44ms, proxy.ts: 24ms, application-code: 1232ms)
+✓ Compiled in 0ms
+ GET /tools/conf/delegates 200 in 1234ms (next.js: 5ms, proxy.ts: 6ms, application-code: 1223ms)
+ GET /tools/conf/delegates 200 in 1175ms (next.js: 8ms, proxy.ts: 5ms, application-code: 1163ms)
+ GET /tools/conf/delegates 200 in 1292ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1283ms)
+ GET /tools/conf/delegates 200 in 1175ms (next.js: 7ms, proxy.ts: 7ms, application-code: 1161ms)
+ GET /tools/conf/flyers 200 in 1961ms (next.js: 781ms, proxy.ts: 7ms, application-code: 1173ms)
+ GET /tools/conf/delegates 200 in 1340ms (next.js: 3ms, proxy.ts: 1601µs, application-code: 1335ms)
+ GET /tools/conf/flyers 200 in 1334ms (next.js: 1763µs, proxy.ts: 1793µs, application-code: 1330ms)
+ GET /tools/conf/delegates 200 in 1252ms (next.js: 1436µs, proxy.ts: 1608µs, application-code: 1249ms)
+ GET /tools/conf/flyers 200 in 1333ms (next.js: 1559µs, proxy.ts: 3ms, application-code: 1328ms)
+ GET /tools/conf/delegates 200 in 1237ms (next.js: 5ms, proxy.ts: 3ms, application-code: 1228ms)
+ GET /tools/conf/flyers 200 in 1291ms (next.js: 6ms, proxy.ts: 4ms, application-code: 1281ms)
+ GET /tools/conf/delegates 200 in 1532ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1527ms)
+ GET /tools/conf/flyers 200 in 1595ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1591ms)
+ GET /tools/conf/flyers 200 in 1373ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1368ms)
+ GET /tools/conf/delegates 200 in 1635ms (next.js: 19ms, proxy.ts: 3ms, application-code: 1613ms)
+ GET /tools/conf/flyers 200 in 1368ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1363ms)
+ GET /tools/conf/delegates 200 in 1726ms (next.js: 1285µs, proxy.ts: 1566µs, application-code: 1724ms)
+ GET /tools/conf/delegates 200 in 1604ms (next.js: 1631µs, proxy.ts: 1561µs, application-code: 1601ms)
+ GET /tools/conf/flyers 200 in 1524ms (next.js: 19ms, proxy.ts: 6ms, application-code: 1499ms)
+ GET /tools/conf/delegates 200 in 1524ms (next.js: 2ms, proxy.ts: 5ms, application-code: 1517ms)
+ GET /tools/conf/flyers 200 in 1771ms (next.js: 9ms, proxy.ts: 1501µs, application-code: 1761ms)
+ GET /tools/conf/delegates 200 in 1519ms (next.js: 1222µs, proxy.ts: 1524µs, application-code: 1516ms)
+ GET /tools/conf/flyers 200 in 1410ms (next.js: 1376µs, proxy.ts: 1658µs, application-code: 1407ms)
+ GET /tools/conf/delegates 200 in 1376ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1368ms)
+ GET /tools/conf/flyers 200 in 1102ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1097ms)
+ GET /tools/conf/delegates 200 in 1359ms (next.js: 20ms, proxy.ts: 2ms, application-code: 1337ms)
+ GET /tools/conf/flyers 200 in 1187ms (next.js: 1547µs, proxy.ts: 1890µs, application-code: 1184ms)
+ GET /tools/conf/delegates 200 in 1364ms (next.js: 5ms, proxy.ts: 1537µs, application-code: 1358ms)
+ GET /tools/conf/flyers 200 in 1610ms (next.js: 1360µs, proxy.ts: 8ms, application-code: 1601ms)
+ GET /tools/conf/delegates 200 in 1413ms (next.js: 2ms, proxy.ts: 1992µs, application-code: 1409ms)
+ GET /tools/conf/flyers 200 in 1663ms (next.js: 1352µs, proxy.ts: 18ms, application-code: 1643ms)
+ GET /tools/conf/delegates 200 in 1489ms (next.js: 1860µs, proxy.ts: 2ms, application-code: 1484ms)
+ GET /tools/conf/delegates 200 in 1433ms (next.js: 1855µs, proxy.ts: 5ms, application-code: 1426ms)
+ GET /tools/conf/flyers 200 in 1164ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1157ms)
+ GET /tools/conf/flyers 200 in 3.0s (next.js: 1274µs, proxy.ts: 1770µs, application-code: 3.0s)
+ GET /tools/conf/flyers 200 in 3.3s (next.js: 6ms, proxy.ts: 2ms, application-code: 3.3s)
+ GET /tools/conf/flyers 200 in 3.4s (next.js: 3ms, proxy.ts: 2ms, application-code: 3.4s)
+ GET /tools/conf/delegates 200 in 3.8s (next.js: 3ms, proxy.ts: 2ms, application-code: 3.7s)
+ GET /tools/conf/delegates 200 in 3.7s (next.js: 26ms, proxy.ts: 3ms, application-code: 3.7s)
+ GET /tools/conf/delegates 200 in 4.3s (next.js: 1592µs, proxy.ts: 1923µs, application-code: 4.3s)
+ GET /tools/conf/flyers 200 in 2.7s (next.js: 5ms, proxy.ts: 3ms, application-code: 2.7s)
+ GET /tools/conf/delegates 200 in 1444ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1438ms)
+ GET /tools/conf/flyers 200 in 1357ms (next.js: 3ms, proxy.ts: 10ms, application-code: 1344ms)
+ GET /tools/conf/flyers 200 in 1337ms (next.js: 1886µs, proxy.ts: 3ms, application-code: 1332ms)
+ GET /tools/conf/delegates 200 in 1261ms (next.js: 1703µs, proxy.ts: 4ms, application-code: 1256ms)
+ GET /tools/conf/flyers 200 in 1329ms (next.js: 13ms, proxy.ts: 3ms, application-code: 1314ms)
+ GET /tools/conf/delegates 200 in 1816ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1809ms)
+ GET /tools/conf/delegates 200 in 1194ms (next.js: 1629µs, proxy.ts: 2ms, application-code: 1191ms)
+ GET /tools/conf/flyers 200 in 1431ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1424ms)
+ GET /tools/conf/delegates 200 in 1338ms (next.js: 3ms, proxy.ts: 7ms, application-code: 1327ms)
+ GET /tools/conf/flyers 200 in 1639ms (next.js: 27ms, proxy.ts: 7ms, application-code: 1605ms)
+ GET /tools/conf/delegates 200 in 1385ms (next.js: 1267µs, proxy.ts: 3ms, application-code: 1380ms)
+ GET /tools/conf/flyers 200 in 1525ms (next.js: 1715µs, proxy.ts: 1801µs, application-code: 1521ms)
+ GET /tools/conf/delegates 200 in 2.0s (next.js: 126ms, proxy.ts: 16ms, application-code: 1877ms)
+ GET /tools/conf/flyers 200 in 1626ms (next.js: 1147µs, proxy.ts: 1398µs, application-code: 1624ms)
+ GET /tools/conf/delegates 200 in 1468ms (next.js: 1406µs, proxy.ts: 1763µs, application-code: 1465ms)
+ GET /tools/conf/flyers 200 in 1389ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1383ms)
+ GET /tools/conf/delegates 200 in 1430ms (next.js: 22ms, proxy.ts: 3ms, application-code: 1405ms)
+ GET /tools/conf/flyers 200 in 1483ms (next.js: 1804µs, proxy.ts: 4ms, application-code: 1477ms)
+ GET /tools/conf/delegates 200 in 1216ms (next.js: 1343µs, proxy.ts: 1745µs, application-code: 1213ms)
+ GET /tools/conf/flyers 200 in 1369ms (next.js: 1325µs, proxy.ts: 1573µs, application-code: 1366ms)
+ GET /tools/conf/delegates 200 in 1435ms (next.js: 1698µs, proxy.ts: 1596µs, application-code: 1431ms)
+ GET /tools/conf/flyers 200 in 1362ms (next.js: 1817µs, proxy.ts: 3ms, application-code: 1357ms)
+ GET /tools/conf/delegates 200 in 1417ms (next.js: 1596µs, proxy.ts: 1852µs, application-code: 1413ms)
+ GET /tools/conf/flyers 200 in 1376ms (next.js: 1863µs, proxy.ts: 3ms, application-code: 1371ms)
+ GET /tools/conf/delegates 200 in 1368ms (next.js: 1852µs, proxy.ts: 18ms, application-code: 1348ms)
+ GET /tools/conf/flyers 200 in 1332ms (next.js: 9ms, proxy.ts: 4ms, application-code: 1320ms)
+ GET /tools/conf/delegates 200 in 1613ms (next.js: 1302µs, proxy.ts: 1824µs, application-code: 1609ms)
+ GET /tools/conf/delegates 200 in 1353ms (next.js: 1300µs, proxy.ts: 1538µs, application-code: 1350ms)
+ GET /tools/conf/flyers 200 in 1461ms (next.js: 1451µs, proxy.ts: 1663µs, application-code: 1458ms)
+ GET /tools/conf/flyers 200 in 1393ms (next.js: 1519µs, proxy.ts: 2ms, application-code: 1389ms)
+ GET /tools/conf/delegates 200 in 1381ms (next.js: 2ms, proxy.ts: 5ms, application-code: 1373ms)
+ GET /tools/conf/flyers 200 in 1506ms (next.js: 1500µs, proxy.ts: 1840µs, application-code: 1502ms)
+ GET /tools/conf/delegates 200 in 1120ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1112ms)
+ GET /tools/conf/flyers 200 in 1373ms (next.js: 23ms, proxy.ts: 5ms, application-code: 1345ms)
+ GET /tools/conf/delegates 200 in 1330ms (next.js: 1520µs, proxy.ts: 2ms, application-code: 1327ms)
+ GET /tools/conf/flyers 200 in 1424ms (next.js: 1728µs, proxy.ts: 1971µs, application-code: 1421ms)
+ GET /tools/conf/flyers 200 in 1387ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1381ms)
+ GET /tools/conf/delegates 200 in 1389ms (next.js: 21ms, proxy.ts: 3ms, application-code: 1365ms)
+ GET /tools/conf/delegates 200 in 1942ms (next.js: 3ms, proxy.ts: 6ms, application-code: 1933ms)
+ GET /tools/conf/flyers 200 in 1396ms (next.js: 1819µs, proxy.ts: 2ms, application-code: 1392ms)
+ GET /tools/conf/delegates 200 in 1399ms (next.js: 1192µs, proxy.ts: 1427µs, application-code: 1397ms)
+ GET /tools/conf/flyers 200 in 1344ms (next.js: 1954µs, proxy.ts: 4ms, application-code: 1338ms)
+ GET /tools/conf/delegates 200 in 1078ms (next.js: 5ms, proxy.ts: 2ms, application-code: 1071ms)
+ GET /tools/conf/flyers 200 in 1331ms (next.js: 1234µs, proxy.ts: 24ms, application-code: 1306ms)
+ GET /tools/conf/delegates 200 in 1186ms (next.js: 1310µs, proxy.ts: 1689µs, application-code: 1183ms)
+ GET /tools/conf/delegates 200 in 1308ms (next.js: 2ms, proxy.ts: 1577µs, application-code: 1304ms)
+ GET /tools/conf/flyers 200 in 1438ms (next.js: 3ms, proxy.ts: 1642µs, application-code: 1433ms)
+ GET /tools/conf/flyers 200 in 1338ms (next.js: 1828µs, proxy.ts: 3ms, application-code: 1333ms)
+ GET /tools/conf/delegates 200 in 1332ms (next.js: 1311µs, proxy.ts: 1505µs, application-code: 1329ms)
+ GET /tools/conf/flyers 200 in 1330ms (next.js: 1191µs, proxy.ts: 15ms, application-code: 1314ms)
+ GET /tools/conf/delegates 200 in 1280ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1275ms)
+ GET /tools/conf/delegates 200 in 1225ms (next.js: 3ms, proxy.ts: 1759µs, application-code: 1220ms)
+ GET /tools/conf/flyers 200 in 1351ms (next.js: 1452µs, proxy.ts: 1716µs, application-code: 1348ms)
+ GET /tools/conf/flyers 200 in 1326ms (next.js: 1858µs, proxy.ts: 3ms, application-code: 1321ms)
+ GET /tools/conf/flyers 200 in 1323ms (next.js: 4ms, proxy.ts: 5ms, application-code: 1315ms)
+ GET /tools/conf/delegates 200 in 1777ms (next.js: 1270µs, proxy.ts: 1540µs, application-code: 1774ms)
+ GET /tools/conf/flyers 200 in 1322ms (next.js: 1586µs, proxy.ts: 1770µs, application-code: 1319ms)
+ GET /tools/conf/delegates 200 in 1607ms (next.js: 20ms, proxy.ts: 5ms, application-code: 1582ms)
+ GET /tools/conf/delegates 200 in 1538ms (next.js: 1132µs, proxy.ts: 1698µs, application-code: 1535ms)
+ GET /tools/conf/flyers 200 in 1788ms (next.js: 8ms, proxy.ts: 3ms, application-code: 1777ms)
+ GET /tools/conf/delegates 200 in 1245ms (next.js: 1462µs, proxy.ts: 1766µs, application-code: 1241ms)
+ GET /tools/conf/flyers 200 in 1276ms (next.js: 1359µs, proxy.ts: 1921µs, application-code: 1273ms)
+ GET /tools/conf/flyers 200 in 1319ms (next.js: 2ms, proxy.ts: 1423µs, application-code: 1315ms)
+ GET /tools/conf/delegates 200 in 1597ms (next.js: 2ms, proxy.ts: 1933µs, application-code: 1593ms)
+ GET /tools/conf/delegates 200 in 1604ms (next.js: 1421µs, proxy.ts: 1833µs, application-code: 1600ms)
+ GET /tools/conf/delegates 200 in 1342ms (next.js: 1425µs, proxy.ts: 1984µs, application-code: 1338ms)
+ GET /tools/conf/flyers 200 in 1688ms (next.js: 1607µs, proxy.ts: 1964µs, application-code: 1684ms)
+ GET /tools/conf/flyers 200 in 1374ms (next.js: 1253µs, proxy.ts: 1526µs, application-code: 1372ms)
+ GET /tools/conf/delegates 200 in 1380ms (next.js: 1471µs, proxy.ts: 11ms, application-code: 1367ms)
+ GET /tools/conf/flyers 200 in 1336ms (next.js: 1639µs, proxy.ts: 2ms, application-code: 1333ms)
+ GET /tools/conf/delegates 200 in 1452ms (next.js: 1477µs, proxy.ts: 1656µs, application-code: 1449ms)
+ GET /tools/conf/flyers 200 in 1272ms (next.js: 1466µs, proxy.ts: 1967µs, application-code: 1269ms)
+ GET /tools/conf/delegates 200 in 1443ms (next.js: 1190µs, proxy.ts: 1434µs, application-code: 1441ms)
+ GET /tools/conf/flyers 200 in 1288ms (next.js: 1312µs, proxy.ts: 1631µs, application-code: 1285ms)
+ GET /tools/conf/delegates 200 in 1396ms (next.js: 1408µs, proxy.ts: 1728µs, application-code: 1393ms)
+ GET /tools/conf/flyers 200 in 1279ms (next.js: 1453µs, proxy.ts: 1663µs, application-code: 1276ms)
+ GET /tools/conf/delegates 200 in 1410ms (next.js: 1254µs, proxy.ts: 1501µs, application-code: 1408ms)
+ GET /tools/conf/flyers 200 in 1364ms (next.js: 12ms, proxy.ts: 2ms, application-code: 1349ms)
+ GET /tools/conf/delegates 200 in 1358ms (next.js: 2ms, proxy.ts: 1482µs, application-code: 1354ms)
+ GET /tools/conf/flyers 200 in 1360ms (next.js: 1099µs, proxy.ts: 1494µs, application-code: 1357ms)
+ GET /tools/conf/delegates 200 in 1362ms (next.js: 1238µs, proxy.ts: 1391µs, application-code: 1359ms)
+ GET /tools/conf/flyers 200 in 1424ms (next.js: 1137µs, proxy.ts: 1859µs, application-code: 1421ms)
+ GET /tools/conf/delegates 200 in 1196ms (next.js: 1220µs, proxy.ts: 1399µs, application-code: 1193ms)
+ GET /tools/conf/flyers 200 in 1461ms (next.js: 1244µs, proxy.ts: 1897µs, application-code: 1458ms)
+ GET /tools/conf/flyers 200 in 1308ms (next.js: 1355µs, proxy.ts: 1528µs, application-code: 1305ms)
+ GET /tools/conf/delegates 200 in 1470ms (next.js: 1785µs, proxy.ts: 2ms, application-code: 1466ms)
+ GET /tools/conf/delegates 200 in 1321ms (next.js: 3ms, proxy.ts: 1641µs, application-code: 1316ms)
+ GET /tools/conf/flyers 200 in 1346ms (next.js: 1414µs, proxy.ts: 1802µs, application-code: 1343ms)
+ GET /tools/conf/delegates 200 in 1342ms (next.js: 1456µs, proxy.ts: 2ms, application-code: 1339ms)
+ GET /tools/conf/flyers 200 in 1310ms (next.js: 1250µs, proxy.ts: 1509µs, application-code: 1307ms)
+ GET /tools/conf/delegates 200 in 1314ms (next.js: 1461µs, proxy.ts: 2ms, application-code: 1310ms)
+ GET /tools/conf/flyers 200 in 1386ms (next.js: 3ms, proxy.ts: 1579µs, application-code: 1381ms)
+ GET /tools/conf/delegates 200 in 1318ms (next.js: 1210µs, proxy.ts: 1470µs, application-code: 1315ms)
+ GET /tools/conf/flyers 200 in 1604ms (next.js: 1392µs, proxy.ts: 1461µs, application-code: 1601ms)
+ GET /tools/conf/delegates 200 in 1344ms (next.js: 3ms, proxy.ts: 1938µs, application-code: 1339ms)
+ GET /tools/conf/delegates 200 in 1007ms (next.js: 1284µs, proxy.ts: 2ms, application-code: 1003ms)
+ GET /tools/conf/flyers 200 in 1402ms (next.js: 1640µs, proxy.ts: 2ms, application-code: 1398ms)
+ GET /tools/conf/flyers 200 in 1380ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1372ms)
+ GET /tools/conf/delegates 200 in 1591ms (next.js: 5ms, proxy.ts: 10ms, application-code: 1575ms)
+ GET /tools/conf/flyers 200 in 1323ms (next.js: 5ms, proxy.ts: 9ms, application-code: 1309ms)
+ GET /tools/conf/delegates 200 in 1571ms (next.js: 211ms, proxy.ts: 4ms, application-code: 1357ms)
+ GET /tools/conf/flyers 200 in 1507ms (next.js: 7ms, proxy.ts: 3ms, application-code: 1498ms)
+ GET /tools/conf/delegates 200 in 1478ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1470ms)
+ GET /tools/conf/flyers 200 in 1234ms (next.js: 1813µs, proxy.ts: 2ms, application-code: 1230ms)
+ GET /tools/conf/delegates 200 in 1285ms (next.js: 1478µs, proxy.ts: 1726µs, application-code: 1282ms)
+ GET /tools/conf/flyers 200 in 1360ms (next.js: 1649µs, proxy.ts: 1613µs, application-code: 1357ms)
+ GET /tools/conf/delegates 200 in 1475ms (next.js: 15ms, proxy.ts: 18ms, application-code: 1443ms)
+ GET /tools/conf/flyers 200 in 1406ms (next.js: 6ms, proxy.ts: 11ms, application-code: 1390ms)
+ GET /tools/conf/delegates 200 in 1406ms (next.js: 1561µs, proxy.ts: 1695µs, application-code: 1403ms)
+ GET /tools/conf/flyers 200 in 1431ms (next.js: 3ms, proxy.ts: 1656µs, application-code: 1427ms)
+ GET /tools/conf/delegates 200 in 1328ms (next.js: 1589µs, proxy.ts: 1939µs, application-code: 1324ms)
+ GET /tools/conf/flyers 200 in 1759ms (next.js: 1304µs, proxy.ts: 1666µs, application-code: 1756ms)
+ GET /tools/conf/delegates 200 in 1409ms (next.js: 1382µs, proxy.ts: 1755µs, application-code: 1406ms)
+ GET /tools/conf/flyers 200 in 1515ms (next.js: 1762µs, proxy.ts: 2ms, application-code: 1511ms)
+ GET /tools/conf/delegates 200 in 1285ms (next.js: 1326µs, proxy.ts: 1723µs, application-code: 1282ms)
+ GET /tools/conf/flyers 200 in 1450ms (next.js: 3ms, proxy.ts: 1642µs, application-code: 1445ms)
+ GET /tools/conf/delegates 200 in 1758ms (next.js: 1553µs, proxy.ts: 1674µs, application-code: 1755ms)
+ GET /tools/conf/flyers 200 in 1305ms (next.js: 15ms, proxy.ts: 13ms, application-code: 1277ms)
+ GET /tools/conf/delegates 200 in 1366ms (next.js: 61ms, proxy.ts: 12ms, application-code: 1293ms)
+ GET /tools/conf/flyers 200 in 1324ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1319ms)
+ GET /tools/conf/delegates 200 in 1508ms (next.js: 25ms, proxy.ts: 2ms, application-code: 1481ms)
+ GET /tools/conf/flyers 200 in 1537ms (next.js: 7ms, proxy.ts: 3ms, application-code: 1527ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/delegates 200 in 1273ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1266ms)
+ GET /tools/conf/flyers 200 in 1239ms (next.js: 1912µs, proxy.ts: 2ms, application-code: 1235ms)
+ GET /tools/conf/delegates 200 in 1480ms (next.js: 1344µs, proxy.ts: 1521µs, application-code: 1478ms)
+ GET /tools/conf/flyers 200 in 1594ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1589ms)
+ GET /tools/conf/delegates 200 in 1670ms (next.js: 1705µs, proxy.ts: 1882µs, application-code: 1667ms)
+ GET /tools/conf/delegates 200 in 1052ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1048ms)
+ GET /tools/conf/delegates 200 in 455ms (next.js: 7ms, proxy.ts: 5ms, application-code: 443ms)
+ GET /tools/conf/flyers 200 in 1424ms (next.js: 1949µs, proxy.ts: 1662µs, application-code: 1421ms)
+ GET /tools/conf/delegates 200 in 1685ms (next.js: 10ms, proxy.ts: 6ms, application-code: 1669ms)
+ GET /tools/conf/flyers 200 in 2.1s (next.js: 1778µs, proxy.ts: 1848µs, application-code: 2.1s)
+ GET /tools/conf/flyers 200 in 1786ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1781ms)
+ GET /tools/conf/flyers 200 in 1582ms (next.js: 33ms, proxy.ts: 28ms, application-code: 1521ms)
+ GET /tools/conf/flyers 200 in 1759ms (next.js: 5ms, proxy.ts: 5ms, application-code: 1749ms)
+ GET /tools/conf/flyers 200 in 1700ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1692ms)
+ GET /tools/conf/flyers 200 in 1395ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1390ms)
+ GET /tools/conf/flyers 200 in 2.5s (next.js: 1454µs, proxy.ts: 1527µs, application-code: 2.5s)
+ GET /tools/conf/flyers 200 in 1356ms (next.js: 4ms, proxy.ts: 5ms, application-code: 1348ms)
+ GET /tools/conf/flyers 200 in 1300ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1294ms)
+ GET /tools/conf/flyers 200 in 1187ms (next.js: 3ms, proxy.ts: 1611µs, application-code: 1183ms)
+ GET /tools/conf/flyers 200 in 1302ms (next.js: 1197µs, proxy.ts: 1398µs, application-code: 1299ms)
+ GET /tools/conf/flyers 200 in 1231ms (next.js: 4ms, proxy.ts: 6ms, application-code: 1221ms)
+ GET /tools/conf/flyers 200 in 1330ms (next.js: 6ms, proxy.ts: 3ms, application-code: 1321ms)
+ GET /tools/conf/flyers 200 in 1292ms (next.js: 1515µs, proxy.ts: 1760µs, application-code: 1288ms)
+ GET /tools/conf/flyers 200 in 1427ms (next.js: 3ms, proxy.ts: 1545µs, application-code: 1423ms)
+ GET /tools/conf/flyers 200 in 1388ms (next.js: 1373µs, proxy.ts: 1599µs, application-code: 1385ms)
+ GET /tools/conf/flyers 200 in 1476ms (next.js: 1420µs, proxy.ts: 1781µs, application-code: 1473ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 1295ms (next.js: 1766µs, proxy.ts: 3ms, application-code: 1290ms)
+ GET /tools/conf/flyers 200 in 1389ms (next.js: 1470µs, proxy.ts: 1860µs, application-code: 1385ms)
+ GET /tools/conf/flyers 200 in 1259ms (next.js: 4ms, proxy.ts: 1875µs, application-code: 1253ms)
+ GET /tools/conf/flyers 200 in 1403ms (next.js: 1297µs, proxy.ts: 1859µs, application-code: 1400ms)
+ GET /tools/conf/flyers 200 in 1363ms (next.js: 10ms, proxy.ts: 92ms, application-code: 1260ms)
+ GET /tools/conf/flyers 200 in 883ms (next.js: 1192µs, proxy.ts: 1573µs, application-code: 880ms)
+ GET /tools/conf/flyers 200 in 652ms (next.js: 1606µs, proxy.ts: 2ms, application-code: 648ms)
+ GET /tools/conf/flyers 200 in 612ms (next.js: 1632µs, proxy.ts: 1661µs, application-code: 608ms)
+ GET /tools/conf/flyers 200 in 285ms (next.js: 1684µs, proxy.ts: 2ms, application-code: 281ms)
+ GET /tools/conf/flyers 200 in 312ms (next.js: 3ms, proxy.ts: 3ms, application-code: 306ms)
+ GET /tools/conf/flyers 200 in 1509ms (next.js: 1211µs, proxy.ts: 1569µs, application-code: 1506ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           data-new-gr-c-s-check-loaded="14.1284.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1776650215421 200 in 1110ms (next.js: 11ms, proxy.ts: 3ms, application-code: 1095ms)
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/hotel/conference_hall.jpg" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /api/auth/me?_t=1776650215686 200 in 929ms (next.js: 16ms, proxy.ts: 19ms, application-code: 895ms)
+ GET /api/auth/me?_t=1776650215421 200 in 1658ms (next.js: 15ms, proxy.ts: 4ms, application-code: 1640ms)
+ GET /api/auth/me?_t=1776650215686 200 in 1712ms (next.js: 47ms, proxy.ts: 22ms, application-code: 1643ms)
+ GET /api/conf/default 200 in 4.9s (next.js: 7ms, proxy.ts: 4ms, application-code: 4.9s)
+ GET /api/conf/default 200 in 4.6s (next.js: 27ms, proxy.ts: 22ms, application-code: 4.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 1358ms (next.js: 34ms, proxy.ts: 8ms, application-code: 1315ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1406ms (next.js: 24ms, proxy.ts: 7ms, application-code: 1375ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 1645ms (next.js: 30ms, proxy.ts: 8ms, application-code: 1607ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+-                           data-new-gr-c-s-check-loaded="14.1284.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/flyer?format=png&download=1 200 in 6.0s (next.js: 21ms, proxy.ts: 12ms, application-code: 5.9s)
+ POST /api/conf/cmnwxmdn80000rw8uwrttdzf7/signup-flyer 200 in 1472ms (next.js: 718ms, proxy.ts: 26ms, application-code: 728ms)
+✓ Compiled in 501ms
+✓ Compiled in 402ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 15.4s (next.js: 17ms, proxy.ts: 10ms, application-code: 15.4s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] Image with src "/conf/lsuic_logo.png" has "fill" but is missing "sizes" prop. Please add it to improve page performance. Read more: https://nextjs.org/docs/api-reference/next/image#sizes
+[browser] Image with src "/conf/assets/jinan_city/day_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
+ GET /api/auth/me?_t=1776650557554 200 in 645ms (next.js: 10ms, proxy.ts: 4ms, application-code: 631ms)
+ GET /api/conf/default 200 in 4.8s (next.js: 4ms, proxy.ts: 4ms, application-code: 4.8s)
+ GET /api/auth/me?_t=1776650557554 200 in 5.7s (next.js: 13ms, proxy.ts: 4ms, application-code: 5.7s)
+✓ Compiled in 367ms
+✓ Compiled in 400ms
+ GET /tools/conf/budget 200 in 18.2s (next.js: 962ms, proxy.ts: 16ms, application-code: 17.2s)
+✓ Compiled in 122ms
+ GET /tools/conf/payments 200 in 3.7s (next.js: 448ms, proxy.ts: 7ms, application-code: 3.2s)
+ GET /api/conf/default 200 in 2.3s (next.js: 16ms, proxy.ts: 29ms, application-code: 2.2s)
+ GET /api/conf/default 200 in 2.3s (next.js: 31ms, proxy.ts: 27ms, application-code: 2.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/payments? 200 in 7.6s (next.js: 925ms, proxy.ts: 20ms, application-code: 6.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/payments? 200 in 9.1s (next.js: 921ms, proxy.ts: 6ms, application-code: 8.2s)

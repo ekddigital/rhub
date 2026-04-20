@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { CONF_2026 } from "@/lib/conf/config";
 
 type FlyerMode = "promo" | "signup" | "countdown";
 
@@ -66,9 +67,11 @@ const UNION_NAME = "Liberian Student Union in China";
 const DEFAULT_STATE: FlyerStudioState = {
   mode: "promo",
   promo: {
-    conferenceTag: "LSUIC 2026 Conference | Jinan",
-    title: "What To Expect",
-    subtitle: "20th Anniversary Experience | Target: 170 Delegates",
+    conferenceTag: `${CONF_2026.shortLabel} Conference | ${CONF_2026.city}`,
+
+    title: CONF_2026.theme,
+    subtitle: CONF_2026.subTheme,
+
     highlights: [
       "Pool Party and Recreation",
       "Achievers Awards Night",
@@ -81,9 +84,10 @@ const DEFAULT_STATE: FlyerStudioState = {
     motto: "Excellence Through Hard Work",
   },
   signup: {
-    conferenceTag: "LSUIC 2026 Delegate Registration",
+    conferenceTag: `${CONF_2026.shortLabel} Delegate Registration`,
     title: "Signup Is Open",
-    subtitle: "Last year fee baseline: RMB 275 | Current target: 170 delegates",
+    subtitle: `${CONF_2026.theme} · Fee: RMB ${CONF_2026.delegateFee}`,
+
     steps: [
       "Complete delegate signup form",
       "Pay conference fee using Financial Secretary channel",
@@ -93,7 +97,8 @@ const DEFAULT_STATE: FlyerStudioState = {
     paymentInstruction: "Scan payment QR provided by Financial Secretary",
     verificationNote:
       "Only delegates with verified payment are marked complete in the system.",
-    footer: "LSUIC 2026 | Register early and secure your place",
+    footer: `${CONF_2026.shortLabel} | Register early and secure your place`,
+
     website: "https://www.lsuic.org",
     motto: "Excellence Through Hard Work",
   },
@@ -235,6 +240,40 @@ export function FlyerStudioShell() {
       await downloadCountdownPng();
       return;
     }
+
+    // Signup flyer: use server-side SVG→PNG for crisp, font-correct output
+    if (state.mode === "signup" && format === "png") {
+      if (!confId) {
+        setSaveNotice("Conference not loaded yet.");
+        return;
+      }
+      try {
+        setExportingFormat("png");
+        const res = await fetch(`/api/conf/${confId}/signup-flyer`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ state: state.signup, download: true }),
+        });
+        if (!res.ok) throw new Error("Server error");
+        const blob = await res.blob();
+        const ts = new Date().toISOString().slice(0, 16).replace(/[T:]/g, "-");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `lsuic-signup-flyer-${ts}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        setSaveNotice("Signup flyer downloaded as PNG.");
+      } catch {
+        setSaveNotice("Download failed. Please try again.");
+      } finally {
+        setExportingFormat(null);
+      }
+      return;
+    }
+
     if (!previewRef.current || !loaded) {
       setSaveNotice("Preview is not ready yet. Please try again in a moment.");
       return;
@@ -252,8 +291,9 @@ export function FlyerStudioShell() {
       if (format === "png") {
         const dataUrl = await toPng(previewRef.current, {
           backgroundColor: "#FFFFFF",
-          pixelRatio: 2,
+          pixelRatio: 3,
           cacheBust: true,
+          style: { borderRadius: "0", overflow: "hidden" },
         });
         downloadDataUrl(dataUrl, fileName);
       } else {
@@ -447,7 +487,10 @@ export function FlyerStudioShell() {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <CalendarDays className="size-4 shrink-0" />
-                  Conference: July 23–27, 2026 · Arcadia Hotel, Jinan
+                  Conference: July {new Date(CONF_2026.startsAt).getUTCDate()}–
+                  {new Date(CONF_2026.endsAt).getUTCDate()},{" "}
+                  {new Date(CONF_2026.endsAt).getUTCFullYear()} · Arcadia Hotel,{" "}
+                  {CONF_2026.city}
                 </div>
               </div>
             ) : (
@@ -899,22 +942,22 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
               {UNION_NAME}
             </p>
             <p className="text-[7px] text-[#C8A061] leading-none mt-0.5">
-              LSUIC · China Chapter
+              LSUIC · 2026
             </p>
           </div>
         </div>
         <div className="text-right">
           <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-[#C8A061]">
-            JINAN, SHANDONG
+            {`${CONF_2026.city.toUpperCase()}, ${CONF_2026.province.toUpperCase()}`}
           </p>
           <p className="text-[7px] text-white/75 leading-none mt-0.5">
-            JULY 23–27, 2026
+            {`JULY ${new Date(CONF_2026.startsAt).getUTCDate()}–${new Date(CONF_2026.endsAt).getUTCDate()}, ${new Date(CONF_2026.endsAt).getUTCFullYear()}`}
           </p>
         </div>
       </div>
 
       {/* Hero */}
-      <div className="relative shrink-0" style={{ height: "34%" }}>
+      <div className="relative shrink-0" style={{ height: "26%" }}>
         <Image
           src="/conf/assets/jinan_city/day_view_landscape.png"
           alt="Jinan city"
@@ -946,16 +989,26 @@ function SquarePromoFlyer({ state }: { state: FlyerStudioState }) {
         <div className="flex-1 bg-[#0B1E78]" />
       </div>
 
+      {/* Theme banner */}
+      <div className="shrink-0 bg-[#071B4D] px-4 py-1.5 text-center">
+        <p className="text-[11px] font-black uppercase tracking-wide text-white leading-tight">
+          {CONF_2026.theme}
+        </p>
+        <p className="text-[7px] italic text-[#C8A061] leading-snug">
+          {CONF_2026.subTheme}
+        </p>
+      </div>
+
       {/* Content */}
       <div className="flex flex-1 flex-col gap-1.5 overflow-hidden bg-[#F0F5FF] px-4 py-2.5">
         <p className="shrink-0 text-[7px] font-bold uppercase tracking-[0.14em] text-[#0B1E78]">
           Conference Highlights
         </p>
-        <div className="flex flex-1 flex-col gap-1.5 overflow-hidden">
+        <div className="flex flex-1 flex-col gap-1 overflow-hidden">
           {state.promo.highlights.slice(0, 5).map((item, i) => (
             <div
               key={`${item}-${i}`}
-              className="flex items-center gap-2 rounded-lg border border-[#CCDAEF] bg-white px-2.5 py-1.5 shadow-sm"
+              className="flex flex-1 items-center gap-2 rounded-lg border border-[#CCDAEF] bg-white px-2.5 shadow-sm"
             >
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8102E]" />
               <p className="text-[10px] font-semibold text-[#0B1E78]">{item}</p>
@@ -1012,13 +1065,13 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
             DELEGATE REGISTRATION
           </p>
           <p className="text-[7px] text-white/75 leading-none mt-0.5">
-            JINAN · JULY 2026
+            {`${CONF_2026.city.toUpperCase()} · ${new Date(CONF_2026.startsAt).toLocaleString("en-US", { month: "long", timeZone: "UTC" }).toUpperCase()} ${new Date(CONF_2026.endsAt).getUTCFullYear()}`}
           </p>
         </div>
       </div>
 
       {/* Hero */}
-      <div className="relative shrink-0" style={{ height: "28%" }}>
+      <div className="relative shrink-0" style={{ height: "20%" }}>
         <Image
           src="/conf/assets/hotel/conference_hall.jpg"
           alt="Conference hall"
@@ -1050,6 +1103,16 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
         <div className="flex-1 bg-[#0B1E78]" />
       </div>
 
+      {/* Theme banner */}
+      <div className="shrink-0 bg-[#071B4D] px-4 py-1.5 text-center">
+        <p className="text-[10px] font-black uppercase tracking-wide text-white leading-tight">
+          {CONF_2026.theme}
+        </p>
+        <p className="mt-0.5 text-[7px] italic text-[#C8A061] leading-snug">
+          {CONF_2026.subTheme}
+        </p>
+      </div>
+
       {/* Content */}
       <div className="flex flex-1 flex-col overflow-hidden bg-[#F0F5FF] px-4 py-2.5">
         <div className="grid flex-1 grid-cols-[1fr_120px] gap-3 overflow-hidden">
@@ -1068,13 +1131,6 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
                 <p className="text-[9px] font-medium text-[#0B1E78]">{step}</p>
               </div>
             ))}
-            {state.signup.verificationNote && (
-              <div className="shrink-0 rounded-lg bg-[#C8102E] px-2.5 py-1.5">
-                <p className="text-[8px] text-white">
-                  {state.signup.verificationNote}
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col gap-2 rounded-xl border border-[#CCDAEF] bg-white p-2">
@@ -1093,9 +1149,11 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
                 </p>
               </div>
             </div>
-            <p className="text-[7.5px] font-semibold leading-tight text-[#C8102E]">
-              {state.signup.footer}
-            </p>
+            {state.signup.footer && (
+              <p className="text-center text-[7px] font-semibold leading-tight text-[#C8102E]">
+                {state.signup.footer}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1120,12 +1178,12 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
 // ── Utility ───────────────────────────────────────────────────────────────────
 
 function daysUntilConf(): number {
-  const target = new Date("2026-07-23");
+  const target = new Date(CONF_2026.startsAt);
   target.setHours(0, 0, 0, 0);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   return Math.max(
     0,
-    Math.ceil((target.getTime() - now.getTime()) / 86_400_000),
+    Math.round((target.getTime() - now.getTime()) / 86_400_000),
   );
 }

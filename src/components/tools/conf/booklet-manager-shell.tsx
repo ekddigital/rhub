@@ -1248,8 +1248,11 @@ export function BookletManagerShell() {
                           className="h-16 w-16 rounded-lg object-cover"
                           onError={(e) => {
                             // On load failure fall back to the Globe placeholder
-                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                            const sib = e.currentTarget.nextElementSibling as HTMLElement | null;
+                            (
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none";
+                            const sib = e.currentTarget
+                              .nextElementSibling as HTMLElement | null;
                             if (sib) sib.style.display = "flex";
                           }}
                         />

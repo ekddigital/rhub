@@ -182,9 +182,7 @@ export function BookletPreview({
 
   function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
     const relevant = sectionMembersForPageCount(s);
-    const hasGeneral = relevant.some(
-      (m) => !KEY_ROLES.includes(m.role),
-    );
+    const hasGeneral = relevant.some((m) => !KEY_ROLES.includes(m.role));
     return hasGeneral ? 2 : 1;
   }
   const bodyPageCount = enabledSections.reduce((sum, s) => {
@@ -420,34 +418,97 @@ export function BookletPreview({
       </div>
 
       {/* Letterhead preview strip */}
-      <div className="booklet-no-print rounded-xl border border-[#C8A061]/20 bg-white p-4 shadow-sm">
-        <div className="mb-2 flex items-center justify-between">
+      <div className="booklet-no-print rounded-xl border border-[#C8A061]/20 bg-white p-4 shadow-sm space-y-3">
+        {/* Header row */}
+        <div className="flex items-center justify-between">
           <p className="text-xs font-semibold" style={{ color: C.blue }}>
             Conference Committee Letterhead
           </p>
-          <a
-            href={`/api/conf/${confId}/letterhead?format=svg`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[10px] text-[#C8A061] hover:underline"
-          >
-            View SVG →
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={`/api/conf/${confId}/letterhead?mode=page&format=png`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1 rounded border border-[#C8A061]/40 bg-[#C8A061]/10 px-2 py-0.5 text-[10px] text-[#8E6B30] hover:bg-[#C8A061]/20 transition-colors"
+            >
+              <Download className="size-2.5" />
+              Page 1 PNG
+            </a>
+            <a
+              href={`/api/conf/${confId}/letterhead?mode=continuation&format=png`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1 rounded border border-[#C8A061]/40 bg-[#C8A061]/10 px-2 py-0.5 text-[10px] text-[#8E6B30] hover:bg-[#C8A061]/20 transition-colors"
+            >
+              <Download className="size-2.5" />
+              Page 2+ PNG
+            </a>
+            <a
+              href={`/api/conf/${confId}/letterhead?mode=page&format=svg`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] text-[#C8A061] hover:underline"
+            >
+              SVG →
+            </a>
+          </div>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={letterheadUrl}
-          alt="Conference Committee Letterhead"
-          className="w-full rounded-lg"
-          style={{
-            maxHeight: "160px",
-            objectFit: "contain",
-            objectPosition: "top",
-          }}
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-          }}
-        />
+
+        {/* Two-column preview: first page header + continuation header */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="mb-1 text-[9px] font-medium text-zinc-500 uppercase tracking-wide">
+              First Page — Full Header + Sidebar
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/conf/${confId}/letterhead?mode=header&format=png`}
+              alt="First page letterhead header"
+              className="w-full rounded border border-zinc-100"
+              style={{ objectFit: "contain", objectPosition: "top" }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+          <div>
+            <p className="mb-1 text-[9px] font-medium text-zinc-500 uppercase tracking-wide">
+              Continuation Pages — Compact Header
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/conf/${confId}/letterhead?mode=continuation&format=png`}
+              alt="Continuation page letterhead header"
+              className="w-full rounded border border-zinc-100"
+              style={{ objectFit: "contain", objectPosition: "top" }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Full page 1 preview (scrollable) */}
+        <details className="group">
+          <summary className="cursor-pointer text-[10px] font-medium text-[#C8A061] hover:underline list-none flex items-center gap-1">
+            <ExternalLink className="size-3" />
+            View full first-page preview (with sidebar)
+          </summary>
+          <div
+            className="mt-2 overflow-auto rounded border border-zinc-100"
+            style={{ maxHeight: "400px" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/conf/${confId}/letterhead?mode=page&format=png`}
+              alt="Full letterhead first page"
+              className="w-full"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        </details>
       </div>
     </div>
   );

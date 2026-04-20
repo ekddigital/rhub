@@ -28,6 +28,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { CONF_2026 } from "@/lib/conf/config";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 
@@ -147,16 +148,36 @@ export function ConfDashboard() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
-            LSUIC 2026
+            {CONF_2026.shortLabel}
           </Badge>
           <Badge variant="secondary" className="text-xs">
-            Planning Phase
+            {CONF_2026.phase}
           </Badge>
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Conference Hub</h1>
         <p className="text-muted-foreground">
-          LSUIC 20th Anniversary National Conference — Jinan, Shandong
+          {CONF_2026.name} — {CONF_2026.city}, {CONF_2026.province}
         </p>
+        {/* Theme */}
+        <div className="mt-1 space-y-1.5">
+          <p className="text-sm font-semibold text-[#C8A061]">
+            “{CONF_2026.theme}”
+          </p>
+          <p className="text-xs italic text-muted-foreground">
+            {CONF_2026.subTheme}
+          </p>
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {CONF_2026.coreValues.map((v) => (
+              <Badge
+                key={v}
+                variant="outline"
+                className="border-[#C8A061]/30 px-2 py-0 text-[10px] text-[#C8A061]/80"
+              >
+                {v}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Venue Card */}
@@ -165,10 +186,10 @@ export function ConfDashboard() {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-sm font-medium">
               <MapPin className="size-4 text-[#C8A061]" />
-              Arcadia Spa Golf International Hotel
+              {CONF_2026.venue}
             </div>
             <p className="text-xs text-muted-foreground">
-              齐河阿尔卡迪亚温泉高尔夫国际酒店 · Shandong Province
+              {CONF_2026.venueCn} · {CONF_2026.province} Province
             </p>
             <p className="text-xs font-medium text-[#8E0E00]">
               Special program: Liberia Independence Day celebration on{" "}
@@ -343,11 +364,11 @@ function StatCard({
 }
 
 function daysUntilConf(): string {
-  const confDate = new Date("2026-07-23");
+  const target = new Date(CONF_2026.startsAt);
+  target.setHours(0, 0, 0, 0);
   const now = new Date();
-  const diff = Math.ceil(
-    (confDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  now.setHours(0, 0, 0, 0);
+  const diff = Math.round((target.getTime() - now.getTime()) / 86_400_000);
   return diff > 0 ? String(diff) : "Now!";
 }
 

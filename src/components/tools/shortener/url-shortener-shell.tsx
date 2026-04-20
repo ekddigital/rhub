@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import {
   Copy,
   Link,
@@ -15,6 +16,8 @@ import {
   BarChart3,
   QrCode,
   Download,
+  ImagePlus,
+  Type,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
 
@@ -34,6 +37,14 @@ interface UrlStats {
   createdAt: string;
 }
 
+type CenterMode = "text" | "logo";
+
+interface QrCenter {
+  mode: CenterMode;
+  text: string;
+  logoDataUrl: string | null;
+}
+
 export function UrlShortenerShell() {
   const [url, setUrl] = useState("");
   const [customSlug, setCustomSlug] = useState("");
@@ -46,31 +57,115 @@ export function UrlShortenerShell() {
   const [loadingStats, setLoadingStats] = useState(false);
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [showQrCode, setShowQrCode] = useState(false);
+  const [qrCenter, setQrCenter] = useState<QrCenter>({
+    mode: "text",
+    text: "R",
+    logoDataUrl: null,
+  });
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Generate QR code when result is available
   useEffect(() => {
     if (result?.shortUrl) {
       generateQRCode(result.shortUrl);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
-  const generateQRCode = async (url: string) => {
-    try {
-      // Generate QR code with EKD Digital branding colors
-      const qrDataUrl = await QRCodeLib.toDataURL(url, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: "#1F1C18", // EKD Dark Brown
-          light: "#FFFFFF",
-        },
-        errorCorrectionLevel: "H", // High error correction to allow logo overlay
-      });
-      setQrCode(qrDataUrl);
-    } catch (err) {
-      console.error("Failed to generate QR code:", err);
+  // Regenerate composite whenever center settings change
+  useEffect(() => {
+    if (result?.shortUrl) {
+      generateQRCode(result.shortUrl);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrCenter]);
+
+  const generateQRCode = useCallback(
+    async (targetUrl: string) => {
+      try {
+        const SIZE = 600;
+        const CENTER_R = 52; // radius of the white backing circle
+        const LOGO_R = 44; // radius of the gold circle / logo clip
+
+        // 1. Render raw QR to data URL
+        const rawDataUrl = await QRCodeLib.toDataURL(targetUrl, {
+          width: SIZE,
+          margin: 2,
+          color: { dark: "#1F1C18", light: "#FFFFFF" },
+          errorCorrectionLevel: "H",
+        });
+
+        // 2. Composite on canvas
+        const canvas = document.createElement("canvas");
+        canvas.width = SIZE;
+        canvas.height = SIZE;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        // Draw QR
+        await new Promise<void>((resolve) => {
+          const img = new window.Image();
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, SIZE, SIZE);
+            resolve();
+          };
+          img.src = rawDataUrl;
+        });
+
+        const cx = SIZE / 2;
+        const cy = SIZE / 2;
+
+        // White backing circle
+        ctx.beginPath();
+        ctx.arc(cx, cy, CENTER_R, 0, Math.PI * 2);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fill();
+
+        if (qrCenter.mode === "logo" && qrCenter.logoDataUrl) {
+          // Draw uploaded logo clipped to circle
+          await new Promise<void>((resolve) => {
+            const logo = new window.Image();
+            logo.onload = () => {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(cx, cy, LOGO_R, 0, Math.PI * 2);
+              ctx.clip();
+              ctx.drawImage(
+                logo,
+                cx - LOGO_R,
+                cy - LOGO_R,
+                LOGO_R * 2,
+                LOGO_R * 2,
+              );
+              ctx.restore();
+              resolve();
+            };
+            logo.src = qrCenter.logoDataUrl!;
+          });
+        } else {
+          // Gold circle with text
+          ctx.beginPath();
+          ctx.arc(cx, cy, LOGO_R, 0, Math.PI * 2);
+          ctx.fillStyle = "#C8A030";
+          ctx.fill();
+
+          const label = qrCenter.text.trim() || "R";
+          const fontSize =
+            label.length === 1 ? 42 : label.length <= 3 ? 28 : 18;
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          ctx.fillStyle = "#1F1C18";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(label, cx, cy);
+        }
+
+        setQrCode(canvas.toDataURL("image/png"));
+      } catch (err) {
+        console.error("Failed to generate QR code:", err);
+      }
+    },
+    [qrCenter],
+  );
 
   const handleShorten = async () => {
     if (!url.trim()) {
@@ -142,6 +237,17 @@ export function UrlShortenerShell() {
     } finally {
       setLoadingStats(false);
     }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setQrCenter((prev) => ({ ...prev, mode: "logo", logoDataUrl: dataUrl }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const downloadQRCode = () => {
@@ -301,7 +407,7 @@ export function UrlShortenerShell() {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          }
+                          },
                         )}
                       </p>
                     </div>
@@ -360,22 +466,108 @@ export function UrlShortenerShell() {
 
             {/* QR Code Display */}
             {showQrCode && qrCode && (
-              <div className="bg-white dark:bg-ekd-charcoal/50 rounded-lg p-6 mt-4">
-                <h4 className="font-medium mb-4 text-ekd-charcoal dark:text-ekd-light-gray text-center">
+              <div className="bg-white dark:bg-ekd-charcoal/50 rounded-lg p-6 mt-4 space-y-5">
+                <h4 className="font-medium text-ekd-charcoal dark:text-ekd-light-gray text-center">
                   QR Code
                 </h4>
+
+                {/* Center customization */}
+                <div className="rounded-lg border border-ekd-charcoal/10 dark:border-ekd-light-gray/10 p-4 space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ekd-charcoal/60 dark:text-ekd-light-gray/60">
+                    Center Badge
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={qrCenter.mode === "text" ? "default" : "outline"}
+                      className={
+                        qrCenter.mode === "text"
+                          ? "bg-ekd-gold text-ekd-charcoal"
+                          : ""
+                      }
+                      onClick={() =>
+                        setQrCenter((p) => ({ ...p, mode: "text" }))
+                      }
+                    >
+                      <Type className="mr-1.5 h-3.5 w-3.5" />
+                      Text
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={qrCenter.mode === "logo" ? "default" : "outline"}
+                      className={
+                        qrCenter.mode === "logo"
+                          ? "bg-ekd-gold text-ekd-charcoal"
+                          : ""
+                      }
+                      onClick={() => logoInputRef.current?.click()}
+                    >
+                      <ImagePlus className="mr-1.5 h-3.5 w-3.5" />
+                      Upload Logo
+                    </Button>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                    />
+                  </div>
+
+                  {qrCenter.mode === "text" && (
+                    <div className="flex items-center gap-3">
+                      <Label htmlFor="centerText" className="text-sm shrink-0">
+                        Badge text
+                      </Label>
+                      <Input
+                        id="centerText"
+                        value={qrCenter.text}
+                        onChange={(e) =>
+                          setQrCenter((p) => ({
+                            ...p,
+                            text: e.target.value.slice(0, 12),
+                          }))
+                        }
+                        placeholder="R"
+                        className="max-w-45"
+                      />
+                      <span className="text-xs text-ekd-charcoal/50">
+                        {qrCenter.text.length}/12
+                      </span>
+                    </div>
+                  )}
+
+                  {qrCenter.mode === "logo" && qrCenter.logoDataUrl && (
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={qrCenter.logoDataUrl}
+                        alt="Center logo"
+                        className="h-10 w-10 rounded-full object-cover border"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs"
+                        onClick={() =>
+                          setQrCenter((p) => ({
+                            ...p,
+                            mode: "text",
+                            logoDataUrl: null,
+                          }))
+                        }
+                      >
+                        Remove logo
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* QR preview */}
                 <div className="flex flex-col items-center gap-4">
-                  <div className="relative bg-white p-4 rounded-lg shadow-sm">
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={qrCode} alt="QR Code" className="w-64 h-64" />
-                    {/* Logo overlay in center */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-2 rounded-lg shadow-md">
-                      <div className="w-12 h-12 bg-ekd-gold rounded-full flex items-center justify-center">
-                        <span className="text-ekd-charcoal font-bold text-xl">
-                          R
-                        </span>
-                      </div>
-                    </div>
                   </div>
                   <p className="text-sm text-ekd-charcoal/70 dark:text-ekd-light-gray/70 text-center max-w-sm">
                     Scan this QR code to quickly access your shortened URL

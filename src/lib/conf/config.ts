@@ -1,15 +1,32 @@
-/** Conference configuration — LSUIC 2026 */
+/** Conference configuration — LSUIC 2026 — Single Source of Truth */
 
 export const CONF_2026 = {
+  // Identity
+  shortLabel: "LSUIC 2026",
   name: "LSUIC 20th Anniversary National Conference",
   year: 2026,
+  phase: "Planning Phase",
+
+  // Theme (NEC official)
+  theme: "Jinan 2026: Legacy and Influence",
+  subTheme: "Honoring Our Past, Engaging Our Present, and Inspiring Our Future",
+  coreValues: ["Peace", "Togetherness", "Love", "Support", "Willingness", "Passion", "Service"],
+
+  // Location
   city: "Jinan",
   province: "Shandong",
   venue: "Arcadia Spa Golf International Hotel",
   venueCn: "齐河阿尔卡迪亚温泉高尔夫国际酒店",
+  venueShort: "Arcadia Spa Golf Hotel · Jinan, Shandong",
   address: "山东省德州市齐河县308国道国科球类中心旁",
+
+  // Dates
   startsAt: "2026-07-23",
   endsAt: "2026-07-27",
+  independenceDayDate: "2026-07-26", // Liberia Independence Day — special program during conference
+
+  // Finance
+  delegateFee: 250, // RMB
   deposit: 5000,
   xrRate: 7.2,
 } as const;

@@ -101,100 +101,99 @@ export async function GET(
       delegates,
       registeredDelegateUserIds,
       meetings,
-    ] =
-      await Promise.all([
-        prisma.confEvent.findUnique({
-          where: { id: confId },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            year: true,
-            city: true,
-            venue: true,
-            venueCn: true,
-            startsAt: true,
-            endsAt: true,
-          },
-        }),
+    ] = await Promise.all([
+      prisma.confEvent.findUnique({
+        where: { id: confId },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          year: true,
+          city: true,
+          venue: true,
+          venueCn: true,
+          startsAt: true,
+          endsAt: true,
+        },
+      }),
 
-        prisma.confBooklet.findUnique({
-          where: { confId },
-          include: {
-            sections: { orderBy: { sortOrder: "asc" } },
-          },
-        }),
+      prisma.confBooklet.findUnique({
+        where: { confId },
+        include: {
+          sections: { orderBy: { sortOrder: "asc" } },
+        },
+      }),
 
-        prisma.confLeaderProfile.findMany({
-          where: {
-            OR: [{ confId }, { confId: null }],
-            isActive: true,
-          },
-          orderBy: { sortOrder: "asc" },
-        }),
+      prisma.confLeaderProfile.findMany({
+        where: {
+          OR: [{ confId }, { confId: null }],
+          isActive: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      }),
 
-        // Conference Committee members (all roles — CHAIR = Conference Chair)
-        prisma.confMember.findMany({
-          where: { confId, isActive: true },
-          orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            city: true,
-            title: true,
-            committeeScope: true,
-            photoPath: true,
-            photoFileName: true,
-            bookletBio: true,
-            userId: true,
-          },
-        }),
+      // Conference Committee members (all roles — CHAIR = Conference Chair)
+      prisma.confMember.findMany({
+        where: { confId, isActive: true },
+        orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          city: true,
+          title: true,
+          committeeScope: true,
+          photoPath: true,
+          photoFileName: true,
+          bookletBio: true,
+          userId: true,
+        },
+      }),
 
-        // Booklet roster: all signed-up delegates (except cancelled)
-        prisma.confDelegate.findMany({
-          where: {
-            confId,
-            status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
-          },
-          orderBy: { name: "asc" },
-          select: {
-            id: true,
-            name: true,
-            delegateCode: true,
-            university: true,
-            province: true,
-            city: true,
-            conferencePosition: true,
-            gender: true,
-            bookletPhotoPath: true,
-            status: true,
-            userId: true,
-          },
-        }),
+      // Booklet roster: all signed-up delegates (except cancelled)
+      prisma.confDelegate.findMany({
+        where: {
+          confId,
+          status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
+        },
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          delegateCode: true,
+          university: true,
+          province: true,
+          city: true,
+          conferencePosition: true,
+          gender: true,
+          bookletPhotoPath: true,
+          status: true,
+          userId: true,
+        },
+      }),
 
-        // All delegate userIds (any status) — used to mark which committee members have registered
-        prisma.confDelegate.findMany({
-          where: {
-            confId,
-            userId: { not: null },
-            status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
-          },
-          select: { userId: true },
-        }),
+      // All delegate userIds (any status) — used to mark which committee members have registered
+      prisma.confDelegate.findMany({
+        where: {
+          confId,
+          userId: { not: null },
+          status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
+        },
+        select: { userId: true },
+      }),
 
-        prisma.confMeeting.findMany({
-          where: { confId },
-          orderBy: { scheduled: "asc" },
-          select: {
-            id: true,
-            title: true,
-            scheduled: true,
-            location: true,
-            agenda: true,
-          },
-        }),
-      ]);
+      prisma.confMeeting.findMany({
+        where: { confId },
+        orderBy: { scheduled: "asc" },
+        select: {
+          id: true,
+          title: true,
+          scheduled: true,
+          location: true,
+          agenda: true,
+        },
+      }),
+    ]);
 
     if (!event) {
       return NextResponse.json(
@@ -210,10 +209,7 @@ export async function GET(
     // the browser can never reach.  Only proper asset-server paths need
     // resolveStoredAssetUrl.
     function resolveLeaderPhoto(photoPath: string): string {
-      if (
-        photoPath.startsWith("/conf/") ||
-        photoPath.startsWith("/public/")
-      ) {
+      if (photoPath.startsWith("/conf/") || photoPath.startsWith("/public/")) {
         return photoPath; // relative — browser resolves against its own origin
       }
       return resolveStoredAssetUrl(photoPath, origin);
@@ -259,7 +255,9 @@ export async function GET(
 
     // Build Set of userIds that have any delegate registration for this conference
     const signedUpUserIds = new Set(
-      registeredDelegateUserIds.map((d) => d.userId).filter(Boolean) as string[],
+      registeredDelegateUserIds
+        .map((d) => d.userId)
+        .filter(Boolean) as string[],
     );
 
     // Conference Committee members (NOT NEC): annotate each member with linked
@@ -290,7 +288,8 @@ export async function GET(
     });
 
     // Conference Chair is the CHAIR-role member (Enoch). NOT an NEC member.
-    const conferenceChair = committeeMembers.find((m) => m.role === "CHAIR") ?? null;
+    const conferenceChair =
+      committeeMembers.find((m) => m.role === "CHAIR") ?? null;
 
     // NEC board: fixed roster + live overlay from delegate signups.
     // Missing signup/photo data intentionally stays null, so UI shows placeholders.
