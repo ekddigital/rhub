@@ -450,7 +450,12 @@ export function UrlShortenerShell() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6 items-start">
+
+        {/* ── LEFT COLUMN: form + result + how it works ─────────────── */}
+        <div className="space-y-6">
+
       {/* Input Section */}
       <Card className="p-6 border-ekd-charcoal/10 dark:border-ekd-light-gray/10">
         <div className="space-y-4">
@@ -831,6 +836,11 @@ export function UrlShortenerShell() {
         </ul>
       </Card>
 
+        </div>{/* end LEFT COLUMN */}
+
+        {/* ── RIGHT COLUMN: Link History (sticky) ──────────────────────── */}
+        <div className="lg:sticky lg:top-24">
+
       {/* ── Link History ─────────────────────────────────────────────────── */}
       <Card className="p-6 border-ekd-charcoal/10 dark:border-ekd-light-gray/10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
@@ -884,7 +894,7 @@ export function UrlShortenerShell() {
             {historySearch ? "No links match your search." : "No links yet. Shorten your first URL above!"}
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
             {links.map((link) => {
               const isEditing = editDraft?.id === link.id;
               const isDeleteTarget = deleteConfirmId === link.id;
@@ -1142,6 +1152,10 @@ export function UrlShortenerShell() {
           </div>
         )}
       </Card>
+
+        </div>{/* end RIGHT COLUMN */}
+
+      </div>{/* end grid */}
     </div>
   );
 }

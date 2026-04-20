@@ -1638,3 +1638,5 @@ https://react.dev/link/hydration-mismatch
  GET /tools/conf/letters 200 in 1647ms (next.js: 113ms, proxy.ts: 71ms, application-code: 1463ms)
  GET /tools/conf/booklet 200 in 1324ms (next.js: 20ms, proxy.ts: 18ms, application-code: 1286ms)
  GET /tools/conf/booklet 200 in 1897ms (next.js: 60ms, proxy.ts: 71ms, application-code: 1765ms)
+✓ Compiled in 361ms
+✓ Compiled in 156ms
