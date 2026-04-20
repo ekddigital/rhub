@@ -2676,3 +2676,111 @@ Import trace:
  GET /api/conf/default 200 in 7ms (next.js: 1510µs, proxy.ts: 3ms, application-code: 3ms)
  GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/config 200 in 4.5s (next.js: 74ms, proxy.ts: 5ms, application-code: 4.4s)
  GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.1s (next.js: 7ms, proxy.ts: 4ms, application-code: 3.1s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 71s (next.js: 35ms, proxy.ts: 2ms, application-code: 71s)
+ GET /tools/conf/letters 200 in 2.1s (next.js: 11ms, proxy.ts: 9ms, application-code: 2.1s)
+ GET /api/conf/default 200 in 17ms (next.js: 7ms, proxy.ts: 4ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/route 404 in 157ms (next.js: 22ms, proxy.ts: 3ms, application-code: 131ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1776667253817 200 in 551ms (next.js: 16ms, proxy.ts: 3ms, application-code: 532ms)
+ GET /api/auth/me?_t=1776667253817 200 in 558ms (next.js: 14ms, proxy.ts: 3ms, application-code: 541ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 125ms, proxy.ts: 7ms, application-code: 1992ms)
+ GET /api/conf/default 200 in 5ms (next.js: 1083µs, proxy.ts: 1605µs, application-code: 3ms)
+GET /booklet/data error: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confMember.findMany()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0g.4nbw._.js:2057:153
+
+  2054     }
+  2055 }),
+  2056 // Conference Committee members (all roles — CHAIR = Conference Chair)
+→ 2057 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confMember.findMany(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/app/api/conf/[confId]/booklet/data/route.ts:136:25)
+    at async GET (src/app/api/conf/[confId]/booklet/data/route.ts:104:9)
+  134 |
+  135 |       // Conference Committee members (all roles — CHAIR = Conference Chair)
+> 136 |       prisma.confMember.findMany({
+      |                         ^
+  137 |         where: { confId, isActive: true },
+  138 |         orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
+  139 |         select: { {
+  code: 'P1001',
+  meta: { modelName: 'ConfMember', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3'
+}
