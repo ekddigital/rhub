@@ -16,6 +16,7 @@ import {
   Wallet,
   ClipboardList,
   BarChart3,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   { href: "/tools/conf/docs", label: "Documentation", icon: BookOpen },
   { href: "/tools/conf/budget", label: "Budget", icon: Wallet },
   { href: "/tools/conf/payments", label: "Payments", icon: DollarSign },
+  { href: "/tools/conf/letters", label: "Letters / Memos", icon: Mail },
   { href: "/tools/conf/committee", label: "Committee", icon: Users },
   { href: "/tools/conf/delegates", label: "Delegates", icon: UserCheck },
   { href: "/tools/conf/delegates/register", label: "Register", icon: UserPlus },

@@ -18,6 +18,16 @@ import {
   Download,
   ImagePlus,
   Type,
+  Trash2,
+  Pencil,
+  X,
+  Check,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ToggleLeft,
+  ToggleRight,
+  History,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
 
@@ -35,6 +45,34 @@ interface UrlStats {
   clicks: number;
   lastClickAt: string | null;
   createdAt: string;
+}
+
+interface LinkRecord {
+  id: string;
+  originalUrl: string;
+  shortUrl: string;
+  shortCode: string;
+  customSlug: string | null;
+  clicks: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt: string | null;
+  lastClickAt: string | null;
+}
+
+interface HistoryMeta {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+}
+
+interface EditDraft {
+  id: string;
+  originalUrl: string;
+  customSlug: string;
+  expiresIn: string; // days, empty = no change, "0" = remove expiry
 }
 
 type CenterMode = "text" | "logo";
@@ -63,6 +101,153 @@ export function UrlShortenerShell() {
     logoDataUrl: null,
   });
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Link History ─────────────────────────────────────────────────────────
+  const [links, setLinks] = useState<LinkRecord[]>([]);
+  const [historyMeta, setHistoryMeta] = useState<HistoryMeta>({
+    total: 0, page: 1, limit: 10, pages: 1,
+  });
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historySearch, setHistorySearch] = useState("");
+  const [historySearchInput, setHistorySearchInput] = useState("");
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // ── Fetch history ─────────────────────────────────────────────────────────
+  const fetchHistory = useCallback(async (page: number, search: string) => {
+    setHistoryLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "10",
+        ...(search ? { search } : {}),
+      });
+      const res = await fetch(`/api/tools/shorten?${params}`);
+      const data = await res.json();
+      if (res.ok) {
+        setLinks(data.data);
+        setHistoryMeta(data.meta);
+      }
+    } catch (err) {
+      console.error("Failed to load history", err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  // Load history on mount
+  useEffect(() => {
+    fetchHistory(1, "");
+  }, [fetchHistory]);
+
+  // Reload after new shorten
+  const refreshHistory = useCallback(() => {
+    fetchHistory(historyPage, historySearch);
+  }, [fetchHistory, historyPage, historySearch]);
+
+  const handleHistorySearch = () => {
+    setHistoryPage(1);
+    setHistorySearch(historySearchInput);
+    fetchHistory(1, historySearchInput);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setHistoryPage(newPage);
+    fetchHistory(newPage, historySearch);
+  };
+
+  // ── Edit ──────────────────────────────────────────────────────────────────
+  const startEdit = (link: LinkRecord) => {
+    setEditDraft({
+      id: link.id,
+      originalUrl: link.originalUrl,
+      customSlug: link.customSlug ?? "",
+      expiresIn: "",
+    });
+    setEditError("");
+  };
+
+  const cancelEdit = () => {
+    setEditDraft(null);
+    setEditError("");
+  };
+
+  const saveEdit = async () => {
+    if (!editDraft) return;
+    setEditSaving(true);
+    setEditError("");
+    try {
+      const body: Record<string, unknown> = { id: editDraft.id };
+      if (editDraft.originalUrl.trim()) body.originalUrl = editDraft.originalUrl.trim();
+      if (editDraft.customSlug.trim() !== "") body.customSlug = editDraft.customSlug.trim();
+      else body.customSlug = null;
+      if (editDraft.expiresIn === "0") body.expiresIn = null;
+      else if (editDraft.expiresIn !== "") body.expiresIn = Number(editDraft.expiresIn);
+
+      const res = await fetch("/api/tools/shorten", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error ?? "Failed to save");
+        return;
+      }
+      setEditDraft(null);
+      refreshHistory();
+    } catch (err) {
+      setEditError("An error occurred");
+      console.error(err);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // ── Toggle active ─────────────────────────────────────────────────────────
+  const toggleActive = async (link: LinkRecord) => {
+    try {
+      await fetch("/api/tools/shorten", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: link.id, isActive: !link.isActive }),
+      });
+      refreshHistory();
+    } catch (err) {
+      console.error("Failed to toggle link", err);
+    }
+  };
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/tools/shorten?id=${deleteConfirmId}`, { method: "DELETE" });
+      setDeleteConfirmId(null);
+      refreshHistory();
+    } catch (err) {
+      console.error("Failed to delete", err);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // ── Copy short URL ────────────────────────────────────────────────────────
+  const copyLink = async (shortUrl: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(shortUrl);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Generate QR code when result is available
   useEffect(() => {
@@ -200,6 +385,9 @@ export function UrlShortenerShell() {
       setUrl("");
       setCustomSlug("");
       setExpiresIn("");
+      // Refresh history to include new link
+      fetchHistory(1, historySearch);
+      setHistoryPage(1);
     } catch (err) {
       setError("An error occurred. Please try again.");
       console.error(err);
@@ -641,6 +829,318 @@ export function UrlShortenerShell() {
             </span>
           </li>
         </ul>
+      </Card>
+
+      {/* ── Link History ─────────────────────────────────────────────────── */}
+      <Card className="p-6 border-ekd-charcoal/10 dark:border-ekd-light-gray/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-ekd-gold" />
+            <h3 className="font-semibold text-ekd-charcoal dark:text-ekd-light-gray">
+              Link History
+              {historyMeta.total > 0 && (
+                <span className="ml-2 text-xs font-normal text-ekd-charcoal/50 dark:text-ekd-light-gray/50">
+                  ({historyMeta.total} total)
+                </span>
+              )}
+            </h3>
+          </div>
+          {/* Search */}
+          <div className="flex gap-2">
+            <Input
+              placeholder="Search links…"
+              value={historySearchInput}
+              onChange={(e) => setHistorySearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleHistorySearch()}
+              className="w-48 sm:w-60"
+            />
+            <Button size="icon" variant="outline" onClick={handleHistorySearch}>
+              <Search className="h-4 w-4" />
+            </Button>
+            {historySearch && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  setHistorySearchInput("");
+                  setHistorySearch("");
+                  setHistoryPage(1);
+                  fetchHistory(1, "");
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {historyLoading ? (
+          <div className="flex items-center justify-center py-12 text-ekd-charcoal/50 dark:text-ekd-light-gray/50">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Loading…
+          </div>
+        ) : links.length === 0 ? (
+          <p className="text-center py-10 text-sm text-ekd-charcoal/50 dark:text-ekd-light-gray/50">
+            {historySearch ? "No links match your search." : "No links yet. Shorten your first URL above!"}
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {links.map((link) => {
+              const isEditing = editDraft?.id === link.id;
+              const isDeleteTarget = deleteConfirmId === link.id;
+
+              return (
+                <div
+                  key={link.id}
+                  className={`rounded-lg border p-4 transition-colors ${
+                    !link.isActive
+                      ? "border-ekd-charcoal/10 dark:border-ekd-light-gray/10 opacity-60"
+                      : "border-ekd-charcoal/10 dark:border-ekd-light-gray/10"
+                  }`}
+                >
+                  {isEditing ? (
+                    /* ── Edit form ─────────────────────────────────────── */
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs mb-1 block">Original URL</Label>
+                        <Input
+                          value={editDraft.originalUrl}
+                          onChange={(e) =>
+                            setEditDraft((d) => d && { ...d, originalUrl: e.target.value })
+                          }
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs mb-1 block">
+                            Custom slug{" "}
+                            <span className="text-ekd-charcoal/40 dark:text-ekd-light-gray/40 font-normal">
+                              (leave blank to clear)
+                            </span>
+                          </Label>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-ekd-charcoal/50 shrink-0">
+                              /s/
+                            </span>
+                            <Input
+                              value={editDraft.customSlug}
+                              onChange={(e) =>
+                                setEditDraft((d) => d && { ...d, customSlug: e.target.value })
+                              }
+                              placeholder={link.shortCode}
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs mb-1 block">
+                            Extend expiry{" "}
+                            <span className="text-ekd-charcoal/40 dark:text-ekd-light-gray/40 font-normal">
+                              (days, 0 = remove)
+                            </span>
+                          </Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={editDraft.expiresIn}
+                            onChange={(e) =>
+                              setEditDraft((d) => d && { ...d, expiresIn: e.target.value })
+                            }
+                            placeholder="Unchanged"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                      {editError && (
+                        <p className="text-xs text-red-500">{editError}</p>
+                      )}
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          size="sm"
+                          className="bg-ekd-gold hover:bg-ekd-gold/90 text-ekd-charcoal"
+                          onClick={saveEdit}
+                          disabled={editSaving}
+                        >
+                          {editSaving ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                          ) : (
+                            <Check className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Save
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={cancelEdit}>
+                          <X className="h-3.5 w-3.5 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : isDeleteTarget ? (
+                    /* ── Delete confirm ────────────────────────────────── */
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <p className="text-sm text-ekd-charcoal dark:text-ekd-light-gray flex-1">
+                        Delete{" "}
+                        <span className="font-mono text-ekd-gold">
+                          {link.customSlug ?? link.shortCode}
+                        </span>
+                        ? This cannot be undone.
+                      </p>
+                      <div className="flex gap-2 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={confirmDelete}
+                          disabled={deleting}
+                        >
+                          {deleting ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                          )}
+                          Delete
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteConfirmId(null)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* ── Normal row ────────────────────────────────────── */
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        {/* Short URL row */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <a
+                            href={link.shortUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-sm text-ekd-gold hover:underline break-all"
+                          >
+                            {link.shortUrl}
+                          </a>
+                          <button
+                            onClick={() => copyLink(link.shortUrl, link.id)}
+                            className="text-ekd-charcoal/40 hover:text-ekd-gold transition-colors shrink-0"
+                            title="Copy"
+                          >
+                            {copiedId === link.id ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                              <Copy className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <a
+                            href={link.shortUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-ekd-charcoal/30 hover:text-ekd-gold shrink-0"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </div>
+                        {/* Original URL */}
+                        <p className="text-xs text-ekd-charcoal/60 dark:text-ekd-light-gray/60 break-all line-clamp-1">
+                          {link.originalUrl}
+                        </p>
+                        {/* Meta chips */}
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ekd-charcoal/50 dark:text-ekd-light-gray/50 pt-0.5">
+                          <span>{link.clicks} click{link.clicks !== 1 ? "s" : ""}</span>
+                          <span>
+                            Created{" "}
+                            {new Date(link.createdAt).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                          {link.expiresAt && (
+                            <span
+                              className={
+                                new Date(link.expiresAt) < new Date()
+                                  ? "text-red-400"
+                                  : ""
+                              }
+                            >
+                              Expires{" "}
+                              {new Date(link.expiresAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          )}
+                          {!link.isActive && (
+                            <span className="text-red-400 font-medium">Disabled</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => toggleActive(link)}
+                          title={link.isActive ? "Disable link" : "Enable link"}
+                          className="p-1.5 rounded hover:bg-ekd-charcoal/5 dark:hover:bg-ekd-light-gray/5 transition-colors text-ekd-charcoal/50 dark:text-ekd-light-gray/50"
+                        >
+                          {link.isActive ? (
+                            <ToggleRight className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <ToggleLeft className="h-4 w-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => startEdit(link)}
+                          title="Edit"
+                          className="p-1.5 rounded hover:bg-ekd-charcoal/5 dark:hover:bg-ekd-light-gray/5 transition-colors text-ekd-charcoal/50 dark:text-ekd-light-gray/50 hover:text-ekd-gold"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirmId(link.id)}
+                          title="Delete"
+                          className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-ekd-charcoal/50 dark:text-ekd-light-gray/50 hover:text-red-500"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {historyMeta.pages > 1 && (
+          <div className="flex items-center justify-between mt-5 pt-4 border-t border-ekd-charcoal/10 dark:border-ekd-light-gray/10">
+            <p className="text-xs text-ekd-charcoal/50 dark:text-ekd-light-gray/50">
+              Page {historyMeta.page} of {historyMeta.pages}
+            </p>
+            <div className="flex gap-1">
+              <Button
+                size="icon"
+                variant="outline"
+                disabled={historyPage <= 1}
+                onClick={() => handlePageChange(historyPage - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                disabled={historyPage >= historyMeta.pages}
+                onClick={() => handlePageChange(historyPage + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );

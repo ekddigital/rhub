@@ -15,6 +15,7 @@ import {
   X,
   ChevronDown,
   Pencil,
+  Printer,
 } from "lucide-react";
 import {
   Card,
@@ -270,8 +271,22 @@ export function BudgetShell() {
 
   return (
     <div className="space-y-6">
+      {/* Print CSS — renders budget as clean A4 document */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .budget-print-area, .budget-print-area * { visibility: visible; }
+          .budget-no-print { display: none !important; }
+          .budget-print-area {
+            position: fixed; left: 0; top: 0;
+            width: 210mm; padding: 18mm 16mm 12mm;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+          }
+          @page { size: A4 portrait; margin: 0; }
+        }
+      `}</style>
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="budget-no-print flex items-center gap-4">
         <Link href="/tools/conf">
           <Button variant="ghost" size="icon-sm">
             <ArrowLeft className="size-4" />
@@ -323,12 +338,21 @@ export function BudgetShell() {
             <FileSpreadsheet className="size-4" />
             Export CSV
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            title="Print or save as PDF"
+          >
+            <Printer className="size-4" />
+            Print / PDF
+          </Button>
         </div>
       </div>
 
       {/* Drafts list */}
       {showList && (
-        <Card className="border-[#C8A061]/30">
+        <Card className="budget-no-print border-[#C8A061]/30">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Saved Drafts</CardTitle>
             <CardDescription className="text-xs">
@@ -401,7 +425,7 @@ export function BudgetShell() {
       )}
 
       {/* Budget Meta */}
-      <Card>
+      <Card className="budget-no-print">
         <CardHeader>
           <CardTitle className="text-base">Budget Details</CardTitle>
         </CardHeader>
@@ -444,7 +468,7 @@ export function BudgetShell() {
       </Card>
 
       {/* Line Items */}
-      <Card>
+      <Card className="budget-no-print">
         <CardHeader className="flex-row items-center justify-between">
           <div>
             <CardTitle className="text-base">Line Items</CardTitle>
@@ -594,8 +618,76 @@ export function BudgetShell() {
         </CardContent>
       </Card>
 
+      {/* A4 print area (hidden on screen, shown on print) */}
+      <div
+        className="budget-print-area"
+        style={{ display: "none" }}
+      >
+        {/* Print header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, paddingBottom: 10, borderBottom: "2px solid #C8A061" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/conf/lsuic_logo.png" alt="LSUIC" style={{ width: 56, height: 56, objectFit: "contain" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>LIBERIAN STUDENT UNION IN CHINA (LSUIC)</div>
+            <div style={{ fontSize: 10, color: "#C8A061", fontWeight: 600 }}>LSUIC 20th Anniversary National Conference — Jinan, China 2026</div>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/conf/liberia-seal.svg" alt="Seal" style={{ width: 52, height: 52, objectFit: "contain" }} />
+        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#002868", marginBottom: 4 }}>
+          {activeDraft.title || "Budget Proposal"}
+        </div>
+        <div style={{ fontSize: 10, color: "#555", marginBottom: 2 }}>
+          Category: {BUDGET_CATEGORIES[activeDraft.category]?.label ?? activeDraft.category}
+        </div>
+        <div style={{ fontSize: 10, color: "#555", marginBottom: 12 }}>
+          Date: {new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+        </div>
+        {activeDraft.notes && (
+          <div style={{ fontSize: 10, color: "#444", marginBottom: 14, fontStyle: "italic" }}>{activeDraft.notes}</div>
+        )}
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+          <thead>
+            <tr style={{ background: "#002868", color: "#fff" }}>
+              <th style={{ padding: "6px 8px", textAlign: "left", width: 30 }}>#</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Item</th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 50 }}>Qty</th>
+              <th style={{ padding: "6px 8px", textAlign: "left", width: 70 }}>Unit</th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>Unit Price (¥)</th>
+              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>Total (¥)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeDraft.items.map((item, idx) => (
+              <tr key={item.id} style={{ background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF", borderBottom: "0.5px solid #e0e0e0" }}>
+                <td style={{ padding: "5px 8px", color: "#666" }}>{item.no}</td>
+                <td style={{ padding: "5px 8px" }}>{item.name || "—"}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right" }}>{item.qty}</td>
+                <td style={{ padding: "5px 8px" }}>{unitLabel(item)}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right" }}>{fmtRmb(item.unitPrice)}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontWeight: 600 }}>{fmtRmb(calcItemTotal(item.qty, item.unitPrice))}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: "2px solid #002868" }}>
+              <td colSpan={5} style={{ padding: "8px", textAlign: "right", fontWeight: 700, fontSize: 11 }}>GRAND TOTAL</td>
+              <td style={{ padding: "8px", textAlign: "right", fontWeight: 800, fontSize: 13, color: "#C8A061" }}>{fmtRmb(grandTotal)}</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style={{ marginTop: 40, display: "flex", justifyContent: "flex-end", gap: 80 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ borderTop: "1px solid #002868", paddingTop: 4, fontSize: 9, color: "#555", width: 160 }}>Prepared By</div>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ borderTop: "1px solid #002868", paddingTop: 4, fontSize: 9, color: "#555", width: 160 }}>Approved By</div>
+          </div>
+        </div>
+      </div>
+
       {/* Summary / actions bar */}
-      <Card className="border-[#C8A061]/30 bg-linear-to-r from-[#C8A061]/5 to-transparent">
+      <Card className="budget-no-print border-[#C8A061]/30 bg-linear-to-r from-[#C8A061]/5 to-transparent">
         <CardContent className="flex flex-wrap items-center justify-between gap-4 pt-6">
           <div>
             <p className="text-sm text-muted-foreground">
