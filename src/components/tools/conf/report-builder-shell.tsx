@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { ReportDocumentViewer } from "./report-document-viewer";
 
 type Payment = {
   id: string;
@@ -44,12 +45,33 @@ type Payment = {
   incomeSource: string | null;
 };
 
+type SavedReport = {
+  id: string;
+  title: string;
+  description?: string | null;
+  dateFrom?: string | null;
+  dateTo?: string | null;
+  committeeScope?: string | null;
+  generalComment?: string | null;
+  createdByName?: string | null;
+  entries: Array<{
+    paymentId: string;
+    description: string;
+    amount: number;
+    currency: string;
+    paymentType: "EXPENSE" | "INCOME";
+    lineComment?: string | null;
+    displayOrder: number;
+  }>;
+};
+
 type Step = 1 | 2 | 3 | 4;
 
 export function ReportBuilderShell() {
   const [confId, setConfId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [step, setStep] = useState<Step>(1);
@@ -72,7 +94,7 @@ export function ReportBuilderShell() {
   // Step 4: name & save
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [savedReportId, setSavedReportId] = useState<string | null>(null);
+  const [savedReport, setSavedReport] = useState<SavedReport | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -174,12 +196,35 @@ export function ReportBuilderShell() {
         }
         throw new Error(message);
       }
-      const report = (await res.json()) as { id: string };
-      setSavedReportId(report.id);
+      const report = (await res.json()) as SavedReport;
+      setSavedReport(report);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExportReport = async (format: "pdf" | "csv") => {
+    if (!savedReport) return;
+    setExporting(true);
+    try {
+      const res = await fetch(
+        `/api/conf/${confId}/reports/${savedReport.id}/export?format=${format}`,
+      );
+      if (!res.ok) throw new Error(`Failed to export as ${format}`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${savedReport.title}.${format === "pdf" ? "pdf" : "csv"}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : `Failed to export as ${format}`);
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -578,6 +623,7 @@ export function ReportBuilderShell() {
                   placeholder="e.g. Q1 2026 Conference Finance Report"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  disabled={!!savedReport}
                 />
               </div>
               <div className="space-y-1">
@@ -586,19 +632,57 @@ export function ReportBuilderShell() {
                   placeholder="Brief description..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  disabled={!!savedReport}
                 />
               </div>
             </CardContent>
           </Card>
 
-          {savedReportId ? (
-            <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-              <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                Report saved successfully!
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Report ID: {savedReportId}
-              </p>
+          {savedReport ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                  ✓ Report saved successfully!
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Report ID: {savedReport.id}
+                </p>
+              </div>
+
+              <ReportDocumentViewer
+                reportId={savedReport.id}
+                title={savedReport.title}
+                description={savedReport.description}
+                entries={savedReport.entries.map((e) => ({
+                  paymentId: e.paymentId,
+                  description: e.description,
+                  amount: e.amount,
+                  currency: e.currency,
+                  paymentType: e.paymentType,
+                  committeeScope: e.lineComment ? undefined : savedReport.committeeScope,
+                  lineComment: e.lineComment,
+                  displayOrder: e.displayOrder,
+                }))}
+                generalComment={savedReport.generalComment}
+                createdByName={savedReport.createdByName}
+                dateFrom={savedReport.dateFrom}
+                dateTo={savedReport.dateTo}
+                committeeScope={savedReport.committeeScope}
+                onExport={handleExportReport}
+                isExporting={exporting}
+              />
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSavedReport(null);
+                  setTitle("");
+                  setDescription("");
+                }}
+                className="w-full"
+              >
+                Create Another Report
+              </Button>
             </div>
           ) : null}
 
@@ -608,27 +692,31 @@ export function ReportBuilderShell() {
               Back
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              className="flex-1"
-            >
-              <Download className="mr-1 size-4" />
-              Export CSV
-            </Button>
+            {!savedReport && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  className="flex-1"
+                >
+                  <Download className="mr-1 size-4" />
+                  Export CSV
+                </Button>
 
-            <Button
-              onClick={handleSaveReport}
-              className="flex-1"
-              disabled={saving || !title.trim()}
-            >
-              {saving ? (
-                <Loader2 className="mr-1 size-4 animate-spin" />
-              ) : (
-                <Plus className="mr-1 size-4" />
-              )}
-              {saving ? "Saving..." : "Save Report"}
-            </Button>
+                <Button
+                  onClick={handleSaveReport}
+                  className="flex-1"
+                  disabled={saving || !title.trim()}
+                >
+                  {saving ? (
+                    <Loader2 className="mr-1 size-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-1 size-4" />
+                  )}
+                  {saving ? "Saving..." : "Save Report"}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
