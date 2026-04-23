@@ -15,6 +15,9 @@ import {
   ZoomIn,
   ZoomOut,
   FileText,
+  Upload,
+  X,
+  Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,12 +45,24 @@ type LetterDraft = {
   issuingRoleKey: string;
   officeLabel: string;
   signatoryMode: "NONE" | "STANDARD" | "FUNDRAISING" | "CUSTOM";
+  // Signatory 1 (left — least authority, e.g. Secretary → "Signed")
   signatory1Name: string;
   signatory1Title: string;
+  signatory1Label: string;  // e.g. "Signed"
+  signatory1Sig: string;    // base64 data URL of signature image
+  signatory1SigScale: number; // 0.5–2.0, default 1
+  // Signatory 2 (centre — mid authority, e.g. Vice-Chair → "Approved")
   signatory2Name: string;
   signatory2Title: string;
+  signatory2Label: string;
+  signatory2Sig: string;
+  signatory2SigScale: number;
+  // Signatory 3 (right — highest authority, e.g. Chair → "Attested")
   signatory3Name: string;
   signatory3Title: string;
+  signatory3Label: string;
+  signatory3Sig: string;
+  signatory3SigScale: number;
   savedAt: string;
 };
 
@@ -101,10 +116,19 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatoryMode: d.signatoryMode ?? "NONE",
     signatory1Name: d.signatory1Name ?? "",
     signatory1Title: d.signatory1Title ?? "",
+    signatory1Label: d.signatory1Label ?? "Signed",
+    signatory1Sig: d.signatory1Sig ?? "",
+    signatory1SigScale: d.signatory1SigScale ?? 1,
     signatory2Name: d.signatory2Name ?? "",
     signatory2Title: d.signatory2Title ?? "",
+    signatory2Label: d.signatory2Label ?? "Approved",
+    signatory2Sig: d.signatory2Sig ?? "",
+    signatory2SigScale: d.signatory2SigScale ?? 1,
     signatory3Name: d.signatory3Name ?? "",
     signatory3Title: d.signatory3Title ?? "",
+    signatory3Label: d.signatory3Label ?? "Attested",
+    signatory3Sig: d.signatory3Sig ?? "",
+    signatory3SigScale: d.signatory3SigScale ?? 1,
     savedAt: d.savedAt ?? "",
   };
 }
@@ -150,10 +174,19 @@ function newDraft(): LetterDraft {
     signatoryMode: "NONE",
     signatory1Name: "",
     signatory1Title: "",
+    signatory1Label: "Signed",
+    signatory1Sig: "",
+    signatory1SigScale: 1,
     signatory2Name: "",
     signatory2Title: "",
+    signatory2Label: "Approved",
+    signatory2Sig: "",
+    signatory2SigScale: 1,
     signatory3Name: "",
     signatory3Title: "",
+    signatory3Label: "Attested",
+    signatory3Sig: "",
+    signatory3SigScale: 1,
     savedAt: "",
   };
 }
@@ -211,6 +244,9 @@ function fmtDateRange(start: string, end: string): string {
 type Signatory = {
   name: string;
   title: string;
+  label: string;   // "Signed" | "Approved" | "Attested"
+  sig: string;     // base64 data URL
+  sigScale: number;
 };
 
 function wrapParagraph(paragraph: string, maxChars: number): string[] {
@@ -338,9 +374,9 @@ function LetterA4Preview({
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
   const signatories: Signatory[] = [
-    { name: draft.signatory1Name ?? "", title: draft.signatory1Title ?? "" },
-    { name: draft.signatory2Name ?? "", title: draft.signatory2Title ?? "" },
-    { name: draft.signatory3Name ?? "", title: draft.signatory3Title ?? "" },
+    { name: draft.signatory1Name ?? "", title: draft.signatory1Title ?? "", label: draft.signatory1Label ?? "Signed", sig: draft.signatory1Sig ?? "", sigScale: draft.signatory1SigScale ?? 1 },
+    { name: draft.signatory2Name ?? "", title: draft.signatory2Title ?? "", label: draft.signatory2Label ?? "Approved", sig: draft.signatory2Sig ?? "", sigScale: draft.signatory2SigScale ?? 1 },
+    { name: draft.signatory3Name ?? "", title: draft.signatory3Title ?? "", label: draft.signatory3Label ?? "Attested", sig: draft.signatory3Sig ?? "", sigScale: draft.signatory3SigScale ?? 1 },
   ].filter((s) => s.name.trim() || s.title.trim());
 
   const metaLineCount =
@@ -754,9 +790,31 @@ function LetterA4Preview({
               }}
             >
               {signatories.map((sig, idx) => (
-                <div key={`${sig.name}-${idx}`} style={{ minHeight: 62 }}>
+                <div key={`${sig.name}-${idx}`} style={{ minHeight: 80, textAlign: "center" }}>
                   {(sig.name || sig.title) && (
                     <>
+                      {/* Signature label */}
+                      {sig.label && (
+                        <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, fontStyle: "italic" }}>
+                          {sig.label}
+                        </div>
+                      )}
+                      {/* Signature image */}
+                      {sig.sig && (
+                        <div style={{ display: "flex", justifyContent: "center", marginBottom: 2 }}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={sig.sig}
+                            alt="signature"
+                            style={{
+                              height: Math.round(36 * sig.sigScale),
+                              maxWidth: "100%",
+                              objectFit: "contain",
+                            }}
+                          />
+                        </div>
+                      )}
+                      {/* Signature line */}
                       <div
                         style={{
                           borderTop: "1px solid #222",
@@ -765,9 +823,7 @@ function LetterA4Preview({
                         }}
                       />
                       {sig.name && (
-                        <div
-                          style={{ fontSize: 11.5, fontWeight: 700, color: "#222" }}
-                        >
+                        <div style={{ fontSize: 11.5, fontWeight: 700, color: "#222" }}>
                           {sig.name}
                         </div>
                       )}
@@ -886,9 +942,28 @@ function LetterA4Preview({
                   }}
                 >
                   {signatories.map((sig, sigIdx) => (
-                    <div key={`${sig.name}-${sigIdx}`} style={{ minHeight: 62 }}>
+                    <div key={`${sig.name}-${sigIdx}`} style={{ minHeight: 80, textAlign: "center" }}>
                       {(sig.name || sig.title) && (
                         <>
+                          {sig.label && (
+                            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, fontStyle: "italic" }}>
+                              {sig.label}
+                            </div>
+                          )}
+                          {sig.sig && (
+                            <div style={{ display: "flex", justifyContent: "center", marginBottom: 2 }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={sig.sig}
+                                alt="signature"
+                                style={{
+                                  height: Math.round(36 * sig.sigScale),
+                                  maxWidth: "100%",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
+                          )}
                           <div
                             style={{
                               borderTop: "1px solid #222",
@@ -1149,47 +1224,59 @@ export function LetterComposerShell() {
             signatoryMode: mode,
             signatory1Name: "",
             signatory1Title: "",
+            signatory1Label: "Signed",
+            signatory1Sig: "",
             signatory2Name: "",
             signatory2Title: "",
+            signatory2Label: "Approved",
+            signatory2Sig: "",
             signatory3Name: "",
             signatory3Title: "",
+            signatory3Label: "Attested",
+            signatory3Sig: "",
           };
         }
 
         if (mode === "STANDARD") {
+          // Order: Secretary (Signed) → Vice-Chair (Approved) → Chair (Attested)
           return {
             ...d,
             signatoryMode: mode,
-            signatory1Name: chair?.name ?? "",
+            signatory1Name: secretary?.name ?? "",
             signatory1Title:
-              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+              secretary?.title ?? ROLE_LABELS[secretary?.role ?? ""] ?? "Conference Secretary",
+            signatory1Label: "Signed",
             signatory2Name: viceChair?.name ?? "",
             signatory2Title:
               viceChair?.title ??
               ROLE_LABELS[viceChair?.role ?? ""] ??
               "Conference Vice-Chair",
-            signatory3Name: secretary?.name ?? "",
+            signatory2Label: "Approved",
+            signatory3Name: chair?.name ?? "",
             signatory3Title:
-              secretary?.title ??
-              ROLE_LABELS[secretary?.role ?? ""] ??
-              "Conference Secretary",
+              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+            signatory3Label: "Attested",
           };
         }
 
         if (mode === "FUNDRAISING") {
+          // Order: Secretary (Signed) → Chair (Approved) → NEC President (Attested)
           return {
             ...d,
             signatoryMode: mode,
-            signatory1Name: chair?.name ?? "",
+            signatory1Name: secretary?.name ?? "",
             signatory1Title:
-              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
-            signatory2Name: secretary?.name ?? "",
-            signatory2Title:
               secretary?.title ??
               ROLE_LABELS[secretary?.role ?? ""] ??
               "Conference Secretary",
+            signatory1Label: "Signed",
+            signatory2Name: chair?.name ?? "",
+            signatory2Title:
+              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+            signatory2Label: "Approved",
             signatory3Name: necPresidentName || "",
             signatory3Title: necPresidentName ? "National President (NEC)" : "",
+            signatory3Label: "Attested",
           };
         }
 
@@ -1593,26 +1680,142 @@ export function LetterComposerShell() {
 
                 {/* Signatory fields */}
                 {activeDraft.signatoryMode !== "NONE" && (
-                  <div className="space-y-2.5 pt-1">
+                  <div className="space-y-3 pt-1">
                     {([
-                      { nameKey: "signatory1Name", titleKey: "signatory1Title", label: "Signatory 1" },
-                      { nameKey: "signatory2Name", titleKey: "signatory2Title", label: "Signatory 2" },
-                      { nameKey: "signatory3Name", titleKey: "signatory3Title", label: "Signatory 3" },
-                    ] as const).map(({ nameKey, titleKey, label }) => (
-                      <div key={nameKey} className="space-y-1">
-                        <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                      {
+                        nameKey: "signatory1Name",
+                        titleKey: "signatory1Title",
+                        labelKey: "signatory1Label",
+                        sigKey: "signatory1Sig",
+                        scaleKey: "signatory1SigScale",
+                        badge: "1",
+                      },
+                      {
+                        nameKey: "signatory2Name",
+                        titleKey: "signatory2Title",
+                        labelKey: "signatory2Label",
+                        sigKey: "signatory2Sig",
+                        scaleKey: "signatory2SigScale",
+                        badge: "2",
+                      },
+                      {
+                        nameKey: "signatory3Name",
+                        titleKey: "signatory3Title",
+                        labelKey: "signatory3Label",
+                        sigKey: "signatory3Sig",
+                        scaleKey: "signatory3SigScale",
+                        badge: "3",
+                      },
+                    ] as const).map(({ nameKey, titleKey, labelKey, sigKey, scaleKey, badge }) => (
+                      <div
+                        key={nameKey}
+                        className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2"
+                      >
+                        {/* Header row: badge + label input */}
+                        <div className="flex items-center gap-2">
+                          <span className="size-5 rounded-full bg-[#002868] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {badge}
+                          </span>
+                          <Input
+                            placeholder="e.g. Signed / Approved / Attested"
+                            className="h-7 text-xs font-semibold flex-1"
+                            value={activeDraft[labelKey]}
+                            onChange={(e) => set(labelKey)(e.target.value)}
+                          />
+                        </div>
+                        {/* Name */}
                         <Input
-                          placeholder="Name"
+                          placeholder="Full name"
                           className="h-7 text-sm"
                           value={activeDraft[nameKey]}
                           onChange={(e) => set(nameKey)(e.target.value)}
                         />
+                        {/* Title */}
                         <Input
                           placeholder="Title / Role"
                           className="h-7 text-sm"
                           value={activeDraft[titleKey]}
                           onChange={(e) => set(titleKey)(e.target.value)}
                         />
+                        {/* Signature upload + preview + scale */}
+                        <div className="space-y-1.5">
+                          {activeDraft[sigKey] ? (
+                            <div className="flex items-center gap-2">
+                              {/* Preview */}
+                              <div className="flex-1 rounded border border-border bg-white flex items-center justify-center py-1 px-2" style={{ minHeight: 40 }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={activeDraft[sigKey]}
+                                  alt="sig preview"
+                                  style={{
+                                    height: Math.round(32 * (activeDraft[scaleKey] ?? 1)),
+                                    maxWidth: "100%",
+                                    objectFit: "contain",
+                                  }}
+                                />
+                              </div>
+                              {/* Scale controls */}
+                              <div className="flex flex-col items-center gap-0.5">
+                                <button
+                                  className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                  title="Increase signature size"
+                                  onClick={() =>
+                                    setActiveDraft((d) => ({
+                                      ...d,
+                                      [scaleKey]: Math.min(3, Math.round(((d[scaleKey] ?? 1) + 0.25) * 100) / 100),
+                                    }))
+                                  }
+                                >
+                                  <Plus className="size-3" />
+                                </button>
+                                <span className="text-[9px] font-mono text-muted-foreground">
+                                  {((activeDraft[scaleKey] ?? 1) * 100).toFixed(0)}%
+                                </span>
+                                <button
+                                  className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                  title="Decrease signature size"
+                                  onClick={() =>
+                                    setActiveDraft((d) => ({
+                                      ...d,
+                                      [scaleKey]: Math.max(0.25, Math.round(((d[scaleKey] ?? 1) - 0.25) * 100) / 100),
+                                    }))
+                                  }
+                                >
+                                  <Minus className="size-3" />
+                                </button>
+                              </div>
+                              {/* Remove */}
+                              <button
+                                className="size-6 rounded border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0"
+                                title="Remove signature"
+                                onClick={() => setActiveDraft((d) => ({ ...d, [sigKey]: "" }))}
+                              >
+                                <X className="size-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
+                              <Upload className="size-3.5" />
+                              Upload signature image
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = (ev) => {
+                                    const result = ev.target?.result as string;
+                                    setActiveDraft((d) => ({ ...d, [sigKey]: result }));
+                                  };
+                                  reader.readAsDataURL(file);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
