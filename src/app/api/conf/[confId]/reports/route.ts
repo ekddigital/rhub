@@ -61,6 +61,16 @@ export async function POST(
       lineComments, // { [paymentId]: string } map
     } = body;
 
+    const normalizedPaymentTypes = Array.isArray(paymentTypes)
+      ? paymentTypes
+          .filter((value: unknown): value is string => typeof value === "string")
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .join(",") || null
+      : typeof paymentTypes === "string" && paymentTypes.trim()
+        ? paymentTypes.trim()
+        : null;
+
     if (!title) {
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
@@ -73,7 +83,7 @@ export async function POST(
         dateFrom: dateFrom ? new Date(dateFrom) : null,
         dateTo: dateTo ? new Date(dateTo) : null,
         committeeScope: committeeScope || null,
-        paymentTypes: paymentTypes || null,
+        paymentTypes: normalizedPaymentTypes,
         generalComment: generalComment || null,
         createdByName: auth.access.user?.name ?? null,
         createdByUserId: auth.access.user?.id ?? null,
@@ -115,8 +125,14 @@ export async function POST(
     return NextResponse.json(report, { status: 201 });
   } catch (error) {
     console.error("Failed to create report:", error);
+
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : "Failed to create report";
+
     return NextResponse.json(
-      { error: "Failed to create report" },
+      { error: message },
       { status: 500 },
     );
   }

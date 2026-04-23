@@ -164,7 +164,16 @@ export function ReportBuilderShell() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Failed to save report");
+      if (!res.ok) {
+        let message = "Failed to save report";
+        try {
+          const data = (await res.json()) as { error?: string };
+          if (data?.error) message = data.error;
+        } catch {
+          // Keep fallback message if response is not valid JSON.
+        }
+        throw new Error(message);
+      }
       const report = (await res.json()) as { id: string };
       setSavedReportId(report.id);
     } catch (e) {
