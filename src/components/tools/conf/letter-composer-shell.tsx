@@ -39,6 +39,15 @@ type LetterDraft = {
   re: string;
   date: string;
   body: string;
+  issuingRoleKey: string;
+  officeLabel: string;
+  signatoryMode: "NONE" | "STANDARD" | "FUNDRAISING" | "CUSTOM";
+  signatory1Name: string;
+  signatory1Title: string;
+  signatory2Name: string;
+  signatory2Title: string;
+  signatory3Name: string;
+  signatory3Title: string;
   savedAt: string;
 };
 
@@ -58,6 +67,19 @@ type ConfInfo = {
   venue: string | null;
   startsAt: string;
   endsAt: string;
+};
+
+type RoleTemplate = {
+  id: string;
+  key: string;
+  label: string;
+  baseRole: "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE";
+  title: string | null;
+  committeeScope: string | null;
+  officeLabel: string | null;
+  sortOrder: number;
+  isSystem: boolean;
+  isActive: boolean;
 };
 
 // ── localStorage helpers ─────────────────────────────────────────────────────
@@ -98,6 +120,15 @@ function newDraft(): LetterDraft {
       day: "numeric",
     }),
     body: "",
+    issuingRoleKey: "",
+    officeLabel: "Office of the Conference Chairman",
+    signatoryMode: "NONE",
+    signatory1Name: "",
+    signatory1Title: "",
+    signatory2Name: "",
+    signatory2Title: "",
+    signatory3Name: "",
+    signatory3Title: "",
     savedAt: "",
   };
 }
@@ -152,6 +183,83 @@ function fmtDateRange(start: string, end: string): string {
   );
 }
 
+type Signatory = {
+  name: string;
+  title: string;
+};
+
+function wrapParagraph(paragraph: string, maxChars: number): string[] {
+  const words = paragraph.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [""];
+
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (candidate.length <= maxChars) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [""];
+}
+
+function bodyToWrappedLines(body: string, maxChars = 92): string[] {
+  const paragraphs = body.split("\n");
+  const wrapped: string[] = [];
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) {
+      wrapped.push("");
+      continue;
+    }
+    wrapped.push(...wrapParagraph(paragraph, maxChars));
+  }
+  return wrapped;
+}
+
+function paginateBodyText(
+  body: string,
+  firstPageCapacity: number,
+  continuationCapacity: number,
+  signatoryLines: number,
+) {
+  const wrapped = bodyToWrappedLines(body);
+
+  if (wrapped.length === 0) return [""];
+
+  const pages: string[][] = [];
+  let cursor = 0;
+  let pageIndex = 0;
+
+  while (cursor < wrapped.length) {
+    const cap = pageIndex === 0 ? firstPageCapacity : continuationCapacity;
+    pages.push(wrapped.slice(cursor, cursor + cap));
+    cursor += cap;
+    pageIndex += 1;
+  }
+
+  if (signatoryLines > 0 && pages.length > 0) {
+    let lastIndex = pages.length - 1;
+    const lastCap =
+      pages.length === 1
+        ? Math.max(8, firstPageCapacity - signatoryLines)
+        : Math.max(8, continuationCapacity - signatoryLines);
+
+    while (pages[lastIndex].length > lastCap) {
+      const overflow = pages[lastIndex].splice(lastCap);
+      pages.push(overflow);
+      lastIndex = pages.length - 1;
+    }
+  }
+
+  return pages.map((lines) => lines.join("\n").trimEnd());
+}
+
 // ── A4 Letter Preview ─────────────────────────────────────────────────────────
 
 function LetterA4Preview({
@@ -204,20 +312,43 @@ function LetterA4Preview({
     : "July 23 – 27, 2026";
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
+  const signatories: Signatory[] = [
+    { name: draft.signatory1Name, title: draft.signatory1Title },
+    { name: draft.signatory2Name, title: draft.signatory2Title },
+    { name: draft.signatory3Name, title: draft.signatory3Title },
+  ].filter((s) => s.name.trim() || s.title.trim());
+
+  const metaLineCount =
+    (draft.to ? 2 : 0) + (draft.from ? 2 : 0) + (draft.re ? 2 : 0) + 2;
+  const signatureReserveLines = signatories.length > 0 ? 10 : 0;
+  const firstPageCapacity = Math.max(12, 42 - metaLineCount - signatureReserveLines);
+  const continuationCapacity = 56;
+  const bodyPages = paginateBodyText(
+    draft.body,
+    firstPageCapacity,
+    continuationCapacity,
+    signatureReserveLines,
+  );
+  const firstPageBody = bodyPages[0] ?? "";
+  const continuationBodies = bodyPages.slice(1);
+  const showSignaturesOnFirstPage = continuationBodies.length === 0;
+  const officeLabel = draft.officeLabel.trim() || "Office of the Conference Chairman";
+
   return (
-    <div
-      className="letter-page"
-      style={{
-        width: PAGE_W,
-        height: forPrint ? "auto" : PAGE_H,
-        background: C.white,
-        display: "flex",
-        flexDirection: "column",
-        overflow: forPrint ? "visible" : "hidden",
-        boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
-        fontFamily: "'Helvetica Neue', Arial, sans-serif",
-      }}
-    >
+    <>
+      <div
+        className="letter-page"
+        style={{
+          width: PAGE_W,
+          height: forPrint ? "auto" : PAGE_H,
+          background: C.white,
+          display: "flex",
+          flexDirection: "column",
+          overflow: forPrint ? "visible" : "hidden",
+          boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+          fontFamily: "'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
       {/* ── Liberian flag stripes ── */}
       <div style={{ display: "flex", height: STRIPE_H, flexShrink: 0 }}>
         {FLAG_STRIPES_11.map((color, i) => (
@@ -373,7 +504,7 @@ function LetterA4Preview({
             fontStyle: "italic",
           }}
         >
-          Office of the Conference Chairman
+          {officeLabel}
         </span>
       </div>
 
@@ -572,14 +703,60 @@ function LetterA4Preview({
               whiteSpace: "pre-wrap",
             }}
           >
-            {draft.body ? (
-              draft.body
+            {firstPageBody ? (
+              firstPageBody
             ) : (
               <span style={{ color: "#bbb", fontStyle: "italic" }}>
                 Your letter content will appear here as you type…
               </span>
             )}
           </div>
+
+          {showSignaturesOnFirstPage && signatories.length > 0 && (
+            <div
+              style={{
+                marginTop: 28,
+                paddingTop: 14,
+                borderTop: `1px solid ${C.gold}`,
+                display: "grid",
+                gridTemplateColumns:
+                  signatories.length === 1
+                    ? "1fr"
+                    : signatories.length === 2
+                      ? "repeat(2, 1fr)"
+                      : "repeat(3, 1fr)",
+                gap: 16,
+              }}
+            >
+              {signatories.map((sig, idx) => (
+                <div key={`${sig.name}-${idx}`} style={{ minHeight: 62 }}>
+                  {(sig.name || sig.title) && (
+                    <>
+                      <div
+                        style={{
+                          borderTop: "1px solid #222",
+                          width: "100%",
+                          marginBottom: 6,
+                        }}
+                      />
+                      {sig.name && (
+                        <div
+                          style={{ fontSize: 11.5, fontWeight: 700, color: "#222" }}
+                        >
+                          {sig.name}
+                        </div>
+                      )}
+                      {sig.title && (
+                        <div style={{ fontSize: 10.5, color: C.muted }}>
+                          {sig.title}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -615,6 +792,143 @@ function LetterA4Preview({
         </div>
       </div>
     </div>
+
+      {continuationBodies.map((segment, idx) => {
+        const isLast = idx === continuationBodies.length - 1;
+        return (
+          <div
+            key={`cont-${idx}`}
+            className="letter-page continuation-page"
+            style={{
+              width: PAGE_W,
+              minHeight: PAGE_H,
+              background: C.white,
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+              fontFamily: "'Helvetica Neue', Arial, sans-serif",
+              marginTop: 18,
+            }}
+          >
+            <div style={{ display: "flex", height: 8, flexShrink: 0 }}>
+              {FLAG_STRIPES_11.map((color, i) => (
+                <div key={i} style={{ flex: 1, background: color }} />
+              ))}
+            </div>
+            <div
+              style={{
+                padding: "10px 22px",
+                borderBottom: `2px solid ${C.gold}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
+                LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+              </div>
+              <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+                {officeLabel}
+              </div>
+            </div>
+
+            <div style={{ flex: 1, padding: "26px 32px 24px" }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#222",
+                  lineHeight: 1.8,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {segment}
+              </div>
+
+              {isLast && signatories.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 28,
+                    paddingTop: 14,
+                    borderTop: `1px solid ${C.gold}`,
+                    display: "grid",
+                    gridTemplateColumns:
+                      signatories.length === 1
+                        ? "1fr"
+                        : signatories.length === 2
+                          ? "repeat(2, 1fr)"
+                          : "repeat(3, 1fr)",
+                    gap: 16,
+                  }}
+                >
+                  {signatories.map((sig, sigIdx) => (
+                    <div key={`${sig.name}-${sigIdx}`} style={{ minHeight: 62 }}>
+                      {(sig.name || sig.title) && (
+                        <>
+                          <div
+                            style={{
+                              borderTop: "1px solid #222",
+                              width: "100%",
+                              marginBottom: 6,
+                            }}
+                          />
+                          {sig.name && (
+                            <div
+                              style={{
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                color: "#222",
+                              }}
+                            >
+                              {sig.name}
+                            </div>
+                          )}
+                          {sig.title && (
+                            <div style={{ fontSize: 10.5, color: C.muted }}>
+                              {sig.title}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                height: FOOTER_H,
+                background: C.navy,
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  height: 2,
+                  background: C.red,
+                  width: "100%",
+                  marginBottom: 4,
+                }}
+              />
+              <div
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: C.gold,
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Motto: &quot;Excellence Through Hard Work&quot;
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </>
   );
 }
 
@@ -624,6 +938,8 @@ export function LetterComposerShell() {
   const [confId, setConfId] = useState("");
   const [confInfo, setConfInfo] = useState<ConfInfo | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [roles, setRoles] = useState<RoleTemplate[]>([]);
+  const [necPresidentName, setNecPresidentName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -647,9 +963,37 @@ export function LetterComposerShell() {
           fetch(`/api/conf/${conf.id}/members`),
         ]);
 
+        const [rolesRes, bookletRes] = await Promise.all([
+          fetch(`/api/conf/${conf.id}/roles`, { cache: "no-store" }).catch(
+            () => null,
+          ),
+          fetch(`/api/conf/${conf.id}/booklet/data`, {
+            cache: "no-store",
+          }).catch(() => null),
+        ]);
+
         if (membersRes.ok) {
           const mems = (await membersRes.json()) as Member[];
           setMembers(mems.filter((m) => m.role !== "COMMITTEE" || m.title));
+        }
+
+        if (rolesRes?.ok) {
+          const roleTemplates = (await rolesRes.json()) as RoleTemplate[];
+          setRoles(roleTemplates.filter((r) => r.isActive));
+        }
+
+        if (bookletRes?.ok) {
+          const booklet = await bookletRes.json();
+          const nec = Array.isArray(booklet?.necMembers)
+            ? booklet.necMembers
+            : [];
+          const necPresident = nec.find(
+            (n: { title?: string; name?: string }) =>
+              (n.title || "").toLowerCase().includes("national president"),
+          );
+          if (necPresident?.name) {
+            setNecPresidentName(String(necPresident.name));
+          }
         }
 
         // Try to get event info from members endpoint data or fallback
@@ -753,6 +1097,83 @@ export function LetterComposerShell() {
     [],
   );
 
+  const applyOfficeFromRole = useCallback(
+    (roleKey: string) => {
+      const roleTemplate = roles.find((r) => r.key === roleKey) ?? null;
+      setActiveDraft((d) => ({
+        ...d,
+        issuingRoleKey: roleKey,
+        officeLabel:
+          roleTemplate?.officeLabel ||
+          (roleTemplate ? `Office of ${roleTemplate.label}` : d.officeLabel),
+      }));
+    },
+    [roles],
+  );
+
+  const applySignatoryPreset = useCallback(
+    (mode: LetterDraft["signatoryMode"]) => {
+      const chair = members.find((m) => m.role === "CHAIR");
+      const viceChair = members.find((m) => m.role === "VICE_CHAIR");
+      const secretary = members.find((m) => m.role === "SECRETARY");
+
+      setActiveDraft((d) => {
+        if (mode === "NONE") {
+          return {
+            ...d,
+            signatoryMode: mode,
+            signatory1Name: "",
+            signatory1Title: "",
+            signatory2Name: "",
+            signatory2Title: "",
+            signatory3Name: "",
+            signatory3Title: "",
+          };
+        }
+
+        if (mode === "STANDARD") {
+          return {
+            ...d,
+            signatoryMode: mode,
+            signatory1Name: chair?.name ?? "",
+            signatory1Title:
+              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+            signatory2Name: viceChair?.name ?? "",
+            signatory2Title:
+              viceChair?.title ??
+              ROLE_LABELS[viceChair?.role ?? ""] ??
+              "Conference Vice-Chair",
+            signatory3Name: secretary?.name ?? "",
+            signatory3Title:
+              secretary?.title ??
+              ROLE_LABELS[secretary?.role ?? ""] ??
+              "Conference Secretary",
+          };
+        }
+
+        if (mode === "FUNDRAISING") {
+          return {
+            ...d,
+            signatoryMode: mode,
+            signatory1Name: chair?.name ?? "",
+            signatory1Title:
+              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+            signatory2Name: secretary?.name ?? "",
+            signatory2Title:
+              secretary?.title ??
+              ROLE_LABELS[secretary?.role ?? ""] ??
+              "Conference Secretary",
+            signatory3Name: necPresidentName || "",
+            signatory3Title: necPresidentName ? "National President (NEC)" : "",
+          };
+        }
+
+        return { ...d, signatoryMode: mode };
+      });
+    },
+    [members, necPresidentName],
+  );
+
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
@@ -824,6 +1245,10 @@ export function LetterComposerShell() {
     );
   }
 
+  const sortedRoleTemplates = [...roles].sort(
+    (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -846,17 +1271,28 @@ export function LetterComposerShell() {
           #letter-print-root,
           #letter-print-root * { visibility: visible !important; }
           #letter-print-root {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 210mm !important;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
             pointer-events: auto !important;
           }
           .letter-page {
             width: 210mm !important;
-            height: 297mm !important;
+            min-height: 297mm !important;
+            height: auto !important;
             box-shadow: none !important;
             transform: none !important;
+            margin: 0 !important;
+            break-after: page;
+            page-break-after: always;
+          }
+          .letter-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
+          }
+          .continuation-page {
+            margin-top: 0 !important;
           }
           @page { size: A4 portrait; margin: 0; }
         }
@@ -1066,6 +1502,96 @@ export function LetterComposerShell() {
                 <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
                   {activeDraft.body.length} characters
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* ── Office & Signatories ── */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Issuing Office &amp; Signatories</CardTitle>
+                <CardDescription className="text-xs">
+                  Select a committee role to auto-fill the office label, or type a custom label. Add up to three signatories.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {/* Role picker */}
+                {sortedRoleTemplates.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Issuing Role (auto-fill office)</Label>
+                    <select
+                      className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                      value={activeDraft.issuingRoleKey}
+                      onChange={(e) => {
+                        if (e.target.value) applyOfficeFromRole(e.target.value);
+                        else set("issuingRoleKey")("");
+                      }}
+                    >
+                      <option value="">— select role —</option>
+                      {sortedRoleTemplates.map((r) => (
+                        <option key={r.id} value={r.key}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {/* Office label override */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Office Label (override)</Label>
+                  <Input
+                    placeholder="e.g. Office of the Conference Chairman"
+                    className="h-8 text-sm"
+                    value={activeDraft.officeLabel}
+                    onChange={(e) => set("officeLabel")(e.target.value)}
+                  />
+                </div>
+
+                {/* Signatory preset */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Signatory Preset</Label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {(["NONE", "STANDARD", "FUNDRAISING", "CUSTOM"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => applySignatoryPreset(mode)}
+                        className={`px-2.5 py-1 rounded text-xs border transition-colors ${
+                          activeDraft.signatoryMode === mode
+                            ? "bg-[#002868] text-white border-[#002868]"
+                            : "bg-background border-border hover:bg-muted/60"
+                        }`}
+                      >
+                        {mode === "NONE" ? "None" : mode === "STANDARD" ? "Standard" : mode === "FUNDRAISING" ? "Fundraising" : "Custom"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Signatory fields */}
+                {activeDraft.signatoryMode !== "NONE" && (
+                  <div className="space-y-2.5 pt-1">
+                    {([
+                      { nameKey: "signatory1Name", titleKey: "signatory1Title", label: "Signatory 1" },
+                      { nameKey: "signatory2Name", titleKey: "signatory2Title", label: "Signatory 2" },
+                      { nameKey: "signatory3Name", titleKey: "signatory3Title", label: "Signatory 3" },
+                    ] as const).map(({ nameKey, titleKey, label }) => (
+                      <div key={nameKey} className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">{label}</Label>
+                        <Input
+                          placeholder="Name"
+                          className="h-7 text-sm"
+                          value={activeDraft[nameKey]}
+                          onChange={(e) => set(nameKey)(e.target.value)}
+                        />
+                        <Input
+                          placeholder="Title / Role"
+                          className="h-7 text-sm"
+                          value={activeDraft[titleKey]}
+                          onChange={(e) => set(titleKey)(e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

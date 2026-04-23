@@ -47,8 +47,29 @@ export async function POST(
     if (!auth.ok) return auth.response;
 
     const body = await req.json();
-    const { name, role, city, phone, email, title, photoPath, photoFileName } =
-      body;
+    const {
+      name,
+      role,
+      city,
+      phone,
+      email,
+      title,
+      committeeScope,
+      roleTemplateKey,
+      photoPath,
+      photoFileName,
+    } = body as {
+      name?: string;
+      role?: string;
+      city?: string;
+      phone?: string;
+      email?: string;
+      title?: string;
+      committeeScope?: string;
+      roleTemplateKey?: string;
+      photoPath?: string;
+      photoFileName?: string;
+    };
 
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -70,15 +91,70 @@ export async function POST(
       );
     }
 
+    const roleTemplate = roleTemplateKey
+      ? await prisma.confCommitteeRole.findFirst({
+          where: {
+            confId,
+            key: String(roleTemplateKey),
+            isActive: true,
+          },
+        })
+      : null;
+
+    if (roleTemplateKey && !roleTemplate) {
+      return NextResponse.json(
+        { error: "Role template not found" },
+        { status: 404 },
+      );
+    }
+
+    const resolvedRole = (roleTemplate?.baseRole ?? role ?? "COMMITTEE") as import("@prisma/client").ConfRole;
+    const resolvedTitle = roleTemplate?.title ?? title ?? null;
+    const resolvedScope = roleTemplate?.committeeScope ?? committeeScope ?? null;
+
+    const isLeadershipRole = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(
+      resolvedRole,
+    );
+    const canAssignLeadership =
+      auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR";
+
+    if (isLeadershipRole && !canAssignLeadership) {
+      return NextResponse.json(
+        {
+          error:
+            "Only Super Admin or Conference Chair can assign leadership roles",
+        },
+        { status: 403 },
+      );
+    }
+
+    const isScopedAssigner =
+      !auth.access.isSuperAdmin &&
+      auth.access.memberRole !== "CHAIR" &&
+      auth.access.canAssignCommittee;
+
+    if (
+      isScopedAssigner &&
+      resolvedScope &&
+      auth.access.committeeScope &&
+      resolvedScope !== auth.access.committeeScope
+    ) {
+      return NextResponse.json(
+        { error: "You can only assign members within your committee scope" },
+        { status: 403 },
+      );
+    }
+
     const member = await prisma.confMember.create({
       data: {
         confId,
         name,
-        role: role || "COMMITTEE",
+        role: resolvedRole,
         city: city || null,
         phone: phone || null,
         email: email || null,
-        title: title || null,
+        title: resolvedTitle,
+        committeeScope: resolvedScope,
         photoPath: photoPath || null,
         photoFileName: photoFileName || null,
       },

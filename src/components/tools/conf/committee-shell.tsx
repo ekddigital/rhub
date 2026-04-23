@@ -21,6 +21,7 @@ import {
   Pencil,
   X,
   Check,
+  Trash2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,14 +62,52 @@ type AccessInfo = {
   committeeScope: string | null;
 };
 
+type RoleTemplate = {
+  id: string;
+  key: string;
+  label: string;
+  baseRole: "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE";
+  title: string | null;
+  committeeScope: string | null;
+  officeLabel: string | null;
+  isSystem: boolean;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+const BASE_ROLE_OPTIONS = [
+  "CHAIR",
+  "VICE_CHAIR",
+  "SECRETARY",
+  "TREASURER",
+  "COMMITTEE",
+  "DELEGATE",
+] as const;
+
 const ROLE_CONFIG: Record<
   string,
   { label: string; icon: React.ElementType; color: string }
 > = {
-  CHAIR: { label: "Chair", icon: Crown, color: "text-[#C8A061]" },
-  VICE_CHAIR: { label: "Vice Chair", icon: Crown, color: "text-[#D4AF6A]" },
-  SECRETARY: { label: "Secretary", icon: Shield, color: "text-blue-500" },
-  TREASURER: { label: "Treasurer", icon: Shield, color: "text-emerald-500" },
+  CHAIR: {
+    label: "Conference Chair",
+    icon: Crown,
+    color: "text-[#C8A061]",
+  },
+  VICE_CHAIR: {
+    label: "Conference Vice-Chair",
+    icon: Crown,
+    color: "text-[#D4AF6A]",
+  },
+  SECRETARY: {
+    label: "Conference Secretary",
+    icon: Shield,
+    color: "text-blue-500",
+  },
+  TREASURER: {
+    label: "Conference Treasurer",
+    icon: Shield,
+    color: "text-emerald-500",
+  },
   COMMITTEE: {
     label: "Committee Member",
     icon: Users,
@@ -86,6 +125,24 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  // Role templates (persistent CRUD)
+  const [roles, setRoles] = useState<RoleTemplate[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [roleSaving, setRoleSaving] = useState(false);
+  const [roleDeletingId, setRoleDeletingId] = useState<string | null>(null);
+  const [showRoleForm, setShowRoleForm] = useState(false);
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+  const [newMemberRoleKey, setNewMemberRoleKey] = useState("");
+  const [roleLabelInput, setRoleLabelInput] = useState("");
+  const [roleBaseInput, setRoleBaseInput] = useState<
+    "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE"
+  >("COMMITTEE");
+  const [roleTitleInput, setRoleTitleInput] = useState("");
+  const [roleScopeInput, setRoleScopeInput] = useState("");
+  const [roleOfficeInput, setRoleOfficeInput] = useState("");
+  const [roleSortInput, setRoleSortInput] = useState("100");
+  const [roleActiveInput, setRoleActiveInput] = useState(true);
 
   // Per-member permissions panel
   const [permPanelId, setPermPanelId] = useState<string | null>(null);
@@ -155,13 +212,33 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setMembers(data);
   };
 
+  const loadRoles = async (id: string) => {
+    setRolesLoading(true);
+    try {
+      const includeInactive = accessInfo?.isSuperAdmin ? "?includeInactive=1" : "";
+      const res = await fetch(`/api/conf/${id}/roles${includeInactive}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to load committee roles");
+      }
+      const data = (await res.json()) as RoleTemplate[];
+      setRoles(data);
+      if (!newMemberRoleKey && data.length > 0) {
+        setNewMemberRoleKey(data[0].key);
+      }
+    } finally {
+      setRolesLoading(false);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       try {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        await loadMembers(conf.id);
+        await Promise.all([loadMembers(conf.id), loadRoles(conf.id)]);
       } catch (e) {
         setError(
           e instanceof Error ? e.message : "Failed to initialize committee",
@@ -179,6 +256,16 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [members],
   );
 
+  const activeRoles = useMemo(
+    () => roles.filter((r) => r.isActive),
+    [roles],
+  );
+
+  const roleByKey = useMemo(
+    () => new Map(roles.map((r) => [r.key, r])),
+    [roles],
+  );
+
   const resetForm = () => {
     setName("");
     setRole("COMMITTEE");
@@ -187,6 +274,98 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setPhone("");
     setEmail("");
     setPhotoFile(null);
+    setNewMemberRoleKey("");
+  };
+
+  const resetRoleForm = () => {
+    setEditingRoleId(null);
+    setRoleLabelInput("");
+    setRoleBaseInput("COMMITTEE");
+    setRoleTitleInput("");
+    setRoleScopeInput("");
+    setRoleOfficeInput("");
+    setRoleSortInput("100");
+    setRoleActiveInput(true);
+  };
+
+  const beginEditRole = (template: RoleTemplate) => {
+    setEditingRoleId(template.id);
+    setRoleLabelInput(template.label);
+    setRoleBaseInput(template.baseRole);
+    setRoleTitleInput(template.title ?? "");
+    setRoleScopeInput(template.committeeScope ?? "");
+    setRoleOfficeInput(template.officeLabel ?? "");
+    setRoleSortInput(String(template.sortOrder));
+    setRoleActiveInput(template.isActive);
+    setShowRoleForm(true);
+  };
+
+  const handleSaveRoleTemplate = async () => {
+    if (!confId || roleSaving) return;
+    if (!roleLabelInput.trim()) {
+      setError("Role label is required");
+      return;
+    }
+
+    setRoleSaving(true);
+    setError(null);
+    try {
+      const payload = {
+        label: roleLabelInput.trim(),
+        baseRole: roleBaseInput,
+        title: roleTitleInput.trim() || null,
+        committeeScope: roleScopeInput.trim() || null,
+        officeLabel: roleOfficeInput.trim() || null,
+        sortOrder: Number.isFinite(Number(roleSortInput))
+          ? Number(roleSortInput)
+          : 100,
+        isActive: roleActiveInput,
+      };
+
+      const endpoint = editingRoleId
+        ? `/api/conf/${confId}/roles/${editingRoleId}`
+        : `/api/conf/${confId}/roles`;
+      const method = editingRoleId ? "PATCH" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? "Failed to save role template");
+      }
+
+      await loadRoles(confId);
+      resetRoleForm();
+      setShowRoleForm(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save role template");
+    } finally {
+      setRoleSaving(false);
+    }
+  };
+
+  const handleDeleteRoleTemplate = async (template: RoleTemplate) => {
+    if (!confId || roleDeletingId) return;
+    setRoleDeletingId(template.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/roles/${template.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? "Failed to delete role template");
+      }
+      await loadRoles(confId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete role template");
+    } finally {
+      setRoleDeletingId(null);
+    }
   };
 
   const handleAdd = async () => {
@@ -205,6 +384,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           city,
           phone,
           email,
+          roleTemplateKey: newMemberRoleKey || undefined,
         }),
       });
 
@@ -291,6 +471,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     memberId: string,
     patch: Partial<{
       role: string;
+      roleTemplateKey: string;
       committeeScope: string | null;
       canAssignCommittee: boolean;
       canApprovePayments: boolean;
@@ -353,16 +534,188 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             {members.length} members across {cities.length} cities
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-          <Plus className="size-4" />
-          Add Member
-        </Button>
+        <div className="flex items-center gap-2">
+          {(accessInfo?.isSuperAdmin || accessInfo?.isChair) && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowRoleForm((v) => !v)}
+            >
+              <Settings2 className="size-4" />
+              Manage Roles
+            </Button>
+          )}
+          <Button size="sm" onClick={() => setShowForm((v) => !v)}>
+            <Plus className="size-4" />
+            Add Member
+          </Button>
+        </div>
       </div>
 
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
           {error}
         </div>
+      )}
+
+      {showRoleForm && (accessInfo?.isSuperAdmin || accessInfo?.isChair) && (
+        <Card className="border-[#C8A061]/40">
+          <CardHeader>
+            <CardTitle className="text-base">
+              {editingRoleId ? "Edit Role Template" : "Create Role Template"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Role Label</Label>
+                <Input
+                  placeholder="e.g. Conference Protocol Chair"
+                  value={roleLabelInput}
+                  onChange={(e) => setRoleLabelInput(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Base Role</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  value={roleBaseInput}
+                  onChange={(e) =>
+                    setRoleBaseInput(
+                      e.target.value as
+                        | "CHAIR"
+                        | "VICE_CHAIR"
+                        | "SECRETARY"
+                        | "TREASURER"
+                        | "COMMITTEE"
+                        | "DELEGATE",
+                    )
+                  }
+                >
+                  {BASE_ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label>Sort Order</Label>
+                <Input
+                  placeholder="100"
+                  value={roleSortInput}
+                  onChange={(e) => setRoleSortInput(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Title / Position</Label>
+                <Input
+                  placeholder="e.g. General Secretary"
+                  value={roleTitleInput}
+                  onChange={(e) => setRoleTitleInput(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Committee Scope</Label>
+                <Input
+                  placeholder="e.g. Cooking, Logistics"
+                  value={roleScopeInput}
+                  onChange={(e) => setRoleScopeInput(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Office Label</Label>
+                <Input
+                  placeholder="e.g. Office of the Cooking Committee"
+                  value={roleOfficeInput}
+                  onChange={(e) => setRoleOfficeInput(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={roleActiveInput}
+                onChange={(e) => setRoleActiveInput(e.target.checked)}
+              />
+              Active role template
+            </label>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  resetRoleForm();
+                  setShowRoleForm(false);
+                }}
+              >
+                Close
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetRoleForm}
+              >
+                Reset Form
+              </Button>
+              <Button size="sm" onClick={() => void handleSaveRoleTemplate()}>
+                {roleSaving ? "Saving..." : editingRoleId ? "Update Role" : "Create Role"}
+              </Button>
+            </div>
+
+            <div className="rounded-lg border border-border p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Existing Role Templates
+              </p>
+              {rolesLoading ? (
+                <div className="text-xs text-muted-foreground">Loading roles...</div>
+              ) : roles.length === 0 ? (
+                <div className="text-xs text-muted-foreground">No role templates yet.</div>
+              ) : (
+                <div className="space-y-2">
+                  {roles.map((template) => (
+                    <div
+                      key={template.id}
+                      className="flex items-center justify-between rounded-md border border-border px-2 py-1.5"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{template.label}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {template.baseRole}
+                          {template.title ? ` · ${template.title}` : ""}
+                          {template.committeeScope
+                            ? ` · ${template.committeeScope}`
+                            : ""}
+                          {!template.isActive ? " · inactive" : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          onClick={() => beginEditRole(template)}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          className="text-red-500"
+                          disabled={roleDeletingId === template.id}
+                          onClick={() => void handleDeleteRoleTemplate(template)}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {showForm && (
@@ -379,6 +732,29 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Role Template</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  value={newMemberRoleKey}
+                  onChange={(e) => {
+                    const key = e.target.value;
+                    setNewMemberRoleKey(key);
+                    const selected = roleByKey.get(key);
+                    if (selected) {
+                      setRole(selected.baseRole);
+                      setTitle(selected.title ?? "");
+                    }
+                  }}
+                >
+                  <option value="">Custom / manual assignment</option>
+                  {activeRoles.map((template) => (
+                    <option key={template.id} value={template.key}>
+                      {template.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <Label>Role</Label>
@@ -685,6 +1061,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   <MemberPermissionsPanel
                     member={member}
                     isSuperAdmin={accessInfo?.isSuperAdmin ?? false}
+                    roleTemplates={activeRoles}
                     saving={permSaving}
                     userSearch={userSearch}
                     userResults={userResults}
@@ -736,6 +1113,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 function MemberPermissionsPanel({
   member,
   isSuperAdmin,
+  roleTemplates,
   saving,
   userSearch,
   userResults,
@@ -746,6 +1124,7 @@ function MemberPermissionsPanel({
 }: {
   member: Member;
   isSuperAdmin: boolean;
+  roleTemplates: RoleTemplate[];
   saving: boolean;
   userSearch: string;
   userResults: UserSearchResult[];
@@ -754,6 +1133,7 @@ function MemberPermissionsPanel({
   onSave: (
     patch: Partial<{
       role: string;
+      roleTemplateKey: string;
       committeeScope: string | null;
       canAssignCommittee: boolean;
       canApprovePayments: boolean;
@@ -764,6 +1144,15 @@ function MemberPermissionsPanel({
   onClose: () => void;
 }) {
   const [role, setRole] = useState(member.role);
+  const [roleTemplateKey, setRoleTemplateKey] = useState(() => {
+    const matched = roleTemplates.find(
+      (t) =>
+        t.baseRole === member.role &&
+        (t.title ?? "") === (member.title ?? "") &&
+        (t.committeeScope ?? "") === (member.committeeScope ?? ""),
+    );
+    return matched?.key ?? "";
+  });
   const [committeeScope, setCommitteeScope] = useState(
     member.committeeScope ?? "",
   );
@@ -780,6 +1169,7 @@ function MemberPermissionsPanel({
   const handleSave = () => {
     const patch: Parameters<typeof onSave>[0] = {
       role,
+      roleTemplateKey: roleTemplateKey || undefined,
       committeeScope: committeeScope || null,
       canApprovePayments: canApprove,
       title: title || null,
@@ -808,12 +1198,39 @@ function MemberPermissionsPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1 sm:col-span-2">
+          <Label className="text-xs">Role Template</Label>
+          <select
+            className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs"
+            value={roleTemplateKey}
+            onChange={(e) => {
+              const key = e.target.value;
+              setRoleTemplateKey(key);
+              const selected = roleTemplates.find((t) => t.key === key);
+              if (selected) {
+                setRole(selected.baseRole);
+                setTitle(selected.title ?? "");
+                setCommitteeScope(selected.committeeScope ?? "");
+              }
+            }}
+          >
+            <option value="">Custom / manual assignment</option>
+            {roleTemplates.map((template) => (
+              <option key={template.id} value={template.key}>
+                {template.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="space-y-1">
           <Label className="text-xs">Role</Label>
           <select
             className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 py-1 text-xs"
             value={role}
-            onChange={(e) => setRole(e.target.value)}
+            onChange={(e) => {
+              setRoleTemplateKey("");
+              setRole(e.target.value);
+            }}
           >
             {[
               "CHAIR",
@@ -836,7 +1253,10 @@ function MemberPermissionsPanel({
             className="h-8 text-xs"
             placeholder="e.g. Cooking Committee Chair"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setRoleTemplateKey("");
+              setTitle(e.target.value);
+            }}
           />
         </div>
 
@@ -846,7 +1266,10 @@ function MemberPermissionsPanel({
             className="h-8 text-xs"
             placeholder="e.g. Cooking, Sports, Logistics, Media"
             value={committeeScope}
-            onChange={(e) => setCommitteeScope(e.target.value)}
+            onChange={(e) => {
+              setRoleTemplateKey("");
+              setCommitteeScope(e.target.value);
+            }}
           />
         </div>
       </div>

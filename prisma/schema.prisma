@@ -705,6 +705,7 @@ model ConfEvent {
     delegates  ConfDelegate[]
     meetings   ConfMeeting[]
     members    ConfMember[]
+    committeeRoles ConfCommitteeRole[]
     timeline   ConfTimeline[]
     payments   ConfPayment[]
     pairRequests ConfPairRequest[]
@@ -716,6 +717,28 @@ model ConfEvent {
 
     @@index([slug])
     @@index([status])
+}
+
+model ConfCommitteeRole {
+    id             String   @id @default(cuid())
+    confId         String
+    key            String
+    label          String
+    baseRole       ConfRole @default(COMMITTEE)
+    title          String?
+    committeeScope String?
+    officeLabel    String?
+    isSystem       Boolean  @default(false)
+    sortOrder      Int      @default(0)
+    isActive       Boolean  @default(true)
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@unique([confId, key])
+    @@index([confId, isActive])
+    @@index([confId, sortOrder])
 }
 
 model ConfMember {

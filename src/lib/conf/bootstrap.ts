@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CONF_2026 } from "@/lib/conf/config";
 import { getDefaultMeetings } from "@/lib/conf/meetings-defaults";
 import { INITIAL_TIMELINE } from "@/lib/conf/timeline-defaults";
+import { DEFAULT_COMMITTEE_ROLE_TEMPLATES } from "@/lib/conf/role-defaults";
 
 export const DEFAULT_CONF_SLUG = "lsuic-2026";
 
@@ -253,6 +254,40 @@ async function bootstrapDefaultConference() {
         phone: member.phone,
         city: member.city,
         title: member.title,
+      },
+    });
+  }
+
+  // Seed role templates used for role assignment dropdowns and letter office presets.
+  for (const template of DEFAULT_COMMITTEE_ROLE_TEMPLATES) {
+    await prisma.confCommitteeRole.upsert({
+      where: {
+        confId_key: {
+          confId: event.id,
+          key: template.key,
+        },
+      },
+      update: {
+        label: template.label,
+        baseRole: template.baseRole,
+        title: template.title,
+        committeeScope: template.committeeScope,
+        officeLabel: template.officeLabel,
+        sortOrder: template.sortOrder,
+        isSystem: template.isSystem,
+        isActive: true,
+      },
+      create: {
+        confId: event.id,
+        key: template.key,
+        label: template.label,
+        baseRole: template.baseRole,
+        title: template.title,
+        committeeScope: template.committeeScope,
+        officeLabel: template.officeLabel,
+        sortOrder: template.sortOrder,
+        isSystem: template.isSystem,
+        isActive: true,
       },
     });
   }

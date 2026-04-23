@@ -24,6 +24,7 @@ export async function PATCH(
       email,
       isActive,
       committeeScope,
+      roleTemplateKey,
       canAssignCommittee,
       canApprovePayments,
       userId, // link to a platform User
@@ -37,6 +38,27 @@ export async function PATCH(
     if (!existing) {
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
+
+    const roleTemplate = roleTemplateKey
+      ? await prisma.confCommitteeRole.findFirst({
+          where: {
+            confId,
+            key: String(roleTemplateKey),
+            isActive: true,
+          },
+        })
+      : null;
+
+    if (roleTemplateKey && !roleTemplate) {
+      return NextResponse.json(
+        { error: "Role template not found" },
+        { status: 404 },
+      );
+    }
+
+    const requestedRole = roleTemplate?.baseRole ?? role;
+    const requestedScope = roleTemplate?.committeeScope ?? committeeScope;
+    const requestedTitle = roleTemplate?.title ?? title;
 
     // Only super admins can link user accounts or grant canAssignCommittee
     const needsSuperAdmin =
@@ -53,14 +75,32 @@ export async function PATCH(
       );
     }
 
-    // Chairs with canAssignCommittee can set committeeScope on members within their scope
-    const isChairAssigning =
-      auth.access.canAssignCommittee && !auth.access.isSuperAdmin;
-    if (isChairAssigning && committeeScope !== undefined) {
-      // Chair can only assign within their own scope
-      if (committeeScope !== auth.access.committeeScope) {
+    // Scope-limited assignees can only assign within their own committee scope.
+    const isScopedAssigner =
+      !auth.access.isSuperAdmin &&
+      auth.access.memberRole !== "CHAIR" &&
+      auth.access.canAssignCommittee;
+    if (isScopedAssigner && requestedScope !== undefined) {
+      if (requestedScope !== auth.access.committeeScope) {
         return NextResponse.json(
           { error: "You can only assign members to your own committee scope" },
+          { status: 403 },
+        );
+      }
+    }
+
+    // Only Super Admin or Conference Chair can assign leadership roles.
+    if (requestedRole !== undefined) {
+      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+      const wantsLeadershipRole = leadershipRoles.includes(requestedRole);
+      const canAssignLeadership =
+        auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR";
+      if (wantsLeadershipRole && !canAssignLeadership) {
+        return NextResponse.json(
+          {
+            error:
+              "Only Super Admin or Conference Chair can assign leadership roles",
+          },
           { status: 403 },
         );
       }
@@ -75,7 +115,7 @@ export async function PATCH(
       "COMMITTEE",
       "DELEGATE",
     ];
-    if (role !== undefined && !allowedRoles.includes(role)) {
+    if (requestedRole !== undefined && !allowedRoles.includes(requestedRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
@@ -92,14 +132,14 @@ export async function PATCH(
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name;
-    if (role !== undefined) updateData.role = role;
-    if (title !== undefined) updateData.title = title || null;
+    if (requestedRole !== undefined) updateData.role = requestedRole;
+    if (requestedTitle !== undefined) updateData.title = requestedTitle || null;
     if (city !== undefined) updateData.city = city || null;
     if (phone !== undefined) updateData.phone = phone || null;
     if (email !== undefined) updateData.email = email || null;
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
-    if (committeeScope !== undefined)
-      updateData.committeeScope = committeeScope || null;
+    if (requestedScope !== undefined)
+      updateData.committeeScope = requestedScope || null;
     if (canAssignCommittee !== undefined)
       updateData.canAssignCommittee = Boolean(canAssignCommittee);
     if (canApprovePayments !== undefined)
@@ -113,7 +153,7 @@ export async function PATCH(
     });
 
     // Audit log for significant changes
-    if (role !== undefined && role !== existing.role) {
+    if (requestedRole !== undefined && requestedRole !== existing.role) {
       await logFinanceAction({
         confId,
         actorUserId: auth.access.user?.id,
@@ -124,14 +164,14 @@ export async function PATCH(
         details: {
           memberName: updated.name,
           oldRole: existing.role,
-          newRole: role,
+          newRole: requestedRole,
         },
       });
     }
 
     if (
-      committeeScope !== undefined &&
-      committeeScope !== existing.committeeScope
+      requestedScope !== undefined &&
+      requestedScope !== existing.committeeScope
     ) {
       await logFinanceAction({
         confId,
@@ -143,7 +183,7 @@ export async function PATCH(
         details: {
           memberName: updated.name,
           oldScope: existing.committeeScope,
-          newScope: committeeScope,
+          newScope: requestedScope,
         },
       });
     }

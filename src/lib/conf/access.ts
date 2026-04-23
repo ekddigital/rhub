@@ -98,6 +98,7 @@ export async function getConferenceAccess(
   const isConferenceManager = Boolean(member && member.role !== "DELEGATE");
   const isManager = isPlatformManager || isConferenceManager;
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isConferenceChair = Boolean(member?.role === "CHAIR");
   const isChair =
     isSuperAdmin ||
     Boolean(member && (member.role === "CHAIR" || member.role === "VICE_CHAIR"));
@@ -117,7 +118,7 @@ export async function getConferenceAccess(
     canApprovePayments:
       isSuperAdmin || Boolean(member?.canApprovePayments),
     canAssignCommittee:
-      isSuperAdmin || Boolean(member?.canAssignCommittee),
+      isSuperAdmin || isConferenceChair || Boolean(member?.canAssignCommittee),
   };
 }
 
