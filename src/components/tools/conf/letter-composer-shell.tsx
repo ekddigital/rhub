@@ -18,6 +18,12 @@ import {
   Upload,
   X,
   Minus,
+  BookOpen,
+  CloudUpload,
+  Tag,
+  CalendarDays,
+  PenLine,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +40,46 @@ import { fetchDefaultConference } from "@/lib/conf/client";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+type LetterType =
+  | "MEMO"
+  | "MINUTES"
+  | "ANNOUNCEMENT"
+  | "BUDGET_LETTER"
+  | "PAYMENT_RECEIPT"
+  | "GENERAL";
+
+const LETTER_TYPE_LABELS: Record<LetterType, string> = {
+  MEMO: "Memo",
+  MINUTES: "Minutes",
+  ANNOUNCEMENT: "Announcement",
+  BUDGET_LETTER: "Budget Letter",
+  PAYMENT_RECEIPT: "Payment Receipt",
+  GENERAL: "General",
+};
+
+const LETTER_TYPE_COLORS: Record<LetterType, string> = {
+  MEMO: "#C8A061",
+  MINUTES: "#002868",
+  ANNOUNCEMENT: "#BF0A30",
+  BUDGET_LETTER: "#1a7a4a",
+  PAYMENT_RECEIPT: "#7c3aed",
+  GENERAL: "#666666",
+};
+
+// Lightweight record returned by GET /letters (no draft JSON)
+type LetterRecord = {
+  id: string;
+  title: string;
+  type: LetterType;
+  letterDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type LetterDraft = {
   id: string;
+  dbId: string; // DB ConfLetter.id — empty string if not yet saved to DB
+  type: LetterType;
   title: string;
   to: string;
   from: string;
@@ -134,6 +178,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
 
   return {
     id: d.id ?? newId(),
+    dbId: (d as Partial<LetterDraft>).dbId ?? "",
+    type: (d as Partial<LetterDraft>).type ?? "GENERAL",
     title: d.title ?? "",
     to: d.to ?? "",
     from: d.from ?? "",
@@ -188,6 +234,8 @@ function newId() {
 function newDraft(): LetterDraft {
   return {
     id: newId(),
+    dbId: "",
+    type: "GENERAL" as LetterType,
     title: "",
     to: "",
     from: "Enoch Kwateh Dongbo\nConference Chair, LSUIC 2026",
@@ -1138,7 +1186,8 @@ function LetterA4Preview({
                     textAlign: "center",
                   }}
                 >
-                  Honoring Our Past, Engaging Our Present, and Inspiring Our Future
+                  Honoring Our Past, Engaging Our Present, and Inspiring Our
+                  Future
                 </div>
                 <div
                   style={{
@@ -1178,6 +1227,18 @@ export function LetterComposerShell() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
   const [zoom, setZoom] = useState(72);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Library (DB-saved letters) state ────────────────────────────────────
+  const [view, setView] = useState<"composer" | "library">("composer");
+  const [library, setLibrary] = useState<LetterRecord[]>([]);
+  const [libraryPage, setLibraryPage] = useState(1);
+  const [libraryTotal, setLibraryTotal] = useState(0);
+  const [libraryPages, setLibraryPages] = useState(1);
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [libraryFilter, setLibraryFilter] = useState<LetterType | "">("");
+  const [savingToDb, setSavingToDb] = useState(false);
+  const [saveToDbStatus, setSaveToDbStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // ── Fetch conf data ──────────────────────────────────────────────────────
 
@@ -1318,6 +1379,143 @@ export function LetterComposerShell() {
       }
     },
     [activeDraft.id, drafts],
+  );
+
+  // ── Library (DB) helpers ─────────────────────────────────────────────────
+
+  const fetchLibrary = useCallback(
+    async (page: number, filter: LetterType | "") => {
+      if (!confId) return;
+      setLibraryLoading(true);
+      try {
+        const qs = new URLSearchParams({ page: String(page) });
+        if (filter) qs.set("type", filter);
+        const res = await fetch(`/api/conf/${confId}/letters?${qs.toString()}`);
+        if (res.ok) {
+          const data = (await res.json()) as {
+            letters: LetterRecord[];
+            total: number;
+            page: number;
+            pages: number;
+          };
+          setLibrary(data.letters);
+          setLibraryTotal(data.total);
+          setLibraryPages(data.pages);
+          setLibraryPage(data.page);
+        }
+      } catch {
+        // silently ignore — library is enhancement
+      } finally {
+        setLibraryLoading(false);
+      }
+    },
+    [confId],
+  );
+
+  // Fetch when view switches to library or page/filter changes
+  useEffect(() => {
+    if (view === "library") {
+      void fetchLibrary(libraryPage, libraryFilter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, libraryPage, libraryFilter, confId]);
+
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!confId) return;
+    setSavingToDb(true);
+    setSaveToDbStatus("idle");
+    try {
+      const isExisting = !!activeDraft.dbId;
+      const url = isExisting
+        ? `/api/conf/${confId}/letters/${activeDraft.dbId}`
+        : `/api/conf/${confId}/letters`;
+      const method = isExisting ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: activeDraft.title || activeDraft.re || "Untitled Letter",
+          type: activeDraft.type,
+          letterDate: activeDraft.date,
+          draft: activeDraft,
+        }),
+      });
+
+      if (res.ok) {
+        const saved = (await res.json()) as { id: string };
+        // Link this draft to the DB record
+        setActiveDraft((d) => ({ ...d, dbId: saved.id }));
+        setDrafts((prev) =>
+          prev.map((d) =>
+            d.id === activeDraft.id ? { ...d, dbId: saved.id } : d,
+          ),
+        );
+        setSaveToDbStatus("saved");
+        setTimeout(() => setSaveToDbStatus("idle"), 3000);
+      } else {
+        setSaveToDbStatus("error");
+        setTimeout(() => setSaveToDbStatus("idle"), 4000);
+      }
+    } catch {
+      setSaveToDbStatus("error");
+      setTimeout(() => setSaveToDbStatus("idle"), 4000);
+    } finally {
+      setSavingToDb(false);
+    }
+  }, [confId, activeDraft]);
+
+  const handleLoadFromLibrary = useCallback(
+    async (rec: LetterRecord) => {
+      if (!confId) return;
+      try {
+        const res = await fetch(`/api/conf/${confId}/letters/${rec.id}`);
+        if (!res.ok) return;
+        const full = (await res.json()) as { draft: unknown; id: string };
+        const draft = migrateDraft(
+          Object.assign({}, full.draft as Partial<LetterDraft>, {
+            dbId: full.id,
+          }),
+        );
+        setActiveDraft(draft);
+        // Also persist to local drafts so auto-save keeps it
+        setDrafts((prev) => {
+          const exists = prev.find((d) => d.id === draft.id);
+          const next = exists
+            ? prev.map((d) => (d.id === draft.id ? draft : d))
+            : [draft, ...prev];
+          saveDrafts(next);
+          return next;
+        });
+        setView("composer");
+      } catch {
+        // ignore
+      }
+    },
+    [confId],
+  );
+
+  const handleDeleteFromLibrary = useCallback(
+    async (id: string) => {
+      if (!confId) return;
+      setDeletingId(id);
+      try {
+        const res = await fetch(`/api/conf/${confId}/letters/${id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setLibrary((prev) => prev.filter((r) => r.id !== id));
+          setLibraryTotal((t) => Math.max(0, t - 1));
+          // Unlink from active draft if it pointed to this DB record
+          setActiveDraft((d) => (d.dbId === id ? { ...d, dbId: "" } : d));
+        }
+      } catch {
+        // ignore
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [confId],
   );
 
   const set = useCallback(
@@ -1566,52 +1764,266 @@ export function LetterComposerShell() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              {saveStatus === "saved" ? (
-                <>
-                  <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
-                </>
-              ) : (
-                <>
-                  <Clock className="size-3.5" /> Auto-saving
-                </>
-              )}
-            </span>
-            <Button variant="outline" size="sm" onClick={handleManualSave}>
-              <Save className="size-4" /> Save Draft
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowList((v) => !v)}
-            >
-              <FolderOpen className="size-4" />
-              Drafts ({drafts.length})
-              <ChevronDown
-                className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
-              />
-            </Button>
-            <Button size="sm" onClick={handleNew}>
-              <Plus className="size-4" /> New Letter
-            </Button>
-            <Button
-              size="sm"
-              onClick={handlePrint}
-              className="bg-[#002868] hover:bg-[#001A4E]"
-            >
-              <Printer className="size-4" /> Print / PDF
-            </Button>
+            {/* View toggle */}
+            <div className="flex items-center rounded-md border border-border overflow-hidden">
+              <button
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${view === "composer" ? "bg-[#002868] text-white" : "hover:bg-muted/50 text-muted-foreground"}`}
+                onClick={() => setView("composer")}
+              >
+                <PenLine className="size-3.5" /> Composer
+              </button>
+              <button
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-border ${view === "library" ? "bg-[#002868] text-white" : "hover:bg-muted/50 text-muted-foreground"}`}
+                onClick={() => setView("library")}
+              >
+                <BookOpen className="size-3.5" /> Library
+                {libraryTotal > 0 && (
+                  <span className="ml-0.5 text-[10px] opacity-70">({libraryTotal})</span>
+                )}
+              </button>
+            </div>
+
+            {view === "composer" && (
+              <>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  {saveStatus === "saved" ? (
+                    <>
+                      <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="size-3.5" /> Auto-saving
+                    </>
+                  )}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleManualSave}>
+                  <Save className="size-4" /> Save Draft
+                </Button>
+                {/* Save to Library (DB) */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleSaveToLibrary()}
+                  disabled={savingToDb}
+                  className={
+                    saveToDbStatus === "saved"
+                      ? "border-emerald-500 text-emerald-600"
+                      : saveToDbStatus === "error"
+                        ? "border-destructive text-destructive"
+                        : activeDraft.dbId
+                          ? "border-[#C8A061]/60 text-[#C8A061]"
+                          : ""
+                  }
+                  title={activeDraft.dbId ? "Update saved letter in Library" : "Save letter to Library (database)"}
+                >
+                  {saveToDbStatus === "saved" ? (
+                    <><CheckCircle2 className="size-4" /> Saved to Library</>
+                  ) : saveToDbStatus === "error" ? (
+                    <><AlertCircle className="size-4" /> Save Failed</>
+                  ) : savingToDb ? (
+                    <><CloudUpload className="size-4" /> Saving…</>
+                  ) : (
+                    <><CloudUpload className="size-4" /> {activeDraft.dbId ? "Update Library" : "Save to Library"}</>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowList((v) => !v)}
+                >
+                  <FolderOpen className="size-4" />
+                  Drafts ({drafts.length})
+                  <ChevronDown
+                    className={`size-3.5 ml-1 transition-transform ${showList ? "rotate-180" : ""}`}
+                  />
+                </Button>
+                <Button size="sm" onClick={handleNew}>
+                  <Plus className="size-4" /> New Letter
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handlePrint}
+                  className="bg-[#002868] hover:bg-[#001A4E]"
+                >
+                  <Printer className="size-4" /> Print / PDF
+                </Button>
+              </>
+            )}
+
+            {view === "library" && (
+              <Button size="sm" onClick={() => setView("composer")}>
+                <PenLine className="size-4" /> Open Composer
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* ── Drafts list ── */}
-        {showList && (
+        {/* ── Library view ── */}
+        {view === "library" && (
+          <div className="letter-no-print flex-1 overflow-y-auto space-y-4 pb-6">
+            {/* Filter bar */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Tag className="size-3.5" /> Filter by type:
+              </div>
+              {(["", "MEMO", "MINUTES", "ANNOUNCEMENT", "BUDGET_LETTER", "PAYMENT_RECEIPT", "GENERAL"] as (LetterType | "")[]).map(
+                (t) => (
+                  <button
+                    key={t}
+                    onClick={() => { setLibraryFilter(t); setLibraryPage(1); }}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      libraryFilter === t
+                        ? "bg-[#002868] text-white border-[#002868]"
+                        : "border-border hover:bg-muted/50"
+                    }`}
+                    style={
+                      t && libraryFilter !== t
+                        ? { borderColor: LETTER_TYPE_COLORS[t as LetterType] + "44", color: LETTER_TYPE_COLORS[t as LetterType] }
+                        : {}
+                    }
+                  >
+                    {t ? LETTER_TYPE_LABELS[t as LetterType] : "All"}
+                  </button>
+                ),
+              )}
+              <span className="ml-auto text-xs text-muted-foreground">{libraryTotal} letter{libraryTotal !== 1 ? "s" : ""}</span>
+            </div>
+
+            {/* Card grid */}
+            {libraryLoading ? (
+              <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading library…</div>
+            ) : library.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
+                <BookOpen className="size-10 opacity-30" />
+                <p className="text-sm">No saved letters yet.</p>
+                <p className="text-xs">Compose a letter and click &quot;Save to Library&quot; to store it here.</p>
+                <Button size="sm" variant="outline" onClick={() => setView("composer")}>
+                  <PenLine className="size-4" /> Go to Composer
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {library.map((rec) => (
+                    <div
+                      key={rec.id}
+                      className="group relative rounded-xl border border-border bg-card hover:border-[#C8A061]/50 hover:shadow-md transition-all cursor-pointer flex flex-col"
+                      onClick={() => void handleLoadFromLibrary(rec)}
+                    >
+                      {/* Color stripe by type */}
+                      <div
+                        className="h-1.5 rounded-t-xl"
+                        style={{ background: LETTER_TYPE_COLORS[rec.type] }}
+                      />
+                      <div className="flex-1 p-4 space-y-2">
+                        {/* Type badge */}
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            style={{
+                              background: LETTER_TYPE_COLORS[rec.type] + "22",
+                              color: LETTER_TYPE_COLORS[rec.type],
+                            }}
+                          >
+                            <Tag className="size-2.5" />
+                            {LETTER_TYPE_LABELS[rec.type]}
+                          </span>
+                          {/* Delete button */}
+                          <button
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                            title="Delete letter"
+                            disabled={deletingId === rec.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleDeleteFromLibrary(rec.id);
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="font-semibold text-sm leading-snug line-clamp-2">
+                          {rec.title || "Untitled Letter"}
+                        </h3>
+
+                        {/* Dates */}
+                        <div className="space-y-1">
+                          {rec.letterDate && (
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <CalendarDays className="size-3" />
+                              <span>{rec.letterDate}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock className="size-3" />
+                            <span>
+                              Saved{" "}
+                              {new Date(rec.createdAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          {rec.updatedAt !== rec.createdAt && (
+                            <div className="text-[10px] text-muted-foreground/60">
+                              Updated{" "}
+                              {new Date(rec.updatedAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Open button on hover */}
+                      <div className="px-4 pb-3">
+                        <div className="w-full text-center text-xs text-[#C8A061] opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                          Click to open in composer →
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {libraryPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={libraryPage <= 1}
+                      onClick={() => setLibraryPage((p) => p - 1)}
+                    >
+                      ← Prev
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {libraryPage} of {libraryPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={libraryPage >= libraryPages}
+                      onClick={() => setLibraryPage((p) => p + 1)}
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── Drafts list (local) ── */}
+        {view === "composer" && showList && (
           <Card className="letter-no-print border-[#C8A061]/30 shrink-0 mb-3">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Saved Drafts</CardTitle>
+              <CardTitle className="text-sm">Local Drafts</CardTitle>
               <CardDescription className="text-xs">
-                Click a draft to load it. Drafts are saved locally on this
-                device.
+                Auto-saved on this device. Use &quot;Save to Library&quot; to store permanently.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1632,10 +2044,15 @@ export function LetterComposerShell() {
                       onClick={() => handleLoad(d)}
                     >
                       <div>
-                        <p className="text-sm font-medium">
+                        <p className="text-sm font-medium flex items-center gap-1.5">
                           {d.title || d.re || "Untitled Letter"}
+                          {d.dbId && (
+                            <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
+                              in library
+                            </span>
+                          )}
                           {d.id === activeDraft.id && (
-                            <span className="ml-2 text-xs text-[#C8A061]">
+                            <span className="ml-1 text-xs text-[#C8A061]">
                               current
                             </span>
                           )}
@@ -1671,7 +2088,7 @@ export function LetterComposerShell() {
         )}
 
         {/* ── Main layout: form (left) + preview (right) ── */}
-        <div className="letter-no-print flex gap-6 flex-1 min-h-0">
+        {view === "composer" && <div className="letter-no-print flex gap-6 flex-1 min-h-0">
           {/* ── Left: form fields ── */}
           <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
             <Card>
@@ -1683,7 +2100,19 @@ export function LetterComposerShell() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Draft Label (internal)</Label>
+                  <Label className="text-xs">Letter Type</Label>
+                  <select
+                    className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                    value={activeDraft.type}
+                    onChange={(e) => setActiveDraft((d) => ({ ...d, type: e.target.value as LetterType }))}
+                  >
+                    {(Object.keys(LETTER_TYPE_LABELS) as LetterType[]).map((t) => (
+                      <option key={t} value={t}>{LETTER_TYPE_LABELS[t]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Title / Label</Label>
                   <Input
                     placeholder="e.g. Committee Action Items Apr 20"
                     className="h-8 text-sm"
@@ -2081,7 +2510,7 @@ export function LetterComposerShell() {
               </div>
             </div>
           </div>
-        </div>
+        </div>}
       </div>
       {/* end flex flex-col viewport frame */}
 

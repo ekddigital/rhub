@@ -714,6 +714,7 @@ model ConfEvent {
     reports    ConfReport[]
     booklet        ConfBooklet?
     leaderProfiles ConfLeaderProfile[]
+    letters        ConfLetter[]
 
     @@index([slug])
     @@index([status])
@@ -1163,4 +1164,34 @@ model ConfBookletSection {
     booklet ConfBooklet @relation(fields: [bookletId], references: [id], onDelete: Cascade)
 
     @@index([bookletId])
+}
+
+// ==========================================
+// LETTER / MEMO SYSTEM
+// ==========================================
+
+enum ConfLetterType {
+    MEMO
+    MINUTES
+    ANNOUNCEMENT
+    BUDGET_LETTER
+    PAYMENT_RECEIPT
+    GENERAL
+}
+
+model ConfLetter {
+    id         String          @id @default(cuid())
+    confId     String
+    title      String
+    type       ConfLetterType  @default(GENERAL)
+    letterDate String? // e.g. "April 20, 2026" — mirrors draft.date
+    draft      Json // full LetterDraft JSON blob
+    isDeleted  Boolean         @default(false)
+    createdAt  DateTime        @default(now())
+    updatedAt  DateTime        @updatedAt
+
+    conf ConfEvent @relation(fields: [confId], references: [id], onDelete: Cascade)
+
+    @@index([confId, isDeleted, createdAt(sort: Desc)])
+    @@index([confId, type])
 }
