@@ -849,27 +849,44 @@ function LetterA4Preview({
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
           justifyContent: "center",
         }}
       >
+        <div style={{ height: 2, background: C.red, width: "100%" }} />
         <div
           style={{
-            height: 2,
-            background: C.red,
-            width: "100%",
-            marginBottom: 4,
-          }}
-        />
-        <div
-          style={{
-            fontSize: 8,
-            fontWeight: 700,
-            color: C.gold,
-            letterSpacing: "0.5px",
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 14px",
           }}
         >
-          Motto: &quot;Excellence Through Hard Work&quot;
+          {/* left spacer to balance right page number */}
+          <div style={{ width: 48 }} />
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 700,
+              color: C.gold,
+              letterSpacing: "0.5px",
+              textAlign: "center",
+            }}
+          >
+            Motto: &quot;Excellence Through Hard Work&quot;
+          </div>
+          <div
+            style={{
+              fontSize: 8,
+              color: C.gold,
+              opacity: 0.75,
+              fontVariantNumeric: "tabular-nums",
+              width: 48,
+              textAlign: "right",
+            }}
+          >
+            Page 1 of {1 + continuationBodies.length}
+          </div>
         </div>
       </div>
     </div>
@@ -1002,27 +1019,43 @@ function LetterA4Preview({
                 flexShrink: 0,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
                 justifyContent: "center",
               }}
             >
+              <div style={{ height: 2, background: C.red, width: "100%" }} />
               <div
                 style={{
-                  height: 2,
-                  background: C.red,
-                  width: "100%",
-                  marginBottom: 4,
-                }}
-              />
-              <div
-                style={{
-                  fontSize: 8,
-                  fontWeight: 700,
-                  color: C.gold,
-                  letterSpacing: "0.5px",
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 14px",
                 }}
               >
-                Motto: &quot;Excellence Through Hard Work&quot;
+                <div style={{ width: 48 }} />
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: C.gold,
+                    letterSpacing: "0.5px",
+                    textAlign: "center",
+                  }}
+                >
+                  Motto: &quot;Excellence Through Hard Work&quot;
+                </div>
+                <div
+                  style={{
+                    fontSize: 8,
+                    color: C.gold,
+                    opacity: 0.75,
+                    fontVariantNumeric: "tabular-nums",
+                    width: 48,
+                    textAlign: "right",
+                  }}
+                >
+                  Page {idx + 2} of {1 + continuationBodies.length}
+                </div>
               </div>
             </div>
           </div>
