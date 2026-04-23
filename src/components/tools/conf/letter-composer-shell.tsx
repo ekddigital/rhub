@@ -1308,7 +1308,7 @@ export function LetterComposerShell() {
               chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
             signatory2Label: "Approved",
             signatory3Name: necPresidentName || "",
-            signatory3Title: necPresidentName ? "National President (NEC)" : "",
+            signatory3Title: necPresidentName ? "National President (LSUIC)" : "",
             signatory3Label: "Attested",
           };
         }
