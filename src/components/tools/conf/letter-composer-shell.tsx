@@ -103,6 +103,21 @@ const LS_KEY = "conf_letter_drafts";
 
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
+  // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
+  // Old STANDARD/FUNDRAISING presets stored Chair=slot1, Vice=slot2, Secretary=slot3.
+  // New order is least→highest authority: Secretary=slot1, Vice=slot2, Chair=slot3.
+  // When labels are absent and signatoryMode is STANDARD or FUNDRAISING, reverse slots 1↔3.
+  const isLegacy = d.signatory1Label === undefined;
+  const needsSwap =
+    isLegacy &&
+    (d.signatoryMode === "STANDARD" || d.signatoryMode === "FUNDRAISING") &&
+    (d.signatory1Name || d.signatory3Name);
+
+  const s1Name  = needsSwap ? (d.signatory3Name  ?? "") : (d.signatory1Name  ?? "");
+  const s1Title = needsSwap ? (d.signatory3Title ?? "") : (d.signatory1Title ?? "");
+  const s3Name  = needsSwap ? (d.signatory1Name  ?? "") : (d.signatory3Name  ?? "");
+  const s3Title = needsSwap ? (d.signatory1Title ?? "") : (d.signatory3Title ?? "");
+
   return {
     id: d.id ?? newId(),
     title: d.title ?? "",
@@ -114,8 +129,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     issuingRoleKey: d.issuingRoleKey ?? "",
     officeLabel: d.officeLabel ?? "Office of the Conference Chairman",
     signatoryMode: d.signatoryMode ?? "NONE",
-    signatory1Name: d.signatory1Name ?? "",
-    signatory1Title: d.signatory1Title ?? "",
+    signatory1Name: s1Name,
+    signatory1Title: s1Title,
     signatory1Label: d.signatory1Label ?? "Signed",
     signatory1Sig: d.signatory1Sig ?? "",
     signatory1SigScale: d.signatory1SigScale ?? 1,
@@ -124,8 +139,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatory2Label: d.signatory2Label ?? "Approved",
     signatory2Sig: d.signatory2Sig ?? "",
     signatory2SigScale: d.signatory2SigScale ?? 1,
-    signatory3Name: d.signatory3Name ?? "",
-    signatory3Title: d.signatory3Title ?? "",
+    signatory3Name: s3Name,
+    signatory3Title: s3Title,
     signatory3Label: d.signatory3Label ?? "Attested",
     signatory3Sig: d.signatory3Sig ?? "",
     signatory3SigScale: d.signatory3SigScale ?? 1,
