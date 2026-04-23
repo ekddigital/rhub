@@ -152,6 +152,18 @@ function ChairHeroCard({ chair }: { chair: NecMember }) {
             {chair.province ? `, ${chair.province}` : ""}
           </div>
         )}
+        {chair.phone && (
+          <div
+            style={{
+              fontSize: "10px",
+              color: `${C.white}90`,
+              marginBottom: "6px",
+              fontWeight: 600,
+            }}
+          >
+            Phone: {chair.phone}
+          </div>
+        )}
 
         <div
           style={{
@@ -271,6 +283,18 @@ function OfficerCard({
         >
           {member.university?.trim() || "Member"}
         </div>
+        {member.phone && (
+          <div
+            style={{
+              fontSize: "8.5px",
+              color: C.blue,
+              lineHeight: 1.3,
+              fontWeight: 600,
+            }}
+          >
+            {member.phone}
+          </div>
+        )}
         <div
           style={{
             marginTop: "4px",
@@ -341,6 +365,11 @@ function MemberCard({ member }: { member: NecMember }) {
                 (member.province ? `, ${member.province}` : "")}
             </div>
             <div>{member.university?.trim() || "Member"}</div>
+            {member.phone && (
+              <div style={{ color: C.blue, fontWeight: 600 }}>
+                {member.phone}
+              </div>
+            )}
           </div>
         )}
         <div

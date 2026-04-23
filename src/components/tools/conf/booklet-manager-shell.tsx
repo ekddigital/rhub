@@ -82,6 +82,7 @@ export type NecMember = {
   role: string;
   title: string | null;
   city: string | null;
+  phone?: string | null;
   province?: string | null;
   university?: string | null;
   delegateCode?: string | null;

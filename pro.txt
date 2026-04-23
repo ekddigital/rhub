@@ -49,7 +49,7 @@ COMMITTEE                                  [Zoom display name]
 • Jefferson T Banquando — Sports Committee Chair          → "Jeffery"
 • Robert D. Molley — Logistics Committee Chair            → "Amb. Robert D. Molley"
 • Priscilla — Cooking Committee · Suzhou                  → "Priscilla - Suzhou"
-• Williamena Yah MUNYENEH — Cooking Committee             → "Williamena Yah MUNYENEH"
+• Williamena Yah Munyenneh — Cooking Committee            → "Williamena Yah Munyenneh"
 • Blessing — Cooking Committee · Nantong                  → "Blessing - Nantong"
 • Lisa — Cooking Committee · Qingdao                      → "Lisa - Qingdao"
 

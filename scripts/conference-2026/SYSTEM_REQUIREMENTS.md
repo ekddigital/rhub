@@ -1178,19 +1178,21 @@ All images from `scripts/conference-2026/images/` have been OCR'd and stored in 
 - **Key finding:** Enoch is appointed as **General Conference Chairman** — he is NOT a member of the NEC (National Executive Committee). He was commissioned by the National President to plan and execute the 19th LSUIC Annual General Conference.
 - **Conference Committee members appointed** (from appointment letter):
 
-| Name                     | Position                                | City      | Province |
-| ------------------------ | --------------------------------------- | --------- | -------- |
-| Enoch Kwateh Dongbo      | **General Chairman** (Conference Chair) | Jinan     | Shandong |
-| Alfreda Ruth Togbah      | General Co-Chair                        | Suzhou    | Jiangsu  |
-| Harris M Bowulo          | General Secretary                       | Beijing   | Beijing  |
-| Abdul Corneh             | PRO & Media                             | Zhengzhou | Henan    |
-| Kukor Brooks             | Cooking Team Chair                      | Jinan     | Shandong |
-| Jefferson T Banquando    | Chair on Sports                         | Suzhou    | Jiangsu  |
-| Lisa Y SET               | Member, Cooking Team                    | Qingdao   | Shandong |
-| Blessing Hawa Washington | Member, Cooking Team                    | Nantong   | Jiangsu  |
-| Robert D Molley          | Chair on Logistics                      | Qufu      | Shandong |
-| Priscilla Bamu Dweh      | Member, Cooking Team                    | Suzhou    | Jiangsu  |
-| Willimena Yah Munyenneh  | Member, Cooking Team                    | Suzhou    | Jiangsu  |
+| Name                     | Position                                | City      | Province | University                | Phone       |
+| ------------------------ | --------------------------------------- | --------- | -------- | ------------------------- | ----------- |
+| Enoch Kwateh Dongbo      | **General Chairman** (Conference Chair) | Jinan     | Shandong | University of Jinan       | 18506832159 |
+| Alfreda Ruth Togbah      | General Co-Chair                        | Suzhou    | Jiangsu  | Suzhou Uni. of Sci & Tech | 13915437321 |
+| Harris M Bowulo          | General Secretary                       | Beijing   | Beijing  | North China Uni. of Tech  | 18514556295 |
+| Abdul Corneh             | PRO & Media                             | Zhengzhou | Henan    | North China Uni.          | 15638483183 |
+| Kukor Brooks             | Cooking Team Chair                      | Jinan     | Shandong | Shandong Jianzhu Uni.     | 15376176715 |
+| Jefferson T Banquando    | Chair on Sports                         | Suzhou    | Jiangsu  | Suzhou Uni. Sci & Tech    | 18662966349 |
+| Lisa Y Synyenlentu       | Member, Cooking Team                    | Qingdao   | Shandong | Ocean Uni. of China       | 17863971479 |
+| Blessing Hawa Washington | Member, Cooking Team                    | Nantong   | Jiangsu  | Nantong University        | 19850012998 |
+| Robert D. Molley         | Chair on Logistics                      | Qufu      | Shandong | Jining University         | 18853752989 |
+| Priscilla Bamu Dweh      | Member, Cooking Team                    | Suzhou    | Jiangsu  | Suzhou Uni. of Sci & Tech | 13291194526 |
+| Williamena Yah Munyenneh | Member, Cooking Team                    | Suzhou    | Jiangsu  | Suzhou Uni. of Sci & Tech | 16606212125 |
+
+- All committee phone numbers above are verified against the source appointment letter pages.
 
 - **Chairman responsibilities per the letter:** Budget Management, Delegates Management, Program Execution, Reporting, City/District coordination
 - **CC on the letter:** Council of Coordinators, NEC, National Secretariat, Judicial Board
@@ -1201,15 +1203,15 @@ All images from `scripts/conference-2026/images/` have been OCR'd and stored in 
 
 Stored as `ConfLeaderProfile` entries (global profiles). From the letterhead on all official documents:
 
-| Name                   | Role                                     | City    | Province |
-| ---------------------- | ---------------------------------------- | ------- | -------- |
-| Olano Teah Bloh        | National President                       | Nanjing | Jiangsu  |
-| Ruphine M. Harmon      | National Vice President                  | Jinan   | Shandong |
-| C. Nathaniel Willie II | National Secretary General               | Chengdu | Sichuan  |
-| Jenkins G. Wilson      | Acting National Deputy Secretary General | Xuzhou  | Jiangsu  |
-| Noah D. Mason          | National Financial Secretary General     | Ningbo  | Zhejiang |
-| Jenneh Bonah           | National Treasurer                       | Jinan   | Shandong |
-| Mitchell Vampelt       | National Chaplain General                | Suzhou  | Jiangsu  |
+| Name                   | Role                                     | City    | Province | Phone       |
+| ---------------------- | ---------------------------------------- | ------- | -------- | ----------- |
+| Olano Teah Bloh        | National President                       | Nanjing | Jiangsu  | 18351981723 |
+| Ruphine M. Harmon      | National Vice President                  | Jinan   | Shandong | 18651615822 |
+| C. Nathaniel Willie II | National Secretary General               | Chengdu | Sichuan  | 18581578335 |
+| Jenkins G. Wilson      | Acting National Deputy Secretary General | Xuzhou  | Jiangsu  | 18556169627 |
+| Noah D. Mason          | National Financial Secretary General     | Ningbo  | Zhejiang | 19825661023 |
+| Jenneh Bonah           | National Treasurer                       | Jinan   | Shandong | 18906417225 |
+| Mitchell Vampelt       | National Chaplain General                | Suzhou  | Jiangsu  | 15601544001 |
 
 ---
 
@@ -1404,17 +1406,17 @@ Modeled after the official NEC letterhead format (from OCR of `Mr._Enoch_Appoint
 
 **Layout (A4, 96dpi = 794×1123px):**
 
-| Zone                          | Content                                                       |
-| ----------------------------- | ------------------------------------------------------------- |
-| Gold top bar (7px)            | `#C8A061` gradient                                            |
-| Left: LSUIC logo              | Circular clip, 108×108px, ring-bordered                       |
-| Center: Organization name     | "LIBERIAN STUDENT UNION IN CHINA (LSUIC)"                     |
-| Center: Conference name       | Conference event name (gold color)                            |
-| Center: Venue + Date          | Venue, city, date range                                       |
-| Center: Office label          | "Office of the Conference Chairman"                           |
-| Center: Motto + Contact       | "Promoting Education, Unity and Development" · Est. July 2008 |
-| Right sidebar: Committee list | All `ConfMember` records (gold separator), top roles first    |
-| Navy bottom bar (5px)         | `#182e5f`                                                     |
+| Zone                          | Content                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| Gold top bar (7px)            | `#C8A061` gradient                                                              |
+| Left: LSUIC logo              | Circular clip, 108×108px, ring-bordered                                         |
+| Center: Organization name     | "LIBERIAN STUDENT UNION IN CHINA (LSUIC)"                                       |
+| Center: Conference name       | Conference event name (gold color)                                              |
+| Center: Venue + Date          | Venue, city, date range                                                         |
+| Center: Office label          | "Office of the Conference Chairman"                                             |
+| Center: Motto + Contact       | "Promoting Education, Unity and Development" · Est. July 2008                   |
+| Right sidebar: Committee list | All `ConfMember` records (gold separator), top roles first, with city and phone |
+| Navy bottom bar (5px)         | `#182e5f`                                                                       |
 
 **Right sidebar order:** CHAIR → VICE_CHAIR → SECRETARY → TREASURER → COMMITTEE
 
@@ -1525,6 +1527,7 @@ For booklet people cards (where applicable), include:
 
 - Name
 - Position/role
+- Phone number (when available)
 - Conference ID (`delegateCode`) — show `ID pending` if missing
 - School/University (`university`) — show `Member` if missing
 - City and Province — show `Member` fallback where needed
@@ -1653,12 +1656,12 @@ After final payment confirmation:
 
 ### 23.9 Implementation Status Snapshot
 
-| Area | Status |
-| --- | --- |
-| Participant registry table with pagination | ✅ Implemented |
+| Area                                                  | Status         |
+| ----------------------------------------------------- | -------------- |
+| Participant registry table with pagination            | ✅ Implemented |
 | Passport + booklet photo visibility in registry table | ✅ Implemented |
-| CSV / TXT / Excel export from participant registry | ✅ Implemented |
-| Default 250 RMB auto-fill + backend fallback | ✅ Implemented |
-| Auto account-creation email link after registration | 🔄 Planned |
-| Partial payment state model + final confirmation gate | 🔄 Planned |
-| Full post-payment permission unlock automation | 🔄 Planned |
+| CSV / TXT / Excel export from participant registry    | ✅ Implemented |
+| Default 250 RMB auto-fill + backend fallback          | ✅ Implemented |
+| Auto account-creation email link after registration   | 🔄 Planned     |
+| Partial payment state model + final confirmation gate | 🔄 Planned     |
+| Full post-payment permission unlock automation        | 🔄 Planned     |

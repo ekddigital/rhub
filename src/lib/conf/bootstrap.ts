@@ -75,70 +75,102 @@ const DEFAULT_MEMBERS = [
   {
     name: "Enoch Kwateh Dongbo",
     role: "CHAIR" as const,
-    title: "Conference Chair",
+    title: "General Chairman",
     city: "Jinan",
+    phone: "18506832159",
   },
   {
     name: "Alfreda Ruth Togbah",
     role: "VICE_CHAIR" as const,
-    title: "Co-Chair",
+    title: "General Co-Chair",
     city: "Suzhou",
+    phone: "13915437321",
   },
   {
     name: "Harris M Bowulo",
     role: "SECRETARY" as const,
-    title: "Secretary",
+    title: "General Secretary",
     city: "Beijing",
+    phone: "18514556295",
   },
   {
     name: "Abdul Corneh",
     role: "COMMITTEE" as const,
-    title: "PRO/Media",
+    title: "PRO & Media",
     city: "Zhengzhou",
+    phone: "15638483183",
   },
   {
     name: "Kukor Brooks",
     role: "COMMITTEE" as const,
-    title: "Cooking Chair",
+    title: "Cooking Team Chair",
     city: "Jinan",
+    phone: "15376176715",
   },
   {
     name: "Jefferson T Banquando",
     role: "COMMITTEE" as const,
-    title: "Sports Chair",
+    title: "Chair on Sports",
     city: "Suzhou",
+    phone: "18662966349",
   },
   {
-    name: "Lisa Y SET",
+    name: "Lisa Y Synyenlentu",
     role: "COMMITTEE" as const,
-    title: "Cooking",
+    title: "Member, Cooking Team",
     city: "Qingdao",
+    phone: "17863971479",
   },
   {
     name: "Blessing Hawa Washington",
     role: "COMMITTEE" as const,
-    title: "Cooking",
+    title: "Member, Cooking Team",
     city: "Nantong",
+    phone: "19850012998",
   },
   {
-    name: "Robert D Molley",
+    name: "Robert D. Molley",
     role: "COMMITTEE" as const,
-    title: "Logistics Chair",
+    title: "Chair on Logistics",
     city: "Qufu",
+    phone: "18853752989",
   },
   {
     name: "Priscilla Bamu Dweh",
     role: "COMMITTEE" as const,
-    title: "Cooking",
+    title: "Member, Cooking Team",
     city: "Suzhou",
+    phone: "13291194526",
   },
   {
-    name: "Willimena Yah Munyenneh",
+    name: "Williamena Yah Munyenneh",
     role: "COMMITTEE" as const,
-    title: "Cooking",
+    title: "Member, Cooking Team",
     city: "Suzhou",
+    phone: "16606212125",
   },
 ];
+
+const DEFAULT_MEMBER_NAME_CORRECTIONS = [
+  {
+    canonical: "Lisa Y Synyenlentu",
+    aliases: ["Lisa Y SET"],
+  },
+  {
+    canonical: "Robert D. Molley",
+    aliases: ["Robert D Molley"],
+  },
+  {
+    canonical: "Williamena Yah Munyenneh",
+    aliases: [
+      "Williama Yah Munyenneh",
+      "Williamena Yah SENET",
+      "Willimena Y. Munyenneh",
+      "Willimena Yah Munyenneh",
+      "Williamena Yah MUNYENEH",
+    ],
+  },
+] as const;
 
 async function bootstrapDefaultConference() {
   let event = await prisma.confEvent.findUnique({
@@ -193,19 +225,37 @@ async function bootstrapDefaultConference() {
         role: member.role,
         title: member.title,
         city: member.city,
+        phone: member.phone,
       })),
     });
   }
 
   // Idempotent name corrections — fixes historical misspellings on every bootstrap run.
-  await prisma.confMember.updateMany({
-    where: { confId: event.id, name: "Williamena Yah SENET" },
-    data: { name: "Willimena Yah Munyenneh" },
-  });
-  await prisma.confMember.updateMany({
-    where: { confId: event.id, name: "Willimena Y. Munyenneh" },
-    data: { name: "Willimena Yah Munyenneh" },
-  });
+  for (const correction of DEFAULT_MEMBER_NAME_CORRECTIONS) {
+    await prisma.confMember.updateMany({
+      where: {
+        confId: event.id,
+        name: { in: [...correction.aliases] },
+      },
+      data: { name: correction.canonical },
+    });
+  }
+
+  // Backfill phone/title/city on existing committee records where legacy rows are missing fields.
+  for (const member of DEFAULT_MEMBERS) {
+    await prisma.confMember.updateMany({
+      where: {
+        confId: event.id,
+        name: member.name,
+        OR: [{ phone: null }, { city: null }, { title: null }],
+      },
+      data: {
+        phone: member.phone,
+        city: member.city,
+        title: member.title,
+      },
+    });
+  }
 
   // Idempotent delegate code migration — fixes old prefix formats to LSUICNC{YY}-{NNNN}.
   {

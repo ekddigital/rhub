@@ -70,7 +70,7 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
     id: "2c",
     title: "Thursday Meeting Runbook Executed",
     description:
-      "Use standard flow: Opening Prayer, committee reports, decision gate, action lock, AOB, Closing Prayer.",
+      "Use standard flow: Opening Prayer, scoreboard review, subcommittee reports, decision gate, action lock, AOB, Closing Prayer.",
     owner: "Chair + Secretary",
     date: "2026-04-16",
     category: "governance",
@@ -79,10 +79,10 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
   },
   {
     id: "2d",
-    title: "Publicity Sprint Starts",
+    title: "What to Expect Promo Flyer Published",
     description:
-      "Begin immediate publicity campaign after the Thursday meeting with daily execution for 3 days.",
-    owner: "PRO / Media + Committee Chairs",
+      "Release first promotional flyer after confirmation hearing highlighting welcome party, pool activities, Achievers Awards Night, roommate selection option, and leadership sessions.",
+    owner: "PRO / Media + Chair",
     date: "2026-04-16",
     category: "program",
     isCritical: true,
@@ -92,7 +92,7 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
     id: "2e",
     title: "Media Venue Storytelling Pack Approved",
     description:
-      "Media finalizes short video and photo storyline showing on-ground facilities: Gym, Swimming Pool, Dining Hall, Conference Hall, Dinner Hall, and Hotel Yard using assets from scripts/conference-2026/images and scripts/conference-2026/ocr.",
+      "Media finalizes short promo video plus photo storyline showing on-ground facilities: Gym, Swimming Pool, Dining Hall, Conference Hall, Dinner Hall, and Hotel Yard using assets from scripts/conference-2026/images and scripts/conference-2026/ocr.",
     owner: "PRO / Media + Logistics",
     date: "2026-04-17",
     category: "program",
@@ -112,11 +112,22 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
   },
   {
     id: "3",
-    title: "Signup Link and QR Flyer Published (After 3-Day Publicity)",
+    title: "Signup Flyer with Link and Payment QR Published",
     description:
-      "Release registration flyer and delegate signup link after publicity momentum is established.",
-    owner: "PRO / Media + Secretary",
+      "After three full promo days, release signup flyer with delegate registration link and Financial Secretary payment QR code.",
+    owner: "PRO / Media + Secretary + Financial Secretary",
     date: "2026-04-19",
+    category: "registration",
+    isCritical: true,
+    isCompleted: false,
+  },
+  {
+    id: "3a",
+    title: "Financial Secretary Approval Workflow Active",
+    description:
+      "Financial Secretary and Treasurer verify incoming conference payments in-system and approve only fully verified delegates.",
+    owner: "Financial Secretary + Treasurer + Secretary",
+    date: "2026-04-20",
     category: "registration",
     isCritical: true,
     isCompleted: false,

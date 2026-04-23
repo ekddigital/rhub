@@ -12,6 +12,7 @@ const DEFAULT_NEC_BOARD = [
     role: "CHAIR",
     city: "Nanjing",
     province: "Jiangsu",
+    phone: "18351981723",
   },
   {
     name: "Ruphine M. Harmon",
@@ -19,6 +20,7 @@ const DEFAULT_NEC_BOARD = [
     role: "VICE_CHAIR",
     city: "Jinan",
     province: "Shandong",
+    phone: "18651615822",
   },
   {
     name: "C. Nathaniel Willie II",
@@ -26,6 +28,7 @@ const DEFAULT_NEC_BOARD = [
     role: "SECRETARY",
     city: "Chengdu",
     province: "Sichuan",
+    phone: "18581578335",
   },
   {
     name: "Jenkins G. Wilson",
@@ -33,6 +36,7 @@ const DEFAULT_NEC_BOARD = [
     role: "COMMITTEE",
     city: "Xuzhou",
     province: "Jiangsu",
+    phone: "18556169627",
   },
   {
     name: "Noah D. Mason",
@@ -40,6 +44,7 @@ const DEFAULT_NEC_BOARD = [
     role: "TREASURER",
     city: "Ningbo",
     province: "Zhejiang",
+    phone: "19825661023",
   },
   {
     name: "Jenneh Bonah",
@@ -47,6 +52,7 @@ const DEFAULT_NEC_BOARD = [
     role: "COMMITTEE",
     city: "Jinan",
     province: "Shandong",
+    phone: "18906417225",
   },
   {
     name: "Mitchell Vampelt",
@@ -54,6 +60,100 @@ const DEFAULT_NEC_BOARD = [
     role: "COMMITTEE",
     city: "Suzhou",
     province: "Jiangsu",
+    phone: "15601544001",
+  },
+] as const;
+
+// Official conference committee roster from appointment letter.
+// Used as fallback when members have not linked a delegate profile yet.
+const DEFAULT_COMMITTEE_ROSTER = [
+  {
+    name: "Enoch Kwateh Dongbo",
+    title: "General Chairman",
+    city: "Jinan",
+    province: "Shandong",
+    university: "University of Jinan",
+    phone: "18506832159",
+  },
+  {
+    name: "Alfreda Ruth Togbah",
+    title: "General Co-Chair",
+    city: "Suzhou",
+    province: "Jiangsu",
+    university: "Suzhou Uni. of Sci & Tech",
+    phone: "13915437321",
+  },
+  {
+    name: "Harris M Bowulo",
+    title: "General Secretary",
+    city: "Beijing",
+    province: "Beijing",
+    university: "North China Uni. of Tech",
+    phone: "18514556295",
+  },
+  {
+    name: "Abdul Corneh",
+    title: "PRO & Media",
+    city: "Zhengzhou",
+    province: "Henan",
+    university: "North China Uni.",
+    phone: "15638483183",
+  },
+  {
+    name: "Kukor Brooks",
+    title: "Cooking Team Chair",
+    city: "Jinan",
+    province: "Shandong",
+    university: "Shandong Jianzhu Uni.",
+    phone: "15376176715",
+  },
+  {
+    name: "Jefferson T Banquando",
+    title: "Chair on Sports",
+    city: "Suzhou",
+    province: "Jiangsu",
+    university: "Suzhou Uni. Sci & Tech",
+    phone: "18662966349",
+  },
+  {
+    name: "Lisa Y Synyenlentu",
+    title: "Member, Cooking Team",
+    city: "Qingdao",
+    province: "Shandong",
+    university: "Ocean Uni. of China",
+    phone: "17863971479",
+  },
+  {
+    name: "Blessing Hawa Washington",
+    title: "Member, Cooking Team",
+    city: "Nantong",
+    province: "Jiangsu",
+    university: "Nantong University",
+    phone: "19850012998",
+  },
+  {
+    name: "Robert D. Molley",
+    title: "Chair on Logistics",
+    city: "Qufu",
+    province: "Shandong",
+    university: "Jining University",
+    phone: "18853752989",
+  },
+  {
+    name: "Priscilla Bamu Dweh",
+    title: "Member, Cooking Team",
+    city: "Suzhou",
+    province: "Jiangsu",
+    university: "Suzhou Uni. of Sci & Tech",
+    phone: "13291194526",
+  },
+  {
+    name: "Williamena Yah Munyenneh",
+    title: "Member, Cooking Team",
+    city: "Suzhou",
+    province: "Jiangsu",
+    university: "Suzhou Uni. of Sci & Tech",
+    phone: "16606212125",
   },
 ] as const;
 
@@ -63,6 +163,47 @@ function normalizeName(value: string | null | undefined): string {
 
 function normalizePosition(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+const COMMITTEE_ALIAS_TO_CANONICAL: Array<[string, string]> = [
+  ["Lisa Y SET", "Lisa Y Synyenlentu"],
+  ["Robert D Molley", "Robert D. Molley"],
+  ["Williama Yah Munyenneh", "Williamena Yah Munyenneh"],
+  ["Williamena Yah SENET", "Williamena Yah Munyenneh"],
+  ["Willimena Y. Munyenneh", "Williamena Yah Munyenneh"],
+  ["Willimena Yah Munyenneh", "Williamena Yah Munyenneh"],
+  ["Williamena Yah MUNYENEH", "Williamena Yah Munyenneh"],
+];
+
+const COMMITTEE_ROSTER_LOOKUP = (() => {
+  const lookup = new Map<string, (typeof DEFAULT_COMMITTEE_ROSTER)[number]>();
+  for (const entry of DEFAULT_COMMITTEE_ROSTER) {
+    lookup.set(normalizeName(entry.name), entry);
+  }
+  for (const [alias, canonical] of COMMITTEE_ALIAS_TO_CANONICAL) {
+    const canonicalEntry = lookup.get(normalizeName(canonical));
+    if (canonicalEntry) {
+      lookup.set(normalizeName(alias), canonicalEntry);
+    }
+  }
+  return lookup;
+})();
+
+function findCommitteeRosterEntry(
+  name: string,
+  title: string | null,
+): (typeof DEFAULT_COMMITTEE_ROSTER)[number] | null {
+  const byName = COMMITTEE_ROSTER_LOOKUP.get(normalizeName(name));
+  if (byName) return byName;
+
+  if (title) {
+    const byTitle = DEFAULT_COMMITTEE_ROSTER.find(
+      (entry) => normalizePosition(entry.title) === normalizePosition(title),
+    );
+    if (byTitle) return byTitle;
+  }
+
+  return null;
 }
 
 // GET /api/conf/[confId]/booklet/data
@@ -141,6 +282,7 @@ export async function GET(
           name: true,
           role: true,
           city: true,
+          phone: true,
           title: true,
           committeeScope: true,
           photoPath: true,
@@ -164,6 +306,7 @@ export async function GET(
           university: true,
           province: true,
           city: true,
+          phone: true,
           conferencePosition: true,
           gender: true,
           bookletPhotoPath: true,
@@ -264,23 +407,18 @@ export async function GET(
     // delegate profile fields so booklet cards can show school/code/province.
     const committeeMembers = resolvedMembers.map((m) => {
       const linked = findLinkedDelegate(m.userId, m.name);
+      const roster = findCommitteeRosterEntry(m.name, m.title);
       return {
         ...m,
-        ...(linked
-          ? {
-              city: linked.city ?? m.city,
-              province: linked.province ?? null,
-              university: linked.university ?? null,
-              delegateCode: linked.delegateCode ?? null,
-              conferencePosition: linked.conferencePosition ?? m.title ?? null,
-              photoPath: m.photoPath ?? linked.bookletPhotoPath ?? null,
-            }
-          : {
-              province: null,
-              university: null,
-              delegateCode: null,
-              conferencePosition: m.title ?? null,
-            }),
+        name: roster?.name ?? m.name,
+        city: linked?.city ?? m.city ?? roster?.city ?? null,
+        phone: linked?.phone ?? m.phone ?? roster?.phone ?? null,
+        province: linked?.province ?? roster?.province ?? null,
+        university: linked?.university ?? roster?.university ?? null,
+        delegateCode: linked?.delegateCode ?? null,
+        conferencePosition:
+          linked?.conferencePosition ?? m.title ?? roster?.title ?? null,
+        photoPath: m.photoPath ?? linked?.bookletPhotoPath ?? null,
         hasRegistered:
           (m.userId !== null && signedUpUserIds.has(m.userId as string)) ||
           Boolean(linked),
@@ -309,6 +447,7 @@ export async function GET(
         title: entry.title,
         city: linked?.city ?? entry.city,
         province: linked?.province ?? entry.province,
+        phone: linked?.phone ?? entry.phone,
         committeeScope: "NEC",
         photoPath: linked?.bookletPhotoPath ?? null,
         bookletBio: null,

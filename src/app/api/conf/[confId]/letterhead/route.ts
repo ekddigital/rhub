@@ -103,6 +103,7 @@ type Member = {
   role: string;
   title: string | null;
   city: string | null;
+  phone: string | null;
   committeeScope: string | null;
 };
 
@@ -234,6 +235,11 @@ function buildFirstPageSvg(opts: {
 
     if (m.city) {
       sideLines += `<text x="${sidePad}" y="${sy}" font-family="B,Arial,sans-serif" font-size="7" fill="#88A4C8">${escapeXml(m.city + ", China")}</text>`;
+      sy += 11;
+    }
+
+    if (m.phone) {
+      sideLines += `<text x="${sidePad}" y="${sy}" font-family="S,Arial,sans-serif" font-size="7" font-weight="600" fill="#FFFFFF">${escapeXml(m.phone)}</text>`;
       sy += 11;
     }
 
@@ -439,6 +445,7 @@ export async function GET(
           role: true,
           title: true,
           city: true,
+          phone: true,
           committeeScope: true,
         },
       }),

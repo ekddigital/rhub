@@ -38,7 +38,7 @@ COMMITTEE                                  [Zoom display name]
 • Jefferson T Banquando — Sports Committee Chair          → "Jeffery"
 • Robert D. Molley — Logistics Committee Chair            → "Amb. Robert D. Molley"
 • Priscilla — Cooking Committee · Suzhou                  → "Priscilla - Suzhou"
-• Williamena Yah MUNYENEH — Cooking Committee             → "Williamena Yah MUNYENEH"
+• Williamena Yah Munyenneh — Cooking Committee            → "Williamena Yah Munyenneh"
 • Blessing — Cooking Committee · Nantong                  → "Blessing - Nantong"
 • Lisa — Cooking Committee · Qingdao                      → "Lisa - Qingdao"
 
@@ -226,11 +226,17 @@ function buildStandardAgenda(
   const lines: string[] = [
     `Theme: ${theme}`,
     "- Opening Prayer",
-    "- Recap of previous meeting",
+    "- Chair welcome and objective confirmation",
+    "- Scoreboard Review",
+    "  - Registrations vs 170 target",
+    "  - Paid and approved delegates (Financial Secretary verification status)",
+    "  - Fee affordability check against RMB 275 baseline",
     "- Discussion",
     ...focusItems.map((item) => `  - ${item}`),
+    "- Decision Gate",
     `  - Decision: ${decision}`,
-    "- Action Points (assign tasks and expected feedback next meeting)",
+    "- Action Lock",
+    "  - Assign responsible lead, due date, and required evidence for each action",
     aobNote ? `- AOB: ${aobNote}` : "- AOB",
     "- Closing Prayer",
   ];
@@ -243,22 +249,24 @@ const MEETING_TOPICS = [
   buildStandardAgenda(
     "Hearing Wrap and Publicity Kickoff",
     [
-      "Confirm hearing outcomes and quick updates from Cooking, Media, Logistics, Sports, and Decoration",
-      "Finalize fee communication and publicity message for this week",
-      "Start 3-day publicity run immediately after the meeting",
-      "Issue fundraising idea call so every team comes prepared for Meeting #3",
+      "Confirm hearing outcomes and unresolved questions from Cooking, Media, Logistics, Sports, and Decoration",
+      "Approve the 'What to Expect at LSUIC 2026' promotional flyer for immediate release",
+      "Assign hotel media capture deliverables: conference hall, pool, dining hall, dinner hall, and hotel yard",
+      "Lock the 3-day publicity schedule and posting responsibilities",
     ],
-    "Approve publicity rollout and post-publicity signup timing",
-    "Each committee submits at least one fundraising idea before Meeting #3",
+    "Approve promo rollout and lock signup flyer publication gate after full publicity window",
+    "Each committee submits one fundraising idea and one sponsor lead before Meeting #3",
   ),
   buildStandardAgenda(
     "Execution and Fundraising Closeout",
     [
       "Review committee progress and unresolved blockers",
+      "Finalize signup flyer content with delegate registration link and Financial Secretary payment QR code",
+      "Confirm in-system payment verification and approval workflow for Financial Secretary and Treasurer",
       "Finalize fundraising plan: target, channels, and timeline",
       "Assign fundraising responsible leads and reporting checkpoints",
     ],
-    "Conclude fundraising plan and publish execution tracker",
+    "Publish signup flyer and start weekly payment verification reporting",
   ),
   buildStandardAgenda(
     "Budget Implementation and Sponsor Execution",
@@ -272,11 +280,12 @@ const MEETING_TOPICS = [
   buildStandardAgenda(
     "Registration and Payment Control",
     [
-      "Review registration count, paid count, and verification delays",
-      "Fix payment approval bottlenecks and dispute handling",
+      "Review registration count, paid count, and payment-approval queue age",
+      "Enforce Financial Secretary and Treasurer verification SLA for pending payments",
+      "Resolve payment disputes and missing-proof cases before next report cycle",
       "Confirm weekly registration and payment reporting",
     ],
-    "Start weekly verified payment status reporting",
+    "Publish weekly verified payment status and approval backlog report",
   ),
   buildStandardAgenda(
     "Program Structure",
