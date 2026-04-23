@@ -86,10 +86,35 @@ type RoleTemplate = {
 
 const LS_KEY = "conf_letter_drafts";
 
+/** Ensure any draft loaded from localStorage has all current fields with defaults. */
+function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
+  return {
+    id: d.id ?? newId(),
+    title: d.title ?? "",
+    to: d.to ?? "",
+    from: d.from ?? "",
+    re: d.re ?? "",
+    date: d.date ?? "",
+    body: d.body ?? "",
+    issuingRoleKey: d.issuingRoleKey ?? "",
+    officeLabel: d.officeLabel ?? "Office of the Conference Chairman",
+    signatoryMode: d.signatoryMode ?? "NONE",
+    signatory1Name: d.signatory1Name ?? "",
+    signatory1Title: d.signatory1Title ?? "",
+    signatory2Name: d.signatory2Name ?? "",
+    signatory2Title: d.signatory2Title ?? "",
+    signatory3Name: d.signatory3Name ?? "",
+    signatory3Title: d.signatory3Title ?? "",
+    savedAt: d.savedAt ?? "",
+  };
+}
+
 function loadDrafts(): LetterDraft[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    return raw ? (JSON.parse(raw) as LetterDraft[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Partial<LetterDraft>[];
+    return Array.isArray(parsed) ? parsed.map(migrateDraft) : [];
   } catch {
     return [];
   }
@@ -313,9 +338,9 @@ function LetterA4Preview({
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
   const signatories: Signatory[] = [
-    { name: draft.signatory1Name, title: draft.signatory1Title },
-    { name: draft.signatory2Name, title: draft.signatory2Title },
-    { name: draft.signatory3Name, title: draft.signatory3Title },
+    { name: draft.signatory1Name ?? "", title: draft.signatory1Title ?? "" },
+    { name: draft.signatory2Name ?? "", title: draft.signatory2Title ?? "" },
+    { name: draft.signatory3Name ?? "", title: draft.signatory3Title ?? "" },
   ].filter((s) => s.name.trim() || s.title.trim());
 
   const metaLineCount =
@@ -332,7 +357,7 @@ function LetterA4Preview({
   const firstPageBody = bodyPages[0] ?? "";
   const continuationBodies = bodyPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
-  const officeLabel = draft.officeLabel.trim() || "Office of the Conference Chairman";
+  const officeLabel = (draft.officeLabel ?? "").trim() || "Office of the Conference Chairman";
 
   return (
     <>
