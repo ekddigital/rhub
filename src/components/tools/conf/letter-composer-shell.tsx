@@ -48,8 +48,8 @@ type LetterDraft = {
   // Signatory 1 (left — least authority, e.g. Secretary → "Signed")
   signatory1Name: string;
   signatory1Title: string;
-  signatory1Label: string;  // e.g. "Signed"
-  signatory1Sig: string;    // base64 data URL of signature image
+  signatory1Label: string; // e.g. "Signed"
+  signatory1Sig: string; // base64 data URL of signature image
   signatory1SigScale: number; // 0.5–2.0, default 1
   // Signatory 2 (centre — mid authority, e.g. Vice-Chair → "Approved")
   signatory2Name: string;
@@ -88,7 +88,13 @@ type RoleTemplate = {
   id: string;
   key: string;
   label: string;
-  baseRole: "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE";
+  baseRole:
+    | "CHAIR"
+    | "VICE_CHAIR"
+    | "SECRETARY"
+    | "TREASURER"
+    | "COMMITTEE"
+    | "DELEGATE";
   title: string | null;
   committeeScope: string | null;
   officeLabel: string | null;
@@ -113,10 +119,18 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     (d.signatoryMode === "STANDARD" || d.signatoryMode === "FUNDRAISING") &&
     (d.signatory1Name || d.signatory3Name);
 
-  const s1Name  = needsSwap ? (d.signatory3Name  ?? "") : (d.signatory1Name  ?? "");
-  const s1Title = needsSwap ? (d.signatory3Title ?? "") : (d.signatory1Title ?? "");
-  const s3Name  = needsSwap ? (d.signatory1Name  ?? "") : (d.signatory3Name  ?? "");
-  const s3Title = needsSwap ? (d.signatory1Title ?? "") : (d.signatory3Title ?? "");
+  const s1Name = needsSwap
+    ? (d.signatory3Name ?? "")
+    : (d.signatory1Name ?? "");
+  const s1Title = needsSwap
+    ? (d.signatory3Title ?? "")
+    : (d.signatory1Title ?? "");
+  const s3Name = needsSwap
+    ? (d.signatory1Name ?? "")
+    : (d.signatory3Name ?? "");
+  const s3Title = needsSwap
+    ? (d.signatory1Title ?? "")
+    : (d.signatory3Title ?? "");
 
   return {
     id: d.id ?? newId(),
@@ -259,8 +273,8 @@ function fmtDateRange(start: string, end: string): string {
 type Signatory = {
   name: string;
   title: string;
-  label: string;   // "Signed" | "Approved" | "Attested"
-  sig: string;     // base64 data URL
+  label: string; // "Signed" | "Approved" | "Attested"
+  sig: string; // base64 data URL
   sigScale: number;
 };
 
@@ -389,15 +403,36 @@ function LetterA4Preview({
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
   const signatories: Signatory[] = [
-    { name: draft.signatory1Name ?? "", title: draft.signatory1Title ?? "", label: draft.signatory1Label ?? "Signed", sig: draft.signatory1Sig ?? "", sigScale: draft.signatory1SigScale ?? 1 },
-    { name: draft.signatory2Name ?? "", title: draft.signatory2Title ?? "", label: draft.signatory2Label ?? "Approved", sig: draft.signatory2Sig ?? "", sigScale: draft.signatory2SigScale ?? 1 },
-    { name: draft.signatory3Name ?? "", title: draft.signatory3Title ?? "", label: draft.signatory3Label ?? "Attested", sig: draft.signatory3Sig ?? "", sigScale: draft.signatory3SigScale ?? 1 },
+    {
+      name: draft.signatory1Name ?? "",
+      title: draft.signatory1Title ?? "",
+      label: draft.signatory1Label ?? "Signed",
+      sig: draft.signatory1Sig ?? "",
+      sigScale: draft.signatory1SigScale ?? 1,
+    },
+    {
+      name: draft.signatory2Name ?? "",
+      title: draft.signatory2Title ?? "",
+      label: draft.signatory2Label ?? "Approved",
+      sig: draft.signatory2Sig ?? "",
+      sigScale: draft.signatory2SigScale ?? 1,
+    },
+    {
+      name: draft.signatory3Name ?? "",
+      title: draft.signatory3Title ?? "",
+      label: draft.signatory3Label ?? "Attested",
+      sig: draft.signatory3Sig ?? "",
+      sigScale: draft.signatory3SigScale ?? 1,
+    },
   ].filter((s) => s.name.trim() || s.title.trim());
 
   const metaLineCount =
     (draft.to ? 2 : 0) + (draft.from ? 2 : 0) + (draft.re ? 2 : 0) + 2;
   const signatureReserveLines = signatories.length > 0 ? 10 : 0;
-  const firstPageCapacity = Math.max(12, 42 - metaLineCount - signatureReserveLines);
+  const firstPageCapacity = Math.max(
+    12,
+    42 - metaLineCount - signatureReserveLines,
+  );
   const continuationCapacity = 56;
   const bodyPages = paginateBodyText(
     draft.body,
@@ -408,7 +443,8 @@ function LetterA4Preview({
   const firstPageBody = bodyPages[0] ?? "";
   const continuationBodies = bodyPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
-  const officeLabel = (draft.officeLabel ?? "").trim() || "Office of the Conference Chairman";
+  const officeLabel =
+    (draft.officeLabel ?? "").trim() || "Office of the Conference Chairman";
 
   return (
     <>
@@ -425,486 +461,515 @@ function LetterA4Preview({
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
         }}
       >
-      {/* ── Liberian flag stripes ── */}
-      <div style={{ display: "flex", height: STRIPE_H, flexShrink: 0 }}>
-        {FLAG_STRIPES_11.map((color, i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              background: color,
-              borderBottom: color === "#FFFFFF" ? "0.5px solid #ddd" : "none",
-            }}
-          />
-        ))}
-      </div>
-
-      {/* ── Header row: logo | text | seal ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          height: HEADER_H,
-          flexShrink: 0,
-          background: C.white,
-          padding: "10px 18px",
-          gap: 12,
-        }}
-      >
-        {/* LSUIC Logo */}
-        <div
-          style={{
-            flexShrink: 0,
-            width: 108,
-            height: 108,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/conf/lsuic_logo.png"
-            alt="LSUIC"
-            style={{ width: 108, height: 108, objectFit: "contain" }}
-            onError={(e) => {
-              const el = e.target as HTMLImageElement;
-              el.style.display = "none";
-              (el.parentElement as HTMLElement).innerHTML =
-                '<span style="font-size:10px;font-weight:800;color:#002868;">LSUIC</span>';
-            }}
-          />
+        {/* ── Liberian flag stripes ── */}
+        <div style={{ display: "flex", height: STRIPE_H, flexShrink: 0 }}>
+          {FLAG_STRIPES_11.map((color, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                background: color,
+                borderBottom: color === "#FFFFFF" ? "0.5px solid #ddd" : "none",
+              }}
+            />
+          ))}
         </div>
 
-        {/* Center text block */}
-        <div style={{ flex: 1, textAlign: "center" }}>
+        {/* ── Header row: logo | text | seal ── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            height: HEADER_H,
+            flexShrink: 0,
+            background: C.white,
+            padding: "10px 18px",
+            gap: 12,
+          }}
+        >
+          {/* LSUIC Logo */}
           <div
             style={{
-              fontSize: 14.5,
-              fontWeight: 800,
-              color: C.navy,
-              letterSpacing: "0.3px",
-              lineHeight: 1.2,
+              flexShrink: 0,
+              width: 108,
+              height: 108,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/lsuic_logo.png"
+              alt="LSUIC"
+              style={{ width: 108, height: 108, objectFit: "contain" }}
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                (el.parentElement as HTMLElement).innerHTML =
+                  '<span style="font-size:10px;font-weight:800;color:#002868;">LSUIC</span>';
+              }}
+            />
           </div>
+
+          {/* Center text block */}
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div
+              style={{
+                fontSize: 14.5,
+                fontWeight: 800,
+                color: C.navy,
+                letterSpacing: "0.3px",
+                lineHeight: 1.2,
+              }}
+            >
+              LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: C.gold,
+                marginTop: 4,
+              }}
+            >
+              {confInfo?.name ?? "LSUIC 20th Anniversary National Conference"}
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
+              {venue}
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555" }}>
+              {confInfo?.city ?? "Jinan"}, Shandong Province, P.R. China
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
+            <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
+              Email: ekd@ekddigital.com · lsuic2006@gmail.com
+            </div>
+            {officerPhones.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 16,
+                  marginTop: 5,
+                  flexWrap: "wrap" as const,
+                }}
+              >
+                {officerPhones.map(({ label, phone }) => (
+                  <span
+                    key={label}
+                    style={{ fontSize: 8.5, color: C.navy, fontWeight: 600 }}
+                  >
+                    {label}: {phone}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Liberia National Seal */}
           <div
+            style={{
+              flexShrink: 0,
+              width: 104,
+              height: 104,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/liberia-seal.svg"
+              alt="Liberia Seal"
+              style={{ width: 104, height: 104, objectFit: "contain" }}
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                (el.parentElement as HTMLElement).innerHTML =
+                  '<span style="font-size:7px;text-align:center;color:#002868;">REPUBLIC OF LIBERIA</span>';
+              }}
+            />
+          </div>
+        </div>
+
+        {/* ── Gold separator ── */}
+        <div style={{ height: GOLD_BAR, background: C.gold, flexShrink: 0 }} />
+
+        {/* ── "Office of…" row ── */}
+        <div
+          style={{
+            height: OFFICE_ROW,
+            background: C.white,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            padding: "0 20px",
+            flexShrink: 0,
+          }}
+        >
+          <span
             style={{
               fontSize: 10,
               fontWeight: 600,
-              color: C.gold,
-              marginTop: 4,
+              color: C.navy,
+              fontStyle: "italic",
             }}
           >
-            {confInfo?.name ?? "LSUIC 20th Anniversary National Conference"}
-          </div>
-          <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
-            {venue}
-          </div>
-          <div style={{ fontSize: 8.5, color: "#555" }}>
-            {confInfo?.city ?? "Jinan"}, Shandong Province, P.R. China
-          </div>
-          <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
-          <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
-            Email: ekd@ekddigital.com · lsuic2006@gmail.com
-          </div>
-          {officerPhones.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 16,
-                marginTop: 5,
-                flexWrap: "wrap" as const,
-              }}
-            >
-              {officerPhones.map(({ label, phone }) => (
-                <span
-                  key={label}
-                  style={{ fontSize: 8.5, color: C.navy, fontWeight: 600 }}
-                >
-                  {label}: {phone}
-                </span>
-              ))}
-            </div>
-          )}
+            {officeLabel}
+          </span>
         </div>
 
-        {/* Liberia National Seal */}
+        {/* ── Navy + Red bars ── */}
+        <div style={{ height: NAVY_BAR, background: C.navy, flexShrink: 0 }} />
+        <div style={{ height: RED_BAR, background: C.red, flexShrink: 0 }} />
+
+        {/* ── Body area: sidebar + content ── */}
         <div
           style={{
-            flexShrink: 0,
-            width: 104,
-            height: 104,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/conf/liberia-seal.svg"
-            alt="Liberia Seal"
-            style={{ width: 104, height: 104, objectFit: "contain" }}
-            onError={(e) => {
-              const el = e.target as HTMLImageElement;
-              el.style.display = "none";
-              (el.parentElement as HTMLElement).innerHTML =
-                '<span style="font-size:7px;text-align:center;color:#002868;">REPUBLIC OF LIBERIA</span>';
-            }}
-          />
-        </div>
-      </div>
-
-      {/* ── Gold separator ── */}
-      <div style={{ height: GOLD_BAR, background: C.gold, flexShrink: 0 }} />
-
-      {/* ── "Office of…" row ── */}
-      <div
-        style={{
-          height: OFFICE_ROW,
-          background: C.white,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          padding: "0 20px",
-          flexShrink: 0,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            color: C.navy,
-            fontStyle: "italic",
-          }}
-        >
-          {officeLabel}
-        </span>
-      </div>
-
-      {/* ── Navy + Red bars ── */}
-      <div style={{ height: NAVY_BAR, background: C.navy, flexShrink: 0 }} />
-      <div style={{ height: RED_BAR, background: C.red, flexShrink: 0 }} />
-
-      {/* ── Body area: sidebar + content ── */}
-      <div
-        style={{
-          display: "flex",
-          height: forPrint ? "auto" : BODY_H,
-          flexShrink: 0,
-          overflow: forPrint ? "visible" : "hidden",
-        }}
-      >
-        {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
-        <div
-          style={{
-            width: SIDEBAR_W,
-            background: C.white,
+            height: forPrint ? "auto" : BODY_H,
             flexShrink: 0,
             overflow: forPrint ? "visible" : "hidden",
-            display: "flex",
-            borderRight: `1px solid #dde3ef`,
           }}
         >
-          {/* Vertical accent strips */}
-          <div style={{ display: "flex", flexShrink: 0, height: "100%" }}>
-            <div style={{ width: 8, background: C.navy }} />
-            <div style={{ width: 3, background: C.red }} />
-          </div>
-
-          {/* Member list */}
+          {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
           <div
             style={{
-              flex: 1,
-              padding: "12px 8px 12px 9px",
-              overflowY: forPrint ? "visible" : "hidden",
+              width: SIDEBAR_W,
+              background: C.white,
+              flexShrink: 0,
+              overflow: forPrint ? "visible" : "hidden",
+              display: "flex",
+              borderRight: `1px solid #dde3ef`,
             }}
           >
+            {/* Vertical accent strips */}
+            <div style={{ display: "flex", flexShrink: 0, height: "100%" }}>
+              <div style={{ width: 8, background: C.navy }} />
+              <div style={{ width: 3, background: C.red }} />
+            </div>
+
+            {/* Member list */}
             <div
               style={{
-                fontSize: 7.5,
-                fontWeight: 800,
-                color: C.navy,
-                letterSpacing: "0.8px",
-                textTransform: "uppercase" as const,
-                textAlign: "center",
-                marginBottom: 5,
+                flex: 1,
+                padding: "12px 8px 12px 9px",
+                overflowY: forPrint ? "visible" : "hidden",
               }}
             >
-              CONFERENCE COMMITTEE
-            </div>
-            <div
-              style={{
-                height: 1,
-                background: C.navy,
-                opacity: 0.25,
-                marginBottom: 9,
-              }}
-            />
-            {sortedMembers.map((m) => (
-              <div key={m.id} style={{ marginBottom: 6, textAlign: "center" }}>
-                {/* Name: bold italic navy, largest */}
+              <div
+                style={{
+                  fontSize: 7.5,
+                  fontWeight: 800,
+                  color: C.navy,
+                  letterSpacing: "0.8px",
+                  textTransform: "uppercase" as const,
+                  textAlign: "center",
+                  marginBottom: 5,
+                }}
+              >
+                CONFERENCE COMMITTEE
+              </div>
+              <div
+                style={{
+                  height: 1,
+                  background: C.navy,
+                  opacity: 0.25,
+                  marginBottom: 9,
+                }}
+              />
+              {sortedMembers.map((m) => (
                 <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: C.navy,
-                    fontStyle: "italic",
-                    lineHeight: 1.25,
-                    wordBreak: "break-word" as const,
-                  }}
+                  key={m.id}
+                  style={{ marginBottom: 6, textAlign: "center" }}
                 >
-                  {m.name}
-                </div>
-                {/* Role: italic navy, slightly smaller */}
-                <div
-                  style={{
-                    fontSize: 9.5,
-                    color: C.navy,
-                    fontStyle: "italic",
-                    lineHeight: 1.3,
-                    opacity: 0.8,
-                  }}
-                >
-                  {memberLabel(m)}
-                </div>
-                {/* City */}
-                {m.city && (
+                  {/* Name: bold italic navy, largest */}
                   <div
                     style={{
-                      fontSize: 9,
-                      color: "#444",
-                      fontStyle: "italic",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {m.city}, China
-                  </div>
-                )}
-                {/* Phone: bold italic, prominent — matches reference */}
-                {m.phone && (
-                  <div
-                    style={{
-                      fontSize: 10.5,
+                      fontSize: 11,
                       fontWeight: 700,
                       color: C.navy,
                       fontStyle: "italic",
-                      lineHeight: 1.4,
-                      marginTop: 2,
+                      lineHeight: 1.25,
+                      wordBreak: "break-word" as const,
                     }}
                   >
-                    {m.phone}
+                    {m.name}
                   </div>
-                )}
-                {/* Thin divider */}
-                <div
-                  style={{
-                    height: 0.8,
-                    background: C.navy,
-                    opacity: 0.15,
-                    marginTop: 6,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Main letter content */}
-        <div
-          style={{
-            flex: 1,
-            padding: "24px 32px 24px",
-            overflow: forPrint ? "visible" : "hidden",
-          }}
-        >
-          {/* Date (right-aligned) */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginBottom: 14,
-            }}
-          >
-            <span style={{ fontSize: 11, color: C.muted, fontStyle: "italic" }}>
-              {draft.date ||
-                new Date().toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-            </span>
-          </div>
-
-          {/* To / From / Re */}
-          <div
-            style={{
-              fontSize: 12,
-              color: "#222",
-              lineHeight: 1.8,
-              marginBottom: 6,
-            }}
-          >
-            {draft.to && (
-              <div>
-                <strong style={{ color: C.navy }}>To:</strong>{" "}
-                <span style={{ whiteSpace: "pre-line" }}>{draft.to}</span>
-              </div>
-            )}
-            {draft.from && (
-              <div>
-                <strong style={{ color: C.navy }}>From:</strong>{" "}
-                <span style={{ whiteSpace: "pre-line" }}>{draft.from}</span>
-              </div>
-            )}
-            {draft.re && (
-              <div style={{ marginTop: 4 }}>
-                <strong style={{ color: C.navy }}>Re:</strong>{" "}
-                <strong>{draft.re}</strong>
-              </div>
-            )}
-          </div>
-
-          {/* Gold divider */}
-          <div style={{ height: 1.5, background: C.gold, margin: "12px 0" }} />
-
-          {/* Body text */}
-          <div
-            style={{
-              fontSize: 12,
-              color: "#222",
-              lineHeight: 1.8,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {firstPageBody ? (
-              firstPageBody
-            ) : (
-              <span style={{ color: "#bbb", fontStyle: "italic" }}>
-                Your letter content will appear here as you type…
-              </span>
-            )}
-          </div>
-
-          {showSignaturesOnFirstPage && signatories.length > 0 && (
-            <div
-              style={{
-                marginTop: 28,
-                paddingTop: 14,
-                borderTop: `1px solid ${C.gold}`,
-                display: "grid",
-                gridTemplateColumns:
-                  signatories.length === 1
-                    ? "1fr"
-                    : signatories.length === 2
-                      ? "repeat(2, 1fr)"
-                      : "repeat(3, 1fr)",
-                gap: 16,
-              }}
-            >
-              {signatories.map((sig, idx) => (
-                <div key={`${sig.name}-${idx}`} style={{ minHeight: 80, textAlign: "center" }}>
-                  {(sig.name || sig.title) && (
-                    <>
-                      {/* Signature label */}
-                      {sig.label && (
-                        <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, fontStyle: "italic" }}>
-                          {sig.label}
-                        </div>
-                      )}
-                      {/* Signature image */}
-                      {sig.sig && (
-                        <div style={{ display: "flex", justifyContent: "center", marginBottom: 2 }}>
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={sig.sig}
-                            alt="signature"
-                            style={{
-                              height: Math.round(36 * sig.sigScale),
-                              maxWidth: "100%",
-                              objectFit: "contain",
-                            }}
-                          />
-                        </div>
-                      )}
-                      {/* Signature line */}
-                      <div
-                        style={{
-                          borderTop: "1px solid #222",
-                          width: "100%",
-                          marginBottom: 6,
-                        }}
-                      />
-                      {sig.name && (
-                        <div style={{ fontSize: 11.5, fontWeight: 700, color: "#222" }}>
-                          {sig.name}
-                        </div>
-                      )}
-                      {sig.title && (
-                        <div style={{ fontSize: 10.5, color: C.muted }}>
-                          {sig.title}
-                        </div>
-                      )}
-                    </>
+                  {/* Role: italic navy, slightly smaller */}
+                  <div
+                    style={{
+                      fontSize: 9.5,
+                      color: C.navy,
+                      fontStyle: "italic",
+                      lineHeight: 1.3,
+                      opacity: 0.8,
+                    }}
+                  >
+                    {memberLabel(m)}
+                  </div>
+                  {/* City */}
+                  {m.city && (
+                    <div
+                      style={{
+                        fontSize: 9,
+                        color: "#444",
+                        fontStyle: "italic",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {m.city}, China
+                    </div>
                   )}
+                  {/* Phone: bold italic, prominent — matches reference */}
+                  {m.phone && (
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: C.navy,
+                        fontStyle: "italic",
+                        lineHeight: 1.4,
+                        marginTop: 2,
+                      }}
+                    >
+                      {m.phone}
+                    </div>
+                  )}
+                  {/* Thin divider */}
+                  <div
+                    style={{
+                      height: 0.8,
+                      background: C.navy,
+                      opacity: 0.15,
+                      marginTop: 6,
+                    }}
+                  />
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* ── Footer ── */}
-      <div
-        style={{
-          height: FOOTER_H,
-          background: C.navy,
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ height: 2, background: C.red, width: "100%" }} />
+          {/* Main letter content */}
+          <div
+            style={{
+              flex: 1,
+              padding: "24px 32px 24px",
+              overflow: forPrint ? "visible" : "hidden",
+            }}
+          >
+            {/* Date (right-aligned) */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: 14,
+              }}
+            >
+              <span
+                style={{ fontSize: 11, color: C.muted, fontStyle: "italic" }}
+              >
+                {draft.date ||
+                  new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+              </span>
+            </div>
+
+            {/* To / From / Re */}
+            <div
+              style={{
+                fontSize: 12,
+                color: "#222",
+                lineHeight: 1.8,
+                marginBottom: 6,
+              }}
+            >
+              {draft.to && (
+                <div>
+                  <strong style={{ color: C.navy }}>To:</strong>{" "}
+                  <span style={{ whiteSpace: "pre-line" }}>{draft.to}</span>
+                </div>
+              )}
+              {draft.from && (
+                <div>
+                  <strong style={{ color: C.navy }}>From:</strong>{" "}
+                  <span style={{ whiteSpace: "pre-line" }}>{draft.from}</span>
+                </div>
+              )}
+              {draft.re && (
+                <div style={{ marginTop: 4 }}>
+                  <strong style={{ color: C.navy }}>Re:</strong>{" "}
+                  <strong>{draft.re}</strong>
+                </div>
+              )}
+            </div>
+
+            {/* Gold divider */}
+            <div
+              style={{ height: 1.5, background: C.gold, margin: "12px 0" }}
+            />
+
+            {/* Body text */}
+            <div
+              style={{
+                fontSize: 12,
+                color: "#222",
+                lineHeight: 1.8,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {firstPageBody ? (
+                firstPageBody
+              ) : (
+                <span style={{ color: "#bbb", fontStyle: "italic" }}>
+                  Your letter content will appear here as you type…
+                </span>
+              )}
+            </div>
+
+            {showSignaturesOnFirstPage && signatories.length > 0 && (
+              <div
+                style={{
+                  marginTop: 28,
+                  paddingTop: 14,
+                  borderTop: `1px solid ${C.gold}`,
+                  display: "grid",
+                  gridTemplateColumns:
+                    signatories.length === 1
+                      ? "1fr"
+                      : signatories.length === 2
+                        ? "repeat(2, 1fr)"
+                        : "repeat(3, 1fr)",
+                  gap: 16,
+                }}
+              >
+                {signatories.map((sig, idx) => (
+                  <div
+                    key={`${sig.name}-${idx}`}
+                    style={{ minHeight: 80, textAlign: "center" }}
+                  >
+                    {(sig.name || sig.title) && (
+                      <>
+                        {/* Signature image */}
+                        {sig.sig && (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              marginBottom: 2,
+                            }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sig.sig}
+                              alt="signature"
+                              style={{
+                                height: Math.round(36 * sig.sigScale),
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          </div>
+                        )}
+                        {/* Signature line */}
+                        <div
+                          style={{
+                            borderTop: "1px solid #222",
+                            width: "100%",
+                            marginBottom: 4,
+                          }}
+                        />
+                        {/* Signature label — below the line */}
+                        {sig.label && (
+                          <div
+                            style={{
+                              fontSize: 9,
+                              color: C.muted,
+                              marginBottom: 4,
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {sig.label}
+                          </div>
+                        )}
+                        {sig.name && (
+                          <div
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              color: "#222",
+                            }}
+                          >
+                            {sig.name}
+                          </div>
+                        )}
+                        {sig.title && (
+                          <div style={{ fontSize: 10.5, color: C.muted }}>
+                            {sig.title}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Footer ── */}
         <div
           style={{
-            flex: 1,
+            height: FOOTER_H,
+            background: C.navy,
+            flexShrink: 0,
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 14px",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
-          {/* left spacer to balance right page number */}
-          <div style={{ width: 48 }} />
+          <div style={{ height: 2, background: C.red, width: "100%" }} />
           <div
             style={{
-              fontSize: 8,
-              fontWeight: 700,
-              color: C.gold,
-              letterSpacing: "0.5px",
-              textAlign: "center",
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 14px",
             }}
           >
-            Motto: &quot;Excellence Through Hard Work&quot;
-          </div>
-          <div
-            style={{
-              fontSize: 8,
-              color: C.gold,
-              opacity: 0.75,
-              fontVariantNumeric: "tabular-nums",
-              width: 48,
-              textAlign: "right",
-            }}
-          >
-            Page 1 of {1 + continuationBodies.length}
+            {/* left spacer to balance right page number */}
+            <div style={{ width: 48 }} />
+            <div
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                color: C.gold,
+                letterSpacing: "0.5px",
+                textAlign: "center",
+              }}
+            >
+              Honoring Our Past, Engaging Our Present, and Inspiring Our Future
+            </div>
+            <div
+              style={{
+                fontSize: 8,
+                color: C.gold,
+                opacity: 0.75,
+                fontVariantNumeric: "tabular-nums",
+                width: 48,
+                textAlign: "right",
+              }}
+            >
+              Page 1 of {1 + continuationBodies.length}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       {continuationBodies.map((segment, idx) => {
         const isLast = idx === continuationBodies.length - 1;
@@ -974,16 +1039,32 @@ function LetterA4Preview({
                   }}
                 >
                   {signatories.map((sig, sigIdx) => (
-                    <div key={`${sig.name}-${sigIdx}`} style={{ minHeight: 80, textAlign: "center" }}>
+                    <div
+                      key={`${sig.name}-${sigIdx}`}
+                      style={{ minHeight: 80, textAlign: "center" }}
+                    >
                       {(sig.name || sig.title) && (
                         <>
                           {sig.label && (
-                            <div style={{ fontSize: 9, color: C.muted, marginBottom: 4, fontStyle: "italic" }}>
+                            <div
+                              style={{
+                                fontSize: 9,
+                                color: C.muted,
+                                marginBottom: 4,
+                                fontStyle: "italic",
+                              }}
+                            >
                               {sig.label}
                             </div>
                           )}
                           {sig.sig && (
-                            <div style={{ display: "flex", justifyContent: "center", marginBottom: 2 }}>
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                marginBottom: 2,
+                              }}
+                            >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={sig.sig}
@@ -1057,7 +1138,7 @@ function LetterA4Preview({
                     textAlign: "center",
                   }}
                 >
-                  Motto: &quot;Excellence Through Hard Work&quot;
+                  Honoring Our Past, Engaging Our Present, and Inspiring Our Future
                 </div>
                 <div
                   style={{
@@ -1292,7 +1373,9 @@ export function LetterComposerShell() {
             signatoryMode: mode,
             signatory1Name: secretary?.name ?? "",
             signatory1Title:
-              secretary?.title ?? ROLE_LABELS[secretary?.role ?? ""] ?? "Conference Secretary",
+              secretary?.title ??
+              ROLE_LABELS[secretary?.role ?? ""] ??
+              "Conference Secretary",
             signatory1Label: "Signed",
             signatory2Name: viceChair?.name ?? "",
             signatory2Title:
@@ -1302,7 +1385,9 @@ export function LetterComposerShell() {
             signatory2Label: "Approved",
             signatory3Name: chair?.name ?? "",
             signatory3Title:
-              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+              chair?.title ??
+              ROLE_LABELS[chair?.role ?? ""] ??
+              "Conference Chair",
             signatory3Label: "Attested",
           };
         }
@@ -1320,10 +1405,14 @@ export function LetterComposerShell() {
             signatory1Label: "Signed",
             signatory2Name: chair?.name ?? "",
             signatory2Title:
-              chair?.title ?? ROLE_LABELS[chair?.role ?? ""] ?? "Conference Chair",
+              chair?.title ??
+              ROLE_LABELS[chair?.role ?? ""] ??
+              "Conference Chair",
             signatory2Label: "Approved",
             signatory3Name: necPresidentName || "",
-            signatory3Title: necPresidentName ? "National President (LSUIC)" : "",
+            signatory3Title: necPresidentName
+              ? "National President (LSUIC)"
+              : "",
             signatory3Label: "Attested",
           };
         }
@@ -1668,16 +1757,21 @@ export function LetterComposerShell() {
             {/* ── Office & Signatories ── */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Issuing Office &amp; Signatories</CardTitle>
+                <CardTitle className="text-sm">
+                  Issuing Office &amp; Signatories
+                </CardTitle>
                 <CardDescription className="text-xs">
-                  Select a committee role to auto-fill the office label, or type a custom label. Add up to three signatories.
+                  Select a committee role to auto-fill the office label, or type
+                  a custom label. Add up to three signatories.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {/* Role picker */}
                 {sortedRoleTemplates.length > 0 && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Issuing Role (auto-fill office)</Label>
+                    <Label className="text-xs">
+                      Issuing Role (auto-fill office)
+                    </Label>
                     <select
                       className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
                       value={activeDraft.issuingRoleKey}
@@ -1710,7 +1804,9 @@ export function LetterComposerShell() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">Signatory Preset</Label>
                   <div className="flex gap-1.5 flex-wrap">
-                    {(["NONE", "STANDARD", "FUNDRAISING", "CUSTOM"] as const).map((mode) => (
+                    {(
+                      ["NONE", "STANDARD", "FUNDRAISING", "CUSTOM"] as const
+                    ).map((mode) => (
                       <button
                         key={mode}
                         onClick={() => applySignatoryPreset(mode)}
@@ -1720,7 +1816,13 @@ export function LetterComposerShell() {
                             : "bg-background border-border hover:bg-muted/60"
                         }`}
                       >
-                        {mode === "NONE" ? "None" : mode === "STANDARD" ? "Standard" : mode === "FUNDRAISING" ? "Fundraising" : "Custom"}
+                        {mode === "NONE"
+                          ? "None"
+                          : mode === "STANDARD"
+                            ? "Standard"
+                            : mode === "FUNDRAISING"
+                              ? "Fundraising"
+                              : "Custom"}
                       </button>
                     ))}
                   </div>
@@ -1729,143 +1831,181 @@ export function LetterComposerShell() {
                 {/* Signatory fields */}
                 {activeDraft.signatoryMode !== "NONE" && (
                   <div className="space-y-3 pt-1">
-                    {([
-                      {
-                        nameKey: "signatory1Name",
-                        titleKey: "signatory1Title",
-                        labelKey: "signatory1Label",
-                        sigKey: "signatory1Sig",
-                        scaleKey: "signatory1SigScale",
-                        badge: "1",
-                      },
-                      {
-                        nameKey: "signatory2Name",
-                        titleKey: "signatory2Title",
-                        labelKey: "signatory2Label",
-                        sigKey: "signatory2Sig",
-                        scaleKey: "signatory2SigScale",
-                        badge: "2",
-                      },
-                      {
-                        nameKey: "signatory3Name",
-                        titleKey: "signatory3Title",
-                        labelKey: "signatory3Label",
-                        sigKey: "signatory3Sig",
-                        scaleKey: "signatory3SigScale",
-                        badge: "3",
-                      },
-                    ] as const).map(({ nameKey, titleKey, labelKey, sigKey, scaleKey, badge }) => (
-                      <div
-                        key={nameKey}
-                        className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2"
-                      >
-                        {/* Header row: badge + label input */}
-                        <div className="flex items-center gap-2">
-                          <span className="size-5 rounded-full bg-[#002868] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                            {badge}
-                          </span>
+                    {(
+                      [
+                        {
+                          nameKey: "signatory1Name",
+                          titleKey: "signatory1Title",
+                          labelKey: "signatory1Label",
+                          sigKey: "signatory1Sig",
+                          scaleKey: "signatory1SigScale",
+                          badge: "1",
+                        },
+                        {
+                          nameKey: "signatory2Name",
+                          titleKey: "signatory2Title",
+                          labelKey: "signatory2Label",
+                          sigKey: "signatory2Sig",
+                          scaleKey: "signatory2SigScale",
+                          badge: "2",
+                        },
+                        {
+                          nameKey: "signatory3Name",
+                          titleKey: "signatory3Title",
+                          labelKey: "signatory3Label",
+                          sigKey: "signatory3Sig",
+                          scaleKey: "signatory3SigScale",
+                          badge: "3",
+                        },
+                      ] as const
+                    ).map(
+                      ({
+                        nameKey,
+                        titleKey,
+                        labelKey,
+                        sigKey,
+                        scaleKey,
+                        badge,
+                      }) => (
+                        <div
+                          key={nameKey}
+                          className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2"
+                        >
+                          {/* Header row: badge + label input */}
+                          <div className="flex items-center gap-2">
+                            <span className="size-5 rounded-full bg-[#002868] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                              {badge}
+                            </span>
+                            <Input
+                              placeholder="e.g. Signed / Approved / Attested"
+                              className="h-7 text-xs font-semibold flex-1"
+                              value={activeDraft[labelKey]}
+                              onChange={(e) => set(labelKey)(e.target.value)}
+                            />
+                          </div>
+                          {/* Name */}
                           <Input
-                            placeholder="e.g. Signed / Approved / Attested"
-                            className="h-7 text-xs font-semibold flex-1"
-                            value={activeDraft[labelKey]}
-                            onChange={(e) => set(labelKey)(e.target.value)}
+                            placeholder="Full name"
+                            className="h-7 text-sm"
+                            value={activeDraft[nameKey]}
+                            onChange={(e) => set(nameKey)(e.target.value)}
                           />
-                        </div>
-                        {/* Name */}
-                        <Input
-                          placeholder="Full name"
-                          className="h-7 text-sm"
-                          value={activeDraft[nameKey]}
-                          onChange={(e) => set(nameKey)(e.target.value)}
-                        />
-                        {/* Title */}
-                        <Input
-                          placeholder="Title / Role"
-                          className="h-7 text-sm"
-                          value={activeDraft[titleKey]}
-                          onChange={(e) => set(titleKey)(e.target.value)}
-                        />
-                        {/* Signature upload + preview + scale */}
-                        <div className="space-y-1.5">
-                          {activeDraft[sigKey] ? (
-                            <div className="flex items-center gap-2">
-                              {/* Preview */}
-                              <div className="flex-1 rounded border border-border bg-white flex items-center justify-center py-1 px-2" style={{ minHeight: 40 }}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={activeDraft[sigKey]}
-                                  alt="sig preview"
-                                  style={{
-                                    height: Math.round(32 * (activeDraft[scaleKey] ?? 1)),
-                                    maxWidth: "100%",
-                                    objectFit: "contain",
+                          {/* Title */}
+                          <Input
+                            placeholder="Title / Role"
+                            className="h-7 text-sm"
+                            value={activeDraft[titleKey]}
+                            onChange={(e) => set(titleKey)(e.target.value)}
+                          />
+                          {/* Signature upload + preview + scale */}
+                          <div className="space-y-1.5">
+                            {activeDraft[sigKey] ? (
+                              <div className="flex items-center gap-2">
+                                {/* Preview */}
+                                <div
+                                  className="flex-1 rounded border border-border bg-white flex items-center justify-center py-1 px-2"
+                                  style={{ minHeight: 40 }}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={activeDraft[sigKey]}
+                                    alt="sig preview"
+                                    style={{
+                                      height: Math.round(
+                                        32 * (activeDraft[scaleKey] ?? 1),
+                                      ),
+                                      maxWidth: "100%",
+                                      objectFit: "contain",
+                                    }}
+                                  />
+                                </div>
+                                {/* Scale controls */}
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <button
+                                    className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                    title="Increase signature size"
+                                    onClick={() =>
+                                      setActiveDraft((d) => ({
+                                        ...d,
+                                        [scaleKey]: Math.min(
+                                          3,
+                                          Math.round(
+                                            ((d[scaleKey] ?? 1) + 0.25) * 100,
+                                          ) / 100,
+                                        ),
+                                      }))
+                                    }
+                                  >
+                                    <Plus className="size-3" />
+                                  </button>
+                                  <span className="text-[9px] font-mono text-muted-foreground">
+                                    {(
+                                      (activeDraft[scaleKey] ?? 1) * 100
+                                    ).toFixed(0)}
+                                    %
+                                  </span>
+                                  <button
+                                    className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                    title="Decrease signature size"
+                                    onClick={() =>
+                                      setActiveDraft((d) => ({
+                                        ...d,
+                                        [scaleKey]: Math.max(
+                                          0.25,
+                                          Math.round(
+                                            ((d[scaleKey] ?? 1) - 0.25) * 100,
+                                          ) / 100,
+                                        ),
+                                      }))
+                                    }
+                                  >
+                                    <Minus className="size-3" />
+                                  </button>
+                                </div>
+                                {/* Remove */}
+                                <button
+                                  className="size-6 rounded border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0"
+                                  title="Remove signature"
+                                  onClick={() =>
+                                    setActiveDraft((d) => ({
+                                      ...d,
+                                      [sigKey]: "",
+                                    }))
+                                  }
+                                >
+                                  <X className="size-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
+                                <Upload className="size-3.5" />
+                                Upload signature image
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      const result = ev.target
+                                        ?.result as string;
+                                      setActiveDraft((d) => ({
+                                        ...d,
+                                        [sigKey]: result,
+                                      }));
+                                    };
+                                    reader.readAsDataURL(file);
+                                    e.target.value = "";
                                   }}
                                 />
-                              </div>
-                              {/* Scale controls */}
-                              <div className="flex flex-col items-center gap-0.5">
-                                <button
-                                  className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
-                                  title="Increase signature size"
-                                  onClick={() =>
-                                    setActiveDraft((d) => ({
-                                      ...d,
-                                      [scaleKey]: Math.min(3, Math.round(((d[scaleKey] ?? 1) + 0.25) * 100) / 100),
-                                    }))
-                                  }
-                                >
-                                  <Plus className="size-3" />
-                                </button>
-                                <span className="text-[9px] font-mono text-muted-foreground">
-                                  {((activeDraft[scaleKey] ?? 1) * 100).toFixed(0)}%
-                                </span>
-                                <button
-                                  className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
-                                  title="Decrease signature size"
-                                  onClick={() =>
-                                    setActiveDraft((d) => ({
-                                      ...d,
-                                      [scaleKey]: Math.max(0.25, Math.round(((d[scaleKey] ?? 1) - 0.25) * 100) / 100),
-                                    }))
-                                  }
-                                >
-                                  <Minus className="size-3" />
-                                </button>
-                              </div>
-                              {/* Remove */}
-                              <button
-                                className="size-6 rounded border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0"
-                                title="Remove signature"
-                                onClick={() => setActiveDraft((d) => ({ ...d, [sigKey]: "" }))}
-                              >
-                                <X className="size-3" />
-                              </button>
-                            </div>
-                          ) : (
-                            <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
-                              <Upload className="size-3.5" />
-                              Upload signature image
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="sr-only"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  const reader = new FileReader();
-                                  reader.onload = (ev) => {
-                                    const result = ev.target?.result as string;
-                                    setActiveDraft((d) => ({ ...d, [sigKey]: result }));
-                                  };
-                                  reader.readAsDataURL(file);
-                                  e.target.value = "";
-                                }}
-                              />
-                            </label>
-                          )}
+                              </label>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 )}
               </CardContent>
