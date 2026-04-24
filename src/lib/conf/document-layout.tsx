@@ -321,7 +321,10 @@ export function DocumentLayout({
                   }}
                 />
                 {members.map((m) => (
-                  <div key={m.id} style={{ marginBottom: 6, textAlign: "center" }}>
+                  <div
+                    key={m.id}
+                    style={{ marginBottom: 6, textAlign: "center" }}
+                  >
                     <div
                       style={{
                         fontSize: 11,
@@ -463,9 +466,7 @@ export function DocumentTable({
               key={rowIdx}
               style={{
                 background:
-                  rowIdx % 2 === 0
-                    ? TABLE_STYLES.rowBg
-                    : TABLE_STYLES.rowAltBg,
+                  rowIdx % 2 === 0 ? TABLE_STYLES.rowBg : TABLE_STYLES.rowAltBg,
                 minHeight: TABLE_STYLES.minRowHeight,
               }}
             >

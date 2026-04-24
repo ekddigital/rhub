@@ -447,7 +447,7 @@ function LetterA4Preview({
 
   const dateRange = confInfo
     ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
-    : "July 23 – 27, 2026";
+    : "July 24 – 27, 2026";
   const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
 
   const signatories: Signatory[] = [

@@ -197,13 +197,13 @@ export async function GET(
   const event_ = event;
 
   const startsAt =
-    event_?.startsAt ?? new Date(`${event_?.year ?? 2026}-07-23`);
+    event_?.startsAt ?? new Date(`${event_?.year ?? 2026}-07-24`);
   const days = daysUntil(new Date(startsAt));
 
   const dateLabel =
     event_?.startsAt && event_?.endsAt
       ? `${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric" }).format(event_.startsAt)} \u2013 ${new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(event_.endsAt)}`
-      : "July 23–27, 2026";
+      : "July 24–27, 2026";
 
   const [logoUri, backdropUri, fonts] = await Promise.all([
     loadLogoDataUri(),

@@ -222,7 +222,9 @@ export function ReportBuilderShell() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : `Failed to export as ${format}`);
+      setError(
+        e instanceof Error ? e.message : `Failed to export as ${format}`,
+      );
     } finally {
       setExporting(false);
     }
@@ -659,7 +661,9 @@ export function ReportBuilderShell() {
                   amount: e.amount,
                   currency: e.currency,
                   paymentType: e.paymentType,
-                  committeeScope: e.lineComment ? undefined : savedReport.committeeScope,
+                  committeeScope: e.lineComment
+                    ? undefined
+                    : savedReport.committeeScope,
                   lineComment: e.lineComment,
                   displayOrder: e.displayOrder,
                 }))}

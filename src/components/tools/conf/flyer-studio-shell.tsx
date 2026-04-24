@@ -439,7 +439,7 @@ export function FlyerStudioShell() {
                     Days Remaining
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Auto-calculated from July 23, 2026. Updates daily — no
+                    Auto-calculated from July 24, 2026. Updates daily — no
                     manual editing needed.
                   </p>
                 </div>

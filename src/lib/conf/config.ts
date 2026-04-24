@@ -21,7 +21,7 @@ export const CONF_2026 = {
   address: "山东省德州市齐河县308国道国科球类中心旁",
 
   // Dates
-  startsAt: "2026-07-23",
+  startsAt: "2026-07-24",
   endsAt: "2026-07-27",
   independenceDayDate: "2026-07-26", // Liberia Independence Day — special program during conference
 

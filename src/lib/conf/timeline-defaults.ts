@@ -461,7 +461,7 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
     description:
       "Delegate check-in, opening formalities, and initial sessions.",
     owner: "Chair + Secretariat",
-    date: "2026-07-23",
+    date: "2026-07-24",
     category: "event",
     isCritical: true,
     isCompleted: false,
@@ -472,7 +472,7 @@ export const INITIAL_TIMELINE: DefaultTimelineItem[] = [
     description:
       "Host delegates and invited guests for official networking and orientation.",
     owner: "Program + Media + Logistics",
-    date: "2026-07-23",
+    date: "2026-07-24",
     category: "event",
     isCritical: false,
     isCompleted: false,

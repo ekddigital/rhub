@@ -259,7 +259,7 @@ export async function GET(
       formatConferenceDateRange(
         event?.startsAt ?? null,
         event?.endsAt ?? null,
-      ) || `JULY 23-27, ${confYear}`,
+      ) || `JULY 24-27, ${confYear}`,
     );
     const weekdayRangeLabel = escapeXml(
       formatConferenceWeekdayRange(

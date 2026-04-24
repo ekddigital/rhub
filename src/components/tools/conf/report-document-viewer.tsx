@@ -9,7 +9,11 @@ import React, { useState, useCallback } from "react";
 import { Download, Printer, Copy, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DocumentLayout, DocumentTable, type TableColumn } from "@/lib/conf/document-layout";
+import {
+  DocumentLayout,
+  DocumentTable,
+  type TableColumn,
+} from "@/lib/conf/document-layout";
 import {
   DOCUMENT_COLORS as C,
   FONT_SIZES,
@@ -169,7 +173,9 @@ export function ReportDocumentViewer({
       label: "Notes",
       width: 18,
       align: "left",
-      format: (val) => <span style={{ fontSize: 9 }}>{String(val ?? "—")}</span>,
+      format: (val) => (
+        <span style={{ fontSize: 9 }}>{String(val ?? "—")}</span>
+      ),
     },
   ];
 
@@ -230,7 +236,8 @@ export function ReportDocumentViewer({
         )}
         {createdByName && (
           <div>
-            <span style={{ fontWeight: 600 }}>Prepared By:</span> {createdByName}
+            <span style={{ fontWeight: 600 }}>Prepared By:</span>{" "}
+            {createdByName}
           </div>
         )}
       </div>

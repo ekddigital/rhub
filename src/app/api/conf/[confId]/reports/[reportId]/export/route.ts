@@ -62,15 +62,7 @@ export async function GET(
 
 function exportAsCSV(report: any) {
   const rows: string[][] = [
-    [
-      "#",
-      "Description",
-      "Type",
-      "Amount",
-      "Currency",
-      "Scope",
-      "Notes",
-    ],
+    ["#", "Description", "Type", "Amount", "Currency", "Scope", "Notes"],
   ];
 
   // Add entries
@@ -109,16 +101,13 @@ function exportAsCSV(report: any) {
   if (report.dateFrom) rows.push(["Date From:", report.dateFrom]);
   if (report.dateTo) rows.push(["Date To:", report.dateTo]);
   if (report.committeeScope) rows.push(["Scope:", report.committeeScope]);
-  if (report.generalComment) rows.push(["General Notes:", report.generalComment]);
+  if (report.generalComment)
+    rows.push(["General Notes:", report.generalComment]);
   rows.push(["Created By:", report.createdByName || "System"]);
   rows.push(["Created At:", new Date(report.createdAt).toISOString()]);
 
   const csv = rows
-    .map((r) =>
-      r
-        .map((c) => `"${String(c).replace(/"/g, '""')}"`)
-        .join(","),
-    )
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
     .join("\n");
 
   return new NextResponse(csv, {

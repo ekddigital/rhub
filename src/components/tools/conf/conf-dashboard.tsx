@@ -199,7 +199,7 @@ export function ConfDashboard() {
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5">
               <Calendar className="size-4 text-muted-foreground" />
-              <span>July 23–27, 2026</span>
+              <span>July 24–27, 2026</span>
             </div>
             <Badge
               variant="outline"
