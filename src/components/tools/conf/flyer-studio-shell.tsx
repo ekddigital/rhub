@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { CONF_2026 } from "@/lib/conf/config";
+import { daysUntilDate } from "@/lib/conf/dates";
 
 type FlyerMode = "promo" | "signup" | "countdown";
 
@@ -1175,12 +1176,5 @@ function SquareSignupFlyer({ state }: { state: FlyerStudioState }) {
 // ── Utility ───────────────────────────────────────────────────────────────────
 
 function daysUntilConf(): number {
-  const target = new Date(CONF_2026.startsAt);
-  target.setHours(0, 0, 0, 0);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.max(
-    0,
-    Math.round((target.getTime() - now.getTime()) / 86_400_000),
-  );
+  return daysUntilDate(CONF_2026.startsAt, "Asia/Shanghai");
 }

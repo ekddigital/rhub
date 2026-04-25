@@ -10,16 +10,12 @@ import {
   renderResvgPng,
   type FlyerFonts,
 } from "@/lib/conf/svg-assets";
+import { daysUntilDate } from "@/lib/conf/dates";
 
 // ── Day calculation ───────────────────────────────────────────────────────────
 
-function daysUntil(target: Date): number {
-  const t = new Date(target);
-  t.setHours(0, 0, 0, 0);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.round((t.getTime() - now.getTime()) / 86_400_000));
-}
+// Use UTC-based date-only calculation to avoid timezone discrepancies between
+// server and client environments.
 
 // Sub-theme displayed on flyer — pulled from single source of truth
 const FLYER_SUB_THEME = CONF_2026.subTheme
@@ -66,7 +62,9 @@ function buildCountdownSvg(opts: {
     : "";
 
   // buildLogoLayer handles the clip, white ring, and image with correct zoom + vertical offset.
-  const logoLayer = buildLogoLayer(LOGO_CX, LOGO_CY, LOGO_R, logoUri, { clipId: "lc" });
+  const logoLayer = buildLogoLayer(LOGO_CX, LOGO_CY, LOGO_R, logoUri, {
+    clipId: "lc",
+  });
 
   // Derive positions relative to logo bottom
   const logoBtm = LOGO_CY + LOGO_RING_R; // 278
@@ -198,7 +196,8 @@ export async function GET(
 
   const startsAt =
     event_?.startsAt ?? new Date(`${event_?.year ?? 2026}-07-24`);
-  const days = daysUntil(new Date(startsAt));
+  // Compute days relative to the conference local timezone (Jinan, China).
+  const days = daysUntilDate(startsAt, "Asia/Shanghai");
 
   const dateLabel =
     event_?.startsAt && event_?.endsAt

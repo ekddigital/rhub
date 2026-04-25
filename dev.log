@@ -4,14 +4,13 @@
 
 ▲ Next.js 16.2.3 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.1.5:3000
+- Network:       http://192.168.1.100:3000
 - Environments: .env
-✓ Ready in 333ms
+✓ Ready in 350ms
 
-○ Compiling /tools/conf/flyers ...
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/flyers 200 in 67s (next.js: 11.8s, proxy.ts: 162ms, application-code: 55s)
+ GET /tools/conf/flyers 200 in 39.4s (next.js: 2.9s, proxy.ts: 114ms, application-code: 36.3s)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -45,11 +44,58 @@ https://react.dev/link/hydration-mismatch
                         <html lang="en" suppressHydrationWarning={true}>
                           <body
                             className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           data-new-gr-c-s-check-loaded="14.1286.0"
--                           data-gr-ext-installed=""
+-                           cz-shortcut-listen="true"
                           >
                   ...
  
- GET /api/auth/me?_t=1777042642275 200 in 1725ms (next.js: 374ms, proxy.ts: 15ms, application-code: 1337ms)
- GET /api/auth/me?_t=1777042642275 200 in 12.6s (next.js: 380ms, proxy.ts: 14ms, application-code: 12.2s)
- GET /api/conf/default 200 in 49s (next.js: 344ms, proxy.ts: 13ms, application-code: 48s)
+ GET /api/auth/me?_t=1777139497324 200 in 941ms (next.js: 367ms, proxy.ts: 58ms, application-code: 516ms)
+ GET /api/auth/me?_t=1777139497324 200 in 3.1s (next.js: 377ms, proxy.ts: 56ms, application-code: 2.6s)
+ GET /api/conf/default 200 in 29.0s (next.js: 407ms, proxy.ts: 69ms, application-code: 28.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1256ms (next.js: 638ms, proxy.ts: 6ms, application-code: 612ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1261ms (next.js: 643ms, proxy.ts: 5ms, application-code: 613ms)
+✓ Compiled in 145ms
+✓ Compiled in 405ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/flyers 200 in 35.5s (next.js: 13ms, proxy.ts: 10ms, application-code: 35.5s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+ GET /api/auth/me?_t=1777140035690 200 in 504ms (next.js: 11ms, proxy.ts: 7ms, application-code: 486ms)
+ GET /api/auth/me?_t=1777140035690 200 in 1899ms (next.js: 14ms, proxy.ts: 7ms, application-code: 1878ms)
+ GET /api/conf/default 200 in 34.7s (next.js: 8ms, proxy.ts: 7ms, application-code: 34.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 576ms (next.js: 14ms, proxy.ts: 9ms, application-code: 554ms)

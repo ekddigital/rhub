@@ -29,6 +29,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { CONF_2026 } from "@/lib/conf/config";
+import { daysUntilDate } from "@/lib/conf/dates";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 
@@ -364,11 +365,7 @@ function StatCard({
 }
 
 function daysUntilConf(): string {
-  const target = new Date(CONF_2026.startsAt);
-  target.setHours(0, 0, 0, 0);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const diff = Math.round((target.getTime() - now.getTime()) / 86_400_000);
+  const diff = daysUntilDate(CONF_2026.startsAt, "Asia/Shanghai");
   return diff > 0 ? String(diff) : "Now!";
 }
 
