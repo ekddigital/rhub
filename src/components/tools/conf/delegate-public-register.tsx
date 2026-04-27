@@ -93,7 +93,7 @@ export function DelegatePublicRegister() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<SuccessState | null>(null);
   const [correctionBusy, setCorrectionBusy] = useState<
-    "passport" | "booklet" | null
+    "passport" | "booklet" | "entry-stamp" | "visa" | null
   >(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const liberiaAnniversary = getLiberiaIndependenceAnniversary(confYear);
@@ -190,7 +190,7 @@ export function DelegatePublicRegister() {
       let flyerReady = Boolean(createdPayload.flyerReady);
 
       const uploadDocument = async (
-        kind: "passport" | "booklet",
+        kind: "passport" | "booklet" | "entry-stamp" | "visa",
         file: File | null,
       ) => {
         if (!file) return;
@@ -217,6 +217,8 @@ export function DelegatePublicRegister() {
       };
 
       await uploadDocument("passport", payload.passportPhoto);
+      await uploadDocument("entry-stamp", payload.lastEntryStampPhoto);
+      await uploadDocument("visa", payload.currentVisaPhoto);
       await uploadDocument("booklet", payload.bookletPhoto);
 
       setSuccess({
@@ -240,7 +242,7 @@ export function DelegatePublicRegister() {
   };
 
   const handleCorrectionUpload = async (
-    kind: "passport" | "booklet",
+    kind: "passport" | "booklet" | "entry-stamp" | "visa",
     file: File | null,
   ) => {
     if (!file || !success || correctionBusy) return;
@@ -253,13 +255,13 @@ export function DelegatePublicRegister() {
       "application/pdf",
     ];
     const bookletTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    const allowed = kind === "passport" ? passportTypes : bookletTypes;
+    const allowed = kind === "booklet" ? bookletTypes : passportTypes;
 
     if (!allowed.includes(file.type)) {
       setError(
-        kind === "passport"
-          ? "Passport file must be PNG, JPEG, WebP, or PDF"
-          : "Booklet photo must be PNG, JPEG, or WebP",
+        kind === "booklet"
+          ? "Booklet photo must be PNG, JPEG, or WebP"
+          : "Document file must be PNG, JPEG, WebP, or PDF",
       );
       return;
     }
@@ -298,7 +300,11 @@ export function DelegatePublicRegister() {
       setSuccessMessage(
         kind === "passport"
           ? "Passport file updated successfully."
-          : "Booklet photo updated successfully.",
+          : kind === "entry-stamp"
+            ? "Last entry stamp updated successfully."
+            : kind === "visa"
+              ? "Current visa updated successfully."
+              : "Booklet photo updated successfully.",
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "File replacement failed");
@@ -424,6 +430,11 @@ export function DelegatePublicRegister() {
                     now.
                   </p>
 
+                  <p className="text-xs text-muted-foreground">
+                    If your visa and last entry stamp are on the same page, you
+                    can upload the same image or PDF for both.
+                  </p>
+
                   <div className="flex flex-wrap gap-2">
                     <label
                       className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
@@ -441,6 +452,48 @@ export function DelegatePublicRegister() {
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("passport", file);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                        correctionBusy ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      <FileUp className="size-3.5" />
+                      {correctionBusy === "entry-stamp"
+                        ? "Uploading..."
+                        : "Replace Last Entry Stamp"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          void handleCorrectionUpload("entry-stamp", file);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+
+                    <label
+                      className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
+                        correctionBusy ? "pointer-events-none opacity-60" : ""
+                      }`}
+                    >
+                      <FileUp className="size-3.5" />
+                      {correctionBusy === "visa"
+                        ? "Uploading..."
+                        : "Replace Current Visa"}
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          void handleCorrectionUpload("visa", file);
                           e.currentTarget.value = "";
                         }}
                       />

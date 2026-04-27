@@ -4,7 +4,7 @@ import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/documents
-// Upload delegate documents: kind=passport|booklet
+// Upload delegate documents: kind=passport|entry-stamp|visa|booklet
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ confId: string; delegateId: string }> },
@@ -18,6 +18,8 @@ export async function POST(
         id: true,
         confId: true,
         feePaid: true,
+        lastEntryStampPath: true,
+        currentVisaPath: true,
         bookletPhotoPath: true,
       },
     });
@@ -37,14 +39,15 @@ export async function POST(
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    if (!["passport", "booklet"].includes(kind)) {
+    if (!["passport", "entry-stamp", "visa", "booklet"].includes(kind)) {
       return NextResponse.json(
-        { error: "kind must be passport or booklet" },
+        { error: "kind must be passport, entry-stamp, visa, or booklet" },
         { status: 400 },
       );
     }
 
-    const isPassport = kind === "passport";
+    const isBooklet = kind === "booklet";
+    const isTravelDoc = !isBooklet;
     const allowedPassport = [
       "image/png",
       "image/jpeg",
@@ -59,12 +62,12 @@ export async function POST(
       "image/webp",
     ];
 
-    const allowedTypes = isPassport ? allowedPassport : allowedBooklet;
+    const allowedTypes = isTravelDoc ? allowedPassport : allowedBooklet;
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         {
-          error: isPassport
-            ? "Passport upload supports PNG, JPEG, WebP, or PDF"
+          error: isTravelDoc
+            ? "Passport/entry stamp/visa upload supports PNG, JPEG, WebP, or PDF"
             : "Booklet photo supports PNG, JPEG, or WebP",
         },
         { status: 400 },
@@ -81,16 +84,19 @@ export async function POST(
     const uploaded = await uploadFileToEKDDigitalAssets({
       file,
       assetType:
-        isPassport && file.type === "application/pdf" ? "document" : "image",
+        isTravelDoc && file.type === "application/pdf" ? "document" : "image",
       projectName: `rhub-conf-delegates-${kind}`,
     });
     const publicPath = uploaded.downloadUrl || uploaded.publicUrl;
 
-    const updateData = (
-      isPassport
+    const updateData: Record<string, string> =
+      kind === "passport"
         ? { passportPhotoPath: publicPath }
-        : { bookletPhotoPath: publicPath }
-    ) as Record<string, string>;
+        : kind === "entry-stamp"
+          ? { lastEntryStampPath: publicPath }
+          : kind === "visa"
+            ? { currentVisaPath: publicPath }
+            : { bookletPhotoPath: publicPath };
 
     const updated = (await prisma.confDelegate.update({
       where: { id: delegateId },

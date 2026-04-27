@@ -908,6 +908,8 @@ model ConfDelegate {
     dietaryDetails String? @db.Text
     additionalComments String? @db.Text
     passportPhotoPath String?
+    lastEntryStampPath String?
+    currentVisaPath String?
     bookletPhotoPath  String?
     conferencePosition String?  // Declared LSUIC role (e.g. "City President", "National President", etc.)
     arrival      DateTime?

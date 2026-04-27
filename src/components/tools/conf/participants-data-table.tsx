@@ -42,6 +42,8 @@ export type ParticipantRow = {
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
   passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
   bookletPhotoPath: string | null;
   conferencePosition: string | null;
   flyerReady: boolean;
@@ -60,7 +62,7 @@ type Props = {
   onTogglePaid: (delegate: ParticipantRow) => void | Promise<void>;
   onReplaceDocument: (
     delegateId: string,
-    kind: "passport" | "booklet",
+    kind: "passport" | "booklet" | "entry-stamp" | "visa",
     file: File | null,
   ) => void | Promise<void>;
 };
@@ -175,6 +177,8 @@ export function ParticipantsDataTable({
       conferencePosition: row.conferencePosition || "",
       bookletPhoto: row.bookletPhotoPath || "",
       passportFile: row.passportPhotoPath || "",
+      lastEntryStampFile: row.lastEntryStampPath || "",
+      currentVisaFile: row.currentVisaPath || "",
       createdAt: row.createdAt,
     }));
   }, [filtered]);
@@ -199,6 +203,8 @@ export function ParticipantsDataTable({
       "Conference Position",
       "Booklet Photo URL",
       "Passport File URL",
+      "Last Entry Stamp URL",
+      "Current Visa URL",
       "Registered At",
     ];
 
@@ -224,6 +230,8 @@ export function ParticipantsDataTable({
           row.conferencePosition,
           row.bookletPhoto,
           row.passportFile,
+          row.lastEntryStampFile,
+          row.currentVisaFile,
           row.createdAt,
         ]
           .map((v) => csvEscape(v))
@@ -257,6 +265,8 @@ export function ParticipantsDataTable({
       "Conference Position",
       "Booklet Photo URL",
       "Passport File URL",
+      "Last Entry Stamp URL",
+      "Current Visa URL",
       "Registered At",
     ];
 
@@ -282,6 +292,8 @@ export function ParticipantsDataTable({
           row.conferencePosition,
           row.bookletPhoto,
           row.passportFile,
+          row.lastEntryStampFile,
+          row.currentVisaFile,
           row.createdAt,
         ]
           .map((v) => safe(v).replace(/\t/g, " ").replace(/\n/g, " "))
@@ -315,6 +327,8 @@ export function ParticipantsDataTable({
       "Conference Position",
       "Booklet Photo URL",
       "Passport File URL",
+      "Last Entry Stamp URL",
+      "Current Visa URL",
       "Registered At",
     ];
 
@@ -346,6 +360,8 @@ export function ParticipantsDataTable({
           row.conferencePosition,
           row.bookletPhoto,
           row.passportFile,
+          row.lastEntryStampFile,
+          row.currentVisaFile,
           row.createdAt,
         ];
 
@@ -515,15 +531,39 @@ export function ParticipantsDataTable({
 
                       <td className="px-3 py-3">
                         <p>{row.passportNo || "-"}</p>
-                        {row.passportPhotoPath ? (
-                          <PassportViewerModal
-                            proxyUrl={`/api/conf/${confId}/delegates/${row.id}/passport-view`}
-                            isPdf={row.passportPhotoPath.toLowerCase().endsWith(".pdf")}
-                            label="View File"
-                          />
-                        ) : (
-                          <p className="text-muted-foreground">No file</p>
-                        )}
+                        <div className="space-y-1">
+                          {row.passportPhotoPath ? (
+                            <PassportViewerModal
+                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/passport-view`}
+                              isPdf={row.passportPhotoPath
+                                .toLowerCase()
+                                .endsWith(".pdf")}
+                              label="Passport File"
+                            />
+                          ) : (
+                            <p className="text-muted-foreground">No passport file</p>
+                          )}
+                          {row.lastEntryStampPath && (
+                            <a
+                              href={row.lastEntryStampPath}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
+                            >
+                              <Eye className="size-3" /> Last Entry Stamp
+                            </a>
+                          )}
+                          {row.currentVisaPath && (
+                            <a
+                              href={row.currentVisaPath}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
+                            >
+                              <Eye className="size-3" /> Current Visa
+                            </a>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-3 py-3">
@@ -643,6 +683,60 @@ export function ParticipantsDataTable({
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(row.id, "passport", file);
+                                  e.currentTarget.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+
+                          {isAdminControl && (
+                            <label
+                              className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent ${
+                                uploadingDocKey
+                                  ? "pointer-events-none opacity-60"
+                                  : ""
+                              }`}
+                            >
+                              <FileUp className="size-3" />
+                              {uploadingDocKey === `${row.id}:entry-stamp`
+                                ? "Uploading..."
+                                : "Entry Stamp"}
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/png,image/jpeg,image/webp,application/pdf"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  void onReplaceDocument(
+                                    row.id,
+                                    "entry-stamp",
+                                    file,
+                                  );
+                                  e.currentTarget.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+
+                          {isAdminControl && (
+                            <label
+                              className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent ${
+                                uploadingDocKey
+                                  ? "pointer-events-none opacity-60"
+                                  : ""
+                              }`}
+                            >
+                              <FileUp className="size-3" />
+                              {uploadingDocKey === `${row.id}:visa`
+                                ? "Uploading..."
+                                : "Current Visa"}
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/png,image/jpeg,image/webp,application/pdf"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  void onReplaceDocument(row.id, "visa", file);
                                   e.currentTarget.value = "";
                                 }}
                               />

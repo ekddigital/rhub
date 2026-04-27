@@ -35,6 +35,8 @@ export async function POST(
         confId: true,
         feePaid: true,
         passportPhotoPath: true,
+        lastEntryStampPath: true,
+        currentVisaPath: true,
         bookletPhotoPath: true,
         flyerIssuedAt: true,
       },
@@ -55,21 +57,25 @@ export async function POST(
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    if (!["passport", "booklet"].includes(kind)) {
+    if (!["passport", "entry-stamp", "visa", "booklet"].includes(kind)) {
       return NextResponse.json(
-        { error: "kind must be passport or booklet" },
+        { error: "kind must be passport, entry-stamp, visa, or booklet" },
         { status: 400 },
       );
     }
 
-    if (!canManage && kind !== "booklet") {
+    if (!canManage && !["booklet", "entry-stamp", "visa"].includes(kind)) {
       return NextResponse.json(
-        { error: "Only managers can replace passport files" },
+        {
+          error:
+            "Only managers can replace passport files. Delegates can update booklet photo, last entry stamp, and current visa.",
+        },
         { status: 403 },
       );
     }
 
-    const isPassport = kind === "passport";
+    const isBooklet = kind === "booklet";
+    const isTravelDoc = !isBooklet;
     const allowedPassport = [
       "image/png",
       "image/jpeg",
@@ -84,12 +90,12 @@ export async function POST(
       "image/webp",
     ];
 
-    const allowedTypes = isPassport ? allowedPassport : allowedBooklet;
+    const allowedTypes = isTravelDoc ? allowedPassport : allowedBooklet;
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         {
-          error: isPassport
-            ? "Passport upload supports PNG, JPEG, WebP, or PDF"
+          error: isTravelDoc
+            ? "Passport/entry stamp/visa upload supports PNG, JPEG, WebP, or PDF"
             : "Booklet photo supports PNG, JPEG, or WebP",
         },
         { status: 400 },
@@ -106,16 +112,19 @@ export async function POST(
     const uploaded = await uploadFileToEKDDigitalAssets({
       file,
       assetType:
-        isPassport && file.type === "application/pdf" ? "document" : "image",
+        isTravelDoc && file.type === "application/pdf" ? "document" : "image",
       projectName: `rhub-conf-delegates-${kind}`,
     });
 
     const storedPath = uploaded.downloadUrl || uploaded.publicUrl;
-    const updateData = (
-      isPassport
+    const updateData: Record<string, string> =
+      kind === "passport"
         ? { passportPhotoPath: storedPath }
-        : { bookletPhotoPath: storedPath }
-    ) as Record<string, string>;
+        : kind === "entry-stamp"
+          ? { lastEntryStampPath: storedPath }
+          : kind === "visa"
+            ? { currentVisaPath: storedPath }
+            : { bookletPhotoPath: storedPath };
 
     const updated = await prisma.confDelegate.update({
       where: { id: delegateId },
@@ -140,6 +149,12 @@ export async function POST(
       ...finalDelegate,
       passportPhotoPath: finalDelegate.passportPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
+        : null,
+      lastEntryStampPath: finalDelegate.lastEntryStampPath
+        ? resolveStoredAssetUrl(finalDelegate.lastEntryStampPath, origin)
+        : null,
+      currentVisaPath: finalDelegate.currentVisaPath
+        ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
         : null,
       bookletPhotoPath: finalDelegate.bookletPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.bookletPhotoPath, origin)

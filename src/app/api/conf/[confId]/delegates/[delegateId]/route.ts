@@ -61,6 +61,12 @@ export async function GET(
       passportPhotoPath: delegate.passportPhotoPath
         ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
         : null,
+      lastEntryStampPath: delegate.lastEntryStampPath
+        ? resolveStoredAssetUrl(delegate.lastEntryStampPath, origin)
+        : null,
+      currentVisaPath: delegate.currentVisaPath
+        ? resolveStoredAssetUrl(delegate.currentVisaPath, origin)
+        : null,
       bookletPhotoPath: delegate.bookletPhotoPath
         ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
         : null,
@@ -290,6 +296,12 @@ export async function PATCH(
       ...finalDelegate,
       passportPhotoPath: finalDelegate.passportPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
+        : null,
+      lastEntryStampPath: finalDelegate.lastEntryStampPath
+        ? resolveStoredAssetUrl(finalDelegate.lastEntryStampPath, origin)
+        : null,
+      currentVisaPath: finalDelegate.currentVisaPath
+        ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
         : null,
       bookletPhotoPath: finalDelegate.bookletPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.bookletPhotoPath, origin)

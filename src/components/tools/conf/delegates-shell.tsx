@@ -77,6 +77,8 @@ type Delegate = {
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
   passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
   bookletPhotoPath: string | null;
   conferencePosition: string | null;
   flyerReady: boolean;
@@ -314,7 +316,7 @@ export function DelegatesShell() {
       const delegateId = createdPayload.id as string;
 
       const uploadDocument = async (
-        kind: "passport" | "booklet",
+        kind: "passport" | "booklet" | "entry-stamp" | "visa",
         file: File | null,
       ) => {
         if (!file) return;
@@ -335,6 +337,8 @@ export function DelegatesShell() {
       };
 
       await uploadDocument("passport", payload.passportPhoto);
+      await uploadDocument("entry-stamp", payload.lastEntryStampPhoto);
+      await uploadDocument("visa", payload.currentVisaPhoto);
       await uploadDocument("booklet", payload.bookletPhoto);
 
       if (payload.feePaid) {
@@ -363,7 +367,7 @@ export function DelegatesShell() {
 
   const handleReplaceDelegateDocument = async (
     delegateId: string,
-    kind: "passport" | "booklet",
+    kind: "passport" | "booklet" | "entry-stamp" | "visa",
     file: File | null,
   ) => {
     if (!confId || !file || uploadingDocKey) return;
@@ -395,7 +399,11 @@ export function DelegatesShell() {
       setNotice(
         kind === "booklet"
           ? "Booklet photo updated successfully."
-          : "Passport file updated successfully.",
+          : kind === "entry-stamp"
+            ? "Last entry stamp updated successfully."
+            : kind === "visa"
+              ? "Current visa updated successfully."
+              : "Passport file updated successfully.",
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Document update failed");

@@ -72,6 +72,8 @@ type Delegate = {
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
   passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
   bookletPhotoPath: string | null;
   flyerReady: boolean;
   conferencePosition: string | null;
@@ -155,7 +157,7 @@ export function DelegateDetailShell({
   const [isEditing, setIsEditing] = useState(false);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [uploadingKind, setUploadingKind] = useState<
-    "booklet" | "passport" | null
+    "booklet" | "passport" | "entry-stamp" | "visa" | null
   >(null);
 
   const loadDelegate = useCallback(async () => {
@@ -191,7 +193,7 @@ export function DelegateDetailShell({
   }, [loadDelegate]);
 
   const handleUpload = async (
-    kind: "booklet" | "passport",
+    kind: "booklet" | "passport" | "entry-stamp" | "visa",
     file: File | null,
   ) => {
     if (!confId || !file || !canSelfEdit || uploadingKind) return;
@@ -222,7 +224,11 @@ export function DelegateDetailShell({
       setNotice(
         kind === "booklet"
           ? "Conference photo updated successfully."
-          : "Passport document updated successfully.",
+          : kind === "entry-stamp"
+            ? "Last entry stamp updated successfully."
+            : kind === "visa"
+              ? "Current visa updated successfully."
+              : "Passport document updated successfully.",
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed");
@@ -283,6 +289,12 @@ export function DelegateDetailShell({
 
       if (payload.passportPhoto) {
         await handleUpload("passport", payload.passportPhoto);
+      }
+      if (payload.lastEntryStampPhoto) {
+        await handleUpload("entry-stamp", payload.lastEntryStampPhoto);
+      }
+      if (payload.currentVisaPhoto) {
+        await handleUpload("visa", payload.currentVisaPhoto);
       }
       if (payload.bookletPhoto) {
         await handleUpload("booklet", payload.bookletPhoto);
@@ -432,6 +444,52 @@ export function DelegateDetailShell({
                   />
                 </label>
 
+                {canSelfEdit && (
+                  <label
+                    className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                      uploadingKind ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <FileUp className="size-4" />
+                    {uploadingKind === "entry-stamp"
+                      ? "Uploading..."
+                      : "Replace Last Entry Stamp"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        void handleUpload("entry-stamp", file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+
+                {canSelfEdit && (
+                  <label
+                    className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
+                      uploadingKind ? "pointer-events-none opacity-60" : ""
+                    }`}
+                  >
+                    <FileUp className="size-4" />
+                    {uploadingKind === "visa"
+                      ? "Uploading..."
+                      : "Replace Current Visa"}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        void handleUpload("visa", file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+
                 {canManage && (
                   <label
                     className={`inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent ${
@@ -458,7 +516,8 @@ export function DelegateDetailShell({
 
               <p className="text-xs text-muted-foreground">
                 Linked delegate accounts can update their conference photo from
-                this page. Managers can also replace passport files.
+                this page. Managers can replace passport files, and linked
+                delegates can upload their last entry stamp and current visa.
               </p>
             </CardContent>
           </Card>
@@ -495,6 +554,96 @@ export function DelegateDetailShell({
                 <p className="text-xs text-muted-foreground">
                   <Lock className="inline size-3 mr-1" />
                   Visible to conference managers only.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {(canManage || canSelfEdit) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  Last Entry Stamp
+                  <Lock className="size-3.5 text-muted-foreground" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {delegate.lastEntryStampPath ? (
+                  <>
+                    {delegate.lastEntryStampPath.toLowerCase().endsWith(".pdf") ? (
+                      <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                        PDF uploaded
+                      </div>
+                    ) : (
+                      <AdaptivePhotoFrame
+                        src={delegate.lastEntryStampPath}
+                        alt={`${delegate.name} last entry stamp`}
+                        containerClassName="h-52 w-full rounded-xl border border-border"
+                      />
+                    )}
+                    <a
+                      href={delegate.lastEntryStampPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
+                    >
+                      <Eye className="size-3.5" />
+                      Open File
+                    </a>
+                  </>
+                ) : (
+                  <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                    No last entry stamp uploaded
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  <Lock className="inline size-3 mr-1" />
+                  Visible to conference managers and the linked delegate account.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {(canManage || canSelfEdit) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  Current Visa
+                  <Lock className="size-3.5 text-muted-foreground" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {delegate.currentVisaPath ? (
+                  <>
+                    {delegate.currentVisaPath.toLowerCase().endsWith(".pdf") ? (
+                      <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                        PDF uploaded
+                      </div>
+                    ) : (
+                      <AdaptivePhotoFrame
+                        src={delegate.currentVisaPath}
+                        alt={`${delegate.name} current visa`}
+                        containerClassName="h-52 w-full rounded-xl border border-border"
+                      />
+                    )}
+                    <a
+                      href={delegate.currentVisaPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
+                    >
+                      <Eye className="size-3.5" />
+                      Open File
+                    </a>
+                  </>
+                ) : (
+                  <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
+                    No current visa uploaded
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  <Lock className="inline size-3 mr-1" />
+                  Visible to conference managers and the linked delegate account.
                 </p>
               </CardContent>
             </Card>

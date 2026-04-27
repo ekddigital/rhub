@@ -55,21 +55,36 @@ export async function GET(
 
     const origin = new URL(req.url).origin;
     const normalized = delegates.map((delegate) => {
-      const canViewSensitive = canViewDelegateSensitiveData(delegate, viewer);
+      const delegateWithDocs = delegate as typeof delegate & {
+        lastEntryStampPath?: string | null;
+        currentVisaPath?: string | null;
+      };
+      const canViewSensitive = canViewDelegateSensitiveData(
+        delegateWithDocs,
+        viewer,
+      );
 
       return {
-        ...delegate,
+        ...delegateWithDocs,
         userId: canViewSensitive ? delegate.userId : null,
         passportNo: canViewSensitive ? delegate.passportNo : null,
         email: canViewSensitive ? delegate.email : null,
         phone: canViewSensitive ? delegate.phone : null,
         passportPhotoPath:
-          canViewSensitive && delegate.passportPhotoPath
-            ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
+          canViewSensitive && delegateWithDocs.passportPhotoPath
+            ? resolveStoredAssetUrl(delegateWithDocs.passportPhotoPath, origin)
+            : null,
+        lastEntryStampPath:
+          canViewSensitive && delegateWithDocs.lastEntryStampPath
+            ? resolveStoredAssetUrl(delegateWithDocs.lastEntryStampPath, origin)
+            : null,
+        currentVisaPath:
+          canViewSensitive && delegateWithDocs.currentVisaPath
+            ? resolveStoredAssetUrl(delegateWithDocs.currentVisaPath, origin)
             : null,
         bookletPhotoPath:
-          canViewSensitive && delegate.bookletPhotoPath
-            ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+          canViewSensitive && delegateWithDocs.bookletPhotoPath
+            ? resolveStoredAssetUrl(delegateWithDocs.bookletPhotoPath, origin)
             : null,
       };
     });

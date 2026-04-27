@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  groupConferenceFeePackages,
+  formatFeeRmb,
+} from "@/lib/conf/fees";
 
 export type DelegateRegistrationPayload = {
   name: string;
@@ -41,13 +45,18 @@ export type DelegateRegistrationPayload = {
   roomPref: "PAIR" | "SINGLE";
   partnerClaimNote: string;
   passportPhoto: File | null;
+  lastEntryStampPhoto: File | null;
+  currentVisaPhoto: File | null;
   bookletPhoto: File | null;
   conferencePosition: string;
 };
 
 /** Pre-populated field values for edit mode (files are not pre-populated). */
 export type InitialFormValues = Partial<
-  Omit<DelegateRegistrationPayload, "passportPhoto" | "bookletPhoto">
+  Omit<
+    DelegateRegistrationPayload,
+    "passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto"
+  >
 >;
 
 const CUSTOM_CONFERENCE_ROLE = "__CUSTOM__";
@@ -127,6 +136,14 @@ type Props = {
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
 };
 
+type FeeOption = {
+  id: string;
+  category: string;
+  label: string;
+  packageSummary: string;
+  price: number;
+};
+
 export function DelegateRegistrationForm({
   submitting,
   submitLabel = "Submit Registration",
@@ -201,6 +218,13 @@ export function DelegateRegistrationForm({
       ? String(initialValues.feeAmount)
       : String(defaultFeeAmount),
   );
+  const feeGroups = groupConferenceFeePackages();
+  const feeOptions = Object.values(feeGroups).flat() as FeeOption[];
+  const [selectedFeePackage, setSelectedFeePackage] = useState(
+    initialValues?.feeAmount != null
+      ? feeOptions.find((option) => option.price === initialValues.feeAmount)?.id ?? "custom"
+      : feeOptions.find((option) => option.price === defaultFeeAmount)?.id ?? "custom",
+  );
   const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">(
     initialValues?.roomPref ?? "PAIR",
   );
@@ -208,6 +232,10 @@ export function DelegateRegistrationForm({
     initialValues?.partnerClaimNote ?? "",
   );
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
+  const [lastEntryStampPhoto, setLastEntryStampPhoto] = useState<File | null>(
+    null,
+  );
+  const [currentVisaPhoto, setCurrentVisaPhoto] = useState<File | null>(null);
   const [bookletPhoto, setBookletPhoto] = useState<File | null>(null);
   const [conferencePosition, setConferencePosition] = useState(
     initialConferencePosition,
@@ -453,9 +481,16 @@ export function DelegateRegistrationForm({
         ? String(initialValues.feeAmount)
         : String(defaultFeeAmount),
     );
+    setSelectedFeePackage(
+      initialValues?.feeAmount != null
+        ? feeOptions.find((option) => option.price === initialValues.feeAmount)?.id ?? "custom"
+        : feeOptions.find((option) => option.price === defaultFeeAmount)?.id ?? "custom",
+    );
     setRoomPref(initialValues?.roomPref ?? "PAIR");
     setPartnerClaimNote(initialValues?.partnerClaimNote ?? "");
     setPassportPhoto(null);
+    setLastEntryStampPhoto(null);
+    setCurrentVisaPhoto(null);
     setBookletPhoto(null);
     const resetConferencePosition = normalizeConferenceRole(
       initialValues?.conferencePosition ?? "",
@@ -496,6 +531,10 @@ export function DelegateRegistrationForm({
     if (!university.trim()) errs.university = "University is required.";
     if (requirePhotos && !passportPhoto)
       errs.passportPhoto = "Passport photo page is required.";
+    if (requirePhotos && !lastEntryStampPhoto)
+      errs.lastEntryStampPhoto = "Last entry stamp page is required.";
+    if (requirePhotos && !currentVisaPhoto)
+      errs.currentVisaPhoto = "Current visa page is required.";
     if (requirePhotos && !bookletPhoto)
       errs.bookletPhoto = "Conference booklet photo is required.";
     if (bringingForeignGuest === "YES" && !guestNationality.trim())
@@ -532,10 +571,18 @@ export function DelegateRegistrationForm({
       ? Number(feeAmount)
       : defaultFeeAmount;
 
-    if (!Number.isFinite(parsedFeeAmount) || parsedFeeAmount < 0) {
+    const selectedFee =
+      selectedFeePackage !== "custom"
+        ? feeOptions.find((option) => option.id === selectedFeePackage)
+        : null;
+    const finalFeeAmount = selectedFee ? selectedFee.price : parsedFeeAmount;
+
+    if (!Number.isFinite(finalFeeAmount) || finalFeeAmount < 0) {
       setError("Conference fee amount must be a valid number.");
       return;
     }
+
+    setFeeAmount(String(finalFeeAmount));
 
     try {
       const submitted = await onSubmit({
@@ -560,10 +607,12 @@ export function DelegateRegistrationForm({
         dietaryDetails: dietaryDetails.trim(),
         additionalComments: additionalComments.trim(),
         feePaid,
-        feeAmount: parsedFeeAmount,
+        feeAmount: finalFeeAmount,
         roomPref,
         partnerClaimNote,
         passportPhoto,
+        lastEntryStampPhoto,
+        currentVisaPhoto,
         bookletPhoto,
         conferencePosition: conferencePosition.trim(),
       });
@@ -1038,19 +1087,59 @@ export function DelegateRegistrationForm({
         )}
 
         {isManagerMode && (
-          <div className="space-y-2">
-            <Label>Conference Fee Amount (optional)</Label>
-            <Input
-              type="number"
-              min={0}
-              placeholder="Amount in RMB"
-              value={feeAmount}
-              onChange={(e) => setFeeAmount(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Default conference fee is {defaultFeeAmount} RMB.
-            </p>
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label>Conference Fee Package</Label>
+              <select
+                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                value={selectedFeePackage}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedFeePackage(value);
+                  const selected = feeOptions.find(
+                    (option) => option.id === value,
+                  );
+                  if (selected) {
+                    setFeeAmount(String(selected.price));
+                  }
+                }}
+              >
+                <option value="custom">Custom / Enter fee manually</option>
+                {Object.entries(feeGroups).map(([category, items]) => (
+                  <optgroup key={category} label={category}>
+                    {items.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.label} - {formatFeeRmb(item.price)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Choose the package that best matches the participant profile, or
+                switch to custom if needed.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Conference Fee Amount (optional)</Label>
+              <Input
+                type="number"
+                min={0}
+                placeholder="Amount in RMB"
+                value={feeAmount}
+                onChange={(e) => {
+                  setFeeAmount(e.target.value);
+                  if (selectedFeePackage !== "custom") {
+                    setSelectedFeePackage("custom");
+                  }
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Default conference fee is {defaultFeeAmount} RMB.
+              </p>
+            </div>
+          </>
         )}
 
         <div className="space-y-2">
@@ -1125,6 +1214,13 @@ export function DelegateRegistrationForm({
           />
         </div>
 
+        <div className="space-y-2 sm:col-span-2">
+          <p className="text-xs text-muted-foreground">
+            If your last entry stamp and current visa are on the same passport
+            page, you can upload the same file for both fields.
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label>
             15. Upload Passport Photo Page{" "}
@@ -1151,7 +1247,57 @@ export function DelegateRegistrationForm({
 
         <div className="space-y-2">
           <Label>
-            16. Upload Photo for Conference Booklet{" "}
+            16. Upload Last Entry Stamp Page{" "}
+            {isEditMode ? "(optional — replaces current)" : "*"}
+          </Label>
+          <Input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            onChange={(e) => {
+              setLastEntryStampPhoto(e.target.files?.[0] || null);
+              setFieldErrors((p) => ({ ...p, lastEntryStampPhoto: "" }));
+            }}
+            className={fieldErrors.lastEntryStampPhoto ? "border-red-500" : ""}
+          />
+          {fieldErrors.lastEntryStampPhoto && (
+            <p className="text-xs text-red-600">
+              {fieldErrors.lastEntryStampPhoto}
+            </p>
+          )}
+          {lastEntryStampPhoto && (
+            <p className="text-xs text-muted-foreground">
+              {lastEntryStampPhoto.name}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>
+            17. Upload Current Visa Page{" "}
+            {isEditMode ? "(optional — replaces current)" : "*"}
+          </Label>
+          <Input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            onChange={(e) => {
+              setCurrentVisaPhoto(e.target.files?.[0] || null);
+              setFieldErrors((p) => ({ ...p, currentVisaPhoto: "" }));
+            }}
+            className={fieldErrors.currentVisaPhoto ? "border-red-500" : ""}
+          />
+          {fieldErrors.currentVisaPhoto && (
+            <p className="text-xs text-red-600">{fieldErrors.currentVisaPhoto}</p>
+          )}
+          {currentVisaPhoto && (
+            <p className="text-xs text-muted-foreground">
+              {currentVisaPhoto.name}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>
+            18. Upload Photo for Conference Booklet{" "}
             {isEditMode ? "(optional — replaces current)" : "*"}
           </Label>
           <Input
