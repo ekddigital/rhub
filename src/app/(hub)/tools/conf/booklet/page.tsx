@@ -1,6 +1,6 @@
 import { BookletShell } from "@/components/tools/conf/booklet-shell";
 import { BookletManagerShell } from "@/components/tools/conf/booklet-manager-shell";
-import { getConferenceAccess } from "@/lib/conf/access";
+import { getConferenceAccess, requireConferencePageAccess } from "@/lib/conf/access";
 import { ensureDefaultConference } from "@/lib/conf/bootstrap";
 
 export default async function ConferenceBookletPage({
@@ -8,6 +8,8 @@ export default async function ConferenceBookletPage({
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
+  await requireConferencePageAccess("/tools/conf/booklet", "participant");
+
   const { view } = await searchParams;
   let canManage = false;
 

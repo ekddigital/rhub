@@ -64,7 +64,7 @@ const NAV_ITEMS = [
     title: "Delegates",
     desc: "Delegate registration, fee tracking, city-based grouping",
     color: "text-orange-500",
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/delegates/register",
@@ -80,7 +80,7 @@ const NAV_ITEMS = [
     title: "Booklet Builder",
     desc: "Printable participant booklet cards with IDs, photos, and room assignments",
     color: "text-rose-500",
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/meetings",
@@ -104,7 +104,7 @@ const NAV_ITEMS = [
     title: "Documentation",
     desc: "Conference planning docs, process guides, and quick references",
     color: "text-amber-500",
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/flyers",
@@ -130,6 +130,7 @@ export function ConfDashboard() {
   const [confId, setConfId] = useState("");
   const [isParticipant, setIsParticipant] = useState(false);
   const [isManager, setIsManager] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
@@ -139,9 +140,10 @@ export function ConfDashboard() {
 
     const loadConference = async () => {
       try {
-        const [conf, accessRes] = await Promise.all([
+        const [conf, accessRes, authRes] = await Promise.all([
           fetchDefaultConference(),
           fetch("/api/conf/default/access", { cache: "no-store" }),
+          fetch("/api/auth/me", { cache: "no-store" }),
         ]);
 
         if (!mounted) return;
@@ -150,9 +152,33 @@ export function ConfDashboard() {
           const accessPayload = (await accessRes.json()) as {
             isParticipant?: boolean;
             isManager?: boolean;
+            isSuperAdmin?: boolean;
           };
           setIsParticipant(Boolean(accessPayload.isParticipant));
           setIsManager(Boolean(accessPayload.isManager));
+          setIsSuperAdmin(Boolean(accessPayload.isSuperAdmin));
+        }
+
+        if (authRes.ok) {
+          const authPayload = (await authRes.json()) as {
+            role?: string;
+          };
+          const role = String(authPayload.role || "").toUpperCase();
+          const roleIsManager = [
+            "SUPER_ADMIN",
+            "ADMIN",
+            "JUDGE_ADMIN",
+            "HEAD_JUDGE",
+          ].includes(role);
+          const roleIsSuperAdmin = role === "SUPER_ADMIN";
+
+          if (roleIsManager || roleIsSuperAdmin) {
+            setIsParticipant(true);
+            setIsManager(true);
+          }
+          if (roleIsSuperAdmin) {
+            setIsSuperAdmin(true);
+          }
         }
 
         if (mounted) {
@@ -172,7 +198,7 @@ export function ConfDashboard() {
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.minAccess === "public") return true;
-    return isParticipant;
+    return isParticipant || isManager || isSuperAdmin;
   });
 
   return (

@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CONF_2026 } from "@/lib/conf/config";
+import { requireConferencePageAccess } from "@/lib/conf/access";
 
 export const metadata: Metadata = {
   title: "Conference Documentation | EKD Digital Resource Hub",
@@ -94,7 +95,9 @@ const DOC_LINKS = [
   },
 ];
 
-export default function ConferenceDocsPage() {
+export default async function ConferenceDocsPage() {
+  await requireConferencePageAccess("/tools/conf/docs", "participant");
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 py-6">
       <div className="space-y-3">

@@ -39,13 +39,13 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/docs",
     label: "Documentation",
     icon: BookOpen,
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/delegates",
     label: "Delegates",
     icon: UserCheck,
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/delegates/register",
@@ -57,7 +57,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/booklet",
     label: "Booklet",
     icon: FileText,
-    minAccess: "public",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/budget",
@@ -117,13 +117,74 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
 
 type ConfAccessFlags = {
   isParticipant: boolean;
+  isManager: boolean;
+  isSuperAdmin: boolean;
 };
 
 function canViewNavItem(item: ConfNavItem, access: ConfAccessFlags): boolean {
   const requirement = item.minAccess ?? "participant";
 
   if (requirement === "public") return true;
-  return access.isParticipant;
+  return access.isParticipant || access.isManager || access.isSuperAdmin;
+}
+
+function getManagerFlagsFromRole(role: string) {
+  const normalized = role.toUpperCase();
+  const isManager = [
+    "SUPER_ADMIN",
+    "ADMIN",
+    "JUDGE_ADMIN",
+    "HEAD_JUDGE",
+  ].includes(normalized);
+  return {
+    isManager,
+    isSuperAdmin: normalized === "SUPER_ADMIN",
+  };
+}
+
+async function resolveConferenceAccessFlags(): Promise<ConfAccessFlags> {
+  const [confRes, authRes] = await Promise.all([
+    fetch("/api/conf/default/access", { cache: "no-store" }),
+    fetch("/api/auth/me", { cache: "no-store" }),
+  ]);
+
+  let confFlags: ConfAccessFlags = {
+    isParticipant: false,
+    isManager: false,
+    isSuperAdmin: false,
+  };
+
+  if (confRes.ok) {
+    const payload = (await confRes.json()) as {
+      isParticipant?: boolean;
+      isManager?: boolean;
+      isSuperAdmin?: boolean;
+    };
+
+    confFlags = {
+      isParticipant: Boolean(payload.isParticipant),
+      isManager: Boolean(payload.isManager),
+      isSuperAdmin: Boolean(payload.isSuperAdmin),
+    };
+  }
+
+  let roleFlags = {
+    isManager: false,
+    isSuperAdmin: false,
+  };
+  if (authRes.ok) {
+    const authPayload = (await authRes.json()) as {
+      role?: string;
+    };
+    roleFlags = getManagerFlagsFromRole(String(authPayload.role || ""));
+  }
+
+  return {
+    isParticipant:
+      confFlags.isParticipant || roleFlags.isManager || roleFlags.isSuperAdmin,
+    isManager: confFlags.isManager || roleFlags.isManager,
+    isSuperAdmin: confFlags.isSuperAdmin || roleFlags.isSuperAdmin,
+  };
 }
 
 function isItemActive(pathname: string, href: string): boolean {
@@ -137,6 +198,8 @@ export function ConfSidebar() {
   const pathname = usePathname();
   const [access, setAccess] = useState<ConfAccessFlags>({
     isParticipant: false,
+    isManager: false,
+    isSuperAdmin: false,
   });
 
   useEffect(() => {
@@ -144,19 +207,9 @@ export function ConfSidebar() {
 
     const loadAccess = async () => {
       try {
-        const res = await fetch("/api/conf/default/access", {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-
-        const payload = (await res.json()) as {
-          isParticipant?: boolean;
-        };
-
+        const flags = await resolveConferenceAccessFlags();
         if (!active) return;
-        setAccess({
-          isParticipant: Boolean(payload.isParticipant),
-        });
+        setAccess(flags);
       } catch {
         // Keep public-only navigation on network errors.
       }
@@ -205,6 +258,8 @@ export function ConfMobileNav() {
   const pathname = usePathname();
   const [access, setAccess] = useState<ConfAccessFlags>({
     isParticipant: false,
+    isManager: false,
+    isSuperAdmin: false,
   });
 
   useEffect(() => {
@@ -212,19 +267,9 @@ export function ConfMobileNav() {
 
     const loadAccess = async () => {
       try {
-        const res = await fetch("/api/conf/default/access", {
-          cache: "no-store",
-        });
-        if (!res.ok) return;
-
-        const payload = (await res.json()) as {
-          isParticipant?: boolean;
-        };
-
+        const flags = await resolveConferenceAccessFlags();
         if (!active) return;
-        setAccess({
-          isParticipant: Boolean(payload.isParticipant),
-        });
+        setAccess(flags);
       } catch {
         // Keep public-only navigation on network errors.
       }
