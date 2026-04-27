@@ -3,6 +3,25 @@ import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
 
+async function ensureUniqueCommitteeApprover(input: {
+  confId: string;
+  committeeScope: string;
+  excludeMemberId: string;
+}) {
+  const existing = await prisma.confMember.findFirst({
+    where: {
+      confId: input.confId,
+      isActive: true,
+      canApprovePayments: true,
+      committeeScope: input.committeeScope,
+      id: { not: input.excludeMemberId },
+    },
+    select: { id: true, name: true },
+  });
+
+  return existing;
+}
+
 // PATCH /api/conf/[confId]/members/[memberId]
 // Update member details — supports chair assignment, scope, permissions, user linking
 export async function PATCH(
@@ -59,6 +78,17 @@ export async function PATCH(
     const requestedRole = roleTemplate?.baseRole ?? role;
     const requestedScope = roleTemplate?.committeeScope ?? committeeScope;
     const requestedTitle = roleTemplate?.title ?? title;
+    const effectiveRole = requestedRole ?? existing.role;
+    const effectiveScope =
+      requestedScope !== undefined
+        ? requestedScope || null
+        : existing.committeeScope;
+    const effectiveIsActive =
+      isActive !== undefined ? Boolean(isActive) : existing.isActive;
+    const effectiveCanApprovePayments =
+      canApprovePayments !== undefined
+        ? Boolean(canApprovePayments)
+        : existing.canApprovePayments;
 
     // Only super admins can link user accounts or grant canAssignCommittee
     const needsSuperAdmin =
@@ -70,6 +100,19 @@ export async function PATCH(
         {
           error:
             "Super Admin required to link user accounts or grant committee assignment permissions",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (
+      canApprovePayments !== undefined &&
+      !(auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Only Super Admin or Conference Chair can grant committee approval permissions",
         },
         { status: 403 },
       );
@@ -117,6 +160,44 @@ export async function PATCH(
     ];
     if (requestedRole !== undefined && !allowedRoles.includes(requestedRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
+    if (effectiveCanApprovePayments && effectiveIsActive) {
+      if (!effectiveScope) {
+        return NextResponse.json(
+          {
+            error:
+              "committeeScope is required when granting committee payment approval rights",
+          },
+          { status: 400 },
+        );
+      }
+
+      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+      if (leadershipRoles.includes(String(effectiveRole))) {
+        return NextResponse.json(
+          {
+            error:
+              "Leadership roles should use chair-level final approval instead of committee-level approval",
+          },
+          { status: 400 },
+        );
+      }
+
+      const existingChair = await ensureUniqueCommitteeApprover({
+        confId,
+        committeeScope: effectiveScope,
+        excludeMemberId: memberId,
+      });
+
+      if (existingChair) {
+        return NextResponse.json(
+          {
+            error: `Committee scope '${effectiveScope}' already has an active chair approver (${existingChair.name})`,
+          },
+          { status: 409 },
+        );
+      }
     }
 
     // If linking a userId, verify the user exists

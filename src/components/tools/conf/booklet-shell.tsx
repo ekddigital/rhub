@@ -367,7 +367,7 @@ export function BookletShell() {
           <label className="space-y-1.5 text-sm">
             <span className="text-muted-foreground">Participant Scope</span>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
               value={scope}
               onChange={(e) => setScope(e.target.value as BookletScope)}
             >

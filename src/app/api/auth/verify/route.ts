@@ -37,13 +37,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Mark as verified
+    const shouldAutoPromote = user.accessStatus === "PENDING";
+
+    // Mark as verified and auto-promote pending accounts.
     const verifiedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
         verifyToken: null,
         verifyTokenExp: null,
+        ...(shouldAutoPromote
+          ? {
+              accessStatus: "APPROVED" as const,
+              canAccessHub: true,
+              canAccessConference: true,
+              approvedAt: user.approvedAt ?? new Date(),
+            }
+          : {}),
       },
       select: {
         id: true,
@@ -74,9 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      message: canAutoLogin
-        ? "Email verified"
-        : "Email verified. Your account is pending union approval.",
+      message: "Email verified",
       requiresApproval: !canAutoLogin,
       user: {
         id: verifiedUser.id,

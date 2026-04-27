@@ -14,14 +14,6 @@ export async function POST(
     const auth = await requireConferenceApiAccess(confId, "manager");
     if (!auth.ok) return auth.response;
 
-    // Must be chair or have approval permission
-    if (!auth.access.canApprovePayments && !auth.access.isChair) {
-      return NextResponse.json(
-        { error: "Payment approval/rejection permission required" },
-        { status: 403 },
-      );
-    }
-
     const body = await req.json();
     const { reason } = body;
 
@@ -52,6 +44,29 @@ export async function POST(
         { error: "Cannot reject a finally approved payment" },
         { status: 409 },
       );
+    }
+
+    const hasGlobalRejectionRights =
+      auth.access.isChair || auth.access.isSuperAdmin;
+    if (!hasGlobalRejectionRights) {
+      if (!auth.access.canApprovePayments || !auth.access.committeeScope) {
+        return NextResponse.json(
+          { error: "Payment approval/rejection permission required" },
+          { status: 403 },
+        );
+      }
+
+      if (
+        !payment.committeeScope ||
+        payment.committeeScope !== auth.access.committeeScope
+      ) {
+        return NextResponse.json(
+          {
+            error: "You can only reject payments for your committee scope",
+          },
+          { status: 403 },
+        );
+      }
     }
 
     const updated = await prisma.confPayment.update({

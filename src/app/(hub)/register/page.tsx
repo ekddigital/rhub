@@ -157,7 +157,7 @@ function RegisterForm() {
       }
 
       if (data.requiresApproval) {
-        window.location.href = `/login?error=pending_approval&email=${encodeURIComponent(email.trim().toLowerCase())}`;
+        window.location.href = `/login?email=${encodeURIComponent(email.trim().toLowerCase())}`;
         return;
       }
 
@@ -187,7 +187,7 @@ function RegisterForm() {
     return (
       <AuthShell>
         <div className="mb-8">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-green-400 to-emerald-600 shadow-lg">
             <CheckCircle2 className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">

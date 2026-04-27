@@ -3,6 +3,25 @@ import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 
+async function ensureUniqueCommitteeApprover(input: {
+  confId: string;
+  committeeScope: string;
+  excludeMemberId?: string;
+}) {
+  const existing = await prisma.confMember.findFirst({
+    where: {
+      confId: input.confId,
+      isActive: true,
+      canApprovePayments: true,
+      committeeScope: input.committeeScope,
+      ...(input.excludeMemberId ? { id: { not: input.excludeMemberId } } : {}),
+    },
+    select: { id: true, name: true },
+  });
+
+  return existing;
+}
+
 // GET /api/conf/[confId]/members — list all committee members
 export async function GET(
   req: Request,
@@ -56,6 +75,8 @@ export async function POST(
       title,
       committeeScope,
       roleTemplateKey,
+      canAssignCommittee,
+      canApprovePayments,
       photoPath,
       photoFileName,
     } = body as {
@@ -67,6 +88,8 @@ export async function POST(
       title?: string;
       committeeScope?: string;
       roleTemplateKey?: string;
+      canAssignCommittee?: boolean;
+      canApprovePayments?: boolean;
       photoPath?: string;
       photoFileName?: string;
     };
@@ -108,13 +131,19 @@ export async function POST(
       );
     }
 
-    const resolvedRole = (roleTemplate?.baseRole ?? role ?? "COMMITTEE") as import("@prisma/client").ConfRole;
+    const resolvedRole = (roleTemplate?.baseRole ??
+      role ??
+      "COMMITTEE") as import("@prisma/client").ConfRole;
     const resolvedTitle = roleTemplate?.title ?? title ?? null;
-    const resolvedScope = roleTemplate?.committeeScope ?? committeeScope ?? null;
+    const resolvedScope =
+      roleTemplate?.committeeScope ?? committeeScope ?? null;
 
-    const isLeadershipRole = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"].includes(
-      resolvedRole,
-    );
+    const isLeadershipRole = [
+      "CHAIR",
+      "VICE_CHAIR",
+      "SECRETARY",
+      "TREASURER",
+    ].includes(resolvedRole);
     const canAssignLeadership =
       auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR";
 
@@ -133,6 +162,29 @@ export async function POST(
       auth.access.memberRole !== "CHAIR" &&
       auth.access.canAssignCommittee;
 
+    if (canAssignCommittee !== undefined && !auth.access.isSuperAdmin) {
+      return NextResponse.json(
+        {
+          error:
+            "Super Admin required to grant committee assignment permissions",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (
+      canApprovePayments !== undefined &&
+      !(auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Only Super Admin or Conference Chair can grant committee approval permissions",
+        },
+        { status: 403 },
+      );
+    }
+
     if (
       isScopedAssigner &&
       resolvedScope &&
@@ -145,6 +197,33 @@ export async function POST(
       );
     }
 
+    const grantCommitteeApproval = Boolean(canApprovePayments);
+    if (grantCommitteeApproval) {
+      if (!resolvedScope) {
+        return NextResponse.json(
+          {
+            error:
+              "committeeScope is required when granting committee payment approval rights",
+          },
+          { status: 400 },
+        );
+      }
+
+      const existingChair = await ensureUniqueCommitteeApprover({
+        confId,
+        committeeScope: resolvedScope,
+      });
+
+      if (existingChair) {
+        return NextResponse.json(
+          {
+            error: `Committee scope '${resolvedScope}' already has an active chair approver (${existingChair.name})`,
+          },
+          { status: 409 },
+        );
+      }
+    }
+
     const member = await prisma.confMember.create({
       data: {
         confId,
@@ -155,6 +234,8 @@ export async function POST(
         email: email || null,
         title: resolvedTitle,
         committeeScope: resolvedScope,
+        canAssignCommittee: Boolean(canAssignCommittee),
+        canApprovePayments: grantCommitteeApproval,
         photoPath: photoPath || null,
         photoFileName: photoFileName || null,
       },

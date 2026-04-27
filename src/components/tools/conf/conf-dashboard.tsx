@@ -40,6 +40,7 @@ const NAV_ITEMS = [
     title: "Budget Manager",
     desc: "Create & manage budgets with auto-calculations, export to CSV/PDF",
     color: "text-emerald-500",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/payments",
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
     title: "Payment Tracker",
     desc: "Track payments, upload receipt screenshots, verify spending",
     color: "text-blue-500",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/committee",
@@ -54,6 +56,7 @@ const NAV_ITEMS = [
     title: "Committee",
     desc: "Manage committee members, roles, and contact information",
     color: "text-purple-500",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/delegates",
@@ -61,6 +64,7 @@ const NAV_ITEMS = [
     title: "Delegates",
     desc: "Delegate registration, fee tracking, city-based grouping",
     color: "text-orange-500",
+    minAccess: "public",
   },
   {
     href: "/tools/conf/delegates/register",
@@ -68,6 +72,7 @@ const NAV_ITEMS = [
     title: "Registration Portal",
     desc: "Public form link for participant registration and document upload",
     color: "text-indigo-500",
+    minAccess: "public",
   },
   {
     href: "/tools/conf/booklet",
@@ -75,6 +80,7 @@ const NAV_ITEMS = [
     title: "Booklet Builder",
     desc: "Printable participant booklet cards with IDs, photos, and room assignments",
     color: "text-rose-500",
+    minAccess: "public",
   },
   {
     href: "/tools/conf/meetings",
@@ -82,6 +88,7 @@ const NAV_ITEMS = [
     title: "Meetings",
     desc: "Weekly meeting schedule, agendas, and minutes recording",
     color: "text-cyan-500",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/timeline",
@@ -89,6 +96,7 @@ const NAV_ITEMS = [
     title: "Timeline",
     desc: "Conference milestones, deadlines, and progress tracking",
     color: "text-pink-500",
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/docs",
@@ -96,6 +104,7 @@ const NAV_ITEMS = [
     title: "Documentation",
     desc: "Conference planning docs, process guides, and quick references",
     color: "text-amber-500",
+    minAccess: "public",
   },
   {
     href: "/tools/conf/flyers",
@@ -103,8 +112,9 @@ const NAV_ITEMS = [
     title: "Flyer Studio",
     desc: "Edit promo and signup flyers in-system with live preview",
     color: "text-red-500",
+    minAccess: "participant",
   },
-];
+] as const;
 
 const VENUE_GALLERY = [
   "/conf/assets/hotel/main_entrance_view.png",
@@ -118,6 +128,8 @@ const LIBERIA_INDEPENDENCE_YEAR = 1847;
 export function ConfDashboard() {
   const [confYear, setConfYear] = useState(2026);
   const [confId, setConfId] = useState("");
+  const [isParticipant, setIsParticipant] = useState(false);
+  const [isManager, setIsManager] = useState(false);
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
@@ -127,7 +139,22 @@ export function ConfDashboard() {
 
     const loadConference = async () => {
       try {
-        const conf = await fetchDefaultConference();
+        const [conf, accessRes] = await Promise.all([
+          fetchDefaultConference(),
+          fetch("/api/conf/default/access", { cache: "no-store" }),
+        ]);
+
+        if (!mounted) return;
+
+        if (accessRes.ok) {
+          const accessPayload = (await accessRes.json()) as {
+            isParticipant?: boolean;
+            isManager?: boolean;
+          };
+          setIsParticipant(Boolean(accessPayload.isParticipant));
+          setIsManager(Boolean(accessPayload.isManager));
+        }
+
         if (mounted) {
           setConfYear(conf.year);
           setConfId(conf.id);
@@ -142,6 +169,11 @@ export function ConfDashboard() {
       mounted = false;
     };
   }, []);
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.minAccess === "public") return true;
+    return isParticipant;
+  });
 
   return (
     <div className="space-y-8">
@@ -208,7 +240,7 @@ export function ConfDashboard() {
             >
               {`${liberiaAnniversaryLabel} Independence`}
             </Badge>
-            <Badge>¥5,000 Deposit Paid</Badge>
+            {isManager && <Badge>¥5,000 Deposit Paid</Badge>}
           </div>
         </CardContent>
       </Card>
@@ -319,7 +351,7 @@ export function ConfDashboard() {
 
       {/* Navigation Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {NAV_ITEMS.map((item) => (
+        {visibleNavItems.map((item) => (
           <Link key={item.href} href={item.href}>
             <Card className="group h-full cursor-pointer transition-all hover:border-[#C8A061]/50 hover:shadow-md">
               <CardHeader>
@@ -390,7 +422,7 @@ function CountdownFlyerCard({ confId }: { confId: string }) {
   const pngDownloadUrl = `/api/conf/${confId}/countdown-flyer?format=png&download=1`;
 
   return (
-    <Card className="overflow-hidden border-[#C8A061]/30 bg-linear-to-br from-[#182e5f]/10 via-transparent to-[#C8A061]/5">
+    <Card className="overflow-hidden border-[#C8A061]/30 bg-linear-to-br from-ekd-deep-navy/10 via-transparent to-[#C8A061]/5">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -422,7 +454,7 @@ function CountdownFlyerCard({ confId }: { confId: string }) {
         <img
           src={svgUrl}
           alt={`${days} days countdown flyer`}
-          className="mx-auto max-h-[340px] w-auto rounded-xl border border-[#C8A061]/20 shadow-md"
+          className="mx-auto max-h-85 w-auto rounded-xl border border-[#C8A061]/20 shadow-md"
         />
       </CardContent>
     </Card>

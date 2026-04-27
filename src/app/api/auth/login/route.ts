@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
     const { email, password } = parsed.data;
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { email },
     });
 
@@ -47,13 +47,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.accessStatus === "PENDING") {
-      return NextResponse.json(
-        {
-          error:
-            "Your account is pending union approval. You will be able to access the system after approval.",
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          accessStatus: "APPROVED",
+          canAccessHub: true,
+          canAccessConference: true,
+          approvedAt: user.approvedAt ?? new Date(),
         },
-        { status: 403 },
-      );
+      });
     }
 
     if (user.accessStatus === "RESTRICTED") {

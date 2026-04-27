@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
-import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { CONF_2026 } from "@/lib/conf/config";
+import {
+  buildDelegateViewerContext,
+  canViewDelegateSensitiveData,
+} from "@/lib/conf/delegate-privacy";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -35,8 +39,14 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "participant");
-    if (!auth.ok) return auth.response;
+    const access = await getConferenceAccess(confId);
+    const viewer = buildDelegateViewerContext({
+      isManager: access.isManager,
+      delegateId: access.delegateId,
+      user: access.user
+        ? { id: access.user.id, email: access.user.email }
+        : null,
+    });
 
     const delegates = await prisma.confDelegate.findMany({
       where: { confId },
@@ -44,15 +54,25 @@ export async function GET(
     });
 
     const origin = new URL(req.url).origin;
-    const normalized = delegates.map((delegate) => ({
-      ...delegate,
-      passportPhotoPath: delegate.passportPhotoPath
-        ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
-        : null,
-      bookletPhotoPath: delegate.bookletPhotoPath
-        ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
-        : null,
-    }));
+    const normalized = delegates.map((delegate) => {
+      const canViewSensitive = canViewDelegateSensitiveData(delegate, viewer);
+
+      return {
+        ...delegate,
+        userId: canViewSensitive ? delegate.userId : null,
+        passportNo: canViewSensitive ? delegate.passportNo : null,
+        email: canViewSensitive ? delegate.email : null,
+        phone: canViewSensitive ? delegate.phone : null,
+        passportPhotoPath:
+          canViewSensitive && delegate.passportPhotoPath
+            ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
+            : null,
+        bookletPhotoPath:
+          canViewSensitive && delegate.bookletPhotoPath
+            ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+            : null,
+      };
+    });
 
     return NextResponse.json(normalized);
   } catch (error) {
@@ -101,6 +121,8 @@ export async function POST(
       conferencePosition,
     } = body;
 
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+
     if (
       !name ||
       !passportNo ||
@@ -109,7 +131,7 @@ export async function POST(
       !city ||
       !phone ||
       !wechat ||
-      !email ||
+      !normalizedEmail ||
       !gender
     ) {
       return NextResponse.json(
@@ -236,6 +258,12 @@ export async function POST(
 
     const delegateCode = await getNextDelegateCode(confId, event.year);
 
+    const access = await getConferenceAccess(confId);
+    const linkedUserId =
+      access.user && access.user.email.toLowerCase() === normalizedEmail
+        ? access.user.id
+        : null;
+
     const feePaidBool = Boolean(feePaid);
     const parsedFeeAmount =
       typeof feeAmount === "number" ? feeAmount : Number(feeAmount);
@@ -251,11 +279,12 @@ export async function POST(
     const delegate = await prisma.confDelegate.create({
       data: {
         confId,
+        userId: linkedUserId,
         name,
         passportNo,
         delegateCode,
         gender,
-        email: email || null,
+        email: normalizedEmail || null,
         university: university || null,
         province,
         city,

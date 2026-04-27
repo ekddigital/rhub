@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -24,32 +25,106 @@ type ConfNavItem = {
   href: string;
   label: string;
   icon: React.ElementType;
+  minAccess?: "public" | "participant";
 };
 
 const CONF_NAV_ITEMS: ConfNavItem[] = [
-  { href: "/tools/conf", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/tools/conf/docs", label: "Documentation", icon: BookOpen },
-  { href: "/tools/conf/budget", label: "Budget", icon: Wallet },
-  { href: "/tools/conf/payments", label: "Payments", icon: DollarSign },
-  { href: "/tools/conf/letters", label: "Letters / Memos", icon: Mail },
-  { href: "/tools/conf/committee", label: "Committee", icon: Users },
-  { href: "/tools/conf/delegates", label: "Delegates", icon: UserCheck },
-  { href: "/tools/conf/delegates/register", label: "Register", icon: UserPlus },
-  { href: "/tools/conf/booklet", label: "Booklet", icon: FileText },
-  { href: "/tools/conf/meetings", label: "Meetings", icon: CalendarDays },
-  { href: "/tools/conf/timeline", label: "Timeline", icon: Clock },
-  { href: "/tools/conf/flyers", label: "Flyers", icon: Megaphone },
+  {
+    href: "/tools/conf",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    minAccess: "public",
+  },
+  {
+    href: "/tools/conf/docs",
+    label: "Documentation",
+    icon: BookOpen,
+    minAccess: "public",
+  },
+  {
+    href: "/tools/conf/delegates",
+    label: "Delegates",
+    icon: UserCheck,
+    minAccess: "public",
+  },
+  {
+    href: "/tools/conf/delegates/register",
+    label: "Register",
+    icon: UserPlus,
+    minAccess: "public",
+  },
+  {
+    href: "/tools/conf/booklet",
+    label: "Booklet",
+    icon: FileText,
+    minAccess: "public",
+  },
+  {
+    href: "/tools/conf/budget",
+    label: "Budget",
+    icon: Wallet,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/payments",
+    label: "Payments",
+    icon: DollarSign,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/letters",
+    label: "Letters / Memos",
+    icon: Mail,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/committee",
+    label: "Committee",
+    icon: Users,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/meetings",
+    label: "Meetings",
+    icon: CalendarDays,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/timeline",
+    label: "Timeline",
+    icon: Clock,
+    minAccess: "participant",
+  },
+  {
+    href: "/tools/conf/flyers",
+    label: "Flyers",
+    icon: Megaphone,
+    minAccess: "participant",
+  },
   {
     href: "/tools/conf/finance/audit",
     label: "Audit Log",
     icon: ClipboardList,
+    minAccess: "participant",
   },
   {
     href: "/tools/conf/finance/reports",
     label: "Report Builder",
     icon: BarChart3,
+    minAccess: "participant",
   },
 ];
+
+type ConfAccessFlags = {
+  isParticipant: boolean;
+};
+
+function canViewNavItem(item: ConfNavItem, access: ConfAccessFlags): boolean {
+  const requirement = item.minAccess ?? "participant";
+
+  if (requirement === "public") return true;
+  return access.isParticipant;
+}
 
 function isItemActive(pathname: string, href: string): boolean {
   if (href === "/tools/conf") {
@@ -60,13 +135,49 @@ function isItemActive(pathname: string, href: string): boolean {
 
 export function ConfSidebar() {
   const pathname = usePathname();
+  const [access, setAccess] = useState<ConfAccessFlags>({
+    isParticipant: false,
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAccess = async () => {
+      try {
+        const res = await fetch("/api/conf/default/access", {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+
+        const payload = (await res.json()) as {
+          isParticipant?: boolean;
+        };
+
+        if (!active) return;
+        setAccess({
+          isParticipant: Boolean(payload.isParticipant),
+        });
+      } catch {
+        // Keep public-only navigation on network errors.
+      }
+    };
+
+    void loadAccess();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibleItems = CONF_NAV_ITEMS.filter((item) =>
+    canViewNavItem(item, access),
+  );
 
   return (
     <aside className="hidden lg:flex w-56 shrink-0 flex-col gap-1 self-start sticky top-24 min-h-[calc(100vh-8rem)] border-r border-border pl-4 sm:pl-5 lg:pl-6 pr-4">
       <p className="px-2 pt-1 pb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
         Conference Hub
       </p>
-      {CONF_NAV_ITEMS.map((item) => {
+      {visibleItems.map((item) => {
         const active = isItemActive(pathname, item.href);
         return (
           <Link
@@ -92,11 +203,47 @@ export function ConfSidebar() {
 
 export function ConfMobileNav() {
   const pathname = usePathname();
+  const [access, setAccess] = useState<ConfAccessFlags>({
+    isParticipant: false,
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAccess = async () => {
+      try {
+        const res = await fetch("/api/conf/default/access", {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+
+        const payload = (await res.json()) as {
+          isParticipant?: boolean;
+        };
+
+        if (!active) return;
+        setAccess({
+          isParticipant: Boolean(payload.isParticipant),
+        });
+      } catch {
+        // Keep public-only navigation on network errors.
+      }
+    };
+
+    void loadAccess();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibleItems = CONF_NAV_ITEMS.filter((item) =>
+    canViewNavItem(item, access),
+  );
 
   return (
     <div className="lg:hidden overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
       <div className="flex gap-1.5 w-max">
-        {CONF_NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const active = isItemActive(pathname, item.href);
           return (
             <Link

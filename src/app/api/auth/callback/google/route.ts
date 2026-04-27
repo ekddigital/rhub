@@ -92,6 +92,18 @@ export async function GET(req: NextRequest) {
           },
         });
       }
+
+      if (user.accessStatus === "PENDING") {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            accessStatus: "APPROVED",
+            canAccessHub: true,
+            canAccessConference: true,
+            approvedAt: user.approvedAt ?? new Date(),
+          },
+        });
+      }
     } else {
       // Create new user (Google-authenticated, no password)
       user = await prisma.user.create({
@@ -101,10 +113,11 @@ export async function GET(req: NextRequest) {
           password: null,
           googleId: googleUser.id,
           role: "USER",
-          accessStatus: "PENDING",
-          canAccessHub: false,
-          canAccessConference: false,
+          accessStatus: "APPROVED",
+          canAccessHub: true,
+          canAccessConference: true,
           canAccessAdmin: false,
+          approvedAt: new Date(),
           isActive: true,
           emailVerified: true,
         },
@@ -113,10 +126,6 @@ export async function GET(req: NextRequest) {
 
     if (!user.isActive) {
       return NextResponse.redirect(`${siteUrl}/login?error=account_disabled`);
-    }
-
-    if (user.accessStatus === "PENDING") {
-      return NextResponse.redirect(`${siteUrl}/login?error=pending_approval`);
     }
 
     if (user.accessStatus === "RESTRICTED") {

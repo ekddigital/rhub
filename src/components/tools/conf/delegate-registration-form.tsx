@@ -61,14 +61,15 @@ const KNOWN_CONFERENCE_ROLES = [
   "Cooking Team Chair",
   "Chair on Sports",
   "Chair on Logistics",
+  "Chair on Decoration",
   "Member",
   "National President",
   "National Vice President",
-  "Secretary General",
-  "Deputy Secretary General",
-  "Financial Secretary",
+  "National Secretary General",
+  "National Deputy Secretary General",
+  "National Financial Secretary",
   "National Treasurer",
-  "Chaplain General",
+  "National Chaplain General",
   "Senior Coordinator",
   "Province Coordinator",
   "City President",
@@ -87,11 +88,19 @@ const KNOWN_CONFERENCE_ROLES = [
 ] as const;
 
 function isKnownConferenceRole(value: string): boolean {
-  return KNOWN_CONFERENCE_ROLES.includes(value as (typeof KNOWN_CONFERENCE_ROLES)[number]);
+  return KNOWN_CONFERENCE_ROLES.includes(
+    value as (typeof KNOWN_CONFERENCE_ROLES)[number],
+  );
 }
 
 function normalizeConferenceRole(value: string): string {
   if (value === "Member, Cooking Team") return "Member";
+  if (value === "Secretary General") return "National Secretary General";
+  if (value === "Deputy Secretary General") {
+    return "National Deputy Secretary General";
+  }
+  if (value === "Financial Secretary") return "National Financial Secretary";
+  if (value === "Chaplain General") return "National Chaplain General";
   return value;
 }
 
@@ -200,7 +209,9 @@ export function DelegateRegistrationForm({
   );
   const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
   const [bookletPhoto, setBookletPhoto] = useState<File | null>(null);
-  const [conferencePosition, setConferencePosition] = useState(initialConferencePosition);
+  const [conferencePosition, setConferencePosition] = useState(
+    initialConferencePosition,
+  );
   const [conferencePositionSelect, setConferencePositionSelect] = useState(
     initialConferencePosition
       ? isKnownConferenceRole(initialConferencePosition)
@@ -209,7 +220,8 @@ export function DelegateRegistrationForm({
       : "",
   );
   const [customConferenceRoles, setCustomConferenceRoles] = useState(
-    initialConferencePosition && !isKnownConferenceRole(initialConferencePosition)
+    initialConferencePosition &&
+      !isKnownConferenceRole(initialConferencePosition)
       ? initialConferencePosition
       : "",
   );
@@ -219,6 +231,7 @@ export function DelegateRegistrationForm({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Restore draft on mount
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -314,9 +327,7 @@ export function DelegateRegistrationForm({
           setCustomConferenceRoles(restoredConferencePosition);
         }
       }
-      if (
-        typeof d.conferencePositionSelect === "string"
-      ) {
+      if (typeof d.conferencePositionSelect === "string") {
         const restoredConferencePositionSelect = normalizeConferenceRole(
           d.conferencePositionSelect,
         );
@@ -335,8 +346,8 @@ export function DelegateRegistrationForm({
     } catch {
       // ignore corrupt drafts
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [STORAGE_KEY]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Auto-save to localStorage (debounced 1.5 s)
   useEffect(() => {
@@ -619,7 +630,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>2. Gender *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={gender}
             onChange={(e) => setGender(e.target.value as "MALE" | "FEMALE")}
           >
@@ -695,7 +706,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>7. Are you planning to attend the conference? *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={attendanceIntent}
             onChange={(e) =>
               setAttendanceIntent(e.target.value as "YES" | "NO" | "OTHER")
@@ -710,7 +721,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>8. Do you need assistance with travel arrangements? *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={travelAssistanceNeeded}
             onChange={(e) =>
               setTravelAssistanceNeeded(
@@ -729,7 +740,7 @@ export function DelegateRegistrationForm({
             9. Would you need union communication with your school/supervisor? *
           </Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={schoolCommunicationNeeded}
             onChange={(e) =>
               setSchoolCommunicationNeeded(
@@ -746,7 +757,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>10. Current Year of Study *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={studyYear}
             onChange={(e) =>
               setStudyYear(
@@ -782,7 +793,7 @@ export function DelegateRegistrationForm({
             you in the correct section of the conference booklet.
           </p>
           <select
-            className={`flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs ${
+            className={`flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs ${
               fieldErrors.conferencePosition ? "border-red-500" : ""
             }`}
             value={conferencePositionSelect}
@@ -809,6 +820,7 @@ export function DelegateRegistrationForm({
               <option value="Cooking Team Chair">Cooking Team Chair</option>
               <option value="Chair on Sports">Chair on Sports</option>
               <option value="Chair on Logistics">Chair on Logistics</option>
+              <option value="Chair on Decoration">Chair on Decoration</option>
               <option value="Member">Member</option>
             </optgroup>
             <optgroup label="NEC Executive">
@@ -816,13 +828,19 @@ export function DelegateRegistrationForm({
               <option value="National Vice President">
                 National Vice President
               </option>
-              <option value="Secretary General">Secretary General</option>
-              <option value="Deputy Secretary General">
-                Deputy Secretary General
+              <option value="National Secretary General">
+                National Secretary General
               </option>
-              <option value="Financial Secretary">Financial Secretary</option>
+              <option value="National Deputy Secretary General">
+                National Deputy Secretary General
+              </option>
+              <option value="National Financial Secretary">
+                National Financial Secretary
+              </option>
               <option value="National Treasurer">National Treasurer</option>
-              <option value="Chaplain General">Chaplain General</option>
+              <option value="National Chaplain General">
+                National Chaplain General
+              </option>
             </optgroup>
             <optgroup label="Council of Coordinators">
               <option value="Senior Coordinator">Senior Coordinator</option>
@@ -864,7 +882,9 @@ export function DelegateRegistrationForm({
             </optgroup>
           </select>
           {fieldErrors.conferencePosition && (
-            <p className="text-xs text-red-600">{fieldErrors.conferencePosition}</p>
+            <p className="text-xs text-red-600">
+              {fieldErrors.conferencePosition}
+            </p>
           )}
           {conferencePositionSelect === CUSTOM_CONFERENCE_ROLE && (
             <div className="space-y-2 rounded-md border border-border/70 p-3">
@@ -882,7 +902,8 @@ export function DelegateRegistrationForm({
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                For participants serving in multiple roles, separate roles with commas.
+                For participants serving in multiple roles, separate roles with
+                commas.
               </p>
             </div>
           )}
@@ -891,7 +912,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>12. Will you bring someone from another country? *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={bringingForeignGuest}
             onChange={(e) =>
               setBringingForeignGuest(e.target.value as "YES" | "NO" | "OTHER")
@@ -906,7 +927,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>13. Do you need accommodation during the conference? *</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={accommodationNeeded}
             onChange={(e) =>
               setAccommodationNeeded(e.target.value as "YES" | "NO" | "OTHER")
@@ -923,7 +944,7 @@ export function DelegateRegistrationForm({
             14. Do you have special dietary requirements or food allergies? *
           </Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={dietaryNeeds}
             onChange={(e) =>
               setDietaryNeeds(e.target.value as "YES" | "NO" | "OTHER")
@@ -1006,7 +1027,7 @@ export function DelegateRegistrationForm({
           <div className="space-y-2">
             <Label>Completed Conference Payment? *</Label>
             <select
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
               value={feePaid ? "YES" : "NO"}
               onChange={(e) => setFeePaid(e.target.value === "YES")}
             >
@@ -1035,7 +1056,7 @@ export function DelegateRegistrationForm({
         <div className="space-y-2">
           <Label>Room Preference</Label>
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={roomPref}
             onChange={(e) => setRoomPref(e.target.value as "PAIR" | "SINGLE")}
           >

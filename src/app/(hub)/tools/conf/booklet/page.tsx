@@ -1,19 +1,36 @@
 import { BookletShell } from "@/components/tools/conf/booklet-shell";
 import { BookletManagerShell } from "@/components/tools/conf/booklet-manager-shell";
-import { requireConferencePageAccess } from "@/lib/conf/access";
+import { getConferenceAccess } from "@/lib/conf/access";
+import { ensureDefaultConference } from "@/lib/conf/bootstrap";
 
 export default async function ConferenceBookletPage({
   searchParams,
 }: {
   searchParams: Promise<{ view?: string }>;
 }) {
-  await requireConferencePageAccess("/tools/conf/booklet");
   const { view } = await searchParams;
+  let canManage = false;
 
-  // ?view=roster → existing print-focused delegate roster
+  try {
+    const event = await ensureDefaultConference();
+    const access = await getConferenceAccess(event.id);
+    canManage = Boolean(access.user && access.isManager);
+  } catch {
+    canManage = false;
+  }
+
   if (view === "roster") {
     return <BookletShell />;
   }
 
-  return <BookletManagerShell />;
+  // Manager workspace is available only to conference managers/chairs/admins.
+  if (view === "manage") {
+    if (canManage) {
+      return <BookletManagerShell />;
+    }
+
+    return <BookletShell />;
+  }
+
+  return canManage ? <BookletManagerShell /> : <BookletShell />;
 }

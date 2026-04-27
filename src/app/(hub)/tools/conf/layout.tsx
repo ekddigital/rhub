@@ -16,12 +16,12 @@ export default function ConferenceLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div className="conf-light-scope min-h-[calc(100vh-8rem)] bg-background text-foreground">
       <ConfMobileNav />
       <div className="flex items-start min-h-[calc(100vh-8rem)]">
         <ConfSidebar />
         <div className="flex-1 min-w-0 px-6 lg:px-10 pb-10">{children}</div>
       </div>
-    </>
+    </div>
   );
 }

@@ -56,6 +56,20 @@ export async function PUT(req: Request, { params }: Params) {
     const body = await req.json();
     const { title, category, status, notes, items } = body;
 
+    if (
+      status !== undefined &&
+      (status === "APPROVED" || status === "REJECTED") &&
+      !(auth.access.isChair || auth.access.isSuperAdmin)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Chair or Super Admin access required to approve/reject budgets",
+        },
+        { status: 403 },
+      );
+    }
+
     // Update the budget
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
@@ -65,7 +79,8 @@ export async function PUT(req: Request, { params }: Params) {
 
     if (status === "APPROVED") {
       updateData.approvedAt = new Date();
-      if (body.approvedBy) updateData.approvedBy = body.approvedBy;
+      updateData.approvedBy =
+        auth.access.memberId || auth.access.user?.id || null;
     }
 
     // If items are provided, replace all items

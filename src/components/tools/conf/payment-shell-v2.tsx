@@ -877,7 +877,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
                       {/* Committee-level approve (Level 1) */}
                       {payment.status === "PENDING" &&
-                        accessInfo?.canApprovePayments && (
+                        accessInfo?.canApprovePayments &&
+                        (accessInfo?.isSuperAdmin ||
+                          (Boolean(accessInfo?.committeeScope) &&
+                            payment.committeeScope ===
+                              accessInfo?.committeeScope)) && (
                           <Button
                             size="sm"
                             variant="outline"

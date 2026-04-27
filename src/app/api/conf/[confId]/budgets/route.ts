@@ -51,6 +51,47 @@ export async function POST(
       );
     }
 
+    const creatorMember = await prisma.confMember.findFirst({
+      where: {
+        id: String(createdBy),
+        confId,
+        isActive: true,
+      },
+      select: { id: true, committeeScope: true },
+    });
+
+    if (!creatorMember) {
+      return NextResponse.json(
+        { error: "Budget creator member not found" },
+        { status: 404 },
+      );
+    }
+
+    const isScopedMemberActor =
+      !auth.access.isSuperAdmin &&
+      !auth.access.isChair &&
+      Boolean(auth.access.memberId);
+    if (isScopedMemberActor) {
+      if (creatorMember.id !== auth.access.memberId) {
+        return NextResponse.json(
+          {
+            error:
+              "You can only create budgets with your own committee profile",
+          },
+          { status: 403 },
+        );
+      }
+
+      if (creatorMember.committeeScope !== auth.access.committeeScope) {
+        return NextResponse.json(
+          {
+            error: "You can only create budgets within your committee scope",
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     // Validate items
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -78,7 +119,7 @@ export async function POST(
         confId,
         title,
         category,
-        createdBy,
+        createdBy: creatorMember.id,
         notes: notes || null,
         items: {
           create: items.map(

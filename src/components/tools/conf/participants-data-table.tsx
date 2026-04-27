@@ -55,6 +55,7 @@ type Props = {
   currentUserId: string | null;
   currentUserEmail: string | null;
   isAdminControl: boolean;
+  canManagePayments: boolean;
   uploadingDocKey: string | null;
   onTogglePaid: (delegate: ParticipantRow) => void | Promise<void>;
   onReplaceDocument: (
@@ -111,6 +112,7 @@ export function ParticipantsDataTable({
   currentUserId,
   currentUserEmail,
   isAdminControl,
+  canManagePayments,
   uploadingDocKey,
   onTogglePaid,
   onReplaceDocument,
@@ -399,7 +401,7 @@ export function ParticipantsDataTable({
           </div>
 
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={statusFilter}
             onChange={(e) => {
               setStatusFilter(e.target.value as "ALL" | ParticipantRow["status"]); setPage(1);
@@ -413,7 +415,7 @@ export function ParticipantsDataTable({
           </select>
 
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={paidFilter}
             onChange={(e) => {
               setPaidFilter(e.target.value as "ALL" | "PAID" | "UNPAID"); setPage(1);
@@ -425,7 +427,7 @@ export function ParticipantsDataTable({
           </select>
 
           <select
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={String(pageSize)}
             onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
           >
@@ -548,16 +550,22 @@ export function ParticipantsDataTable({
                       <td className="px-3 py-3">
                         <p>{row.feeAmount ? fmtRmb(row.feeAmount) : "-"}</p>
                         <p className="text-muted-foreground">Room: {row.roomPref}</p>
-                        <button
-                          className={`mt-1 rounded-md px-2 py-1 text-[11px] font-medium ${
-                            row.feePaid
-                              ? "bg-emerald-500/10 text-emerald-700"
-                              : "bg-yellow-500/10 text-yellow-700"
-                          }`}
-                          onClick={() => void onTogglePaid(row)}
-                        >
-                          {row.feePaid ? "Paid" : "Unpaid"}
-                        </button>
+                        {canManagePayments ? (
+                          <button
+                            className={`mt-1 rounded-md px-2 py-1 text-[11px] font-medium ${
+                              row.feePaid
+                                ? "bg-emerald-500/10 text-emerald-700"
+                                : "bg-yellow-500/10 text-yellow-700"
+                            }`}
+                            onClick={() => void onTogglePaid(row)}
+                          >
+                            {row.feePaid ? "Paid" : "Unpaid"}
+                          </button>
+                        ) : (
+                          <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                            {row.feePaid ? "Paid" : "Unpaid"}
+                          </p>
+                        )}
                       </td>
 
                       <td className="px-3 py-3">

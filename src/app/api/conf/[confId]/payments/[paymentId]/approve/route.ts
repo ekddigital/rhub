@@ -14,8 +14,8 @@ export async function POST(
     const auth = await requireConferenceApiAccess(confId, "manager");
     if (!auth.ok) return auth.response;
 
-    // Must have canApprovePayments permission
-    if (!auth.access.canApprovePayments) {
+    // Scoped committee chair approval is required for level-1 approval.
+    if (!auth.access.isSuperAdmin && !auth.access.canApprovePayments) {
       return NextResponse.json(
         { error: "Payment approval permission required" },
         { status: 403 },
@@ -42,6 +42,38 @@ export async function POST(
         { error: `Payment is already in status: ${payment.status}` },
         { status: 409 },
       );
+    }
+
+    if (!auth.access.isSuperAdmin) {
+      if (!auth.access.memberId || !auth.access.committeeScope) {
+        return NextResponse.json(
+          {
+            error:
+              "A committee chair profile with committee scope is required for committee approval",
+          },
+          { status: 403 },
+        );
+      }
+
+      if (!payment.committeeScope) {
+        return NextResponse.json(
+          {
+            error:
+              "Payment does not have a committee scope and cannot be committee-approved",
+          },
+          { status: 409 },
+        );
+      }
+
+      if (payment.committeeScope !== auth.access.committeeScope) {
+        return NextResponse.json(
+          {
+            error:
+              "You can only committee-approve payments for your committee scope",
+          },
+          { status: 403 },
+        );
+      }
     }
 
     const memberId = auth.access.memberId;

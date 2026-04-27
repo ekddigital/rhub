@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import {
+  buildDelegateViewerContext,
+  canViewDelegateSensitiveData,
+} from "@/lib/conf/delegate-privacy";
 
 type BookletScope = "all" | "paid" | "confirmed";
 
@@ -18,8 +22,14 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "participant");
-    if (!auth.ok) return auth.response;
+    const access = await getConferenceAccess(confId);
+    const viewer = buildDelegateViewerContext({
+      isManager: access.isManager,
+      delegateId: access.delegateId,
+      user: access.user
+        ? { id: access.user.id, email: access.user.email }
+        : null,
+    });
 
     const scope = parseScope(new URL(req.url).searchParams.get("scope"));
 
@@ -63,6 +73,7 @@ export async function GET(
         where,
         select: {
           id: true,
+          userId: true,
           name: true,
           delegateCode: true,
           passportNo: true,
@@ -144,10 +155,19 @@ export async function GET(
 
     const participants = delegates.map((delegate) => {
       const room = roomByDelegate.get(delegate.id);
+      const canViewSensitive = canViewDelegateSensitiveData(delegate, viewer);
+      const delegateSafe = { ...delegate };
+      delete (delegateSafe as { userId?: string | null }).userId;
+
       return {
-        ...delegate,
+        ...delegateSafe,
+        passportNo: canViewSensitive ? delegate.passportNo : null,
+        phone: canViewSensitive ? delegate.phone : null,
+        email: canViewSensitive ? delegate.email : null,
         bookletPhotoPath: delegate.bookletPhotoPath
-          ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+          ? canViewSensitive
+            ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
+            : null
           : null,
         roomCode: room?.roomCode || null,
         roommateName: room?.roommateName || null,

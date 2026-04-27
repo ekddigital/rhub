@@ -22,11 +22,12 @@ const FLYER_SUB_THEME = CONF_2026.subTheme
   .replace(", and ", " · ")
   .replace(", ", " · ");
 
+const COUNTDOWN_CONFERENCE_TITLE = "LSUIC 20TH ANNUAL CONFERENCE & ANNIVERSARY";
+
 // ── SVG template ─────────────────────────────────────────────────────────────
 
 function buildCountdownSvg(opts: {
   days: number;
-  confName: string;
   dateLabel: string;
   venueLabel: string;
   logoUri: string | null;
@@ -34,16 +35,8 @@ function buildCountdownSvg(opts: {
   fonts: FlyerFonts | null;
   today: string;
 }) {
-  const {
-    days,
-    confName,
-    dateLabel,
-    venueLabel,
-    logoUri,
-    backdropUri,
-    fonts,
-    today,
-  } = opts;
+  const { days, dateLabel, venueLabel, logoUri, backdropUri, fonts, today } =
+    opts;
 
   const subLabel = days === 0 ? "TODAY!" : "TO GO";
   const countdownDisplay = days === 0 ? "🎉" : String(days);
@@ -122,7 +115,7 @@ function buildCountdownSvg(opts: {
   <!-- Conference name -->
   <text x="540" y="${logoBtm + 52}" text-anchor="middle"
     font-family="Oswald,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700"
-    fill="#C8A061" letter-spacing="3">${escapeXml(confName.toUpperCase())}</text>
+    fill="#C8A061" letter-spacing="3">${escapeXml(COUNTDOWN_CONFERENCE_TITLE)}</text>
 
   <!-- Theme — "Jinan 2026: Legacy and Influence" -->
   <text x="540" y="${logoBtm + 94}" text-anchor="middle"
@@ -218,7 +211,6 @@ export async function GET(
 
   const svg = buildCountdownSvg({
     days,
-    confName: event_?.name ?? CONF_2026.name,
     dateLabel,
     venueLabel: CONF_2026.venueShort,
     logoUri,

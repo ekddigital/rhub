@@ -154,6 +154,7 @@ export function DelegatesShell() {
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
   const [assignments, setAssignments] = useState<RoomAssignment[]>([]);
+  const [pairingAvailable, setPairingAvailable] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -176,9 +177,10 @@ export function DelegatesShell() {
   const [manualRoomCode, setManualRoomCode] = useState("");
   const [manualOverride, setManualOverride] = useState("");
 
-  const isAdminControl =
+  const isAdminControl = Boolean(
     user &&
-    ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role);
+      ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role),
+  );
 
   const loadDelegates = useCallback(async (id: string) => {
     const res = await fetch(`/api/conf/${id}/delegates`, { cache: "no-store" });
@@ -187,11 +189,20 @@ export function DelegatesShell() {
     setDelegates(data);
   }, []);
 
-  const loadPairingData = useCallback(async (id: string) => {
+  const loadPairingData = useCallback(async (id: string): Promise<boolean> => {
     const [requestsRes, roomsRes] = await Promise.all([
       fetch(`/api/conf/${id}/pair-requests`, { cache: "no-store" }),
       fetch(`/api/conf/${id}/room-assignments`, { cache: "no-store" }),
     ]);
+
+    if (
+      [401, 403].includes(requestsRes.status) ||
+      [401, 403].includes(roomsRes.status)
+    ) {
+      setPairRequests([]);
+      setAssignments([]);
+      return false;
+    }
 
     if (!requestsRes.ok || !roomsRes.ok) {
       throw new Error("Failed to load pairing workspace");
@@ -204,11 +215,14 @@ export function DelegatesShell() {
 
     setPairRequests(requestsData);
     setAssignments(roomsData);
+    return true;
   }, []);
 
   const reloadAll = useCallback(
     async (id: string) => {
-      await Promise.all([loadDelegates(id), loadPairingData(id)]);
+      await loadDelegates(id);
+      const canUsePairing = await loadPairingData(id);
+      setPairingAvailable(canUsePairing);
     },
     [loadDelegates, loadPairingData],
   );
@@ -440,7 +454,7 @@ export function DelegatesShell() {
       setRequesterId("");
       setTargetId("");
       setRequestNote("");
-      await loadPairingData(confId);
+      setPairingAvailable(await loadPairingData(confId));
       setNotice("Pairing request submitted.");
     } catch (e) {
       setError(
@@ -479,7 +493,7 @@ export function DelegatesShell() {
         throw new Error(payload.error || "Failed to update pair request");
       }
 
-      await loadPairingData(confId);
+      setPairingAvailable(await loadPairingData(confId));
       await loadDelegates(confId);
     } catch (e) {
       setError(
@@ -517,7 +531,7 @@ export function DelegatesShell() {
       setManualB("");
       setManualRoomCode("");
       setManualOverride("");
-      await loadPairingData(confId);
+      setPairingAvailable(await loadPairingData(confId));
       setNotice("Room assignment created.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to assign room");
@@ -575,10 +589,19 @@ export function DelegatesShell() {
               Booklet Builder
             </Button>
           </Link>
-          <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-            <Plus className="size-4" />
-            Register Delegate
-          </Button>
+          {isAdminControl ? (
+            <Button size="sm" onClick={() => setShowForm((v) => !v)}>
+              <Plus className="size-4" />
+              Register Delegate
+            </Button>
+          ) : (
+            <Link href="/tools/conf/delegates/register">
+              <Button size="sm">
+                <Plus className="size-4" />
+                Open Registration Form
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -642,7 +665,7 @@ export function DelegatesShell() {
         </Card>
       </div>
 
-      {showForm && (
+      {showForm && isAdminControl && (
         <Card className="border-[#C8A061]/40">
           <CardHeader>
             <CardTitle className="text-base">
@@ -685,6 +708,7 @@ export function DelegatesShell() {
           currentUserId={user?.id ?? null}
           currentUserEmail={user?.email ?? null}
           isAdminControl={Boolean(isAdminControl)}
+          canManagePayments={isAdminControl}
           uploadingDocKey={uploadingDocKey}
           onTogglePaid={(row) => {
             const delegate = delegates.find((item) => item.id === row.id);
@@ -695,7 +719,9 @@ export function DelegatesShell() {
         />
       )}
 
-      <Card>
+      {pairingAvailable ? (
+        <>
+          <Card>
         <CardHeader>
           <CardTitle className="text-base">Pairing Requests</CardTitle>
           <CardDescription>
@@ -708,7 +734,7 @@ export function DelegatesShell() {
             <div className="space-y-2">
               <Label>Requester</Label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={requesterId}
                 onChange={(e) => setRequesterId(e.target.value)}
               >
@@ -724,7 +750,7 @@ export function DelegatesShell() {
             <div className="space-y-2">
               <Label>Request Type</Label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={requestType}
                 onChange={(e) =>
                   setRequestType(
@@ -744,7 +770,7 @@ export function DelegatesShell() {
             <div className="space-y-2">
               <Label>Target Delegate</Label>
               <select
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
                 disabled={requestType === "SINGLE_ROOM"}
@@ -877,7 +903,7 @@ export function DelegatesShell() {
         </CardContent>
       </Card>
 
-      <Card>
+          <Card>
         <CardHeader>
           <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
           <CardDescription>
@@ -891,7 +917,7 @@ export function DelegatesShell() {
               <div className="space-y-2">
                 <Label>Occupant A</Label>
                 <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                   value={manualA}
                   onChange={(e) => setManualA(e.target.value)}
                 >
@@ -907,7 +933,7 @@ export function DelegatesShell() {
               <div className="space-y-2">
                 <Label>Occupant B (optional)</Label>
                 <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                   value={manualB}
                   onChange={(e) => setManualB(e.target.value)}
                 >
@@ -993,6 +1019,18 @@ export function DelegatesShell() {
           )}
         </CardContent>
       </Card>
+        </>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pairing Workspace</CardTitle>
+            <CardDescription>
+              Pairing requests and room assignment tools appear after signing in
+              as a delegate or conference manager.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

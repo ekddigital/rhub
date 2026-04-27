@@ -247,11 +247,10 @@ export async function GET(
         24,
       ),
     );
-    const cityHeadingRaw = clampText(
-      (delegate.city || "Jinan").toUpperCase(),
+    const conferenceCityRaw = clampText(
+      (CONF_2026.city || "Jinan").toUpperCase(),
       14,
     );
-    const cityHeading = escapeXml(cityHeadingRaw);
     const cardSubtitle = escapeXml(
       `LSUIC 20TH NATIONAL CONFERENCE • ${confYear}`,
     );
@@ -273,12 +272,12 @@ export async function GET(
       .replace(", ", " · "));
     const delegateStatementLines = [
       escapeXml(`OF LSUIC ${confYear} CONFERENCE,`),
-      escapeXml(`AND I WILL BE IN ${cityHeadingRaw}`),
+      escapeXml(`AND I WILL BE IN ${conferenceCityRaw}`),
     ];
     const scoreLine = escapeXml(
       `LSUIC @ ${LSUIC_CONFERENCE_EDITION}, LIB @ ${Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR)}`,
     );
-    const committeeLineRaw = `${cityHeadingRaw} ${confYear} CONFERENCE COMMITTEE`;
+    const committeeLineRaw = `${conferenceCityRaw} ${confYear} CONFERENCE COMMITTEE`;
     const committeeLines = wrapTextLines(committeeLineRaw, 40, 2).map((line) =>
       escapeXml(line),
     );
@@ -465,7 +464,7 @@ export async function GET(
   <text x="772" y="1038" text-anchor="middle" font-size="32" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${delegateCodeLabel}</text>
   ${universityLayer}
   <rect x="662" y="1124" width="220" height="2" fill="#C6D4EE"/>
-  <text x="772" y="1160" text-anchor="middle" font-size="30" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${cityHeading} ${confYear}</text>
+  <text x="772" y="1160" text-anchor="middle" font-size="30" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${escapeXml(conferenceCityRaw)} ${confYear}</text>
   <text x="772" y="1190" text-anchor="middle" font-size="16" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#1E2F5E">LSUIC NATIONAL CONFERENCE</text>
 
   <!-- Footer info bars -->

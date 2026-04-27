@@ -97,6 +97,63 @@ export async function POST(
       );
     }
 
+    const submitterMemberId =
+      submittedByMemberId || auth.access.memberId || null;
+
+    const submitter = submitterMemberId
+      ? await prisma.confMember.findFirst({
+          where: {
+            id: String(submitterMemberId),
+            confId,
+            isActive: true,
+          },
+          select: {
+            id: true,
+            committeeScope: true,
+          },
+        })
+      : null;
+
+    if (submitterMemberId && !submitter) {
+      return NextResponse.json(
+        { error: "Submitted-by committee member not found" },
+        { status: 404 },
+      );
+    }
+
+    const normalizedScope =
+      String(committeeScope || "").trim() ||
+      submitter?.committeeScope ||
+      auth.access.committeeScope ||
+      null;
+
+    const isScopedMemberActor =
+      !auth.access.isSuperAdmin &&
+      !auth.access.isChair &&
+      Boolean(auth.access.memberId);
+
+    if (isScopedMemberActor) {
+      if (!normalizedScope || normalizedScope !== auth.access.committeeScope) {
+        return NextResponse.json(
+          {
+            error:
+              "You can only submit payments within your assigned committee scope",
+          },
+          { status: 403 },
+        );
+      }
+
+      if (submitter && submitter.id !== auth.access.memberId) {
+        return NextResponse.json(
+          {
+            error:
+              "You can only submit payments as your own committee member profile",
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     const payment = await prisma.confPayment.create({
       data: {
         confId,
@@ -110,8 +167,8 @@ export async function POST(
         note: note || null,
         paymentType: paymentType || "EXPENSE",
         incomeSource: incomeSource || null,
-        committeeScope: committeeScope || null,
-        submittedByMemberId: submittedByMemberId || null,
+        committeeScope: normalizedScope,
+        submittedByMemberId: submitter?.id || auth.access.memberId || null,
       },
       include: {
         proofs: true,

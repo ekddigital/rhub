@@ -121,6 +121,57 @@
   --sidebar-ring: rgba(212, 175, 106, 0.5);
 }
 
+/* Force conference workspace to use light tokens even when global theme is dark. */
+.conf-light-scope {
+  color-scheme: light;
+}
+
+.dark .conf-light-scope {
+  --background: #fdf9f2;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1f1c18;
+  --popover: #ffffff;
+  --popover-foreground: #1f1c18;
+  --primary: #1f1c18;
+  --primary-foreground: #f3e7d4;
+  --secondary: #c8a061;
+  --secondary-foreground: #1f1c18;
+  --muted: #f1e7d4;
+  --muted-foreground: #7a6e5a;
+  --accent: #8e0e00;
+  --accent-foreground: #fff5ec;
+  --destructive: #b3261e;
+  --border: rgba(31, 28, 24, 0.1);
+  --input: rgba(31, 28, 24, 0.12);
+  --ring: #d4af6a;
+  --chart-1: #c8a061;
+  --chart-2: #8e0e00;
+  --chart-3: #182e5f;
+  --chart-4: #d4af6a;
+  --chart-5: #705335;
+  --sidebar: #f4e8d5;
+  --sidebar-foreground: #1f1c18;
+  --sidebar-primary: #1f1c18;
+  --sidebar-primary-foreground: #f6e9d7;
+  --sidebar-accent: #c8a061;
+  --sidebar-accent-foreground: #1f1c18;
+  --sidebar-border: rgba(31, 28, 24, 0.12);
+  --sidebar-ring: #d4af6a;
+}
+
+/* Native select popups (especially on Windows) need explicit colors. */
+.conf-light-scope select,
+.conf-light-scope option,
+.conf-light-scope optgroup {
+  background-color: var(--card);
+  color: var(--foreground);
+}
+
+.conf-light-scope select {
+  border-color: var(--input);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
