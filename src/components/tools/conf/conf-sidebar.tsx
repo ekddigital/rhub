@@ -25,7 +25,7 @@ type ConfNavItem = {
   href: string;
   label: string;
   icon: React.ElementType;
-  minAccess?: "public" | "participant";
+  minAccess?: "public" | "delegate" | "manager";
 };
 
 const CONF_NAV_ITEMS: ConfNavItem[] = [
@@ -39,13 +39,13 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/docs",
     label: "Documentation",
     icon: BookOpen,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/delegates",
     label: "Delegates",
     icon: UserCheck,
-    minAccess: "participant",
+    minAccess: "delegate",
   },
   {
     href: "/tools/conf/delegates/register",
@@ -57,61 +57,61 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/booklet",
     label: "Booklet",
     icon: FileText,
-    minAccess: "participant",
+    minAccess: "delegate",
   },
   {
     href: "/tools/conf/budget",
     label: "Budget",
     icon: Wallet,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/payments",
     label: "Payments",
     icon: DollarSign,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/letters",
     label: "Letters / Memos",
     icon: Mail,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/committee",
     label: "Committee",
     icon: Users,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/meetings",
     label: "Meetings",
     icon: CalendarDays,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/timeline",
     label: "Timeline",
     icon: Clock,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/flyers",
     label: "Flyers",
     icon: Megaphone,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/finance/audit",
     label: "Audit Log",
     icon: ClipboardList,
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/finance/reports",
     label: "Report Builder",
     icon: BarChart3,
-    minAccess: "participant",
+    minAccess: "manager",
   },
 ];
 
@@ -122,10 +122,14 @@ type ConfAccessFlags = {
 };
 
 function canViewNavItem(item: ConfNavItem, access: ConfAccessFlags): boolean {
-  const requirement = item.minAccess ?? "participant";
+  const requirement = item.minAccess ?? "manager";
 
   if (requirement === "public") return true;
-  return access.isParticipant || access.isManager || access.isSuperAdmin;
+  if (requirement === "delegate") {
+    return access.isParticipant || access.isManager || access.isSuperAdmin;
+  }
+
+  return access.isManager || access.isSuperAdmin;
 }
 
 function getManagerFlagsFromRole(role: string) {

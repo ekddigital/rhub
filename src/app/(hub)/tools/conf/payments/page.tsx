@@ -6,7 +6,7 @@ import {
 import { ensureDefaultConference } from "@/lib/conf/bootstrap";
 
 export default async function PaymentsPage() {
-  await requireConferencePageAccess("/tools/conf/payments");
+  await requireConferencePageAccess("/tools/conf/payments", "manager");
 
   let accessInfo = {
     isManager: false,

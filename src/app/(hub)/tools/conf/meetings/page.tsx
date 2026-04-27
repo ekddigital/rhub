@@ -2,7 +2,7 @@ import { MeetingsShell } from "@/components/tools/conf/meetings-shell";
 import { requireConferencePageAccess } from "@/lib/conf/access";
 
 export default async function MeetingsPage() {
-  await requireConferencePageAccess("/tools/conf/meetings");
+  await requireConferencePageAccess("/tools/conf/meetings", "manager");
 
   return (
     <div className="py-6">

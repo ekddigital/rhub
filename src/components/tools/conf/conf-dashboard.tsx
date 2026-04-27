@@ -40,7 +40,7 @@ const NAV_ITEMS = [
     title: "Budget Manager",
     desc: "Create & manage budgets with auto-calculations, export to CSV/PDF",
     color: "text-emerald-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/payments",
@@ -48,7 +48,7 @@ const NAV_ITEMS = [
     title: "Payment Tracker",
     desc: "Track payments, upload receipt screenshots, verify spending",
     color: "text-blue-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/committee",
@@ -56,7 +56,7 @@ const NAV_ITEMS = [
     title: "Committee",
     desc: "Manage committee members, roles, and contact information",
     color: "text-purple-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/delegates",
@@ -64,7 +64,7 @@ const NAV_ITEMS = [
     title: "Delegates",
     desc: "Delegate registration, fee tracking, city-based grouping",
     color: "text-orange-500",
-    minAccess: "participant",
+    minAccess: "delegate",
   },
   {
     href: "/tools/conf/delegates/register",
@@ -80,7 +80,7 @@ const NAV_ITEMS = [
     title: "Booklet Builder",
     desc: "Printable participant booklet cards with IDs, photos, and room assignments",
     color: "text-rose-500",
-    minAccess: "participant",
+    minAccess: "delegate",
   },
   {
     href: "/tools/conf/meetings",
@@ -88,7 +88,7 @@ const NAV_ITEMS = [
     title: "Meetings",
     desc: "Weekly meeting schedule, agendas, and minutes recording",
     color: "text-cyan-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/timeline",
@@ -96,7 +96,7 @@ const NAV_ITEMS = [
     title: "Timeline",
     desc: "Conference milestones, deadlines, and progress tracking",
     color: "text-pink-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/docs",
@@ -104,7 +104,7 @@ const NAV_ITEMS = [
     title: "Documentation",
     desc: "Conference planning docs, process guides, and quick references",
     color: "text-amber-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/flyers",
@@ -112,7 +112,7 @@ const NAV_ITEMS = [
     title: "Flyer Studio",
     desc: "Edit promo and signup flyers in-system with live preview",
     color: "text-red-500",
-    minAccess: "participant",
+    minAccess: "manager",
   },
 ] as const;
 
@@ -198,7 +198,11 @@ export function ConfDashboard() {
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.minAccess === "public") return true;
-    return isParticipant || isManager || isSuperAdmin;
+    if (item.minAccess === "delegate") {
+      return isParticipant || isManager || isSuperAdmin;
+    }
+
+    return isManager || isSuperAdmin;
   });
 
   return (

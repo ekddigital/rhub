@@ -96,7 +96,7 @@ const DOC_LINKS = [
 ];
 
 export default async function ConferenceDocsPage() {
-  await requireConferencePageAccess("/tools/conf/docs", "participant");
+  await requireConferencePageAccess("/tools/conf/docs", "manager");
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 py-6">

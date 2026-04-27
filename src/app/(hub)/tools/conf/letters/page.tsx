@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default async function LettersPage() {
-  await requireConferencePageAccess("/tools/conf/letters");
+  await requireConferencePageAccess("/tools/conf/letters", "manager");
 
   return (
     <div className="py-6">
