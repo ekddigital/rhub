@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  groupConferenceFeePackages,
   formatFeeRmb,
+  getConferenceFeePackageById,
+  getConferenceFeePackageByPrice,
+  groupConferenceFeePackages,
 } from "@/lib/conf/fees";
 
 export type DelegateRegistrationPayload = {
@@ -42,6 +44,8 @@ export type DelegateRegistrationPayload = {
   additionalComments: string;
   feePaid: boolean;
   feeAmount: number | null;
+  feePackageId: string;
+  amountPaid: number;
   roomPref: "PAIR" | "SINGLE";
   partnerClaimNote: string;
   passportPhoto: File | null;
@@ -55,7 +59,10 @@ export type DelegateRegistrationPayload = {
 export type InitialFormValues = Partial<
   Omit<
     DelegateRegistrationPayload,
-    "passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto"
+    | "passportPhoto"
+    | "lastEntryStampPhoto"
+    | "currentVisaPhoto"
+    | "bookletPhoto"
   >
 >;
 
@@ -123,7 +130,7 @@ type Props = {
    */
   initialValues?: InitialFormValues;
   /**
-   * When false, hides manager-only fields (feePaid, feeAmount).
+   * When false, hides manager-only fields (feePaid).
    * Defaults to true to preserve existing behavior.
    */
   isManagerMode?: boolean;
@@ -143,6 +150,27 @@ type FeeOption = {
   packageSummary: string;
   price: number;
 };
+
+function resolveInitialFeePackageId(
+  feeOptions: FeeOption[],
+  initialValues: InitialFormValues | undefined,
+  defaultFeeAmount: number,
+) {
+  const byId =
+    initialValues?.feePackageId != null
+      ? feeOptions.find((option) => option.id === initialValues.feePackageId)
+      : null;
+  if (byId) return byId.id;
+
+  const byAmount =
+    initialValues?.feeAmount != null
+      ? getConferenceFeePackageByPrice(initialValues.feeAmount)
+      : null;
+  if (byAmount) return byAmount.id;
+
+  const byDefault = getConferenceFeePackageByPrice(defaultFeeAmount);
+  return byDefault?.id ?? feeOptions[0]?.id ?? "";
+}
 
 export function DelegateRegistrationForm({
   submitting,
@@ -212,18 +240,23 @@ export function DelegateRegistrationForm({
   const [additionalComments, setAdditionalComments] = useState(
     initialValues?.additionalComments ?? "",
   );
-  const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
-  const [feeAmount, setFeeAmount] = useState(
-    initialValues?.feeAmount != null
-      ? String(initialValues.feeAmount)
-      : String(defaultFeeAmount),
-  );
   const feeGroups = groupConferenceFeePackages();
   const feeOptions = Object.values(feeGroups).flat() as FeeOption[];
   const [selectedFeePackage, setSelectedFeePackage] = useState(
-    initialValues?.feeAmount != null
-      ? feeOptions.find((option) => option.price === initialValues.feeAmount)?.id ?? "custom"
-      : feeOptions.find((option) => option.price === defaultFeeAmount)?.id ?? "custom",
+    resolveInitialFeePackageId(feeOptions, initialValues, defaultFeeAmount),
+  );
+  const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
+  const [feeAmount, setFeeAmount] = useState(
+    String(
+      getConferenceFeePackageById(
+        resolveInitialFeePackageId(feeOptions, initialValues, defaultFeeAmount),
+      )?.price ??
+        initialValues?.feeAmount ??
+        defaultFeeAmount,
+    ),
+  );
+  const [amountPaid, setAmountPaid] = useState(
+    initialValues?.amountPaid != null ? String(initialValues.amountPaid) : "0",
   );
   const [roomPref, setRoomPref] = useState<"PAIR" | "SINGLE">(
     initialValues?.roomPref ?? "PAIR",
@@ -334,6 +367,20 @@ export function DelegateRegistrationForm({
       if (typeof d.additionalComments === "string")
         setAdditionalComments(d.additionalComments);
       if (typeof d.feePaid === "boolean") setFeePaid(d.feePaid);
+      if (
+        typeof d.amountPaid === "string" ||
+        typeof d.amountPaid === "number"
+      ) {
+        setAmountPaid(String(d.amountPaid));
+      }
+      if (typeof d.feePackageId === "string" && d.feePackageId.trim()) {
+        setSelectedFeePackage(d.feePackageId);
+      } else if (typeof d.feeAmount === "string") {
+        const restoredPackage = getConferenceFeePackageByPrice(
+          Number(d.feeAmount),
+        );
+        if (restoredPackage) setSelectedFeePackage(restoredPackage.id);
+      }
       if (typeof d.feeAmount === "string") setFeeAmount(d.feeAmount);
       if (d.roomPref === "PAIR" || d.roomPref === "SINGLE")
         setRoomPref(d.roomPref);
@@ -404,7 +451,9 @@ export function DelegateRegistrationForm({
           dietaryDetails,
           additionalComments,
           feePaid,
+          feePackageId: selectedFeePackage,
           feeAmount,
+          amountPaid,
           roomPref,
           partnerClaimNote,
           conferencePosition,
@@ -476,15 +525,23 @@ export function DelegateRegistrationForm({
     setDietaryDetails(initialValues?.dietaryDetails ?? "");
     setAdditionalComments(initialValues?.additionalComments ?? "");
     setFeePaid(initialValues?.feePaid ?? false);
-    setFeeAmount(
-      initialValues?.feeAmount != null
-        ? String(initialValues.feeAmount)
-        : String(defaultFeeAmount),
+    const resetFeePackageId = resolveInitialFeePackageId(
+      feeOptions,
+      initialValues,
+      defaultFeeAmount,
     );
-    setSelectedFeePackage(
-      initialValues?.feeAmount != null
-        ? feeOptions.find((option) => option.price === initialValues.feeAmount)?.id ?? "custom"
-        : feeOptions.find((option) => option.price === defaultFeeAmount)?.id ?? "custom",
+    setSelectedFeePackage(resetFeePackageId);
+    setFeeAmount(
+      String(
+        getConferenceFeePackageById(resetFeePackageId)?.price ??
+          initialValues?.feeAmount ??
+          defaultFeeAmount,
+      ),
+    );
+    setAmountPaid(
+      initialValues?.amountPaid != null
+        ? String(initialValues.amountPaid)
+        : "0",
     );
     setRoomPref(initialValues?.roomPref ?? "PAIR");
     setPartnerClaimNote(initialValues?.partnerClaimNote ?? "");
@@ -515,6 +572,9 @@ export function DelegateRegistrationForm({
       /* ignore */
     }
   };
+
+  const selectedFee =
+    feeOptions.find((option) => option.id === selectedFeePackage) ?? null;
 
   const handleSubmit = async () => {
     // In edit mode, photos are optional (existing files are kept server-side)
@@ -567,22 +627,30 @@ export function DelegateRegistrationForm({
     setFieldErrors({});
     setError(null);
 
-    const parsedFeeAmount = feeAmount.trim()
-      ? Number(feeAmount)
-      : defaultFeeAmount;
+    const selectedFee = feeOptions.find(
+      (option) => option.id === selectedFeePackage,
+    );
 
-    const selectedFee =
-      selectedFeePackage !== "custom"
-        ? feeOptions.find((option) => option.id === selectedFeePackage)
-        : null;
-    const finalFeeAmount = selectedFee ? selectedFee.price : parsedFeeAmount;
+    if (!selectedFee) {
+      setError("Please select a conference fee package.");
+      return;
+    }
 
-    if (!Number.isFinite(finalFeeAmount) || finalFeeAmount < 0) {
-      setError("Conference fee amount must be a valid number.");
+    const finalFeeAmount = selectedFee.price;
+    const parsedAmountPaid = amountPaid.trim() ? Number(amountPaid) : 0;
+
+    if (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0) {
+      setError("Amount already paid must be a valid number.");
+      return;
+    }
+
+    if (parsedAmountPaid > finalFeeAmount) {
+      setError("Amount already paid cannot exceed the selected package fee.");
       return;
     }
 
     setFeeAmount(String(finalFeeAmount));
+    setAmountPaid(String(parsedAmountPaid));
 
     try {
       const submitted = await onSubmit({
@@ -607,7 +675,9 @@ export function DelegateRegistrationForm({
         dietaryDetails: dietaryDetails.trim(),
         additionalComments: additionalComments.trim(),
         feePaid,
+        feePackageId: selectedFee.id,
         feeAmount: finalFeeAmount,
+        amountPaid: parsedAmountPaid,
         roomPref,
         partnerClaimNote,
         passportPhoto,
@@ -1072,6 +1142,65 @@ export function DelegateRegistrationForm({
           )}
         </div>
 
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Conference Fee Package *</Label>
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+            value={selectedFeePackage}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedFeePackage(value);
+              const selected = feeOptions.find((option) => option.id === value);
+              if (selected) {
+                setFeeAmount(String(selected.price));
+              }
+            }}
+          >
+            <option value="">Select a package</option>
+            {Object.entries(feeGroups).map(([category, items]) => (
+              <optgroup key={category} label={category}>
+                {items.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label} - {formatFeeRmb(item.price)}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          {selectedFeePackage && (
+            <p className="text-xs text-muted-foreground">
+              Selected package total: {formatFeeRmb(selectedFee?.price ?? 0)}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label>Amount Already Paid (RMB)</Label>
+          <Input
+            type="number"
+            min={0}
+            step="0.01"
+            placeholder="Enter amount already paid"
+            value={amountPaid}
+            onChange={(e) => setAmountPaid(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Remaining Balance</Label>
+          <div className="flex h-9 items-center rounded-md border border-border bg-muted/30 px-3 text-sm font-medium">
+            {selectedFeePackage
+              ? formatFeeRmb(
+                  Math.max(
+                    (selectedFee?.price ?? 0) -
+                      (amountPaid.trim() ? Number(amountPaid) : 0),
+                    0,
+                  ),
+                )
+              : "Select a package first"}
+          </div>
+        </div>
+
         {isManagerMode && (
           <div className="space-y-2">
             <Label>Completed Conference Payment? *</Label>
@@ -1084,62 +1213,6 @@ export function DelegateRegistrationForm({
               <option value="YES">Yes</option>
             </select>
           </div>
-        )}
-
-        {isManagerMode && (
-          <>
-            <div className="space-y-2">
-              <Label>Conference Fee Package</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                value={selectedFeePackage}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSelectedFeePackage(value);
-                  const selected = feeOptions.find(
-                    (option) => option.id === value,
-                  );
-                  if (selected) {
-                    setFeeAmount(String(selected.price));
-                  }
-                }}
-              >
-                <option value="custom">Custom / Enter fee manually</option>
-                {Object.entries(feeGroups).map(([category, items]) => (
-                  <optgroup key={category} label={category}>
-                    {items.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.label} - {formatFeeRmb(item.price)}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <p className="text-xs text-muted-foreground">
-                Choose the package that best matches the participant profile, or
-                switch to custom if needed.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Conference Fee Amount (optional)</Label>
-              <Input
-                type="number"
-                min={0}
-                placeholder="Amount in RMB"
-                value={feeAmount}
-                onChange={(e) => {
-                  setFeeAmount(e.target.value);
-                  if (selectedFeePackage !== "custom") {
-                    setSelectedFeePackage("custom");
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                Default conference fee is {defaultFeeAmount} RMB.
-              </p>
-            </div>
-          </>
         )}
 
         <div className="space-y-2">
@@ -1286,7 +1359,9 @@ export function DelegateRegistrationForm({
             className={fieldErrors.currentVisaPhoto ? "border-red-500" : ""}
           />
           {fieldErrors.currentVisaPhoto && (
-            <p className="text-xs text-red-600">{fieldErrors.currentVisaPhoto}</p>
+            <p className="text-xs text-red-600">
+              {fieldErrors.currentVisaPhoto}
+            </p>
           )}
           {currentVisaPhoto && (
             <p className="text-xs text-muted-foreground">

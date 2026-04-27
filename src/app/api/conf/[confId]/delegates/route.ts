@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { getConferenceFeePackageById } from "@/lib/conf/fees";
 import { CONF_2026 } from "@/lib/conf/config";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
 } from "@/lib/conf/delegate-privacy";
+import { sendEmail } from "@/lib/mail";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -126,7 +128,9 @@ export async function POST(
       dietaryNeeds,
       dietaryDetails,
       additionalComments,
+      feePackageId,
       feeAmount,
+      amountPaid,
       feePaid,
       passportNo,
       gender,
@@ -136,7 +140,9 @@ export async function POST(
       conferencePosition,
     } = body;
 
-    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedEmail = String(email || "")
+      .trim()
+      .toLowerCase();
 
     if (
       !name ||
@@ -279,13 +285,30 @@ export async function POST(
         ? access.user.id
         : null;
 
-    const feePaidBool = Boolean(feePaid);
+    const resolvedFeePackage =
+      typeof feePackageId === "string" && feePackageId.trim()
+        ? getConferenceFeePackageById(feePackageId.trim())
+        : null;
     const parsedFeeAmount =
       typeof feeAmount === "number" ? feeAmount : Number(feeAmount);
-    const resolvedFeeAmount =
+    const fallbackFeeAmount =
       Number.isFinite(parsedFeeAmount) && parsedFeeAmount > 0
         ? parsedFeeAmount
         : CONF_2026.delegateFee;
+    const resolvedFeeAmount = resolvedFeePackage?.price ?? fallbackFeeAmount;
+    const parsedAmountPaid =
+      typeof amountPaid === "number" ? amountPaid : Number(amountPaid);
+    const resolvedAmountPaid =
+      Number.isFinite(parsedAmountPaid) && parsedAmountPaid >= 0
+        ? parsedAmountPaid
+        : 0;
+    if (resolvedAmountPaid > resolvedFeeAmount) {
+      return NextResponse.json(
+        { error: "amountPaid cannot exceed the selected package fee" },
+        { status: 400 },
+      );
+    }
+    const feePaidBool = Boolean(feePaid);
     const wantsSingleRoomBool = Boolean(wantsSingleRoom);
     const resolvedRoomPref = wantsSingleRoomBool
       ? "SINGLE"
@@ -316,7 +339,9 @@ export async function POST(
         dietaryNeeds,
         dietaryDetails: dietaryDetails || null,
         additionalComments: additionalComments || null,
+        feePackageId: resolvedFeePackage?.id ?? null,
         feeAmount: resolvedFeeAmount,
+        amountPaid: resolvedAmountPaid,
         feePaid: feePaidBool,
         roomPref: resolvedRoomPref,
         wantsSingleRoom: wantsSingleRoomBool,
@@ -329,6 +354,50 @@ export async function POST(
         }),
       },
     });
+
+    const approvers = await prisma.confMember.findMany({
+      where: {
+        confId,
+        isActive: true,
+        canApprovePayments: true,
+        email: { not: null },
+      },
+      select: { email: true, name: true },
+    });
+
+    const packageLabel = resolvedFeePackage
+      ? `${resolvedFeePackage.category} - ${resolvedFeePackage.label}`
+      : feePackageId
+        ? String(feePackageId)
+        : "Conference fee";
+    const balanceDue = Math.max(resolvedFeeAmount - resolvedAmountPaid, 0);
+    const notifyHtml = `
+      <h2 style="margin:0 0 12px;color:#1f1c18">New conference signup</h2>
+      <p style="margin:0 0 12px;color:#7a6e5a;line-height:1.6">
+        A new delegate has registered and needs payment review.
+      </p>
+      <div style="margin:16px 0;padding:16px;background:#fdf9f2;border-radius:8px;border-left:4px solid #c8a061">
+        <p style="margin:0 0 6px;color:#1f1c18;font-weight:600">${name}</p>
+        <p style="margin:0;color:#7a6e5a">Passport: ${passportNo}</p>
+        <p style="margin:0;color:#7a6e5a">Package: ${packageLabel}</p>
+        <p style="margin:0;color:#7a6e5a">Selected fee: RMB ${resolvedFeeAmount.toFixed(2)}</p>
+        <p style="margin:0;color:#7a6e5a">Amount already paid: RMB ${resolvedAmountPaid.toFixed(2)}</p>
+        <p style="margin:0;color:#7a6e5a">Remaining balance: RMB ${balanceDue.toFixed(2)}</p>
+      </div>
+      <p style="margin:0;color:#7a6e5a;line-height:1.6">
+        Please review the signup and confirm payment status in RHUB.
+      </p>
+    `;
+
+    await Promise.allSettled(
+      approvers.map((approver) =>
+        sendEmail({
+          to: approver.email as string,
+          subject: `New conference signup: ${name}`,
+          html: notifyHtml,
+        }),
+      ),
+    );
 
     return NextResponse.json(delegate, { status: 201 });
   } catch (error) {

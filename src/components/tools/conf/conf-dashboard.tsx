@@ -10,6 +10,7 @@ import {
   Calendar,
   Clock,
   MapPin,
+  ChevronDown,
   ChevronRight,
   Wallet,
   UserCheck,
@@ -32,10 +33,7 @@ import { CONF_2026 } from "@/lib/conf/config";
 import { daysUntilDate } from "@/lib/conf/dates";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import {
-  groupConferenceFeePackages,
-  formatFeeRmb,
-} from "@/lib/conf/fees";
+import { groupConferenceFeePackages, formatFeeRmb } from "@/lib/conf/fees";
 
 const NAV_ITEMS = [
   {
@@ -135,6 +133,7 @@ export function ConfDashboard() {
   const [isParticipant, setIsParticipant] = useState(false);
   const [isManager, setIsManager] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [showFeeStructure, setShowFeeStructure] = useState(false);
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
@@ -281,37 +280,63 @@ export function ConfDashboard() {
       </Card>
 
       <Card className="border-[#C8A061]/30">
-        <CardHeader>
-          <CardTitle className="text-base">Conference Fees Structure</CardTitle>
-          <CardDescription>
-            Select the package that best matches the participant type and room
-            preference during registration.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Object.entries(feeGroups).map(([category, items]) => (
-            <div key={category} className="space-y-2 rounded-xl border border-border/60 p-3">
-              <h3 className="font-semibold text-sm text-[#0B1E78]">{category}</h3>
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {items.map((item) => (
-                  <div key={item.id} className="rounded-lg bg-muted/30 p-3 text-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{item.label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.packageSummary}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="shrink-0">
-                        {formatFeeRmb(item.price)}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <CardHeader className="space-y-3">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">Conference Fees Structure</CardTitle>
+              <CardDescription>
+                Select the package that best matches the participant type and
+                room preference during registration.
+              </CardDescription>
             </div>
-          ))}
-        </CardContent>
+            <button
+              type="button"
+              onClick={() => setShowFeeStructure((prev) => !prev)}
+              aria-expanded={showFeeStructure}
+              aria-controls="conference-fee-structure-content"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#C8A061]/30 bg-background px-3 py-1.5 text-xs font-medium text-[#1F1C18] transition-colors hover:bg-muted"
+            >
+              {showFeeStructure ? "Hide fee packages" : "Show fee packages"}
+              <ChevronDown
+                className={`size-4 transition-transform ${showFeeStructure ? "rotate-180" : "rotate-0"}`}
+              />
+            </button>
+          </div>
+        </CardHeader>
+        {showFeeStructure && (
+          <CardContent id="conference-fee-structure-content" className="space-y-4">
+            {Object.entries(feeGroups).map(([category, items]) => (
+              <div
+                key={category}
+                className="space-y-2 rounded-xl border border-border/60 p-3"
+              >
+                <h3 className="font-semibold text-sm text-[#0B1E78]">
+                  {category}
+                </h3>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-lg bg-muted/30 p-3 text-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{item.label}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {item.packageSummary}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="shrink-0">
+                          {formatFeeRmb(item.price)}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        )}
       </Card>
 
       <Card className="overflow-hidden border-[#C8A061]/30 bg-linear-to-br from-[#0B4FD9]/10 via-transparent to-[#8E0E00]/15">

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { getConferenceFeePackageById } from "@/lib/conf/fees";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -223,11 +224,33 @@ export async function PATCH(
       updates.additionalComments = body.additionalComments || null;
     }
 
+    if (typeof body.feePackageId === "string") {
+      const feePackageId = body.feePackageId.trim();
+      const feePackage = feePackageId
+        ? getConferenceFeePackageById(feePackageId)
+        : null;
+      updates.feePackageId = feePackage?.id ?? null;
+      if (feePackage) {
+        updates.feeAmount = feePackage.price;
+      }
+    }
+
     if (typeof body.feeAmount !== "undefined") {
       // Manager-only: participants cannot change fee amounts
       if (auth.access.isManager) {
         updates.feeAmount = body.feeAmount ? Number(body.feeAmount) : null;
       }
+    }
+
+    if (typeof body.amountPaid !== "undefined") {
+      const parsedAmountPaid = Number(body.amountPaid);
+      if (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0) {
+        return NextResponse.json(
+          { error: "amountPaid must be a valid non-negative number" },
+          { status: 400 },
+        );
+      }
+      updates.amountPaid = parsedAmountPaid;
     }
 
     if (typeof body.feePaid === "boolean") {

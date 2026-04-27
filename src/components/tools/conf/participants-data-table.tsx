@@ -81,8 +81,7 @@ const STATUS_BADGE_CLASS: Record<ParticipantRow["status"], string> = {
     "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   ATTENDED:
     "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  CANCELLED:
-    "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
+  CANCELLED: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
 };
 
 function safe(value: string | number | null | undefined): string {
@@ -120,8 +119,12 @@ export function ParticipantsDataTable({
   onReplaceDocument,
 }: Props) {
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | ParticipantRow["status"]>("ALL");
-  const [paidFilter, setPaidFilter] = useState<"ALL" | "PAID" | "UNPAID">("ALL");
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | ParticipantRow["status"]
+  >("ALL");
+  const [paidFilter, setPaidFilter] = useState<"ALL" | "PAID" | "UNPAID">(
+    "ALL",
+  );
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
@@ -387,9 +390,12 @@ export function ParticipantsDataTable({
       <CardHeader className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <CardTitle className="text-base">Participants Registry Table</CardTitle>
+            <CardTitle className="text-base">
+              Participants Registry Table
+            </CardTitle>
             <CardDescription>
-              Full registration data with photos, passport files, pagination, and exports.
+              Full registration data with photos, passport files, pagination,
+              and exports.
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -412,7 +418,10 @@ export function ParticipantsDataTable({
               className="pl-9"
               placeholder="Search name, passport, phone, email, city, or ID"
               value={query}
-              onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
 
@@ -420,7 +429,10 @@ export function ParticipantsDataTable({
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value as "ALL" | ParticipantRow["status"]); setPage(1);
+              setStatusFilter(
+                e.target.value as "ALL" | ParticipantRow["status"],
+              );
+              setPage(1);
             }}
           >
             <option value="ALL">All status</option>
@@ -434,7 +446,8 @@ export function ParticipantsDataTable({
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={paidFilter}
             onChange={(e) => {
-              setPaidFilter(e.target.value as "ALL" | "PAID" | "UNPAID"); setPage(1);
+              setPaidFilter(e.target.value as "ALL" | "PAID" | "UNPAID");
+              setPage(1);
             }}
           >
             <option value="ALL">All payment</option>
@@ -445,7 +458,10 @@ export function ParticipantsDataTable({
           <select
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={String(pageSize)}
-            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
           >
             <option value="10">10 / page</option>
             <option value="20">20 / page</option>
@@ -491,7 +507,10 @@ export function ParticipantsDataTable({
                       normalizeForSearch(row.email) === normalizedUserEmail);
 
                   return (
-                    <tr key={row.id} className="border-b border-border align-top">
+                    <tr
+                      key={row.id}
+                      className="border-b border-border align-top"
+                    >
                       <td className="px-3 py-3 text-muted-foreground">
                         {offset + index + 1}
                       </td>
@@ -517,7 +536,9 @@ export function ParticipantsDataTable({
                               {row.delegateCode || "Pending ID"}
                             </p>
                             {row.conferencePosition && (
-                              <p className="text-[#8E0E00]">{row.conferencePosition}</p>
+                              <p className="text-[#8E0E00]">
+                                {row.conferencePosition}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -525,8 +546,12 @@ export function ParticipantsDataTable({
 
                       <td className="px-3 py-3">
                         <p>{row.phone || "-"}</p>
-                        <p className="text-muted-foreground">{row.email || "-"}</p>
-                        <p className="text-muted-foreground">WeChat: {row.wechat || "-"}</p>
+                        <p className="text-muted-foreground">
+                          {row.email || "-"}
+                        </p>
+                        <p className="text-muted-foreground">
+                          WeChat: {row.wechat || "-"}
+                        </p>
                       </td>
 
                       <td className="px-3 py-3">
@@ -541,7 +566,9 @@ export function ParticipantsDataTable({
                               label="Passport File"
                             />
                           ) : (
-                            <p className="text-muted-foreground">No passport file</p>
+                            <p className="text-muted-foreground">
+                              No passport file
+                            </p>
                           )}
                           {row.lastEntryStampPath && (
                             <a
@@ -577,19 +604,30 @@ export function ParticipantsDataTable({
                             <Eye className="size-3" /> Open Image
                           </a>
                         ) : (
-                          <span className="text-muted-foreground">No photo</span>
+                          <span className="text-muted-foreground">
+                            No photo
+                          </span>
                         )}
                       </td>
 
                       <td className="px-3 py-3">
-                        <p>{row.city}{row.province ? `, ${row.province}` : ""}</p>
-                        <p className="text-muted-foreground">{row.university || "-"}</p>
-                        <p className="text-muted-foreground">{row.gender || "-"}</p>
+                        <p>
+                          {row.city}
+                          {row.province ? `, ${row.province}` : ""}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {row.university || "-"}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {row.gender || "-"}
+                        </p>
                       </td>
 
                       <td className="px-3 py-3">
                         <p>{row.feeAmount ? fmtRmb(row.feeAmount) : "-"}</p>
-                        <p className="text-muted-foreground">Room: {row.roomPref}</p>
+                        <p className="text-muted-foreground">
+                          Room: {row.roomPref}
+                        </p>
                         {canManagePayments ? (
                           <button
                             className={`mt-1 rounded-md px-2 py-1 text-[11px] font-medium ${
@@ -609,7 +647,10 @@ export function ParticipantsDataTable({
                       </td>
 
                       <td className="px-3 py-3">
-                        <Badge variant="outline" className={STATUS_BADGE_CLASS[row.status]}>
+                        <Badge
+                          variant="outline"
+                          className={STATUS_BADGE_CLASS[row.status]}
+                        >
                           {STATUS_LABELS[row.status]}
                         </Badge>
                         <p className="mt-1 text-muted-foreground">
@@ -657,7 +698,11 @@ export function ParticipantsDataTable({
                                 accept="image/png,image/jpeg,image/webp"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
-                                  void onReplaceDocument(row.id, "booklet", file);
+                                  void onReplaceDocument(
+                                    row.id,
+                                    "booklet",
+                                    file,
+                                  );
                                   e.currentTarget.value = "";
                                 }}
                               />
@@ -682,7 +727,11 @@ export function ParticipantsDataTable({
                                 accept="image/png,image/jpeg,image/webp,application/pdf"
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
-                                  void onReplaceDocument(row.id, "passport", file);
+                                  void onReplaceDocument(
+                                    row.id,
+                                    "passport",
+                                    file,
+                                  );
                                   e.currentTarget.value = "";
                                 }}
                               />
@@ -754,7 +803,8 @@ export function ParticipantsDataTable({
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <p>
-            Showing {pageRows.length === 0 ? 0 : offset + 1} - {offset + pageRows.length} of {filtered.length}
+            Showing {pageRows.length === 0 ? 0 : offset + 1} -{" "}
+            {offset + pageRows.length} of {filtered.length}
           </p>
           <div className="flex items-center gap-2">
             <Button

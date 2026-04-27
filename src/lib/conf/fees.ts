@@ -122,27 +122,32 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
     id: "achievers-platinum",
     category: "Achievers Award Dinner & Ms. LSUIC Pageant Patrons",
     label: "Platinum Table of 8",
-    packageSummary:
-      "Free flow drinks and food through the night",
+    packageSummary: "Free flow drinks and food through the night",
     price: 700,
   },
   {
     id: "achievers-gold",
     category: "Achievers Award Dinner & Ms. LSUIC Pageant Patrons",
     label: "Gold Table of 5",
-    packageSummary:
-      "Free flow drinks and food through the night",
+    packageSummary: "Free flow drinks and food through the night",
     price: 450,
   },
   {
     id: "achievers-vip",
     category: "Achievers Award Dinner & Ms. LSUIC Pageant Patrons",
     label: "VIP Table of 4",
-    packageSummary:
-      "Free flow drinks and food through the night",
+    packageSummary: "Free flow drinks and food through the night",
     price: 350,
   },
 ];
+
+export function getConferenceFeePackageById(packageId: string) {
+  return CONFERENCE_FEE_PACKAGES.find((item) => item.id === packageId) ?? null;
+}
+
+export function getConferenceFeePackageByPrice(price: number) {
+  return CONFERENCE_FEE_PACKAGES.find((item) => item.price === price) ?? null;
+}
 
 export function groupConferenceFeePackages() {
   return CONFERENCE_FEE_PACKAGES.reduce<Record<string, ConferenceFeePackage[]>>(

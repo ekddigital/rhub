@@ -66,7 +66,9 @@ type Delegate = {
   dietaryNeeds: "YES" | "NO" | "OTHER" | null;
   dietaryDetails: string | null;
   additionalComments: string | null;
+  feePackageId: string | null;
   feeAmount: number | null;
+  amountPaid: number | null;
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
   wantsSingleRoom: boolean;
@@ -270,7 +272,9 @@ export function DelegateDetailShell({
         roomPref: payload.roomPref,
         partnerClaimNote: payload.partnerClaimNote,
         conferencePosition: payload.conferencePosition,
+        feePackageId: payload.feePackageId,
         feeAmount: payload.feeAmount,
+        amountPaid: payload.amountPaid,
         feePaid: payload.feePaid,
       };
 
@@ -570,7 +574,9 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.lastEntryStampPath ? (
                   <>
-                    {delegate.lastEntryStampPath.toLowerCase().endsWith(".pdf") ? (
+                    {delegate.lastEntryStampPath
+                      .toLowerCase()
+                      .endsWith(".pdf") ? (
                       <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
                         PDF uploaded
                       </div>
@@ -598,7 +604,8 @@ export function DelegateDetailShell({
                 )}
                 <p className="text-xs text-muted-foreground">
                   <Lock className="inline size-3 mr-1" />
-                  Visible to conference managers and the linked delegate account.
+                  Visible to conference managers and the linked delegate
+                  account.
                 </p>
               </CardContent>
             </Card>
@@ -643,7 +650,8 @@ export function DelegateDetailShell({
                 )}
                 <p className="text-xs text-muted-foreground">
                   <Lock className="inline size-3 mr-1" />
-                  Visible to conference managers and the linked delegate account.
+                  Visible to conference managers and the linked delegate
+                  account.
                 </p>
               </CardContent>
             </Card>
@@ -873,8 +881,10 @@ export function DelegateDetailShell({
                 dietaryNeeds: delegate.dietaryNeeds ?? "NO",
                 dietaryDetails: delegate.dietaryDetails ?? "",
                 additionalComments: delegate.additionalComments ?? "",
+                feePackageId: delegate.feePackageId ?? "",
                 feePaid: delegate.feePaid,
                 feeAmount: delegate.feeAmount,
+                amountPaid: delegate.amountPaid ?? undefined,
                 roomPref: delegate.roomPref,
                 partnerClaimNote: delegate.partnerClaimNote ?? "",
                 conferencePosition: delegate.conferencePosition ?? "",

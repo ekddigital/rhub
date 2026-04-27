@@ -912,10 +912,12 @@ model ConfDelegate {
     currentVisaPath String?
     bookletPhotoPath  String?
     conferencePosition String?  // Declared LSUIC role (e.g. "City President", "National President", etc.)
+    feePackageId String?
     arrival      DateTime?
     departure    DateTime?
     accommodated Boolean   @default(false)
     feeAmount    Float? // Registration fee
+    amountPaid   Float? // Amount already paid toward registration
     feePaid      Boolean   @default(false)
     roomPref     RoomPref  @default(PAIR)
     partnerClaimNote String? @db.Text
@@ -936,6 +938,7 @@ model ConfDelegate {
     @@index([status])
     @@index([city])
     @@index([gender])
+    @@index([feePackageId])
     @@index([feePaid])
 }
 

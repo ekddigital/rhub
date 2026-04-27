@@ -181,7 +181,7 @@ export function DelegatesShell() {
 
   const isAdminControl = Boolean(
     user &&
-      ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role),
+    ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(user.role),
   );
 
   const loadDelegates = useCallback(async (id: string) => {
@@ -299,7 +299,9 @@ export function DelegatesShell() {
           dietaryNeeds: payload.dietaryNeeds,
           dietaryDetails: payload.dietaryDetails,
           additionalComments: payload.additionalComments,
+          feePackageId: payload.feePackageId,
           feeAmount: payload.feeAmount,
+          amountPaid: payload.amountPaid,
           feePaid: payload.feePaid,
           roomPref: payload.roomPref,
           wantsSingleRoom: payload.roomPref === "SINGLE",
@@ -345,7 +347,11 @@ export function DelegatesShell() {
         await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ feePaid: true, status: "CONFIRMED" }),
+          body: JSON.stringify({
+            feePaid: true,
+            amountPaid: payload.feeAmount ?? 0,
+            status: "CONFIRMED",
+          }),
         });
       }
 
@@ -730,303 +736,309 @@ export function DelegatesShell() {
       {pairingAvailable ? (
         <>
           <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Pairing Requests</CardTitle>
-          <CardDescription>
-            Requests support same-gender pairing by default. Legal partner
-            exceptions require chair approval.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="space-y-2">
-              <Label>Requester</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                value={requesterId}
-                onChange={(e) => setRequesterId(e.target.value)}
-              >
-                <option value="">Select delegate</option>
-                {delegates.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({d.delegateCode || "N/A"})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Request Type</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                value={requestType}
-                onChange={(e) =>
-                  setRequestType(
-                    e.target.value as
-                      | "STANDARD_PAIR"
-                      | "LEGAL_PARTNER"
-                      | "SINGLE_ROOM",
-                  )
-                }
-              >
-                <option value="STANDARD_PAIR">Standard Pair</option>
-                <option value="LEGAL_PARTNER">Legal Partner Exception</option>
-                <option value="SINGLE_ROOM">Single Room Request</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Target Delegate</Label>
-              <select
-                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                disabled={requestType === "SINGLE_ROOM"}
-              >
-                <option value="">
-                  {requestType === "SINGLE_ROOM"
-                    ? "Not needed"
-                    : "Select delegate"}
-                </option>
-                {delegates
-                  .filter((d) => d.id !== requesterId)
-                  .map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.delegateCode || "N/A"})
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Note</Label>
-              <Input
-                placeholder="Optional context"
-                value={requestNote}
-                onChange={(e) => setRequestNote(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button
-              size="sm"
-              onClick={handleCreatePairRequest}
-              disabled={pairingBusy || !requesterId}
-            >
-              <Shuffle className="size-4" />
-              Submit Pair Request
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {pairRequests.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No pairing requests yet.
-              </p>
-            )}
-
-            {pairRequests.map((request) => (
-              <div
-                key={request.id}
-                className="rounded-lg border border-border p-3 text-sm"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium">
-                      {request.requester.name}
-                      {request.target
-                        ? ` → ${request.target.name}`
-                        : " (Single room request)"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {request.requestType} ·{" "}
-                      {new Date(request.createdAt).toLocaleString()}
-                    </p>
-                    {request.note && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {request.note}
-                      </p>
-                    )}
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={PAIR_STATUS_COLOR[request.status]}
+            <CardHeader>
+              <CardTitle className="text-base">Pairing Requests</CardTitle>
+              <CardDescription>
+                Requests support same-gender pairing by default. Legal partner
+                exceptions require chair approval.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="space-y-2">
+                  <Label>Requester</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                    value={requesterId}
+                    onChange={(e) => setRequesterId(e.target.value)}
                   >
-                    {request.status}
-                  </Badge>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {request.status === "PENDING" && request.targetId && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePairAction(request, "accept")}
-                        disabled={pairingBusy}
-                      >
-                        Target Accept
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePairAction(request, "decline")}
-                        disabled={pairingBusy}
-                      >
-                        Target Decline
-                      </Button>
-                    </>
-                  )}
-
-                  {(request.status === "PENDING" ||
-                    request.status === "ACCEPTED") &&
-                    isAdminControl && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            handlePairAction(request, "chair-approve")
-                          }
-                          disabled={pairingBusy}
-                        >
-                          Chair Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() =>
-                            handlePairAction(request, "chair-reject")
-                          }
-                          disabled={pairingBusy}
-                        >
-                          Chair Reject
-                        </Button>
-                      </>
-                    )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-          <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
-          <CardDescription>
-            Manual pairing is available for admins/chair controls, including
-            legal partner override notes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {isAdminControl && (
-            <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-5">
-              <div className="space-y-2">
-                <Label>Occupant A</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                  value={manualA}
-                  onChange={(e) => setManualA(e.target.value)}
-                >
-                  <option value="">Select delegate</option>
-                  {delegates.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Occupant B (optional)</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                  value={manualB}
-                  onChange={(e) => setManualB(e.target.value)}
-                >
-                  <option value="">Single room</option>
-                  {delegates
-                    .filter((d) => d.id !== manualA)
-                    .map((d) => (
+                    <option value="">Select delegate</option>
+                    {delegates.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.name}
+                        {d.name} ({d.delegateCode || "N/A"})
                       </option>
                     ))}
-                </select>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Request Type</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                    value={requestType}
+                    onChange={(e) =>
+                      setRequestType(
+                        e.target.value as
+                          | "STANDARD_PAIR"
+                          | "LEGAL_PARTNER"
+                          | "SINGLE_ROOM",
+                      )
+                    }
+                  >
+                    <option value="STANDARD_PAIR">Standard Pair</option>
+                    <option value="LEGAL_PARTNER">
+                      Legal Partner Exception
+                    </option>
+                    <option value="SINGLE_ROOM">Single Room Request</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Target Delegate</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                    value={targetId}
+                    onChange={(e) => setTargetId(e.target.value)}
+                    disabled={requestType === "SINGLE_ROOM"}
+                  >
+                    <option value="">
+                      {requestType === "SINGLE_ROOM"
+                        ? "Not needed"
+                        : "Select delegate"}
+                    </option>
+                    {delegates
+                      .filter((d) => d.id !== requesterId)
+                      .map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name} ({d.delegateCode || "N/A"})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Note</Label>
+                  <Input
+                    placeholder="Optional context"
+                    value={requestNote}
+                    onChange={(e) => setRequestNote(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={handleCreatePairRequest}
+                  disabled={pairingBusy || !requesterId}
+                >
+                  <Shuffle className="size-4" />
+                  Submit Pair Request
+                </Button>
               </div>
 
               <div className="space-y-2">
-                <Label>Room Code (optional)</Label>
-                <Input
-                  placeholder="e.g. A-204"
-                  value={manualRoomCode}
-                  onChange={(e) => setManualRoomCode(e.target.value)}
-                />
-              </div>
+                {pairRequests.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No pairing requests yet.
+                  </p>
+                )}
 
-              <div className="space-y-2 xl:col-span-2">
-                <Label>
-                  Override Reason (required for cross-gender assignment)
-                </Label>
-                <Textarea
-                  placeholder="Provide legal partner / approved exception context"
-                  value={manualOverride}
-                  onChange={(e) => setManualOverride(e.target.value)}
-                  rows={1}
-                />
-              </div>
+                {pairRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="rounded-lg border border-border p-3 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-medium">
+                          {request.requester.name}
+                          {request.target
+                            ? ` → ${request.target.name}`
+                            : " (Single room request)"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {request.requestType} ·{" "}
+                          {new Date(request.createdAt).toLocaleString()}
+                        </p>
+                        {request.note && (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {request.note}
+                          </p>
+                        )}
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={PAIR_STATUS_COLOR[request.status]}
+                      >
+                        {request.status}
+                      </Badge>
+                    </div>
 
-              <div className="xl:col-span-5 flex justify-end">
-                <Button
-                  size="sm"
-                  onClick={handleManualAssignment}
-                  disabled={!manualA || pairingBusy}
-                >
-                  <BedDouble className="size-4" />
-                  Assign Room
-                </Button>
-              </div>
-            </div>
-          )}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {request.status === "PENDING" && request.targetId && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePairAction(request, "accept")}
+                            disabled={pairingBusy}
+                          >
+                            Target Accept
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePairAction(request, "decline")}
+                            disabled={pairingBusy}
+                          >
+                            Target Decline
+                          </Button>
+                        </>
+                      )}
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {assignments.map((assignment) => (
-              <Card key={assignment.id}>
-                <CardContent className="pt-4">
-                  <div className="mb-1 flex items-center justify-between">
-                    <p className="font-semibold">Room {assignment.roomCode}</p>
-                    <Badge variant="outline">{assignment.status}</Badge>
+                      {(request.status === "PENDING" ||
+                        request.status === "ACCEPTED") &&
+                        isAdminControl && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                handlePairAction(request, "chair-approve")
+                              }
+                              disabled={pairingBusy}
+                            >
+                              Chair Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() =>
+                                handlePairAction(request, "chair-reject")
+                              }
+                              disabled={pairingBusy}
+                            >
+                              Chair Reject
+                            </Button>
+                          </>
+                        )}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {assignment.occupantA.name}
-                    {assignment.occupantB
-                      ? ` + ${assignment.occupantB.name}`
-                      : " (Single)"}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {assignment.occupantA.delegateCode || "N/A"}
-                    {assignment.occupantB
-                      ? ` / ${assignment.occupantB.delegateCode || "N/A"}`
-                      : ""}
-                  </p>
-                  {assignment.overrideReason && (
-                    <p className="mt-2 text-xs text-amber-700">
-                      {assignment.overrideReason}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-          {assignments.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No room assignments yet.
-            </p>
-          )}
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Room Assignment Workspace
+              </CardTitle>
+              <CardDescription>
+                Manual pairing is available for admins/chair controls, including
+                legal partner override notes.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isAdminControl && (
+                <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-5">
+                  <div className="space-y-2">
+                    <Label>Occupant A</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                      value={manualA}
+                      onChange={(e) => setManualA(e.target.value)}
+                    >
+                      <option value="">Select delegate</option>
+                      {delegates.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Occupant B (optional)</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                      value={manualB}
+                      onChange={(e) => setManualB(e.target.value)}
+                    >
+                      <option value="">Single room</option>
+                      {delegates
+                        .filter((d) => d.id !== manualA)
+                        .map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Room Code (optional)</Label>
+                    <Input
+                      placeholder="e.g. A-204"
+                      value={manualRoomCode}
+                      onChange={(e) => setManualRoomCode(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2 xl:col-span-2">
+                    <Label>
+                      Override Reason (required for cross-gender assignment)
+                    </Label>
+                    <Textarea
+                      placeholder="Provide legal partner / approved exception context"
+                      value={manualOverride}
+                      onChange={(e) => setManualOverride(e.target.value)}
+                      rows={1}
+                    />
+                  </div>
+
+                  <div className="xl:col-span-5 flex justify-end">
+                    <Button
+                      size="sm"
+                      onClick={handleManualAssignment}
+                      disabled={!manualA || pairingBusy}
+                    >
+                      <BedDouble className="size-4" />
+                      Assign Room
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {assignments.map((assignment) => (
+                  <Card key={assignment.id}>
+                    <CardContent className="pt-4">
+                      <div className="mb-1 flex items-center justify-between">
+                        <p className="font-semibold">
+                          Room {assignment.roomCode}
+                        </p>
+                        <Badge variant="outline">{assignment.status}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {assignment.occupantA.name}
+                        {assignment.occupantB
+                          ? ` + ${assignment.occupantB.name}`
+                          : " (Single)"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {assignment.occupantA.delegateCode || "N/A"}
+                        {assignment.occupantB
+                          ? ` / ${assignment.occupantB.delegateCode || "N/A"}`
+                          : ""}
+                      </p>
+                      {assignment.overrideReason && (
+                        <p className="mt-2 text-xs text-amber-700">
+                          {assignment.overrideReason}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {assignments.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No room assignments yet.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </>
       ) : (
         <Card>
