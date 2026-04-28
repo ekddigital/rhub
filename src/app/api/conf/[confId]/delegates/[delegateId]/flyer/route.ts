@@ -118,6 +118,14 @@ function formatConferenceWeekdayRange(start: Date | null, end: Date | null) {
   return `${weekday.format(start).toUpperCase()} - ${weekday.format(end).toUpperCase()}`;
 }
 
+function ensureSuffix(value: string, suffix: "City" | "Province") {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  return new RegExp(`\\b${suffix}\\b$`, "i").test(trimmed)
+    ? trimmed
+    : `${trimmed} ${suffix}`;
+}
+
 async function loadPublicConfImageDataUri(candidates: readonly string[]) {
   for (const assetPath of candidates) {
     const normalized = normalizeConfAssetPath(assetPath);
@@ -292,9 +300,11 @@ export async function GET(
       26,
       2,
     ).map((line) => escapeXml(line));
-    const cityLine = delegate.city?.trim() ? escapeXml(clampText(delegate.city.trim(), 28)) : "";
+    const cityLine = delegate.city?.trim()
+      ? escapeXml(clampText(ensureSuffix(delegate.city, "City"), 28))
+      : "";
     const provinceLine = delegate.province?.trim()
-      ? escapeXml(clampText(delegate.province.trim(), 28))
+      ? escapeXml(clampText(ensureSuffix(delegate.province, "Province"), 28))
       : "";
     const locationLines = [cityLine, provinceLine].filter(Boolean);
     const delegateCodeLabel = escapeXml(
