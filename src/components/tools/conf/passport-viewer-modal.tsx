@@ -5,7 +5,7 @@ import { Eye, X, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Props = {
-  /** The inline-proxy URL: /api/conf/[confId]/delegates/[delegateId]/passport-view */
+  /** Inline-proxy URL: /api/conf/[confId]/delegates/[delegateId]/secure-document?kind=... */
   proxyUrl: string;
   /** Whether this is a PDF (detected by original path extension) */
   isPdf: boolean;
@@ -13,6 +13,8 @@ type Props = {
   label?: string;
   /** Extra class for the trigger button */
   triggerClassName?: string;
+  /** Viewer title */
+  title?: string;
 };
 
 export function PassportViewerModal({
@@ -20,6 +22,7 @@ export function PassportViewerModal({
   isPdf,
   label = "Full View",
   triggerClassName = "",
+  title = "Passport Document",
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -51,7 +54,7 @@ export function PassportViewerModal({
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Eye className="size-4 text-muted-foreground" />
-                Passport Document
+                {title}
               </div>
               <Button
                 variant="ghost"
@@ -68,14 +71,14 @@ export function PassportViewerModal({
               {isPdf ? (
                 <iframe
                   src={proxyUrl}
-                  title="Passport Document"
+                  title={title}
                   className="h-[75vh] w-full rounded-lg border border-border bg-white"
                 />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={proxyUrl}
-                  alt="Passport Document"
+                  alt={title}
                   className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-lg"
                 />
               )}

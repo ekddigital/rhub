@@ -564,16 +564,17 @@ export function DelegateDetailShell({
                 {delegate.passportPhotoPath ? (
                   <>
                     <AdaptivePhotoFrame
-                      src={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
+                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=passport`}
                       alt={`${delegate.name} passport`}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
-                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/passport-view`}
+                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=passport`}
                       isPdf={delegate.passportPhotoPath
                         .toLowerCase()
                         .endsWith(".pdf")}
                       label="Full View"
+                      title="Passport Document"
                     />
                   </>
                 ) : (
@@ -600,28 +601,19 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.lastEntryStampPath ? (
                   <>
-                    {delegate.lastEntryStampPath
-                      .toLowerCase()
-                      .endsWith(".pdf") ? (
-                      <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
-                        PDF uploaded
-                      </div>
-                    ) : (
-                      <AdaptivePhotoFrame
-                        src={delegate.lastEntryStampPath}
-                        alt={`${delegate.name} last entry stamp`}
-                        containerClassName="h-52 w-full rounded-xl border border-border"
-                      />
-                    )}
-                    <a
-                      href={delegate.lastEntryStampPath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
-                    >
-                      <Eye className="size-3.5" />
-                      Open File
-                    </a>
+                    <AdaptivePhotoFrame
+                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=entry-stamp`}
+                      alt={`${delegate.name} last entry stamp`}
+                      containerClassName="h-52 w-full rounded-xl border border-border"
+                    />
+                    <PassportViewerModal
+                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=entry-stamp`}
+                      isPdf={delegate.lastEntryStampPath
+                        .toLowerCase()
+                        .endsWith(".pdf")}
+                      label="Open File"
+                      title="Last Entry Stamp"
+                    />
                   </>
                 ) : (
                   <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
@@ -648,26 +640,17 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.currentVisaPath ? (
                   <>
-                    {delegate.currentVisaPath.toLowerCase().endsWith(".pdf") ? (
-                      <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
-                        PDF uploaded
-                      </div>
-                    ) : (
-                      <AdaptivePhotoFrame
-                        src={delegate.currentVisaPath}
-                        alt={`${delegate.name} current visa`}
-                        containerClassName="h-52 w-full rounded-xl border border-border"
-                      />
-                    )}
-                    <a
-                      href={delegate.currentVisaPath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
-                    >
-                      <Eye className="size-3.5" />
-                      Open File
-                    </a>
+                    <AdaptivePhotoFrame
+                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=visa`}
+                      alt={`${delegate.name} current visa`}
+                      containerClassName="h-52 w-full rounded-xl border border-border"
+                    />
+                    <PassportViewerModal
+                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=visa`}
+                      isPdf={delegate.currentVisaPath.toLowerCase().endsWith(".pdf")}
+                      label="Open File"
+                      title="Current Visa"
+                    />
                   </>
                 ) : (
                   <div className="flex h-40 items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">

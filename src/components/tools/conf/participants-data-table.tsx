@@ -559,11 +559,12 @@ export function ParticipantsDataTable({
                         <div className="space-y-1">
                           {row.passportPhotoPath ? (
                             <PassportViewerModal
-                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/passport-view`}
+                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=passport`}
                               isPdf={row.passportPhotoPath
                                 .toLowerCase()
                                 .endsWith(".pdf")}
                               label="Passport File"
+                              title="Passport Document"
                             />
                           ) : (
                             <p className="text-muted-foreground">
@@ -571,24 +572,26 @@ export function ParticipantsDataTable({
                             </p>
                           )}
                           {row.lastEntryStampPath && (
-                            <a
-                              href={row.lastEntryStampPath}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
-                            >
-                              <Eye className="size-3" /> Last Entry Stamp
-                            </a>
+                            <PassportViewerModal
+                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=entry-stamp`}
+                              isPdf={row.lastEntryStampPath
+                                .toLowerCase()
+                                .endsWith(".pdf")}
+                              label="Last Entry Stamp"
+                              title="Last Entry Stamp"
+                              triggerClassName="px-2 py-1 text-[11px]"
+                            />
                           )}
                           {row.currentVisaPath && (
-                            <a
-                              href={row.currentVisaPath}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
-                            >
-                              <Eye className="size-3" /> Current Visa
-                            </a>
+                            <PassportViewerModal
+                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=visa`}
+                              isPdf={row.currentVisaPath
+                                .toLowerCase()
+                                .endsWith(".pdf")}
+                              label="Current Visa"
+                              title="Current Visa"
+                              triggerClassName="px-2 py-1 text-[11px]"
+                            />
                           )}
                         </div>
                       </td>
