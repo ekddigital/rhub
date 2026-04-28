@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
+import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/documents
 // Upload delegate documents: kind=passport|entry-stamp|visa|booklet
@@ -9,6 +10,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ confId: string; delegateId: string }> },
 ) {
+  const requestId = crypto.randomUUID();
   try {
     const { confId, delegateId } = await params;
 
@@ -36,56 +38,73 @@ export async function POST(
     const kind = String(formData.get("kind") || "").toLowerCase();
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    }
-
-    if (!["passport", "entry-stamp", "visa", "booklet"].includes(kind)) {
       return NextResponse.json(
-        { error: "kind must be passport, entry-stamp, visa, or booklet" },
+        { error: "No file uploaded", requestId },
         { status: 400 },
       );
     }
 
-    const isBooklet = kind === "booklet";
-    const isTravelDoc = !isBooklet;
-    const allowedPassport = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-      "application/pdf",
-    ];
-    const allowedBooklet = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-    ];
-
-    const allowedTypes = isTravelDoc ? allowedPassport : allowedBooklet;
-    if (!allowedTypes.includes(file.type)) {
+    if (!["passport", "entry-stamp", "visa", "booklet"].includes(kind)) {
       return NextResponse.json(
         {
-          error: isTravelDoc
-            ? "Passport/entry stamp/visa upload supports PNG, JPEG, WebP, or PDF"
-            : "Booklet photo supports PNG, JPEG, or WebP",
+          error: "kind must be passport, entry-stamp, visa, or booklet",
+          requestId,
         },
         { status: 400 },
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    const validation = validateDelegateDocumentUpload(
+      file,
+      kind as "passport" | "entry-stamp" | "visa" | "booklet",
+    );
+    if (!validation.ok) {
+      console.warn("[conf.delegate.document.invalid_file]", {
+        requestId,
+        confId,
+        delegateId,
+        kind,
+        fileName: file.name,
+        fileType: file.type || null,
+        inferredMime: validation.normalizedMime,
+        fileSize: file.size,
+      });
       return NextResponse.json(
-        { error: "File size must be under 10MB" },
+        {
+          error: validation.error,
+          requestId,
+          details: {
+            receivedMime: file.type || null,
+            inferredMime: validation.normalizedMime,
+            supportedMimeTypes: validation.supportedMimeTypes,
+            maxSizeBytes: validation.maxSizeBytes,
+          },
+        },
         { status: 400 },
       );
     }
 
+    const isTravelDoc = kind !== "booklet";
+    console.info("[conf.delegate.document.upload_start]", {
+      requestId,
+      confId,
+      delegateId,
+      kind,
+      fileName: file.name,
+      fileType: file.type || null,
+      inferredMime: validation.normalizedMime,
+      fileSize: file.size,
+    });
+
     const uploaded = await uploadFileToEKDDigitalAssets({
       file,
       assetType:
-        isTravelDoc && file.type === "application/pdf" ? "document" : "image",
+        isTravelDoc && validation.normalizedMime === "application/pdf"
+          ? "document"
+          : "image",
       projectName: `rhub-conf-delegates-${kind}`,
+      requestId,
+      source: "conf.delegate.documents",
     });
     const publicPath = uploaded.downloadUrl || uploaded.publicUrl;
 
@@ -126,17 +145,40 @@ export async function POST(
       });
     }
 
+    console.info("[conf.delegate.document.upload_success]", {
+      requestId,
+      confId,
+      delegateId,
+      kind,
+      flyerReady,
+      storedPath: publicPath,
+    });
+
     return NextResponse.json(
       {
         delegateId: updated.id,
         kind,
         filePath: publicPath,
         flyerReady,
+        requestId,
       },
       { status: 201 },
     );
   } catch (error) {
-    console.error("Failed to upload delegate document:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error("[conf.delegate.document.upload_error]", {
+      requestId,
+      message: error instanceof Error ? error.message : "Unknown upload error",
+      error,
+    });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? `Upload failed: ${error.message}`
+            : "Upload failed",
+        requestId,
+      },
+      { status: 500 },
+    );
   }
 }

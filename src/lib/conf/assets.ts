@@ -5,6 +5,8 @@ type EKDAssetUploadParams = {
   assetType: EKDAssetType;
   clientId?: string;
   projectName?: string;
+  requestId?: string;
+  source?: string;
 };
 
 type EKDAssetUploadResult = {
@@ -104,18 +106,43 @@ function payloadErrorMessage(payload: unknown) {
   );
 }
 
+function payloadToLogSnippet(payload: unknown, maxLength = 500) {
+  if (typeof payload === "string") {
+    return payload.slice(0, maxLength);
+  }
+  if (payload == null) return "";
+
+  try {
+    return JSON.stringify(payload).slice(0, maxLength);
+  } catch {
+    return "[unserializable payload]";
+  }
+}
+
 function getAuthCandidates(apiKey: string, apiSecret: string) {
-  const candidates: Array<Record<string, string>> = [];
+  const candidates: Array<{
+    label: string;
+    headers: Record<string, string>;
+  }> = [];
   if (apiSecret) {
-    candidates.push({ Authorization: `Bearer ${apiSecret}` });
+    candidates.push({
+      label: "bearer_secret",
+      headers: { Authorization: `Bearer ${apiSecret}` },
+    });
   }
   if (apiKey && apiKey !== apiSecret) {
-    candidates.push({ Authorization: `Bearer ${apiKey}` });
+    candidates.push({
+      label: "bearer_key",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
   }
   if (apiKey && apiSecret) {
     candidates.push({
-      "X-API-Key": apiKey,
-      "X-API-Secret": apiSecret,
+      label: "x_api_key_secret",
+      headers: {
+        "X-API-Key": apiKey,
+        "X-API-Secret": apiSecret,
+      },
     });
   }
 
@@ -143,6 +170,8 @@ export async function uploadFileToEKDDigitalAssets(
   const baseUrl = normalizeAssetsApiBaseUrl(apiUrl);
   const uploadUrl = `${baseUrl}/upload`;
   const assetsOrigin = new URL(baseUrl).origin;
+  const requestId = params.requestId || crypto.randomUUID();
+  const uploadSource = params.source || "unknown";
 
   const clientId =
     params.clientId || process.env.EKD_DIGITAL_ASSETS_CLIENT_ID || "andgroupco";
@@ -150,8 +179,19 @@ export async function uploadFileToEKDDigitalAssets(
     params.projectName || process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME || "rhub";
 
   let lastAuthError = "Authentication failed for EKD assets API";
+  console.info("[assets.upload.start]", {
+    requestId,
+    source: uploadSource,
+    assetType: params.assetType,
+    uploadUrl,
+    clientId,
+    projectName,
+    fileName: params.file.name,
+    fileType: params.file.type || null,
+    fileSize: params.file.size,
+  });
 
-  for (const headers of authCandidates) {
+  for (const candidate of authCandidates) {
     const formData = new FormData();
     formData.append("file", params.file, params.file.name);
     formData.append("client_id", clientId);
@@ -160,7 +200,7 @@ export async function uploadFileToEKDDigitalAssets(
 
     const response = await fetch(uploadUrl, {
       method: "POST",
-      headers,
+      headers: candidate.headers,
       body: formData,
       cache: "no-store",
     });
@@ -200,16 +240,32 @@ export async function uploadFileToEKDDigitalAssets(
           "secure_url",
         ]);
 
-      return {
+      const result = {
         id: assetId,
         publicUrl: toAbsoluteUrl(primaryUrl, assetsOrigin),
         downloadUrl: downloadUrl
           ? toAbsoluteUrl(downloadUrl, assetsOrigin)
           : null,
       };
+      console.info("[assets.upload.success]", {
+        requestId,
+        source: uploadSource,
+        authMethod: candidate.label,
+        status: response.status,
+        assetId: result.id,
+      });
+      return result;
     }
 
     const errorMessage = payloadErrorMessage(payload);
+    console.warn("[assets.upload.attempt_failed]", {
+      requestId,
+      source: uploadSource,
+      authMethod: candidate.label,
+      status: response.status,
+      errorMessage,
+      responseSnippet: payloadToLogSnippet(payload),
+    });
 
     if (response.status === 401 || response.status === 403) {
       lastAuthError = `Assets API auth failed (${response.status}): ${errorMessage}`;
@@ -221,6 +277,11 @@ export async function uploadFileToEKDDigitalAssets(
     );
   }
 
+  console.error("[assets.upload.failed]", {
+    requestId,
+    source: uploadSource,
+    message: lastAuthError,
+  });
   throw new Error(lastAuthError);
 }
 

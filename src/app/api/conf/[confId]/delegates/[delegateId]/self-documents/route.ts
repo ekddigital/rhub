@@ -6,6 +6,7 @@ import {
   resolveStoredAssetUrl,
 } from "@/lib/conf/assets";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
+import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/self-documents
 // Secure delegate file updates for managers and linked delegate accounts.
@@ -13,6 +14,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ confId: string; delegateId: string }> },
 ) {
+  const requestId = crypto.randomUUID();
   try {
     const { confId, delegateId } = await params;
     const auth = await requireConferenceApiAccess(confId, "participant");
@@ -54,12 +56,18 @@ export async function POST(
     const kind = String(formData.get("kind") || "").toLowerCase();
 
     if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+      return NextResponse.json(
+        { error: "No file uploaded", requestId },
+        { status: 400 },
+      );
     }
 
     if (!["passport", "entry-stamp", "visa", "booklet"].includes(kind)) {
       return NextResponse.json(
-        { error: "kind must be passport, entry-stamp, visa, or booklet" },
+        {
+          error: "kind must be passport, entry-stamp, visa, or booklet",
+          requestId,
+        },
         { status: 400 },
       );
     }
@@ -69,51 +77,67 @@ export async function POST(
         {
           error:
             "Only managers can replace passport files. Delegates can update booklet photo, last entry stamp, and current visa.",
+          requestId,
         },
         { status: 403 },
       );
     }
 
-    const isBooklet = kind === "booklet";
-    const isTravelDoc = !isBooklet;
-    const allowedPassport = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-      "application/pdf",
-    ];
-    const allowedBooklet = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-    ];
-
-    const allowedTypes = isTravelDoc ? allowedPassport : allowedBooklet;
-    if (!allowedTypes.includes(file.type)) {
+    const validation = validateDelegateDocumentUpload(
+      file,
+      kind as "passport" | "entry-stamp" | "visa" | "booklet",
+    );
+    if (!validation.ok) {
+      console.warn("[conf.delegate.self_document.invalid_file]", {
+        requestId,
+        confId,
+        delegateId,
+        kind,
+        canManage,
+        isOwner,
+        fileName: file.name,
+        fileType: file.type || null,
+        inferredMime: validation.normalizedMime,
+        fileSize: file.size,
+      });
       return NextResponse.json(
         {
-          error: isTravelDoc
-            ? "Passport/entry stamp/visa upload supports PNG, JPEG, WebP, or PDF"
-            : "Booklet photo supports PNG, JPEG, or WebP",
+          error: validation.error,
+          requestId,
+          details: {
+            receivedMime: file.type || null,
+            inferredMime: validation.normalizedMime,
+            supportedMimeTypes: validation.supportedMimeTypes,
+            maxSizeBytes: validation.maxSizeBytes,
+          },
         },
         { status: 400 },
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "File size must be under 10MB" },
-        { status: 400 },
-      );
-    }
+    const isTravelDoc = kind !== "booklet";
+    console.info("[conf.delegate.self_document.upload_start]", {
+      requestId,
+      confId,
+      delegateId,
+      kind,
+      canManage,
+      isOwner,
+      fileName: file.name,
+      fileType: file.type || null,
+      inferredMime: validation.normalizedMime,
+      fileSize: file.size,
+    });
 
     const uploaded = await uploadFileToEKDDigitalAssets({
       file,
       assetType:
-        isTravelDoc && file.type === "application/pdf" ? "document" : "image",
+        isTravelDoc && validation.normalizedMime === "application/pdf"
+          ? "document"
+          : "image",
       projectName: `rhub-conf-delegates-${kind}`,
+      requestId,
+      source: "conf.delegate.self-documents",
     });
 
     const storedPath = uploaded.downloadUrl || uploaded.publicUrl;
@@ -145,8 +169,17 @@ export async function POST(
     });
 
     const origin = new URL(req.url).origin;
+    console.info("[conf.delegate.self_document.upload_success]", {
+      requestId,
+      confId,
+      delegateId,
+      kind,
+      flyerReady,
+      storedPath,
+    });
     return NextResponse.json({
       ...finalDelegate,
+      requestId,
       passportPhotoPath: finalDelegate.passportPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
         : null,
@@ -161,7 +194,20 @@ export async function POST(
         : null,
     });
   } catch (error) {
-    console.error("Failed to update delegate self documents:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    console.error("[conf.delegate.self_document.upload_error]", {
+      requestId,
+      message: error instanceof Error ? error.message : "Unknown upload error",
+      error,
+    });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? `Upload failed: ${error.message}`
+            : "Upload failed",
+        requestId,
+      },
+      { status: 500 },
+    );
   }
 }

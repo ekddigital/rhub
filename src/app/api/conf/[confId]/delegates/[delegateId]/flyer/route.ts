@@ -197,6 +197,7 @@ export async function GET(
         confId: true,
         name: true,
         city: true,
+        province: true,
         university: true,
         delegateCode: true,
         bookletPhotoPath: true,
@@ -291,6 +292,11 @@ export async function GET(
       26,
       2,
     ).map((line) => escapeXml(line));
+    const cityLine = delegate.city?.trim() ? escapeXml(clampText(delegate.city.trim(), 28)) : "";
+    const provinceLine = delegate.province?.trim()
+      ? escapeXml(clampText(delegate.province.trim(), 28))
+      : "";
+    const locationLines = [cityLine, provinceLine].filter(Boolean);
     const delegateCodeLabel = escapeXml(
       clampText(delegate.delegateCode || "N/A", 20),
     );
@@ -345,9 +351,19 @@ export async function GET(
     const universityLayer = universityLines
       .map(
         (line, index) =>
-          `<text x="772" y="${1086 + index * 26}" text-anchor="middle" font-size="17" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E">${line}</text>`,
+          `<text x="772" y="${1082 + index * 24}" text-anchor="middle" font-size="16" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E">${line}</text>`,
       )
       .join("");
+    const locationStartY = 1082 + universityLines.length * 24 + 10;
+    const locationLayer = locationLines
+      .map(
+        (line, index) =>
+          `<text x="772" y="${locationStartY + index * 22}" text-anchor="middle" font-size="15" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#2E457A">${line}</text>`,
+      )
+      .join("");
+    const detailsDividerY = locationStartY + locationLines.length * 22 + 10;
+    const conferenceTitleY = detailsDividerY + 34;
+    const conferenceSubtitleY = conferenceTitleY + 30;
 
     const downloadControlsLayer = shouldDownload
       ? ""
@@ -463,9 +479,10 @@ export async function GET(
   <text x="772" y="998" text-anchor="middle" font-size="17" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">DELEGATE CODE</text>
   <text x="772" y="1038" text-anchor="middle" font-size="32" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${delegateCodeLabel}</text>
   ${universityLayer}
-  <rect x="662" y="1124" width="220" height="2" fill="#C6D4EE"/>
-  <text x="772" y="1160" text-anchor="middle" font-size="30" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${escapeXml(conferenceCityRaw)} ${confYear}</text>
-  <text x="772" y="1190" text-anchor="middle" font-size="16" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#1E2F5E">LSUIC NATIONAL CONFERENCE</text>
+  ${locationLayer}
+  <rect x="662" y="${detailsDividerY}" width="220" height="2" fill="#C6D4EE"/>
+  <text x="772" y="${conferenceTitleY}" text-anchor="middle" font-size="30" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${escapeXml(conferenceCityRaw)} ${confYear}</text>
+  <text x="772" y="${conferenceSubtitleY}" text-anchor="middle" font-size="16" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#1E2F5E">LSUIC NATIONAL CONFERENCE</text>
 
   <!-- Footer info bars -->
   <rect x="130" y="1288" width="820" height="28" rx="12" fill="#C8102E"/>

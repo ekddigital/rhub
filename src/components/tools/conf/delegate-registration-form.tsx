@@ -491,6 +491,8 @@ export function DelegateRegistrationForm({
     dietaryDetails,
     additionalComments,
     feePaid,
+    selectedFeePackage,
+    amountPaid,
     feeAmount,
     roomPref,
     partnerClaimNote,
@@ -1301,7 +1303,7 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf"
+            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
               setPassportPhoto(e.target.files?.[0] || null);
               setFieldErrors((p) => ({ ...p, passportPhoto: "" }));
@@ -1325,7 +1327,7 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf"
+            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
               setLastEntryStampPhoto(e.target.files?.[0] || null);
               setFieldErrors((p) => ({ ...p, lastEntryStampPhoto: "" }));
@@ -1351,7 +1353,7 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept="image/png,image/jpeg,image/webp,application/pdf"
+            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
               setCurrentVisaPhoto(e.target.files?.[0] || null);
               setFieldErrors((p) => ({ ...p, currentVisaPhoto: "" }));
@@ -1377,7 +1379,7 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
             onChange={(e) => {
               setBookletPhoto(e.target.files?.[0] || null);
               setFieldErrors((p) => ({ ...p, bookletPhoto: "" }));

@@ -283,7 +283,9 @@ export function ConfDashboard() {
         <CardHeader className="space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle className="text-base">Conference Fees Structure</CardTitle>
+              <CardTitle className="text-base">
+                Conference Fees Structure
+              </CardTitle>
               <CardDescription>
                 Select the package that best matches the participant type and
                 room preference during registration.
@@ -304,7 +306,10 @@ export function ConfDashboard() {
           </div>
         </CardHeader>
         {showFeeStructure && (
-          <CardContent id="conference-fee-structure-content" className="space-y-4">
+          <CardContent
+            id="conference-fee-structure-content"
+            className="space-y-4"
+          >
             {Object.entries(feeGroups).map(([category, items]) => (
               <div
                 key={category}

@@ -39,6 +39,33 @@ type DelegatePhotoSample = {
   imageUrl: string;
 };
 
+type UploadErrorPayload = {
+  error?: string;
+  requestId?: string;
+  details?: {
+    supportedMimeTypes?: string[];
+    receivedMime?: string | null;
+    inferredMime?: string | null;
+  };
+};
+
+function formatUploadError(
+  payload: UploadErrorPayload,
+  fallback: string,
+): string {
+  const base = payload.error || fallback;
+  const requestRef = payload.requestId ? ` (Ref: ${payload.requestId})` : "";
+  const receivedMime = payload.details?.receivedMime || payload.details?.inferredMime;
+  const accepted = payload.details?.supportedMimeTypes?.join(", ");
+
+  if (accepted) {
+    return `${base}${requestRef}. Accepted formats: ${accepted}${
+      receivedMime ? `. Detected file type: ${receivedMime}` : ""
+    }`;
+  }
+  return `${base}${requestRef}`;
+}
+
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
 function getLiberiaIndependenceAnniversary(year: number): number {
@@ -211,7 +238,10 @@ export function DelegatePublicRegister() {
         const responsePayload = await res.json().catch(() => ({}));
         if (!res.ok) {
           throw new Error(
-            responsePayload.error || `Failed to upload ${kind} document`,
+            formatUploadError(
+              responsePayload as UploadErrorPayload,
+              `Failed to upload ${kind} document`,
+            ),
           );
         }
 
@@ -254,9 +284,16 @@ export function DelegatePublicRegister() {
       "image/jpeg",
       "image/jpg",
       "image/webp",
+      "image/gif",
       "application/pdf",
     ];
-    const bookletTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    const bookletTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/webp",
+      "image/gif",
+    ];
     const allowed = kind === "booklet" ? bookletTypes : passportTypes;
 
     if (!allowed.includes(file.type)) {
@@ -287,7 +324,12 @@ export function DelegatePublicRegister() {
 
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(payload.error || `Failed to replace ${kind} file`);
+        throw new Error(
+          formatUploadError(
+            payload as UploadErrorPayload,
+            `Failed to replace ${kind} file`,
+          ),
+        );
       }
 
       setSuccess((prev) =>
@@ -450,7 +492,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("passport", file);
@@ -471,7 +513,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("entry-stamp", file);
@@ -492,7 +534,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/png,image/jpeg,image/webp,application/pdf"
+                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("visa", file);
@@ -513,7 +555,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/png,image/jpeg,image/webp"
+                        accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("booklet", file);
