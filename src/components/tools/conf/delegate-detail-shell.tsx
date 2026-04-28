@@ -30,6 +30,11 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
+import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  formatUploadError,
+  parseUploadErrorPayload,
+} from "@/lib/conf/upload-feedback-client";
 
 type Delegate = {
   id: string;
@@ -84,31 +89,11 @@ type Delegate = {
   updatedAt: string;
 };
 
-type UploadErrorPayload = {
-  error?: string;
-  requestId?: string;
-  details?: {
-    supportedMimeTypes?: string[];
-    receivedMime?: string | null;
-    inferredMime?: string | null;
-  };
-};
-
-function formatUploadError(
-  payload: UploadErrorPayload,
-  fallback: string,
-): string {
-  const base = payload.error || fallback;
-  const requestRef = payload.requestId ? ` (Ref: ${payload.requestId})` : "";
-  const receivedMime = payload.details?.receivedMime || payload.details?.inferredMime;
-  const accepted = payload.details?.supportedMimeTypes?.join(", ");
-
-  if (accepted) {
-    return `${base}${requestRef}. Accepted formats: ${accepted}${
-      receivedMime ? `. Detected file type: ${receivedMime}` : ""
-    }`;
-  }
-  return `${base}${requestRef}`;
+function uploadKindLabel(kind: "booklet" | "passport" | "entry-stamp" | "visa") {
+  if (kind === "booklet") return "conference photo";
+  if (kind === "entry-stamp") return "last entry stamp";
+  if (kind === "visa") return "current visa";
+  return "passport document";
 }
 
 type Props = {
@@ -227,6 +212,14 @@ export function DelegateDetailShell({
   ) => {
     if (!confId || !file || !canSelfEdit || uploadingKind) return;
 
+    const fileValidation = validateDelegateUploadFile(file, kind);
+    if (!fileValidation.ok) {
+      setError(
+        `Cannot upload ${uploadKindLabel(kind)}: ${fileValidation.error} (File: ${file.name})`,
+      );
+      return;
+    }
+
     setUploadingKind(kind);
     setError(null);
     setNotice(null);
@@ -244,17 +237,18 @@ export function DelegateDetailShell({
         },
       );
 
-      const payload = await res.json().catch(() => ({}));
+      const payload = await parseUploadErrorPayload(res);
       if (!res.ok) {
         throw new Error(
           formatUploadError(
-            payload as UploadErrorPayload,
-            `Failed to update ${kind} document`,
+            payload,
+            `Failed to update ${uploadKindLabel(kind)}`,
+            res.status,
           ),
         );
       }
 
-      setDelegate(payload as Delegate);
+      setDelegate(payload as unknown as Delegate);
       setNotice(
         kind === "booklet"
           ? "Conference photo updated successfully."

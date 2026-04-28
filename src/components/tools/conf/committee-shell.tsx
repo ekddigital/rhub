@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -29,6 +29,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { validateProfilePhotoFile } from "@/lib/conf/file-upload-client";
+import {
+  formatUploadError,
+  parseUploadErrorPayload,
+} from "@/lib/conf/upload-feedback-client";
 
 type Member = {
   id: string;
@@ -203,16 +208,16 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [email, setEmail] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  const loadMembers = async (id: string) => {
+  const loadMembers = useCallback(async (id: string) => {
     const res = await fetch(`/api/conf/${id}/members`, { cache: "no-store" });
     if (!res.ok) {
       throw new Error("Failed to load committee members");
     }
     const data = (await res.json()) as Member[];
     setMembers(data);
-  };
+  }, []);
 
-  const loadRoles = async (id: string) => {
+  const loadRoles = useCallback(async (id: string) => {
     setRolesLoading(true);
     try {
       const includeInactive = accessInfo?.isSuperAdmin ? "?includeInactive=1" : "";
@@ -230,7 +235,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     } finally {
       setRolesLoading(false);
     }
-  };
+  }, [accessInfo?.isSuperAdmin, newMemberRoleKey]);
 
   useEffect(() => {
     const init = async () => {
@@ -249,7 +254,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     };
 
     void init();
-  }, []);
+  }, [loadMembers, loadRoles]);
 
   const cities = useMemo(
     () => [...new Set(members.map((m) => m.city).filter(Boolean))].sort(),
@@ -396,6 +401,12 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       let created = (await createRes.json()) as Member;
 
       if (photoFile) {
+        const validation = validateProfilePhotoFile(photoFile);
+        if (!validation.ok) {
+          throw new Error(
+            `Cannot upload profile photo: ${validation.error} (File: ${photoFile.name})`,
+          );
+        }
         const fd = new FormData();
         fd.append("file", photoFile);
         const uploadRes = await fetch(
@@ -405,9 +416,17 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             body: fd,
           },
         );
-        if (uploadRes.ok) {
-          created = (await uploadRes.json()) as Member;
+        if (!uploadRes.ok) {
+          const payload = await parseUploadErrorPayload(uploadRes);
+          throw new Error(
+            formatUploadError(
+              payload,
+              "Failed to upload profile photo",
+              uploadRes.status,
+            ),
+          );
         }
+        created = (await uploadRes.json()) as Member;
       }
 
       setMembers((prev) => [...prev, created]);
@@ -422,6 +441,13 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const handleReplacePhoto = async (memberId: string, file: File | null) => {
     if (!file || !confId) return;
+    const validation = validateProfilePhotoFile(file);
+    if (!validation.ok) {
+      setError(
+        `Cannot upload profile photo: ${validation.error} (File: ${file.name})`,
+      );
+      return;
+    }
     setUploadingId(memberId);
     setError(null);
 
@@ -435,8 +461,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       });
 
       if (!res.ok) {
-        const payload = await res.json().catch(() => ({}));
-        throw new Error(payload.error || "Failed to upload profile photo");
+        const payload = await parseUploadErrorPayload(res);
+        throw new Error(
+          formatUploadError(payload, "Failed to upload profile photo", res.status),
+        );
       }
 
       const updated = (await res.json()) as Member;

@@ -36,6 +36,11 @@ import {
 } from "@/components/tools/conf/delegate-registration-form";
 import { ParticipantsDataTable } from "@/components/tools/conf/participants-data-table";
 import { useUser } from "@/contexts/user-context";
+import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  formatUploadError,
+  parseUploadErrorPayload,
+} from "@/lib/conf/upload-feedback-client";
 
 type Delegate = {
   id: string;
@@ -139,33 +144,6 @@ type RoomAssignment = {
     city: string;
   } | null;
 };
-
-type UploadErrorPayload = {
-  error?: string;
-  requestId?: string;
-  details?: {
-    supportedMimeTypes?: string[];
-    receivedMime?: string | null;
-    inferredMime?: string | null;
-  };
-};
-
-function formatUploadError(
-  payload: UploadErrorPayload,
-  fallback: string,
-): string {
-  const base = payload.error || fallback;
-  const requestRef = payload.requestId ? ` (Ref: ${payload.requestId})` : "";
-  const receivedMime = payload.details?.receivedMime || payload.details?.inferredMime;
-  const accepted = payload.details?.supportedMimeTypes?.join(", ");
-
-  if (accepted) {
-    return `${base}${requestRef}. Accepted formats: ${accepted}${
-      receivedMime ? `. Detected file type: ${receivedMime}` : ""
-    }`;
-  }
-  return `${base}${requestRef}`;
-}
 
 const PAIR_STATUS_COLOR: Record<PairRequest["status"], string> = {
   PENDING: "text-yellow-600",
@@ -349,6 +327,12 @@ export function DelegatesShell() {
         file: File | null,
       ) => {
         if (!file) return;
+        const validation = validateDelegateUploadFile(file, kind);
+        if (!validation.ok) {
+          throw new Error(
+            `Cannot upload ${kind}: ${validation.error} (File: ${file.name})`,
+          );
+        }
         const fd = new FormData();
         fd.append("kind", kind);
         fd.append("file", file);
@@ -359,12 +343,13 @@ export function DelegatesShell() {
             body: fd,
           },
         );
-        const payload = await res.json().catch(() => ({}));
+        const payload = await parseUploadErrorPayload(res);
         if (!res.ok) {
           throw new Error(
             formatUploadError(
-              payload as UploadErrorPayload,
+              payload,
               `Failed to upload ${kind} document`,
+              res.status,
             ),
           );
         }
@@ -409,6 +394,13 @@ export function DelegatesShell() {
     file: File | null,
   ) => {
     if (!confId || !file || uploadingDocKey) return;
+    const validation = validateDelegateUploadFile(file, kind);
+    if (!validation.ok) {
+      setError(
+        `Cannot replace ${kind}: ${validation.error} (File: ${file.name})`,
+      );
+      return;
+    }
 
     const key = `${delegateId}:${kind}`;
     setUploadingDocKey(key);
@@ -428,12 +420,13 @@ export function DelegatesShell() {
         },
       );
 
-      const payload = await res.json().catch(() => ({}));
+      const payload = await parseUploadErrorPayload(res);
       if (!res.ok) {
         throw new Error(
           formatUploadError(
-            payload as UploadErrorPayload,
+            payload,
             `Failed to replace ${kind} file`,
+            res.status,
           ),
         );
       }

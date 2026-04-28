@@ -36,6 +36,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { PAY_METHODS } from "@/lib/conf/config";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { validatePaymentProofFile } from "@/lib/conf/file-upload-client";
+import {
+  formatUploadError,
+  parseUploadErrorPayload,
+} from "@/lib/conf/upload-feedback-client";
 
 type PaymentStatus = "PENDING" | "COMMITTEE_APPROVED" | "APPROVED" | "REJECTED";
 type PaymentType = "EXPENSE" | "INCOME";
@@ -202,12 +207,25 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const valid = files.filter(
-      (f) =>
-        ["image/png", "image/jpeg", "image/webp", "application/pdf"].includes(
-          f.type,
-        ) && f.size <= 10 * 1024 * 1024,
-    );
+    const valid: File[] = [];
+    const invalidMessages: string[] = [];
+    files.forEach((file) => {
+      const validation = validatePaymentProofFile(file);
+      if (!validation.ok) {
+        invalidMessages.push(`${file.name}: ${validation.error}`);
+        return;
+      }
+      valid.push(file);
+    });
+
+    if (invalidMessages.length > 0) {
+      setError(
+        `Some files were skipped. ${invalidMessages.slice(0, 2).join(" | ")}`,
+      );
+    } else {
+      setError(null);
+    }
+
     setProofFiles((prev) => [...prev, ...valid]);
     valid.forEach((file) => {
       if (file.type.startsWith("image/")) {
@@ -254,13 +272,26 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("paymentId", payment.id);
-        await fetch(`/api/conf/${confId}/payments/${payment.id}/proof`, {
-          method: "POST",
-          body: fd,
-        });
+        const uploadRes = await fetch(
+          `/api/conf/${confId}/payments/${payment.id}/upload`,
+          {
+            method: "POST",
+            body: fd,
+          },
+        );
+        if (!uploadRes.ok) {
+          const errPayload = await parseUploadErrorPayload(uploadRes);
+          throw new Error(
+            formatUploadError(
+              errPayload,
+              "Failed to upload payment proof",
+              uploadRes.status,
+            ),
+          );
+        }
       }
 
-      setPayments((prev) => [payment, ...prev]);
+      setPayments(await loadPayments(confId));
       resetForm();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save payment");

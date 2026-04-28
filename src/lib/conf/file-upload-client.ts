@@ -72,3 +72,11 @@ export function validateDelegateUploadFile(
   return { ok: true, inferredMime };
 }
 
+export function validatePaymentProofFile(file: File) {
+  return validateDelegateUploadFile(file, "passport");
+}
+
+export function validateProfilePhotoFile(file: File) {
+  return validateDelegateUploadFile(file, "booklet");
+}
+

@@ -27,6 +27,10 @@ import {
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
 import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  formatUploadError,
+  parseUploadErrorPayload,
+} from "@/lib/conf/upload-feedback-client";
 
 type SuccessState = {
   delegateId: string;
@@ -39,33 +43,6 @@ type DelegatePhotoSample = {
   id: string;
   imageUrl: string;
 };
-
-type UploadErrorPayload = {
-  error?: string;
-  requestId?: string;
-  details?: {
-    supportedMimeTypes?: string[];
-    receivedMime?: string | null;
-    inferredMime?: string | null;
-  };
-};
-
-function formatUploadError(
-  payload: UploadErrorPayload,
-  fallback: string,
-): string {
-  const base = payload.error || fallback;
-  const requestRef = payload.requestId ? ` (Ref: ${payload.requestId})` : "";
-  const receivedMime = payload.details?.receivedMime || payload.details?.inferredMime;
-  const accepted = payload.details?.supportedMimeTypes?.join(", ");
-
-  if (accepted) {
-    return `${base}${requestRef}. Accepted formats: ${accepted}${
-      receivedMime ? `. Detected file type: ${receivedMime}` : ""
-    }`;
-  }
-  return `${base}${requestRef}`;
-}
 
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
@@ -232,6 +209,12 @@ export function DelegatePublicRegister() {
               : kind === "visa"
                 ? "current visa"
                 : "passport";
+        const validation = validateDelegateUploadFile(file, kind);
+        if (!validation.ok) {
+          throw new Error(
+            `Cannot upload ${fileLabel}: ${validation.error} (File: ${file.name})`,
+          );
+        }
         const fd = new FormData();
         fd.append("kind", kind);
         fd.append("file", file);
@@ -244,17 +227,19 @@ export function DelegatePublicRegister() {
           },
         );
 
-        const responsePayload = await res.json().catch(() => ({}));
+        const responsePayload = await parseUploadErrorPayload(res);
         if (!res.ok) {
           throw new Error(
             formatUploadError(
-              responsePayload as UploadErrorPayload,
+              responsePayload,
               `Failed to upload ${fileLabel}`,
+              res.status,
             ),
           );
         }
 
-        flyerReady = flyerReady || Boolean(responsePayload.flyerReady);
+        flyerReady =
+          flyerReady || Boolean((responsePayload as { flyerReady?: boolean }).flyerReady);
       };
 
       await uploadDocument("passport", payload.passportPhoto);
@@ -315,12 +300,13 @@ export function DelegatePublicRegister() {
         },
       );
 
-      const payload = await res.json().catch(() => ({}));
+      const payload = await parseUploadErrorPayload(res);
       if (!res.ok) {
         throw new Error(
           formatUploadError(
-            payload as UploadErrorPayload,
+            payload,
             `Failed to replace ${kind} file`,
+            res.status,
           ),
         );
       }
@@ -329,7 +315,9 @@ export function DelegatePublicRegister() {
         prev
           ? {
               ...prev,
-              flyerReady: prev.flyerReady || Boolean(payload.flyerReady),
+              flyerReady:
+                prev.flyerReady ||
+                Boolean((payload as { flyerReady?: boolean }).flyerReady),
             }
           : prev,
       );
