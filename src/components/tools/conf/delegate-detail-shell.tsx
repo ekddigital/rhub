@@ -84,6 +84,33 @@ type Delegate = {
   updatedAt: string;
 };
 
+type UploadErrorPayload = {
+  error?: string;
+  requestId?: string;
+  details?: {
+    supportedMimeTypes?: string[];
+    receivedMime?: string | null;
+    inferredMime?: string | null;
+  };
+};
+
+function formatUploadError(
+  payload: UploadErrorPayload,
+  fallback: string,
+): string {
+  const base = payload.error || fallback;
+  const requestRef = payload.requestId ? ` (Ref: ${payload.requestId})` : "";
+  const receivedMime = payload.details?.receivedMime || payload.details?.inferredMime;
+  const accepted = payload.details?.supportedMimeTypes?.join(", ");
+
+  if (accepted) {
+    return `${base}${requestRef}. Accepted formats: ${accepted}${
+      receivedMime ? `. Detected file type: ${receivedMime}` : ""
+    }`;
+  }
+  return `${base}${requestRef}`;
+}
+
 type Props = {
   delegateId: string;
   canManage: boolean;
@@ -219,7 +246,12 @@ export function DelegateDetailShell({
 
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(payload.error || `Failed to update ${kind} document`);
+        throw new Error(
+          formatUploadError(
+            payload as UploadErrorPayload,
+            `Failed to update ${kind} document`,
+          ),
+        );
       }
 
       setDelegate(payload as Delegate);

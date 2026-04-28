@@ -26,6 +26,7 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
+import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 
 type SuccessState = {
   delegateId: string;
@@ -223,6 +224,14 @@ export function DelegatePublicRegister() {
         file: File | null,
       ) => {
         if (!file) return;
+        const fileLabel =
+          kind === "booklet"
+            ? "booklet photo"
+            : kind === "entry-stamp"
+              ? "last entry stamp"
+              : kind === "visa"
+                ? "current visa"
+                : "passport";
         const fd = new FormData();
         fd.append("kind", kind);
         fd.append("file", file);
@@ -240,7 +249,7 @@ export function DelegatePublicRegister() {
           throw new Error(
             formatUploadError(
               responsePayload as UploadErrorPayload,
-              `Failed to upload ${kind} document`,
+              `Failed to upload ${fileLabel}`,
             ),
           );
         }
@@ -279,28 +288,12 @@ export function DelegatePublicRegister() {
   ) => {
     if (!file || !success || correctionBusy) return;
 
-    const passportTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-      "image/gif",
-      "application/pdf",
-    ];
-    const bookletTypes = [
-      "image/png",
-      "image/jpeg",
-      "image/jpg",
-      "image/webp",
-      "image/gif",
-    ];
-    const allowed = kind === "booklet" ? bookletTypes : passportTypes;
-
-    if (!allowed.includes(file.type)) {
+    const validation = validateDelegateUploadFile(file, kind);
+    if (!validation.ok) {
       setError(
         kind === "booklet"
-          ? "Booklet photo must be PNG, JPEG, or WebP"
-          : "Document file must be PNG, JPEG, WebP, or PDF",
+          ? `Booklet photo invalid: ${validation.error}`
+          : `Document upload invalid: ${validation.error}`,
       );
       return;
     }

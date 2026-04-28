@@ -11,6 +11,7 @@ import {
   getConferenceFeePackageByPrice,
   groupConferenceFeePackages,
 } from "@/lib/conf/fees";
+import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 
 export type DelegateRegistrationPayload = {
   name: string;
@@ -617,6 +618,27 @@ export function DelegateRegistrationForm({
       errs.conferencePosition =
         "Enter at least one custom committee role, or choose a listed role.";
     }
+
+    const validateSelectedFile = (
+      field:
+        | "passportPhoto"
+        | "lastEntryStampPhoto"
+        | "currentVisaPhoto"
+        | "bookletPhoto",
+      kind: "passport" | "entry-stamp" | "visa" | "booklet",
+      file: File | null,
+    ) => {
+      if (!file) return;
+      const validation = validateDelegateUploadFile(file, kind);
+      if (!validation.ok) {
+        errs[field] = validation.error;
+      }
+    };
+
+    validateSelectedFile("passportPhoto", "passport", passportPhoto);
+    validateSelectedFile("lastEntryStampPhoto", "entry-stamp", lastEntryStampPhoto);
+    validateSelectedFile("currentVisaPhoto", "visa", currentVisaPhoto);
+    validateSelectedFile("bookletPhoto", "booklet", bookletPhoto);
 
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
