@@ -167,6 +167,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [roleActiveInput, setRoleActiveInput] = useState(true);
   const [assignRoleKey, setAssignRoleKey] = useState("");
   const [assignUserId, setAssignUserId] = useState("");
+  const [assignTargetMemberId, setAssignTargetMemberId] = useState("");
   const [assignSaving, setAssignSaving] = useState(false);
 
   // Per-member permissions panel
@@ -331,6 +332,11 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [roles],
   );
 
+  const roleByKey = useMemo(
+    () => new Map(roles.map((r) => [r.key, r])),
+    [roles],
+  );
+
   const activeRolesForAssignment = useMemo(() => {
     const rolePriority: Record<RoleTemplate["baseRole"], number> = {
       CHAIR: 1,
@@ -349,10 +355,21 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     });
   }, [activeRoles]);
 
-  const roleByKey = useMemo(
-    () => new Map(roles.map((r) => [r.key, r])),
-    [roles],
-  );
+  const assignTargetOptions = useMemo(() => {
+    if (!assignRoleKey) return [] as Member[];
+    const selectedRole = roleByKey.get(assignRoleKey);
+    if (!selectedRole) return [] as Member[];
+    return members.filter((member) => {
+      if (member.role !== selectedRole.baseRole) return false;
+      const sameTitle =
+        (selectedRole.title ?? "").trim().toLowerCase() ===
+        (member.title ?? "").trim().toLowerCase();
+      const sameScope =
+        (selectedRole.committeeScope ?? "").trim().toLowerCase() ===
+        (member.committeeScope ?? "").trim().toLowerCase();
+      return sameTitle && sameScope;
+    });
+  }, [assignRoleKey, members, roleByKey]);
   const userById = useMemo(
     () => new Map(allUsers.map((u) => [u.id, u])),
     [allUsers],
@@ -494,7 +511,20 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         throw new Error("Please select a valid user");
       }
 
-      const existingMember = members.find((m) => m.userId === selectedUser.id);
+      const selectedTargetMember = assignTargetMemberId
+        ? members.find((m) => m.id === assignTargetMemberId) || null
+        : null;
+      const existingMemberByUser = members.find((m) => m.userId === selectedUser.id);
+      const existingMemberByRole = members.find(
+        (m) =>
+          m.role === selectedRole.baseRole &&
+          (m.title ?? "").trim().toLowerCase() ===
+            (selectedRole.title ?? "").trim().toLowerCase() &&
+          (m.committeeScope ?? "").trim().toLowerCase() ===
+            (selectedRole.committeeScope ?? "").trim().toLowerCase(),
+      );
+      const existingMember =
+        selectedTargetMember || existingMemberByUser || existingMemberByRole;
       const payload = {
         roleTemplateKey: selectedRole.key,
         role: selectedRole.baseRole,
@@ -526,6 +556,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       await loadMembers(confId);
       setAssignUserId("");
       setAssignRoleKey("");
+      setAssignTargetMemberId("");
       setNotice(
         existingMember
           ? `Updated ${selectedUser.name} to ${selectedRole.label}.`
@@ -752,8 +783,11 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </div>
       )}
       {notice && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
-          {notice}
+        <div className="fixed right-4 top-4 z-50 rounded-lg border border-emerald-500/30 bg-emerald-500/95 px-3 py-2 text-sm text-white shadow-lg">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="size-4" />
+            {notice}
+          </div>
         </div>
       )}
 
@@ -924,7 +958,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
                     value={assignRoleKey}
-                    onChange={(e) => setAssignRoleKey(e.target.value)}
+                    onChange={(e) => {
+                      setAssignRoleKey(e.target.value);
+                      setAssignTargetMemberId("");
+                    }}
                   >
                     <option value="">Select role template</option>
                     {activeRolesForAssignment.map((template) => (
@@ -933,6 +970,24 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         {template.committeeScope
                           ? ` · ${template.committeeScope}`
                           : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Link to specific post/card (optional)</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    value={assignTargetMemberId}
+                    onChange={(e) => setAssignTargetMemberId(e.target.value)}
+                    disabled={!assignRoleKey}
+                  >
+                    <option value="">
+                      Auto-match by role/user (or create if not found)
+                    </option>
+                    {assignTargetOptions.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name} · {member.title || member.role}
                       </option>
                     ))}
                   </select>
