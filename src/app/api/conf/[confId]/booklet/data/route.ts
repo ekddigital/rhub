@@ -370,6 +370,30 @@ export async function GET(
         : null,
     }));
 
+    const dedupedMembers = (() => {
+      const byKey = new Map<string, (typeof resolvedMembers)[number]>();
+      const score = (member: (typeof resolvedMembers)[number]) =>
+        (member.userId ? 4 : 0) +
+        (member.photoPath ? 2 : 0) +
+        (member.phone ? 1 : 0);
+
+      for (const member of resolvedMembers) {
+        const key =
+          member.userId ??
+          [
+            normalizeName(member.name),
+            member.role,
+            normalizePosition(member.title),
+            normalizePosition(member.committeeScope),
+          ].join("|");
+        const existing = byKey.get(key);
+        if (!existing || score(member) > score(existing)) {
+          byKey.set(key, member);
+        }
+      }
+      return Array.from(byKey.values());
+    })();
+
     const resolvedDelegates = delegates.map((d) => ({
       ...d,
       bookletPhotoPath: d.bookletPhotoPath
@@ -405,7 +429,7 @@ export async function GET(
 
     // Conference Committee members (NOT NEC): annotate each member with linked
     // delegate profile fields so booklet cards can show school/code/province.
-    const committeeMembers = resolvedMembers.map((m) => {
+    const committeeMembers = dedupedMembers.map((m) => {
       const linked = findLinkedDelegate(m.userId, m.name);
       const roster = findCommitteeRosterEntry(m.name, m.title);
       return {
@@ -460,7 +484,7 @@ export async function GET(
     });
 
     // Group all (unfiltered) members by committeeScope for section rendering
-    const membersByScope: Record<string, typeof resolvedMembers> = {};
+    const membersByScope: Record<string, typeof committeeMembers> = {};
     for (const member of committeeMembers) {
       const scope = member.committeeScope ?? "_unassigned";
       if (!membersByScope[scope]) membersByScope[scope] = [];
@@ -479,7 +503,7 @@ export async function GET(
       meetings,
       counts: {
         totalDelegates: resolvedDelegates.length,
-        totalMembers: resolvedMembers.length + necMembers.length,
+        totalMembers: dedupedMembers.length + necMembers.length,
         sectionsEnabled:
           booklet?.sections.filter((s) => s.isEnabled).length ?? 0,
         sectionsTotal: booklet?.sections.length ?? 0,

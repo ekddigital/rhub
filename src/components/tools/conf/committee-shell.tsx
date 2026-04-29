@@ -359,7 +359,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (!assignRoleKey) return [] as Member[];
     const selectedRole = roleByKey.get(assignRoleKey);
     if (!selectedRole) return [] as Member[];
-    return members.filter((member) => {
+    const matched = members.filter((member) => {
       if (member.role !== selectedRole.baseRole) return false;
       const sameTitle =
         (selectedRole.title ?? "").trim().toLowerCase() ===
@@ -369,6 +369,19 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         (member.committeeScope ?? "").trim().toLowerCase();
       return sameTitle && sameScope;
     });
+    const uniqueByDisplay = new Map<string, Member>();
+    for (const member of matched) {
+      const displayKey = [
+        member.name.trim().toLowerCase(),
+        member.role,
+        (member.title ?? "").trim().toLowerCase(),
+        (member.committeeScope ?? "").trim().toLowerCase(),
+      ].join("|");
+      if (!uniqueByDisplay.has(displayKey)) {
+        uniqueByDisplay.set(displayKey, member);
+      }
+    }
+    return Array.from(uniqueByDisplay.values());
   }, [assignRoleKey, members, roleByKey]);
   const userById = useMemo(
     () => new Map(allUsers.map((u) => [u.id, u])),
