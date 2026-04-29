@@ -64,6 +64,11 @@ export function ToolsDropdown() {
       description: "Record and verify conference payments",
     },
     {
+      href: "/tools/conf/finance/secretary",
+      title: "Financial Secretary",
+      description: "Confirm delegate payments and monitor collection progress",
+    },
+    {
       href: "/tools/conf/committee",
       title: "Committee",
       description: "Manage committee members and roles",

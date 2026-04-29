@@ -77,6 +77,7 @@ export async function POST(
       roleTemplateKey,
       canAssignCommittee,
       canApprovePayments,
+      userId,
       photoPath,
       photoFileName,
     } = body as {
@@ -90,6 +91,7 @@ export async function POST(
       roleTemplateKey?: string;
       canAssignCommittee?: boolean;
       canApprovePayments?: boolean;
+      userId?: string;
       photoPath?: string;
       photoFileName?: string;
     };
@@ -172,6 +174,15 @@ export async function POST(
       );
     }
 
+    if (userId !== undefined && !auth.access.isSuperAdmin) {
+      return NextResponse.json(
+        {
+          error: "Super Admin required to link committee members to user accounts",
+        },
+        { status: 403 },
+      );
+    }
+
     if (
       canApprovePayments !== undefined &&
       !(auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR")
@@ -224,6 +235,16 @@ export async function POST(
       }
     }
 
+    if (userId) {
+      const linkedUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+      });
+      if (!linkedUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+    }
+
     const member = await prisma.confMember.create({
       data: {
         confId,
@@ -236,6 +257,7 @@ export async function POST(
         committeeScope: resolvedScope,
         canAssignCommittee: Boolean(canAssignCommittee),
         canApprovePayments: grantCommitteeApproval,
+        userId: userId || null,
         photoPath: photoPath || null,
         photoFileName: photoFileName || null,
       },

@@ -77,6 +77,7 @@ type Delegate = {
   dietaryDetails: string | null;
   additionalComments: string | null;
   feeAmount: number | null;
+  amountPaid: number | null;
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
   wantsSingleRoom: boolean;
@@ -257,7 +258,7 @@ export function DelegatesShell() {
   const totalFees = delegates.reduce((sum, d) => sum + (d.feeAmount || 0), 0);
   const paidFees = delegates
     .filter((d) => d.feePaid)
-    .reduce((sum, d) => sum + (d.feeAmount || 0), 0);
+    .reduce((sum, d) => sum + (d.amountPaid || d.feeAmount || 0), 0);
   const cities = [...new Set(delegates.map((d) => d.city).filter(Boolean))];
   const flyerReadyCount = delegates.filter((d) => d.flyerReady).length;
 
@@ -457,6 +458,7 @@ export function DelegatesShell() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        amountPaid: nextPaid ? (delegate.feeAmount ?? delegate.amountPaid ?? 0) : 0,
         feePaid: nextPaid,
         status: nextPaid ? "CONFIRMED" : "REGISTERED",
       }),
@@ -469,6 +471,33 @@ export function DelegatesShell() {
     }
 
     await loadDelegates(confId);
+  };
+
+  const deleteDelegate = async (delegate: Delegate) => {
+    if (!confId) return;
+    if (
+      !window.confirm(
+        `Delete ${delegate.name}? This will remove their registration and related pairing/room records.`,
+      )
+    ) {
+      return;
+    }
+
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/delegates/${delegate.id}`, {
+        method: "DELETE",
+      });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error || "Failed to delete delegate");
+      }
+      await reloadAll(confId);
+      setNotice(`Deleted ${delegate.name}.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete delegate");
+    }
   };
 
   const handleCreatePairRequest = async () => {
@@ -760,6 +789,11 @@ export function DelegatesShell() {
             void togglePaid(delegate);
           }}
           onReplaceDocument={handleReplaceDelegateDocument}
+          onDeleteDelegate={(row) => {
+            const delegate = delegates.find((item) => item.id === row.id);
+            if (!delegate) return;
+            void deleteDelegate(delegate);
+          }}
         />
       )}
 

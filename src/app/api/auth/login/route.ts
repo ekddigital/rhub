@@ -1,8 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { verifyPwd, createSession } from "@/lib/auth";
 import { loginSchema, safeParse } from "@/lib/dbt/schemas";
 import { cookies } from "next/headers";
+
+const TRANSIENT_AUTH_DB_ERROR_CODES = new Set(["P1001", "P1002", "P2024"]);
+
+function isTransientAuthDatabaseError(error: unknown): boolean {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return TRANSIENT_AUTH_DB_ERROR_CODES.has(error.code);
+  }
+
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return true;
+  }
+
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes("can't reach database server") ||
+      message.includes("timed out fetching a new connection")
+    );
+  }
+
+  return false;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,11 +106,14 @@ export async function POST(req: NextRequest) {
     }
 
     const token = await createSession(user.id);
+    const isSecureRequest =
+      req.nextUrl.protocol === "https:" ||
+      req.headers.get("x-forwarded-proto") === "https";
 
     const cookieStore = await cookies();
     cookieStore.set("auth_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecureRequest,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
@@ -102,6 +128,16 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
+    if (isTransientAuthDatabaseError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "Authentication database is temporarily unavailable. Please try again shortly.",
+        },
+        { status: 503 },
+      );
+    }
+
     console.error("Login error:", error);
     return NextResponse.json({ error: "Login failed" }, { status: 500 });
   }

@@ -15,6 +15,7 @@ import {
   UserPlus,
   Users,
   Wallet,
+  HandCoins,
   ClipboardList,
   BarChart3,
   Mail,
@@ -63,6 +64,12 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/budget",
     label: "Budget",
     icon: Wallet,
+    minAccess: "manager",
+  },
+  {
+    href: "/tools/conf/finance/secretary",
+    label: "Financial Secretary",
+    icon: HandCoins,
     minAccess: "manager",
   },
   {

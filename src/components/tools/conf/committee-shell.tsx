@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Camera,
@@ -59,6 +60,18 @@ type UserSearchResult = {
   role: string;
 };
 
+type DelegateOption = {
+  id: string;
+  name: string;
+  email: string | null;
+  city: string;
+  phone: string | null;
+  conferencePosition: string | null;
+  userId: string | null;
+  feePaid: boolean;
+  status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
+};
+
 type AccessInfo = {
   isSuperAdmin: boolean;
   isChair: boolean;
@@ -109,7 +122,7 @@ const ROLE_CONFIG: Record<
     color: "text-blue-500",
   },
   TREASURER: {
-    label: "Conference Treasurer",
+    label: "National Financial Secretary",
     icon: Shield,
     color: "text-emerald-500",
   },
@@ -122,6 +135,7 @@ const ROLE_CONFIG: Record<
 };
 
 export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
+  const searchParams = useSearchParams();
   const [confId, setConfId] = useState("");
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,6 +169,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [userSearch, setUserSearch] = useState("");
   const [userResults, setUserResults] = useState<UserSearchResult[]>([]);
   const [userSearching, setUserSearching] = useState(false);
+  const [allUsers, setAllUsers] = useState<UserSearchResult[]>([]);
+  const [delegateOptions, setDelegateOptions] = useState<DelegateOption[]>([]);
+  const [selectedDelegateId, setSelectedDelegateId] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   // Inline edit for contact details (phone / city / email / name)
   const [editMemberId, setEditMemberId] = useState<string | null>(null);
@@ -237,13 +255,45 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     }
   }, [accessInfo?.isSuperAdmin, newMemberRoleKey]);
 
+  const loadAssignables = useCallback(
+    async (id: string) => {
+      const delegatesRes = await fetch(`/api/conf/${id}/delegates`, {
+        cache: "no-store",
+      });
+      if (delegatesRes.ok) {
+        const delegates = (await delegatesRes.json()) as DelegateOption[];
+        setDelegateOptions(
+          delegates.filter((d) => d.status !== "CANCELLED").sort((a, b) => {
+            if (a.feePaid !== b.feePaid) return a.feePaid ? -1 : 1;
+            return a.name.localeCompare(b.name);
+          }),
+        );
+      }
+
+      if (accessInfo?.isSuperAdmin) {
+        const usersRes = await fetch("/api/admin/users?limit=100", {
+          cache: "no-store",
+        });
+        if (usersRes.ok) {
+          const payload = (await usersRes.json()) as { users: UserSearchResult[] };
+          setAllUsers(payload.users ?? []);
+        }
+      }
+    },
+    [accessInfo?.isSuperAdmin],
+  );
+
   useEffect(() => {
     const init = async () => {
       try {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        await Promise.all([loadMembers(conf.id), loadRoles(conf.id)]);
+        await Promise.all([
+          loadMembers(conf.id),
+          loadRoles(conf.id),
+          loadAssignables(conf.id),
+        ]);
       } catch (e) {
         setError(
           e instanceof Error ? e.message : "Failed to initialize committee",
@@ -254,7 +304,14 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     };
 
     void init();
-  }, [loadMembers, loadRoles]);
+  }, [loadAssignables, loadMembers, loadRoles]);
+
+  useEffect(() => {
+    if (!accessInfo?.isSuperAdmin) return;
+    if (searchParams.get("roles") === "1") {
+      setShowRoleForm(true);
+    }
+  }, [accessInfo?.isSuperAdmin, searchParams]);
 
   const cities = useMemo(
     () => [...new Set(members.map((m) => m.city).filter(Boolean))].sort(),
@@ -280,6 +337,17 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setEmail("");
     setPhotoFile(null);
     setNewMemberRoleKey("");
+    setSelectedDelegateId("");
+    setSelectedUserId("");
+  };
+
+  const getDisplayTitle = (member: Member, fallbackLabel: string) => {
+    if (member.role === "TREASURER") {
+      if (!member.title || member.title.trim().toLowerCase() === "treasurer") {
+        return "National Financial Secretary";
+      }
+    }
+    return member.title || fallbackLabel;
   };
 
   const resetRoleForm = () => {
@@ -390,6 +458,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           phone,
           email,
           roleTemplateKey: newMemberRoleKey || undefined,
+          userId: selectedUserId || undefined,
         }),
       });
 
@@ -753,6 +822,64 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Import from registered delegates (optional)</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  value={selectedDelegateId}
+                  onChange={(e) => {
+                    const delegateId = e.target.value;
+                    setSelectedDelegateId(delegateId);
+                    const selected = delegateOptions.find((d) => d.id === delegateId);
+                    if (!selected) return;
+                    setName(selected.name);
+                    setEmail(selected.email ?? "");
+                    setCity(selected.city);
+                    setPhone(selected.phone ?? "");
+                    if (selected.conferencePosition) {
+                      setTitle(selected.conferencePosition);
+                    }
+                    if (selected.userId) {
+                      setSelectedUserId(selected.userId);
+                    }
+                  }}
+                >
+                  <option value="">Choose a delegate to prefill member form</option>
+                  {delegateOptions.map((delegate) => (
+                    <option key={delegate.id} value={delegate.id}>
+                      {delegate.name}
+                      {delegate.conferencePosition
+                        ? ` · ${delegate.conferencePosition}`
+                        : ""}
+                      {delegate.feePaid ? " · Paid" : " · Unpaid"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {accessInfo?.isSuperAdmin && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Link platform user account (optional)</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    value={selectedUserId}
+                    onChange={(e) => {
+                      const userId = e.target.value;
+                      setSelectedUserId(userId);
+                      const selected = allUsers.find((user) => user.id === userId);
+                      if (!selected) return;
+                      if (!name.trim()) setName(selected.name);
+                      if (!email.trim()) setEmail(selected.email);
+                    }}
+                  >
+                    <option value="">Choose a user account to link</option>
+                    {allUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} · {user.email} · {user.role}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Full Name</Label>
                 <Input
@@ -894,7 +1021,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       <div className="mt-1 flex items-center gap-1.5">
                         <RoleIcon className={`size-3.5 ${config.color}`} />
                         <span className="text-xs text-muted-foreground">
-                          {member.title || config.label}
+                          {getDisplayTitle(member, config.label)}
                         </span>
                       </div>
                     </div>

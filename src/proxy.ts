@@ -7,10 +7,12 @@ import { NextRequest, NextResponse } from "next/server";
  *   /tools/dbt/judge
  *   /tools/dbt/[slug] (for judge-specific actions)
  *
- * Auth-guarded routes (redirect to /tools/dbt if already logged in):
+ * Auth routes:
  *   /login
  *   /register
  *   /forgot-password
+ * NOTE: We intentionally do not redirect these routes at proxy level based on
+ * cookie shape alone; login/register pages perform real session checks.
  */
 
 // Routes that require authentication
@@ -19,9 +21,6 @@ const PROTECTED_PATTERNS = [
   /^\/dashboard($|\/)/,
   /^\/profile($|\/)/,
 ];
-
-// Auth routes that logged-in users should not access
-const AUTH_ROUTES = ["/login", "/register", "/forgot-password"];
 
 // Admin routes
 const ADMIN_PATTERNS = [/^\/admin($|\/)/];
@@ -35,13 +34,6 @@ export async function proxy(request: NextRequest) {
   // Validate session using a lightweight cookie check.
   // Keep proxy execution fast and Edge-safe (no direct Prisma usage here).
   const isAuthenticated = !!token && token.length > 10;
-
-  // Redirect logged-in users away from auth pages
-  if (isAuthenticated && AUTH_ROUTES.some((route) => pathname === route)) {
-    const redirectUrl =
-      request.nextUrl.searchParams.get("redirect") || "/dashboard";
-    return NextResponse.redirect(new URL(redirectUrl, request.url));
-  }
 
   // Protect judge and user routes
   for (const pattern of PROTECTED_PATTERNS) {

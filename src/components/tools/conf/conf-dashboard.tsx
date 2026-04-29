@@ -6,7 +6,9 @@ import Image from "next/image";
 import {
   BookOpen,
   DollarSign,
+  HandCoins,
   Users,
+  UserCog,
   Calendar,
   Clock,
   MapPin,
@@ -35,7 +37,17 @@ import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { groupConferenceFeePackages, formatFeeRmb } from "@/lib/conf/fees";
 
-const NAV_ITEMS = [
+type ConfNavItem = {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  color: string;
+  minAccess: "public" | "delegate" | "manager";
+  superAdminOnly?: boolean;
+};
+
+const NAV_ITEMS: ConfNavItem[] = [
   {
     href: "/tools/conf/budget",
     icon: Wallet,
@@ -53,12 +65,29 @@ const NAV_ITEMS = [
     minAccess: "manager",
   },
   {
+    href: "/tools/conf/finance/secretary",
+    icon: HandCoins,
+    title: "Financial Secretary",
+    desc: "Confirm delegate payments and monitor collection status",
+    color: "text-emerald-600",
+    minAccess: "manager",
+  },
+  {
     href: "/tools/conf/committee",
     icon: Users,
     title: "Committee",
     desc: "Manage committee members, roles, and contact information",
     color: "text-purple-500",
     minAccess: "manager",
+  },
+  {
+    href: "/tools/conf/committee?roles=1",
+    icon: UserCog,
+    title: "Role Control",
+    desc: "Super-admin role templates and committee-role assignment controls",
+    color: "text-slate-500",
+    minAccess: "manager",
+    superAdminOnly: true,
   },
   {
     href: "/tools/conf/delegates",
@@ -116,7 +145,7 @@ const NAV_ITEMS = [
     color: "text-red-500",
     minAccess: "manager",
   },
-] as const;
+];
 
 const VENUE_GALLERY = [
   "/conf/assets/hotel/main_entrance_view.png",
@@ -201,6 +230,10 @@ export function ConfDashboard() {
   }, []);
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.superAdminOnly) {
+      return isSuperAdmin;
+    }
+
     if (item.minAccess === "public") return true;
     if (item.minAccess === "delegate") {
       return isParticipant || isManager || isSuperAdmin;

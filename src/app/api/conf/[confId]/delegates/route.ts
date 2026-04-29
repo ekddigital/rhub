@@ -10,6 +10,7 @@ import {
   canViewDelegateSensitiveData,
 } from "@/lib/conf/delegate-privacy";
 import { sendEmail } from "@/lib/mail";
+import { formatPersonName } from "@/lib/conf/name-format";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -143,9 +144,10 @@ export async function POST(
     const normalizedEmail = String(email || "")
       .trim()
       .toLowerCase();
+    const normalizedName = formatPersonName(String(name || ""));
 
     if (
-      !name ||
+      !normalizedName ||
       !passportNo ||
       !university ||
       !province ||
@@ -308,7 +310,8 @@ export async function POST(
         { status: 400 },
       );
     }
-    const feePaidBool = Boolean(feePaid);
+    const feePaidBool =
+      Boolean(feePaid) && resolvedAmountPaid >= resolvedFeeAmount;
     const wantsSingleRoomBool = Boolean(wantsSingleRoom);
     const resolvedRoomPref = wantsSingleRoomBool
       ? "SINGLE"
@@ -318,7 +321,7 @@ export async function POST(
       data: {
         confId,
         userId: linkedUserId,
-        name,
+        name: normalizedName,
         passportNo,
         delegateCode,
         gender,
@@ -377,7 +380,7 @@ export async function POST(
         A new delegate has registered and needs payment review.
       </p>
       <div style="margin:16px 0;padding:16px;background:#fdf9f2;border-radius:8px;border-left:4px solid #c8a061">
-        <p style="margin:0 0 6px;color:#1f1c18;font-weight:600">${name}</p>
+        <p style="margin:0 0 6px;color:#1f1c18;font-weight:600">${normalizedName}</p>
         <p style="margin:0;color:#7a6e5a">Passport: ${passportNo}</p>
         <p style="margin:0;color:#7a6e5a">Package: ${packageLabel}</p>
         <p style="margin:0;color:#7a6e5a">Selected fee: RMB ${resolvedFeeAmount.toFixed(2)}</p>
@@ -393,7 +396,7 @@ export async function POST(
       approvers.map((approver) =>
         sendEmail({
           to: approver.email as string,
-          subject: `New conference signup: ${name}`,
+          subject: `New conference signup: ${normalizedName}`,
           html: notifyHtml,
         }),
       ),

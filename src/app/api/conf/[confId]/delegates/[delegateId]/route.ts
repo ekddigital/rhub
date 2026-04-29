@@ -4,6 +4,7 @@ import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { getConferenceFeePackageById } from "@/lib/conf/fees";
+import { formatPersonName } from "@/lib/conf/name-format";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -108,6 +109,9 @@ export async function PATCH(
       confId: string;
       status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
       roomPref: "PAIR" | "SINGLE";
+      feeAmount: number | null;
+      amountPaid: number | null;
+      feePaid: boolean;
     } | null;
 
     if (!current || current.confId !== confId) {
@@ -119,7 +123,9 @@ export async function PATCH(
 
     const updates: Record<string, unknown> = {};
 
-    if (typeof body.name === "string") updates.name = body.name.trim();
+    if (typeof body.name === "string") {
+      updates.name = formatPersonName(body.name);
+    }
     if (typeof body.email === "string") updates.email = body.email || null;
     if (typeof body.university === "string")
       updates.university = body.university || null;
@@ -273,6 +279,26 @@ export async function PATCH(
       }
     }
 
+    const effectiveFeeAmount =
+      typeof updates.feeAmount === "number"
+        ? updates.feeAmount
+        : (current.feeAmount ?? 0);
+    const effectiveAmountPaid =
+      typeof updates.amountPaid === "number"
+        ? updates.amountPaid
+        : (current.amountPaid ?? 0);
+    const effectiveFeePaid =
+      typeof updates.feePaid === "boolean" ? updates.feePaid : current.feePaid;
+    const isFullyPaid = effectiveAmountPaid >= effectiveFeeAmount;
+
+    // Never allow partial payments to be marked as confirmed/approved.
+    if (effectiveFeePaid && !isFullyPaid) {
+      updates.feePaid = false;
+      if (updates.status === undefined || updates.status === "CONFIRMED") {
+        updates.status = "REGISTERED";
+      }
+    }
+
     if (
       typeof body.roomPref === "string" &&
       ["PAIR", "SINGLE"].includes(body.roomPref)
@@ -334,6 +360,57 @@ export async function PATCH(
     console.error("Failed to update delegate:", error);
     return NextResponse.json(
       { error: "Failed to update delegate" },
+      { status: 500 },
+    );
+  }
+}
+
+// DELETE /api/conf/[confId]/delegates/[delegateId]
+export async function DELETE(
+  _req: Request,
+  { params }: { params: Promise<{ confId: string; delegateId: string }> },
+) {
+  try {
+    const { confId, delegateId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+
+    const existing = await prisma.confDelegate.findUnique({
+      where: { id: delegateId },
+      select: { id: true, confId: true, name: true },
+    });
+
+    if (!existing || existing.confId !== confId) {
+      return NextResponse.json({ error: "Delegate not found" }, { status: 404 });
+    }
+
+    await prisma.$transaction([
+      prisma.confPairRequest.deleteMany({
+        where: {
+          confId,
+          OR: [{ requesterId: delegateId }, { targetId: delegateId }],
+        },
+      }),
+      prisma.confRoomAssignment.deleteMany({
+        where: {
+          confId,
+          OR: [{ occupantAId: delegateId }, { occupantBId: delegateId }],
+        },
+      }),
+      prisma.confDelegate.delete({
+        where: { id: delegateId },
+      }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      deletedDelegateId: delegateId,
+      deletedDelegateName: existing.name,
+    });
+  } catch (error) {
+    console.error("Failed to delete delegate:", error);
+    return NextResponse.json(
+      { error: "Failed to delete delegate" },
       { status: 500 },
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Camera,
@@ -10,6 +10,7 @@ import {
   FileText,
   FileUp,
   Search,
+  Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export type ParticipantRow = {
   wechat: string | null;
   gender: "MALE" | "FEMALE" | null;
   feeAmount: number | null;
+  amountPaid: number | null;
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
   passportPhotoPath: string | null;
@@ -65,6 +67,7 @@ type Props = {
     kind: "passport" | "booklet" | "entry-stamp" | "visa",
     file: File | null,
   ) => void | Promise<void>;
+  onDeleteDelegate?: (delegate: ParticipantRow) => void | Promise<void>;
 };
 
 const STATUS_LABELS: Record<ParticipantRow["status"], string> = {
@@ -117,6 +120,7 @@ export function ParticipantsDataTable({
   uploadingDocKey,
   onTogglePaid,
   onReplaceDocument,
+  onDeleteDelegate,
 }: Props) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -125,8 +129,26 @@ export function ParticipantsDataTable({
   const [paidFilter, setPaidFilter] = useState<"ALL" | "PAID" | "UNPAID">(
     "ALL",
   );
+  const [cityFilter, setCityFilter] = useState<string>("ALL");
+  const [sortBy, setSortBy] = useState<"NEWEST" | "NAME_ASC" | "CITY_ASC">(
+    "NEWEST",
+  );
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  useEffect(() => {
+    const availableIds = new Set(delegates.map((row) => row.id));
+    setSelectedIds((prev) => prev.filter((id) => availableIds.has(id)));
+  }, [delegates]);
+
+  const cityOptions = useMemo(() => {
+    return [...new Set(delegates.map((row) => row.city).filter(Boolean))].sort(
+      (a, b) => a.localeCompare(b),
+    );
+  }, [delegates]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -135,6 +157,7 @@ export function ParticipantsDataTable({
       if (statusFilter !== "ALL" && row.status !== statusFilter) return false;
       if (paidFilter === "PAID" && !row.feePaid) return false;
       if (paidFilter === "UNPAID" && row.feePaid) return false;
+      if (cityFilter !== "ALL" && row.city !== cityFilter) return false;
 
       if (!normalized) return true;
 
@@ -149,19 +172,70 @@ export function ParticipantsDataTable({
         normalizeForSearch(row.conferencePosition).includes(normalized)
       );
     });
-  }, [delegates, paidFilter, query, statusFilter]);
+  }, [cityFilter, delegates, paidFilter, query, statusFilter]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const filteredSorted = useMemo(() => {
+    const rows = [...filtered];
+    if (sortBy === "NAME_ASC") {
+      rows.sort((a, b) => a.name.localeCompare(b.name));
+      return rows;
+    }
+    if (sortBy === "CITY_ASC") {
+      rows.sort((a, b) =>
+        a.city === b.city
+          ? a.name.localeCompare(b.name)
+          : a.city.localeCompare(b.city),
+      );
+      return rows;
+    }
+    rows.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    return rows;
+  }, [filtered, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / pageSize));
 
   const effectivePage = Math.min(Math.max(1, page), totalPages);
 
   const pageRows = useMemo(() => {
     const start = (effectivePage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, effectivePage, pageSize]);
+    return filteredSorted.slice(start, start + pageSize);
+  }, [filteredSorted, effectivePage, pageSize]);
+
+  const allFilteredIds = useMemo(
+    () => filteredSorted.map((row) => row.id),
+    [filteredSorted],
+  );
+  const allFilteredSelected =
+    allFilteredIds.length > 0 &&
+    allFilteredIds.every((id) => selectedIdSet.has(id));
+
+  const toggleSelectAllFiltered = () => {
+    setSelectedIds((prev) => {
+      const prevSet = new Set(prev);
+      if (allFilteredSelected) {
+        return prev.filter((id) => !allFilteredIds.includes(id));
+      }
+      allFilteredIds.forEach((id) => prevSet.add(id));
+      return Array.from(prevSet);
+    });
+  };
+
+  const toggleRowSelection = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
+  };
+
+  const exportSourceRows = useMemo(() => {
+    if (selectedIds.length === 0) return filteredSorted;
+    return filteredSorted.filter((row) => selectedIdSet.has(row.id));
+  }, [filteredSorted, selectedIdSet, selectedIds.length]);
 
   const exportRows = useMemo(() => {
-    return filtered.map((row) => ({
+    return exportSourceRows.map((row) => ({
       conferenceId: row.delegateCode || "",
       name: row.name,
       passportNo: row.passportNo || "",
@@ -184,7 +258,7 @@ export function ParticipantsDataTable({
       currentVisaFile: row.currentVisaPath || "",
       createdAt: row.createdAt,
     }));
-  }, [filtered]);
+  }, [exportSourceRows]);
 
   const handleExportCsv = () => {
     const header = [
@@ -397,6 +471,11 @@ export function ParticipantsDataTable({
               Full registration data with photos, passport files, pagination,
               and exports.
             </CardDescription>
+            {selectedIds.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {selectedIds.length} selected (exports use selected rows)
+              </p>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCsv}>
@@ -411,7 +490,7 @@ export function ParticipantsDataTable({
           </div>
         </div>
 
-        <div className="grid gap-2 md:grid-cols-[1fr_180px_170px_120px]">
+        <div className="grid gap-2 md:grid-cols-[1fr_170px_150px_170px_140px_120px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -457,6 +536,35 @@ export function ParticipantsDataTable({
 
           <select
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+            value={cityFilter}
+            onChange={(e) => {
+              setCityFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="ALL">All cities</option>
+            {cityOptions.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+            value={sortBy}
+            onChange={(e) => {
+              setSortBy(e.target.value as "NEWEST" | "NAME_ASC" | "CITY_ASC");
+              setPage(1);
+            }}
+          >
+            <option value="NEWEST">Newest first</option>
+            <option value="NAME_ASC">Name A-Z</option>
+            <option value="CITY_ASC">City A-Z</option>
+          </select>
+
+          <select
+            className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={String(pageSize)}
             onChange={(e) => {
               setPageSize(Number(e.target.value));
@@ -467,24 +575,34 @@ export function ParticipantsDataTable({
             <option value="20">20 / page</option>
             <option value="30">30 / page</option>
             <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+            <option value="200">200 / page</option>
           </select>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div className="overflow-x-auto rounded-md border border-border">
-          <table className="min-w-370 w-full text-xs">
-            <thead className="bg-muted/40">
+      <CardContent className="space-y-4">
+        <div className="overflow-x-auto rounded-lg border border-border bg-background">
+          <table className="min-w-[1500px] w-full text-[12px]">
+            <thead className="bg-muted/50">
               <tr className="border-b border-border text-left">
-                <th className="px-3 py-2 font-semibold">#</th>
-                <th className="px-3 py-2 font-semibold">Participant</th>
-                <th className="px-3 py-2 font-semibold">Contact</th>
-                <th className="px-3 py-2 font-semibold">Passport</th>
-                <th className="px-3 py-2 font-semibold">Booklet Photo</th>
-                <th className="px-3 py-2 font-semibold">Location / School</th>
-                <th className="px-3 py-2 font-semibold">Payment</th>
-                <th className="px-3 py-2 font-semibold">Status</th>
-                <th className="px-3 py-2 font-semibold">Actions</th>
+                <th className="px-3 py-3 font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={allFilteredSelected}
+                    onChange={toggleSelectAllFiltered}
+                    aria-label="Select all filtered delegates"
+                  />
+                </th>
+                <th className="px-3 py-3 font-semibold">#</th>
+                <th className="px-3 py-3 font-semibold">Participant</th>
+                <th className="px-3 py-3 font-semibold">Contact</th>
+                <th className="px-3 py-3 font-semibold">Passport</th>
+                <th className="px-3 py-3 font-semibold">Booklet Photo</th>
+                <th className="px-3 py-3 font-semibold">Location / School</th>
+                <th className="px-3 py-3 font-semibold">Payment</th>
+                <th className="px-3 py-3 font-semibold">Status</th>
+                <th className="px-3 py-3 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -492,13 +610,15 @@ export function ParticipantsDataTable({
                 <tr>
                   <td
                     className="px-3 py-8 text-center text-muted-foreground"
-                    colSpan={9}
+                    colSpan={10}
                   >
                     No participants match your current filters.
                   </td>
                 </tr>
               ) : (
                 pageRows.map((row, index) => {
+                  const isFullyConfirmedPayment =
+                    row.feePaid && (row.amountPaid ?? 0) >= (row.feeAmount ?? 0);
                   const canOpenDetail =
                     isAdminControl ||
                     (Boolean(currentUserId) && row.userId === currentUserId) ||
@@ -509,20 +629,28 @@ export function ParticipantsDataTable({
                   return (
                     <tr
                       key={row.id}
-                      className="border-b border-border align-top"
+                      className="border-b border-border/70 align-top transition-colors hover:bg-muted/20"
                     >
-                      <td className="px-3 py-3 text-muted-foreground">
+                      <td className="px-3 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIdSet.has(row.id)}
+                          onChange={() => toggleRowSelection(row.id)}
+                          aria-label={`Select ${row.name}`}
+                        />
+                      </td>
+                      <td className="px-3 py-4 text-muted-foreground">
                         {offset + index + 1}
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[250px]">
                         <div className="flex items-start gap-2">
-                          <div className="h-10 w-10 overflow-hidden rounded-md border border-border bg-muted">
+                          <div className="h-11 w-11 overflow-hidden rounded-md border border-border bg-muted">
                             {row.bookletPhotoPath ? (
                               <AdaptivePhotoFrame
                                 src={row.bookletPhotoPath}
                                 alt={row.name}
-                                containerClassName="h-10 w-10 border-0 rounded-none"
+                                containerClassName="h-11 w-11 border-0 rounded-none"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
@@ -530,11 +658,29 @@ export function ParticipantsDataTable({
                               </div>
                             )}
                           </div>
-                          <div>
-                            <p className="font-semibold text-sm">{row.name}</p>
-                            <p className="text-muted-foreground">
-                              {row.delegateCode || "Pending ID"}
-                            </p>
+                          <div className="space-y-0.5">
+                            {canOpenDetail ? (
+                              <Link
+                                href={`/tools/conf/delegates/${row.id}`}
+                                className="block font-semibold text-sm text-[#0B4FD9] hover:underline"
+                              >
+                                {row.name}
+                              </Link>
+                            ) : (
+                              <p className="font-semibold text-sm">{row.name}</p>
+                            )}
+                            {canOpenDetail ? (
+                              <Link
+                                href={`/tools/conf/delegates/${row.id}`}
+                                className="block text-[11px] text-muted-foreground hover:underline"
+                              >
+                                {row.delegateCode || "Pending ID"}
+                              </Link>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground">
+                                {row.delegateCode || "Pending ID"}
+                              </p>
+                            )}
                             {row.conferencePosition && (
                               <p className="text-[#8E0E00]">
                                 {row.conferencePosition}
@@ -544,7 +690,7 @@ export function ParticipantsDataTable({
                         </div>
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[190px]">
                         <p>{row.phone || "-"}</p>
                         <p className="text-muted-foreground">
                           {row.email || "-"}
@@ -554,9 +700,9 @@ export function ParticipantsDataTable({
                         </p>
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[175px]">
                         <p>{row.passportNo || "-"}</p>
-                        <div className="space-y-1">
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {row.passportPhotoPath ? (
                             <PassportViewerModal
                               proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=passport`}
@@ -579,7 +725,7 @@ export function ParticipantsDataTable({
                                 .endsWith(".pdf")}
                               label="Last Entry Stamp"
                               title="Last Entry Stamp"
-                              triggerClassName="px-2 py-1 text-[11px]"
+                              triggerClassName="px-2 py-1 text-[11px] leading-none"
                             />
                           )}
                           {row.currentVisaPath && (
@@ -590,13 +736,13 @@ export function ParticipantsDataTable({
                                 .endsWith(".pdf")}
                               label="Current Visa"
                               title="Current Visa"
-                              triggerClassName="px-2 py-1 text-[11px]"
+                              triggerClassName="px-2 py-1 text-[11px] leading-none"
                             />
                           )}
                         </div>
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[120px]">
                         {row.bookletPhotoPath ? (
                           <a
                             href={row.bookletPhotoPath}
@@ -613,7 +759,7 @@ export function ParticipantsDataTable({
                         )}
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[190px]">
                         <p>
                           {row.city}
                           {row.province ? `, ${row.province}` : ""}
@@ -626,30 +772,33 @@ export function ParticipantsDataTable({
                         </p>
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[135px]">
                         <p>{row.feeAmount ? fmtRmb(row.feeAmount) : "-"}</p>
+                        <p className="text-muted-foreground">
+                          Paid: {fmtRmb(row.amountPaid ?? 0)}
+                        </p>
                         <p className="text-muted-foreground">
                           Room: {row.roomPref}
                         </p>
                         {canManagePayments ? (
                           <button
                             className={`mt-1 rounded-md px-2 py-1 text-[11px] font-medium ${
-                              row.feePaid
+                              isFullyConfirmedPayment
                                 ? "bg-emerald-500/10 text-emerald-700"
                                 : "bg-yellow-500/10 text-yellow-700"
                             }`}
                             onClick={() => void onTogglePaid(row)}
                           >
-                            {row.feePaid ? "Paid" : "Unpaid"}
+                            {isFullyConfirmedPayment ? "Paid" : "Pending"}
                           </button>
                         ) : (
                           <p className="mt-1 text-[11px] font-medium text-muted-foreground">
-                            {row.feePaid ? "Paid" : "Unpaid"}
+                            {isFullyConfirmedPayment ? "Paid" : "Pending"}
                           </p>
                         )}
                       </td>
 
-                      <td className="px-3 py-3">
+                      <td className="px-3 py-4 min-w-[110px]">
                         <Badge
                           variant="outline"
                           className={STATUS_BADGE_CLASS[row.status]}
@@ -661,8 +810,8 @@ export function ParticipantsDataTable({
                         </p>
                       </td>
 
-                      <td className="px-3 py-3">
-                        <div className="flex max-w-55 flex-wrap gap-1.5">
+                      <td className="px-3 py-4 min-w-[210px]">
+                        <div className="flex flex-wrap gap-1.5">
                           {canOpenDetail && (
                             <Link
                               href={`/tools/conf/delegates/${row.id}`}
@@ -681,6 +830,18 @@ export function ParticipantsDataTable({
                             >
                               <Eye className="size-3" /> Flyer
                             </a>
+                          )}
+
+                          {isAdminControl && onDeleteDelegate && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-6 px-2 text-[11px] shadow-none"
+                              onClick={() => void onDeleteDelegate(row)}
+                            >
+                              <Trash2 className="size-3" />
+                              Delete
+                            </Button>
                           )}
 
                           {canOpenDetail && (
@@ -807,7 +968,7 @@ export function ParticipantsDataTable({
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <p>
             Showing {pageRows.length === 0 ? 0 : offset + 1} -{" "}
-            {offset + pageRows.length} of {filtered.length}
+            {offset + pageRows.length} of {filteredSorted.length}
           </p>
           <div className="flex items-center gap-2">
             <Button
