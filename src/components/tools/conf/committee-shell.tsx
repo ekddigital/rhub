@@ -425,6 +425,8 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       const res = await fetch(endpoint, {
         method,
+        cache: "no-store",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

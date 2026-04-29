@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
-import { validateSession } from "@/lib/auth";
+import {
+  isAuthDatabaseUnavailableError,
+  validateSessionFull,
+} from "@/lib/auth";
 import {
   ensureDefaultConference,
   isConferenceDatabaseUnavailableError,
@@ -10,7 +13,9 @@ import { prisma } from "@/lib/prisma";
 
 type AccessScope = "participant" | "manager" | "chair" | "super-admin";
 
-type SessionUser = NonNullable<Awaited<ReturnType<typeof validateSession>>>;
+type SessionUser = NonNullable<
+  NonNullable<Awaited<ReturnType<typeof validateSessionFull>>>["user"]
+>;
 
 type ConferenceAccess = {
   user: SessionUser | null;
@@ -39,10 +44,10 @@ async function getSessionUser(): Promise<SessionUser | null> {
   const token = cookieStore.get("auth_token")?.value;
   if (!token) return null;
 
-  const user = await validateSession(token);
-  if (!user || !user.isActive) return null;
+  const session = await validateSessionFull(token);
+  if (!session || !session.user.isActive) return null;
 
-  return user;
+  return session.user;
 }
 
 export async function getConferenceAccess(
@@ -126,7 +131,18 @@ export async function requireConferenceApiAccess(
   confId: string,
   scope: AccessScope = "participant",
 ) {
-  const access = await getConferenceAccess(confId);
+  let access;
+  try {
+    access = await getConferenceAccess(confId);
+  } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      return {
+        ok: false as const,
+        response: NextResponse.json({ error: error.message }, { status: 503 }),
+      };
+    }
+    throw error;
+  }
 
   if (!access.user) {
     return {
@@ -221,7 +237,17 @@ export async function requireConferencePageAccess(
     throw error;
   }
 
-  const access = await getConferenceAccess(event.id);
+  let access;
+  try {
+    access = await getConferenceAccess(event.id);
+  } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      redirect(
+        `/tools/conf/unavailable?redirect=${encodeURIComponent(routePath)}`,
+      );
+    }
+    throw error;
+  }
 
   if (!access.user) {
     redirect(`/login?redirect=${encodeURIComponent(routePath)}`);
