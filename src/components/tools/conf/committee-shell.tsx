@@ -563,7 +563,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {(accessInfo?.isSuperAdmin || accessInfo?.isChair) && (
+          {accessInfo?.isSuperAdmin && (
             <Button
               size="sm"
               variant="outline"
@@ -586,7 +586,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </div>
       )}
 
-      {showRoleForm && (accessInfo?.isSuperAdmin || accessInfo?.isChair) && (
+      {showRoleForm && accessInfo?.isSuperAdmin && (
         <Card className="border-[#C8A061]/40">
           <CardHeader>
             <CardTitle className="text-base">

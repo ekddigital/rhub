@@ -40,7 +40,13 @@ export async function GET(
         budget: { select: { id: true, title: true } },
         item: { select: { id: true, name: true } },
         submittedBy: {
-          select: { id: true, name: true, role: true, committeeScope: true },
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            committeeScope: true,
+            canApprovePayments: true,
+          },
         },
         committeeApprover: { select: { id: true, name: true, role: true } },
       },
@@ -172,7 +178,15 @@ export async function POST(
       },
       include: {
         proofs: true,
-        submittedBy: { select: { id: true, name: true, role: true } },
+        submittedBy: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            committeeScope: true,
+            canApprovePayments: true,
+          },
+        },
       },
     });
 

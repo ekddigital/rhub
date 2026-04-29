@@ -46,7 +46,7 @@ export async function PUT(req: Request, { params }: Params) {
 
     const existing = await prisma.confBudget.findUnique({
       where: { id: budgetId },
-      select: { confId: true },
+      select: { confId: true, status: true, createdBy: true },
     });
 
     if (!existing || existing.confId !== confId) {
@@ -55,6 +55,11 @@ export async function PUT(req: Request, { params }: Params) {
 
     const body = await req.json();
     const { title, category, status, notes, items } = body;
+
+    const creator = await prisma.confMember.findUnique({
+      where: { id: existing.createdBy },
+      select: { committeeScope: true, canApprovePayments: true },
+    });
 
     if (
       status !== undefined &&
@@ -67,6 +72,28 @@ export async function PUT(req: Request, { params }: Params) {
             "Chair or Super Admin access required to approve/reject budgets",
         },
         { status: 403 },
+      );
+    }
+
+    if (status === "APPROVED" && existing.status === "DRAFT" && creator?.committeeScope) {
+      if (!creator.canApprovePayments) {
+        return NextResponse.json(
+          {
+            error:
+              "Committee approval is required before final approval for committee-scoped budgets.",
+          },
+          { status: 409 },
+        );
+      }
+    }
+
+    if (
+      existing.status === "APPROVED" &&
+      (title !== undefined || category !== undefined || notes !== undefined || Array.isArray(items))
+    ) {
+      return NextResponse.json(
+        { error: "Approved budgets are locked from edits" },
+        { status: 409 },
       );
     }
 
@@ -154,11 +181,18 @@ export async function DELETE(_req: Request, { params }: Params) {
 
     const existing = await prisma.confBudget.findUnique({
       where: { id: budgetId },
-      select: { confId: true },
+      select: { confId: true, status: true },
     });
 
     if (!existing || existing.confId !== confId) {
       return NextResponse.json({ error: "Budget not found" }, { status: 404 });
+    }
+
+    if (existing.status === "APPROVED") {
+      return NextResponse.json(
+        { error: "Approved budgets are locked and cannot be deleted" },
+        { status: 409 },
+      );
     }
 
     await prisma.confBudget.delete({ where: { id: budgetId } });

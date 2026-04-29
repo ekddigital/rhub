@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { BUDGET_CATEGORIES, COMMON_UNITS } from "@/lib/conf/config";
 import {
   calcItemTotal,
@@ -35,6 +36,7 @@ import {
   fmtRmb,
   fmtDual,
 } from "@/lib/conf/currency";
+import { fetchDefaultConference } from "@/lib/conf/client";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,46 @@ type BudgetDraft = {
   notes: string;
   items: BudgetItem[];
   savedAt: string; // ISO string
+};
+
+type AccessInfo = {
+  isManager: boolean;
+  isChair: boolean;
+  isSuperAdmin: boolean;
+  canApprovePayments: boolean;
+  memberId: string | null;
+  committeeScope: string | null;
+};
+
+type MemberOption = {
+  id: string;
+  name: string;
+  committeeScope: string | null;
+  canApprovePayments: boolean;
+};
+
+type ServerBudget = {
+  id: string;
+  title: string;
+  category: string;
+  status: "DRAFT" | "REVIEW" | "APPROVED" | "REJECTED";
+  notes: string | null;
+  createdAt: string;
+  approvedAt: string | null;
+  creator: {
+    id: string;
+    name: string;
+    committeeScope: string | null;
+    canApprovePayments: boolean;
+  };
+  items: Array<{
+    id: string;
+    no: number;
+    name: string;
+    qty: number;
+    unit: string;
+    unitPrice: number;
+  }>;
 };
 
 // ── localStorage helpers ─────────────────────────────────────────────────────
@@ -115,11 +157,20 @@ function unitLabel(item: BudgetItem) {
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export function BudgetShell() {
+export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [drafts, setDrafts] = useState<BudgetDraft[]>([]);
   const [activeDraft, setActiveDraft] = useState<BudgetDraft>(newDraft());
   const [showList, setShowList] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
+  const [confId, setConfId] = useState("");
+  const [members, setMembers] = useState<MemberOption[]>([]);
+  const [creatorMemberId, setCreatorMemberId] = useState("");
+  const [serverBudgets, setServerBudgets] = useState<ServerBudget[]>([]);
+  const [loadingServer, setLoadingServer] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -130,6 +181,48 @@ export function BudgetShell() {
       setActiveDraft(stored[0]);
     }
   }, []);
+
+  const refreshConferenceBudgets = useCallback(async (conferenceId: string) => {
+    const res = await fetch(`/api/conf/${conferenceId}/budgets`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error("Failed to load submitted budgets");
+    }
+    const payload = (await res.json()) as ServerBudget[];
+    setServerBudgets(payload);
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        setLoadingServer(true);
+        const conf = await fetchDefaultConference();
+        setConfId(conf.id);
+
+        const [membersRes] = await Promise.all([
+          fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
+          refreshConferenceBudgets(conf.id),
+        ]);
+
+        if (membersRes.ok) {
+          const memberPayload = (await membersRes.json()) as MemberOption[];
+          setMembers(memberPayload);
+          if (accessInfo?.memberId) {
+            setCreatorMemberId(accessInfo.memberId);
+          } else if (memberPayload.length > 0) {
+            setCreatorMemberId(memberPayload[0].id);
+          }
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load budget data");
+      } finally {
+        setLoadingServer(false);
+      }
+    };
+
+    void init();
+  }, [accessInfo?.memberId, refreshConferenceBudgets]);
 
   // Auto-save whenever activeDraft changes (debounced 800ms)
   useEffect(() => {
@@ -261,6 +354,99 @@ export function BudgetShell() {
     URL.revokeObjectURL(url);
   }, [activeDraft, grandTotal]);
 
+  const handleSubmitToConference = useCallback(async () => {
+    if (!confId || !creatorMemberId || submitLoading) return;
+    if (!activeDraft.title.trim()) {
+      setError("Budget title is required before submission.");
+      return;
+    }
+    const validItems = activeDraft.items.filter((item) => item.name.trim());
+    if (validItems.length === 0) {
+      setError("Add at least one named line item before submission.");
+      return;
+    }
+
+    setSubmitLoading(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/budgets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: activeDraft.title.trim(),
+          category: activeDraft.category,
+          notes: activeDraft.notes.trim() || null,
+          createdBy: creatorMemberId,
+          items: validItems.map((item) => ({
+            name: item.name.trim(),
+            qty: item.qty,
+            unit: unitLabel(item),
+            unitPrice: item.unitPrice,
+            notes: item.notes.trim() || null,
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error ?? "Failed to submit budget");
+      }
+
+      await refreshConferenceBudgets(confId);
+      setNotice("Budget submitted successfully.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to submit budget");
+    } finally {
+      setSubmitLoading(false);
+    }
+  }, [
+    activeDraft.category,
+    activeDraft.items,
+    activeDraft.notes,
+    activeDraft.title,
+    confId,
+    creatorMemberId,
+    refreshConferenceBudgets,
+    submitLoading,
+  ]);
+
+  const canFinalApproveFromDraft = useCallback((budget: ServerBudget) => {
+    if (budget.status !== "DRAFT") return false;
+    if (!budget.creator.committeeScope) return true;
+    return Boolean(budget.creator.canApprovePayments);
+  }, []);
+
+  const handleBudgetAction = useCallback(
+    async (budgetId: string, action: "committee" | "final") => {
+      if (!confId || actionLoading) return;
+      setActionLoading(`${budgetId}:${action}`);
+      setError(null);
+      setNotice(null);
+      try {
+        const endpoint =
+          action === "committee"
+            ? `/api/conf/${confId}/budgets/${budgetId}/approve`
+            : `/api/conf/${confId}/budgets/${budgetId}/final-approve`;
+        const res = await fetch(endpoint, { method: "POST" });
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(payload.error ?? "Budget action failed");
+        }
+        await refreshConferenceBudgets(confId);
+        setNotice(
+          action === "committee"
+            ? "Budget committee-approved."
+            : "Budget final-approved.",
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Budget action failed");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, refreshConferenceBudgets],
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -345,6 +531,18 @@ export function BudgetShell() {
           </Button>
         </div>
       </div>
+
+      {notice && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
+          {notice}
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Drafts list */}
       {showList && (
@@ -462,6 +660,25 @@ export function BudgetShell() {
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
             />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label>Prepared By (Committee Member)</Label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              value={creatorMemberId}
+              onChange={(e) => setCreatorMemberId(e.target.value)}
+              disabled={
+                Boolean(accessInfo?.memberId) && !accessInfo?.isSuperAdmin
+              }
+            >
+              <option value="">Select member profile...</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                  {member.committeeScope ? ` (${member.committeeScope})` : ""}
+                </option>
+              ))}
+            </select>
           </div>
         </CardContent>
       </Card>
@@ -610,6 +827,105 @@ export function BudgetShell() {
               Add Another Item
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="budget-no-print border-[#C8A061]/30">
+        <CardHeader>
+          <CardTitle className="text-base">Submitted Budgets</CardTitle>
+          <CardDescription>
+            Committee review then conference chair final approval.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {loadingServer ? (
+            <p className="text-sm text-muted-foreground">Loading submitted budgets...</p>
+          ) : serverBudgets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No submitted budgets yet.
+            </p>
+          ) : (
+            serverBudgets.map((budget) => {
+              const budgetTotal = calcBudgetTotal(
+                budget.items.map((item) => ({
+                  id: item.id,
+                  no: item.no,
+                  name: item.name,
+                  qty: item.qty,
+                  unit: item.unit,
+                  customUnit: "",
+                  unitPrice: item.unitPrice,
+                  notes: "",
+                })),
+              );
+              const canCommitteeApprove =
+                budget.status === "DRAFT" &&
+                (accessInfo?.isSuperAdmin ||
+                  (Boolean(accessInfo?.canApprovePayments) &&
+                    Boolean(accessInfo?.committeeScope) &&
+                    budget.creator.committeeScope === accessInfo?.committeeScope));
+              const canFinalApprove =
+                (budget.status === "REVIEW" || canFinalApproveFromDraft(budget)) &&
+                (accessInfo?.isChair || accessInfo?.isSuperAdmin);
+
+              return (
+                <div key={budget.id} className="rounded-lg border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-medium">{budget.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {budget.creator.name}
+                        {budget.creator.committeeScope
+                          ? ` · ${budget.creator.committeeScope}`
+                          : ""}
+                        {" · "}
+                        {BUDGET_CATEGORIES[budget.category]?.label || budget.category}
+                        {" · "}
+                        {fmtRmb(budgetTotal)}
+                      </p>
+                    </div>
+                    <Badge variant="outline">
+                      {budget.status === "REVIEW"
+                        ? "Committee Approved"
+                        : budget.status}
+                    </Badge>
+                  </div>
+
+                  {(canCommitteeApprove || canFinalApprove) && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {canCommitteeApprove && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void handleBudgetAction(budget.id, "committee")}
+                          disabled={actionLoading === `${budget.id}:committee`}
+                        >
+                          Committee Approve
+                        </Button>
+                      )}
+                      {canFinalApprove && (
+                        <Button
+                          size="sm"
+                          onClick={() => void handleBudgetAction(budget.id, "final")}
+                          disabled={actionLoading === `${budget.id}:final`}
+                        >
+                          Final Approve
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {budget.status === "DRAFT" &&
+                    (accessInfo?.isChair || accessInfo?.isSuperAdmin) &&
+                    !canFinalApproveFromDraft(budget) && (
+                      <p className="mt-2 text-xs text-amber-700">
+                        Committee chair approval is required before final approval.
+                      </p>
+                    )}
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
 
@@ -829,6 +1145,13 @@ export function BudgetShell() {
             <Button variant="outline" size="sm" onClick={handleExportCsv}>
               <FileSpreadsheet className="size-4" />
               CSV
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => void handleSubmitToConference()}
+              disabled={!creatorMemberId || submitLoading}
+            >
+              {submitLoading ? "Submitting..." : "Submit Budget"}
             </Button>
           </div>
         </CardContent>

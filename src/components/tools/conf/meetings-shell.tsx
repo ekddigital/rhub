@@ -20,6 +20,7 @@ import {
   RotateCcw,
   ChevronDown,
   ChevronUp,
+  Copy,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -244,6 +245,22 @@ export function MeetingsShell() {
     category: "governance",
     isCritical: false,
   });
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const copyToClipboard = async (label: string, value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setNotice(`No ${label.toLowerCase()} to copy yet.`);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(trimmed);
+      setNotice(`${label} copied to clipboard.`);
+    } catch {
+      setNotice(`Failed to copy ${label.toLowerCase()}.`);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -842,6 +859,12 @@ export function MeetingsShell() {
         </Card>
       )}
 
+      {notice && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
+          {notice}
+        </div>
+      )}
+
       {/* Conference Checklist */}
       <Card className="border-[#C8A061]/30">
         <CardContent className="space-y-4 pt-5">
@@ -1378,16 +1401,33 @@ export function MeetingsShell() {
                       <p className="text-xs font-medium text-muted-foreground">
                         Meeting Agenda (Bullet Format)
                       </p>
-                      {canEditAgenda && editingAgendaId !== meeting.id && (
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => startAgendaEdit(meeting.id)}
+                          onClick={() =>
+                            void copyToClipboard(
+                              "Agenda",
+                              editingAgendaId === meeting.id
+                                ? agendaDraft
+                                : meeting.agenda,
+                            )
+                          }
                         >
-                          <FileText className="size-4" />
-                          Edit Agenda
+                          <Copy className="size-4" />
+                          Copy Agenda
                         </Button>
-                      )}
+                        {canEditAgenda && editingAgendaId !== meeting.id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => startAgendaEdit(meeting.id)}
+                          >
+                            <FileText className="size-4" />
+                            Edit Agenda
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     {editingAgendaId === meeting.id ? (
@@ -1429,16 +1469,28 @@ export function MeetingsShell() {
                   {/* === APPROVED: read-only for everyone === */}
                   {meeting.minutesStatus === "APPROVED" && (
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck className="size-4 text-emerald-500" />
-                        <span className="text-sm font-medium">
-                          Official Meeting Minutes
-                        </span>
-                        {meeting.minutesSubmittedBy && (
-                          <span className="text-xs text-muted-foreground">
-                            · recorded by {meeting.minutesSubmittedBy}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="size-4 text-emerald-500" />
+                          <span className="text-sm font-medium">
+                            Official Meeting Minutes
                           </span>
-                        )}
+                          {meeting.minutesSubmittedBy && (
+                            <span className="text-xs text-muted-foreground">
+                              · recorded by {meeting.minutesSubmittedBy}
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            void copyToClipboard("Minutes", meeting.minutes)
+                          }
+                        >
+                          <Copy className="size-4" />
+                          Copy Minutes
+                        </Button>
                       </div>
                       <pre className="max-h-125 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-relaxed">
                         {meeting.minutes}
@@ -1479,9 +1531,21 @@ export function MeetingsShell() {
                       </div>
 
                       {canEdit && (
-                        <pre className="max-h-100 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-relaxed">
-                          {meeting.minutes}
-                        </pre>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              void copyToClipboard("Minutes", meeting.minutes)
+                            }
+                          >
+                            <Copy className="size-4" />
+                            Copy Minutes
+                          </Button>
+                          <pre className="max-h-100 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted/50 p-4 text-xs leading-relaxed">
+                            {meeting.minutes}
+                          </pre>
+                        </>
                       )}
 
                       {canApproveMinutes && !requestingChanges && (
@@ -1564,7 +1628,19 @@ export function MeetingsShell() {
                       )}
                       {canEdit ? (
                         <>
-                          <Label>Revise Minutes</Label>
+                          <div className="flex items-center justify-between gap-2">
+                            <Label>Revise Minutes</Label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                void copyToClipboard("Minutes", editMinutes)
+                              }
+                            >
+                              <Copy className="size-4" />
+                              Copy Minutes
+                            </Button>
+                          </div>
                           <Textarea
                             value={editMinutes}
                             onChange={(e) => setEditMinutes(e.target.value)}
@@ -1603,11 +1679,23 @@ export function MeetingsShell() {
                     <>
                       {canEdit ? (
                         <div className="space-y-3">
-                          <Label>
-                            {meeting.minutesStatus === "DRAFT"
-                              ? "Continue editing draft minutes"
-                              : "Add Meeting Minutes"}
-                          </Label>
+                          <div className="flex items-center justify-between gap-2">
+                            <Label>
+                              {meeting.minutesStatus === "DRAFT"
+                                ? "Continue editing draft minutes"
+                                : "Add Meeting Minutes"}
+                            </Label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                void copyToClipboard("Minutes", editMinutes)
+                              }
+                            >
+                              <Copy className="size-4" />
+                              Copy Minutes
+                            </Button>
+                          </div>
                           <Textarea
                             placeholder="Record meeting minutes here..."
                             value={editMinutes}

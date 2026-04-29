@@ -41,6 +41,33 @@ export async function POST(
       );
     }
 
+    if (payment.status === "PENDING" && payment.committeeScope) {
+      const submitter = payment.submittedByMemberId
+        ? await prisma.confMember.findFirst({
+            where: {
+              id: payment.submittedByMemberId,
+              confId,
+              isActive: true,
+            },
+            select: { committeeScope: true, canApprovePayments: true },
+          })
+        : null;
+
+      const isCommitteeChairSubmitter =
+        Boolean(submitter?.canApprovePayments) &&
+        submitter?.committeeScope === payment.committeeScope;
+
+      if (!isCommitteeChairSubmitter) {
+        return NextResponse.json(
+          {
+            error:
+              "Committee approval is required before final approval for scoped payments.",
+          },
+          { status: 409 },
+        );
+      }
+    }
+
     const now = new Date();
     const updated = await prisma.confPayment.update({
       where: { id: paymentId },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -77,9 +77,16 @@ type Payment = {
     name: string;
     role: string;
     committeeScope: string | null;
+    canApprovePayments?: boolean;
   } | null;
   committeeApprover: { id: string; name: string; role: string } | null;
   budget: { id: string; title: string } | null;
+};
+
+type RoleTemplate = {
+  id: string;
+  committeeScope: string | null;
+  isActive: boolean;
 };
 
 type AccessInfo = {
@@ -160,6 +167,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [incomeSource, setIncomeSource] = useState("");
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
+  const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPayments = useCallback(
@@ -176,13 +184,33 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [filterType, filterStatus],
   );
 
+  const loadCommitteeOptions = useCallback(async (id: string) => {
+    const res = await fetch(`/api/conf/${id}/roles`, { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error("Failed to load committee options");
+    }
+    const data = (await res.json()) as RoleTemplate[];
+    const scopes = Array.from(
+      new Set(
+        data
+          .filter((role) => role.isActive)
+          .map((role) => role.committeeScope?.trim() || "")
+          .filter(Boolean),
+      ),
+    ).sort((a, b) => a.localeCompare(b));
+    setCommitteeOptions(scopes);
+  }, []);
+
   useEffect(() => {
     const init = async () => {
       try {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const data = await loadPayments(conf.id);
+        const [data] = await Promise.all([
+          loadPayments(conf.id),
+          loadCommitteeOptions(conf.id),
+        ]);
         setPayments(data);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
@@ -191,7 +219,14 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
     };
     void init();
-  }, [loadPayments]);
+  }, [loadCommitteeOptions, loadPayments]);
+
+  useEffect(() => {
+    if (!showForm) return;
+    if (accessInfo?.committeeScope) {
+      setCommitteeScope(accessInfo.committeeScope);
+    }
+  }, [accessInfo?.committeeScope, showForm]);
 
   const refresh = async () => {
     if (!confId) return;
@@ -379,6 +414,25 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const totalIncome = incomes.reduce((s, p) => s + p.amount, 0);
   const lockedCount = payments.filter((p) => p.isLocked).length;
   const pendingCount = payments.filter((p) => p.status === "PENDING").length;
+  const isScopeLockedToMember =
+    Boolean(accessInfo?.committeeScope) && !accessInfo?.isSuperAdmin;
+  const canFinalApproveFromPending = useCallback(
+    (payment: Payment) => {
+      if (payment.status !== "PENDING") return false;
+      if (!payment.committeeScope) return true;
+      const submitter = payment.submittedBy;
+      if (!submitter) return false;
+      return (
+        Boolean(submitter.canApprovePayments) &&
+        submitter.committeeScope === payment.committeeScope
+      );
+    },
+    [],
+  );
+  const committeeHint = useMemo(() => {
+    if (committeeOptions.length === 0) return "";
+    return committeeOptions.join(", ");
+  }, [committeeOptions]);
 
   if (loading) {
     return (
@@ -636,11 +690,29 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </div>
               <div className="space-y-2">
                 <Label>Committee</Label>
-                <Input
-                  placeholder="e.g. Cooking, Sports, Logistics"
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
                   value={committeeScope}
                   onChange={(e) => setCommitteeScope(e.target.value)}
-                />
+                  disabled={isScopeLockedToMember}
+                >
+                  <option value="">Select committee...</option>
+                  {committeeOptions.map((scope) => (
+                    <option key={scope} value={scope}>
+                      {scope}
+                    </option>
+                  ))}
+                </select>
+                {isScopeLockedToMember && accessInfo?.committeeScope && (
+                  <p className="text-xs text-muted-foreground">
+                    Scoped to your committee: {accessInfo.committeeScope}
+                  </p>
+                )}
+                {!isScopeLockedToMember && committeeHint && (
+                  <p className="text-xs text-muted-foreground">
+                    Available committees: {committeeHint}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Transaction Ref</Label>
@@ -934,8 +1006,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         )}
 
                       {/* Final approve (Level 2) — chair or super admin */}
-                      {(payment.status === "PENDING" ||
-                        payment.status === "COMMITTEE_APPROVED") &&
+                      {(payment.status === "COMMITTEE_APPROVED" ||
+                        canFinalApproveFromPending(payment)) &&
                         (accessInfo?.isChair || accessInfo?.isSuperAdmin) && (
                           <Button
                             size="sm"
@@ -951,6 +1023,14 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                             )}
                             Final Approve &amp; Lock
                           </Button>
+                        )}
+                      {payment.status === "PENDING" &&
+                        (accessInfo?.isChair || accessInfo?.isSuperAdmin) &&
+                        !canFinalApproveFromPending(payment) && (
+                          <p className="text-xs text-amber-700">
+                            Committee chair approval is required before final
+                            approval for this scoped payment.
+                          </p>
                         )}
 
                       {/* Reject */}
