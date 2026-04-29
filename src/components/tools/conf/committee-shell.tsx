@@ -162,6 +162,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [roleOfficeInput, setRoleOfficeInput] = useState("");
   const [roleSortInput, setRoleSortInput] = useState("100");
   const [roleActiveInput, setRoleActiveInput] = useState(true);
+  const [assignRoleKey, setAssignRoleKey] = useState("");
+  const [assignUserId, setAssignUserId] = useState("");
+  const [assignSaving, setAssignSaving] = useState(false);
 
   // Per-member permissions panel
   const [permPanelId, setPermPanelId] = useState<string | null>(null);
@@ -271,12 +274,14 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
 
       if (accessInfo?.isSuperAdmin) {
-        const usersRes = await fetch("/api/admin/users?limit=100", {
+        const usersRes = await fetch("/api/admin/users?limit=500", {
           cache: "no-store",
         });
         if (usersRes.ok) {
           const payload = (await usersRes.json()) as { users: UserSearchResult[] };
-          setAllUsers(payload.users ?? []);
+          setAllUsers(
+            (payload.users ?? []).sort((a, b) => a.name.localeCompare(b.name)),
+          );
         }
       }
     },
@@ -322,6 +327,24 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     () => roles.filter((r) => r.isActive),
     [roles],
   );
+
+  const activeRolesForAssignment = useMemo(() => {
+    const rolePriority: Record<RoleTemplate["baseRole"], number> = {
+      CHAIR: 1,
+      VICE_CHAIR: 2,
+      SECRETARY: 3,
+      TREASURER: 4,
+      COMMITTEE: 5,
+      DELEGATE: 6,
+    };
+    return [...activeRoles].sort((a, b) => {
+      const priorityDiff = rolePriority[a.baseRole] - rolePriority[b.baseRole];
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.sortOrder === b.sortOrder
+        ? a.label.localeCompare(b.label)
+        : a.sortOrder - b.sortOrder;
+    });
+  }, [activeRoles]);
 
   const roleByKey = useMemo(
     () => new Map(roles.map((r) => [r.key, r])),
@@ -438,6 +461,59 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       setError(e instanceof Error ? e.message : "Failed to delete role template");
     } finally {
       setRoleDeletingId(null);
+    }
+  };
+
+  const handleAssignUserToRoleTemplate = async () => {
+    if (!confId || !assignRoleKey || !assignUserId || assignSaving) return;
+    setAssignSaving(true);
+    setError(null);
+    try {
+      const selectedRole = roleByKey.get(assignRoleKey);
+      const selectedUser = allUsers.find((u) => u.id === assignUserId);
+      if (!selectedRole) {
+        throw new Error("Please select a valid role template");
+      }
+      if (!selectedUser) {
+        throw new Error("Please select a valid user");
+      }
+
+      const existingMember = members.find((m) => m.userId === selectedUser.id);
+      const payload = {
+        roleTemplateKey: selectedRole.key,
+        role: selectedRole.baseRole,
+        title: selectedRole.title ?? null,
+        committeeScope: selectedRole.committeeScope ?? null,
+        userId: selectedUser.id,
+        name: selectedUser.name,
+        email: selectedUser.email,
+      };
+
+      const endpoint = existingMember
+        ? `/api/conf/${confId}/members/${existingMember.id}`
+        : `/api/conf/${confId}/members`;
+      const method = existingMember ? "PATCH" : "POST";
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const responsePayload = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!res.ok) {
+        throw new Error(responsePayload.error || "Failed to assign role");
+      }
+
+      await loadMembers(confId);
+      setAssignUserId("");
+      setAssignRoleKey("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to assign role");
+    } finally {
+      setAssignSaving(false);
     }
   };
 
@@ -810,6 +886,60 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   ))}
                 </div>
               )}
+            </div>
+
+            <div className="rounded-lg border border-[#C8A061]/30 bg-[#C8A061]/5 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Assign User To Role Template
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Pick role template</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    value={assignRoleKey}
+                    onChange={(e) => setAssignRoleKey(e.target.value)}
+                  >
+                    <option value="">Select role template</option>
+                    {activeRolesForAssignment.map((template) => (
+                      <option key={template.id} value={template.key}>
+                        {template.label} · {template.baseRole}
+                        {template.committeeScope
+                          ? ` · ${template.committeeScope}`
+                          : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Pick user account</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                    value={assignUserId}
+                    onChange={(e) => setAssignUserId(e.target.value)}
+                  >
+                    <option value="">Select system user</option>
+                    {allUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} · {user.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                If the user is already in committee, this updates their role.
+                Otherwise, it creates a new committee member with the selected role.
+              </p>
+              <div className="mt-3 flex justify-end">
+                <Button
+                  size="sm"
+                  onClick={() => void handleAssignUserToRoleTemplate()}
+                  disabled={!assignRoleKey || !assignUserId || assignSaving}
+                >
+                  {assignSaving ? "Assigning..." : "Assign User To Role"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
