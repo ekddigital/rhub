@@ -22,6 +22,10 @@ async function ensureUniqueCommitteeApprover(input: {
   return existing;
 }
 
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
 // GET /api/conf/[confId]/members — list all committee members
 export async function GET(
   req: Request,
@@ -153,6 +157,7 @@ export async function POST(
     const resolvedTitle = roleTemplate?.title ?? title ?? null;
     const resolvedScope =
       roleTemplate?.committeeScope ?? committeeScope ?? null;
+    const normalizedName = normalizeName(name);
 
     const isLeadershipRole = [
       "CHAIR",
@@ -257,6 +262,42 @@ export async function POST(
       if (!linkedUser) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
+
+      const existingByUser = await prisma.confMember.findFirst({
+        where: { confId, userId },
+        select: { id: true, name: true },
+      });
+      if (existingByUser) {
+        return NextResponse.json(
+          {
+            error: `This user is already linked to ${existingByUser.name}`,
+            existingMemberId: existingByUser.id,
+          },
+          { status: 409 },
+        );
+      }
+    }
+
+    const existingBySignature = await prisma.confMember.findMany({
+      where: {
+        confId,
+        role: resolvedRole,
+        title: resolvedTitle,
+        committeeScope: resolvedScope,
+      },
+      select: { id: true, name: true },
+    });
+    const duplicate = existingBySignature.find(
+      (m) => normalizeName(m.name) === normalizedName,
+    );
+    if (duplicate) {
+      return NextResponse.json(
+        {
+          error: `A similar committee record already exists for ${duplicate.name}`,
+          existingMemberId: duplicate.id,
+        },
+        { status: 409 },
+      );
     }
 
     const created = await prisma.confMember.create({

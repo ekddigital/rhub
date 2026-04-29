@@ -147,6 +147,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   // Role templates (persistent CRUD)
   const [roles, setRoles] = useState<RoleTemplate[]>([]);
@@ -561,8 +562,24 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       const responsePayload = (await res.json().catch(() => ({}))) as {
         error?: string;
+        existingMemberId?: string;
       };
-      if (!res.ok) {
+      if (!res.ok && res.status === 409 && responsePayload.existingMemberId) {
+        const patchRes = await fetch(
+          `/api/conf/${confId}/members/${responsePayload.existingMemberId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+        );
+        const patchPayload = (await patchRes.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        if (!patchRes.ok) {
+          throw new Error(patchPayload.error || "Failed to update existing member");
+        }
+      } else if (!res.ok) {
         throw new Error(responsePayload.error || "Failed to assign role");
       }
 
@@ -579,6 +596,32 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       setError(e instanceof Error ? e.message : "Failed to assign role");
     } finally {
       setAssignSaving(false);
+    }
+  };
+
+  const handleDeleteMember = async (member: Member) => {
+    if (!confId || deletingMemberId) return;
+    const proceed = window.confirm(
+      `Delete ${member.name}? This removes the duplicate/member record from committee.`,
+    );
+    if (!proceed) return;
+    setDeletingMemberId(member.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/members/${member.id}`, {
+        method: "DELETE",
+      });
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(payload.error || "Failed to delete member");
+      }
+      await loadMembers(confId);
+      setNotice(`Deleted ${member.name}.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete member");
+    } finally {
+      setDeletingMemberId(null);
     }
   };
 
@@ -1378,6 +1421,18 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       }
                     />
                   </label>
+                  {accessInfo?.isSuperAdmin && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-7 gap-1.5 text-xs"
+                      disabled={deletingMemberId === member.id}
+                      onClick={() => void handleDeleteMember(member)}
+                    >
+                      <Trash2 className="size-3" />
+                      {deletingMemberId === member.id ? "Deleting..." : "Delete"}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Inline edit panel */}
