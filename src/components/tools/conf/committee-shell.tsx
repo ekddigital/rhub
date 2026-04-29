@@ -51,6 +51,8 @@ type Member = {
   canAssignCommittee: boolean;
   canApprovePayments: boolean;
   userId: string | null;
+  linkedUserName?: string | null;
+  linkedUserEmail?: string | null;
 };
 
 type UserSearchResult = {
@@ -1145,7 +1147,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           const config = ROLE_CONFIG[member.role] || ROLE_CONFIG.COMMITTEE;
           const RoleIcon = config.icon;
           const linkedUser = member.userId ? userById.get(member.userId) : null;
-          const displayEmail = member.email || linkedUser?.email || null;
+          const displayEmail =
+            member.email || member.linkedUserEmail || linkedUser?.email || null;
+          const displayLinkedName =
+            member.linkedUserName || linkedUser?.name || null;
           const initials = member.name
             .split(" ")
             .filter(Boolean)
@@ -1224,10 +1229,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       {displayEmail}
                     </div>
                   )}
-                  {member.userId && linkedUser?.name && (
+                  {member.userId && displayLinkedName && (
                     <div className="flex items-center gap-1.5">
                       <Link2 className="size-3" />
-                      Linked: {linkedUser.name}
+                      Linked: {displayLinkedName}
                     </div>
                   )}
                 </div>

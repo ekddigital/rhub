@@ -284,7 +284,27 @@ export async function PATCH(
       });
     }
 
-    return NextResponse.json(updated);
+    const hydrated = await prisma.confMember.findUnique({
+      where: { id: memberId },
+    });
+
+    if (!hydrated) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
+
+    const linkedUser = hydrated.userId
+      ? await prisma.user.findUnique({
+          where: { id: hydrated.userId },
+          select: { id: true, name: true, email: true },
+        })
+      : null;
+
+    return NextResponse.json({
+      ...hydrated,
+      email: hydrated.email || linkedUser?.email || null,
+      linkedUserName: linkedUser?.name || null,
+      linkedUserEmail: linkedUser?.email || null,
+    });
   } catch (error) {
     console.error("Failed to update member:", error);
     return NextResponse.json(

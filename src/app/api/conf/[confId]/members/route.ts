@@ -37,9 +37,23 @@ export async function GET(
       orderBy: { joinedAt: "asc" },
     });
 
+    const linkedUserIds = [
+      ...new Set(members.map((member) => member.userId).filter(Boolean)),
+    ] as string[];
+    const linkedUsers = linkedUserIds.length
+      ? await prisma.user.findMany({
+          where: { id: { in: linkedUserIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const userById = new Map(linkedUsers.map((user) => [user.id, user]));
+
     const origin = new URL(req.url).origin;
     const normalized = members.map((member) => ({
       ...member,
+      email: member.email || userById.get(member.userId || "")?.email || null,
+      linkedUserName: userById.get(member.userId || "")?.name || null,
+      linkedUserEmail: userById.get(member.userId || "")?.email || null,
       photoPath: member.photoPath
         ? resolveStoredAssetUrl(member.photoPath, origin)
         : null,
@@ -245,7 +259,7 @@ export async function POST(
       }
     }
 
-    const member = await prisma.confMember.create({
+    const created = await prisma.confMember.create({
       data: {
         confId,
         name,
@@ -263,10 +277,31 @@ export async function POST(
       },
     });
 
+    const member = await prisma.confMember.findUnique({
+      where: { id: created.id },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "Failed to fetch created member" },
+        { status: 500 },
+      );
+    }
+
+    const linkedUser = member.userId
+      ? await prisma.user.findUnique({
+          where: { id: member.userId },
+          select: { id: true, name: true, email: true },
+        })
+      : null;
+
     const origin = new URL(req.url).origin;
     return NextResponse.json(
       {
         ...member,
+        email: member.email || linkedUser?.email || null,
+        linkedUserName: linkedUser?.name || null,
+        linkedUserEmail: linkedUser?.email || null,
         photoPath: member.photoPath
           ? resolveStoredAssetUrl(member.photoPath, origin)
           : null,
