@@ -140,6 +140,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -350,6 +351,16 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     () => new Map(roles.map((r) => [r.key, r])),
     [roles],
   );
+  const userById = useMemo(
+    () => new Map(allUsers.map((u) => [u.id, u])),
+    [allUsers],
+  );
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(null), 3500);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   const resetForm = () => {
     setName("");
@@ -470,6 +481,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (!confId || !assignRoleKey || !assignUserId || assignSaving) return;
     setAssignSaving(true);
     setError(null);
+    setNotice(null);
     try {
       const selectedRole = roleByKey.get(assignRoleKey);
       const selectedUser = allUsers.find((u) => u.id === assignUserId);
@@ -512,6 +524,11 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       await loadMembers(confId);
       setAssignUserId("");
       setAssignRoleKey("");
+      setNotice(
+        existingMember
+          ? `Updated ${selectedUser.name} to ${selectedRole.label}.`
+          : `Assigned ${selectedUser.name} as ${selectedRole.label}.`,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to assign role");
     } finally {
@@ -730,6 +747,11 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
           {error}
+        </div>
+      )}
+      {notice && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">
+          {notice}
         </div>
       )}
 
@@ -1122,6 +1144,8 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         {members.map((member) => {
           const config = ROLE_CONFIG[member.role] || ROLE_CONFIG.COMMITTEE;
           const RoleIcon = config.icon;
+          const linkedUser = member.userId ? userById.get(member.userId) : null;
+          const displayEmail = member.email || linkedUser?.email || null;
           const initials = member.name
             .split(" ")
             .filter(Boolean)
@@ -1194,10 +1218,16 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       {member.phone}
                     </div>
                   )}
-                  {member.email && (
+                  {displayEmail && (
                     <div className="flex items-center gap-1.5 break-all">
                       <Mail className="size-3" />
-                      {member.email}
+                      {displayEmail}
+                    </div>
+                  )}
+                  {member.userId && linkedUser?.name && (
+                    <div className="flex items-center gap-1.5">
+                      <Link2 className="size-3" />
+                      Linked: {linkedUser.name}
                     </div>
                   )}
                 </div>
