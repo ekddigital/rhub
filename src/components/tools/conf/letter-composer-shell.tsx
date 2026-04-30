@@ -2356,8 +2356,9 @@ export function LetterComposerShell() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Letter Body</CardTitle>
                   <CardDescription className="text-xs">
-                    Paste or type your content. Use blank lines to separate
-                    paragraphs.
+                    Use rich formatting (headings, bold, lists, alignment, and
+                    links). The print layout keeps text flow clean for official
+                    letters.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

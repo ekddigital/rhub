@@ -77,7 +77,7 @@ export function RichTextEditor({
     onUpdate: ({ editor: current }) => {
       onChange({
         html: current.getHTML(),
-        text: current.getText({ blockSeparator: "\n" }),
+        text: current.getText({ blockSeparator: "\n\n" }),
       });
     },
   });
