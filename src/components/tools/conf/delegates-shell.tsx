@@ -77,6 +77,7 @@ type Delegate = {
   dietaryNeeds: "YES" | "NO" | "OTHER" | null;
   dietaryDetails: string | null;
   additionalComments: string | null;
+  addOnPackageIds?: string[];
   feeAmount: number | null;
   feePackageId: string | null;
   amountPaid: number | null;
@@ -337,6 +338,7 @@ export function DelegatesShell() {
           dietaryDetails: payload.dietaryDetails,
           additionalComments: payload.additionalComments,
           feePackageId: payload.feePackageId,
+          addOnPackageIds: payload.addOnPackageIds,
           feeAmount: payload.feeAmount,
           amountPaid: payload.amountPaid,
           feePaid: payload.feePaid,

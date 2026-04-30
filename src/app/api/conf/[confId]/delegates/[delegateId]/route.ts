@@ -6,8 +6,15 @@ import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
+  isConferenceOptionalAddOnPackage,
+  normalizeConferenceOptionalAddOnPackageIds,
+  sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
 import { formatPersonName } from "@/lib/conf/name-format";
+import {
+  composeDelegateCommentsWithAddOns,
+  parseDelegateCommentsWithAddOns,
+} from "@/lib/conf/delegate-fee-addons";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -61,8 +68,13 @@ export async function GET(
     }
 
     const origin = new URL(req.url).origin;
+    const parsedComments = parseDelegateCommentsWithAddOns(
+      delegate.additionalComments,
+    );
     return NextResponse.json({
       ...delegate,
+      additionalComments: parsedComments.additionalComments,
+      addOnPackageIds: parsedComments.addOnPackageIds,
       passportPhotoPath: delegate.passportPhotoPath
         ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
         : null,
@@ -115,6 +127,8 @@ export async function PATCH(
       feeAmount: number | null;
       amountPaid: number | null;
       feePaid: boolean;
+      feePackageId: string | null;
+      additionalComments: string | null;
     } | null;
 
     if (!current || current.confId !== confId) {
@@ -233,14 +247,34 @@ export async function PATCH(
       updates.additionalComments = body.additionalComments || null;
     }
 
+    const currentParsedComments = parseDelegateCommentsWithAddOns(
+      current.additionalComments,
+    );
+    let effectiveAddOnPackageIds = currentParsedComments.addOnPackageIds;
+    if (typeof body.addOnPackageIds !== "undefined") {
+      effectiveAddOnPackageIds = normalizeConferenceOptionalAddOnPackageIds(
+        body.addOnPackageIds,
+      );
+    }
+
     if (typeof body.feePackageId === "string") {
       const feePackageId = body.feePackageId.trim();
       const feePackage = feePackageId
         ? getConferenceFeePackageById(feePackageId)
         : null;
+      if (feePackage && isConferenceOptionalAddOnPackage(feePackage.id)) {
+        return NextResponse.json(
+          {
+            error:
+              "The selected package is an optional add-on. Please select a required conference package.",
+          },
+          { status: 400 },
+        );
+      }
       updates.feePackageId = feePackage?.id ?? null;
       if (feePackage) {
-        updates.feeAmount = feePackage.price;
+        updates.feeAmount =
+          feePackage.price + sumConferenceOptionalAddOns(effectiveAddOnPackageIds);
         const accommodationMode = getConferenceFeeAccommodationMode(feePackage.id);
         if (accommodationMode === "SINGLE") {
           updates.roomPref = "SINGLE";
@@ -253,6 +287,38 @@ export async function PATCH(
           updates.wantsSingleRoom = true;
         }
       }
+    }
+
+    if (
+      typeof body.feePackageId !== "undefined" ||
+      typeof body.addOnPackageIds !== "undefined"
+    ) {
+      const nextFeePackageId =
+        typeof updates.feePackageId === "string"
+          ? updates.feePackageId
+          : current.feePackageId;
+      const nextFeePackage = nextFeePackageId
+        ? getConferenceFeePackageById(nextFeePackageId)
+        : null;
+      if (nextFeePackage) {
+        updates.feeAmount =
+          nextFeePackage.price +
+          sumConferenceOptionalAddOns(effectiveAddOnPackageIds);
+      }
+    }
+
+    if (
+      typeof body.additionalComments === "string" ||
+      typeof body.addOnPackageIds !== "undefined"
+    ) {
+      const nextComments =
+        typeof body.additionalComments === "string"
+          ? body.additionalComments
+          : currentParsedComments.additionalComments;
+      updates.additionalComments = composeDelegateCommentsWithAddOns(
+        nextComments,
+        effectiveAddOnPackageIds,
+      );
     }
 
     if (typeof body.feeAmount !== "undefined") {
@@ -355,8 +421,13 @@ export async function PATCH(
     });
 
     const origin = new URL(req.url).origin;
+    const finalParsedComments = parseDelegateCommentsWithAddOns(
+      finalDelegate.additionalComments,
+    );
     return NextResponse.json({
       ...finalDelegate,
+      additionalComments: finalParsedComments.additionalComments,
+      addOnPackageIds: finalParsedComments.addOnPackageIds,
       passportPhotoPath: finalDelegate.passportPhotoPath
         ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
         : null,

@@ -177,6 +177,7 @@ export function DelegatePublicRegister() {
           dietaryDetails: payload.dietaryDetails,
           additionalComments: payload.additionalComments,
           feePackageId: payload.feePackageId,
+          addOnPackageIds: payload.addOnPackageIds,
           feeAmount: payload.feeAmount,
           amountPaid: payload.amountPaid,
           feePaid: payload.feePaid,

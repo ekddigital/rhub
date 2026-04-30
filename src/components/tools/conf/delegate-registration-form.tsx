@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,10 @@ import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
   getConferenceFeePackageByPrice,
-  groupConferenceFeePackages,
+  getConferenceOptionalAddOnPackages,
+  getConferenceRequiredFeePackages,
+  normalizeConferenceOptionalAddOnPackageIds,
+  sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
 import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 
@@ -47,6 +50,7 @@ export type DelegateRegistrationPayload = {
   feePaid: boolean;
   feeAmount: number | null;
   feePackageId: string;
+  addOnPackageIds: string[];
   amountPaid: number;
   roomPref: "PAIR" | "SINGLE";
   partnerClaimNote: string;
@@ -183,7 +187,9 @@ function resolveInitialFeePackageId(
     initialValues?.feeAmount != null
       ? getConferenceFeePackageByPrice(initialValues.feeAmount)
       : null;
-  if (byAmount) return byAmount.id;
+  if (byAmount && feeOptions.some((option) => option.id === byAmount.id)) {
+    return byAmount.id;
+  }
 
   const byDefault = getConferenceFeePackageByPrice(defaultFeeAmount);
   return byDefault?.id ?? feeOptions[0]?.id ?? "";
@@ -257,10 +263,19 @@ export function DelegateRegistrationForm({
   const [additionalComments, setAdditionalComments] = useState(
     initialValues?.additionalComments ?? "",
   );
-  const feeGroups = groupConferenceFeePackages();
-  const feeOptions = Object.values(feeGroups).flat() as FeeOption[];
+  const feeOptions = useMemo(
+    () => getConferenceRequiredFeePackages() as FeeOption[],
+    [],
+  );
+  const addOnOptions = useMemo(
+    () => getConferenceOptionalAddOnPackages() as FeeOption[],
+    [],
+  );
   const [selectedFeePackage, setSelectedFeePackage] = useState(
     resolveInitialFeePackageId(feeOptions, initialValues, defaultFeeAmount),
+  );
+  const [selectedAddOnPackageIds, setSelectedAddOnPackageIds] = useState<string[]>(
+    normalizeConferenceOptionalAddOnPackageIds(initialValues?.addOnPackageIds ?? []),
   );
   const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
   const [feeAmount, setFeeAmount] = useState(
@@ -308,7 +323,28 @@ export function DelegateRegistrationForm({
   const [draftRestored, setDraftRestored] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const applyPackageAccommodationMode = (packageId: string) => {
+  const groupedRequiredFeeOptions = feeOptions.reduce<Record<string, FeeOption[]>>(
+    (acc, item) => {
+      (acc[item.category] ||= []).push(item);
+      return acc;
+    },
+    {},
+  );
+  const groupedAddOnOptions = addOnOptions.reduce<Record<string, FeeOption[]>>(
+    (acc, item) => {
+      (acc[item.category] ||= []).push(item);
+      return acc;
+    },
+    {},
+  );
+
+  const computeSelectedTotal = (corePackageId: string, addOnIds: string[]) => {
+    const corePackage = feeOptions.find((option) => option.id === corePackageId);
+    const corePrice = corePackage?.price ?? 0;
+    return corePrice + sumConferenceOptionalAddOns(addOnIds);
+  };
+
+  const applyPackageAccommodationMode = useCallback((packageId: string) => {
     const accommodationMode = getConferenceFeeAccommodationMode(packageId);
     if (accommodationMode === "SINGLE") {
       setRoomPref("SINGLE");
@@ -320,10 +356,9 @@ export function DelegateRegistrationForm({
       setRoomPref("SINGLE");
       setAccommodationNeeded("NO");
     }
-  };
+  }, []);
 
   // Restore draft on mount
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -405,16 +440,27 @@ export function DelegateRegistrationForm({
         setAmountPaid(String(d.amountPaid));
       }
       if (typeof d.feePackageId === "string" && d.feePackageId.trim()) {
-        setSelectedFeePackage(d.feePackageId);
-        applyPackageAccommodationMode(d.feePackageId);
+        const nextCorePackage = feeOptions.find((item) => item.id === d.feePackageId)
+          ? d.feePackageId
+          : feeOptions[0]?.id ?? "";
+        setSelectedFeePackage(nextCorePackage);
+        applyPackageAccommodationMode(nextCorePackage);
       } else if (typeof d.feeAmount === "string") {
         const restoredPackage = getConferenceFeePackageByPrice(
           Number(d.feeAmount),
         );
-        if (restoredPackage) {
+        if (
+          restoredPackage &&
+          feeOptions.some((option) => option.id === restoredPackage.id)
+        ) {
           setSelectedFeePackage(restoredPackage.id);
           applyPackageAccommodationMode(restoredPackage.id);
         }
+      }
+      if (Array.isArray(d.addOnPackageIds)) {
+        setSelectedAddOnPackageIds(
+          normalizeConferenceOptionalAddOnPackageIds(d.addOnPackageIds),
+        );
       }
       if (typeof d.feeAmount === "string") setFeeAmount(d.feeAmount);
       if (d.roomPref === "PAIR" || d.roomPref === "SINGLE")
@@ -456,8 +502,7 @@ export function DelegateRegistrationForm({
     } catch {
       // ignore corrupt drafts
     }
-  }, [STORAGE_KEY]);
-  /* eslint-enable react-hooks/set-state-in-effect */
+  }, [STORAGE_KEY, applyPackageAccommodationMode, feeOptions]);
 
   // Auto-save to localStorage (debounced 1.5 s)
   useEffect(() => {
@@ -487,6 +532,7 @@ export function DelegateRegistrationForm({
           additionalComments,
           feePaid,
           feePackageId: selectedFeePackage,
+          addOnPackageIds: selectedAddOnPackageIds,
           feeAmount,
           amountPaid,
           roomPref,
@@ -527,6 +573,7 @@ export function DelegateRegistrationForm({
     additionalComments,
     feePaid,
     selectedFeePackage,
+    selectedAddOnPackageIds,
     amountPaid,
     feeAmount,
     roomPref,
@@ -569,10 +616,18 @@ export function DelegateRegistrationForm({
     );
     setSelectedFeePackage(resetFeePackageId);
     applyPackageAccommodationMode(resetFeePackageId);
+    setSelectedAddOnPackageIds(
+      normalizeConferenceOptionalAddOnPackageIds(initialValues?.addOnPackageIds ?? []),
+    );
     setFeeAmount(
       String(
-        getConferenceFeePackageById(resetFeePackageId)?.price ??
-          initialValues?.feeAmount ??
+        initialValues?.feeAmount ??
+          computeSelectedTotal(
+            resetFeePackageId,
+            normalizeConferenceOptionalAddOnPackageIds(
+              initialValues?.addOnPackageIds ?? [],
+            ),
+          ) ??
           defaultFeeAmount,
       ),
     );
@@ -613,6 +668,8 @@ export function DelegateRegistrationForm({
 
   const selectedFee =
     feeOptions.find((option) => option.id === selectedFeePackage) ?? null;
+  const selectedAddOnsTotal = sumConferenceOptionalAddOns(selectedAddOnPackageIds);
+  const totalSelectedFee = (selectedFee?.price ?? 0) + selectedAddOnsTotal;
 
   const handleSubmit = async () => {
     // In edit mode, photos are optional (existing files are kept server-side)
@@ -695,7 +752,8 @@ export function DelegateRegistrationForm({
       return;
     }
 
-    const finalFeeAmount = selectedFee.price;
+    const finalFeeAmount =
+      selectedFee.price + sumConferenceOptionalAddOns(selectedAddOnPackageIds);
     const parsedAmountPaid = amountPaid.trim() ? Number(amountPaid) : 0;
 
     if (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0) {
@@ -735,6 +793,7 @@ export function DelegateRegistrationForm({
         additionalComments: additionalComments.trim(),
         feePaid,
         feePackageId: selectedFee.id,
+        addOnPackageIds: selectedAddOnPackageIds,
         feeAmount: finalFeeAmount,
         amountPaid: parsedAmountPaid,
         roomPref,
@@ -1221,7 +1280,7 @@ export function DelegateRegistrationForm({
         </div>
 
         <div className="space-y-2 sm:col-span-2">
-          <Label>Conference Fee Package *</Label>
+          <Label>Conference Registration Package (Required) *</Label>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={selectedFeePackage}
@@ -1230,13 +1289,13 @@ export function DelegateRegistrationForm({
               setSelectedFeePackage(value);
               const selected = feeOptions.find((option) => option.id === value);
               if (selected) {
-                setFeeAmount(String(selected.price));
+                setFeeAmount(String(computeSelectedTotal(value, selectedAddOnPackageIds)));
                 applyPackageAccommodationMode(value);
               }
             }}
           >
             <option value="">Select a package</option>
-            {Object.entries(feeGroups).map(([category, items]) => (
+            {Object.entries(groupedRequiredFeeOptions).map(([category, items]) => (
               <optgroup key={category} label={category}>
                 {items.map((item) => (
                   <option key={item.id} value={item.id}>
@@ -1248,7 +1307,7 @@ export function DelegateRegistrationForm({
           </select>
           {selectedFeePackage && (
             <p className="text-xs text-muted-foreground">
-              Selected package total: {formatFeeRmb(selectedFee?.price ?? 0)}
+              Required package total: {formatFeeRmb(selectedFee?.price ?? 0)}
             </p>
           )}
           {(() => {
@@ -1278,6 +1337,56 @@ export function DelegateRegistrationForm({
           })()}
         </div>
 
+        <div className="space-y-2 sm:col-span-2">
+          <Label>Optional Add-ons (Conference Jersey and below)</Label>
+          <p className="text-xs text-muted-foreground">
+            You can select zero or more optional add-ons such as conference jersey
+            and achievers award dinner table packages.
+          </p>
+          <div className="space-y-2 rounded-md border border-border/70 p-3">
+            {Object.entries(groupedAddOnOptions).map(([category, items]) => (
+              <div key={category} className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {category}
+                </p>
+                <div className="space-y-1.5">
+                  {items.map((item) => {
+                    const checked = selectedAddOnPackageIds.includes(item.id);
+                    return (
+                      <label
+                        key={item.id}
+                        className="flex items-start gap-2 rounded-md border border-border/60 px-2 py-1.5 text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const next = checked
+                              ? selectedAddOnPackageIds.filter((id) => id !== item.id)
+                              : [...selectedAddOnPackageIds, item.id];
+                            setSelectedAddOnPackageIds(next);
+                            setFeeAmount(String(computeSelectedTotal(selectedFeePackage, next)));
+                          }}
+                          className="mt-0.5"
+                        />
+                        <span className="flex-1">
+                          <span className="font-medium">{item.label}</span>
+                          <span className="ml-1 text-muted-foreground">
+                            ({formatFeeRmb(item.price)})
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              Optional add-ons total: {formatFeeRmb(selectedAddOnsTotal)}
+            </p>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <Label>Amount Already Paid (RMB)</Label>
           <Input
@@ -1296,7 +1405,7 @@ export function DelegateRegistrationForm({
             {selectedFeePackage
               ? formatFeeRmb(
                   Math.max(
-                    (selectedFee?.price ?? 0) -
+                    totalSelectedFee -
                       (amountPaid.trim() ? Number(amountPaid) : 0),
                     0,
                   ),

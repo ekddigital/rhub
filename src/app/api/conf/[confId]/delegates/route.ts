@@ -6,14 +6,20 @@ import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
+  isConferenceOptionalAddOnPackage,
+  normalizeConferenceOptionalAddOnPackageIds,
+  sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
-import { CONF_2026 } from "@/lib/conf/config";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
 } from "@/lib/conf/delegate-privacy";
 import { sendEmail } from "@/lib/mail";
 import { formatPersonName } from "@/lib/conf/name-format";
+import {
+  composeDelegateCommentsWithAddOns,
+  parseDelegateCommentsWithAddOns,
+} from "@/lib/conf/delegate-fee-addons";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -82,12 +88,17 @@ export async function GET(
         viewer,
       );
 
+      const parsedComments = parseDelegateCommentsWithAddOns(
+        delegateWithDocs.additionalComments,
+      );
       return {
         ...delegateWithDocs,
         userId: canViewSensitive ? delegate.userId : null,
         passportNo: canViewSensitive ? delegate.passportNo : null,
         email: canViewSensitive ? delegate.email : null,
         phone: canViewSensitive ? delegate.phone : null,
+        additionalComments: parsedComments.additionalComments,
+        addOnPackageIds: parsedComments.addOnPackageIds,
         passportPhotoPath:
           canViewSensitive && delegateWithDocs.passportPhotoPath
             ? resolveStoredAssetUrl(delegateWithDocs.passportPhotoPath, origin)
@@ -145,7 +156,7 @@ export async function POST(
       dietaryDetails,
       additionalComments,
       feePackageId,
-      feeAmount,
+      addOnPackageIds,
       amountPaid,
       feePaid,
       passportNo,
@@ -293,13 +304,25 @@ export async function POST(
       typeof feePackageId === "string" && feePackageId.trim()
         ? getConferenceFeePackageById(feePackageId.trim())
         : null;
-    const parsedFeeAmount =
-      typeof feeAmount === "number" ? feeAmount : Number(feeAmount);
-    const fallbackFeeAmount =
-      Number.isFinite(parsedFeeAmount) && parsedFeeAmount > 0
-        ? parsedFeeAmount
-        : CONF_2026.delegateFee;
-    const resolvedFeeAmount = resolvedFeePackage?.price ?? fallbackFeeAmount;
+    if (!resolvedFeePackage) {
+      return NextResponse.json(
+        { error: "A required conference package must be selected" },
+        { status: 400 },
+      );
+    }
+    if (isConferenceOptionalAddOnPackage(resolvedFeePackage.id)) {
+      return NextResponse.json(
+        {
+          error:
+            "The selected package is an optional add-on. Please select a required conference package.",
+        },
+        { status: 400 },
+      );
+    }
+    const normalizedAddOnPackageIds =
+      normalizeConferenceOptionalAddOnPackageIds(addOnPackageIds);
+    const addOnsTotal = sumConferenceOptionalAddOns(normalizedAddOnPackageIds);
+    const resolvedFeeAmount = resolvedFeePackage.price + addOnsTotal;
     const parsedAmountPaid =
       typeof amountPaid === "number" ? amountPaid : Number(amountPaid);
     const resolvedAmountPaid =
@@ -315,7 +338,7 @@ export async function POST(
     const feePaidBool =
       Boolean(feePaid) && resolvedAmountPaid >= resolvedFeeAmount;
     const accommodationMode = getConferenceFeeAccommodationMode(
-      resolvedFeePackage?.id,
+      resolvedFeePackage.id,
     );
     const requestedRoomPref = roomPref === "SINGLE" ? "SINGLE" : "PAIR";
     const resolvedRoomPref =
@@ -365,8 +388,11 @@ export async function POST(
       accommodationNeeded,
       dietaryNeeds,
       dietaryDetails: dietaryDetails || null,
-      additionalComments: additionalComments || null,
-      feePackageId: resolvedFeePackage?.id ?? null,
+      additionalComments: composeDelegateCommentsWithAddOns(
+        additionalComments,
+        normalizedAddOnPackageIds,
+      ),
+      feePackageId: resolvedFeePackage.id,
       feeAmount: resolvedFeeAmount,
       amountPaid: resolvedAmountPaid,
       feePaid: feePaidBool,
@@ -414,6 +440,7 @@ export async function POST(
       return NextResponse.json(
         {
           ...updated,
+          ...parseDelegateCommentsWithAddOns(updated.additionalComments),
           updatedExisting: true,
         },
         { status: 200 },
@@ -449,6 +476,11 @@ export async function POST(
       : feePackageId
         ? String(feePackageId)
         : "Conference fee";
+    const addOnsLabel = normalizedAddOnPackageIds.length
+      ? normalizedAddOnPackageIds
+          .map((id) => getConferenceFeePackageById(id)?.label || id)
+          .join(", ")
+      : "None";
     const balanceDue = Math.max(resolvedFeeAmount - resolvedAmountPaid, 0);
     const notifyHtml = `
       <h2 style="margin:0 0 12px;color:#1f1c18">New conference signup</h2>
@@ -459,6 +491,7 @@ export async function POST(
         <p style="margin:0 0 6px;color:#1f1c18;font-weight:600">${normalizedName}</p>
         <p style="margin:0;color:#7a6e5a">Passport: ${normalizedPassportNo}</p>
         <p style="margin:0;color:#7a6e5a">Package: ${packageLabel}</p>
+        <p style="margin:0;color:#7a6e5a">Optional add-ons: ${addOnsLabel}</p>
         <p style="margin:0;color:#7a6e5a">Selected fee: RMB ${resolvedFeeAmount.toFixed(2)}</p>
         <p style="margin:0;color:#7a6e5a">Amount already paid: RMB ${resolvedAmountPaid.toFixed(2)}</p>
         <p style="margin:0;color:#7a6e5a">Remaining balance: RMB ${balanceDue.toFixed(2)}</p>
@@ -478,7 +511,13 @@ export async function POST(
       ),
     );
 
-    return NextResponse.json(delegate, { status: 201 });
+    return NextResponse.json(
+      {
+        ...delegate,
+        ...parseDelegateCommentsWithAddOns(delegate.additionalComments),
+      },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Failed to register delegate:", error);
     return NextResponse.json(

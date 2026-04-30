@@ -4,6 +4,7 @@ export type ConferenceFeePackage = {
   label: string;
   packageSummary: string;
   price: number;
+  isOptionalAddOn?: boolean;
 };
 
 export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
@@ -117,6 +118,7 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
     label: "Male and Female Jersey Set",
     packageSummary: "Both male and female jersey set",
     price: 60,
+    isOptionalAddOn: true,
   },
   {
     id: "achievers-platinum",
@@ -124,6 +126,7 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
     label: "Platinum Table of 8",
     packageSummary: "Free flow drinks and food through the night",
     price: 700,
+    isOptionalAddOn: true,
   },
   {
     id: "achievers-gold",
@@ -131,6 +134,7 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
     label: "Gold Table of 5",
     packageSummary: "Free flow drinks and food through the night",
     price: 450,
+    isOptionalAddOn: true,
   },
   {
     id: "achievers-vip",
@@ -138,6 +142,7 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
     label: "VIP Table of 4",
     packageSummary: "Free flow drinks and food through the night",
     price: 350,
+    isOptionalAddOn: true,
   },
 ];
 
@@ -168,6 +173,46 @@ export function getConferenceFeeAccommodationMode(
   if (label.includes("table")) return "NONE";
 
   return null;
+}
+
+export function isConferenceOptionalAddOnPackage(
+  packageId: string | null | undefined,
+): boolean {
+  if (!packageId) return false;
+  const pkg = getConferenceFeePackageById(packageId);
+  return Boolean(pkg?.isOptionalAddOn);
+}
+
+export function getConferenceRequiredFeePackages() {
+  return CONFERENCE_FEE_PACKAGES.filter((item) => !item.isOptionalAddOn);
+}
+
+export function getConferenceOptionalAddOnPackages() {
+  return CONFERENCE_FEE_PACKAGES.filter((item) => item.isOptionalAddOn);
+}
+
+export function normalizeConferenceOptionalAddOnPackageIds(
+  packageIds: unknown,
+): string[] {
+  if (!Array.isArray(packageIds)) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of packageIds) {
+    if (typeof value !== "string") continue;
+    const id = value.trim();
+    if (!id || seen.has(id) || !isConferenceOptionalAddOnPackage(id)) continue;
+    seen.add(id);
+    result.push(id);
+  }
+  return result;
+}
+
+export function sumConferenceOptionalAddOns(packageIds: string[]): number {
+  return packageIds.reduce((sum, packageId) => {
+    const pkg = getConferenceFeePackageById(packageId);
+    if (!pkg || !pkg.isOptionalAddOn) return sum;
+    return sum + pkg.price;
+  }, 0);
 }
 
 export function groupConferenceFeePackages() {
