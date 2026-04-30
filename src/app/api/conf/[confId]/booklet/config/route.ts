@@ -8,7 +8,11 @@ const DEFAULT_SECTIONS = [
   { type: "LEADER", title: "President of China", sortOrder: 3 },
   { type: "LEADER", title: "Liberian Ambassador to China", sortOrder: 4 },
   { type: "NEC", title: "NEC Leadership", sortOrder: 5 },
-  { type: "PRESIDENT_ADDRESS", title: "President's Address", sortOrder: 6 },
+  {
+    type: "PRESIDENT_ADDRESS",
+    title: "National President Address",
+    sortOrder: 6,
+  },
   { type: "CHAIRMAN_ADDRESS", title: "Chairman's Address", sortOrder: 7 },
   { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 8 },
   {
@@ -62,6 +66,10 @@ const DEFAULT_SECTIONS = [
   { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 },
 ];
 
+function normalizeLabel(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 // GET /api/conf/[confId]/booklet/config
 // Returns the booklet config. Creates it with defaults if it doesn't exist.
 export async function GET(
@@ -90,6 +98,77 @@ export async function GET(
             create: DEFAULT_SECTIONS,
           },
         },
+        include: {
+          sections: {
+            orderBy: { sortOrder: "asc" },
+          },
+        },
+      });
+    } else {
+      const existingBooklet = booklet;
+      // Backfill existing booklets with updated section naming and required
+      // conference committee section so TOC stays complete.
+      await prisma.$transaction(async (tx) => {
+        const existingSections = [...existingBooklet.sections].sort(
+          (a, b) => a.sortOrder - b.sortOrder,
+        );
+
+        const presidentAddress = existingSections.find(
+          (s) => s.type === "PRESIDENT_ADDRESS",
+        );
+        if (
+          presidentAddress &&
+          normalizeLabel(presidentAddress.title) ===
+            normalizeLabel("President's Address")
+        ) {
+          await tx.confBookletSection.update({
+            where: { id: presidentAddress.id },
+            data: { title: "National President Address" },
+          });
+        }
+
+        const hasConferenceCommittee = existingSections.some(
+          (s) =>
+            s.type === "COMMITTEE" &&
+            normalizeLabel(s.title) === normalizeLabel("Conference Committee") &&
+            !s.committeeScope,
+        );
+
+        if (!hasConferenceCommittee) {
+          const firstScopedCommitteeSort =
+            existingSections.find(
+              (s) => s.type === "COMMITTEE" && s.committeeScope,
+            )?.sortOrder ?? null;
+          const scheduleSort =
+            existingSections.find((s) => s.type === "SCHEDULE")?.sortOrder ??
+            existingSections.length + 1;
+          const insertSort = firstScopedCommitteeSort ?? scheduleSort;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: insertSort },
+            },
+            data: { sortOrder: { increment: 1 } },
+          });
+
+          await tx.confBookletSection.create({
+            data: {
+              bookletId: existingBooklet.id,
+              type: "COMMITTEE",
+              title: "Conference Committee",
+              subtitle: null,
+              bodyText: null,
+              isEnabled: true,
+              sortOrder: insertSort,
+              committeeScope: null,
+            },
+          });
+        }
+      });
+
+      booklet = await prisma.confBooklet.findUnique({
+        where: { confId },
         include: {
           sections: {
             orderBy: { sortOrder: "asc" },
