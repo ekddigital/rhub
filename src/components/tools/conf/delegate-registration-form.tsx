@@ -71,9 +71,8 @@ const CUSTOM_CONFERENCE_ROLE = "__CUSTOM__";
 
 const KNOWN_CONFERENCE_ROLES = [
   "Conference Chair",
-  "General Chairman",
-  "General Co-Chair",
-  "General Secretary",
+  "Conference Vice-Chair",
+  "Conference Secretary",
   "PRO & Media",
   "Cooking Team Chair",
   "Chair on Sports",
@@ -111,6 +110,11 @@ function isKnownConferenceRole(value: string): boolean {
 }
 
 function normalizeConferenceRole(value: string): string {
+  if (value === "General Chairman") return "Conference Chair";
+  if (value === "General Co-Chair" || value === "Conference Co-Chair") {
+    return "Conference Vice-Chair";
+  }
+  if (value === "General Secretary") return "Conference Secretary";
   if (value === "Member, Cooking Team") return "Member";
   if (value === "Secretary General") return "National Secretary General";
   if (value === "Deputy Secretary General") {
@@ -956,9 +960,12 @@ export function DelegateRegistrationForm({
             <option value="">None — Regular Delegate</option>
             <optgroup label="Conference Committee">
               <option value="Conference Chair">Conference Chair</option>
-              <option value="General Chairman">General Chairman</option>
-              <option value="General Co-Chair">General Co-Chair</option>
-              <option value="General Secretary">General Secretary</option>
+              <option value="Conference Vice-Chair">
+                Conference Vice-Chair
+              </option>
+              <option value="Conference Secretary">
+                Conference Secretary
+              </option>
               <option value="PRO &amp; Media">PRO &amp; Media</option>
               <option value="Cooking Team Chair">Cooking Team Chair</option>
               <option value="Chair on Sports">Chair on Sports</option>
@@ -1033,7 +1040,7 @@ export function DelegateRegistrationForm({
             <div className="space-y-2 rounded-md border border-border/70 p-3">
               <Label>Custom Role(s)</Label>
               <Input
-                placeholder="e.g. Conference Chair, Chair on Logistics"
+                placeholder="e.g. Conference Chair, Conference Secretary"
                 value={customConferenceRoles}
                 onChange={(e) => {
                   const value = e.target.value;
