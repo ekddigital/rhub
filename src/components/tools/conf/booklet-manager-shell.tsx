@@ -1337,7 +1337,8 @@ export function BookletManagerShell() {
                 </label>
                 {(sectionEdit.section.type === "PRESIDENT_ADDRESS" ||
                   sectionEdit.section.type === "GUEST_BIO" ||
-                  sectionEdit.section.type === "SPONSORS") && (
+                  sectionEdit.section.type === "SPONSORS" ||
+                  sectionEdit.section.type === "ABBREVIATIONS") && (
                   <label className="space-y-1.5 text-sm">
                     <span className="text-muted-foreground">Body Text</span>
                     <Textarea
@@ -1347,6 +1348,8 @@ export function BookletManagerShell() {
                           ? "Enter the president's address or speech text..."
                           : sectionEdit.section.type === "GUEST_BIO"
                             ? "Enter guest speaker biography..."
+                            : sectionEdit.section.type === "ABBREVIATIONS"
+                              ? "Enter abbreviation list, one per line (e.g. NEC — National Executive Committee)"
                             : "Enter sponsor names, logos, or acknowledgements..."
                       }
                       value={sectionEdit.bodyText}

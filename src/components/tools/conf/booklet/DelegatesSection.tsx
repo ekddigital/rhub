@@ -3,6 +3,31 @@ import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
 import type { BookletSection, Delegate } from "./types";
 
+function formatDelegateOffice(position: string | null | undefined): string {
+  const raw = (position ?? "").trim();
+  if (!raw) return "Member, LSUIC";
+  if (/,\s*[A-Z]{2,}$/i.test(raw)) return raw;
+
+  const lower = raw.toLowerCase();
+  if (lower === "member") return "Member, LSUIC";
+  if (lower.startsWith("national ")) return `${raw}, NEC`;
+  if (
+    lower.startsWith("conference ") ||
+    lower.includes("committee chair") ||
+    lower.includes("publicity")
+  ) {
+    return `${raw}, CC`;
+  }
+  if (lower.includes("coordinator")) return `${raw}, COC`;
+  if (lower.includes("city president")) return `${raw}, CL`;
+  if (lower.includes("adjudicator")) return `${raw}, JB`;
+  if (/^(ppc|ppa|aec|wmf)\b/i.test(raw)) {
+    return `${raw}, ${raw.slice(0, 3).toUpperCase()}`;
+  }
+  if (lower.includes("guest speaker")) return `${raw}, GS`;
+  return raw;
+}
+
 export function DelegatesSection({
   section,
   delegates,
@@ -152,7 +177,7 @@ export function DelegatesSection({
                   letterSpacing: "0.06em",
                 }}
               >
-                {d.conferencePosition?.trim() || "Member"}
+                {formatDelegateOffice(d.conferencePosition)}
               </div>
 
               <div

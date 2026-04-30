@@ -2,6 +2,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 
+const DEFAULT_ABBREVIATIONS_BODY = [
+  "NEC — National Executive Committee",
+  "CC — Conference Committee",
+  "COC — Council of Coordinators",
+  "CL — City Leadership",
+  "JB — Judicial Board",
+  "PPC — Planning & Program Committee",
+  "PPA — Press & Public Affairs",
+  "AEC — Academic Excellence Committee",
+  "WMF — Ways, Means & Finance Committee",
+  "GS — Guest Speaker",
+  "LSUIC — Liberian Student Union in China",
+].join("\n");
+
 const DEFAULT_SECTIONS = [
   { type: "COVER", title: "Cover Page", sortOrder: 1 },
   { type: "LEADER", title: "President of Liberia", sortOrder: 2 },
@@ -60,9 +74,16 @@ const DEFAULT_SECTIONS = [
     sortOrder: 15,
     committeeScope: "WMF",
   },
-  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 16 },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 17 },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 18 },
+  {
+    type: "ABBREVIATIONS",
+    title: "Abbreviations",
+    subtitle: "Glossary",
+    sortOrder: 16,
+    bodyText: DEFAULT_ABBREVIATIONS_BODY,
+  },
+  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 17 },
+  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 },
+  { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 },
 ];
 
 function normalizeLabel(value: string | null | undefined): string {
@@ -175,6 +196,36 @@ export async function GET(
             isEnabled: false,
           },
         });
+
+        const hasAbbreviations = existingSections.some(
+          (s) => s.type === "ABBREVIATIONS",
+        );
+        if (!hasAbbreviations) {
+          const delegatesSort =
+            existingSections.find((s) => s.type === "DELEGATES")?.sortOrder ??
+            existingSections.length + 1;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: delegatesSort },
+            },
+            data: { sortOrder: { increment: 1 } },
+          });
+
+          await tx.confBookletSection.create({
+            data: {
+              bookletId: existingBooklet.id,
+              type: "ABBREVIATIONS",
+              title: "Abbreviations",
+              subtitle: "Glossary",
+              bodyText: DEFAULT_ABBREVIATIONS_BODY,
+              isEnabled: true,
+              sortOrder: delegatesSort,
+              committeeScope: null,
+            },
+          });
+        }
       });
 
       booklet = await prisma.confBooklet.findUnique({

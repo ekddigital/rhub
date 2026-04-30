@@ -997,6 +997,9 @@ export function DelegateRegistrationForm({
               </option>
               <option value="Member">Member</option>
             </optgroup>
+            <optgroup label="LSUIC Membership">
+              <option value="Member">Member (LSUIC)</option>
+            </optgroup>
             <optgroup label="NEC Executive">
               <option value="National President">National President</option>
               <option value="National Vice President">
