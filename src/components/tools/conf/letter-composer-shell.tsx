@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Card,
   CardContent,
@@ -86,6 +87,7 @@ type LetterDraft = {
   re: string;
   date: string;
   body: string;
+  bodyRich: string;
   issuingRoleKey: string;
   officeLabel: string;
   signatoryMode: "NONE" | "STANDARD" | "FUNDRAISING" | "CUSTOM";
@@ -151,6 +153,21 @@ type RoleTemplate = {
 
 const LS_KEY = "conf_letter_drafts";
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function plainBodyToRichHtml(body: string): string {
+  if (!body.trim()) return "<p></p>";
+  return body
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`)
+    .join("");
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -186,6 +203,7 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     re: d.re ?? "",
     date: d.date ?? "",
     body: d.body ?? "",
+    bodyRich: d.bodyRich ?? plainBodyToRichHtml(d.body ?? ""),
     issuingRoleKey: d.issuingRoleKey ?? "",
     officeLabel: d.officeLabel ?? "Office of the Conference Chairman",
     signatoryMode: d.signatoryMode ?? "NONE",
@@ -246,6 +264,7 @@ function newDraft(): LetterDraft {
       day: "numeric",
     }),
     body: "",
+    bodyRich: "<p></p>",
     issuingRoleKey: "",
     officeLabel: "Office of the Conference Chairman",
     signatoryMode: "NONE",
@@ -2342,15 +2361,21 @@ export function LetterComposerShell() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    placeholder="Type or paste your letter content here…"
-                    className="text-sm resize-none font-mono"
-                    rows={18}
-                    value={activeDraft.body}
-                    onChange={(e) => set("body")(e.target.value)}
+                  <RichTextEditor
+                    value={activeDraft.bodyRich}
+                    placeholder="Type or paste your letter content here..."
+                    onChange={(value) =>
+                      setActiveDraft((d) => ({
+                        ...d,
+                        bodyRich: value.html,
+                        body: value.text,
+                      }))
+                    }
                   />
                   <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
-                    {activeDraft.body.length} characters
+                    {activeDraft.body.trim()
+                      ? `${activeDraft.body.trim().split(/\s+/).length} words · ${activeDraft.body.length} characters`
+                      : "0 words · 0 characters"}
                   </p>
                 </CardContent>
               </Card>

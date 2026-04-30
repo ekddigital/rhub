@@ -239,7 +239,8 @@ export function DelegatePublicRegister() {
         }
 
         flyerReady =
-          flyerReady || Boolean((responsePayload as { flyerReady?: boolean }).flyerReady);
+          flyerReady ||
+          Boolean((responsePayload as { flyerReady?: boolean }).flyerReady);
       };
 
       await uploadDocument("passport", payload.passportPhoto);
@@ -731,7 +732,7 @@ export function DelegatePublicRegister() {
             <CardContent>
               {samplesLoading ? (
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {Array.from({ length: 8 }).map((_, idx) => (
+                  {Array.from({ length: 4 }).map((_, idx) => (
                     <div
                       key={idx}
                       className="h-40 animate-pulse rounded-xl border border-border bg-muted"
