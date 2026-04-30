@@ -471,7 +471,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const [data, _roleSeed, membersRes, bookletRes] = await Promise.all([
+        const [data, , membersRes, bookletRes] = await Promise.all([
           loadPayments(conf.id),
           loadCommitteeOptions(conf.id),
           fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
@@ -813,15 +813,17 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const activePayments = payments.filter((p) => p.status !== "REJECTED");
   const rejectedPayments = payments.filter((p) => p.status === "REJECTED");
+  const confirmedPayments = activePayments.filter((p) => p.status === "APPROVED");
+  const unconfirmedPayments = activePayments.filter((p) => p.status !== "APPROVED");
 
-  const expenses = activePayments.filter(
+  const expenses = confirmedPayments.filter(
     (p) => p.paymentType === "EXPENSE" || !p.paymentType,
   );
-  const incomes = activePayments.filter((p) => p.paymentType === "INCOME");
+  const incomes = confirmedPayments.filter((p) => p.paymentType === "INCOME");
   const totalExpense = expenses.reduce((s, p) => s + p.amount, 0);
   const totalIncome = incomes.reduce((s, p) => s + p.amount, 0);
-  const lockedCount = activePayments.filter((p) => p.isLocked).length;
-  const pendingCount = activePayments.filter((p) => p.status === "PENDING").length;
+  const lockedCount = confirmedPayments.length;
+  const pendingCount = unconfirmedPayments.length;
   const isScopeLockedToMember =
     Boolean(accessInfo?.committeeScope) && !accessInfo?.isSuperAdmin;
   const canFinalApproveFromPending = useCallback(
@@ -965,7 +967,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             </div>
             <div>
               <p className="text-lg font-bold">{pendingCount}</p>
-              <p className="text-xs text-muted-foreground">Awaiting Approval</p>
+              <p className="text-xs text-muted-foreground">Unconfirmed Records</p>
             </div>
           </CardContent>
         </Card>
@@ -981,6 +983,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </CardContent>
         </Card>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Financial totals include only finally approved payments. Pending and
+        committee-approved records are excluded until final confirmation.
+      </p>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">
@@ -1718,7 +1724,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               }}
             >
               <PaymentsDocumentPreview
-                payments={activePayments}
+                payments={confirmedPayments}
                 totalExpense={totalExpense}
                 totalIncome={totalIncome}
                 confInfo={confInfo}
@@ -1747,11 +1753,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       </Card>
 
       {/* Report Builder Link */}
-      {activePayments.length > 0 && (
+      {confirmedPayments.length > 0 && (
         <div className="payments-no-print flex justify-end">
           <Link href="/tools/conf/finance/reports">
             <Button variant="outline" size="sm">
-              Build Report from these Payments
+              Build Report from Confirmed Payments
             </Button>
           </Link>
         </div>
@@ -1759,7 +1765,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <div id="payments-print-root">
         <PaymentsDocumentPreview
-          payments={activePayments}
+          payments={confirmedPayments}
           totalExpense={totalExpense}
           totalIncome={totalIncome}
           confInfo={confInfo}
