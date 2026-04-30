@@ -55,6 +55,27 @@ function normalizeHtml(value: string): string {
     return markdownToHtml(trimmed);
   }
 
+  // Some older drafts wrap markdown in minimal HTML (<p>### ...</p>).
+  // If there are no structured nodes yet, unwrap and convert markdown syntax.
+  if (hasHtmlTags && !hasStructuredHtml(trimmed)) {
+    const plainFromHtml = trimmed
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div)>/gi, "\n\n")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    if (isLikelyMarkdown(plainFromHtml)) {
+      return markdownToHtml(plainFromHtml);
+    }
+  }
+
   return trimmed;
 }
 
@@ -199,7 +220,7 @@ export function RichTextEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
-        heading: { levels: [1, 2] },
+        heading: { levels: [1, 2, 3, 4] },
       }),
       Underline,
       Link.configure({
@@ -224,7 +245,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-[340px] max-h-[420px] overflow-y-auto px-3 py-2 text-sm leading-6 focus:outline-hidden [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:my-1 [&_a]:text-[#002868] [&_a]:underline [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-[#d9dfe9] [&_th]:bg-[#f3f6fb] [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-[#d9dfe9] [&_td]:px-2 [&_td]:py-1",
+          "min-h-[340px] max-h-[420px] overflow-y-auto px-3 py-2 text-sm leading-6 focus:outline-hidden [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mb-1.5 [&_h4]:text-sm [&_h4]:font-semibold [&_h4]:mb-1.5 [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:my-1 [&_a]:text-[#002868] [&_a]:underline [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-[#d9dfe9] [&_th]:bg-[#f3f6fb] [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-[#d9dfe9] [&_td]:px-2 [&_td]:py-1",
       },
     },
     onUpdate: ({ editor: current }) => {

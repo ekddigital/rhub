@@ -216,6 +216,64 @@ function richHtmlToPlainText(html: string): string {
     .trim();
 }
 
+function normalizeMarkdownToReadableText(text: string): string {
+  const lines = text.split("\n");
+  const normalized: string[] = [];
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    if (!line.trim()) {
+      normalized.push("");
+      continue;
+    }
+
+    // Remove markdown heading markers (#, ##, ###, etc.)
+    const headingMatch = line.match(/^\s*#{1,6}\s+(.+)$/);
+    if (headingMatch) {
+      normalized.push(headingMatch[1] ?? "");
+      continue;
+    }
+
+    // Convert markdown bullet lines to typographic bullets.
+    if (/^\s*[-*]\s+/.test(line)) {
+      normalized.push(line.replace(/^\s*[-*]\s+/, "• "));
+      continue;
+    }
+
+    // Keep numbered lists but normalize spacing.
+    if (/^\s*\d+\.\s+/.test(line)) {
+      normalized.push(line.replace(/^\s*(\d+)\.\s+/, "$1. "));
+      continue;
+    }
+
+    // Markdown table separators should never appear in the final letter.
+    if (/^\s*\|?[\s:-]+\|[\s|:-]*$/.test(line)) {
+      continue;
+    }
+
+    // Render markdown table rows as readable text rows.
+    if (line.includes("|")) {
+      const cells = line
+        .split("|")
+        .map((cell) => cell.trim())
+        .filter(Boolean);
+      if (cells.length > 1) {
+        normalized.push(cells.join(" | "));
+        continue;
+      }
+    }
+
+    normalized.push(line);
+  }
+
+  return normalized
+    .join("\n")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -653,8 +711,9 @@ function LetterA4Preview({
   };
 
   // Paginate body text using page-aware metrics
-  const bodyForLayout =
-    richHtmlToPlainText(draft.bodyRich ?? "") || draft.body || "";
+  const bodyForLayout = normalizeMarkdownToReadableText(
+    richHtmlToPlainText(draft.bodyRich ?? "") || draft.body || "",
+  );
 
   const bodyPages = paginateBodyText(
     bodyForLayout,
