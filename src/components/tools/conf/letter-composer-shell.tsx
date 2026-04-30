@@ -326,6 +326,40 @@ type Signatory = {
   sigScale: number;
 };
 
+// ── Page Metrics: Geometry helpers for layout-aware pagination ─────────────
+
+/**
+ * Defines the dimensions and typography for a letter page variant.
+ * Enables proper text wrapping and capacity calculations based on actual
+ * page geometry rather than abstract line counts.
+ */
+type PageMetrics = {
+  name: string;
+  contentWidth: number; // Actual available width in px (after sidebars/padding)
+  contentHeight: number; // Available height in px (after header/footer)
+  paddingLeft: number;
+  paddingRight: number;
+  fontSize: number;
+  lineHeight: number; // Multiplier (e.g., 1.8 = 1.8x fontSize)
+};
+
+/** Calculate character capacity based on content width and font metrics */
+function estimateMaxCharsPerLine(metrics: PageMetrics): number {
+  // Monospace estimate: ~1.9 chars per 10px of width (Helvetica Neue 12px)
+  // Adjusted for typical proportional spacing. ~2 chars per ~13px
+  const usableWidth = metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight;
+  return Math.max(40, Math.floor(usableWidth / 6.5));
+}
+
+/** Calculate line count capacity based on available height */
+function estimateLinesPerPage(metrics: PageMetrics): number {
+  const lineHeightPx = metrics.fontSize * metrics.lineHeight;
+  return Math.floor(metrics.contentHeight / lineHeightPx);
+}
+
+/**
+ * Wrap a single paragraph into lines, respecting max character width.
+ */
 function wrapParagraph(paragraph: string, maxChars: number): string[] {
   const words = paragraph.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [""];
@@ -347,9 +381,15 @@ function wrapParagraph(paragraph: string, maxChars: number): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
-function bodyToWrappedLines(body: string, maxChars = 92): string[] {
+/**
+ * Break body text into lines using page-aware metrics.
+ * Respects user paragraph breaks and applies word wrapping.
+ */
+function bodyToWrappedLines(body: string, metrics: PageMetrics): string[] {
   const paragraphs = body.split("\n");
+  const maxChars = estimateMaxCharsPerLine(metrics);
   const wrapped: string[] = [];
+
   for (const paragraph of paragraphs) {
     if (!paragraph.trim()) {
       wrapped.push("");
@@ -360,36 +400,46 @@ function bodyToWrappedLines(body: string, maxChars = 92): string[] {
   return wrapped;
 }
 
+/**
+ * Paginate body text across first page and continuation pages.
+ * Accounts for different geometries (sidebar on first page, full width on continuations).
+ * Reserves space at bottom of last page for signatures.
+ */
 function paginateBodyText(
   body: string,
-  firstPageCapacity: number,
-  continuationCapacity: number,
-  signatoryLines: number,
-) {
-  const wrapped = bodyToWrappedLines(body);
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  signatoryLinesNeeded: number,
+): string[] {
+  const firstPageWrapped = bodyToWrappedLines(body, firstPageMetrics);
+  if (firstPageWrapped.length === 0) return [""];
 
-  if (wrapped.length === 0) return [""];
+  // Calculate capacity per page, accounting for signatures on last page
+  const firstPageCapacity = estimateLinesPerPage(firstPageMetrics);
+  const continuationCapacity = estimateLinesPerPage(continuationPageMetrics);
 
+  // Paginate with dynamic capacities
   const pages: string[][] = [];
   let cursor = 0;
   let pageIndex = 0;
 
-  while (cursor < wrapped.length) {
-    const cap = pageIndex === 0 ? firstPageCapacity : continuationCapacity;
-    pages.push(wrapped.slice(cursor, cursor + cap));
+  while (cursor < firstPageWrapped.length) {
+    const isFirstPage = pageIndex === 0;
+    const cap = isFirstPage ? firstPageCapacity : continuationCapacity;
+    pages.push(firstPageWrapped.slice(cursor, cursor + cap));
     cursor += cap;
     pageIndex += 1;
   }
 
-  if (signatoryLines > 0 && pages.length > 0) {
+  // Adjust last page to reserve space for signatures
+  if (signatoryLinesNeeded > 0 && pages.length > 0) {
     let lastIndex = pages.length - 1;
-    const lastCap =
-      pages.length === 1
-        ? Math.max(8, firstPageCapacity - signatoryLines)
-        : Math.max(8, continuationCapacity - signatoryLines);
+    const isLastPageFirstPage = lastIndex === 0;
+    const lastPageCap = isLastPageFirstPage ? firstPageCapacity : continuationCapacity;
+    const reservedCap = Math.max(8, lastPageCap - signatoryLinesNeeded);
 
-    while (pages[lastIndex].length > lastCap) {
-      const overflow = pages[lastIndex].splice(lastCap);
+    while (pages[lastIndex].length > reservedCap) {
+      const overflow = pages[lastIndex].splice(reservedCap);
       pages.push(overflow);
       lastIndex = pages.length - 1;
     }
@@ -474,18 +524,38 @@ function LetterA4Preview({
     },
   ].filter((s) => s.name.trim() || s.title.trim());
 
-  const metaLineCount =
-    (draft.to ? 2 : 0) + (draft.from ? 2 : 0) + (draft.re ? 2 : 0) + 2;
   const signatureReserveLines = signatories.length > 0 ? 10 : 0;
-  const firstPageCapacity = Math.max(
-    12,
-    42 - metaLineCount - signatureReserveLines,
-  );
-  const continuationCapacity = 56;
+
+  // Define page metrics for layout-aware text wrapping and pagination
+  // First page: has sidebar (reduces content width) + full header
+  const firstPageMetrics: PageMetrics = {
+    name: "first-page",
+    contentWidth: PAGE_W - SIDEBAR_W, // 794 - 215 = 579px
+    contentHeight: BODY_H, // Height available for body text
+    paddingLeft: 24,
+    paddingRight: 32,
+    fontSize: 12,
+    lineHeight: 1.8,
+  };
+
+  // Continuation pages: full width, simplified header
+  const continuationHeaderHeight = 8 + 10 + 2 + 10; // stripes + title bar + border + padding = ~40px
+  const continuationBodyHeight = PAGE_H - continuationHeaderHeight - FOOTER_H;
+  const continuationPageMetrics: PageMetrics = {
+    name: "continuation-page",
+    contentWidth: PAGE_W, // Full width, no sidebar
+    contentHeight: continuationBodyHeight, // ~1051px
+    paddingLeft: 26,
+    paddingRight: 32,
+    fontSize: 12,
+    lineHeight: 1.8,
+  };
+
+  // Paginate body text using page-aware metrics
   const bodyPages = paginateBodyText(
     draft.body,
-    firstPageCapacity,
-    continuationCapacity,
+    firstPageMetrics,
+    continuationPageMetrics,
     signatureReserveLines,
   );
   const firstPageBody = bodyPages[0] ?? "";
