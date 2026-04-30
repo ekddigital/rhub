@@ -16,6 +16,8 @@ import {
   ChevronDown,
   Pencil,
   Printer,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import {
   Card,
@@ -30,7 +32,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { BUDGET_CATEGORIES, COMMON_UNITS } from "@/lib/conf/config";
-import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -38,7 +39,7 @@ import {
   fmtDual,
 } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { LetterheadDisplay } from "@/components/tools/conf/letterhead-display";
+import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -76,6 +77,14 @@ type MemberOption = {
   name: string;
   committeeScope: string | null;
   canApprovePayments: boolean;
+};
+
+type ConferenceEventInfo = {
+  name: string;
+  city: string;
+  venue: string | null;
+  startsAt: string;
+  endsAt: string;
 };
 
 type ServerBudget = {
@@ -157,6 +166,183 @@ function unitLabel(item: BudgetItem) {
   return item.unit === "custom" ? item.customUnit || "—" : item.unit;
 }
 
+function BudgetDocumentPreview({
+  draft,
+  grandTotal,
+  confInfo,
+  members,
+  preparedByName,
+  includeSignatures,
+  forPrint = false,
+}: {
+  draft: BudgetDraft;
+  grandTotal: number;
+  confInfo: ConferenceEventInfo | null;
+  members: MemberOption[];
+  preparedByName: string;
+  includeSignatures: boolean;
+  forPrint?: boolean;
+}) {
+  const createdAt = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const categoryLabel =
+    BUDGET_CATEGORIES[draft.category]?.label ?? draft.category ?? "General";
+  const nonEmptyItems = draft.items.filter((item) => item.name.trim());
+  const rows =
+    nonEmptyItems.length > 0
+      ? nonEmptyItems.map((item) => ({
+          no: item.no,
+          item: item.name,
+          qty: item.qty,
+          unit: unitLabel(item),
+          unitPrice: fmtRmb(item.unitPrice),
+          total: fmtRmb(calcItemTotal(item.qty, item.unitPrice)),
+        }))
+      : [
+          {
+            no: "—",
+            item: "No line items yet",
+            qty: "—",
+            unit: "—",
+            unitPrice: "—",
+            total: "—",
+          },
+        ];
+
+  const sidebarMembers = members.slice(0, 8).map((member) => ({
+    id: member.id,
+    name: member.name,
+    role: "COMMITTEE",
+    title: member.committeeScope || "Committee Member",
+    committeeScope: member.committeeScope,
+  }));
+  const normalizedConfInfo = confInfo
+    ? {
+        ...confInfo,
+        venue: confInfo.venue ?? undefined,
+      }
+    : undefined;
+
+  return (
+    <DocumentLayout
+      forPrint={forPrint}
+      confInfo={normalizedConfInfo}
+      officeLabel="Office of the Finance Secretary"
+      members={sidebarMembers}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
+            {draft.title?.trim() || "Budget Proposal"}
+          </div>
+          <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>
+            Category: {categoryLabel}
+          </div>
+          <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
+            Date: {createdAt}
+          </div>
+        </div>
+        <div style={{ textAlign: "right", fontSize: 10, color: "#555" }}>
+          <div>Prepared By:</div>
+          <div style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}>
+            {preparedByName || "Pending selection"}
+          </div>
+        </div>
+      </div>
+
+      {draft.notes.trim() && (
+        <div
+          style={{
+            marginTop: 14,
+            marginBottom: 14,
+            padding: "10px 12px",
+            border: "1px solid #d9dfeb",
+            borderRadius: 8,
+            fontSize: 10.5,
+            color: "#444",
+            fontStyle: "italic",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {draft.notes}
+        </div>
+      )}
+
+      <DocumentTable
+        caption="Line Item Breakdown"
+        columns={[
+          { key: "no", label: "#", width: 8, align: "center" },
+          { key: "item", label: "Item", width: 34 },
+          { key: "qty", label: "Qty", width: 10, align: "center" },
+          { key: "unit", label: "Unit", width: 14, align: "center" },
+          { key: "unitPrice", label: "Unit Price (¥)", width: 17, align: "right" },
+          { key: "total", label: "Total (¥)", width: 17, align: "right" },
+        ]}
+        data={rows}
+        forPrint={forPrint}
+      />
+
+      <div
+        style={{
+          marginTop: 12,
+          borderTop: "1.5px solid #002868",
+          paddingTop: 8,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 10, color: "#666" }}>
+          {nonEmptyItems.length} line item{nonEmptyItems.length === 1 ? "" : "s"}
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
+          GRAND TOTAL: {fmtRmb(grandTotal)}
+        </div>
+      </div>
+
+      {includeSignatures && (
+        <div
+          style={{
+            marginTop: 34,
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 28,
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                borderTop: "1px solid #002868",
+                paddingTop: 6,
+                fontSize: 10,
+                color: "#555",
+              }}
+            >
+              Prepared By
+            </div>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                borderTop: "1px solid #002868",
+                paddingTop: 6,
+                fontSize: 10,
+                color: "#555",
+              }}
+            >
+              Approved By
+            </div>
+          </div>
+        </div>
+      )}
+    </DocumentLayout>
+  );
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
@@ -165,8 +351,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [showList, setShowList] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
   const [confId, setConfId] = useState("");
+  const [confInfo, setConfInfo] = useState<ConferenceEventInfo | null>(null);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [creatorMemberId, setCreatorMemberId] = useState("");
+  const [showSignatureArea, setShowSignatureArea] = useState(true);
+  const [previewZoom, setPreviewZoom] = useState(72);
   const [serverBudgets, setServerBudgets] = useState<ServerBudget[]>([]);
   const [loadingServer, setLoadingServer] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -202,8 +391,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
 
-        const [membersRes] = await Promise.all([
+        const [membersRes, bookletRes] = await Promise.all([
           fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
+          fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
           refreshConferenceBudgets(conf.id),
         ]);
 
@@ -214,6 +404,15 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             setCreatorMemberId(accessInfo.memberId);
           } else if (memberPayload.length > 0) {
             setCreatorMemberId(memberPayload[0].id);
+          }
+        }
+
+        if (bookletRes.ok) {
+          const bookletPayload = (await bookletRes.json()) as {
+            event?: ConferenceEventInfo;
+          };
+          if (bookletPayload.event) {
+            setConfInfo(bookletPayload.event);
           }
         }
       } catch (e) {
@@ -328,6 +527,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   // ── CSV export ────────────────────────────────────────────────────────────
 
   const grandTotal = calcBudgetTotal(activeDraft.items);
+  const preparedByName =
+    members.find((member) => member.id === creatorMemberId)?.name ?? "";
 
   const handleExportCsv = useCallback(() => {
     const header = "No.,Item,Qty,Unit,Unit Price (¥),Total (¥),Notes";
@@ -457,21 +658,39 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   return (
     <div className="space-y-6">
-      {/* Letterhead Display - visible while editing */}
-      <LetterheadDisplay
-        confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Budget Manager`}
-      />
-
-      {/* Print CSS — renders budget as clean A4 document */}
+      {/* Print CSS for full document output */}
       <style>{`
+        #budget-print-root {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: 794px;
+          pointer-events: none;
+        }
         @media print {
           body * { visibility: hidden; }
-          .budget-print-area, .budget-print-area * { visibility: visible; }
+          #budget-print-root,
+          #budget-print-root * { visibility: visible !important; }
           .budget-no-print { display: none !important; }
-          .budget-print-area {
-            position: fixed; left: 0; top: 0;
-            width: 210mm; padding: 0 16mm 12mm;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+          #budget-print-root {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            pointer-events: auto !important;
+          }
+          .document-page {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            height: auto !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            break-after: page;
+            page-break-after: always;
+          }
+          .document-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
           }
           @page { size: A4 portrait; margin: 0; }
         }
@@ -842,6 +1061,74 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       </Card>
 
       <Card className="budget-no-print border-[#C8A061]/30">
+        <CardHeader className="flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Live Budget Document</CardTitle>
+            <CardDescription>
+              This is the full letter-style budget page. It updates as you type.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
+                showSignatureArea
+                  ? "border-[#002868]/30 bg-[#002868]/5 text-[#002868]"
+                  : "border-border text-muted-foreground"
+              }`}
+              onClick={() => setShowSignatureArea((prev) => !prev)}
+            >
+              {showSignatureArea ? "Signature: ON" : "Signature: OFF"}
+            </button>
+            <div className="flex items-center gap-1 rounded-md border px-1 py-1">
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
+                title="Zoom out"
+              >
+                <ZoomOut className="size-3.5" />
+              </button>
+              <span className="w-10 text-center text-xs font-mono">
+                {previewZoom}%
+              </span>
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
+                title="Zoom in"
+              >
+                <ZoomIn className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-auto rounded-lg bg-muted/20 p-4">
+            <div
+              style={{
+                width: 794,
+                margin: "0 auto",
+                transform: `scale(${previewZoom / 100})`,
+                transformOrigin: "top center",
+                marginBottom:
+                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+              }}
+            >
+              <BudgetDocumentPreview
+                draft={activeDraft}
+                grandTotal={grandTotal}
+                confInfo={confInfo}
+                members={members}
+                preparedByName={preparedByName}
+                includeSignatures={showSignatureArea}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="budget-no-print border-[#C8A061]/30">
         <CardHeader>
           <CardTitle className="text-base">Submitted Budgets</CardTitle>
           <CardDescription>
@@ -950,164 +1237,16 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </CardContent>
       </Card>
 
-      {/* A4 print area (hidden on screen, shown on print) */}
-      <div className="budget-print-area" style={{ display: "none" }}>
-        <LetterheadDisplay
-          confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Budget Manager`}
-          printOnly
-          className="px-0"
+      <div id="budget-print-root">
+        <BudgetDocumentPreview
+          draft={activeDraft}
+          grandTotal={grandTotal}
+          confInfo={confInfo}
+          members={members}
+          preparedByName={preparedByName}
+          includeSignatures={showSignatureArea}
+          forPrint
         />
-        <div
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            color: "#002868",
-            marginTop: 14,
-            marginBottom: 4,
-          }}
-        >
-          {activeDraft.title || "Budget Proposal"}
-        </div>
-        <div style={{ fontSize: 10, color: "#555", marginBottom: 2 }}>
-          Category:{" "}
-          {BUDGET_CATEGORIES[activeDraft.category]?.label ??
-            activeDraft.category}
-        </div>
-        <div style={{ fontSize: 10, color: "#555", marginBottom: 12 }}>
-          Date:{" "}
-          {new Date().toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </div>
-        {activeDraft.notes && (
-          <div
-            style={{
-              fontSize: 10,
-              color: "#444",
-              marginBottom: 14,
-              fontStyle: "italic",
-            }}
-          >
-            {activeDraft.notes}
-          </div>
-        )}
-        <table
-          style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}
-        >
-          <thead>
-            <tr style={{ background: "#002868", color: "#fff" }}>
-              <th style={{ padding: "6px 8px", textAlign: "left", width: 30 }}>
-                #
-              </th>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Item</th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 50 }}>
-                Qty
-              </th>
-              <th style={{ padding: "6px 8px", textAlign: "left", width: 70 }}>
-                Unit
-              </th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>
-                Unit Price (¥)
-              </th>
-              <th style={{ padding: "6px 8px", textAlign: "right", width: 90 }}>
-                Total (¥)
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {activeDraft.items.map((item, idx) => (
-              <tr
-                key={item.id}
-                style={{
-                  background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF",
-                  borderBottom: "0.5px solid #e0e0e0",
-                }}
-              >
-                <td style={{ padding: "5px 8px", color: "#666" }}>{item.no}</td>
-                <td style={{ padding: "5px 8px" }}>{item.name || "—"}</td>
-                <td style={{ padding: "5px 8px", textAlign: "right" }}>
-                  {item.qty}
-                </td>
-                <td style={{ padding: "5px 8px" }}>{unitLabel(item)}</td>
-                <td style={{ padding: "5px 8px", textAlign: "right" }}>
-                  {fmtRmb(item.unitPrice)}
-                </td>
-                <td
-                  style={{
-                    padding: "5px 8px",
-                    textAlign: "right",
-                    fontWeight: 600,
-                  }}
-                >
-                  {fmtRmb(calcItemTotal(item.qty, item.unitPrice))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr style={{ borderTop: "2px solid #002868" }}>
-              <td
-                colSpan={5}
-                style={{
-                  padding: "8px",
-                  textAlign: "right",
-                  fontWeight: 700,
-                  fontSize: 11,
-                }}
-              >
-                GRAND TOTAL
-              </td>
-              <td
-                style={{
-                  padding: "8px",
-                  textAlign: "right",
-                  fontWeight: 800,
-                  fontSize: 13,
-                  color: "#C8A061",
-                }}
-              >
-                {fmtRmb(grandTotal)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-        <div
-          style={{
-            marginTop: 40,
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 80,
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                borderTop: "1px solid #002868",
-                paddingTop: 4,
-                fontSize: 9,
-                color: "#555",
-                width: 160,
-              }}
-            >
-              Prepared By
-            </div>
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                borderTop: "1px solid #002868",
-                paddingTop: 4,
-                fontSize: 9,
-                color: "#555",
-                width: 160,
-              }}
-            >
-              Approved By
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Summary / actions bar */}
