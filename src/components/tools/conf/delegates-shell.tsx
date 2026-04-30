@@ -161,6 +161,7 @@ export function DelegatesShell() {
   const { user } = useUser();
   const [confId, setConfId] = useState("");
   const [canDeleteDelegates, setCanDeleteDelegates] = useState(false);
+  const [canViewPaymentStats, setCanViewPaymentStats] = useState(false);
   const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
@@ -243,6 +244,7 @@ export function DelegatesShell() {
       try {
         setLoading(true);
         setCanDeleteDelegates(Boolean(isAdminControl));
+        setCanViewPaymentStats(Boolean(isAdminControl));
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
         setDefaultFeeAmount(conf.delegateFee || 250);
@@ -253,7 +255,9 @@ export function DelegatesShell() {
           const accessPayload = (await accessRes.json()) as {
             isManager?: boolean;
           };
-          setCanDeleteDelegates(Boolean(accessPayload.isManager));
+          const canManageConference = Boolean(accessPayload.isManager);
+          setCanDeleteDelegates(canManageConference);
+          setCanViewPaymentStats(canManageConference);
         }
         await reloadAll(conf.id);
       } catch (e) {
@@ -721,7 +725,11 @@ export function DelegatesShell() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={`grid gap-4 sm:grid-cols-2 ${
+          canViewPaymentStats ? "lg:grid-cols-4" : "lg:grid-cols-2"
+        }`}
+      >
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
             <div className="rounded-lg bg-blue-500/10 p-2">
@@ -733,30 +741,34 @@ export function DelegatesShell() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
-            <div className="rounded-lg bg-green-500/10 p-2">
-              <CheckCircle2 className="size-5 text-green-500" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{fmtRmb(paidFees)}</p>
-              <p className="text-xs text-muted-foreground">Fees Collected</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 pt-6">
-            <div className="rounded-lg bg-orange-500/10 p-2">
-              <Clock className="size-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">
-                {fmtRmb(totalFees - paidFees)}
-              </p>
-              <p className="text-xs text-muted-foreground">Outstanding</p>
-            </div>
-          </CardContent>
-        </Card>
+        {canViewPaymentStats && (
+          <Card>
+            <CardContent className="flex items-center gap-3 pt-6">
+              <div className="rounded-lg bg-green-500/10 p-2">
+                <CheckCircle2 className="size-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{fmtRmb(paidFees)}</p>
+                <p className="text-xs text-muted-foreground">Fees Collected</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {canViewPaymentStats && (
+          <Card>
+            <CardContent className="flex items-center gap-3 pt-6">
+              <div className="rounded-lg bg-orange-500/10 p-2">
+                <Clock className="size-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">
+                  {fmtRmb(totalFees - paidFees)}
+                </p>
+                <p className="text-xs text-muted-foreground">Outstanding</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
             <div className="rounded-lg bg-purple-500/10 p-2">
