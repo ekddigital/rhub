@@ -714,7 +714,7 @@ function LetterA4Preview({
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
-              Email: ekd@ekddigital.com · lsuic2006@gmail.com
+              Email: ekd@ekddigital.com · harrisbowulom@gmail.com
             </div>
             {officerPhones.length > 0 && (
               <div

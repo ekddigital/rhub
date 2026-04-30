@@ -288,7 +288,7 @@ function buildFirstPageSvg(opts: {
   <text x="${textCX}" y="${t3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.venue ?? opts.city)}</text>
   <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.city + ", Shandong Province, P.R. China")}</text>
   <text x="${textCX}" y="${t5}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.dateRange)}</text>
-  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml("Email: ekd@ekddigital.com  |  lsuic2006@gmail.com")}</text>
+  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml("Email: ekd@ekddigital.com  |  harrisbowulom@gmail.com")}</text>
 
   <!-- Liberia National Seal (right) -->
   ${sealBlock}
