@@ -246,6 +246,7 @@ export function MeetingsShell() {
     isCritical: false,
   });
   const [notice, setNotice] = useState<string | null>(null);
+  const [isChecklistCollapsed, setIsChecklistCollapsed] = useState(false);
 
   const copyToClipboard = async (label: string, value: string) => {
     const trimmed = value.trim();
@@ -881,6 +882,23 @@ export function MeetingsShell() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsChecklistCollapsed((prev) => !prev)}
+              >
+                {isChecklistCollapsed ? (
+                  <>
+                    <ChevronDown className="size-4" />
+                    Expand
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="size-4" />
+                    Collapse
+                  </>
+                )}
+              </Button>
               <Badge variant="secondary" className="text-xs">
                 Progress {checklistStats.progress}%
               </Badge>
@@ -900,352 +918,370 @@ export function MeetingsShell() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="text-xs">
-              Overdue Open: {checklistStats.overdueOpen}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              Due Soon (14d): {checklistStats.dueSoon}
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              Critical Open: {checklistStats.criticalOpen}
-            </Badge>
-          </div>
-
-          {canEditChecklist && showNewChecklistItem && (
-            <div className="space-y-3 rounded-lg border border-dashed border-[#C8A061]/40 bg-[#C8A061]/5 p-3">
-              <p className="text-xs font-medium">Add checklist item</p>
-
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>Task title</Label>
-                  <Input
-                    value={newChecklistDraft.title}
-                    onChange={(e) =>
-                      setNewChecklistDraft((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    placeholder="Complete Conference Program Outline for Day 1"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Due date</Label>
-                  <Input
-                    type="date"
-                    value={newChecklistDraft.date}
-                    onChange={(e) =>
-                      setNewChecklistDraft((prev) => ({
-                        ...prev,
-                        date: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1.5 md:col-span-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    rows={2}
-                    value={newChecklistDraft.description}
-                    onChange={(e) =>
-                      setNewChecklistDraft((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Define scope, expected output, and review standard."
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Responsible Lead</Label>
-                  <Input
-                    value={newChecklistDraft.responsibleLead}
-                    onChange={(e) =>
-                      setNewChecklistDraft((prev) => ({
-                        ...prev,
-                        responsibleLead: e.target.value,
-                      }))
-                    }
-                    placeholder="Program Lead"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Category</Label>
-                  <select
-                    value={newChecklistDraft.category}
-                    onChange={(e) =>
-                      setNewChecklistDraft((prev) => ({
-                        ...prev,
-                        category: e.target.value,
-                      }))
-                    }
-                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    {checklistCategoryOptions.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          {!isChecklistCollapsed && (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="text-xs">
+                  Overdue Open: {checklistStats.overdueOpen}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Due Soon (14d): {checklistStats.dueSoon}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  Critical Open: {checklistStats.criticalOpen}
+                </Badge>
               </div>
 
-              <label className="flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  checked={newChecklistDraft.isCritical}
-                  onChange={(e) =>
-                    setNewChecklistDraft((prev) => ({
-                      ...prev,
-                      isCritical: e.target.checked,
-                    }))
-                  }
-                />
-                Mark as critical
-              </label>
+              {canEditChecklist && showNewChecklistItem && (
+                <div className="space-y-3 rounded-lg border border-dashed border-[#C8A061]/40 bg-[#C8A061]/5 p-3">
+                  <p className="text-xs font-medium">Add checklist item</p>
 
-              <div className="flex justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowNewChecklistItem(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => void addChecklistItem()}
-                  disabled={!newChecklistDraft.title.trim() || !newChecklistDraft.date}
-                >
-                  Save Item
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {checklistLoading ? (
-            <p className="text-xs text-muted-foreground">
-              Loading checklist...
-            </p>
-          ) : checklistItems.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              No checklist items found yet.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {checklistItems.map((item) => {
-                const canManageItem = canEditChecklist && Boolean(item.dbId);
-                const isEditing = editingChecklistId === item.id;
-
-                return (
-                  <div key={item.id} className="rounded-lg border p-3">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="flex min-w-0 flex-1 items-start gap-2">
-                        {canEditChecklist ? (
-                          <button
-                            className="mt-0.5"
-                            onClick={() => canManageItem && toggleChecklistComplete(item.id)}
-                            disabled={!canManageItem}
-                          >
-                            {item.isCompleted ? (
-                              <CheckCircle2 className="size-5 text-emerald-600" />
-                            ) : (
-                              <Circle className="size-5 text-muted-foreground" />
-                            )}
-                          </button>
-                        ) : item.isCompleted ? (
-                          <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
-                        ) : (
-                          <Circle className="mt-0.5 size-5 text-muted-foreground" />
-                        )}
-
-                        <div className="min-w-0">
-                          <p
-                            className={`text-sm font-medium ${item.isCompleted ? "line-through text-muted-foreground" : ""}`}
-                          >
-                            {item.title}
-                          </p>
-                          {item.description && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {item.description}
-                            </p>
-                          )}
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            Responsible Lead: {item.owner}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-1">
-                        <Badge variant="outline" className="text-[10px]">
-                          Due {new Date(item.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </Badge>
-                        <Badge variant="secondary" className="text-[10px]">
-                          {CATEGORY_LABELS[item.category] || item.category}
-                        </Badge>
-                        {item.isCritical && (
-                          <Badge
-                            variant="outline"
-                            className="border-red-500/40 bg-red-500/10 text-[10px] text-red-700"
-                          >
-                            Critical
-                          </Badge>
-                        )}
-                        {canEditChecklist && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => startChecklistEdit(item.id)}
-                            disabled={!canManageItem}
-                          >
-                            Edit
-                          </Button>
-                        )}
-                      </div>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label>Task title</Label>
+                      <Input
+                        value={newChecklistDraft.title}
+                        onChange={(e) =>
+                          setNewChecklistDraft((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
+                        placeholder="Complete Conference Program Outline for Day 1"
+                      />
                     </div>
 
-                    {isEditing && editingChecklistDraft && (
-                      <div className="mt-3 space-y-2 rounded-md border bg-muted/30 p-3">
-                        <div className="grid gap-2 md:grid-cols-2">
-                          <div className="space-y-1">
-                            <Label>Task title</Label>
-                            <Input
-                              value={editingChecklistDraft.title}
-                              onChange={(e) =>
-                                setEditingChecklistDraft((prev) =>
-                                  prev
-                                    ? { ...prev, title: e.target.value }
-                                    : prev,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Due date</Label>
-                            <Input
-                              type="date"
-                              value={editingChecklistDraft.date}
-                              onChange={(e) =>
-                                setEditingChecklistDraft((prev) =>
-                                  prev
-                                    ? { ...prev, date: e.target.value }
-                                    : prev,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1 md:col-span-2">
-                            <Label>Description</Label>
-                            <Textarea
-                              rows={2}
-                              value={editingChecklistDraft.description}
-                              onChange={(e) =>
-                                setEditingChecklistDraft((prev) =>
-                                  prev
-                                    ? {
-                                        ...prev,
-                                        description: e.target.value,
-                                      }
-                                    : prev,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Responsible Lead</Label>
-                            <Input
-                              value={editingChecklistDraft.responsibleLead}
-                              onChange={(e) =>
-                                setEditingChecklistDraft((prev) =>
-                                  prev
-                                    ? {
-                                        ...prev,
-                                        responsibleLead: e.target.value,
-                                      }
-                                    : prev,
-                                )
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Category</Label>
-                            <select
-                              value={editingChecklistDraft.category}
-                              onChange={(e) =>
-                                setEditingChecklistDraft((prev) =>
-                                  prev
-                                    ? { ...prev, category: e.target.value }
-                                    : prev,
-                                )
-                              }
-                              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                            >
-                              {checklistCategoryOptions.map(([value, label]) => (
-                                <option key={value} value={value}>
-                                  {label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
+                    <div className="space-y-1.5">
+                      <Label>Due date</Label>
+                      <Input
+                        type="date"
+                        value={newChecklistDraft.date}
+                        onChange={(e) =>
+                          setNewChecklistDraft((prev) => ({
+                            ...prev,
+                            date: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
 
-                        <label className="flex items-center gap-2 text-xs">
-                          <input
-                            type="checkbox"
-                            checked={editingChecklistDraft.isCritical}
-                            onChange={(e) =>
-                              setEditingChecklistDraft((prev) =>
-                                prev
-                                  ? {
-                                      ...prev,
-                                      isCritical: e.target.checked,
-                                    }
-                                  : prev,
-                              )
-                            }
-                          />
-                          Mark as critical
-                        </label>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        rows={2}
+                        value={newChecklistDraft.description}
+                        onChange={(e) =>
+                          setNewChecklistDraft((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                        placeholder="Define scope, expected output, and review standard."
+                      />
+                    </div>
 
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={cancelChecklistEdit}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => saveChecklistEdit(item.id)}
-                            disabled={
-                              !editingChecklistDraft.title.trim() ||
-                              !editingChecklistDraft.date.trim()
-                            }
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    <div className="space-y-1.5">
+                      <Label>Responsible Lead</Label>
+                      <Input
+                        value={newChecklistDraft.responsibleLead}
+                        onChange={(e) =>
+                          setNewChecklistDraft((prev) => ({
+                            ...prev,
+                            responsibleLead: e.target.value,
+                          }))
+                        }
+                        placeholder="Program Lead"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Category</Label>
+                      <select
+                        value={newChecklistDraft.category}
+                        onChange={(e) =>
+                          setNewChecklistDraft((prev) => ({
+                            ...prev,
+                            category: e.target.value,
+                          }))
+                        }
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                      >
+                        {checklistCategoryOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  <label className="flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={newChecklistDraft.isCritical}
+                      onChange={(e) =>
+                        setNewChecklistDraft((prev) => ({
+                          ...prev,
+                          isCritical: e.target.checked,
+                        }))
+                      }
+                    />
+                    Mark as critical
+                  </label>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowNewChecklistItem(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => void addChecklistItem()}
+                      disabled={
+                        !newChecklistDraft.title.trim() || !newChecklistDraft.date
+                      }
+                    >
+                      Save Item
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {checklistLoading ? (
+                <p className="text-xs text-muted-foreground">
+                  Loading checklist...
+                </p>
+              ) : checklistItems.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No checklist items found yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {checklistItems.map((item) => {
+                    const canManageItem = canEditChecklist && Boolean(item.dbId);
+                    const isEditing = editingChecklistId === item.id;
+
+                    return (
+                      <div key={item.id} className="rounded-lg border p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="flex min-w-0 flex-1 items-start gap-2">
+                            {canEditChecklist ? (
+                              <button
+                                className="mt-0.5"
+                                onClick={() =>
+                                  canManageItem && toggleChecklistComplete(item.id)
+                                }
+                                disabled={!canManageItem}
+                              >
+                                {item.isCompleted ? (
+                                  <CheckCircle2 className="size-5 text-emerald-600" />
+                                ) : (
+                                  <Circle className="size-5 text-muted-foreground" />
+                                )}
+                              </button>
+                            ) : item.isCompleted ? (
+                              <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
+                            ) : (
+                              <Circle className="mt-0.5 size-5 text-muted-foreground" />
+                            )}
+
+                            <div className="min-w-0">
+                              <p
+                                className={`text-sm font-medium ${item.isCompleted ? "line-through text-muted-foreground" : ""}`}
+                              >
+                                {item.title}
+                              </p>
+                              {item.description && (
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                  {item.description}
+                                </p>
+                              )}
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Responsible Lead: {item.owner}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-1">
+                            <Badge variant="outline" className="text-[10px]">
+                              Due{" "}
+                              {new Date(item.date).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </Badge>
+                            <Badge variant="secondary" className="text-[10px]">
+                              {CATEGORY_LABELS[item.category] || item.category}
+                            </Badge>
+                            {item.isCritical && (
+                              <Badge
+                                variant="outline"
+                                className="border-red-500/40 bg-red-500/10 text-[10px] text-red-700"
+                              >
+                                Critical
+                              </Badge>
+                            )}
+                            {canEditChecklist && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startChecklistEdit(item.id)}
+                                disabled={!canManageItem}
+                              >
+                                Edit
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+
+                        {isEditing && editingChecklistDraft && (
+                          <div className="mt-3 space-y-2 rounded-md border bg-muted/30 p-3">
+                            <div className="grid gap-2 md:grid-cols-2">
+                              <div className="space-y-1">
+                                <Label>Task title</Label>
+                                <Input
+                                  value={editingChecklistDraft.title}
+                                  onChange={(e) =>
+                                    setEditingChecklistDraft((prev) =>
+                                      prev
+                                        ? { ...prev, title: e.target.value }
+                                        : prev,
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Due date</Label>
+                                <Input
+                                  type="date"
+                                  value={editingChecklistDraft.date}
+                                  onChange={(e) =>
+                                    setEditingChecklistDraft((prev) =>
+                                      prev
+                                        ? { ...prev, date: e.target.value }
+                                        : prev,
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-1 md:col-span-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                  rows={2}
+                                  value={editingChecklistDraft.description}
+                                  onChange={(e) =>
+                                    setEditingChecklistDraft((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            description: e.target.value,
+                                          }
+                                        : prev,
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Responsible Lead</Label>
+                                <Input
+                                  value={editingChecklistDraft.responsibleLead}
+                                  onChange={(e) =>
+                                    setEditingChecklistDraft((prev) =>
+                                      prev
+                                        ? {
+                                            ...prev,
+                                            responsibleLead: e.target.value,
+                                          }
+                                        : prev,
+                                    )
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label>Category</Label>
+                                <select
+                                  value={editingChecklistDraft.category}
+                                  onChange={(e) =>
+                                    setEditingChecklistDraft((prev) =>
+                                      prev
+                                        ? { ...prev, category: e.target.value }
+                                        : prev,
+                                    )
+                                  }
+                                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                >
+                                  {checklistCategoryOptions.map(
+                                    ([value, label]) => (
+                                      <option key={value} value={value}>
+                                        {label}
+                                      </option>
+                                    ),
+                                  )}
+                                </select>
+                              </div>
+                            </div>
+
+                            <label className="flex items-center gap-2 text-xs">
+                              <input
+                                type="checkbox"
+                                checked={editingChecklistDraft.isCritical}
+                                onChange={(e) =>
+                                  setEditingChecklistDraft((prev) =>
+                                    prev
+                                      ? {
+                                          ...prev,
+                                          isCritical: e.target.checked,
+                                        }
+                                      : prev,
+                                  )
+                                }
+                              />
+                              Mark as critical
+                            </label>
+
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={cancelChecklistEdit}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => saveChecklistEdit(item.id)}
+                                disabled={
+                                  !editingChecklistDraft.title.trim() ||
+                                  !editingChecklistDraft.date.trim()
+                                }
+                              >
+                                Save
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {canEditChecklist && checklistItems.some((item) => !item.dbId) && (
+                <p className="text-[11px] text-muted-foreground">
+                  Some checklist rows are local fallback data and cannot be edited
+                  until timeline sync is available.
+                </p>
+              )}
+            </>
           )}
 
-          {canEditChecklist && checklistItems.some((item) => !item.dbId) && (
-            <p className="text-[11px] text-muted-foreground">
-              Some checklist rows are local fallback data and cannot be edited
-              until timeline sync is available.
+          {isChecklistCollapsed && (
+            <p className="text-xs text-muted-foreground">
+              Checklist collapsed. Click <span className="font-medium">Expand</span>{" "}
+              to view tasks.
             </p>
           )}
         </CardContent>

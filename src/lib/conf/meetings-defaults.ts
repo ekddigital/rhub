@@ -202,16 +202,24 @@ Presiding: Committee Chairman
 
 4. Closing Prayer (5 minutes)`;
 
-// Meeting schedule: #1 = April 10 (Fri), then Thursdays weekly from April 16
+// Meeting schedule realignment:
+// #1 = April 10 (Fri), #2 = April 16 (Thu), #3 = April 30 (Thu),
+// then Thursdays weekly thereafter.
 function buildMeetingDates(count: number): string[] {
   const dates: string[] = [];
   // Meeting 1: April 10, 2026 (Friday)
   dates.push("2026-04-10");
-  // Meetings 2+: weekly Thursdays starting April 16
-  const start = new Date("2026-04-16");
-  for (let i = 1; i < count; i++) {
+  if (count === 1) return dates;
+
+  // Meeting 2: April 16, 2026 (Thursday)
+  dates.push("2026-04-16");
+  if (count === 2) return dates;
+
+  // Meeting 3+: weekly Thursdays starting April 30
+  const start = new Date("2026-04-30");
+  for (let i = 2; i < count; i++) {
     const d = new Date(start);
-    d.setDate(d.getDate() + (i - 1) * 7);
+    d.setDate(d.getDate() + (i - 2) * 7);
     dates.push(d.toISOString().split("T")[0]);
   }
   return dates;
@@ -230,12 +238,12 @@ function buildStandardAgenda(
     "- Scoreboard Review",
     "  - Registrations vs 170 target",
     "  - Paid and approved delegates (Financial Secretary verification status)",
-    "  - Fee affordability check against RMB 275 baseline",
+    "  - Package affordability and accessibility check across approved package categories",
     "- Discussion",
     ...focusItems.map((item) => `  - ${item}`),
     "- Decision Gate",
     `  - Decision: ${decision}`,
-    "- Action Lock",
+    "- Action Assignment",
     "  - Assign responsible lead, due date, and required evidence for each action",
     aobNote ? `- AOB: ${aobNote}` : "- AOB",
     "- Closing Prayer",
@@ -243,6 +251,33 @@ function buildStandardAgenda(
 
   return lines.join("\n");
 }
+
+const MEETING_3_AGENDA = `Theme: Execution and Fundraising Closeout
+- 21:00-21:02 (2 mins) Opening Prayer
+- 21:02-21:07 (5 mins) Recap of Meeting #2
+  - Confirm completed items.
+  - Confirm unresolved blockers and responsible leads.
+- 21:07-21:19 (12 mins) Committee Progress and Blockers
+  - Each committee gives concise status (completed, in progress, blocked), strict cap: 2 minutes per committee.
+  - Timekeeper cuts overrun and parks deep issues for follow-up.
+- 21:19-21:27 (8 mins) Final Conference Fees Confirmation
+  - Approve final fee table and payment timeline for publication.
+  - Confirm communication language for members, guests, and patrons.
+- 21:27-21:37 (10 mins) Fundraising Plan Confirmation
+  - Confirm target amount, campaign channels (letters, direct outreach, digital, events), and campaign window/date(s).
+- 21:37-21:44 (7 mins) Fundraising Leads and Reporting Checkpoints
+  - Assign one lead and one backup per channel/workstream.
+  - Set weekly reporting checkpoints and reporting format.
+- 21:44-21:52 (8 mins) Fundraising Communications Kickoff
+  - Confirm flyer concept, Media Committee lead, and first release date.
+  - Approve fundraiser letter template, recipient segments, and distribution schedule.
+- 21:52-21:56 (4 mins) Decision and Formal Approvals
+  - Conclude and approve the fundraising plan.
+  - Confirm immediate publication of the execution tracker.
+- 21:56-22:04 (8 mins) Action Points
+  - Assign responsible lead, backup, deadline, expected feedback format, and priority level.
+- 22:04-22:08 (4 mins) AOB
+- 22:08-22:10 (2 mins) Closing Prayer`;
 
 const MEETING_TOPICS = [
   FIRST_MEETING_AGENDA,
@@ -252,119 +287,119 @@ const MEETING_TOPICS = [
       "Confirm hearing outcomes and unresolved questions from Cooking, Media, Logistics, Sports, and Decoration",
       "Approve the 'What to Expect at LSUIC 2026' promotional flyer for immediate release",
       "Assign hotel media capture deliverables: conference hall, pool, dining hall, dinner hall, and hotel yard",
-      "Lock the 3-day publicity schedule and posting responsibilities",
+      "Confirm the 3-day publicity schedule and posting responsibilities",
     ],
-    "Approve promo rollout and lock signup flyer publication gate after full publicity window",
+    "Approve promo rollout and confirm signup flyer publication gate after full publicity window",
     "Each committee submits one fundraising idea and one sponsor lead before Meeting #3",
   ),
+  MEETING_3_AGENDA,
   buildStandardAgenda(
-    "Execution and Fundraising Closeout",
+    "Budget, Fees Publication, and Fundraising Execution",
     [
-      "Review committee progress and unresolved blockers",
-      "Finalize signup flyer content with delegate registration link and Financial Secretary payment QR code",
-      "Confirm in-system payment verification and approval workflow for Financial Secretary and Treasurer",
-      "Finalize fundraising plan: target, channels, and timeline",
-      "Assign fundraising responsible leads and reporting checkpoints",
+      "Finalize section-by-section budget lines (venue, feeding, decorations, media, logistics, awards, reserves)",
+      "Confirm official fee and payment notice publication with late-payment and close-date terms",
+      "Approve fundraiser channel plan and committee-level outreach targets",
+      "Assign finance evidence standards for approvals, disbursements, and receipts",
     ],
-    "Publish signup flyer and start weekly payment verification reporting",
+    "Approve consolidated budget baseline and fundraising execution matrix",
   ),
   buildStandardAgenda(
-    "Budget Implementation and Sponsor Execution",
+    "Access Control, Registration Standards, and Payment Verification",
     [
-      "Review budget updates against the approved fundraising plan",
-      "Track sponsor outreach execution and response status",
-      "Close critical cost gaps and confirm immediate spending priorities",
+      "Confirm role access boundaries for management modules and delegate-facing pages",
+      "Review registration flow completeness: passport page, visa, last-entry stamp, and photo requirements",
+      "Enforce Financial Secretary/Treasurer verification SLA and queue handling",
+      "Review disputed, missing-proof, and rejected payment handling workflow",
     ],
-    "Approve weekly budget implementation actions",
+    "Approve registration quality controls and payment verification operating rhythm",
   ),
   buildStandardAgenda(
-    "Registration and Payment Control",
+    "Program Design and Speaker Coordination",
     [
-      "Review registration count, paid count, and payment-approval queue age",
-      "Enforce Financial Secretary and Treasurer verification SLA for pending payments",
-      "Resolve payment disputes and missing-proof cases before next report cycle",
-      "Confirm weekly registration and payment reporting",
+      "Confirm day-by-day program framework and session time blocks",
+      "Assign speaker outreach ownership, bio collection, and confirmation deadlines",
+      "Confirm moderation, protocol, and timekeeping assignments",
+      "Review open dependencies affecting final run-sheet development",
     ],
-    "Publish weekly verified payment status and approval backlog report",
+    "Approve draft program structure and speaker coordination plan",
   ),
   buildStandardAgenda(
-    "Program Structure",
+    "Logistics, Rooming, and Operations Readiness",
     [
-      "Finalize flow for sessions, elections, sports, and awards",
-      "Close pending items for welcome and recreation blocks",
-      "Resolve schedule and staffing conflicts",
+      "Finalize rooming policy, room assignment process, and check-in/check-out controls",
+      "Confirm transport, movement support, and arrival-assistance process",
+      "Confirm AV, venue operations, and emergency-response preparation",
+      "Review unresolved logistics blockers and escalation actions",
     ],
-    "Approve updated program structure",
-  ),
-  buildStandardAgenda(
-    "Logistics and Rooming",
-    [
-      "Finalize rooming rules and transport updates",
-      "Confirm check-in workflow and late-arrival handling",
-      "Resolve logistics blockers raised by committee leads",
-    ],
-    "Lock rooming and movement operations plan",
+    "Approve rooming and logistics operations plan",
   ),
   buildStandardAgenda(
     "Midpoint Recovery",
     [
-      "Review overdue actions and root causes",
-      "Re-assign delayed tasks with corrected deadlines",
-      "Escalate unresolved dependencies for rapid decisions",
+      "Review overdue action items against section deadlines in the master plan",
+      "Re-assign delayed work with corrected deadlines and backup leads",
+      "Escalate unresolved dependencies requiring Chair/NEC intervention",
+      "Confirm weekly variance-report format for governance and finance",
     ],
-    "Approve recovery plan for delayed workstreams",
+    "Approve midpoint recovery plan and escalation tracker",
   ),
   buildStandardAgenda(
-    "Materials and Production",
+    "Booklet, Branding, and Production Gate",
     [
-      "Confirm final content for booklet, badges, shirts, and signage",
-      "Validate print quantities from verified delegate numbers",
-      "Confirm procurement deadlines and payment readiness",
+      "Finalize booklet contents, emergency details, and committee/delegate profile completeness",
+      "Confirm final quantities for badges, tags, signage, and souvenir materials",
+      "Review vendor readiness, payment status, and production timeline risks",
+      "Approve print and branding freeze checklist",
     ],
-    "Approve production release",
+    "Approve production release and design freeze",
   ),
   buildStandardAgenda(
-    "Operations Drill",
+    "Operations Drill and Event Control Systems",
     [
-      "Simulate registration flow and session transitions",
-      "Confirm security, crowd control, and emergency contacts",
-      "Resolve dry-run findings and assign fixes",
+      "Run simulation for registration desk, payment exceptions, and session transitions",
+      "Validate operations control logs: minutes, decisions, finance receipts, and incident handling",
+      "Confirm command flow for protocol, ushering, and media coordination",
+      "Resolve dry-run findings and assign corrective actions with deadlines",
     ],
-    "Sign off operations drill corrections",
+    "Approve operations drill corrections and event-control readiness",
   ),
   buildStandardAgenda(
-    "Final Readiness Gate",
+    "Final Readiness and Conference Week Authorization",
     [
-      "Review open critical items and responsible leads",
-      "Confirm delegate and volunteer communication package",
-      "Validate payment closeout and unresolved balance cases",
+      "Review all open critical actions and close/no-close status by committee",
+      "Confirm delegate communications package: arrival guide, FAQ, and conduct instructions",
+      "Validate payment closeout status, unresolved balances, and rooming finalization",
+      "Confirm team deployment schedule for conference week",
     ],
-    "Submit Go/No-Go recommendation",
+    "Submit formal Go/No-Go recommendation with documented risk posture",
   ),
   buildStandardAgenda(
-    "Last Call and Contingencies",
+    "Contingency and Last-Mile Coordination",
     [
-      "Confirm final roster and travel readiness",
-      "Validate contingency plans for key risks",
-      "Finalize awards, stage, and media run sheet",
+      "Confirm final roster, late-arrival cases, and travel support readiness",
+      "Validate contingency plans for finance, logistics, program, and communication risks",
+      "Finalize awards-night, stage management, and media coverage run-sheet",
+      "Confirm fallback decision path for same-day operational disruptions",
     ],
-    "Lock contingency checklist",
+    "Approve contingency protocol and last-mile execution checklist",
   ),
   buildStandardAgenda(
-    "Pre-Conference Briefing",
+    "Pre-Conference Command Briefing",
     [
-      "Confirm deployment assignments for committees and volunteers",
-      "Align reporting rhythm for conference week",
-      "Close final coordination gaps across teams",
+      "Confirm final deployment assignments for committees and volunteers",
+      "Align reporting rhythm and escalation windows for conference days",
+      "Confirm opening-day script ownership and timing responsibilities",
+      "Close final cross-team coordination gaps before on-site setup",
     ],
-    "Approve execution handoff",
+    "Approve execution handoff from planning to command mode",
   ),
   buildStandardAgenda(
     "Conference Week Command Briefing",
     [
-      "Confirm day-by-day command flow and emergency contacts",
-      "Review arrival support and first-day readiness checklist",
-      "Confirm closure reporting expectations for all leads",
+      "Confirm day-by-day command flow, emergency contacts, and duty roster",
+      "Review arrival support readiness and first-day opening checklist",
+      "Confirm daily reporting expectations: minutes, decision log, finance log, and incidents",
+      "Set closeout reporting deadlines for post-event submissions",
     ],
     "Activate conference week command protocol",
   ),

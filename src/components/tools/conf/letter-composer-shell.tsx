@@ -178,6 +178,14 @@ function richHtmlToPlainText(html: string): string {
   if (!trimmed) return "";
 
   const withBreaks = trimmed
+    .replace(/<\/th>\s*<th[^>]*>/gi, " | ")
+    .replace(/<\/td>\s*<td[^>]*>/gi, " | ")
+    .replace(/<(th|td)[^>]*>/gi, "")
+    .replace(/<\/(th|td)>/gi, "")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/thead>/gi, "\n")
+    .replace(/<\/tbody>/gi, "\n")
+    .replace(/<\/table>/gi, "\n\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(p|div|h1|h2|h3|h4|h5|h6)>/gi, "\n\n")
     .replace(/<\/li>/gi, "\n")
@@ -646,9 +654,7 @@ function LetterA4Preview({
 
   // Paginate body text using page-aware metrics
   const bodyForLayout =
-    draft.body && draft.body.trim().length > 0
-      ? draft.body
-      : richHtmlToPlainText(draft.bodyRich ?? "");
+    richHtmlToPlainText(draft.bodyRich ?? "") || draft.body || "";
 
   const bodyPages = paginateBodyText(
     bodyForLayout,
@@ -2414,7 +2420,7 @@ export function LetterComposerShell() {
                       setActiveDraft((d) => ({
                         ...d,
                         bodyRich: value.html,
-                        body: value.text,
+                        body: richHtmlToPlainText(value.html),
                       }))
                     }
                   />

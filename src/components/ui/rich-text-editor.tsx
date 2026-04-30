@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect } from "react";
+import { Extension } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { Plugin } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
 import {
   AlignCenter,
   AlignLeft,
@@ -40,8 +46,148 @@ type RichTextEditorProps = {
 
 function normalizeHtml(value: string): string {
   const trimmed = value.trim();
-  return !trimmed || trimmed === "<p></p>" ? "<p></p>" : trimmed;
+  if (!trimmed || trimmed === "<p></p>") return "<p></p>";
+
+  // Legacy drafts may store markdown/plain text in bodyRich.
+  // Convert those to structured HTML so # headings and markdown tables render.
+  const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(trimmed);
+  if (!hasHtmlTags && isLikelyMarkdown(trimmed)) {
+    return markdownToHtml(trimmed);
+  }
+
+  return trimmed;
 }
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function splitTableLine(line: string): string[] {
+  let work = line.trim();
+  if (work.startsWith("|")) work = work.slice(1);
+  if (work.endsWith("|")) work = work.slice(0, -1);
+  return work.split("|").map((cell) => cell.trim());
+}
+
+function isMarkdownTable(lines: string[]): boolean {
+  if (lines.length < 2) return false;
+  const hasPipes = lines[0].includes("|");
+  const separator = lines[1].trim();
+  const isSeparator = /^[:|\-\s]+$/.test(separator) && separator.includes("-");
+  return hasPipes && isSeparator;
+}
+
+function markdownBlockToHtml(block: string): string {
+  const lines = block.split("\n").map((line) => line.trimEnd());
+  const compact = lines.filter((line) => line.trim().length > 0);
+  if (compact.length === 0) return "<p></p>";
+
+  if (isMarkdownTable(compact)) {
+    const headerCells = splitTableLine(compact[0]).map(
+      (cell) => `<th>${escapeHtml(cell)}</th>`,
+    );
+    const bodyRows = compact
+      .slice(2)
+      .map((row) => {
+        const cells = splitTableLine(row).map(
+          (cell) => `<td>${escapeHtml(cell)}</td>`,
+        );
+        return `<tr>${cells.join("")}</tr>`;
+      })
+      .join("");
+    return `<table><thead><tr>${headerCells.join("")}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+  }
+
+  const heading = compact[0].match(/^(#{1,2})\s+(.+)$/);
+  if (heading) {
+    const level = heading[1].length;
+    const content = escapeHtml(heading[2]);
+    return `<h${level}>${content}</h${level}>`;
+  }
+
+  const unordered = compact.every((line) => /^[-*]\s+/.test(line));
+  if (unordered) {
+    const items = compact
+      .map((line) => `<li>${escapeHtml(line.replace(/^[-*]\s+/, ""))}</li>`)
+      .join("");
+    return `<ul>${items}</ul>`;
+  }
+
+  const ordered = compact.every((line) => /^\d+\.\s+/.test(line));
+  if (ordered) {
+    const items = compact
+      .map((line) => `<li>${escapeHtml(line.replace(/^\d+\.\s+/, ""))}</li>`)
+      .join("");
+    return `<ol>${items}</ol>`;
+  }
+
+  const paragraph = compact
+    .map((line) => escapeHtml(line))
+    .join("<br />")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+  return `<p>${paragraph}</p>`;
+}
+
+function markdownToHtml(text: string): string {
+  const normalized = text.replace(/\r\n/g, "\n").trim();
+  if (!normalized) return "<p></p>";
+  const blocks = normalized.split(/\n{2,}/);
+  return blocks.map(markdownBlockToHtml).join("");
+}
+
+function isLikelyMarkdown(text: string): boolean {
+  return (
+    /^\s*#{1,6}\s+/m.test(text) ||
+    /^\s*[-*]\s+/m.test(text) ||
+    /^\s*\d+\.\s+/m.test(text) ||
+    /^\s*\|.+\|\s*$/m.test(text)
+  );
+}
+
+function hasStructuredHtml(html: string): boolean {
+  // Treat only semantically-rich structures as "already formatted".
+  // Plain wrappers like <p>/<div>/<span>/<br> should still allow markdown conversion.
+  return /<(table|thead|tbody|tr|th|td|ul|ol|li|h[1-6]|blockquote|pre|code)\b/i.test(
+    html,
+  );
+}
+
+const MarkdownPasteExtension = Extension.create({
+  name: "markdownPaste",
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        props: {
+          handlePaste: (_view, event) => {
+            const clipboard = event.clipboardData;
+            if (!clipboard) return false;
+
+            const html = clipboard.getData("text/html");
+            const text = clipboard.getData("text/plain");
+            if (!text) return false;
+
+            const markdownLike = isLikelyMarkdown(text);
+            if (!markdownLike) return false;
+
+            // Some clipboard sources provide a lightweight HTML wrapper even when
+            // the real payload is markdown text. Convert in that case too.
+            if (html && hasStructuredHtml(html)) return false;
+
+            const converted = markdownToHtml(text);
+            if (!converted.trim()) return false;
+            event.preventDefault();
+            this.editor.chain().focus().insertContent(converted).run();
+            return true;
+          },
+        },
+      }),
+    ];
+  },
+});
 
 export function RichTextEditor({
   value,
@@ -60,18 +206,25 @@ export function RichTextEditor({
         openOnClick: false,
         autolink: true,
       }),
+      Table.configure({
+        resizable: false,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
       Placeholder.configure({
         placeholder,
       }),
+      MarkdownPasteExtension,
     ],
     content: normalizeHtml(value),
     editorProps: {
       attributes: {
         class:
-          "min-h-[340px] max-h-[420px] overflow-y-auto px-3 py-2 text-sm leading-6 focus:outline-hidden [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:my-1 [&_a]:text-[#002868] [&_a]:underline",
+          "min-h-[340px] max-h-[420px] overflow-y-auto px-3 py-2 text-sm leading-6 focus:outline-hidden [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:my-1 [&_a]:text-[#002868] [&_a]:underline [&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_th]:border [&_th]:border-[#d9dfe9] [&_th]:bg-[#f3f6fb] [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold [&_td]:border [&_td]:border-[#d9dfe9] [&_td]:px-2 [&_td]:py-1",
       },
     },
     onUpdate: ({ editor: current }) => {

@@ -318,8 +318,9 @@ async function bootstrapDefaultConference() {
     where: { confId: event.id },
   });
 
+  const defaults = getDefaultMeetings();
+
   if (meetingCount === 0) {
-    const defaults = getDefaultMeetings();
     await prisma.confMeeting.createMany({
       data: defaults.map((meeting) => ({
         confId: event.id,
@@ -336,6 +337,27 @@ async function bootstrapDefaultConference() {
       })),
       skipDuplicates: true,
     });
+  } else {
+    // Keep schedule + agenda templates aligned for upcoming meetings.
+    // We only touch meetings that are not completed and not already approved.
+    for (const meeting of defaults) {
+      if (meeting.meetingNo <= 1) continue;
+
+      await prisma.confMeeting.updateMany({
+        where: {
+          confId: event.id,
+          meetingNo: meeting.meetingNo,
+          status: { not: "DONE" },
+          minutesStatus: { not: "APPROVED" },
+        },
+        data: {
+          title: meeting.title,
+          scheduled: new Date(meeting.scheduled),
+          location: meeting.location,
+          agenda: meeting.agenda || null,
+        },
+      });
+    }
   }
 
   // Seed global leader profiles (state dignitaries) if not yet present.
@@ -374,6 +396,25 @@ async function bootstrapDefaultConference() {
     })),
     skipDuplicates: true,
   });
+
+  // Keep upcoming timeline defaults aligned for active (not completed) tasks.
+  for (const item of INITIAL_TIMELINE) {
+    await prisma.confTimeline.updateMany({
+      where: {
+        confId: event.id,
+        clientId: item.id,
+        isCompleted: false,
+      },
+      data: {
+        title: item.title,
+        description: item.description || null,
+        responsibleLead: item.owner || null,
+        date: new Date(item.date),
+        category: item.category || null,
+        isCritical: item.isCritical,
+      },
+    });
+  }
 
   return event;
 }
