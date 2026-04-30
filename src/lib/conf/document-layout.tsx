@@ -54,6 +54,10 @@ export interface DocumentLayoutProps {
 
   /** Additional CSS classes */
   className?: string;
+
+  /** Optional page numbering support for multi-page previews */
+  pageNumber?: number;
+  totalPages?: number;
 }
 
 export interface TableColumn {
@@ -80,6 +84,8 @@ export function DocumentLayout({
   children,
   forPrint = false,
   className = "",
+  pageNumber,
+  totalPages,
 }: DocumentLayoutProps) {
   const STRIPE_H = LETTERHEAD_SECTIONS.stripeHeight;
   const HEADER_H = LETTERHEAD_SECTIONS.headerHeight;
@@ -88,6 +94,7 @@ export function DocumentLayout({
   const NAVY_BAR = LETTERHEAD_SECTIONS.navyBarHeight;
   const RED_BAR = LETTERHEAD_SECTIONS.redBarHeight;
   const BODY_H = LETTERHEAD_SECTIONS.bodyHeight;
+  const FOOTER_H = LETTERHEAD_SECTIONS.footerHeight;
   const SIDEBAR_W = LETTERHEAD_SECTIONS.sidebarWidth;
   const PAGE_W = PAGE_DIMENSIONS.width;
 
@@ -116,11 +123,11 @@ export function DocumentLayout({
         className="document-page"
         style={{
           width: PAGE_W,
-          height: forPrint ? "auto" : "842px",
+          height: PAGE_DIMENSIONS.height,
           background: C.white,
           display: "flex",
           flexDirection: "column",
-          overflow: forPrint ? "visible" : "hidden",
+          overflow: "hidden",
           boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
           margin: forPrint ? 0 : "20px auto",
         }}
@@ -274,9 +281,9 @@ export function DocumentLayout({
         <div
           style={{
             display: "flex",
-            height: forPrint ? "auto" : BODY_H,
+            height: BODY_H,
             flexShrink: 0,
-            overflow: forPrint ? "visible" : "hidden",
+            overflow: "hidden",
           }}
         >
           {/* Left sidebar */}
@@ -286,7 +293,7 @@ export function DocumentLayout({
                 width: SIDEBAR_W,
                 background: C.white,
                 flexShrink: 0,
-                overflow: forPrint ? "visible" : "hidden",
+                overflow: "hidden",
                 display: "flex",
                 borderRight: "1px solid #dde3ef",
               }}
@@ -302,7 +309,7 @@ export function DocumentLayout({
                 style={{
                   flex: 1,
                   padding: "12px 8px 12px 9px",
-                  overflowY: forPrint ? "visible" : "auto",
+                  overflowY: "hidden",
                 }}
               >
                 <div
@@ -399,10 +406,60 @@ export function DocumentLayout({
             style={{
               flex: 1,
               padding: "20px 18px",
-              overflowY: forPrint ? "visible" : "auto",
+              overflowY: "hidden",
             }}
           >
             {children}
+          </div>
+        </div>
+
+        {/* ── Footer (same style as letters) ── */}
+        <div
+          style={{
+            height: FOOTER_H,
+            background: C.navy,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ height: 2, background: C.red, width: "100%" }} />
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 14px",
+            }}
+          >
+            <div style={{ width: 48 }} />
+            <div
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                color: C.gold,
+                letterSpacing: "0.5px",
+                textAlign: "center",
+              }}
+            >
+              {LETTERHEAD_CONFIG.motto}
+            </div>
+            <div
+              style={{
+                fontSize: 8,
+                color: C.gold,
+                opacity: 0.75,
+                fontVariantNumeric: "tabular-nums",
+                width: 64,
+                textAlign: "right",
+              }}
+            >
+              {pageNumber && totalPages
+                ? `Page ${pageNumber} of ${totalPages}`
+                : ""}
+            </div>
           </div>
         </div>
       </div>

@@ -133,7 +133,7 @@ function PaymentsDocumentPreview({
             amount: "—",
           },
         ];
-  const rowChunks = chunkArray(rows, 14);
+  const rowChunks = chunkArray(rows, 24);
   const normalizedConfInfo = confInfo
     ? {
         ...confInfo,
@@ -157,6 +157,8 @@ function PaymentsDocumentPreview({
       officeLabel="Office of the Finance Secretary"
       members={sidebarMembers}
       className={pageIndex > 0 ? "mt-4" : ""}
+      pageNumber={pageIndex + 1}
+      totalPages={rowChunks.length}
     >
       {pageIndex === 0 ? (
         <div style={{ marginBottom: 12 }}>

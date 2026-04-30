@@ -229,7 +229,7 @@ function BudgetDocumentPreview({
             total: "—",
           },
         ];
-  const rowChunks = chunkArray(rows, 12);
+  const rowChunks = chunkArray(rows, 20);
 
   const sidebarMembers = members.slice(0, 8).map((member) => ({
     id: member.id,
@@ -253,6 +253,8 @@ function BudgetDocumentPreview({
       officeLabel="Office of the Finance Secretary"
       members={sidebarMembers}
       className={pageIndex > 0 ? "mt-4" : ""}
+      pageNumber={pageIndex + 1}
+      totalPages={rowChunks.length}
     >
       {pageIndex === 0 ? (
         <>

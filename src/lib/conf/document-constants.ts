@@ -28,30 +28,31 @@ export const LIBERIAN_FLAG_STRIPES = [
   "#BF0A30",
 ] as const;
 
-// ── A4 page layout (595 × 842 px @ 72dpi) ────────────────────────────────────
+// ── A4 page layout (794 × 1123 px @ 96dpi) ───────────────────────────────────
 
 export const PAGE_LAYOUT = {
-  width: 595,
-  height: 842,
+  width: 794,
+  height: 1123,
   margin: { top: 20, right: 20, bottom: 20, left: 20 },
 } as const;
 
 export const PAGE_DIMENSIONS = {
-  width: "595px",
-  height: "842px",
+  width: "794px",
+  height: "1123px",
 } as const;
 
 // ── Letterhead sections ───────────────────────────────────────────────────────
 
 export const LETTERHEAD_SECTIONS = {
-  stripeHeight: 12,
-  headerHeight: 130,
-  goldBarHeight: 3,
-  officeRowHeight: 18,
-  navyBarHeight: 2,
-  redBarHeight: 2,
-  sidebarWidth: 140,
-  bodyHeight: 450,
+  stripeHeight: 14,
+  headerHeight: 158,
+  goldBarHeight: 2.5,
+  officeRowHeight: 26,
+  navyBarHeight: 7,
+  redBarHeight: 3,
+  sidebarWidth: 215,
+  footerHeight: 32,
+  bodyHeight: 880,
 } as const;
 
 export const CONTENT_AREA = {
