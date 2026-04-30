@@ -28,6 +28,7 @@ export interface ReportEntry {
   amount: number;
   currency: string;
   paymentType: "EXPENSE" | "INCOME";
+  status?: string;
   committeeScope?: string | null;
   lineComment?: string | null;
   displayOrder: number;
@@ -101,11 +102,13 @@ export function ReportDocumentViewer({
 
   // ── Calculate totals ────────────────────────────────────────────────────────
 
-  const expenses = entries
+  const confirmedEntries = entries.filter((entry) => entry.status === "APPROVED");
+
+  const expenses = confirmedEntries
     .filter((e) => e.paymentType === "EXPENSE")
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const income = entries
+  const income = confirmedEntries
     .filter((e) => e.paymentType === "INCOME")
     .reduce((sum, e) => sum + e.amount, 0);
 
@@ -260,7 +263,7 @@ export function ReportDocumentViewer({
       {/* Payment entries table */}
       <DocumentTable
         columns={columns}
-        data={entries.map((e) => ({
+        data={confirmedEntries.map((e) => ({
           displayOrder: e.displayOrder,
           description: e.description,
           paymentType: e.paymentType,

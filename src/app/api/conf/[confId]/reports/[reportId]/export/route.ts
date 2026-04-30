@@ -26,8 +26,8 @@ export async function GET(
       );
     }
 
-    const report = await prisma.confReport.findUnique({
-      where: { id: reportId },
+    const report = await prisma.confReport.findFirst({
+      where: { id: reportId, confId },
       include: {
         entries: {
           include: {
@@ -61,18 +61,32 @@ export async function GET(
 // ── CSV Export ────────────────────────────────────────────────────────────────
 
 function exportAsCSV(report: any) {
+  const confirmedEntries = report.entries.filter(
+    (entry: any) => entry.payment?.status === "APPROVED",
+  );
+
   const rows: string[][] = [
-    ["#", "Description", "Type", "Amount", "Currency", "Scope", "Notes"],
+    [
+      "#",
+      "Description",
+      "Type",
+      "Amount",
+      "Currency",
+      "Status",
+      "Scope",
+      "Notes",
+    ],
   ];
 
   // Add entries
-  report.entries.forEach((entry: any, idx: number) => {
+  confirmedEntries.forEach((entry: any, idx: number) => {
     rows.push([
       String(idx + 1),
       entry.payment?.description || "",
       entry.payment?.paymentType || "",
       String(entry.payment?.amount || 0),
       entry.payment?.currency || "USD",
+      entry.payment?.status || "",
       entry.payment?.committeeScope || "",
       entry.lineComment || "",
     ]);
@@ -82,14 +96,16 @@ function exportAsCSV(report: any) {
   rows.push([]);
 
   // Add totals
-  const expenses = report.entries
+  const expenses = confirmedEntries
     .filter((e: any) => e.payment?.paymentType === "EXPENSE")
     .reduce((sum: number, e: any) => sum + (e.payment?.amount || 0), 0);
 
-  const income = report.entries
+  const income = confirmedEntries
     .filter((e: any) => e.payment?.paymentType === "INCOME")
     .reduce((sum: number, e: any) => sum + (e.payment?.amount || 0), 0);
 
+  rows.push(["Confirmed Entries Included", String(confirmedEntries.length)]);
+  rows.push(["Excluded (Not Finally Approved)", String(report.entries.length - confirmedEntries.length)]);
   rows.push(["Total Expenses", String(expenses)]);
   rows.push(["Total Income", String(income)]);
   rows.push(["Net", String(income - expenses)]);

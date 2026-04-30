@@ -75,6 +75,40 @@ export async function POST(
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
 
+    const requestedPaymentIds = Array.isArray(paymentIds)
+      ? paymentIds
+          .filter((value: unknown): value is string => typeof value === "string")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : [];
+
+    const uniquePaymentIds = Array.from(new Set(requestedPaymentIds));
+
+    if (uniquePaymentIds.length > 0) {
+      const approvedPayments = await prisma.confPayment.findMany({
+        where: {
+          confId,
+          id: { in: uniquePaymentIds },
+          status: "APPROVED",
+        },
+        select: { id: true },
+      });
+
+      const approvedIds = new Set(approvedPayments.map((payment) => payment.id));
+      const invalidIds = uniquePaymentIds.filter((id) => !approvedIds.has(id));
+
+      if (invalidIds.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              "Only finally approved payments can be included in reports.",
+            invalidPaymentIds: invalidIds,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const report = await prisma.confReport.create({
       data: {
         confId,
@@ -88,7 +122,7 @@ export async function POST(
         createdByName: auth.access.user?.name ?? null,
         createdByUserId: auth.access.user?.id ?? null,
         entries: {
-          create: (Array.isArray(paymentIds) ? paymentIds : []).map(
+          create: uniquePaymentIds.map(
             (pid: string, idx: number) => ({
               paymentId: pid,
               lineComment: lineComments?.[pid] ?? null,
@@ -100,7 +134,9 @@ export async function POST(
       include: {
         entries: {
           include: {
-            payment: { include: { proofs: true } },
+            payment: {
+              include: { proofs: true },
+            },
           },
           orderBy: { displayOrder: "asc" },
         },
@@ -116,7 +152,7 @@ export async function POST(
       entityId: report.id,
       details: {
         title,
-        entryCount: report.entries.length,
+        entryCount: uniquePaymentIds.length,
         committeeScope,
         paymentTypes,
       },

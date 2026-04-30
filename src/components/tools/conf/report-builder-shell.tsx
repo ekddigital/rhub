@@ -60,8 +60,12 @@ type SavedReport = {
     amount: number;
     currency: string;
     paymentType: "EXPENSE" | "INCOME";
+    status?: string;
     lineComment?: string | null;
     displayOrder: number;
+    payment?: {
+      status?: string | null;
+    } | null;
   }>;
 };
 
@@ -101,7 +105,7 @@ export function ReportBuilderShell() {
       try {
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const res = await fetch(`/api/conf/${conf.id}/payments`);
+        const res = await fetch(`/api/conf/${conf.id}/payments?status=APPROVED`);
         if (!res.ok) throw new Error("Failed to load payments");
         setPayments((await res.json()) as Payment[]);
       } catch (e) {
@@ -115,6 +119,7 @@ export function ReportBuilderShell() {
 
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
+      if (p.status !== "APPROVED") return false;
       if (typeFilter !== "ALL" && p.paymentType !== typeFilter) return false;
       if (scopeFilter && p.committeeScope !== scopeFilter) return false;
       if (dateFrom && p.paidAt && new Date(p.paidAt) < new Date(dateFrom))
@@ -340,7 +345,7 @@ export function ReportBuilderShell() {
           <CardHeader>
             <CardTitle>Filter Payments</CardTitle>
             <CardDescription>
-              Narrow down which payments to include
+              Narrow down which confirmed payments to include
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -394,7 +399,8 @@ export function ReportBuilderShell() {
             </div>
 
             <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-              <strong>{filteredPayments.length}</strong> payments match filters
+              <strong>{filteredPayments.length}</strong> confirmed payments match
+              filters
             </div>
 
             <Button
@@ -661,6 +667,7 @@ export function ReportBuilderShell() {
                   amount: e.amount,
                   currency: e.currency,
                   paymentType: e.paymentType,
+                  status: e.payment?.status ?? e.status,
                   committeeScope: e.lineComment
                     ? undefined
                     : savedReport.committeeScope,
