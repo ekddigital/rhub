@@ -53,6 +53,7 @@ function renderSection(
   const filteredCommitteeForCityPresidents = committeeMembers.filter(
     (m) => !leaderNames.has(normalizeName(m.name)),
   );
+  const nationalPresident = necMembers.find((m) => m.role === "CHAIR") ?? null;
 
   switch (section.type) {
     case "LEADER":
@@ -69,6 +70,16 @@ function renderSection(
       );
 
     case "PRESIDENT_ADDRESS":
+      return (
+        <AddressSection
+          key={key}
+          section={section}
+          speaker={nationalPresident}
+          content={nationalPresident?.bookletBio ?? section.bodyText}
+          {...commonSingle}
+        />
+      );
+
     case "GUEST_BIO":
       return (
         <AddressSection
@@ -190,6 +201,10 @@ export function BookletPreview({
   }
 
   function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
+    const isMainConferenceCommittee =
+      s.type === "COMMITTEE" && !s.committeeScope?.trim();
+    if (isMainConferenceCommittee) return 1;
+
     const relevant = sectionMembersForPageCount(s);
     const hasGeneral = relevant.some((m) => !KEY_ROLES.includes(m.role));
     return hasGeneral ? 2 : 1;

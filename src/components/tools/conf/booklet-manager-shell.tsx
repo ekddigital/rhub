@@ -94,9 +94,9 @@ export type NecMember = {
 };
 
 const COMMITTEE_ROLE_LABELS: Record<string, string> = {
-  CHAIR: "General Chairman",
-  VICE_CHAIR: "General Co-Chair",
-  SECRETARY: "General Secretary",
+  CHAIR: "Conference Chair",
+  VICE_CHAIR: "Conference Vice-Chair",
+  SECRETARY: "Conference Secretary",
   TREASURER: "Treasurer",
   COMMITTEE: "",
 };
@@ -732,7 +732,8 @@ export function BookletManagerShell() {
           {/* Booklet Readiness Checklist */}
           {data &&
             (() => {
-              const chairMember = data.conferenceChair;
+              const nationalPresident =
+                data.necMembers.find((m) => m.role === "CHAIR") ?? null;
               const checks = [
                 {
                   label: "Leader profiles added",
@@ -742,21 +743,12 @@ export function BookletManagerShell() {
                   actionLabel: "Add Leaders",
                 },
                 {
-                  label: "Chairman's address written",
-                  ok: !!chairMember?.bookletBio,
-                  hint: "The General Chairman has not yet written their booklet address.",
-                  action: () => chairMember && openChairBioEdit(chairMember),
-                  actionLabel: "Write Address",
-                },
-                {
-                  label: "Conference schedule added",
-                  ok: data.meetings.length > 0,
-                  hint: "Add meetings/events to populate the schedule section.",
+                  label: "National President address written",
+                  ok: !!nationalPresident?.bookletBio,
+                  hint: "The National President has not yet written their booklet address.",
                   action: () =>
-                    window.location.assign(
-                      window.location.pathname.replace("/booklet", "/meetings"),
-                    ),
-                  actionLabel: "Add Meetings",
+                    nationalPresident && openChairBioEdit(nationalPresident),
+                  actionLabel: "Write Address",
                 },
                 {
                   label: "Confirmed delegates registered",
@@ -964,7 +956,7 @@ export function BookletManagerShell() {
                         </Badge>
                       )}
                       {m.role === "VICE_CHAIR" && (
-                        <Badge className="bg-[#182e5f]/20 text-[#182e5f] border-[#182e5f]/30 text-xs">
+                        <Badge className="bg-ekd-deep-navy/20 border-ekd-deep-navy/30 text-xs text-ekd-deep-navy">
                           Co-Chair
                         </Badge>
                       )}
@@ -1007,12 +999,12 @@ export function BookletManagerShell() {
           {chairBioEdit.open && (
             <Card className="border-[#C8A061]/40 bg-[#C8A061]/5">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-[#182e5f]">
-                  Chairman&apos;s Address — Booklet Message
+                <CardTitle className="text-sm text-ekd-deep-navy">
+                  National President Address — Booklet Message
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  This message will appear in the &quot;Chairman&apos;s
-                  Address&quot; section of the booklet.
+                  This message will appear in the
+                  &quot;National President Address&quot; section of the booklet.
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">

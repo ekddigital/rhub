@@ -6,6 +6,12 @@ import type { BookletSection, NecMember } from "./types";
 
 const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
 
+function chairBadgeLabel(chair: NecMember, isNec?: boolean): string {
+  if (isNec) return "National President";
+  const preferred = chair.conferencePosition?.trim() || chair.title?.trim();
+  return preferred || "Conference Chair";
+}
+
 // ─── Section header used on both pages ────────────────────────────────────────
 function SectionHeading({ section }: { section: BookletSection }) {
   return (
@@ -148,7 +154,7 @@ function ChairHeroCard({
             marginBottom: isNec ? "5px" : "8px",
           }}
         >
-          ★ {isNec ? "General Chairman" : "General Chairman"}
+          ★ {chairBadgeLabel(chair, isNec)}
         </div>
 
         {/* Name */}
@@ -311,25 +317,16 @@ function OfficerCard({
         </div>
         <div
           style={{
-            fontSize: "9px",
-            color: C.muted,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "2px 10px",
             marginTop: "3px",
-            lineHeight: 1.3,
           }}
         >
-          {(member.city ?? "Member") +
-            (member.province ? `, ${member.province}` : "")}
-        </div>
-        <div
-          style={{
-            fontSize: "9px",
-            color: C.muted,
-            lineHeight: 1.3,
-          }}
-        >
-          {member.university?.trim() || "Member"}
-        </div>
-        {member.phone && (
+          <div style={{ fontSize: "9px", color: C.muted, lineHeight: 1.3 }}>
+            {(member.city ?? "Member") +
+              (member.province ? `, ${member.province}` : "")}
+          </div>
           <div
             style={{
               fontSize: "9px",
@@ -338,9 +335,19 @@ function OfficerCard({
               fontWeight: 600,
             }}
           >
-            {member.phone}
+            {member.phone ?? "Phone pending"}
           </div>
-        )}
+          <div
+            style={{
+              gridColumn: "1 / span 2",
+              fontSize: "9px",
+              color: C.muted,
+              lineHeight: 1.3,
+            }}
+          >
+            {member.university?.trim() || "Member"}
+          </div>
+        </div>
         <div
           style={{
             marginTop: "4px",
@@ -395,29 +402,35 @@ function MemberCard({ member }: { member: NecMember }) {
         >
           {member.name}
         </div>
-        {(member.title ?? member.city) && (
+        <div
+          style={{
+            fontSize: "9.5px",
+            color: C.muted,
+            lineHeight: 1.4,
+          }}
+        >
+          <div style={{ fontWeight: 500 }}>
+            {member.conferencePosition?.trim() || member.title || "Member"}
+          </div>
           <div
             style={{
-              fontSize: "9.5px",
-              color: C.muted,
-              lineHeight: 1.4,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "2px 10px",
             }}
           >
-            <div style={{ fontWeight: 500 }}>
-              {member.conferencePosition?.trim() || member.title || "Member"}
-            </div>
             <div>
               {(member.city ?? "Member") +
                 (member.province ? `, ${member.province}` : "")}
             </div>
-            <div>{member.university?.trim() || "Member"}</div>
-            {member.phone && (
-              <div style={{ color: C.blue, fontWeight: 600, fontSize: "9px" }}>
-                {member.phone}
-              </div>
-            )}
+            <div style={{ color: C.blue, fontWeight: 600, fontSize: "9px" }}>
+              {member.phone ?? "Phone pending"}
+            </div>
+            <div style={{ gridColumn: "1 / span 2" }}>
+              {member.university?.trim() || "Member"}
+            </div>
           </div>
-        )}
+        </div>
         <div
           style={{
             marginTop: "4px",
@@ -454,6 +467,8 @@ export function CommitteeSection({
   totalPages: number;
 }) {
   const isNecSection = section.type === "NEC";
+  const isMainConferenceCommittee =
+    section.type === "COMMITTEE" && !section.committeeScope?.trim();
 
   // Filter by scope if defined
   const filtered = section.committeeScope
@@ -503,8 +518,8 @@ export function CommitteeSection({
     TREASURER: { bg: `${C.blue}0E`, text: C.blue },
   };
 
-  // For NEC section: try to fit all on one page with compact layout
-  if (isNecSection && filtered.length <= 7) {
+  // For NEC and main Conference Committee: keep leadership + members together.
+  if (isMainConferenceCommittee || (isNecSection && filtered.length <= 10)) {
     return (
       <A4Page
         pageNum={startPageNum}
@@ -516,7 +531,7 @@ export function CommitteeSection({
         <SectionHeading section={section} />
 
         {chair ? (
-          <ChairHeroCard chair={chair} isNec={true} />
+          <ChairHeroCard chair={chair} isNec={isNecSection} />
         ) : (
           <div
             style={{
@@ -529,17 +544,19 @@ export function CommitteeSection({
               marginBottom: "12px",
             }}
           >
-            NEC board lead not yet assigned.
+            {isNecSection
+              ? "NEC board lead not yet assigned."
+              : "Conference committee lead not yet assigned."}
           </div>
         )}
 
-        {/* Combine key officers and general members in a compact 3-col grid */}
+        {/* Keep all officers and members on one compact page */}
         {(keyOfficers.length > 0 || generalMembers.length > 0) && (
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "10px",
+              gap: "9px",
             }}
           >
             {keyOfficers.map((m) => {
