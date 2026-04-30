@@ -14,6 +14,11 @@ import {
   FONTS,
   FONT_SIZES,
 } from "./document-constants";
+import {
+  LETTERHEAD_CONFIG,
+  buildCityRegionLine,
+  buildLetterheadEmailLine,
+} from "./letterhead-config";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,7 +75,7 @@ export interface DocumentTableProps {
 
 export function DocumentLayout({
   confInfo,
-  officeLabel = "Office of the Conference Chairman",
+  officeLabel = LETTERHEAD_CONFIG.defaultOfficeLabel,
   members = [],
   children,
   forPrint = false,
@@ -97,9 +102,7 @@ export function DocumentLayout({
       })}`
     : "";
 
-  const venue =
-    confInfo?.venue ||
-    `${confInfo?.city || "Jinan"}, Shandong Province, P.R. China`;
+  const venue = confInfo?.venue || LETTERHEAD_CONFIG.defaultVenue;
 
   return (
     <div
@@ -185,7 +188,7 @@ export function DocumentLayout({
                 lineHeight: 1.2,
               }}
             >
-              LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+              {LETTERHEAD_CONFIG.organizationName}
             </div>
             <div
               style={{
@@ -195,14 +198,17 @@ export function DocumentLayout({
                 marginTop: 4,
               }}
             >
-              {confInfo?.name ?? "LSUIC 20th Anniversary National Conference"}
+              {confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName}
             </div>
             <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
               {venue}
             </div>
+            <div style={{ fontSize: 8.5, color: "#555" }}>
+              {buildCityRegionLine(confInfo?.city)}
+            </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
-              Email: ekd@ekddigital.com · harrisbowulom@gmail.com
+              {buildLetterheadEmailLine()}
             </div>
           </div>
 

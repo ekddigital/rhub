@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { BUDGET_CATEGORIES, COMMON_UNITS } from "@/lib/conf/config";
+import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -950,10 +951,10 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           />
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>
-              LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+              {LETTERHEAD_CONFIG.organizationName}
             </div>
             <div style={{ fontSize: 10, color: "#C8A061", fontWeight: 600 }}>
-              LSUIC 20th Anniversary National Conference — Jinan, China 2026
+              {`${LETTERHEAD_CONFIG.defaultConferenceName} — ${LETTERHEAD_CONFIG.defaultCity}, China ${LETTERHEAD_CONFIG.defaultYear}`}
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}

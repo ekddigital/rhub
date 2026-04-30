@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import {
+  LETTERHEAD_CONFIG,
+  buildCityRegionLine,
+  buildLetterheadEmailLine,
+} from "@/lib/conf/letterhead-config";
 
 // GET /api/conf/[confId]/letterhead
 // Returns SVG or PNG of the LSUIC conference committee letterhead.
@@ -283,12 +288,12 @@ function buildFirstPageSvg(opts: {
   ${logoBlock}
 
   <!-- Org name + conference info (centered between logo and seal) -->
-  <text x="${textCX}" y="${t1}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="15.5" font-weight="700" fill="#002868" letter-spacing="0.4">${escapeXml("LIBERIAN STUDENT UNION IN CHINA (LSUIC)")}</text>
+  <text x="${textCX}" y="${t1}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="15.5" font-weight="700" fill="#002868" letter-spacing="0.4">${escapeXml(LETTERHEAD_CONFIG.organizationName)}</text>
   <text x="${textCX}" y="${t2}" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="10.5" font-weight="600" fill="#C8A061">${escapeXml(opts.confName)}</text>
   <text x="${textCX}" y="${t3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.venue ?? opts.city)}</text>
-  <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.city + ", Shandong Province, P.R. China")}</text>
+  <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(buildCityRegionLine(opts.city))}</text>
   <text x="${textCX}" y="${t5}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.dateRange)}</text>
-  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml("Email: ekd@ekddigital.com  |  harrisbowulom@gmail.com")}</text>
+  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml(buildLetterheadEmailLine("  |  "))}</text>
 
   <!-- Liberia National Seal (right) -->
   ${sealBlock}
@@ -298,7 +303,7 @@ function buildFirstPageSvg(opts: {
   <rect y="${goldY}" width="${W}" height="2.5" fill="#C8A061"/>
 
   <!-- "Office of the Conference Chairman" (italic, right-aligned) -->
-  <text x="${W - 22}" y="${officeY}" text-anchor="end" font-family="S,Arial,sans-serif" font-size="10" font-weight="600" fill="#002868" font-style="italic">${escapeXml("Office of the Conference Chairman")}</text>
+  <text x="${W - 22}" y="${officeY}" text-anchor="end" font-family="S,Arial,sans-serif" font-size="10" font-weight="600" fill="#002868" font-style="italic">${escapeXml(LETTERHEAD_CONFIG.defaultOfficeLabel)}</text>
 
   <!-- Navy separator bar -->
   <rect y="${navyY}" width="${W}" height="7" fill="#002868"/>
@@ -319,7 +324,7 @@ function buildFirstPageSvg(opts: {
   <!-- ── Footer ── -->
   <rect y="${H - FOOTER_H}" width="${W}" height="${FOOTER_H}" fill="#002868"/>
   <rect y="${H - FOOTER_H}" width="${W}" height="3" fill="#BF0A30"/>
-  <text x="${W / 2}" y="${H - 10}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="8" font-weight="700" fill="#C8A061" letter-spacing="0.5">${escapeXml('Motto: "Excellence Through Hard Work"')}</text>
+  <text x="${W / 2}" y="${H - 10}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="8" font-weight="700" fill="#C8A061" letter-spacing="0.5">${escapeXml(LETTERHEAD_CONFIG.motto)}</text>
   `
       : ""
   }
@@ -389,9 +394,9 @@ function buildContinuationSvg(opts: {
 
   ${logoBlock}
 
-  <text x="${textCX}" y="${textY1}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="11" font-weight="700" fill="#002868">${escapeXml("LIBERIAN STUDENT UNION IN CHINA (LSUIC)")}</text>
+  <text x="${textCX}" y="${textY1}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="11" font-weight="700" fill="#002868">${escapeXml(LETTERHEAD_CONFIG.organizationName)}</text>
   <text x="${textCX}" y="${textY2}" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="9" fill="#C8A061">${escapeXml(opts.confName)}</text>
-  <text x="${textCX}" y="${textY3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7.5" fill="#777777" font-style="italic">${escapeXml("Office of the Conference Chairman")}</text>
+  <text x="${textCX}" y="${textY3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7.5" fill="#777777" font-style="italic">${escapeXml(LETTERHEAD_CONFIG.defaultOfficeLabel)}</text>
 
   ${sealBlock}
 
@@ -403,7 +408,7 @@ function buildContinuationSvg(opts: {
   <!-- Footer -->
   <rect y="${H - FOOTER_H}" width="${W}" height="${FOOTER_H}" fill="#002868"/>
   <rect y="${H - FOOTER_H}" width="${W}" height="2" fill="#BF0A30"/>
-  <text x="${W / 2}" y="${H - 8}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7" fill="#C8A061">${escapeXml("LIBERIAN STUDENT UNION IN CHINA (LSUIC)  ·  " + opts.confName)}</text>
+  <text x="${W / 2}" y="${H - 8}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7" fill="#C8A061">${escapeXml(LETTERHEAD_CONFIG.organizationName + "  ·  " + opts.confName)}</text>
 </svg>`;
 }
 

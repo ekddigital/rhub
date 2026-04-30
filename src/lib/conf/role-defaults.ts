@@ -1,4 +1,5 @@
 import type { ConfRole } from "@prisma/client";
+import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
 
 export type CommitteeRoleTemplateSeed = {
   key: string;
@@ -19,7 +20,7 @@ export const DEFAULT_COMMITTEE_ROLE_TEMPLATES: readonly CommitteeRoleTemplateSee
       baseRole: "CHAIR",
       title: "General Chairman",
       committeeScope: null,
-      officeLabel: "Office of the Conference Chairman",
+      officeLabel: LETTERHEAD_CONFIG.defaultOfficeLabel,
       sortOrder: 1,
       isSystem: true,
     },

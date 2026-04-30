@@ -38,6 +38,11 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import {
+  LETTERHEAD_CONFIG,
+  buildCityRegionLine,
+  buildLetterheadEmailLine,
+} from "@/lib/conf/letterhead-config";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -205,7 +210,7 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     body: d.body ?? "",
     bodyRich: d.bodyRich ?? plainBodyToRichHtml(d.body ?? ""),
     issuingRoleKey: d.issuingRoleKey ?? "",
-    officeLabel: d.officeLabel ?? "Office of the Conference Chairman",
+    officeLabel: d.officeLabel ?? LETTERHEAD_CONFIG.defaultOfficeLabel,
     signatoryMode: d.signatoryMode ?? "NONE",
     signatory1Name: s1Name,
     signatory1Title: s1Title,
@@ -266,7 +271,7 @@ function newDraft(): LetterDraft {
     body: "",
     bodyRich: "<p></p>",
     issuingRoleKey: "",
-    officeLabel: "Office of the Conference Chairman",
+    officeLabel: LETTERHEAD_CONFIG.defaultOfficeLabel,
     signatoryMode: "NONE",
     signatory1Name: "",
     signatory1Title: "",
@@ -551,7 +556,7 @@ function LetterA4Preview({
   const dateRange = confInfo
     ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
     : "July 24 – 27, 2026";
-  const venue = confInfo?.venue ?? "Arcadia Spa Golf International Hotel";
+  const venue = confInfo?.venue ?? LETTERHEAD_CONFIG.defaultVenue;
 
   const signatories: Signatory[] = [
     {
@@ -615,7 +620,7 @@ function LetterA4Preview({
   const continuationBodies = bodyPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
   const officeLabel =
-    (draft.officeLabel ?? "").trim() || "Office of the Conference Chairman";
+    (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
 
   return (
     <>
@@ -694,7 +699,7 @@ function LetterA4Preview({
                 lineHeight: 1.2,
               }}
             >
-              LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+              {LETTERHEAD_CONFIG.organizationName}
             </div>
             <div
               style={{
@@ -704,17 +709,17 @@ function LetterA4Preview({
                 marginTop: 4,
               }}
             >
-              {confInfo?.name ?? "LSUIC 20th Anniversary National Conference"}
+              {confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName}
             </div>
             <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
               {venue}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>
-              {confInfo?.city ?? "Jinan"}, Shandong Province, P.R. China
+              {buildCityRegionLine(confInfo?.city)}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
-              Email: ekd@ekddigital.com · harrisbowulom@gmail.com
+              {buildLetterheadEmailLine()}
             </div>
             {officerPhones.length > 0 && (
               <div
@@ -1175,7 +1180,7 @@ function LetterA4Preview({
               }}
             >
               <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
-                LIBERIAN STUDENT UNION IN CHINA (LSUIC)
+                {LETTERHEAD_CONFIG.organizationName}
               </div>
               <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
                 {officeLabel}
@@ -2421,7 +2426,7 @@ export function LetterComposerShell() {
                   <div className="space-y-1.5">
                     <Label className="text-xs">Office Label (override)</Label>
                     <Input
-                      placeholder="e.g. Office of the Conference Chairman"
+                      placeholder={`e.g. ${LETTERHEAD_CONFIG.defaultOfficeLabel}`}
                       className="h-8 text-sm"
                       value={activeDraft.officeLabel}
                       onChange={(e) => set("officeLabel")(e.target.value)}
