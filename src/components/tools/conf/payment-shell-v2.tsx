@@ -42,7 +42,7 @@ import { fetchDefaultConference } from "@/lib/conf/client";
 import { validatePaymentProofFile } from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
-  parseUploadErrorPayload,
+  type UploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
 import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
 import {
@@ -349,8 +349,8 @@ function PaymentsDocumentPreview({
                         <div
                           key={proof.id}
                           style={{
-                            width: 46,
-                            height: 46,
+                            width: 64,
+                            height: 64,
                             border: "1px solid #e0e0e0",
                             borderRadius: 4,
                             overflow: "hidden",
@@ -416,6 +416,15 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [incomeSource, setIncomeSource] = useState("");
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
+  const [proofValidationFeedback, setProofValidationFeedback] = useState<string | null>(
+    null,
+  );
+  const [uploadStatus, setUploadStatus] = useState<{
+    currentFile: number;
+    totalFiles: number;
+    fileName: string;
+    percent: number;
+  } | null>(null);
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -517,6 +526,48 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     }
   };
 
+  const uploadProofWithProgress = useCallback(
+    (paymentId: string, file: File, onProgress: (percent: number) => void) =>
+      new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `/api/conf/${confId}/payments/${paymentId}/upload`);
+
+        xhr.upload.onprogress = (event) => {
+          if (!event.lengthComputable) return;
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            onProgress(100);
+            resolve();
+            return;
+          }
+          let payload: UploadErrorPayload = {};
+          try {
+            payload = JSON.parse(xhr.responseText) as UploadErrorPayload;
+          } catch {
+            payload = {};
+          }
+          reject(
+            new Error(
+              formatUploadError(payload, "Failed to upload payment proof", xhr.status),
+            ),
+          );
+        };
+
+        xhr.onerror = () => {
+          reject(new Error(`Upload failed for "${file.name}". Please retry.`));
+        };
+
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("paymentId", paymentId);
+        xhr.send(fd);
+      }),
+    [confId],
+  );
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid: File[] = [];
@@ -524,17 +575,25 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     files.forEach((file) => {
       const validation = validatePaymentProofFile(file);
       if (!validation.ok) {
-        invalidMessages.push(`${file.name}: ${validation.error}`);
+        if (validation.error.startsWith("Unsupported file format")) {
+          invalidMessages.push(
+            `${file.name}: unsupported format. Use PNG, JPG, JPEG, WEBP, GIF, or PDF.`,
+          );
+        } else {
+          invalidMessages.push(`${file.name}: ${validation.error}`);
+        }
         return;
       }
       valid.push(file);
     });
 
     if (invalidMessages.length > 0) {
-      setError(
-        `Some files were skipped. ${invalidMessages.slice(0, 2).join(" | ")}`,
+      setProofValidationFeedback(
+        `Some files were skipped: ${invalidMessages.slice(0, 2).join(" | ")}`,
       );
+      setError(null);
     } else {
+      setProofValidationFeedback(null);
       setError(null);
     }
 
@@ -549,12 +608,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setProofPreviews((prev) => [...prev, ""]);
       }
     });
+
+    // Allows selecting the same file again after removing/retrying.
+    e.target.value = "";
   };
 
   const handleSubmit = async () => {
     if (!amount || !paidBy || !confId || saving) return;
     setSaving(true);
     setError(null);
+    setProofValidationFeedback(null);
     try {
       // 1. Create payment record
       const res = await fetch(`/api/conf/${confId}/payments`, {
@@ -580,32 +643,28 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       const payment = (await res.json()) as Payment;
 
       // 2. Upload proof files if any
-      for (const file of proofFiles) {
-        const fd = new FormData();
-        fd.append("file", file);
-        fd.append("paymentId", payment.id);
-        const uploadRes = await fetch(
-          `/api/conf/${confId}/payments/${payment.id}/upload`,
-          {
-            method: "POST",
-            body: fd,
-          },
-        );
-        if (!uploadRes.ok) {
-          const errPayload = await parseUploadErrorPayload(uploadRes);
-          throw new Error(
-            formatUploadError(
-              errPayload,
-              "Failed to upload payment proof",
-              uploadRes.status,
-            ),
-          );
-        }
+      for (const [index, file] of proofFiles.entries()) {
+        setUploadStatus({
+          currentFile: index + 1,
+          totalFiles: proofFiles.length,
+          fileName: file.name,
+          percent: 0,
+        });
+        await uploadProofWithProgress(payment.id, file, (percent) => {
+          setUploadStatus({
+            currentFile: index + 1,
+            totalFiles: proofFiles.length,
+            fileName: file.name,
+            percent,
+          });
+        });
       }
 
+      setUploadStatus(null);
       setPayments(await loadPayments(confId));
       resetForm();
     } catch (e) {
+      setUploadStatus(null);
       setError(e instanceof Error ? e.message : "Failed to save payment");
     } finally {
       setSaving(false);
@@ -680,6 +739,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setIncomeSource("");
     setProofFiles([]);
     setProofPreviews([]);
+    setProofValidationFeedback(null);
+    setUploadStatus(null);
     setShowForm(false);
   };
 
@@ -1078,12 +1139,34 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 </p>
                 <p className="text-xs text-muted-foreground">Max 10 MB each</p>
               </div>
+              {proofValidationFeedback && (
+                <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  {proofValidationFeedback}
+                </div>
+              )}
+              {uploadStatus && (
+                <div className="space-y-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
+                    <span className="truncate">
+                      Uploading {uploadStatus.currentFile}/{uploadStatus.totalFiles}:{" "}
+                      {uploadStatus.fileName}
+                    </span>
+                    <span>{uploadStatus.percent}%</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200/40 dark:bg-blue-950/40">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all"
+                      style={{ width: `${uploadStatus.percent}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               {proofPreviews.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="mt-2 flex flex-wrap gap-3">
                   {proofPreviews.map((preview, idx) => (
                     <div
                       key={idx}
-                      className="relative size-20 overflow-hidden rounded-lg border"
+                      className="relative size-28 overflow-hidden rounded-lg border"
                     >
                       {preview ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -1268,7 +1351,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           href={proof.filePath}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block size-16 overflow-hidden rounded border border-muted hover:opacity-80 transition-opacity"
+                          className="block size-24 overflow-hidden rounded border border-muted transition-opacity hover:opacity-80"
                           title={proof.fileName}
                         >
                           {proof.fileType?.startsWith("image/") ? (
@@ -1286,7 +1369,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         </a>
                       ))}
                       {payment.proofs.length > 4 && (
-                        <div className="flex size-16 items-center justify-center rounded border border-muted bg-muted text-xs text-muted-foreground">
+                        <div className="flex size-24 items-center justify-center rounded border border-muted bg-muted text-xs text-muted-foreground">
                           +{payment.proofs.length - 4}
                         </div>
                       )}
