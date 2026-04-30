@@ -305,6 +305,24 @@ export function RichTextEditor({
         <button
           type="button"
           className={buttonClass}
+          data-active={editor.isActive("heading", { level: 3 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          title="Heading 3"
+        >
+          <span className="text-[10px] font-semibold">H3</span>
+        </button>
+        <button
+          type="button"
+          className={buttonClass}
+          data-active={editor.isActive("heading", { level: 4 })}
+          onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}
+          title="Heading 4"
+        >
+          <span className="text-[10px] font-semibold">H4</span>
+        </button>
+        <button
+          type="button"
+          className={buttonClass}
           data-active={editor.isActive("bold")}
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="Bold"
