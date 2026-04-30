@@ -405,7 +405,8 @@ export function DocumentLayout({
           <div
             style={{
               flex: 1,
-              padding: "20px 18px",
+              // Keep left/right equal to respect A4 content margins.
+              padding: "20px 24px",
               overflowY: "hidden",
             }}
           >

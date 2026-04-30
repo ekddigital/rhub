@@ -65,6 +65,7 @@ type BudgetDraft = {
   title: string;
   category: string;
   notes: string;
+  itemsHeading?: string;
   items: BudgetItem[];
   savedAt: string; // ISO string
 };
@@ -165,6 +166,7 @@ function newDraft(): BudgetDraft {
     title: "",
     category: "FOOD",
     notes: "",
+    itemsHeading: "Line Item Breakdown",
     items: [emptyItem(1)],
     savedAt: new Date().toISOString(),
   };
@@ -208,6 +210,7 @@ function BudgetDocumentPreview({
 
   const categoryLabel =
     BUDGET_CATEGORIES[draft.category]?.label ?? draft.category ?? "General";
+  const itemsHeading = draft.itemsHeading?.trim() || "Line Item Breakdown";
   const nonEmptyItems = draft.items.filter((item) => item.name.trim());
   const rows: Record<string, unknown>[] =
     nonEmptyItems.length > 0
@@ -305,7 +308,7 @@ function BudgetDocumentPreview({
       )}
 
       <DocumentTable
-        caption={pageIndex === 0 ? "Line Item Breakdown" : "Line Item Breakdown (cont.)"}
+        caption={pageIndex === 0 ? itemsHeading : `${itemsHeading} (cont.)`}
         columns={[
           { key: "no", label: "#", width: 8, align: "center" },
           { key: "item", label: "Item", width: 34 },
@@ -496,6 +499,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const setCategory = (v: string) =>
     setActiveDraft((d) => ({ ...d, category: v }));
   const setNotes = (v: string) => setActiveDraft((d) => ({ ...d, notes: v }));
+  const setItemsHeading = (v: string) =>
+    setActiveDraft((d) => ({ ...d, itemsHeading: v }));
 
   const addItem = useCallback(() => {
     setActiveDraft((d) => ({
@@ -893,6 +898,15 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               value={activeDraft.notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="itemsHeading">Line Items Section Title (Document)</Label>
+            <Input
+              id="itemsHeading"
+              placeholder="e.g. Day 1 Budget Breakdown"
+              value={activeDraft.itemsHeading ?? ""}
+              onChange={(e) => setItemsHeading(e.target.value)}
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
