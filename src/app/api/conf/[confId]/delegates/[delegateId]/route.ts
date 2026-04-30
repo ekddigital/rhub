@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { getConferenceFeePackageById } from "@/lib/conf/fees";
+import {
+  getConferenceFeeAccommodationMode,
+  getConferenceFeePackageById,
+} from "@/lib/conf/fees";
 import { formatPersonName } from "@/lib/conf/name-format";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
@@ -238,6 +241,17 @@ export async function PATCH(
       updates.feePackageId = feePackage?.id ?? null;
       if (feePackage) {
         updates.feeAmount = feePackage.price;
+        const accommodationMode = getConferenceFeeAccommodationMode(feePackage.id);
+        if (accommodationMode === "SINGLE") {
+          updates.roomPref = "SINGLE";
+          updates.wantsSingleRoom = true;
+        } else if (accommodationMode === "PAIR") {
+          updates.roomPref = "PAIR";
+          updates.wantsSingleRoom = false;
+        } else if (accommodationMode === "NONE") {
+          updates.roomPref = "SINGLE";
+          updates.wantsSingleRoom = true;
+        }
       }
     }
 

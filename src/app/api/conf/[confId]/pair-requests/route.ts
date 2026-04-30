@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
+
+function isPairEligible(delegate: {
+  roomPref: "PAIR" | "SINGLE";
+  wantsSingleRoom: boolean;
+  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+  feePackageId: string | null;
+}) {
+  const packageAccommodationMode = getConferenceFeeAccommodationMode(
+    delegate.feePackageId,
+  );
+  if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
+    return false;
+  }
+  if (delegate.accommodationNeeded === "NO") return false;
+  if (delegate.wantsSingleRoom) return false;
+  return delegate.roomPref === "PAIR";
+}
 
 // GET /api/conf/[confId]/pair-requests
 export async function GET(
@@ -86,7 +104,10 @@ export async function POST(
         id: true,
         confId: true,
         gender: true,
+        roomPref: true,
         wantsSingleRoom: true,
+        accommodationNeeded: true,
+        feePackageId: true,
       },
     });
 
@@ -115,12 +136,24 @@ export async function POST(
       id: string;
       confId: string;
       gender: "MALE" | "FEMALE" | null;
+      roomPref: "PAIR" | "SINGLE";
+      wantsSingleRoom: boolean;
+      accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+      feePackageId: string | null;
     } | null = null;
 
     if (targetId) {
       target = await prisma.confDelegate.findUnique({
         where: { id: targetId },
-        select: { id: true, confId: true, gender: true },
+        select: {
+          id: true,
+          confId: true,
+          gender: true,
+          roomPref: true,
+          wantsSingleRoom: true,
+          accommodationNeeded: true,
+          feePackageId: true,
+        },
       });
 
       if (!target || target.confId !== confId) {
@@ -141,6 +174,35 @@ export async function POST(
         {
           error:
             "Standard pairing requires same gender. Use LEGAL_PARTNER for exception requests.",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (requestType !== "SINGLE_ROOM") {
+      if (!isPairEligible(requester)) {
+        return NextResponse.json(
+          {
+            error:
+              "Requester is not eligible for pairing (single-room or no-accommodation registration).",
+          },
+          { status: 400 },
+        );
+      }
+      if (target && !isPairEligible(target)) {
+        return NextResponse.json(
+          {
+            error:
+              "Target delegate is not eligible for pairing (single-room or no-accommodation registration).",
+          },
+          { status: 400 },
+        );
+      }
+    } else if (!isPairEligible(requester)) {
+      return NextResponse.json(
+        {
+          error:
+            "Requester already has single-room/no-accommodation preference and does not need a single-room request.",
         },
         { status: 400 },
       );

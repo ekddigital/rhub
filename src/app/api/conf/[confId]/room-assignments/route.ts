@@ -1,6 +1,24 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
+
+function isPairEligible(delegate: {
+  roomPref: "PAIR" | "SINGLE";
+  wantsSingleRoom: boolean;
+  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+  feePackageId: string | null;
+}) {
+  const packageAccommodationMode = getConferenceFeeAccommodationMode(
+    delegate.feePackageId,
+  );
+  if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
+    return false;
+  }
+  if (delegate.accommodationNeeded === "NO") return false;
+  if (delegate.wantsSingleRoom) return false;
+  return delegate.roomPref === "PAIR";
+}
 
 async function generateRoomCode(confId: string) {
   const count = await prisma.confRoomAssignment.count({ where: { confId } });
@@ -98,7 +116,15 @@ export async function POST(
 
     const occupantA = await prisma.confDelegate.findUnique({
       where: { id: occupantAId },
-      select: { id: true, confId: true, gender: true },
+      select: {
+        id: true,
+        confId: true,
+        gender: true,
+        roomPref: true,
+        wantsSingleRoom: true,
+        accommodationNeeded: true,
+        feePackageId: true,
+      },
     });
 
     if (!occupantA || occupantA.confId !== confId) {
@@ -112,12 +138,24 @@ export async function POST(
       id: string;
       confId: string;
       gender: "MALE" | "FEMALE" | null;
+      roomPref: "PAIR" | "SINGLE";
+      wantsSingleRoom: boolean;
+      accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+      feePackageId: string | null;
     } | null = null;
 
     if (occupantBId) {
       occupantB = await prisma.confDelegate.findUnique({
         where: { id: occupantBId },
-        select: { id: true, confId: true, gender: true },
+        select: {
+          id: true,
+          confId: true,
+          gender: true,
+          roomPref: true,
+          wantsSingleRoom: true,
+          accommodationNeeded: true,
+          feePackageId: true,
+        },
       });
       if (!occupantB || occupantB.confId !== confId) {
         return NextResponse.json(
@@ -125,6 +163,26 @@ export async function POST(
           { status: 404 },
         );
       }
+    }
+
+    if (occupantB && !isPairEligible(occupantA)) {
+      return NextResponse.json(
+        {
+          error:
+            "Primary delegate is not eligible for pairing (single-room or no-accommodation registration).",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (occupantB && !isPairEligible(occupantB)) {
+      return NextResponse.json(
+        {
+          error:
+            "Second delegate is not eligible for pairing (single-room or no-accommodation registration).",
+        },
+        { status: 400 },
+      );
     }
 
     if (await hasActiveAssignment(occupantAId)) {

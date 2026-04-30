@@ -149,6 +149,27 @@ export function getConferenceFeePackageByPrice(price: number) {
   return CONFERENCE_FEE_PACKAGES.find((item) => item.price === price) ?? null;
 }
 
+export function getConferenceFeeAccommodationMode(
+  packageId: string | null | undefined,
+): "PAIR" | "SINGLE" | "NONE" | null {
+  if (!packageId) return null;
+  const pkg = getConferenceFeePackageById(packageId);
+  if (!pkg) return null;
+
+  const label = pkg.label.toLowerCase();
+  const category = pkg.category.toLowerCase();
+
+  if (label.includes("single room")) return "SINGLE";
+  if (label.includes("shared room")) return "PAIR";
+  if (label.includes("no accommodation")) return "NONE";
+  if (label.includes("social events only")) return "NONE";
+  if (category.includes("conference jersey")) return "NONE";
+  if (category.includes("achievers award dinner")) return "NONE";
+  if (label.includes("table")) return "NONE";
+
+  return null;
+}
+
 export function groupConferenceFeePackages() {
   return CONFERENCE_FEE_PACKAGES.reduce<Record<string, ConferenceFeePackage[]>>(
     (acc, item) => {

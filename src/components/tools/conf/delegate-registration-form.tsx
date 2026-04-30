@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   formatFeeRmb,
+  getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
   getConferenceFeePackageByPrice,
   groupConferenceFeePackages,
@@ -307,6 +308,20 @@ export function DelegateRegistrationForm({
   const [draftRestored, setDraftRestored] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const applyPackageAccommodationMode = (packageId: string) => {
+    const accommodationMode = getConferenceFeeAccommodationMode(packageId);
+    if (accommodationMode === "SINGLE") {
+      setRoomPref("SINGLE");
+      setAccommodationNeeded("YES");
+    } else if (accommodationMode === "PAIR") {
+      setRoomPref("PAIR");
+      setAccommodationNeeded("YES");
+    } else if (accommodationMode === "NONE") {
+      setRoomPref("SINGLE");
+      setAccommodationNeeded("NO");
+    }
+  };
+
   // Restore draft on mount
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -391,11 +406,15 @@ export function DelegateRegistrationForm({
       }
       if (typeof d.feePackageId === "string" && d.feePackageId.trim()) {
         setSelectedFeePackage(d.feePackageId);
+        applyPackageAccommodationMode(d.feePackageId);
       } else if (typeof d.feeAmount === "string") {
         const restoredPackage = getConferenceFeePackageByPrice(
           Number(d.feeAmount),
         );
-        if (restoredPackage) setSelectedFeePackage(restoredPackage.id);
+        if (restoredPackage) {
+          setSelectedFeePackage(restoredPackage.id);
+          applyPackageAccommodationMode(restoredPackage.id);
+        }
       }
       if (typeof d.feeAmount === "string") setFeeAmount(d.feeAmount);
       if (d.roomPref === "PAIR" || d.roomPref === "SINGLE")
@@ -549,6 +568,7 @@ export function DelegateRegistrationForm({
       defaultFeeAmount,
     );
     setSelectedFeePackage(resetFeePackageId);
+    applyPackageAccommodationMode(resetFeePackageId);
     setFeeAmount(
       String(
         getConferenceFeePackageById(resetFeePackageId)?.price ??
@@ -1211,6 +1231,7 @@ export function DelegateRegistrationForm({
               const selected = feeOptions.find((option) => option.id === value);
               if (selected) {
                 setFeeAmount(String(selected.price));
+                applyPackageAccommodationMode(value);
               }
             }}
           >
@@ -1230,6 +1251,31 @@ export function DelegateRegistrationForm({
               Selected package total: {formatFeeRmb(selectedFee?.price ?? 0)}
             </p>
           )}
+          {(() => {
+            const mode = getConferenceFeeAccommodationMode(selectedFeePackage);
+            if (mode === "SINGLE") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  This package enforces single-room accommodation.
+                </p>
+              );
+            }
+            if (mode === "PAIR") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  This package uses shared-room pairing.
+                </p>
+              );
+            }
+            if (mode === "NONE") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  This package does not include accommodation.
+                </p>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         <div className="space-y-2">
@@ -1275,10 +1321,36 @@ export function DelegateRegistrationForm({
 
         <div className="space-y-2">
           <Label>Room Preference</Label>
+          {(() => {
+            const mode = getConferenceFeeAccommodationMode(selectedFeePackage);
+            if (mode === "SINGLE") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  Locked by package: Single room.
+                </p>
+              );
+            }
+            if (mode === "PAIR") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  Locked by package: Shared room.
+                </p>
+              );
+            }
+            if (mode === "NONE") {
+              return (
+                <p className="text-xs text-muted-foreground">
+                  No room selection needed for this package.
+                </p>
+              );
+            }
+            return null;
+          })()}
           <select
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={roomPref}
             onChange={(e) => setRoomPref(e.target.value as "PAIR" | "SINGLE")}
+            disabled={Boolean(getConferenceFeeAccommodationMode(selectedFeePackage))}
           >
             <option value="PAIR">Pair room (2 people)</option>
             <option value="SINGLE">Single room request</option>

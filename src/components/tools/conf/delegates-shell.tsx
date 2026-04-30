@@ -30,6 +30,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
 import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
@@ -77,6 +78,7 @@ type Delegate = {
   dietaryDetails: string | null;
   additionalComments: string | null;
   feeAmount: number | null;
+  feePackageId: string | null;
   amountPaid: number | null;
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
@@ -261,6 +263,20 @@ export function DelegatesShell() {
     .reduce((sum, d) => sum + (d.amountPaid || d.feeAmount || 0), 0);
   const cities = [...new Set(delegates.map((d) => d.city).filter(Boolean))];
   const flyerReadyCount = delegates.filter((d) => d.flyerReady).length;
+
+  const isPairEligible = (delegate: Delegate) => {
+    const packageAccommodationMode = getConferenceFeeAccommodationMode(
+      delegate.feePackageId,
+    );
+    if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
+      return false;
+    }
+    if (delegate.accommodationNeeded === "NO") return false;
+    if (delegate.wantsSingleRoom) return false;
+    return delegate.roomPref === "PAIR";
+  };
+
+  const pairEligibleDelegates = delegates.filter(isPairEligible);
 
   const handleCopyRegistrationLink = async () => {
     try {
@@ -806,6 +822,10 @@ export function DelegatesShell() {
                 Requests support same-gender pairing by default. Legal partner
                 exceptions require chair approval.
               </CardDescription>
+            <p className="text-xs text-muted-foreground">
+              Delegates with single-room or no-accommodation registration are
+              excluded from pairable target lists.
+            </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -817,7 +837,7 @@ export function DelegatesShell() {
                     onChange={(e) => setRequesterId(e.target.value)}
                   >
                     <option value="">Select delegate</option>
-                    {delegates.map((d) => (
+                    {pairEligibleDelegates.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.name} ({d.delegateCode || "N/A"})
                       </option>
@@ -860,7 +880,7 @@ export function DelegatesShell() {
                         ? "Not needed"
                         : "Select delegate"}
                     </option>
-                    {delegates
+                    {pairEligibleDelegates
                       .filter((d) => d.id !== requesterId)
                       .map((d) => (
                         <option key={d.id} value={d.id}>
@@ -1020,7 +1040,7 @@ export function DelegatesShell() {
                       onChange={(e) => setManualB(e.target.value)}
                     >
                       <option value="">Single room</option>
-                      {delegates
+                      {pairEligibleDelegates
                         .filter((d) => d.id !== manualA)
                         .map((d) => (
                           <option key={d.id} value={d.id}>

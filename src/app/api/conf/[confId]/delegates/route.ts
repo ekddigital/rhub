@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { getConferenceFeePackageById } from "@/lib/conf/fees";
+import {
+  getConferenceFeeAccommodationMode,
+  getConferenceFeePackageById,
+} from "@/lib/conf/fees";
 import { CONF_2026 } from "@/lib/conf/config";
 import {
   buildDelegateViewerContext,
@@ -312,10 +315,22 @@ export async function POST(
     }
     const feePaidBool =
       Boolean(feePaid) && resolvedAmountPaid >= resolvedFeeAmount;
-    const wantsSingleRoomBool = Boolean(wantsSingleRoom);
-    const resolvedRoomPref = wantsSingleRoomBool
-      ? "SINGLE"
-      : roomPref || "PAIR";
+    const accommodationMode = getConferenceFeeAccommodationMode(
+      resolvedFeePackage?.id,
+    );
+    const requestedRoomPref = roomPref === "SINGLE" ? "SINGLE" : "PAIR";
+    const resolvedRoomPref =
+      accommodationMode === "SINGLE"
+        ? "SINGLE"
+        : accommodationMode === "PAIR"
+          ? "PAIR"
+          : accommodationMode === "NONE"
+            ? "SINGLE"
+            : requestedRoomPref;
+    const wantsSingleRoomBool =
+      accommodationMode === "SINGLE" || accommodationMode === "NONE"
+        ? true
+        : Boolean(wantsSingleRoom) || resolvedRoomPref === "SINGLE";
 
     const delegate = await prisma.confDelegate.create({
       data: {
