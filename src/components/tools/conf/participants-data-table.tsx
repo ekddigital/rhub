@@ -59,6 +59,7 @@ type Props = {
   currentUserId: string | null;
   currentUserEmail: string | null;
   isAdminControl: boolean;
+  canDeleteDelegates?: boolean;
   canManagePayments: boolean;
   uploadingDocKey: string | null;
   onTogglePaid: (delegate: ParticipantRow) => void | Promise<void>;
@@ -116,6 +117,7 @@ export function ParticipantsDataTable({
   currentUserId,
   currentUserEmail,
   isAdminControl,
+  canDeleteDelegates = false,
   canManagePayments,
   uploadingDocKey,
   onTogglePaid,
@@ -832,7 +834,7 @@ export function ParticipantsDataTable({
                             </a>
                           )}
 
-                          {isAdminControl && onDeleteDelegate && (
+                          {canDeleteDelegates && onDeleteDelegate && (
                             <Button
                               variant="destructive"
                               size="sm"

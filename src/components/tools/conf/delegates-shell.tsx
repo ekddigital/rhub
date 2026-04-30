@@ -160,6 +160,7 @@ const PAIR_STATUS_COLOR: Record<PairRequest["status"], string> = {
 export function DelegatesShell() {
   const { user } = useUser();
   const [confId, setConfId] = useState("");
+  const [canDeleteDelegates, setCanDeleteDelegates] = useState(false);
   const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
@@ -241,9 +242,19 @@ export function DelegatesShell() {
     const init = async () => {
       try {
         setLoading(true);
+        setCanDeleteDelegates(Boolean(isAdminControl));
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
         setDefaultFeeAmount(conf.delegateFee || 250);
+        const accessRes = await fetch("/api/conf/default/access", {
+          cache: "no-store",
+        });
+        if (accessRes.ok) {
+          const accessPayload = (await accessRes.json()) as {
+            isManager?: boolean;
+          };
+          setCanDeleteDelegates(Boolean(accessPayload.isManager));
+        }
         await reloadAll(conf.id);
       } catch (e) {
         setError(
@@ -255,7 +266,7 @@ export function DelegatesShell() {
     };
 
     void init();
-  }, [reloadAll]);
+  }, [isAdminControl, reloadAll]);
 
   const totalFees = delegates.reduce((sum, d) => sum + (d.feeAmount || 0), 0);
   const paidFees = delegates
@@ -797,6 +808,7 @@ export function DelegatesShell() {
           currentUserId={user?.id ?? null}
           currentUserEmail={user?.email ?? null}
           isAdminControl={Boolean(isAdminControl)}
+          canDeleteDelegates={canDeleteDelegates}
           canManagePayments={isAdminControl}
           uploadingDocKey={uploadingDocKey}
           onTogglePaid={(row) => {
