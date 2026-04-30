@@ -73,11 +73,12 @@ const KNOWN_CONFERENCE_ROLES = [
   "Conference Chair",
   "Conference Vice-Chair",
   "Conference Secretary",
-  "PRO & Media",
-  "Cooking Team Chair",
-  "Chair on Sports",
-  "Chair on Logistics",
-  "Chair on Decoration",
+  "Media & Publicity Chair",
+  "Cooking Committee Chair",
+  "Sports Committee Chair",
+  "Logistics Committee Chair",
+  "Decoration Committee Chair",
+  "Fundraising Committee Chair",
   "Member",
   "National President",
   "National Vice President",
@@ -115,6 +116,16 @@ function normalizeConferenceRole(value: string): string {
     return "Conference Vice-Chair";
   }
   if (value === "General Secretary") return "Conference Secretary";
+  if (value === "PRO & Media" || value === "PRO and Media") {
+    return "Media & Publicity Chair";
+  }
+  if (value === "Cooking Team Chair") return "Cooking Committee Chair";
+  if (value === "Chair on Sports") return "Sports Committee Chair";
+  if (value === "Chair on Logistics") return "Logistics Committee Chair";
+  if (value === "Chair on Decoration") return "Decoration Committee Chair";
+  if (value === "Fundraising Committee Chair") {
+    return "Fundraising Committee Chair";
+  }
   if (value === "Member, Cooking Team") return "Member";
   if (value === "Secretary General") return "National Secretary General";
   if (value === "Deputy Secretary General") {
@@ -966,11 +977,24 @@ export function DelegateRegistrationForm({
               <option value="Conference Secretary">
                 Conference Secretary
               </option>
-              <option value="PRO &amp; Media">PRO &amp; Media</option>
-              <option value="Cooking Team Chair">Cooking Team Chair</option>
-              <option value="Chair on Sports">Chair on Sports</option>
-              <option value="Chair on Logistics">Chair on Logistics</option>
-              <option value="Chair on Decoration">Chair on Decoration</option>
+              <option value="Media &amp; Publicity Chair">
+                Media &amp; Publicity Chair
+              </option>
+              <option value="Cooking Committee Chair">
+                Cooking Committee Chair
+              </option>
+              <option value="Sports Committee Chair">
+                Sports Committee Chair
+              </option>
+              <option value="Logistics Committee Chair">
+                Logistics Committee Chair
+              </option>
+              <option value="Decoration Committee Chair">
+                Decoration Committee Chair
+              </option>
+              <option value="Fundraising Committee Chair">
+                Fundraising Committee Chair
+              </option>
               <option value="Member">Member</option>
             </optgroup>
             <optgroup label="NEC Executive">

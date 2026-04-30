@@ -38,6 +38,7 @@ import {
   fmtDual,
 } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { LetterheadDisplay } from "@/components/tools/conf/letterhead-display";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -389,7 +390,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         }),
       });
       if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        const payload = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
         throw new Error(payload.error ?? "Failed to submit budget");
       }
 
@@ -430,7 +433,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             : `/api/conf/${confId}/budgets/${budgetId}/final-approve`;
         const res = await fetch(endpoint, { method: "POST" });
         if (!res.ok) {
-          const payload = (await res.json().catch(() => ({}))) as { error?: string };
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
           throw new Error(payload.error ?? "Budget action failed");
         }
         await refreshConferenceBudgets(confId);
@@ -452,6 +457,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   return (
     <div className="space-y-6">
+      {/* Letterhead Display - visible while editing */}
+      <LetterheadDisplay
+        confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Budget Manager`}
+      />
+
       {/* Print CSS — renders budget as clean A4 document */}
       <style>{`
         @media print {
@@ -460,7 +470,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           .budget-no-print { display: none !important; }
           .budget-print-area {
             position: fixed; left: 0; top: 0;
-            width: 210mm; padding: 18mm 16mm 12mm;
+            width: 210mm; padding: 0 16mm 12mm;
             font-family: 'Helvetica Neue', Arial, sans-serif;
           }
           @page { size: A4 portrait; margin: 0; }
@@ -840,7 +850,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </CardHeader>
         <CardContent className="space-y-3">
           {loadingServer ? (
-            <p className="text-sm text-muted-foreground">Loading submitted budgets...</p>
+            <p className="text-sm text-muted-foreground">
+              Loading submitted budgets...
+            </p>
           ) : serverBudgets.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No submitted budgets yet.
@@ -864,9 +876,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 (accessInfo?.isSuperAdmin ||
                   (Boolean(accessInfo?.canApprovePayments) &&
                     Boolean(accessInfo?.committeeScope) &&
-                    budget.creator.committeeScope === accessInfo?.committeeScope));
+                    budget.creator.committeeScope ===
+                      accessInfo?.committeeScope));
               const canFinalApprove =
-                (budget.status === "REVIEW" || canFinalApproveFromDraft(budget)) &&
+                (budget.status === "REVIEW" ||
+                  canFinalApproveFromDraft(budget)) &&
                 (accessInfo?.isChair || accessInfo?.isSuperAdmin);
 
               return (
@@ -880,7 +894,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           ? ` · ${budget.creator.committeeScope}`
                           : ""}
                         {" · "}
-                        {BUDGET_CATEGORIES[budget.category]?.label || budget.category}
+                        {BUDGET_CATEGORIES[budget.category]?.label ||
+                          budget.category}
                         {" · "}
                         {fmtRmb(budgetTotal)}
                       </p>
@@ -898,7 +913,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => void handleBudgetAction(budget.id, "committee")}
+                          onClick={() =>
+                            void handleBudgetAction(budget.id, "committee")
+                          }
                           disabled={actionLoading === `${budget.id}:committee`}
                         >
                           Committee Approve
@@ -907,7 +924,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       {canFinalApprove && (
                         <Button
                           size="sm"
-                          onClick={() => void handleBudgetAction(budget.id, "final")}
+                          onClick={() =>
+                            void handleBudgetAction(budget.id, "final")
+                          }
                           disabled={actionLoading === `${budget.id}:final`}
                         >
                           Final Approve
@@ -920,7 +939,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     (accessInfo?.isChair || accessInfo?.isSuperAdmin) &&
                     !canFinalApproveFromDraft(budget) && (
                       <p className="mt-2 text-xs text-amber-700">
-                        Committee chair approval is required before final approval.
+                        Committee chair approval is required before final
+                        approval.
                       </p>
                     )}
                 </div>
@@ -932,43 +952,17 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       {/* A4 print area (hidden on screen, shown on print) */}
       <div className="budget-print-area" style={{ display: "none" }}>
-        {/* Print header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 16,
-            paddingBottom: 10,
-            borderBottom: "2px solid #C8A061",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/conf/lsuic_logo.png"
-            alt="LSUIC"
-            style={{ width: 56, height: 56, objectFit: "contain" }}
-          />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>
-              {LETTERHEAD_CONFIG.organizationName}
-            </div>
-            <div style={{ fontSize: 10, color: "#C8A061", fontWeight: 600 }}>
-              {`${LETTERHEAD_CONFIG.defaultConferenceName} — ${LETTERHEAD_CONFIG.defaultCity}, China ${LETTERHEAD_CONFIG.defaultYear}`}
-            </div>
-          </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/conf/liberia-seal.svg"
-            alt="Seal"
-            style={{ width: 52, height: 52, objectFit: "contain" }}
-          />
-        </div>
+        <LetterheadDisplay
+          confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Budget Manager`}
+          printOnly
+          className="px-0"
+        />
         <div
           style={{
             fontSize: 16,
             fontWeight: 700,
             color: "#002868",
+            marginTop: 14,
             marginBottom: 4,
           }}
         >

@@ -11,13 +11,13 @@ import {
   Clock,
   ImageIcon,
   DollarSign,
+  Printer,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PAY_METHODS } from "@/lib/conf/config";
 import { fmtRmb } from "@/lib/conf/currency";
+import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
+import { LetterheadDisplay } from "@/components/tools/conf/letterhead-display";
 
 type LocalPayment = {
   id: string;
@@ -135,8 +137,27 @@ export function PaymentShell() {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .payments-print-area, .payments-print-area * { visibility: visible; }
+          .payments-no-print { display: none !important; }
+          .payments-print-area {
+            position: fixed; left: 0; top: 0;
+            width: 210mm; padding: 0 16mm 12mm;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+          }
+          @page { size: A4 portrait; margin: 0; }
+        }
+      `}</style>
+
+      {/* Letterhead Display - visible while editing */}
+      <LetterheadDisplay
+        confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Payment Tracker`}
+      />
+
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="payments-no-print flex items-center gap-4">
         <Link href="/tools/conf">
           <Button variant="ghost" size="icon-sm">
             <ArrowLeft className="size-4" />
@@ -148,14 +169,20 @@ export function PaymentShell() {
             Record payments and upload receipt screenshots
           </p>
         </div>
-        <Button size="sm" onClick={() => setShowForm(!showForm)}>
-          <Plus className="size-4" />
-          Add Payment
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer className="size-4" />
+            Print / PDF
+          </Button>
+          <Button size="sm" onClick={() => setShowForm(!showForm)}>
+            <Plus className="size-4" />
+            Add Payment
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="payments-no-print grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
             <div className="rounded-lg bg-blue-500/10 p-2">
@@ -195,7 +222,7 @@ export function PaymentShell() {
 
       {/* Add Payment Form */}
       {showForm && (
-        <Card className="border-[#C8A061]/40">
+        <Card className="payments-no-print border-[#C8A061]/40">
           <CardHeader>
             <CardTitle className="text-base">New Payment</CardTitle>
           </CardHeader>
@@ -332,7 +359,7 @@ export function PaymentShell() {
 
       {/* Payment List */}
       {payments.length === 0 && !showForm && (
-        <Card>
+        <Card className="payments-no-print">
           <CardContent className="flex flex-col items-center py-12 text-center">
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
             <p className="text-lg font-medium">No payments recorded yet</p>
@@ -344,7 +371,7 @@ export function PaymentShell() {
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div className="payments-no-print space-y-3">
         {payments.map((payment) => {
           const config = STATUS_CONFIG[payment.status];
           const StatusIcon = config.icon;
@@ -411,6 +438,78 @@ export function PaymentShell() {
             </Card>
           );
         })}
+      </div>
+
+      {/* A4 print area (hidden on screen, shown on print) */}
+      <div className="payments-print-area" style={{ display: "none" }}>
+        <LetterheadDisplay
+          confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Payment Tracker`}
+          printOnly
+          className="px-0"
+        />
+        <div style={{ marginTop: 14, marginBottom: 10 }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "#002868" }}>
+            Payment Summary
+          </div>
+          <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>
+            Date:{" "}
+            {new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>
+            Total Recorded: {fmtRmb(totalPaid)} · Verified: {fmtRmb(approvedTotal)}
+          </div>
+        </div>
+        <table
+          style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}
+        >
+          <thead>
+            <tr style={{ background: "#002868", color: "#fff" }}>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Paid By</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Paid To</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Method</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Ref</th>
+              <th style={{ padding: "6px 8px", textAlign: "left" }}>Status</th>
+              <th style={{ padding: "6px 8px", textAlign: "right" }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  style={{ padding: "10px 8px", color: "#666", textAlign: "center" }}
+                >
+                  No payments recorded yet.
+                </td>
+              </tr>
+            ) : (
+              payments.map((payment, idx) => (
+                <tr
+                  key={payment.id}
+                  style={{
+                    background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF",
+                    borderBottom: "0.5px solid #e0e0e0",
+                  }}
+                >
+                  <td style={{ padding: "5px 8px" }}>{payment.paidBy || "—"}</td>
+                  <td style={{ padding: "5px 8px" }}>{payment.paidTo || "—"}</td>
+                  <td style={{ padding: "5px 8px" }}>
+                    {PAY_METHODS[payment.method] || payment.method}
+                  </td>
+                  <td style={{ padding: "5px 8px" }}>{payment.ref || "—"}</td>
+                  <td style={{ padding: "5px 8px" }}>{payment.status}</td>
+                  <td style={{ padding: "5px 8px", textAlign: "right", fontWeight: 600 }}>
+                    {fmtRmb(payment.amount)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
