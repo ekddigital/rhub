@@ -38,6 +38,18 @@ function isStudyYear(value: unknown): value is (typeof STUDY_YEARS)[number] {
   return typeof value === "string" && STUDY_YEARS.includes(value as never);
 }
 
+function normalizePassportNumber(value: unknown): string {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
+
+function normalizeLoose(value: unknown): string {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
 // GET /api/conf/[confId]/delegates
 export async function GET(
   req: Request,
@@ -148,10 +160,11 @@ export async function POST(
       .trim()
       .toLowerCase();
     const normalizedName = formatPersonName(String(name || ""));
+    const normalizedPassportNo = normalizePassportNumber(passportNo);
 
     if (
       !normalizedName ||
-      !passportNo ||
+      !normalizedPassportNo ||
       !university ||
       !province ||
       !city ||
@@ -270,20 +283,6 @@ export async function POST(
       );
     }
 
-    const existingPassport = await prisma.confDelegate.findFirst({
-      where: { confId, passportNo },
-      select: { id: true },
-    });
-
-    if (existingPassport) {
-      return NextResponse.json(
-        { error: "A delegate with this passport number already exists" },
-        { status: 409 },
-      );
-    }
-
-    const delegateCode = await getNextDelegateCode(confId, event.year);
-
     const access = await getConferenceAccess(confId);
     const linkedUserId =
       access.user && access.user.email.toLowerCase() === normalizedEmail
@@ -332,40 +331,102 @@ export async function POST(
         ? true
         : Boolean(wantsSingleRoom) || resolvedRoomPref === "SINGLE";
 
+    const existingPassport = await prisma.confDelegate.findFirst({
+      where: { confId, passportNo: normalizedPassportNo },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        wechat: true,
+        userId: true,
+        bookletPhotoPath: true,
+      },
+    });
+
+    const baseDelegateData = {
+      userId: linkedUserId,
+      name: normalizedName,
+      passportNo: normalizedPassportNo,
+      gender,
+      email: normalizedEmail || null,
+      university: university || null,
+      province,
+      city,
+      phone: phone || null,
+      wechat: wechat || null,
+      attendanceIntent,
+      travelAssistanceNeeded,
+      schoolCommunicationNeeded,
+      schoolCommunicationDetails: schoolCommunicationDetails || null,
+      studyYear,
+      bringingForeignGuest,
+      guestNationality: guestNationality || null,
+      accommodationNeeded,
+      dietaryNeeds,
+      dietaryDetails: dietaryDetails || null,
+      additionalComments: additionalComments || null,
+      feePackageId: resolvedFeePackage?.id ?? null,
+      feeAmount: resolvedFeeAmount,
+      amountPaid: resolvedAmountPaid,
+      feePaid: feePaidBool,
+      roomPref: resolvedRoomPref,
+      wantsSingleRoom: wantsSingleRoomBool,
+      partnerClaimNote: partnerClaimNote || null,
+      conferencePosition: conferencePosition || null,
+      status: feePaidBool ? "CONFIRMED" : "REGISTERED",
+    } as const;
+
+    if (existingPassport) {
+      const sameAccount =
+        Boolean(linkedUserId) && existingPassport.userId === linkedUserId;
+      const sameEmail =
+        normalizeLoose(existingPassport.email) === normalizedEmail &&
+        normalizedEmail.length > 0;
+      const sameNameAndContact =
+        normalizeLoose(existingPassport.name) === normalizeLoose(normalizedName) &&
+        (normalizeLoose(existingPassport.phone) === normalizeLoose(phone) ||
+          normalizeLoose(existingPassport.wechat) === normalizeLoose(wechat));
+      const canUpdateExisting = sameAccount || sameEmail || sameNameAndContact;
+
+      if (!canUpdateExisting) {
+        return NextResponse.json(
+          {
+            error:
+              "A delegate with this passport number already exists under another profile. Please contact conference admin to resolve this passport record.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const updated = await prisma.confDelegate.update({
+        where: { id: existingPassport.id },
+        data: {
+          ...baseDelegateData,
+          userId: existingPassport.userId || linkedUserId,
+          flyerReady: canIssueFlyer({
+            feePaid: feePaidBool,
+            bookletPhotoPath: existingPassport.bookletPhotoPath,
+          }),
+        },
+      });
+
+      return NextResponse.json(
+        {
+          ...updated,
+          updatedExisting: true,
+        },
+        { status: 200 },
+      );
+    }
+
+    const delegateCode = await getNextDelegateCode(confId, event.year);
+
     const delegate = await prisma.confDelegate.create({
       data: {
         confId,
-        userId: linkedUserId,
-        name: normalizedName,
-        passportNo,
         delegateCode,
-        gender,
-        email: normalizedEmail || null,
-        university: university || null,
-        province,
-        city,
-        phone: phone || null,
-        wechat: wechat || null,
-        attendanceIntent,
-        travelAssistanceNeeded,
-        schoolCommunicationNeeded,
-        schoolCommunicationDetails: schoolCommunicationDetails || null,
-        studyYear,
-        bringingForeignGuest,
-        guestNationality: guestNationality || null,
-        accommodationNeeded,
-        dietaryNeeds,
-        dietaryDetails: dietaryDetails || null,
-        additionalComments: additionalComments || null,
-        feePackageId: resolvedFeePackage?.id ?? null,
-        feeAmount: resolvedFeeAmount,
-        amountPaid: resolvedAmountPaid,
-        feePaid: feePaidBool,
-        roomPref: resolvedRoomPref,
-        wantsSingleRoom: wantsSingleRoomBool,
-        partnerClaimNote: partnerClaimNote || null,
-        conferencePosition: conferencePosition || null,
-        status: feePaidBool ? "CONFIRMED" : "REGISTERED",
+        ...baseDelegateData,
         flyerReady: canIssueFlyer({
           feePaid: feePaidBool,
           bookletPhotoPath: null,
@@ -396,7 +457,7 @@ export async function POST(
       </p>
       <div style="margin:16px 0;padding:16px;background:#fdf9f2;border-radius:8px;border-left:4px solid #c8a061">
         <p style="margin:0 0 6px;color:#1f1c18;font-weight:600">${normalizedName}</p>
-        <p style="margin:0;color:#7a6e5a">Passport: ${passportNo}</p>
+        <p style="margin:0;color:#7a6e5a">Passport: ${normalizedPassportNo}</p>
         <p style="margin:0;color:#7a6e5a">Package: ${packageLabel}</p>
         <p style="margin:0;color:#7a6e5a">Selected fee: RMB ${resolvedFeeAmount.toFixed(2)}</p>
         <p style="margin:0;color:#7a6e5a">Amount already paid: RMB ${resolvedAmountPaid.toFixed(2)}</p>

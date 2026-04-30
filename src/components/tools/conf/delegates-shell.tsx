@@ -402,10 +402,15 @@ export function DelegatesShell() {
 
       await reloadAll(confId);
       setShowForm(false);
+      const updatedExisting = Boolean(
+        (createdPayload as { updatedExisting?: boolean }).updatedExisting,
+      );
       setNotice(
-        payload.feePaid
-          ? "Delegate registered and flyer is now available."
-          : "Delegate registered successfully.",
+        updatedExisting
+          ? "Existing delegate registration updated successfully."
+          : payload.feePaid
+            ? "Delegate registered and flyer is now available."
+            : "Delegate registered successfully.",
       );
       return true;
     } catch (e) {

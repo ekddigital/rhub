@@ -37,6 +37,7 @@ type SuccessState = {
   delegateCode: string | null;
   flyerReady: boolean;
   confId: string;
+  updatedExisting?: boolean;
 };
 
 type DelegatePhotoSample = {
@@ -253,6 +254,7 @@ export function DelegatePublicRegister() {
         delegateId,
         delegateCode: (createdPayload.delegateCode as string | null) || null,
         flyerReady,
+        updatedExisting: Boolean(createdPayload.updatedExisting),
       });
 
       if (typeof window !== "undefined") {
@@ -384,11 +386,14 @@ export function DelegatePublicRegister() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-emerald-700">
                 <CheckCircle2 className="size-5" />
-                Registration Submitted Successfully
+                {success.updatedExisting
+                  ? "Registration Updated Successfully"
+                  : "Registration Submitted Successfully"}
               </CardTitle>
               <CardDescription>
-                You are registered. Save your conference ID and review your next
-                steps below.
+                {success.updatedExisting
+                  ? "Your existing registration has been updated with your latest submission."
+                  : "You are registered. Save your conference ID and review your next steps below."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
