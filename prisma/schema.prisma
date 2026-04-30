@@ -686,7 +686,7 @@ enum RoomAssignStatus {
 
 model ConfEvent {
     id        String     @id @default(cuid())
-    name      String // "LSUIC 20th Anniversary National Conference"
+    name      String // "LSUIC 20th Annual Conference & Anniversary"
     slug      String     @unique
     year      Int
     city      String

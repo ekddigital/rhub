@@ -3,7 +3,7 @@
 export const CONF_2026 = {
   // Identity
   shortLabel: "LSUIC 2026",
-  name: "LSUIC 20th Anniversary National Conference",
+  name: "LSUIC 20th Annual Conference & Anniversary",
   year: 2026,
   phase: "Planning Phase",
 

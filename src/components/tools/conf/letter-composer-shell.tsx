@@ -173,6 +173,26 @@ function plainBodyToRichHtml(body: string): string {
     .join("");
 }
 
+function richHtmlToPlainText(html: string): string {
+  const trimmed = html.trim();
+  if (!trimmed) return "";
+
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const root = document.createElement("div");
+    root.innerHTML = trimmed;
+    const text = root.innerText || root.textContent || "";
+    return text.replace(/\r\n/g, "\n").trim();
+  }
+
+  return trimmed
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -610,8 +630,12 @@ function LetterA4Preview({
   };
 
   // Paginate body text using page-aware metrics
+  const bodyForLayout = draft.bodyRich
+    ? richHtmlToPlainText(draft.bodyRich)
+    : draft.body;
+
   const bodyPages = paginateBodyText(
-    draft.body,
+    bodyForLayout,
     firstPageMetrics,
     continuationPageMetrics,
     signatureReserveLines,
@@ -2374,7 +2398,7 @@ export function LetterComposerShell() {
                       setActiveDraft((d) => ({
                         ...d,
                         bodyRich: value.html,
-                        body: value.text,
+                        body: richHtmlToPlainText(value.html) || value.text,
                       }))
                     }
                   />

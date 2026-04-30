@@ -62,7 +62,7 @@
 
 ### Conference Vision & Identity
 
-- **Conference**: LSUIC 20th Anniversary National Conference — Jinan, China
+- **Conference**: LSUIC 20th Annual Conference & Anniversary — Jinan, China
 - **Target attendance**: 170 delegates
 - **Previous year fee**: ¥275/delegate
 - **Theme/Vision field**: stored in `ConfBooklet.theme` — displayed prominently on booklet cover as "Conference Vision"
