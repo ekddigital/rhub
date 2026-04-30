@@ -200,6 +200,10 @@ function PaymentsDocumentPreview({
           method:
             PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
             payment.method,
+          proofs:
+            payment.proofs.length > 0
+              ? `${payment.proofs.length} file${payment.proofs.length === 1 ? "" : "s"}`
+              : "None",
           amount: fmtRmb(payment.amount),
           status: payment.status,
         }))
@@ -210,12 +214,16 @@ function PaymentsDocumentPreview({
             paidBy: "No records yet",
             paidTo: "—",
             method: "—",
+            proofs: "—",
             amount: "—",
             status: "—",
           },
         ];
 
   const rowChunks = chunkArray(rows, 22);
+  const receiptSamples = payments
+    .filter((payment) => payment.proofs.length > 0)
+    .slice(0, 6);
   const sidebarMembers = members.slice(0, 8).map((member, idx) => ({
     id: `payments-member-${idx}`,
     name: member.name,
@@ -263,13 +271,14 @@ function PaymentsDocumentPreview({
       <DocumentTable
         caption={pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"}
         columns={[
-          { key: "date", label: "Date", width: 12 },
-          { key: "type", label: "Type", width: 9 },
-          { key: "paidBy", label: "Paid/Received By", width: 22 },
-          { key: "paidTo", label: "To/Received By", width: 19 },
-          { key: "method", label: "Method", width: 13 },
-          { key: "status", label: "Status", width: 14 },
-          { key: "amount", label: "Amount", width: 11, align: "right" },
+          { key: "date", label: "Date", width: 11 },
+          { key: "type", label: "Type", width: 8 },
+          { key: "paidBy", label: "Paid/Received By", width: 20 },
+          { key: "paidTo", label: "To/Received By", width: 17 },
+          { key: "method", label: "Method", width: 12 },
+          { key: "proofs", label: "Receipts", width: 12, align: "center" },
+          { key: "status", label: "Status", width: 11 },
+          { key: "amount", label: "Amount", width: 9, align: "right" },
         ]}
         data={pageRows}
         forPrint={forPrint}
@@ -294,6 +303,80 @@ function PaymentsDocumentPreview({
               NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
             </div>
           </div>
+          {receiptSamples.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#002868",
+                  marginBottom: 8,
+                }}
+              >
+                Payment Proofs / Receipts
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 8,
+                }}
+              >
+                {receiptSamples.map((payment) => (
+                  <div
+                    key={`proof-${payment.id}`}
+                    style={{
+                      border: "1px solid #d9dfeb",
+                      borderRadius: 6,
+                      padding: 6,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 9,
+                        color: "#555",
+                        marginBottom: 4,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {payment.paidBy} · {fmtRmb(payment.amount)}
+                    </div>
+                    <div style={{ display: "flex", gap: 4 }}>
+                      {payment.proofs.slice(0, 2).map((proof) => (
+                        <div
+                          key={proof.id}
+                          style={{
+                            width: 46,
+                            height: 46,
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 4,
+                            overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#fafafa",
+                          }}
+                        >
+                          {proof.fileType?.startsWith("image/") ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={proof.filePath}
+                              alt={proof.fileName}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <span style={{ fontSize: 8, color: "#666" }}>FILE</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <DocumentSignatureBlock draft={signatoryDraft} />
         </>
       )}
