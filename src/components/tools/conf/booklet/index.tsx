@@ -201,13 +201,13 @@ export function BookletPreview({
   }
 
   function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
+    const relevant = sectionMembersForPageCount(s);
     const isMainConferenceCommittee =
       s.type === "COMMITTEE" && !s.committeeScope?.trim();
-    if (isMainConferenceCommittee) return 1;
-
-    const relevant = sectionMembersForPageCount(s);
-    const hasGeneral = relevant.some((m) => !KEY_ROLES.includes(m.role));
-    return hasGeneral ? 2 : 1;
+    if (s.type === "NEC" && relevant.length <= 10) return 1;
+    if (isMainConferenceCommittee && relevant.length <= 7) return 1;
+    const generalCount = relevant.filter((m) => !KEY_ROLES.includes(m.role)).length;
+    return 1 + Math.ceil(generalCount / 9);
   }
   const bodyPageCount = enabledSections.reduce((sum, s) => {
     if (s.type === "LEADER") return sum + Math.max(1, leaderCount);

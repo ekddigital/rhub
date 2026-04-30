@@ -275,23 +275,52 @@ function OfficerCard({
       style={{
         display: "flex",
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         gap: "10px",
         padding: "14px 12px",
         borderRadius: "10px",
         background: bg,
         border: `1px solid ${C.border}`,
-        minHeight: "118px",
       }}
     >
-      <Avatar
-        src={member.photoPath}
-        name={member.name}
-        size={74}
-        silhouette={!member.photoPath}
-        borderColor={textColor}
-      />
-      <div style={{ minWidth: 0 }}>
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "5px",
+          width: "76px",
+        }}
+      >
+        <Avatar
+          src={member.photoPath}
+          name={member.name}
+          size={74}
+          silhouette={!member.photoPath}
+          borderColor={textColor}
+        />
+        <div
+          style={{
+            fontSize: "7px",
+            color: C.muted,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            textAlign: "center",
+            lineHeight: 1.2,
+          }}
+        >
+          {member.delegateCode ?? "Member"}
+        </div>
+      </div>
+      <div
+        style={{
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
         <div
           style={{
             fontSize: "12.5px",
@@ -374,23 +403,52 @@ function MemberCard({ member }: { member: NecMember }) {
       style={{
         display: "flex",
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "stretch",
         gap: "10px",
         padding: "12px 10px",
         borderRadius: "8px",
         background: C.lightBlue,
         border: `1px solid ${C.border}`,
-        minHeight: "108px",
       }}
     >
-      <Avatar
-        src={member.photoPath}
-        name={member.name}
-        size={66}
-        silhouette={!member.photoPath}
-        borderColor={C.blue}
-      />
-      <div style={{ minWidth: 0 }}>
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "5px",
+          width: "68px",
+        }}
+      >
+        <Avatar
+          src={member.photoPath}
+          name={member.name}
+          size={66}
+          silhouette={!member.photoPath}
+          borderColor={C.blue}
+        />
+        <div
+          style={{
+            fontSize: "7px",
+            color: C.muted,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            textAlign: "center",
+            lineHeight: 1.2,
+          }}
+        >
+          {member.delegateCode ?? "Member"}
+        </div>
+      </div>
+      <div
+        style={{
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
         <div
           style={{
             fontSize: "12px",
@@ -484,6 +542,10 @@ export function CommitteeSection({
     filtered.filter((m) => m.role === r),
   );
   const generalMembers = filtered.filter((m) => !KEY_ORDER.includes(m.role));
+  const generalMemberChunks: NecMember[][] = [];
+  for (let i = 0; i < generalMembers.length; i += 9) {
+    generalMemberChunks.push(generalMembers.slice(i, i + 9));
+  }
 
   if (filtered.length === 0) {
     return (
@@ -518,8 +580,11 @@ export function CommitteeSection({
     TREASURER: { bg: `${C.blue}0E`, text: C.blue },
   };
 
-  // For NEC and main Conference Committee: keep leadership + members together.
-  if (isMainConferenceCommittee || (isNecSection && filtered.length <= 10)) {
+  // Keep a one-page dense layout only when committee size is manageable.
+  if (
+    (isNecSection && filtered.length <= 10) ||
+    (isMainConferenceCommittee && filtered.length <= 7)
+  ) {
     return (
       <A4Page
         pageNum={startPageNum}
@@ -641,10 +706,11 @@ export function CommitteeSection({
         )}
       </A4Page>
 
-      {/* ── PAGE 2: General committee members (only if any exist) ── */}
-      {generalMembers.length > 0 && (
+      {/* ── PAGE 2+: General committee members (paginated in chunks) ── */}
+      {generalMemberChunks.map((membersChunk, chunkIndex) => (
         <A4Page
-          pageNum={startPageNum + 1}
+          key={`general-page-${chunkIndex}`}
+          pageNum={startPageNum + 1 + chunkIndex}
           totalPages={totalPages}
           sectionLabel={section.title}
           confName={confName}
@@ -681,12 +747,12 @@ export function CommitteeSection({
               gap: "14px",
             }}
           >
-            {generalMembers.map((m) => (
+            {membersChunk.map((m) => (
               <MemberCard key={m.id} member={m} />
             ))}
           </div>
         </A4Page>
-      )}
+      ))}
     </>
   );
 }
