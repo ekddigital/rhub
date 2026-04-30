@@ -23,7 +23,8 @@ export function A4Page({
       className="booklet-page"
       style={{
         width: "680px",
-        minHeight: "962px",
+        height: "962px",
+        maxHeight: "962px",
         background: C.white,
         display: "flex",
         flexDirection: "column",

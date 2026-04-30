@@ -60,10 +60,9 @@ const DEFAULT_SECTIONS = [
     sortOrder: 15,
     committeeScope: "WMF",
   },
-  { type: "SCHEDULE", title: "Conference Schedule", sortOrder: 16 },
-  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 17 },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 },
+  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 16 },
+  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 17 },
+  { type: "BACK_COVER", title: "Back Cover", sortOrder: 18 },
 ];
 
 function normalizeLabel(value: string | null | undefined): string {
@@ -107,7 +106,8 @@ export async function GET(
     } else {
       const existingBooklet = booklet;
       // Backfill existing booklets with updated section naming and required
-      // conference committee section so TOC stays complete.
+      // conference committee section so TOC stays complete. Also keep internal
+      // schedule items out of the public booklet output.
       await prisma.$transaction(async (tx) => {
         const existingSections = [...existingBooklet.sections].sort(
           (a, b) => a.sortOrder - b.sortOrder,
@@ -165,6 +165,16 @@ export async function GET(
             },
           });
         }
+
+        await tx.confBookletSection.updateMany({
+          where: {
+            bookletId: existingBooklet.id,
+            type: "SCHEDULE",
+          },
+          data: {
+            isEnabled: false,
+          },
+        });
       });
 
       booklet = await prisma.confBooklet.findUnique({

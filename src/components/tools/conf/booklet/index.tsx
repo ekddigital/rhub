@@ -15,7 +15,6 @@ import { TableOfContentsPage } from "./TableOfContentsPage";
 import { LeaderSection } from "./LeaderSection";
 import { AddressSection } from "./AddressSection";
 import { CommitteeSection } from "./CommitteeSection";
-import { ScheduleSection } from "./ScheduleSection";
 import { DelegatesSection } from "./DelegatesSection";
 import { TextSection } from "./TextSection";
 
@@ -36,7 +35,6 @@ function renderSection(
     conferenceChair,
     delegates,
   } = data;
-  const meetings = data.meetings ?? [];
   const confName = event.name;
   const confYear = event.year;
   const key = section.id;
@@ -44,6 +42,17 @@ function renderSection(
   // Alias for sections that are always single-page
   const pageNum = startPageNum;
   const commonSingle = { pageNum, totalPages, confName, confYear };
+
+  // Helper: normalize name for comparison
+  function normalizeName(name: string): string {
+    return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  // For CITY_PRESIDENTS: filter out members that match leader names to prevent duplicates
+  const leaderNames = new Set(leaders.map((l) => normalizeName(l.name)));
+  const filteredCommitteeForCityPresidents = committeeMembers.filter(
+    (m) => !leaderNames.has(normalizeName(m.name)),
+  );
 
   switch (section.type) {
     case "LEADER":
@@ -104,21 +113,15 @@ function renderSection(
         <CommitteeSection
           key={key}
           section={section}
-          members={committeeMembers}
+          members={
+            section.type === "CITY_PRESIDENTS"
+              ? filteredCommitteeForCityPresidents
+              : committeeMembers
+          }
           startPageNum={startPageNum}
           totalPages={totalPages}
           confName={confName}
           confYear={confYear}
-        />
-      );
-
-    case "SCHEDULE":
-      return (
-        <ScheduleSection
-          key={key}
-          section={section}
-          meetings={meetings}
-          {...commonSingle}
         />
       );
 
@@ -148,7 +151,13 @@ export function BookletPreview({
   const [zoom, setZoom] = useState(90);
 
   const enabledSections = [...(data.booklet?.sections ?? [])]
-    .filter((s) => s.isEnabled && s.type !== "COVER" && s.type !== "BACK_COVER")
+    .filter(
+      (s) =>
+        s.isEnabled &&
+        s.type !== "COVER" &&
+        s.type !== "BACK_COVER" &&
+        s.type !== "SCHEDULE",
+    )
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const hasCover = (data.booklet?.sections ?? []).some(
@@ -213,9 +222,11 @@ export function BookletPreview({
           }
           .booklet-page {
             width: 210mm !important;
-            min-height: 297mm !important;
+            height: 297mm !important;
+            max-height: 297mm !important;
             page-break-after: always;
             page-break-inside: avoid;
+            overflow: hidden !important;
             box-shadow: none !important;
           }
           @page { size: A4 portrait; margin: 0; }
@@ -366,22 +377,30 @@ export function BookletPreview({
               totalPages={totalPages}
             />
 
-            {enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
-              ({ nodes, rp }, s) => {
-                const startPage = rp;
-                const delta =
-                  s.type === "LEADER"
-                    ? Math.max(1, leaderCount)
-                    : s.type === "NEC" || committeeTypes.includes(s.type)
-                      ? committeeSectionPageCount(s)
-                      : 1;
-                return {
-                  nodes: [...nodes, renderSection(s, data, startPage, totalPages)],
-                  rp: rp + delta,
-                };
-              },
-              { nodes: [], rp: (hasCover ? 1 : 0) + 2 } as { nodes: ReactNode[]; rp: number },
-            ).nodes}
+            {
+              enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
+                ({ nodes, rp }, s) => {
+                  const startPage = rp;
+                  const delta =
+                    s.type === "LEADER"
+                      ? Math.max(1, leaderCount)
+                      : s.type === "NEC" || committeeTypes.includes(s.type)
+                        ? committeeSectionPageCount(s)
+                        : 1;
+                  return {
+                    nodes: [
+                      ...nodes,
+                      renderSection(s, data, startPage, totalPages),
+                    ],
+                    rp: rp + delta,
+                  };
+                },
+                { nodes: [], rp: (hasCover ? 1 : 0) + 2 } as {
+                  nodes: ReactNode[];
+                  rp: number;
+                },
+              ).nodes
+            }
 
             {hasBackCover && (
               <BackCoverPage event={data.event} totalPages={totalPages} />
