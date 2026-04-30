@@ -177,19 +177,34 @@ function richHtmlToPlainText(html: string): string {
   const trimmed = html.trim();
   if (!trimmed) return "";
 
+  const withBreaks = trimmed
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h1|h2|h3|h4|h5|h6)>/gi, "\n\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, " ");
+
   if (typeof window !== "undefined" && typeof document !== "undefined") {
-    const root = document.createElement("div");
-    root.innerHTML = trimmed;
-    const text = root.innerText || root.textContent || "";
-    return text.replace(/\r\n/g, "\n").trim();
+    const decoder = document.createElement("textarea");
+    decoder.innerHTML = withBreaks;
+    const decoded = decoder.value;
+    return decoded
+      .replace(/\r\n/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
   }
 
-  return trimmed
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n\n")
-    .replace(/<\/div>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
+  return withBreaks
     .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
@@ -630,9 +645,10 @@ function LetterA4Preview({
   };
 
   // Paginate body text using page-aware metrics
-  const bodyForLayout = draft.bodyRich
-    ? richHtmlToPlainText(draft.bodyRich)
-    : draft.body;
+  const bodyForLayout =
+    draft.body && draft.body.trim().length > 0
+      ? draft.body
+      : richHtmlToPlainText(draft.bodyRich ?? "");
 
   const bodyPages = paginateBodyText(
     bodyForLayout,
@@ -2398,7 +2414,7 @@ export function LetterComposerShell() {
                       setActiveDraft((d) => ({
                         ...d,
                         bodyRich: value.html,
-                        body: richHtmlToPlainText(value.html) || value.text,
+                        body: value.text,
                       }))
                     }
                   />
