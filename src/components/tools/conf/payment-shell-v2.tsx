@@ -321,8 +321,8 @@ function PaymentsDocumentPreview({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: 8,
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: 10,
                 }}
               >
                 {receiptSamples.map((payment) => (
@@ -331,7 +331,7 @@ function PaymentsDocumentPreview({
                     style={{
                       border: "1px solid #d9dfeb",
                       borderRadius: 6,
-                      padding: 6,
+                      padding: 8,
                     }}
                   >
                     <div
@@ -346,13 +346,13 @@ function PaymentsDocumentPreview({
                     >
                       {payment.paidBy} · {fmtRmb(payment.amount)}
                     </div>
-                    <div style={{ display: "flex", gap: 4 }}>
+                    <div style={{ display: "flex", gap: 6 }}>
                       {payment.proofs.slice(0, 2).map((proof) => (
                         <div
                           key={proof.id}
                           style={{
-                            width: 64,
-                            height: 64,
+                            width: 84,
+                            height: 84,
                             border: "1px solid #e0e0e0",
                             borderRadius: 4,
                             overflow: "hidden",

@@ -276,6 +276,7 @@ function OfficerCard({
         display: "flex",
         flexDirection: "row",
         alignItems: "stretch",
+        minWidth: 0,
         gap: "10px",
         padding: "14px 12px",
         borderRadius: "10px",
@@ -328,6 +329,8 @@ function OfficerCard({
             color: textColor,
             marginBottom: "3px",
             lineHeight: 1.25,
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
           }}
         >
           {member.name}
@@ -340,6 +343,8 @@ function OfficerCard({
             textTransform: "uppercase",
             letterSpacing: "0.08em",
             lineHeight: 1.35,
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
           }}
         >
           {member.conferencePosition?.trim() || roleLabel(member)}
@@ -347,12 +352,21 @@ function OfficerCard({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
             gap: "2px 10px",
             marginTop: "3px",
           }}
         >
-          <div style={{ fontSize: "9px", color: C.muted, lineHeight: 1.3 }}>
+          <div
+            style={{
+              fontSize: "9px",
+              color: C.muted,
+              lineHeight: 1.3,
+              minWidth: 0,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
+            }}
+          >
             {(member.city ?? "Member") +
               (member.province ? `, ${member.province}` : "")}
           </div>
@@ -362,6 +376,9 @@ function OfficerCard({
               color: C.blue,
               lineHeight: 1.3,
               fontWeight: 600,
+              minWidth: 0,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
             }}
           >
             {member.phone ?? "Phone pending"}
@@ -372,6 +389,9 @@ function OfficerCard({
               fontSize: "9px",
               color: C.muted,
               lineHeight: 1.3,
+              minWidth: 0,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
             }}
           >
             {member.university?.trim() || "Member"}
@@ -404,6 +424,7 @@ function MemberCard({ member }: { member: NecMember }) {
         display: "flex",
         flexDirection: "row",
         alignItems: "stretch",
+        minWidth: 0,
         gap: "10px",
         padding: "12px 10px",
         borderRadius: "8px",
@@ -456,6 +477,8 @@ function MemberCard({ member }: { member: NecMember }) {
             color: C.blue,
             lineHeight: 1.25,
             marginBottom: "3px",
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
           }}
         >
           {member.name}
@@ -473,18 +496,40 @@ function MemberCard({ member }: { member: NecMember }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
+              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
               gap: "2px 10px",
             }}
           >
-            <div>
+            <div
+              style={{
+                minWidth: 0,
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
+              }}
+            >
               {(member.city ?? "Member") +
                 (member.province ? `, ${member.province}` : "")}
             </div>
-            <div style={{ color: C.blue, fontWeight: 600, fontSize: "9px" }}>
+            <div
+              style={{
+                color: C.blue,
+                fontWeight: 600,
+                fontSize: "9px",
+                minWidth: 0,
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
+              }}
+            >
               {member.phone ?? "Phone pending"}
             </div>
-            <div style={{ gridColumn: "1 / span 2" }}>
+            <div
+              style={{
+                gridColumn: "1 / span 2",
+                minWidth: 0,
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
+              }}
+            >
               {member.university?.trim() || "Member"}
             </div>
           </div>
@@ -620,7 +665,7 @@ export function CommitteeSection({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
               gap: "9px",
             }}
           >
@@ -684,7 +729,7 @@ export function CommitteeSection({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
               gap: "12px",
             }}
           >
@@ -743,7 +788,7 @@ export function CommitteeSection({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
               gap: "14px",
             }}
           >
