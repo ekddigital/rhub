@@ -20,11 +20,20 @@ export async function POST(
       select: {
         id: true,
         confId: true,
+        isLocked: true,
+        status: true,
       },
     });
 
     if (!payment || payment.confId !== confId) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
+
+    if (payment.isLocked || payment.status === "APPROVED") {
+      return NextResponse.json(
+        { error: "Approved/locked payments cannot receive new proof files" },
+        { status: 409 },
+      );
     }
 
     const formData = await req.formData();

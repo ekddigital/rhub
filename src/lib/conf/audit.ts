@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 export type AuditAction =
   | "PAYMENT_CREATED"
   | "PAYMENT_UPDATED"
+  | "PAYMENT_DELETED"
   | "PAYMENT_COMMITTEE_APPROVED"
   | "PAYMENT_FINAL_APPROVED"
   | "PAYMENT_REJECTED"

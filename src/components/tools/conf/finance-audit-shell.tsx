@@ -21,6 +21,8 @@ type AuditLog = {
 
 const ACTION_COLORS: Record<string, string> = {
   PAYMENT_CREATED: "text-blue-600 dark:text-blue-400",
+  PAYMENT_UPDATED: "text-blue-600 dark:text-blue-400",
+  PAYMENT_DELETED: "text-red-600 dark:text-red-400",
   PAYMENT_COMMITTEE_APPROVED: "text-indigo-600 dark:text-indigo-400",
   PAYMENT_FINAL_APPROVED: "text-green-600 dark:text-green-400",
   PAYMENT_REJECTED: "text-red-600 dark:text-red-400",
@@ -38,6 +40,7 @@ const ACTION_COLORS: Record<string, string> = {
 const ACTION_LABELS: Record<string, string> = {
   PAYMENT_CREATED: "Payment Created",
   PAYMENT_UPDATED: "Payment Updated",
+  PAYMENT_DELETED: "Payment Deleted",
   PAYMENT_COMMITTEE_APPROVED: "Committee Approved",
   PAYMENT_FINAL_APPROVED: "Final Approved & Locked",
   PAYMENT_REJECTED: "Payment Rejected",
@@ -149,7 +152,7 @@ export function FinanceAuditShell() {
             <div className="divide-y">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-start gap-3 px-4 py-3">
-                  <div className="mt-0.5 flex-shrink-0">
+                  <div className="mt-0.5 shrink-0">
                     <Clock className="size-3.5 text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">

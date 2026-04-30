@@ -23,6 +23,8 @@ import {
   ZoomIn,
   ZoomOut,
   Printer,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import {
   Card,
@@ -397,12 +399,14 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<PaymentType | "ALL">("ALL");
   const [filterStatus, setFilterStatus] = useState<PaymentStatusFilter>("ACTIVE");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   // Form fields
   const [paymentType, setPaymentType] = useState<PaymentType>("EXPENSE");
@@ -615,13 +619,21 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const handleSubmit = async () => {
     if (!amount || !paidBy || !confId || saving) return;
+    if (!(Number(amount) > 0)) {
+      setError("Amount must be greater than zero.");
+      return;
+    }
     setSaving(true);
     setError(null);
     setProofValidationFeedback(null);
     try {
-      // 1. Create payment record
-      const res = await fetch(`/api/conf/${confId}/payments`, {
-        method: "POST",
+      // 1. Create or update payment record
+      const endpoint = editingPaymentId
+        ? `/api/conf/${confId}/payments/${editingPaymentId}`
+        : `/api/conf/${confId}/payments`;
+      const methodVerb = editingPaymentId ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method: methodVerb,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(amount),
@@ -638,7 +650,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       });
       if (!res.ok) {
         const err = (await res.json()) as { error?: string };
-        throw new Error(err.error ?? "Failed to create payment");
+        throw new Error(
+          err.error ??
+            (editingPaymentId ? "Failed to update payment" : "Failed to create payment"),
+        );
       }
       const payment = (await res.json()) as Payment;
 
@@ -668,6 +683,57 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       setError(e instanceof Error ? e.message : "Failed to save payment");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleEditPayment = (payment: Payment) => {
+    if (payment.isLocked || payment.status === "APPROVED") {
+      setError("Approved/locked payments cannot be edited.");
+      return;
+    }
+    setEditingPaymentId(payment.id);
+    setPaymentType(payment.paymentType || "EXPENSE");
+    setAmount(String(payment.amount));
+    setPaidBy(payment.paidBy || "");
+    setPaidTo(payment.paidTo || "");
+    setMethod(payment.method || "WECHAT");
+    setTxRef(payment.ref || "");
+    setNote(payment.note || "");
+    setCommitteeScope(payment.committeeScope || "");
+    setIncomeSource(payment.incomeSource || "");
+    setProofFiles([]);
+    setProofPreviews([]);
+    setProofValidationFeedback(null);
+    setUploadStatus(null);
+    setShowForm(true);
+    setError(null);
+  };
+
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!confId || deleteLoadingId) return;
+    const confirmed = window.confirm(
+      "Delete this payment record? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setDeleteLoadingId(paymentId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/payments/${paymentId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(err.error ?? "Failed to delete payment");
+      }
+      setPayments((prev) => prev.filter((payment) => payment.id !== paymentId));
+      if (editingPaymentId === paymentId) {
+        resetForm();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeleteLoadingId(null);
     }
   };
 
@@ -728,6 +794,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const resetForm = () => {
+    setEditingPaymentId(null);
     setPaymentType("EXPENSE");
     setAmount("");
     setPaidBy("");
@@ -843,9 +910,18 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             <RefreshCw className="size-4" />
           </Button>
           {accessInfo?.isManager && (
-            <Button size="sm" onClick={() => setShowForm(!showForm)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (showForm) {
+                  resetForm();
+                } else {
+                  setShowForm(true);
+                }
+              }}
+            >
               <Plus className="size-4" />
-              New Record
+              {showForm ? "Close Form" : "New Record"}
             </Button>
           )}
         </div>
@@ -960,10 +1036,13 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       {showForm && (
         <Card className="border-[#C8A061]/40">
           <CardHeader>
-            <CardTitle className="text-base">New Financial Record</CardTitle>
+            <CardTitle className="text-base">
+              {editingPaymentId ? "Edit Financial Record" : "New Financial Record"}
+            </CardTitle>
             <CardDescription>
-              Record an expense payment or incoming funds with proof of
-              transaction
+              {editingPaymentId
+                ? "Update payment details. Existing proofs remain; newly uploaded proofs are added."
+                : "Record an expense payment or incoming funds with proof of transaction"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1121,6 +1200,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             {/* Proof Upload */}
             <div className="space-y-2">
               <Label>Proof of Payment / Receipt</Label>
+              {editingPaymentId && (
+                <p className="text-xs text-muted-foreground">
+                  Uploading here adds extra proof files to this record.
+                </p>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1158,6 +1242,40 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       className="h-full rounded-full bg-blue-500 transition-all"
                       style={{ width: `${uploadStatus.percent}%` }}
                     />
+                  </div>
+                </div>
+              )}
+              {editingPaymentId && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Existing proof files
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {(payments.find((p) => p.id === editingPaymentId)?.proofs ?? []).map(
+                      (proof) => (
+                        <a
+                          key={`editing-proof-${proof.id}`}
+                          href={proof.filePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block size-20 overflow-hidden rounded border border-muted"
+                          title={proof.fileName}
+                        >
+                          {proof.fileType?.startsWith("image/") ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={proof.filePath}
+                              alt={proof.fileName}
+                              className="size-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex size-full items-center justify-center bg-muted">
+                              <ImageIcon className="size-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </a>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
@@ -1200,7 +1318,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 ) : (
                   <Plus className="size-4" />
                 )}
-                {saving ? "Saving..." : "Submit for Approval"}
+                {saving
+                  ? "Saving..."
+                  : editingPaymentId
+                    ? "Save Changes"
+                    : "Submit for Approval"}
               </Button>
             </div>
           </CardContent>
@@ -1376,6 +1498,35 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     </div>
                   )}
                 </div>
+
+                {!payment.isLocked && accessInfo?.isManager && (
+                  <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs"
+                      onClick={() => handleEditPayment(payment)}
+                      disabled={saving || deleteLoadingId === payment.id}
+                    >
+                      <Pencil className="size-3" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
+                      onClick={() => handleDeletePayment(payment.id)}
+                      disabled={deleteLoadingId === payment.id}
+                    >
+                      {deleteLoadingId === payment.id ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-3" />
+                      )}
+                      Delete
+                    </Button>
+                  </div>
+                )}
 
                 {/* Approval Actions */}
                 {!payment.isLocked &&
