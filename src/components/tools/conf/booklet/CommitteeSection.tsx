@@ -61,30 +61,72 @@ function SectionHeading({ section }: { section: BookletSection }) {
   );
 }
 
-// ─── Chair hero card (full-width, prominent) ──────────────────────────────────
-function ChairHeroCard({ chair }: { chair: NecMember }) {
+// ─── Chair hero card (full-width, compact for NEC sections) ──────────────────────────────────
+function ChairHeroCard({
+  chair,
+  isNec,
+}: {
+  chair: NecMember;
+  isNec?: boolean;
+}) {
+  const photoWidth = isNec ? 140 : 118;
+  const photoHeight = isNec ? 176 : 118;
+  const title =
+    chair.conferencePosition?.trim() ?? chair.title ?? roleLabel(chair);
+
   return (
     <div
       style={{
         display: "flex",
-        gap: "20px",
-        padding: "20px 22px",
+        alignItems: "stretch",
+        gap: isNec ? "18px" : "20px",
+        padding: isNec ? "18px 20px" : "20px 22px",
         borderRadius: "12px",
         background: C.blue,
-        marginBottom: "18px",
+        marginBottom: isNec ? "12px" : "18px",
         boxShadow: "0 4px 18px rgba(0,40,104,0.18)",
       }}
     >
       {/* Large portrait avatar */}
       <div style={{ flexShrink: 0 }}>
-        <Avatar
-          src={chair.photoPath}
-          name={chair.name}
-          size={96}
-          square
-          silhouette={!chair.photoPath}
-          borderColor={C.gold}
-        />
+        {chair.photoPath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={chair.photoPath}
+            alt={chair.name}
+            style={{
+              width: `${photoWidth}px`,
+              height: `${photoHeight}px`,
+              borderRadius: "8px",
+              objectFit: "cover",
+              objectPosition: "top center",
+              border: `2px solid ${C.gold}55`,
+              display: "block",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: `${photoWidth}px`,
+              height: `${photoHeight}px`,
+              borderRadius: "8px",
+              border: `2px solid ${C.gold}55`,
+              background: `${C.white}0F`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Avatar
+              src={chair.photoPath}
+              name={chair.name}
+              size={Math.min(photoWidth - 18, 108)}
+              square
+              silhouette={!chair.photoPath}
+              borderColor={C.gold}
+            />
+          </div>
+        )}
       </div>
 
       {/* Info block */}
@@ -98,108 +140,110 @@ function ChairHeroCard({ chair }: { chair: NecMember }) {
             borderRadius: "20px",
             background: `${C.gold}28`,
             border: `1px solid ${C.gold}80`,
-            fontSize: "8px",
+            fontSize: isNec ? "9px" : "8px",
             fontWeight: 800,
             color: C.gold,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
-            marginBottom: "8px",
+            marginBottom: isNec ? "5px" : "8px",
           }}
         >
-          ★ General Chairman
+          ★ {isNec ? "General Chairman" : "General Chairman"}
         </div>
 
         {/* Name */}
         <div
           style={{
-            fontSize: "20px",
+            fontSize: isNec ? "18px" : "20px",
             fontWeight: 900,
             color: C.white,
             lineHeight: 1.1,
-            marginBottom: "5px",
+            marginBottom: isNec ? "3px" : "5px",
           }}
         >
           {chair.name}
         </div>
 
         {/* Title */}
-        {(chair.title ?? roleLabel(chair)) && (
+        {title && (
           <div
             style={{
-              fontSize: "11px",
-              fontWeight: 600,
+              fontSize: isNec ? "12px" : "11px",
+              fontWeight: 700,
               color: `${C.white}B0`,
-              marginBottom: "8px",
+              marginBottom: isNec ? "8px" : "8px",
               letterSpacing: "0.03em",
             }}
           >
-            {chair.conferencePosition?.trim() ??
-              chair.title ??
-              roleLabel(chair)}
+            {title}
           </div>
         )}
 
-        {/* City */}
-        {chair.city && (
-          <div
-            style={{
-              fontSize: "10px",
-              color: `${C.white}70`,
-              marginBottom: "8px",
-            }}
-          >
-            📍 {chair.city}
-            {chair.province ? `, ${chair.province}` : ""}
-          </div>
-        )}
-        {chair.phone && (
-          <div
-            style={{
-              fontSize: "10px",
-              color: `${C.white}90`,
-              marginBottom: "6px",
-              fontWeight: 600,
-            }}
-          >
-            Phone: {chair.phone}
-          </div>
-        )}
-
+        {/* City / phone / university / code */}
         <div
           style={{
-            fontSize: "10px",
-            color: `${C.white}75`,
-            marginBottom: "6px",
+            display: "grid",
+            gridTemplateColumns: isNec ? "1fr 1fr" : "1fr",
+            gap: isNec ? "8px 14px" : "4px",
+            marginBottom: isNec ? "8px" : "6px",
           }}
         >
-          🎓 {chair.university?.trim() || "Member"}
-        </div>
-
-        <div
-          style={{
-            marginBottom: "8px",
-            fontSize: "8px",
-            fontFamily: "monospace",
-            color: chair.delegateCode ? C.gold : `${C.white}80`,
-            background: chair.delegateCode ? `${C.gold}20` : `${C.white}15`,
-            padding: "2px 8px",
-            borderRadius: "5px",
-            display: "inline-block",
-          }}
-        >
-          {chair.delegateCode ?? "ID pending"}
+          {chair.city && (
+            <div
+              style={{
+                fontSize: isNec ? "15px" : "10px",
+                color: `${C.white}80`,
+              }}
+            >
+              📍 {chair.city}
+              {chair.province ? `, ${chair.province}` : ""}
+            </div>
+          )}
+          {chair.phone && (
+            <div
+              style={{
+                fontSize: isNec ? "16px" : "10px",
+                color: `${C.white}95`,
+                fontWeight: 600,
+              }}
+            >
+              Phone: {chair.phone}
+            </div>
+          )}
+          <div
+            style={{
+              fontSize: isNec ? "16px" : "10px",
+              color: `${C.white}7A`,
+            }}
+          >
+            🎓 {chair.university?.trim() || "Member"}
+          </div>
+          <div
+            style={{
+              fontSize: isNec ? "12px" : "7.5px",
+              fontFamily: "monospace",
+              color: chair.delegateCode ? C.gold : `${C.white}80`,
+              background: chair.delegateCode ? `${C.gold}20` : `${C.white}15`,
+              padding: "3px 8px",
+              borderRadius: "5px",
+              display: "inline-block",
+              width: "fit-content",
+            }}
+          >
+            {chair.delegateCode ?? "ID pending"}
+          </div>
         </div>
 
         {/* Bio */}
         {chair.bookletBio && (
           <div
             style={{
-              fontSize: "10.5px",
+              fontSize: isNec ? "13px" : "10.5px",
               color: `${C.white}CC`,
-              lineHeight: 1.65,
-              marginTop: "6px",
+              lineHeight: isNec ? 1.6 : 1.65,
+              marginTop: isNec ? "4px" : "6px",
               borderTop: `1px solid ${C.white}18`,
-              paddingTop: "8px",
+              paddingTop: isNec ? "10px" : "8px",
             }}
           >
             {chair.bookletBio}
@@ -457,6 +501,69 @@ export function CommitteeSection({
     TREASURER: { bg: `${C.blue}0E`, text: C.blue },
   };
 
+  // For NEC section: try to fit all on one page with compact layout
+  if (isNecSection && filtered.length <= 7) {
+    return (
+      <A4Page
+        pageNum={startPageNum}
+        totalPages={totalPages}
+        sectionLabel={section.title}
+        confName={confName}
+        confYear={confYear}
+      >
+        <SectionHeading section={section} />
+
+        {chair ? (
+          <ChairHeroCard chair={chair} isNec={true} />
+        ) : (
+          <div
+            style={{
+              padding: "24px",
+              textAlign: "center",
+              border: `2px dashed ${C.border}`,
+              borderRadius: "10px",
+              color: C.muted,
+              fontSize: "11px",
+              marginBottom: "12px",
+            }}
+          >
+            NEC board lead not yet assigned.
+          </div>
+        )}
+
+        {/* Combine key officers and general members in a compact 3-col grid */}
+        {(keyOfficers.length > 0 || generalMembers.length > 0) && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "10px",
+            }}
+          >
+            {keyOfficers.map((m) => {
+              const colors = officerColors[m.role] ?? {
+                bg: C.lightBlue,
+                text: C.blue,
+              };
+              return (
+                <OfficerCard
+                  key={m.id}
+                  member={m}
+                  bg={colors.bg}
+                  textColor={colors.text}
+                />
+              );
+            })}
+            {generalMembers.map((m) => (
+              <MemberCard key={m.id} member={m} />
+            ))}
+          </div>
+        )}
+      </A4Page>
+    );
+  }
+
+  // For non-NEC or larger committees: use multi-page layout
   return (
     <>
       {/* ── PAGE 1: Chair hero + key officers ── */}
@@ -470,7 +577,7 @@ export function CommitteeSection({
         <SectionHeading section={section} />
 
         {chair ? (
-          <ChairHeroCard chair={chair} />
+          <ChairHeroCard chair={chair} isNec={false} />
         ) : (
           <div
             style={{
