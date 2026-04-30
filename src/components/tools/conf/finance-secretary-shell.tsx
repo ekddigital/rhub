@@ -395,6 +395,37 @@ export function FinanceSecretaryShell() {
     }
   };
 
+  const markPaymentPending = async (row: DelegateFinanceRow) => {
+    if (!confId || busyId) return;
+    setBusyId(row.id);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/conf/${confId}/delegates/${row.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          feePaid: false,
+          status: "REGISTERED",
+        }),
+      });
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      } & DelegateFinanceRow;
+      if (!res.ok) throw new Error(payload.error || "Failed to mark as pending");
+      setRows((prev) =>
+        prev.map((item) => (item.id === row.id ? normalizeRow(payload) : item)),
+      );
+      setNotice(`Moved ${row.name} back to pending confirmation.`);
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Failed to revert payment confirmation",
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -661,7 +692,7 @@ export function FinanceSecretaryShell() {
                   >
                     {isFullyConfirmed ? "Confirmed Paid" : "Pending Confirmation"}
                   </Badge>
-                  {!isFullyConfirmed && (
+                  {!isFullyConfirmed ? (
                     <Button
                       size="sm"
                       onClick={() => void confirmPayment(row)}
@@ -673,6 +704,18 @@ export function FinanceSecretaryShell() {
                         <CheckCircle2 className="size-4" />
                       )}
                       Confirm Payment
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void markPaymentPending(row)}
+                      disabled={busyId === row.id}
+                    >
+                      {busyId === row.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : null}
+                      Mark Pending
                     </Button>
                   )}
                 </div>
