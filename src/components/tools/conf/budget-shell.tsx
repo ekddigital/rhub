@@ -40,6 +40,12 @@ import {
 } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  createDefaultSignatoryDraft,
+  DocumentSignatoryControls,
+  SignatoryDraft,
+} from "@/components/tools/conf/document-signatory-controls";
+import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -75,6 +81,8 @@ type AccessInfo = {
 type MemberOption = {
   id: string;
   name: string;
+  role?: string | null;
+  title?: string | null;
   committeeScope: string | null;
   canApprovePayments: boolean;
 };
@@ -166,13 +174,22 @@ function unitLabel(item: BudgetItem) {
   return item.unit === "custom" ? item.customUnit || "—" : item.unit;
 }
 
+function chunkArray<T>(items: T[], size: number): T[][] {
+  if (items.length === 0) return [[]];
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
 function BudgetDocumentPreview({
   draft,
   grandTotal,
   confInfo,
   members,
   preparedByName,
-  includeSignatures,
+  signatoryDraft,
   forPrint = false,
 }: {
   draft: BudgetDraft;
@@ -180,7 +197,7 @@ function BudgetDocumentPreview({
   confInfo: ConferenceEventInfo | null;
   members: MemberOption[];
   preparedByName: string;
-  includeSignatures: boolean;
+  signatoryDraft: SignatoryDraft;
   forPrint?: boolean;
 }) {
   const createdAt = new Date().toLocaleDateString("en-US", {
@@ -192,7 +209,7 @@ function BudgetDocumentPreview({
   const categoryLabel =
     BUDGET_CATEGORIES[draft.category]?.label ?? draft.category ?? "General";
   const nonEmptyItems = draft.items.filter((item) => item.name.trim());
-  const rows =
+  const rows: Record<string, unknown>[] =
     nonEmptyItems.length > 0
       ? nonEmptyItems.map((item) => ({
           no: item.no,
@@ -212,6 +229,7 @@ function BudgetDocumentPreview({
             total: "—",
           },
         ];
+  const rowChunks = chunkArray(rows, 12);
 
   const sidebarMembers = members.slice(0, 8).map((member) => ({
     id: member.id,
@@ -227,53 +245,65 @@ function BudgetDocumentPreview({
       }
     : undefined;
 
-  return (
+  return rowChunks.map((pageRows, pageIndex) => (
     <DocumentLayout
+      key={`budget-page-${pageIndex}`}
       forPrint={forPrint}
       confInfo={normalizedConfInfo}
       officeLabel="Office of the Finance Secretary"
       members={sidebarMembers}
+      className={pageIndex > 0 ? "mt-4" : ""}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
-            {draft.title?.trim() || "Budget Proposal"}
+      {pageIndex === 0 ? (
+        <>
+          <div
+            style={{ display: "flex", justifyContent: "space-between", gap: 16 }}
+          >
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
+                {draft.title?.trim() || "Budget Proposal"}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>
+                Category: {categoryLabel}
+              </div>
+              <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
+                Date: {createdAt}
+              </div>
+            </div>
+            <div style={{ textAlign: "right", fontSize: 10, color: "#555" }}>
+              <div>Prepared By:</div>
+              <div style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}>
+                {preparedByName || "Pending selection"}
+              </div>
+            </div>
           </div>
-          <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>
-            Category: {categoryLabel}
-          </div>
-          <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
-            Date: {createdAt}
-          </div>
-        </div>
-        <div style={{ textAlign: "right", fontSize: 10, color: "#555" }}>
-          <div>Prepared By:</div>
-          <div style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}>
-            {preparedByName || "Pending selection"}
-          </div>
-        </div>
-      </div>
 
-      {draft.notes.trim() && (
-        <div
-          style={{
-            marginTop: 14,
-            marginBottom: 14,
-            padding: "10px 12px",
-            border: "1px solid #d9dfeb",
-            borderRadius: 8,
-            fontSize: 10.5,
-            color: "#444",
-            fontStyle: "italic",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {draft.notes}
+          {draft.notes.trim() && (
+            <div
+              style={{
+                marginTop: 14,
+                marginBottom: 14,
+                padding: "10px 12px",
+                border: "1px solid #d9dfeb",
+                borderRadius: 8,
+                fontSize: 10.5,
+                color: "#444",
+                fontStyle: "italic",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {draft.notes}
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={{ fontSize: 11, color: "#777", marginBottom: 12 }}>
+          Continued Budget Items (Page {pageIndex + 1})
         </div>
       )}
 
       <DocumentTable
-        caption="Line Item Breakdown"
+        caption={pageIndex === 0 ? "Line Item Breakdown" : "Line Item Breakdown (cont.)"}
         columns={[
           { key: "no", label: "#", width: 8, align: "center" },
           { key: "item", label: "Item", width: 34 },
@@ -282,65 +312,35 @@ function BudgetDocumentPreview({
           { key: "unitPrice", label: "Unit Price (¥)", width: 17, align: "right" },
           { key: "total", label: "Total (¥)", width: 17, align: "right" },
         ]}
-        data={rows}
+        data={pageRows}
         forPrint={forPrint}
       />
 
-      <div
-        style={{
-          marginTop: 12,
-          borderTop: "1.5px solid #002868",
-          paddingTop: 8,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div style={{ fontSize: 10, color: "#666" }}>
-          {nonEmptyItems.length} line item{nonEmptyItems.length === 1 ? "" : "s"}
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
-          GRAND TOTAL: {fmtRmb(grandTotal)}
-        </div>
-      </div>
-
-      {includeSignatures && (
-        <div
-          style={{
-            marginTop: 34,
-            display: "grid",
-            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-            gap: 28,
-          }}
-        >
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                borderTop: "1px solid #002868",
-                paddingTop: 6,
-                fontSize: 10,
-                color: "#555",
-              }}
-            >
-              Prepared By
+      {pageIndex === rowChunks.length - 1 && (
+        <>
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: "1.5px solid #002868",
+              paddingTop: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ fontSize: 10, color: "#666" }}>
+              {nonEmptyItems.length} line item
+              {nonEmptyItems.length === 1 ? "" : "s"}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
+              GRAND TOTAL: {fmtRmb(grandTotal)}
             </div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div
-              style={{
-                borderTop: "1px solid #002868",
-                paddingTop: 6,
-                fontSize: 10,
-                color: "#555",
-              }}
-            >
-              Approved By
-            </div>
-          </div>
-        </div>
+          <DocumentSignatureBlock draft={signatoryDraft} />
+        </>
       )}
     </DocumentLayout>
-  );
+  ));
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -354,7 +354,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [confInfo, setConfInfo] = useState<ConferenceEventInfo | null>(null);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [creatorMemberId, setCreatorMemberId] = useState("");
-  const [showSignatureArea, setShowSignatureArea] = useState(true);
+  const [signatoryDraft, setSignatoryDraft] = useState<SignatoryDraft>(
+    createDefaultSignatoryDraft(),
+  );
   const [previewZoom, setPreviewZoom] = useState(72);
   const [serverBudgets, setServerBudgets] = useState<ServerBudget[]>([]);
   const [loadingServer, setLoadingServer] = useState(true);
@@ -1069,17 +1071,6 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${
-                showSignatureArea
-                  ? "border-[#002868]/30 bg-[#002868]/5 text-[#002868]"
-                  : "border-border text-muted-foreground"
-              }`}
-              onClick={() => setShowSignatureArea((prev) => !prev)}
-            >
-              {showSignatureArea ? "Signature: ON" : "Signature: OFF"}
-            </button>
             <div className="flex items-center gap-1 rounded-md border px-1 py-1">
               <button
                 type="button"
@@ -1121,10 +1112,26 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 confInfo={confInfo}
                 members={members}
                 preparedByName={preparedByName}
-                includeSignatures={showSignatureArea}
+                signatoryDraft={signatoryDraft}
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="budget-no-print border-[#C8A061]/30">
+        <CardHeader>
+          <CardTitle className="text-base">Signatories</CardTitle>
+          <CardDescription>
+            Uses the same signature workflow as the letters page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DocumentSignatoryControls
+            value={signatoryDraft}
+            onChange={setSignatoryDraft}
+            members={members}
+          />
         </CardContent>
       </Card>
 
@@ -1244,7 +1251,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           confInfo={confInfo}
           members={members}
           preparedByName={preparedByName}
-          includeSignatures={showSignatureArea}
+          signatoryDraft={signatoryDraft}
           forPrint
         />
       </div>

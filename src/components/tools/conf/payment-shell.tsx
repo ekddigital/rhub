@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -12,12 +12,15 @@ import {
   ImageIcon,
   DollarSign,
   Printer,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,8 +29,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PAY_METHODS } from "@/lib/conf/config";
 import { fmtRmb } from "@/lib/conf/currency";
-import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
-import { LetterheadDisplay } from "@/components/tools/conf/letterhead-display";
+import { fetchDefaultConference } from "@/lib/conf/client";
+import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  createDefaultSignatoryDraft,
+  DocumentSignatoryControls,
+  SignatoryDraft,
+  SignatoryMember,
+} from "@/components/tools/conf/document-signatory-controls";
+import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 
 type LocalPayment = {
   id: string;
@@ -41,6 +51,14 @@ type LocalPayment = {
   proofFiles: File[];
   proofPreviews: string[];
   createdAt: Date;
+};
+
+type ConferenceEventInfo = {
+  name: string;
+  city: string;
+  venue: string | null;
+  startsAt: string;
+  endsAt: string;
 };
 
 const STATUS_CONFIG = {
@@ -64,6 +82,140 @@ const STATUS_CONFIG = {
   },
 };
 
+function chunkArray<T>(items: T[], size: number): T[][] {
+  if (items.length === 0) return [[]];
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function PaymentsDocumentPreview({
+  payments,
+  totalPaid,
+  approvedTotal,
+  confInfo,
+  members,
+  signatoryDraft,
+  forPrint = false,
+}: {
+  payments: LocalPayment[];
+  totalPaid: number;
+  approvedTotal: number;
+  confInfo: ConferenceEventInfo | null;
+  members: SignatoryMember[];
+  signatoryDraft: SignatoryDraft;
+  forPrint?: boolean;
+}) {
+  const createdAt = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const rows =
+    payments.length > 0
+      ? payments.map((payment) => ({
+          date: payment.createdAt.toLocaleDateString(),
+          paidBy: payment.paidBy || "—",
+          paidTo: payment.paidTo || "—",
+          method: PAY_METHODS[payment.method] || payment.method,
+          status: payment.status,
+          amount: fmtRmb(payment.amount),
+        }))
+      : [
+          {
+            date: "—",
+            paidBy: "No payments recorded yet",
+            paidTo: "—",
+            method: "—",
+            status: "—",
+            amount: "—",
+          },
+        ];
+  const rowChunks = chunkArray(rows, 14);
+  const normalizedConfInfo = confInfo
+    ? {
+        ...confInfo,
+        venue: confInfo.venue ?? undefined,
+      }
+    : undefined;
+
+  const sidebarMembers = members.slice(0, 8).map((member, idx) => ({
+    id: `payment-member-${idx}`,
+    name: member.name,
+    role: "COMMITTEE",
+    title: member.title || member.role || "Committee Member",
+    committeeScope: member.role || null,
+  }));
+
+  return rowChunks.map((pageRows, pageIndex) => (
+    <DocumentLayout
+      key={`payments-page-${pageIndex}`}
+      forPrint={forPrint}
+      confInfo={normalizedConfInfo}
+      officeLabel="Office of the Finance Secretary"
+      members={sidebarMembers}
+      className={pageIndex > 0 ? "mt-4" : ""}
+    >
+      {pageIndex === 0 ? (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
+            Payment Summary
+          </div>
+          <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>
+            Date: {createdAt}
+          </div>
+          <div style={{ marginTop: 3, fontSize: 10, color: "#555" }}>
+            Total Recorded: {fmtRmb(totalPaid)} · Verified: {fmtRmb(approvedTotal)}
+          </div>
+        </div>
+      ) : (
+        <div style={{ fontSize: 11, color: "#777", marginBottom: 12 }}>
+          Continued Payment Records (Page {pageIndex + 1})
+        </div>
+      )}
+
+      <DocumentTable
+        caption={pageIndex === 0 ? "Payment Log" : "Payment Log (cont.)"}
+        columns={[
+          { key: "date", label: "Date", width: 14 },
+          { key: "paidBy", label: "Paid By", width: 21 },
+          { key: "paidTo", label: "Paid To", width: 21 },
+          { key: "method", label: "Method", width: 16 },
+          { key: "status", label: "Status", width: 13 },
+          { key: "amount", label: "Amount", width: 15, align: "right" },
+        ]}
+        data={pageRows}
+        forPrint={forPrint}
+      />
+
+      {pageIndex === rowChunks.length - 1 && (
+        <>
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: "1.5px solid #002868",
+              paddingTop: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ fontSize: 10, color: "#666" }}>
+              {payments.length} payment record{payments.length === 1 ? "" : "s"}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
+              TOTAL RECEIVED: {fmtRmb(totalPaid)}
+            </div>
+          </div>
+          <DocumentSignatureBlock draft={signatoryDraft} />
+        </>
+      )}
+    </DocumentLayout>
+  ));
+}
+
 export function PaymentShell() {
   const [payments, setPayments] = useState<LocalPayment[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -76,6 +228,51 @@ export function PaymentShell() {
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [confInfo, setConfInfo] = useState<ConferenceEventInfo | null>(null);
+  const [members, setMembers] = useState<SignatoryMember[]>([]);
+  const [previewZoom, setPreviewZoom] = useState(72);
+  const [signatoryDraft, setSignatoryDraft] = useState<SignatoryDraft>(
+    createDefaultSignatoryDraft(),
+  );
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const conf = await fetchDefaultConference();
+        const [membersRes, bookletRes] = await Promise.all([
+          fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
+          fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
+        ]);
+
+        if (membersRes.ok) {
+          const payload = (await membersRes.json()) as Array<{
+            name: string;
+            role?: string | null;
+            title?: string | null;
+          }>;
+          setMembers(
+            payload.map((member) => ({
+              name: member.name,
+              role: member.role,
+              title: member.title,
+            })),
+          );
+        }
+
+        if (bookletRes.ok) {
+          const bookletPayload = (await bookletRes.json()) as {
+            event?: ConferenceEventInfo;
+          };
+          if (bookletPayload.event) {
+            setConfInfo(bookletPayload.event);
+          }
+        }
+      } catch {
+        // Keep graceful fallback for local-only payment tracking.
+      }
+    };
+    void init();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -87,7 +284,6 @@ export function PaymentShell() {
     );
     setProofFiles((prev) => [...prev, ...validFiles]);
 
-    // Generate previews for images
     validFiles.forEach((file) => {
       if (file.type.startsWith("image/")) {
         const reader = new FileReader();
@@ -103,7 +299,6 @@ export function PaymentShell() {
 
   const handleAddPayment = () => {
     if (!amount || !paidBy) return;
-
     const payment: LocalPayment = {
       id: `local_${Date.now()}`,
       amount: Number(amount),
@@ -138,25 +333,42 @@ export function PaymentShell() {
   return (
     <div className="space-y-6">
       <style>{`
+        #payments-print-root {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: 794px;
+          pointer-events: none;
+        }
         @media print {
           body * { visibility: hidden; }
-          .payments-print-area, .payments-print-area * { visibility: visible; }
+          #payments-print-root,
+          #payments-print-root * { visibility: visible !important; }
           .payments-no-print { display: none !important; }
-          .payments-print-area {
-            position: fixed; left: 0; top: 0;
-            width: 210mm; padding: 0 16mm 12mm;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+          #payments-print-root {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            pointer-events: auto !important;
+          }
+          .document-page {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            height: auto !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            break-after: page;
+            page-break-after: always;
+          }
+          .document-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
           }
           @page { size: A4 portrait; margin: 0; }
         }
       `}</style>
 
-      {/* Letterhead Display - visible while editing */}
-      <LetterheadDisplay
-        confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Payment Tracker`}
-      />
-
-      {/* Header */}
       <div className="payments-no-print flex items-center gap-4">
         <Link href="/tools/conf">
           <Button variant="ghost" size="icon-sm">
@@ -166,7 +378,7 @@ export function PaymentShell() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">Payment Tracker</h1>
           <p className="text-sm text-muted-foreground">
-            Record payments and upload receipt screenshots
+            Record payments and generate a full letter-style payment document.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -181,7 +393,6 @@ export function PaymentShell() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="payments-no-print grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex items-center gap-3 pt-6">
@@ -220,7 +431,6 @@ export function PaymentShell() {
         </Card>
       </div>
 
-      {/* Add Payment Form */}
       {showForm && (
         <Card className="payments-no-print border-[#C8A061]/40">
           <CardHeader>
@@ -288,7 +498,6 @@ export function PaymentShell() {
               />
             </div>
 
-            {/* Screenshot Upload */}
             <div className="space-y-2">
               <Label>Payment Screenshot / Receipt</Label>
               <input
@@ -310,7 +519,6 @@ export function PaymentShell() {
                 <p className="text-xs text-muted-foreground">Max 10MB each</p>
               </div>
 
-              {/* Previews */}
               {proofPreviews.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-3">
                   {proofPreviews.map((preview, idx) => (
@@ -357,15 +565,13 @@ export function PaymentShell() {
         </Card>
       )}
 
-      {/* Payment List */}
       {payments.length === 0 && !showForm && (
         <Card className="payments-no-print">
           <CardContent className="flex flex-col items-center py-12 text-center">
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
             <p className="text-lg font-medium">No payments recorded yet</p>
             <p className="text-sm text-muted-foreground">
-              Click &quot;Add Payment&quot; to record a payment with receipt
-              screenshot
+              Click &quot;Add Payment&quot; to record a payment with receipt screenshot
             </p>
           </CardContent>
         </Card>
@@ -380,9 +586,7 @@ export function PaymentShell() {
               <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold">
-                      {fmtRmb(payment.amount)}
-                    </span>
+                    <span className="text-lg font-bold">{fmtRmb(payment.amount)}</span>
                     <Badge variant={config.variant}>
                       <StatusIcon className={`size-3 ${config.color}`} />
                       {config.label}
@@ -400,116 +604,94 @@ export function PaymentShell() {
                     )}
                   </p>
                   {payment.note && (
-                    <p className="text-xs text-muted-foreground">
-                      {payment.note}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{payment.note}</p>
                   )}
-                  <div className="flex gap-2 text-xs text-muted-foreground">
-                    <span>{PAY_METHODS[payment.method] || payment.method}</span>
-                    {payment.ref && <span>· Ref: {payment.ref}</span>}
-                    <span>· {payment.createdAt.toLocaleDateString()}</span>
-                  </div>
                 </div>
-                {/* Proof thumbnails */}
-                {payment.proofPreviews.length > 0 && (
-                  <div className="flex gap-2">
-                    {payment.proofPreviews.map((preview, idx) => (
-                      <div
-                        key={idx}
-                        className="size-16 overflow-hidden rounded-lg border"
-                      >
-                        {preview ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={preview}
-                            alt={`Proof ${idx + 1}`}
-                            className="size-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center bg-muted">
-                            <ImageIcon className="size-4 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      {/* A4 print area (hidden on screen, shown on print) */}
-      <div className="payments-print-area" style={{ display: "none" }}>
-        <LetterheadDisplay
-          confName={`${LETTERHEAD_CONFIG.defaultConferenceName} · Payment Tracker`}
-          printOnly
-          className="px-0"
+      <Card className="payments-no-print border-[#C8A061]/30">
+        <CardHeader className="flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Live Payment Document</CardTitle>
+            <CardDescription>
+              Full letter-style payment page with proper pagination and signatures.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-1 rounded-md border px-1 py-1">
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
+              title="Zoom out"
+            >
+              <ZoomOut className="size-3.5" />
+            </button>
+            <span className="w-10 text-center text-xs font-mono">{previewZoom}%</span>
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
+              title="Zoom in"
+            >
+              <ZoomIn className="size-3.5" />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-auto rounded-lg bg-muted/20 p-4">
+            <div
+              style={{
+                width: 794,
+                margin: "0 auto",
+                transform: `scale(${previewZoom / 100})`,
+                transformOrigin: "top center",
+                marginBottom:
+                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+              }}
+            >
+              <PaymentsDocumentPreview
+                payments={payments}
+                totalPaid={totalPaid}
+                approvedTotal={approvedTotal}
+                confInfo={confInfo}
+                members={members}
+                signatoryDraft={signatoryDraft}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="payments-no-print border-[#C8A061]/30">
+        <CardHeader>
+          <CardTitle className="text-base">Signatories</CardTitle>
+          <CardDescription>
+            Same signatory management pattern used in letters.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DocumentSignatoryControls
+            value={signatoryDraft}
+            onChange={setSignatoryDraft}
+            members={members}
+          />
+        </CardContent>
+      </Card>
+
+      <div id="payments-print-root">
+        <PaymentsDocumentPreview
+          payments={payments}
+          totalPaid={totalPaid}
+          approvedTotal={approvedTotal}
+          confInfo={confInfo}
+          members={members}
+          signatoryDraft={signatoryDraft}
+          forPrint
         />
-        <div style={{ marginTop: 14, marginBottom: 10 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#002868" }}>
-            Payment Summary
-          </div>
-          <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>
-            Date:{" "}
-            {new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </div>
-          <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>
-            Total Recorded: {fmtRmb(totalPaid)} · Verified: {fmtRmb(approvedTotal)}
-          </div>
-        </div>
-        <table
-          style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}
-        >
-          <thead>
-            <tr style={{ background: "#002868", color: "#fff" }}>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Paid By</th>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Paid To</th>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Method</th>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Ref</th>
-              <th style={{ padding: "6px 8px", textAlign: "left" }}>Status</th>
-              <th style={{ padding: "6px 8px", textAlign: "right" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  style={{ padding: "10px 8px", color: "#666", textAlign: "center" }}
-                >
-                  No payments recorded yet.
-                </td>
-              </tr>
-            ) : (
-              payments.map((payment, idx) => (
-                <tr
-                  key={payment.id}
-                  style={{
-                    background: idx % 2 === 0 ? "#FAFAFA" : "#FFFFFF",
-                    borderBottom: "0.5px solid #e0e0e0",
-                  }}
-                >
-                  <td style={{ padding: "5px 8px" }}>{payment.paidBy || "—"}</td>
-                  <td style={{ padding: "5px 8px" }}>{payment.paidTo || "—"}</td>
-                  <td style={{ padding: "5px 8px" }}>
-                    {PAY_METHODS[payment.method] || payment.method}
-                  </td>
-                  <td style={{ padding: "5px 8px" }}>{payment.ref || "—"}</td>
-                  <td style={{ padding: "5px 8px" }}>{payment.status}</td>
-                  <td style={{ padding: "5px 8px", textAlign: "right", fontWeight: 600 }}>
-                    {fmtRmb(payment.amount)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );
