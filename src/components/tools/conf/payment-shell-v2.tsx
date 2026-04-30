@@ -20,6 +20,9 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  Printer,
 } from "lucide-react";
 import {
   Card,
@@ -41,6 +44,14 @@ import {
   formatUploadError,
   parseUploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
+import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  createDefaultSignatoryDraft,
+  DocumentSignatoryControls,
+  SignatoryDraft,
+  SignatoryMember,
+} from "@/components/tools/conf/document-signatory-controls";
+import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 
 type PaymentStatus = "PENDING" | "COMMITTEE_APPROVED" | "APPROVED" | "REJECTED";
 type PaymentType = "EXPENSE" | "INCOME";
@@ -98,6 +109,14 @@ type AccessInfo = {
   committeeScope: string | null;
 };
 
+type ConferenceEventInfo = {
+  name: string;
+  city: string;
+  venue: string | null;
+  startsAt: string;
+  endsAt: string;
+};
+
 const STATUS_CONFIG: Record<
   PaymentStatus,
   { icon: React.ElementType; label: string; color: string; badgeClass: string }
@@ -140,8 +159,156 @@ const INCOME_SOURCES = [
   "Other",
 ];
 
+function chunkArray<T>(items: T[], size: number): T[][] {
+  if (items.length === 0) return [[]];
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function PaymentsDocumentPreview({
+  payments,
+  totalExpense,
+  totalIncome,
+  confInfo,
+  members,
+  signatoryDraft,
+  forPrint = false,
+}: {
+  payments: Payment[];
+  totalExpense: number;
+  totalIncome: number;
+  confInfo: ConferenceEventInfo | null;
+  members: SignatoryMember[];
+  signatoryDraft: SignatoryDraft;
+  forPrint?: boolean;
+}) {
+  const rows: Record<string, unknown>[] =
+    payments.length > 0
+      ? payments.map((payment) => ({
+          date: new Date(payment.paidAt).toLocaleDateString(),
+          type:
+            payment.paymentType === "INCOME"
+              ? "Income"
+              : payment.paymentType === "EXPENSE"
+                ? "Expense"
+                : "Expense",
+          paidBy: payment.paidBy || "—",
+          paidTo: payment.paidTo || "—",
+          method:
+            PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
+            payment.method,
+          amount: fmtRmb(payment.amount),
+          status: payment.status,
+        }))
+      : [
+          {
+            date: "—",
+            type: "—",
+            paidBy: "No records yet",
+            paidTo: "—",
+            method: "—",
+            amount: "—",
+            status: "—",
+          },
+        ];
+
+  const rowChunks = chunkArray(rows, 22);
+  const sidebarMembers = members.slice(0, 8).map((member, idx) => ({
+    id: `payments-member-${idx}`,
+    name: member.name,
+    role: "COMMITTEE",
+    title: member.title || member.role || "Committee Member",
+    committeeScope: member.role || null,
+  }));
+  const normalizedConfInfo = confInfo
+    ? {
+        ...confInfo,
+        venue: confInfo.venue ?? undefined,
+      }
+    : undefined;
+
+  return rowChunks.map((pageRows, pageIndex) => (
+    <DocumentLayout
+      key={`payments-v2-page-${pageIndex}`}
+      forPrint={forPrint}
+      confInfo={normalizedConfInfo}
+      officeLabel="Office of the Finance Secretary"
+      members={sidebarMembers}
+      className={pageIndex > 0 ? "mt-4" : ""}
+      pageNumber={pageIndex + 1}
+      totalPages={rowChunks.length}
+    >
+      {pageIndex === 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
+            Payments Register
+          </div>
+          <div style={{ marginTop: 3, fontSize: 10, color: "#555" }}>
+            Date:{" "}
+            {new Date().toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </div>
+          <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
+            Total Income: {fmtRmb(totalIncome)} · Total Expense: {fmtRmb(totalExpense)}
+          </div>
+        </div>
+      )}
+
+      <DocumentTable
+        caption={pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"}
+        columns={[
+          { key: "date", label: "Date", width: 12 },
+          { key: "type", label: "Type", width: 9 },
+          { key: "paidBy", label: "Paid/Received By", width: 22 },
+          { key: "paidTo", label: "To/Received By", width: 19 },
+          { key: "method", label: "Method", width: 13 },
+          { key: "status", label: "Status", width: 14 },
+          { key: "amount", label: "Amount", width: 11, align: "right" },
+        ]}
+        data={pageRows}
+        forPrint={forPrint}
+      />
+
+      {pageIndex === rowChunks.length - 1 && (
+        <>
+          <div
+            style={{
+              marginTop: 12,
+              borderTop: "1.5px solid #002868",
+              paddingTop: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ fontSize: 10, color: "#666" }}>
+              {payments.length} payment record{payments.length === 1 ? "" : "s"}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
+              NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
+            </div>
+          </div>
+          <DocumentSignatureBlock draft={signatoryDraft} />
+        </>
+      )}
+    </DocumentLayout>
+  ));
+}
+
 export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [confId, setConfId] = useState("");
+  const [confInfo, setConfInfo] = useState<ConferenceEventInfo | null>(null);
+  const [members, setMembers] = useState<SignatoryMember[]>([]);
+  const [previewZoom, setPreviewZoom] = useState(72);
+  const [signatoryDraft, setSignatoryDraft] = useState<SignatoryDraft>(
+    createDefaultSignatoryDraft(),
+  );
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -207,11 +374,37 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const [data] = await Promise.all([
+        const [data, _roleSeed, membersRes, bookletRes] = await Promise.all([
           loadPayments(conf.id),
           loadCommitteeOptions(conf.id),
+          fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
+          fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
         ]);
         setPayments(data);
+
+        if (membersRes.ok) {
+          const payload = (await membersRes.json()) as Array<{
+            name: string;
+            role?: string | null;
+            title?: string | null;
+          }>;
+          setMembers(
+            payload.map((member) => ({
+              name: member.name,
+              role: member.role,
+              title: member.title,
+            })),
+          );
+        }
+
+        if (bookletRes.ok) {
+          const bookletPayload = (await bookletRes.json()) as {
+            event?: ConferenceEventInfo;
+          };
+          if (bookletPayload.event) {
+            setConfInfo(bookletPayload.event);
+          }
+        }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
@@ -444,8 +637,44 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        #payments-print-root {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: 794px;
+          pointer-events: none;
+        }
+        @media print {
+          body * { visibility: hidden; }
+          #payments-print-root,
+          #payments-print-root * { visibility: visible !important; }
+          #payments-print-root {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            pointer-events: auto !important;
+          }
+          .payments-no-print { display: none !important; }
+          .document-page {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            height: auto !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            break-after: page;
+            page-break-after: always;
+          }
+          .document-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
+          }
+          @page { size: A4 portrait; margin: 0; }
+        }
+      `}</style>
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="payments-no-print flex items-center gap-4">
         <Link href="/tools/conf">
           <Button variant="ghost" size="icon-sm">
             <ArrowLeft className="size-4" />
@@ -458,6 +687,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer className="size-4" />
+            Print / PDF
+          </Button>
           <Button variant="ghost" size="icon-sm" onClick={refresh}>
             <RefreshCw className="size-4" />
           </Button>
@@ -1085,9 +1318,78 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         })}
       </div>
 
+      <Card className="payments-no-print border-[#C8A061]/30">
+        <CardHeader className="flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base">Live Payment Document</CardTitle>
+            <CardDescription>
+              Reusable document layout preview (same shared source used elsewhere).
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-1 rounded-md border px-1 py-1">
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
+              title="Zoom out"
+            >
+              <ZoomOut className="size-3.5" />
+            </button>
+            <span className="w-10 text-center text-xs font-mono">{previewZoom}%</span>
+            <button
+              type="button"
+              className="rounded p-1 hover:bg-muted"
+              onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
+              title="Zoom in"
+            >
+              <ZoomIn className="size-3.5" />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-auto rounded-lg bg-muted/20 p-4">
+            <div
+              style={{
+                width: 794,
+                margin: "0 auto",
+                transform: `scale(${previewZoom / 100})`,
+                transformOrigin: "top center",
+                marginBottom:
+                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+              }}
+            >
+              <PaymentsDocumentPreview
+                payments={payments}
+                totalExpense={totalExpense}
+                totalIncome={totalIncome}
+                confInfo={confInfo}
+                members={members}
+                signatoryDraft={signatoryDraft}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="payments-no-print border-[#C8A061]/30">
+        <CardHeader>
+          <CardTitle className="text-base">Signatories</CardTitle>
+          <CardDescription>
+            Shared signatory controls, same pattern as Letters.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DocumentSignatoryControls
+            value={signatoryDraft}
+            onChange={setSignatoryDraft}
+            members={members}
+          />
+        </CardContent>
+      </Card>
+
       {/* Report Builder Link */}
       {payments.length > 0 && (
-        <div className="flex justify-end">
+        <div className="payments-no-print flex justify-end">
           <Link href="/tools/conf/finance/reports">
             <Button variant="outline" size="sm">
               Build Report from these Payments
@@ -1095,6 +1397,18 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </Link>
         </div>
       )}
+
+      <div id="payments-print-root">
+        <PaymentsDocumentPreview
+          payments={payments}
+          totalExpense={totalExpense}
+          totalIncome={totalIncome}
+          confInfo={confInfo}
+          members={members}
+          signatoryDraft={signatoryDraft}
+          forPrint
+        />
+      </div>
     </div>
   );
 }
