@@ -207,7 +207,9 @@ Thank you for your contribution to LSUIC 2026.
                   >
                     <tbody>
                       <tr>
-                        <td style={{ paddingBottom: "8px", fontWeight: "bold" }}>
+                        <td
+                          style={{ paddingBottom: "8px", fontWeight: "bold" }}
+                        >
                           Amount:
                         </td>
                         <td style={{ paddingBottom: "8px" }}>
@@ -215,7 +217,9 @@ Thank you for your contribution to LSUIC 2026.
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ paddingBottom: "8px", fontWeight: "bold" }}>
+                        <td
+                          style={{ paddingBottom: "8px", fontWeight: "bold" }}
+                        >
                           Paid By:
                         </td>
                         <td style={{ paddingBottom: "8px" }}>
@@ -223,7 +227,9 @@ Thank you for your contribution to LSUIC 2026.
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ paddingBottom: "8px", fontWeight: "bold" }}>
+                        <td
+                          style={{ paddingBottom: "8px", fontWeight: "bold" }}
+                        >
                           Method:
                         </td>
                         <td style={{ paddingBottom: "8px" }}>
@@ -231,7 +237,9 @@ Thank you for your contribution to LSUIC 2026.
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ paddingBottom: "8px", fontWeight: "bold" }}>
+                        <td
+                          style={{ paddingBottom: "8px", fontWeight: "bold" }}
+                        >
                           Date:
                         </td>
                         <td style={{ paddingBottom: "8px" }}>
@@ -239,7 +247,9 @@ Thank you for your contribution to LSUIC 2026.
                         </td>
                       </tr>
                       <tr>
-                        <td style={{ paddingBottom: "8px", fontWeight: "bold" }}>
+                        <td
+                          style={{ paddingBottom: "8px", fontWeight: "bold" }}
+                        >
                           Status:
                         </td>
                         <td style={{ paddingBottom: "8px" }}>

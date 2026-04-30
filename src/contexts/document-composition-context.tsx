@@ -109,7 +109,7 @@ export function useDocumentComposition() {
   const context = useContext(DocumentCompositionContext);
   if (!context) {
     throw new Error(
-      "useDocumentComposition must be used within DocumentCompositionProvider"
+      "useDocumentComposition must be used within DocumentCompositionProvider",
     );
   }
   return context;

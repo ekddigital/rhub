@@ -50,7 +50,7 @@ export function BudgetLetterComposer({
 
     const totalAmount = budgetData.items.reduce(
       (sum, item) => sum + item.total,
-      0
+      0,
     );
 
     return {
@@ -248,13 +248,19 @@ export function BudgetLetterComposer({
                           }}
                         >
                           <td style={{ padding: "6px 4px" }}>{item.name}</td>
-                          <td style={{ textAlign: "center", padding: "6px 4px" }}>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 4px" }}
+                          >
                             {item.category}
                           </td>
-                          <td style={{ textAlign: "center", padding: "6px 4px" }}>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 4px" }}
+                          >
                             {item.qty} {item.unit}
                           </td>
-                          <td style={{ textAlign: "center", padding: "6px 4px" }}>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 4px" }}
+                          >
                             ${item.unitPrice.toFixed(2)}
                           </td>
                           <td
@@ -305,7 +311,8 @@ export function BudgetLetterComposer({
                     color: "#999",
                   }}
                 >
-                  This budget proposal is subject to review and approval by the conference committee.
+                  This budget proposal is subject to review and approval by the
+                  conference committee.
                   <br />
                   Generated on {new Date().toLocaleDateString()}
                 </div>

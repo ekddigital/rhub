@@ -28,25 +28,27 @@ export function useDocumentSignatories({
         return updated;
       });
     },
-    [onSignatoriesChange]
+    [onSignatoriesChange],
   );
 
   // Add signatory
   const addSignatory = useCallback(
-    (signatory: DocumentSignatory = {
-      name: "",
-      title: "",
-      label: "Signed",
-      signature: "",
-      scale: 1,
-    }) => {
+    (
+      signatory: DocumentSignatory = {
+        name: "",
+        title: "",
+        label: "Signed",
+        signature: "",
+        scale: 1,
+      },
+    ) => {
       setSignatories((prev) => {
         const updated = [...prev, signatory];
         onSignatoriesChange?.(updated);
         return updated;
       });
     },
-    [onSignatoriesChange]
+    [onSignatoriesChange],
   );
 
   // Remove signatory at index
@@ -58,7 +60,7 @@ export function useDocumentSignatories({
         return updated;
       });
     },
-    [onSignatoriesChange]
+    [onSignatoriesChange],
   );
 
   // Apply preset
@@ -68,7 +70,7 @@ export function useDocumentSignatories({
       setSignatories(preset.signatories);
       onSignatoriesChange?.(preset.signatories);
     },
-    [onSignatoriesChange]
+    [onSignatoriesChange],
   );
 
   // Clear all

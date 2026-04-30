@@ -33,24 +33,24 @@ The document composition system allows you to reuse the letter preview system ac
 ### Adding Payment Receipt Preview to Payment Page
 
 ```tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { PaymentLetterComposer } from '@/components/tools/conf/payment-letter-composer';
-import { PaymentShellV2 } from '@/components/tools/conf/payment-shell-v2';
+import { useState } from "react";
+import { PaymentLetterComposer } from "@/components/tools/conf/payment-letter-composer";
+import { PaymentShellV2 } from "@/components/tools/conf/payment-shell-v2";
 
 export default function PaymentPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [currentPayment, setCurrentPayment] = useState({
-    id: 'P001',
-    amount: 250.00,
-    paidBy: 'Delegate Name',
-    paidTo: 'LSUIC Conference',
-    method: 'WeChat Pay',
+    id: "P001",
+    amount: 250.0,
+    paidBy: "Delegate Name",
+    paidTo: "LSUIC Conference",
+    method: "WeChat Pay",
     date: new Date().toLocaleDateString(),
-    description: 'Conference delegate fee',
-    status: 'APPROVED',
+    description: "Conference delegate fee",
+    status: "APPROVED",
   });
 
   return (
@@ -61,7 +61,7 @@ export default function PaymentPage() {
           onClick={() => setShowPreview(!showPreview)}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
         >
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
+          {showPreview ? "Hide Preview" : "Show Preview"}
         </button>
       </div>
 
@@ -80,37 +80,37 @@ export default function PaymentPage() {
 ### Adding Budget Proposal Preview to Budget Page
 
 ```tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BudgetLetterComposer } from '@/components/tools/conf/budget-letter-composer';
-import { BudgetShell } from '@/components/tools/conf/budget-shell';
+import { useState } from "react";
+import { BudgetLetterComposer } from "@/components/tools/conf/budget-letter-composer";
+import { BudgetShell } from "@/components/tools/conf/budget-shell";
 
 export default function BudgetPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
   const [budgetData, setBudgetData] = useState({
-    id: 'B001',
-    title: 'Conference Venue & Catering',
-    status: 'DRAFT',
-    createdBy: 'Finance Secretary',
+    id: "B001",
+    title: "Conference Venue & Catering",
+    status: "DRAFT",
+    createdBy: "Finance Secretary",
     date: new Date().toLocaleDateString(),
     items: [
       {
-        name: 'Hotel Accommodation',
-        category: 'VENUE',
+        name: "Hotel Accommodation",
+        category: "VENUE",
         qty: 3,
-        unit: 'nights',
-        unitPrice: 150.00,
-        total: 450.00,
+        unit: "nights",
+        unitPrice: 150.0,
+        total: 450.0,
       },
       {
-        name: 'Meal Services',
-        category: 'FOOD',
+        name: "Meal Services",
+        category: "FOOD",
         qty: 100,
-        unit: 'persons',
-        unitPrice: 25.00,
-        total: 2500.00,
+        unit: "persons",
+        unitPrice: 25.0,
+        total: 2500.0,
       },
     ],
   });
@@ -123,7 +123,7 @@ export default function BudgetPage() {
           onClick={() => setShowPreview(!showPreview)}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
         >
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
+          {showPreview ? "Hide Preview" : "Show Preview"}
         </button>
       </div>
 
@@ -142,21 +142,25 @@ export default function BudgetPage() {
 ## Features
 
 ### Live Preview
+
 - As you edit payment/budget data, the preview updates immediately
 - No manual refresh needed
 - Zoom in/out for better visibility
 
 ### Export & Print
+
 - Print button: Opens browser print dialog for PDF creation
 - Download button: Saves as PDF file
 - Formatted for A4 paper size
 
 ### Auto-Save (With useDocumentComposition)
+
 - 800ms debounce before saving
 - Automatic localStorage persistence
 - Can be toggled with `autoSaveToLocalStorage` option
 
 ### Responsive Design
+
 - Fixed side panel (96px width)
 - Works alongside existing forms
 - Smooth open/close animations
@@ -167,10 +171,10 @@ export default function BudgetPage() {
 
 ```typescript
 interface PaymentLetterComposerProps {
-  isOpen: boolean;                    // Show/hide preview
-  onClose: () => void;                // Close handler
-  zoomLevel: number;                  // 50-200%
-  onZoomChange: (level: number) => void;  // Zoom change handler
+  isOpen: boolean; // Show/hide preview
+  onClose: () => void; // Close handler
+  zoomLevel: number; // 50-200%
+  onZoomChange: (level: number) => void; // Zoom change handler
   paymentData?: {
     id: string;
     amount: number;
@@ -181,8 +185,8 @@ interface PaymentLetterComposerProps {
     description: string;
     status: string;
   };
-  members?: Array<{id; name; role; phone}>;  // For committee roster
-  confInfo?: {startsAt; endsAt; venue};     // Conference details
+  members?: Array<{ id; name; role; phone }>; // For committee roster
+  confInfo?: { startsAt; endsAt; venue }; // Conference details
 }
 ```
 
@@ -217,18 +221,21 @@ interface BudgetLineItem {
 ## Integration Points
 
 ### Payments Route
+
 **File**: `src/app/(hub)/tools/conf/payments/page.tsx`
 
 Current: Shows list of payments in a table
 New: Add PaymentLetterComposer side panel that shows receipt for selected payment
 
 ### Budget Route
+
 **File**: `src/app/(hub)/tools/conf/budget/page.tsx`
 
 Current: Shows budget draft form with line items
 New: Add BudgetLetterComposer side panel that updates as items are added/edited
 
 ### Letter Route
+
 **File**: `src/app/(hub)/tools/conf/letters/page.tsx`
 
 No changes needed - existing letter composer continues to work independently
@@ -236,6 +243,7 @@ No changes needed - existing letter composer continues to work independently
 ## Modular Design
 
 ### Benefits
+
 - ✅ Reusable across any page
 - ✅ Self-contained (brings own styling/functionality)
 - ✅ No dependencies on main form component
@@ -243,6 +251,7 @@ No changes needed - existing letter composer continues to work independently
 - ✅ Zoom & print controls built-in
 
 ### Extensibility
+
 - Can add more composers for Reports, Invoices, etc.
 - Same pattern: `{Type}LetterComposer` components
 - Use `useDocumentComposition` hook for state management

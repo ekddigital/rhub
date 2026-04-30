@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { DocumentDraft, DocumentType } from "@/contexts/document-composition-context";
+import {
+  DocumentDraft,
+  DocumentType,
+} from "@/contexts/document-composition-context";
 
 const AUTO_SAVE_DELAY = 800; // ms
 const STORAGE_KEY_PREFIX = "doc-draft-";
@@ -58,7 +61,7 @@ export function useDocumentComposition({
             ...draft,
             confId,
             lastModified: Date.now(),
-          })
+          }),
         );
         setLastAutoSave(Date.now());
         onAutoSave?.(draft);
@@ -66,7 +69,7 @@ export function useDocumentComposition({
         console.error("Error auto-saving draft:", e);
       }
     },
-    [confId, autoSaveToLocalStorage, onAutoSave]
+    [confId, autoSaveToLocalStorage, onAutoSave],
   );
 
   // Debounced update with auto-save
@@ -74,12 +77,16 @@ export function useDocumentComposition({
     (id: string, updates: Partial<DocumentDraft>) => {
       setDrafts((prev) => {
         const updated = prev.map((d) =>
-          d.id === id ? { ...d, ...updates, lastModified: Date.now() } : d
+          d.id === id ? { ...d, ...updates, lastModified: Date.now() } : d,
         );
 
         // Update active draft if it's the one being edited
         if (activeDraft?.id === id) {
-          const newDraft = { ...activeDraft, ...updates, lastModified: Date.now() };
+          const newDraft = {
+            ...activeDraft,
+            ...updates,
+            lastModified: Date.now(),
+          };
           setActiveDraft(newDraft);
 
           // Debounce auto-save
@@ -94,7 +101,7 @@ export function useDocumentComposition({
         return updated;
       });
     },
-    [activeDraft, autoSaveDraft]
+    [activeDraft, autoSaveDraft],
   );
 
   // Add new draft
@@ -111,21 +118,24 @@ export function useDocumentComposition({
         autoSaveDraft(newDraft);
       }
     },
-    [autoSaveToLocalStorage, autoSaveDraft]
+    [autoSaveToLocalStorage, autoSaveDraft],
   );
 
   // Remove draft
-  const removeDraft = useCallback((id: string) => {
-    setDrafts((prev) => prev.filter((d) => d.id !== id));
-    if (activeDraft?.id === id) {
-      setActiveDraft(null);
-    }
-    try {
-      localStorage.removeItem(`${STORAGE_KEY_PREFIX}${id}`);
-    } catch (e) {
-      console.error("Error removing draft from localStorage:", e);
-    }
-  }, [activeDraft]);
+  const removeDraft = useCallback(
+    (id: string) => {
+      setDrafts((prev) => prev.filter((d) => d.id !== id));
+      if (activeDraft?.id === id) {
+        setActiveDraft(null);
+      }
+      try {
+        localStorage.removeItem(`${STORAGE_KEY_PREFIX}${id}`);
+      } catch (e) {
+        console.error("Error removing draft from localStorage:", e);
+      }
+    },
+    [activeDraft],
+  );
 
   // Cleanup
   useEffect(() => {
