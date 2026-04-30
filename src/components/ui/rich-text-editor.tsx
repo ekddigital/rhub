@@ -101,6 +101,16 @@ function isMarkdownTable(lines: string[]): boolean {
   return hasPipes && isSeparator;
 }
 
+function applyInlineMarkdown(text: string): string {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+}
+
+function renderParagraph(lines: string[]): string {
+  return `<p>${lines.map((line) => applyInlineMarkdown(line)).join("<br />")}</p>`;
+}
+
 function markdownBlockToHtml(block: string): string {
   const lines = block.split("\n").map((line) => line.trimEnd());
   const compact = lines.filter((line) => line.trim().length > 0);
@@ -145,12 +155,50 @@ function markdownBlockToHtml(block: string): string {
     return `<ol>${items}</ol>`;
   }
 
-  const paragraph = compact
-    .map((line) => escapeHtml(line))
-    .join("<br />")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>");
-  return `<p>${paragraph}</p>`;
+  // Support "section + > item" style content copied from planning docs:
+  // 1. Program and speaker planning
+  // > Identify keynote speakers...
+  const hasQuoteBullets = compact.some((line) => /^\s*>\s+/.test(line));
+  if (hasQuoteBullets) {
+    const segments: string[] = [];
+    let paragraphLines: string[] = [];
+    let bulletLines: string[] = [];
+
+    const flushParagraph = () => {
+      if (paragraphLines.length > 0) {
+        segments.push(renderParagraph(paragraphLines));
+        paragraphLines = [];
+      }
+    };
+
+    const flushBullets = () => {
+      if (bulletLines.length > 0) {
+        const items = bulletLines
+          .map((line) => `<li>${applyInlineMarkdown(line)}</li>`)
+          .join("");
+        segments.push(`<ul>${items}</ul>`);
+        bulletLines = [];
+      }
+    };
+
+    compact.forEach((line) => {
+      const quoteBullet = line.match(/^\s*>\s+(.+)$/);
+      if (quoteBullet) {
+        flushParagraph();
+        bulletLines.push(quoteBullet[1].trim());
+        return;
+      }
+      flushBullets();
+      paragraphLines.push(line);
+    });
+
+    flushParagraph();
+    flushBullets();
+
+    if (segments.length > 0) return segments.join("");
+  }
+
+  return renderParagraph(compact);
 }
 
 function markdownToHtml(text: string): string {
@@ -164,6 +212,7 @@ function isLikelyMarkdown(text: string): boolean {
   return (
     /^\s*#{1,6}\s+/m.test(text) ||
     /^\s*[-*]\s+/m.test(text) ||
+    /^\s*>\s+/m.test(text) ||
     /^\s*\d+\.\s+/m.test(text) ||
     /^\s*\|.+\|\s*$/m.test(text)
   );
