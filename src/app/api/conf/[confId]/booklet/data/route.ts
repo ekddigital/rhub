@@ -165,6 +165,29 @@ function normalizePosition(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+function inferRoleFromTitle(title: string): "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "COMMITTEE" {
+  const normalized = normalizePosition(title);
+  if (normalized.includes("general chairman")) return "CHAIR";
+  if (normalized.includes("co-chair") || normalized.includes("vice")) {
+    return "VICE_CHAIR";
+  }
+  if (normalized.includes("secretary")) return "SECRETARY";
+  return "COMMITTEE";
+}
+
+function inferScopeFromTitle(title: string): string | null {
+  const normalized = normalizePosition(title);
+  if (normalized.includes("cooking")) return "Cooking";
+  if (normalized.includes("sports")) return "Sports";
+  if (normalized.includes("logistics")) return "Logistics";
+  if (normalized.includes("media") || normalized.includes("publicity")) {
+    return "Media";
+  }
+  if (normalized.includes("fundraising")) return "Fundraising";
+  if (normalized.includes("decoration")) return "Decoration";
+  return null;
+}
+
 const COMMITTEE_ALIAS_TO_CANONICAL: Array<[string, string]> = [
   ["Lisa Y SET", "Lisa Y Synyenlentu"],
   ["Robert D Molley", "Robert D. Molley"],
@@ -394,6 +417,29 @@ export async function GET(
       return Array.from(byKey.values());
     })();
 
+    // Ensure committee templates appear in booklet cards even before members
+    // are fully linked/registered in the system.
+    const existingMemberNames = new Set(
+      dedupedMembers.map((m) => normalizeName(m.name)),
+    );
+    const supplementalTemplateMembers = DEFAULT_COMMITTEE_ROSTER.filter(
+      (entry) => !existingMemberNames.has(normalizeName(entry.name)),
+    ).map((entry, idx) => ({
+      id: `template-${idx + 1}`,
+      name: entry.name,
+      role: inferRoleFromTitle(entry.title),
+      city: entry.city,
+      phone: entry.phone,
+      title: entry.title,
+      committeeScope: inferScopeFromTitle(entry.title),
+      photoPath: null,
+      photoFileName: null,
+      bookletBio: null,
+      userId: null,
+    }));
+
+    const mergedMembers = [...dedupedMembers, ...supplementalTemplateMembers];
+
     const resolvedDelegates = delegates.map((d) => ({
       ...d,
       bookletPhotoPath: d.bookletPhotoPath
@@ -429,7 +475,7 @@ export async function GET(
 
     // Conference Committee members (NOT NEC): annotate each member with linked
     // delegate profile fields so booklet cards can show school/code/province.
-    const committeeMembers = dedupedMembers.map((m) => {
+    const committeeMembers = mergedMembers.map((m) => {
       const linked = findLinkedDelegate(m.userId, m.name);
       const roster = findCommitteeRosterEntry(m.name, m.title);
       return {
@@ -451,7 +497,11 @@ export async function GET(
 
     // Conference Chair is the CHAIR-role member (Enoch). NOT an NEC member.
     const conferenceChair =
-      committeeMembers.find((m) => m.role === "CHAIR") ?? null;
+      committeeMembers.find((m) => m.role === "CHAIR") ??
+      committeeMembers.find((m) =>
+        normalizePosition(m.title).includes("general chairman"),
+      ) ??
+      null;
 
     // NEC board: fixed roster + live overlay from delegate signups.
     // Missing signup/photo data intentionally stays null, so UI shows placeholders.

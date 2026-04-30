@@ -268,48 +268,50 @@ function OfficerCard({
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        flexDirection: "row",
+        alignItems: "flex-start",
         gap: "10px",
-        padding: "16px 14px",
+        padding: "14px 12px",
         borderRadius: "10px",
         background: bg,
         border: `1px solid ${C.border}`,
-        textAlign: "center",
+        minHeight: "118px",
       }}
     >
       <Avatar
         src={member.photoPath}
         name={member.name}
-        size={64}
+        size={74}
         silhouette={!member.photoPath}
         borderColor={textColor}
       />
-      <div>
+      <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: "11.5px",
+            fontSize: "12.5px",
             fontWeight: 700,
             color: textColor,
             marginBottom: "3px",
+            lineHeight: 1.25,
           }}
         >
           {member.name}
         </div>
         <div
           style={{
-            fontSize: "9px",
+            fontSize: "9.5px",
             fontWeight: 600,
             color: `${textColor}90`,
             textTransform: "uppercase",
             letterSpacing: "0.08em",
+            lineHeight: 1.35,
           }}
         >
           {member.conferencePosition?.trim() || roleLabel(member)}
         </div>
         <div
           style={{
-            fontSize: "8.5px",
+            fontSize: "9px",
             color: C.muted,
             marginTop: "3px",
             lineHeight: 1.3,
@@ -320,7 +322,7 @@ function OfficerCard({
         </div>
         <div
           style={{
-            fontSize: "8.5px",
+            fontSize: "9px",
             color: C.muted,
             lineHeight: 1.3,
           }}
@@ -330,7 +332,7 @@ function OfficerCard({
         {member.phone && (
           <div
             style={{
-              fontSize: "8.5px",
+              fontSize: "9px",
               color: C.blue,
               lineHeight: 1.3,
               fontWeight: 600,
@@ -342,7 +344,7 @@ function OfficerCard({
         <div
           style={{
             marginTop: "4px",
-            fontSize: "7.5px",
+            fontSize: "8px",
             fontFamily: "monospace",
             color: member.delegateCode ? C.red : C.muted,
             background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
@@ -364,27 +366,27 @@ function MemberCard({ member }: { member: NecMember }) {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "9px",
-        padding: "14px 10px",
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: "10px",
+        padding: "12px 10px",
         borderRadius: "8px",
         background: C.lightBlue,
         border: `1px solid ${C.border}`,
-        textAlign: "center",
+        minHeight: "108px",
       }}
     >
       <Avatar
         src={member.photoPath}
         name={member.name}
-        size={56}
+        size={66}
         silhouette={!member.photoPath}
         borderColor={C.blue}
       />
-      <div>
+      <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: 700,
             color: C.blue,
             lineHeight: 1.25,
@@ -396,7 +398,7 @@ function MemberCard({ member }: { member: NecMember }) {
         {(member.title ?? member.city) && (
           <div
             style={{
-              fontSize: "9px",
+              fontSize: "9.5px",
               color: C.muted,
               lineHeight: 1.4,
             }}
@@ -410,7 +412,7 @@ function MemberCard({ member }: { member: NecMember }) {
             </div>
             <div>{member.university?.trim() || "Member"}</div>
             {member.phone && (
-              <div style={{ color: C.blue, fontWeight: 600 }}>
+              <div style={{ color: C.blue, fontWeight: 600, fontSize: "9px" }}>
                 {member.phone}
               </div>
             )}
@@ -419,7 +421,7 @@ function MemberCard({ member }: { member: NecMember }) {
         <div
           style={{
             marginTop: "4px",
-            fontSize: "7.5px",
+            fontSize: "8px",
             fontFamily: "monospace",
             color: member.delegateCode ? C.red : C.muted,
             background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
