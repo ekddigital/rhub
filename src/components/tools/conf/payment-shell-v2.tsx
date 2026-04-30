@@ -55,6 +55,7 @@ import { DocumentSignatureBlock } from "@/components/tools/conf/document-signatu
 
 type PaymentStatus = "PENDING" | "COMMITTEE_APPROVED" | "APPROVED" | "REJECTED";
 type PaymentType = "EXPENSE" | "INCOME";
+type PaymentStatusFilter = PaymentStatus | "ALL" | "ACTIVE";
 
 type Proof = {
   id: string;
@@ -398,9 +399,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<PaymentType | "ALL">("ALL");
-  const [filterStatus, setFilterStatus] = useState<PaymentStatus | "ALL">(
-    "ALL",
-  );
+  const [filterStatus, setFilterStatus] = useState<PaymentStatusFilter>("ACTIVE");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -424,7 +423,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     async (id: string) => {
       const params = new URLSearchParams();
       if (filterType !== "ALL") params.set("type", filterType);
-      if (filterStatus !== "ALL") params.set("status", filterStatus);
+      if (filterStatus !== "ALL" && filterStatus !== "ACTIVE") {
+        params.set("status", filterStatus);
+      }
       const res = await fetch(`/api/conf/${id}/payments?${params}`, {
         cache: "no-store",
       });
@@ -682,14 +683,17 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setShowForm(false);
   };
 
-  const expenses = payments.filter(
+  const activePayments = payments.filter((p) => p.status !== "REJECTED");
+  const rejectedPayments = payments.filter((p) => p.status === "REJECTED");
+
+  const expenses = activePayments.filter(
     (p) => p.paymentType === "EXPENSE" || !p.paymentType,
   );
-  const incomes = payments.filter((p) => p.paymentType === "INCOME");
+  const incomes = activePayments.filter((p) => p.paymentType === "INCOME");
   const totalExpense = expenses.reduce((s, p) => s + p.amount, 0);
   const totalIncome = incomes.reduce((s, p) => s + p.amount, 0);
-  const lockedCount = payments.filter((p) => p.isLocked).length;
-  const pendingCount = payments.filter((p) => p.status === "PENDING").length;
+  const lockedCount = activePayments.filter((p) => p.isLocked).length;
+  const pendingCount = activePayments.filter((p) => p.status === "PENDING").length;
   const isScopeLockedToMember =
     Boolean(accessInfo?.committeeScope) && !accessInfo?.isSuperAdmin;
   const canFinalApproveFromPending = useCallback(
@@ -864,12 +868,13 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <div className="flex gap-1">
           {(
             [
+              "ACTIVE",
               "ALL",
               "PENDING",
               "COMMITTEE_APPROVED",
               "APPROVED",
               "REJECTED",
-            ] as const
+            ] as PaymentStatusFilter[]
           ).map((s) => (
             <Button
               key={s}
@@ -878,7 +883,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               className="h-7 text-xs"
               onClick={() => setFilterStatus(s)}
             >
-              {s === "ALL"
+              {s === "ACTIVE"
+                ? "Active"
+                : s === "ALL"
                 ? "All Status"
                 : s === "COMMITTEE_APPROVED"
                   ? "Cmt. Approved"
@@ -1118,21 +1125,21 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       )}
 
       {/* Empty state */}
-      {payments.length === 0 && !showForm && (
+      {activePayments.length === 0 && !showForm && (
         <Card>
           <CardContent className="flex flex-col items-center py-12 text-center">
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
-            <p className="text-lg font-medium">No payments recorded yet</p>
+            <p className="text-lg font-medium">No active payments recorded yet</p>
             <p className="text-sm text-muted-foreground">
-              Start by adding an expense or incoming fund record
+              Start by adding an expense or incoming fund record.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Payment List */}
+      {/* Active Payment List */}
       <div className="space-y-3">
-        {payments.map((payment) => {
+        {activePayments.map((payment) => {
           const config = STATUS_CONFIG[payment.status] ?? STATUS_CONFIG.PENDING;
           const StatusIcon = config.icon;
           const isExpense =
@@ -1401,6 +1408,41 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         })}
       </div>
 
+      {rejectedPayments.length > 0 && (
+        <Card className="border-red-500/30">
+          <CardHeader>
+            <CardTitle className="text-base text-red-600">Rejected Records</CardTitle>
+            <CardDescription>
+              Records rejected in the approval workflow are tracked here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {rejectedPayments.map((payment) => (
+              <div
+                key={`rejected-${payment.id}`}
+                className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm">
+                    <span className="font-semibold">{payment.paidBy}</span>
+                    {payment.paidTo ? ` -> ${payment.paidTo}` : ""}
+                  </div>
+                  <div className="text-sm font-semibold text-red-600">
+                    {fmtRmb(payment.amount)}
+                  </div>
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {new Date(payment.paidAt).toLocaleDateString()} ·{" "}
+                  {PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
+                    payment.method}
+                  {payment.ref ? ` · Ref: ${payment.ref}` : ""}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="payments-no-print border-[#C8A061]/30">
         <CardHeader className="flex-row items-center justify-between gap-4">
           <div>
@@ -1442,7 +1484,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               }}
             >
               <PaymentsDocumentPreview
-                payments={payments}
+                payments={activePayments}
                 totalExpense={totalExpense}
                 totalIncome={totalIncome}
                 confInfo={confInfo}
@@ -1471,7 +1513,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       </Card>
 
       {/* Report Builder Link */}
-      {payments.length > 0 && (
+      {activePayments.length > 0 && (
         <div className="payments-no-print flex justify-end">
           <Link href="/tools/conf/finance/reports">
             <Button variant="outline" size="sm">
@@ -1483,7 +1525,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <div id="payments-print-root">
         <PaymentsDocumentPreview
-          payments={payments}
+          payments={activePayments}
           totalExpense={totalExpense}
           totalIncome={totalIncome}
           confInfo={confInfo}
