@@ -347,7 +347,8 @@ type PageMetrics = {
 function estimateMaxCharsPerLine(metrics: PageMetrics): number {
   // Monospace estimate: ~1.9 chars per 10px of width (Helvetica Neue 12px)
   // Adjusted for typical proportional spacing. ~2 chars per ~13px
-  const usableWidth = metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight;
+  const usableWidth =
+    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight;
   return Math.max(40, Math.floor(usableWidth / 6.5));
 }
 
@@ -435,7 +436,9 @@ function paginateBodyText(
   if (signatoryLinesNeeded > 0 && pages.length > 0) {
     let lastIndex = pages.length - 1;
     const isLastPageFirstPage = lastIndex === 0;
-    const lastPageCap = isLastPageFirstPage ? firstPageCapacity : continuationCapacity;
+    const lastPageCap = isLastPageFirstPage
+      ? firstPageCapacity
+      : continuationCapacity;
     const reservedCap = Math.max(8, lastPageCap - signatoryLinesNeeded);
 
     while (pages[lastIndex].length > reservedCap) {
@@ -1307,7 +1310,9 @@ export function LetterComposerShell() {
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [libraryFilter, setLibraryFilter] = useState<LetterType | "">("");
   const [savingToDb, setSavingToDb] = useState(false);
-  const [saveToDbStatus, setSaveToDbStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [saveToDbStatus, setSaveToDbStatus] = useState<
+    "idle" | "saved" | "error"
+  >("idle");
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // ── Fetch conf data ──────────────────────────────────────────────────────
@@ -1848,7 +1853,9 @@ export function LetterComposerShell() {
               >
                 <BookOpen className="size-3.5" /> Library
                 {libraryTotal > 0 && (
-                  <span className="ml-0.5 text-[10px] opacity-70">({libraryTotal})</span>
+                  <span className="ml-0.5 text-[10px] opacity-70">
+                    ({libraryTotal})
+                  </span>
                 )}
               </button>
             </div>
@@ -1858,7 +1865,8 @@ export function LetterComposerShell() {
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   {saveStatus === "saved" ? (
                     <>
-                      <CheckCircle2 className="size-3.5 text-emerald-500" /> Saved
+                      <CheckCircle2 className="size-3.5 text-emerald-500" />{" "}
+                      Saved
                     </>
                   ) : (
                     <>
@@ -1884,16 +1892,29 @@ export function LetterComposerShell() {
                           ? "border-[#C8A061]/60 text-[#C8A061]"
                           : ""
                   }
-                  title={activeDraft.dbId ? "Update saved letter in Library" : "Save letter to Library (database)"}
+                  title={
+                    activeDraft.dbId
+                      ? "Update saved letter in Library"
+                      : "Save letter to Library (database)"
+                  }
                 >
                   {saveToDbStatus === "saved" ? (
-                    <><CheckCircle2 className="size-4" /> Saved to Library</>
+                    <>
+                      <CheckCircle2 className="size-4" /> Saved to Library
+                    </>
                   ) : saveToDbStatus === "error" ? (
-                    <><AlertCircle className="size-4" /> Save Failed</>
+                    <>
+                      <AlertCircle className="size-4" /> Save Failed
+                    </>
                   ) : savingToDb ? (
-                    <><CloudUpload className="size-4" /> Saving…</>
+                    <>
+                      <CloudUpload className="size-4" /> Saving…
+                    </>
                   ) : (
-                    <><CloudUpload className="size-4" /> {activeDraft.dbId ? "Update Library" : "Save to Library"}</>
+                    <>
+                      <CloudUpload className="size-4" />{" "}
+                      {activeDraft.dbId ? "Update Library" : "Save to Library"}
+                    </>
                   )}
                 </Button>
                 <Button
@@ -1936,38 +1957,64 @@ export function LetterComposerShell() {
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Tag className="size-3.5" /> Filter by type:
               </div>
-              {(["", "MEMO", "MINUTES", "ANNOUNCEMENT", "BUDGET_LETTER", "PAYMENT_RECEIPT", "GENERAL"] as (LetterType | "")[]).map(
-                (t) => (
-                  <button
-                    key={t}
-                    onClick={() => { setLibraryFilter(t); setLibraryPage(1); }}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      libraryFilter === t
-                        ? "bg-[#002868] text-white border-[#002868]"
-                        : "border-border hover:bg-muted/50"
-                    }`}
-                    style={
-                      t && libraryFilter !== t
-                        ? { borderColor: LETTER_TYPE_COLORS[t as LetterType] + "44", color: LETTER_TYPE_COLORS[t as LetterType] }
-                        : {}
-                    }
-                  >
-                    {t ? LETTER_TYPE_LABELS[t as LetterType] : "All"}
-                  </button>
-                ),
-              )}
-              <span className="ml-auto text-xs text-muted-foreground">{libraryTotal} letter{libraryTotal !== 1 ? "s" : ""}</span>
+              {(
+                [
+                  "",
+                  "MEMO",
+                  "MINUTES",
+                  "ANNOUNCEMENT",
+                  "BUDGET_LETTER",
+                  "PAYMENT_RECEIPT",
+                  "GENERAL",
+                ] as (LetterType | "")[]
+              ).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setLibraryFilter(t);
+                    setLibraryPage(1);
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    libraryFilter === t
+                      ? "bg-[#002868] text-white border-[#002868]"
+                      : "border-border hover:bg-muted/50"
+                  }`}
+                  style={
+                    t && libraryFilter !== t
+                      ? {
+                          borderColor:
+                            LETTER_TYPE_COLORS[t as LetterType] + "44",
+                          color: LETTER_TYPE_COLORS[t as LetterType],
+                        }
+                      : {}
+                  }
+                >
+                  {t ? LETTER_TYPE_LABELS[t as LetterType] : "All"}
+                </button>
+              ))}
+              <span className="ml-auto text-xs text-muted-foreground">
+                {libraryTotal} letter{libraryTotal !== 1 ? "s" : ""}
+              </span>
             </div>
 
             {/* Card grid */}
             {libraryLoading ? (
-              <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading library…</div>
+              <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+                Loading library…
+              </div>
             ) : library.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
                 <BookOpen className="size-10 opacity-30" />
                 <p className="text-sm">No saved letters yet.</p>
-                <p className="text-xs">Compose a letter and click &quot;Save to Library&quot; to store it here.</p>
-                <Button size="sm" variant="outline" onClick={() => setView("composer")}>
+                <p className="text-xs">
+                  Compose a letter and click &quot;Save to Library&quot; to
+                  store it here.
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setView("composer")}
+                >
                   <PenLine className="size-4" /> Go to Composer
                 </Button>
               </div>
@@ -2029,20 +2076,26 @@ export function LetterComposerShell() {
                             <Clock className="size-3" />
                             <span>
                               Saved{" "}
-                              {new Date(rec.createdAt).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
+                              {new Date(rec.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                },
+                              )}
                             </span>
                           </div>
                           {rec.updatedAt !== rec.createdAt && (
                             <div className="text-[10px] text-muted-foreground/60">
                               Updated{" "}
-                              {new Date(rec.updatedAt).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                              })}
+                              {new Date(rec.updatedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
                             </div>
                           )}
                         </div>
@@ -2093,7 +2146,8 @@ export function LetterComposerShell() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Local Drafts</CardTitle>
               <CardDescription className="text-xs">
-                Auto-saved on this device. Use &quot;Save to Library&quot; to store permanently.
+                Auto-saved on this device. Use &quot;Save to Library&quot; to
+                store permanently.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -2158,429 +2212,441 @@ export function LetterComposerShell() {
         )}
 
         {/* ── Main layout: form (left) + preview (right) ── */}
-        {view === "composer" && <div className="letter-no-print flex gap-6 flex-1 min-h-0">
-          {/* ── Left: form fields ── */}
-          <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <FileText className="size-4 text-[#C8A061]" />
-                  Letter Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Letter Type</Label>
-                  <select
-                    className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
-                    value={activeDraft.type}
-                    onChange={(e) => setActiveDraft((d) => ({ ...d, type: e.target.value as LetterType }))}
-                  >
-                    {(Object.keys(LETTER_TYPE_LABELS) as LetterType[]).map((t) => (
-                      <option key={t} value={t}>{LETTER_TYPE_LABELS[t]}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Title / Label</Label>
-                  <Input
-                    placeholder="e.g. Committee Action Items Apr 20"
-                    className="h-8 text-sm"
-                    value={activeDraft.title}
-                    onChange={(e) => set("title")(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Date</Label>
-                  <Input
-                    placeholder="e.g. April 20, 2026"
-                    className="h-8 text-sm"
-                    value={activeDraft.date}
-                    onChange={(e) => set("date")(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">To</Label>
-                  <Textarea
-                    placeholder="e.g. All Committee Members&#10;LSUIC 2026 Conference"
-                    className="text-sm resize-none"
-                    rows={2}
-                    value={activeDraft.to}
-                    onChange={(e) => set("to")(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">From</Label>
-                  <Textarea
-                    placeholder="e.g. Enoch Kwateh Dongbo&#10;Conference Chair, LSUIC 2026"
-                    className="text-sm resize-none"
-                    rows={2}
-                    value={activeDraft.from}
-                    onChange={(e) => set("from")(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Subject / Re</Label>
-                  <Input
-                    placeholder="e.g. Committee Action Items — Week of April 20"
-                    className="h-8 text-sm"
-                    value={activeDraft.re}
-                    onChange={(e) => set("re")(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">Letter Body</CardTitle>
-                <CardDescription className="text-xs">
-                  Paste or type your content. Use blank lines to separate
-                  paragraphs.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  placeholder="Type or paste your letter content here…"
-                  className="text-sm resize-none font-mono"
-                  rows={18}
-                  value={activeDraft.body}
-                  onChange={(e) => set("body")(e.target.value)}
-                />
-                <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
-                  {activeDraft.body.length} characters
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* ── Office & Signatories ── */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">
-                  Issuing Office &amp; Signatories
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Select a committee role to auto-fill the office label, or type
-                  a custom label. Add up to three signatories.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Role picker */}
-                {sortedRoleTemplates.length > 0 && (
+        {view === "composer" && (
+          <div className="letter-no-print flex gap-6 flex-1 min-h-0">
+            {/* ── Left: form fields ── */}
+            <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <FileText className="size-4 text-[#C8A061]" />
+                    Letter Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">
-                      Issuing Role (auto-fill office)
-                    </Label>
+                    <Label className="text-xs">Letter Type</Label>
                     <select
                       className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
-                      value={activeDraft.issuingRoleKey}
-                      onChange={(e) => {
-                        if (e.target.value) applyOfficeFromRole(e.target.value);
-                        else set("issuingRoleKey")("");
-                      }}
+                      value={activeDraft.type}
+                      onChange={(e) =>
+                        setActiveDraft((d) => ({
+                          ...d,
+                          type: e.target.value as LetterType,
+                        }))
+                      }
                     >
-                      <option value="">— select role —</option>
-                      {sortedRoleTemplates.map((r) => (
-                        <option key={r.id} value={r.key}>
-                          {r.label}
-                        </option>
-                      ))}
+                      {(Object.keys(LETTER_TYPE_LABELS) as LetterType[]).map(
+                        (t) => (
+                          <option key={t} value={t}>
+                            {LETTER_TYPE_LABELS[t]}
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
-                )}
-                {/* Office label override */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Office Label (override)</Label>
-                  <Input
-                    placeholder="e.g. Office of the Conference Chairman"
-                    className="h-8 text-sm"
-                    value={activeDraft.officeLabel}
-                    onChange={(e) => set("officeLabel")(e.target.value)}
-                  />
-                </div>
-
-                {/* Signatory preset */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Signatory Preset</Label>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {(
-                      ["NONE", "STANDARD", "FUNDRAISING", "CUSTOM"] as const
-                    ).map((mode) => (
-                      <button
-                        key={mode}
-                        onClick={() => applySignatoryPreset(mode)}
-                        className={`px-2.5 py-1 rounded text-xs border transition-colors ${
-                          activeDraft.signatoryMode === mode
-                            ? "bg-[#002868] text-white border-[#002868]"
-                            : "bg-background border-border hover:bg-muted/60"
-                        }`}
-                      >
-                        {mode === "NONE"
-                          ? "None"
-                          : mode === "STANDARD"
-                            ? "Standard"
-                            : mode === "FUNDRAISING"
-                              ? "Fundraising"
-                              : "Custom"}
-                      </button>
-                    ))}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Title / Label</Label>
+                    <Input
+                      placeholder="e.g. Committee Action Items Apr 20"
+                      className="h-8 text-sm"
+                      value={activeDraft.title}
+                      onChange={(e) => set("title")(e.target.value)}
+                    />
                   </div>
-                </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Date</Label>
+                    <Input
+                      placeholder="e.g. April 20, 2026"
+                      className="h-8 text-sm"
+                      value={activeDraft.date}
+                      onChange={(e) => set("date")(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">To</Label>
+                    <Textarea
+                      placeholder="e.g. All Committee Members&#10;LSUIC 2026 Conference"
+                      className="text-sm resize-none"
+                      rows={2}
+                      value={activeDraft.to}
+                      onChange={(e) => set("to")(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">From</Label>
+                    <Textarea
+                      placeholder="e.g. Enoch Kwateh Dongbo&#10;Conference Chair, LSUIC 2026"
+                      className="text-sm resize-none"
+                      rows={2}
+                      value={activeDraft.from}
+                      onChange={(e) => set("from")(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Subject / Re</Label>
+                    <Input
+                      placeholder="e.g. Committee Action Items — Week of April 20"
+                      className="h-8 text-sm"
+                      value={activeDraft.re}
+                      onChange={(e) => set("re")(e.target.value)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-                {/* Signatory fields */}
-                {activeDraft.signatoryMode !== "NONE" && (
-                  <div className="space-y-3 pt-1">
-                    {(
-                      [
-                        {
-                          nameKey: "signatory1Name",
-                          titleKey: "signatory1Title",
-                          labelKey: "signatory1Label",
-                          sigKey: "signatory1Sig",
-                          scaleKey: "signatory1SigScale",
-                          badge: "1",
-                        },
-                        {
-                          nameKey: "signatory2Name",
-                          titleKey: "signatory2Title",
-                          labelKey: "signatory2Label",
-                          sigKey: "signatory2Sig",
-                          scaleKey: "signatory2SigScale",
-                          badge: "2",
-                        },
-                        {
-                          nameKey: "signatory3Name",
-                          titleKey: "signatory3Title",
-                          labelKey: "signatory3Label",
-                          sigKey: "signatory3Sig",
-                          scaleKey: "signatory3SigScale",
-                          badge: "3",
-                        },
-                      ] as const
-                    ).map(
-                      ({
-                        nameKey,
-                        titleKey,
-                        labelKey,
-                        sigKey,
-                        scaleKey,
-                        badge,
-                      }) => (
-                        <div
-                          key={nameKey}
-                          className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2"
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Letter Body</CardTitle>
+                  <CardDescription className="text-xs">
+                    Paste or type your content. Use blank lines to separate
+                    paragraphs.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea
+                    placeholder="Type or paste your letter content here…"
+                    className="text-sm resize-none font-mono"
+                    rows={18}
+                    value={activeDraft.body}
+                    onChange={(e) => set("body")(e.target.value)}
+                  />
+                  <p className="mt-1.5 text-[10px] text-muted-foreground text-right">
+                    {activeDraft.body.length} characters
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* ── Office & Signatories ── */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">
+                    Issuing Office &amp; Signatories
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Select a committee role to auto-fill the office label, or
+                    type a custom label. Add up to three signatories.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Role picker */}
+                  {sortedRoleTemplates.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">
+                        Issuing Role (auto-fill office)
+                      </Label>
+                      <select
+                        className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                        value={activeDraft.issuingRoleKey}
+                        onChange={(e) => {
+                          if (e.target.value)
+                            applyOfficeFromRole(e.target.value);
+                          else set("issuingRoleKey")("");
+                        }}
+                      >
+                        <option value="">— select role —</option>
+                        {sortedRoleTemplates.map((r) => (
+                          <option key={r.id} value={r.key}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  {/* Office label override */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Office Label (override)</Label>
+                    <Input
+                      placeholder="e.g. Office of the Conference Chairman"
+                      className="h-8 text-sm"
+                      value={activeDraft.officeLabel}
+                      onChange={(e) => set("officeLabel")(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Signatory preset */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Signatory Preset</Label>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {(
+                        ["NONE", "STANDARD", "FUNDRAISING", "CUSTOM"] as const
+                      ).map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => applySignatoryPreset(mode)}
+                          className={`px-2.5 py-1 rounded text-xs border transition-colors ${
+                            activeDraft.signatoryMode === mode
+                              ? "bg-[#002868] text-white border-[#002868]"
+                              : "bg-background border-border hover:bg-muted/60"
+                          }`}
                         >
-                          {/* Header row: badge + label input */}
-                          <div className="flex items-center gap-2">
-                            <span className="size-5 rounded-full bg-[#002868] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                              {badge}
-                            </span>
+                          {mode === "NONE"
+                            ? "None"
+                            : mode === "STANDARD"
+                              ? "Standard"
+                              : mode === "FUNDRAISING"
+                                ? "Fundraising"
+                                : "Custom"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Signatory fields */}
+                  {activeDraft.signatoryMode !== "NONE" && (
+                    <div className="space-y-3 pt-1">
+                      {(
+                        [
+                          {
+                            nameKey: "signatory1Name",
+                            titleKey: "signatory1Title",
+                            labelKey: "signatory1Label",
+                            sigKey: "signatory1Sig",
+                            scaleKey: "signatory1SigScale",
+                            badge: "1",
+                          },
+                          {
+                            nameKey: "signatory2Name",
+                            titleKey: "signatory2Title",
+                            labelKey: "signatory2Label",
+                            sigKey: "signatory2Sig",
+                            scaleKey: "signatory2SigScale",
+                            badge: "2",
+                          },
+                          {
+                            nameKey: "signatory3Name",
+                            titleKey: "signatory3Title",
+                            labelKey: "signatory3Label",
+                            sigKey: "signatory3Sig",
+                            scaleKey: "signatory3SigScale",
+                            badge: "3",
+                          },
+                        ] as const
+                      ).map(
+                        ({
+                          nameKey,
+                          titleKey,
+                          labelKey,
+                          sigKey,
+                          scaleKey,
+                          badge,
+                        }) => (
+                          <div
+                            key={nameKey}
+                            className="rounded-lg border border-border/60 bg-muted/20 p-3 space-y-2"
+                          >
+                            {/* Header row: badge + label input */}
+                            <div className="flex items-center gap-2">
+                              <span className="size-5 rounded-full bg-[#002868] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                                {badge}
+                              </span>
+                              <Input
+                                placeholder="e.g. Signed / Approved / Attested"
+                                className="h-7 text-xs font-semibold flex-1"
+                                value={activeDraft[labelKey]}
+                                onChange={(e) => set(labelKey)(e.target.value)}
+                              />
+                            </div>
+                            {/* Name */}
                             <Input
-                              placeholder="e.g. Signed / Approved / Attested"
-                              className="h-7 text-xs font-semibold flex-1"
-                              value={activeDraft[labelKey]}
-                              onChange={(e) => set(labelKey)(e.target.value)}
+                              placeholder="Full name"
+                              className="h-7 text-sm"
+                              value={activeDraft[nameKey]}
+                              onChange={(e) => set(nameKey)(e.target.value)}
                             />
-                          </div>
-                          {/* Name */}
-                          <Input
-                            placeholder="Full name"
-                            className="h-7 text-sm"
-                            value={activeDraft[nameKey]}
-                            onChange={(e) => set(nameKey)(e.target.value)}
-                          />
-                          {/* Title */}
-                          <Input
-                            placeholder="Title / Role"
-                            className="h-7 text-sm"
-                            value={activeDraft[titleKey]}
-                            onChange={(e) => set(titleKey)(e.target.value)}
-                          />
-                          {/* Signature upload + preview + scale */}
-                          <div className="space-y-1.5">
-                            {activeDraft[sigKey] ? (
-                              <div className="flex items-center gap-2">
-                                {/* Preview */}
-                                <div
-                                  className="flex-1 rounded border border-border bg-white flex items-center justify-center py-1 px-2"
-                                  style={{ minHeight: 40 }}
-                                >
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={activeDraft[sigKey]}
-                                    alt="sig preview"
-                                    style={{
-                                      height: Math.round(
-                                        32 * (activeDraft[scaleKey] ?? 1),
-                                      ),
-                                      maxWidth: "100%",
-                                      objectFit: "contain",
+                            {/* Title */}
+                            <Input
+                              placeholder="Title / Role"
+                              className="h-7 text-sm"
+                              value={activeDraft[titleKey]}
+                              onChange={(e) => set(titleKey)(e.target.value)}
+                            />
+                            {/* Signature upload + preview + scale */}
+                            <div className="space-y-1.5">
+                              {activeDraft[sigKey] ? (
+                                <div className="flex items-center gap-2">
+                                  {/* Preview */}
+                                  <div
+                                    className="flex-1 rounded border border-border bg-white flex items-center justify-center py-1 px-2"
+                                    style={{ minHeight: 40 }}
+                                  >
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={activeDraft[sigKey]}
+                                      alt="sig preview"
+                                      style={{
+                                        height: Math.round(
+                                          32 * (activeDraft[scaleKey] ?? 1),
+                                        ),
+                                        maxWidth: "100%",
+                                        objectFit: "contain",
+                                      }}
+                                    />
+                                  </div>
+                                  {/* Scale controls */}
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <button
+                                      className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                      title="Increase signature size"
+                                      onClick={() =>
+                                        setActiveDraft((d) => ({
+                                          ...d,
+                                          [scaleKey]: Math.min(
+                                            3,
+                                            Math.round(
+                                              ((d[scaleKey] ?? 1) + 0.25) * 100,
+                                            ) / 100,
+                                          ),
+                                        }))
+                                      }
+                                    >
+                                      <Plus className="size-3" />
+                                    </button>
+                                    <span className="text-[9px] font-mono text-muted-foreground">
+                                      {(
+                                        (activeDraft[scaleKey] ?? 1) * 100
+                                      ).toFixed(0)}
+                                      %
+                                    </span>
+                                    <button
+                                      className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
+                                      title="Decrease signature size"
+                                      onClick={() =>
+                                        setActiveDraft((d) => ({
+                                          ...d,
+                                          [scaleKey]: Math.max(
+                                            0.25,
+                                            Math.round(
+                                              ((d[scaleKey] ?? 1) - 0.25) * 100,
+                                            ) / 100,
+                                          ),
+                                        }))
+                                      }
+                                    >
+                                      <Minus className="size-3" />
+                                    </button>
+                                  </div>
+                                  {/* Remove */}
+                                  <button
+                                    className="size-6 rounded border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0"
+                                    title="Remove signature"
+                                    onClick={() =>
+                                      setActiveDraft((d) => ({
+                                        ...d,
+                                        [sigKey]: "",
+                                      }))
+                                    }
+                                  >
+                                    <X className="size-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
+                                  <Upload className="size-3.5" />
+                                  Upload signature image
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="sr-only"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        const result = ev.target
+                                          ?.result as string;
+                                        setActiveDraft((d) => ({
+                                          ...d,
+                                          [sigKey]: result,
+                                        }));
+                                      };
+                                      reader.readAsDataURL(file);
+                                      e.target.value = "";
                                     }}
                                   />
-                                </div>
-                                {/* Scale controls */}
-                                <div className="flex flex-col items-center gap-0.5">
-                                  <button
-                                    className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
-                                    title="Increase signature size"
-                                    onClick={() =>
-                                      setActiveDraft((d) => ({
-                                        ...d,
-                                        [scaleKey]: Math.min(
-                                          3,
-                                          Math.round(
-                                            ((d[scaleKey] ?? 1) + 0.25) * 100,
-                                          ) / 100,
-                                        ),
-                                      }))
-                                    }
-                                  >
-                                    <Plus className="size-3" />
-                                  </button>
-                                  <span className="text-[9px] font-mono text-muted-foreground">
-                                    {(
-                                      (activeDraft[scaleKey] ?? 1) * 100
-                                    ).toFixed(0)}
-                                    %
-                                  </span>
-                                  <button
-                                    className="size-6 rounded border border-border hover:bg-muted/60 flex items-center justify-center text-xs"
-                                    title="Decrease signature size"
-                                    onClick={() =>
-                                      setActiveDraft((d) => ({
-                                        ...d,
-                                        [scaleKey]: Math.max(
-                                          0.25,
-                                          Math.round(
-                                            ((d[scaleKey] ?? 1) - 0.25) * 100,
-                                          ) / 100,
-                                        ),
-                                      }))
-                                    }
-                                  >
-                                    <Minus className="size-3" />
-                                  </button>
-                                </div>
-                                {/* Remove */}
-                                <button
-                                  className="size-6 rounded border border-border hover:bg-destructive/10 hover:text-destructive flex items-center justify-center shrink-0"
-                                  title="Remove signature"
-                                  onClick={() =>
-                                    setActiveDraft((d) => ({
-                                      ...d,
-                                      [sigKey]: "",
-                                    }))
-                                  }
-                                >
-                                  <X className="size-3" />
-                                </button>
-                              </div>
-                            ) : (
-                              <label className="flex items-center gap-1.5 cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors">
-                                <Upload className="size-3.5" />
-                                Upload signature image
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="sr-only"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    const reader = new FileReader();
-                                    reader.onload = (ev) => {
-                                      const result = ev.target
-                                        ?.result as string;
-                                      setActiveDraft((d) => ({
-                                        ...d,
-                                        [sigKey]: result,
-                                      }));
-                                    };
-                                    reader.readAsDataURL(file);
-                                    e.target.value = "";
-                                  }}
-                                />
-                              </label>
-                            )}
+                                </label>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
-                onClick={handleDownloadPdf}
-              >
-                <Printer className="size-4" />
-                Download PDF
-              </Button>
-            </div>
-            <p className="text-[10px] text-muted-foreground text-center">
-              Opens in a new window — choose &quot;Save as PDF&quot; in the
-              print dialog.
-            </p>
-          </div>
-
-          {/* ── Right: A4 preview ── */}
-          <div className="flex-1 min-w-0 overflow-y-auto pb-6">
-            {/* Zoom controls */}
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs font-semibold text-[#002868]">
-                Live A4 Preview
-              </p>
-              <div className="flex items-center gap-1 rounded-lg border border-border overflow-hidden">
-                <button
-                  onClick={() => setZoom((z) => Math.max(40, z - 5))}
-                  className="px-2 py-1 text-xs hover:bg-muted/50"
-                  title="Zoom out"
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
+                  onClick={handleDownloadPdf}
                 >
-                  <ZoomOut className="size-3.5" />
-                </button>
-                <span className="px-2 text-xs font-mono">{zoom}%</span>
-                <button
-                  onClick={() => setZoom((z) => Math.min(120, z + 5))}
-                  className="px-2 py-1 text-xs hover:bg-muted/50"
-                  title="Zoom in"
-                >
-                  <ZoomIn className="size-3.5" />
-                </button>
+                  <Printer className="size-4" />
+                  Download PDF
+                </Button>
               </div>
+              <p className="text-[10px] text-muted-foreground text-center">
+                Opens in a new window — choose &quot;Save as PDF&quot; in the
+                print dialog.
+              </p>
             </div>
 
-            {/* Preview viewport */}
-            <div
-              style={{
-                background: "#c8c8c8",
-                borderRadius: 12,
-                padding: 24,
-                overflowX: "auto",
-              }}
-            >
+            {/* ── Right: A4 preview ── */}
+            <div className="flex-1 min-w-0 overflow-y-auto pb-6">
+              {/* Zoom controls */}
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs font-semibold text-[#002868]">
+                  Live A4 Preview
+                </p>
+                <div className="flex items-center gap-1 rounded-lg border border-border overflow-hidden">
+                  <button
+                    onClick={() => setZoom((z) => Math.max(40, z - 5))}
+                    className="px-2 py-1 text-xs hover:bg-muted/50"
+                    title="Zoom out"
+                  >
+                    <ZoomOut className="size-3.5" />
+                  </button>
+                  <span className="px-2 text-xs font-mono">{zoom}%</span>
+                  <button
+                    onClick={() => setZoom((z) => Math.min(120, z + 5))}
+                    className="px-2 py-1 text-xs hover:bg-muted/50"
+                    title="Zoom in"
+                  >
+                    <ZoomIn className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Preview viewport */}
               <div
-                className="letter-document"
                 style={{
-                  transform: `scale(${zoom / 100})`,
-                  transformOrigin: "top center",
-                  width: 794,
-                  margin: "0 auto",
-                  marginBottom:
-                    zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
+                  background: "#c8c8c8",
+                  borderRadius: 12,
+                  padding: 24,
+                  overflowX: "auto",
                 }}
               >
-                <LetterA4Preview
-                  draft={activeDraft}
-                  members={members}
-                  confInfo={confInfo}
-                />
+                <div
+                  className="letter-document"
+                  style={{
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: "top center",
+                    width: 794,
+                    margin: "0 auto",
+                    marginBottom:
+                      zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
+                  }}
+                >
+                  <LetterA4Preview
+                    draft={activeDraft}
+                    members={members}
+                    confInfo={confInfo}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>}
+        )}
       </div>
       {/* end flex flex-col viewport frame */}
 

@@ -163,40 +163,40 @@ export async function PATCH(
     }
 
     if (effectiveCanApprovePayments && effectiveIsActive) {
-      if (!effectiveScope) {
-        return NextResponse.json(
-          {
-            error:
-              "committeeScope is required when granting committee payment approval rights",
-          },
-          { status: 400 },
-        );
-      }
+      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY"];
+      const isLeadership = leadershipRoles.includes(String(effectiveRole));
 
-      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
-      if (leadershipRoles.includes(String(effectiveRole))) {
-        return NextResponse.json(
-          {
-            error:
-              "Leadership roles should use chair-level final approval instead of committee-level approval",
-          },
-          { status: 400 },
-        );
-      }
+      // Leadership roles (CHAIR, VICE_CHAIR, SECRETARY) have conference-wide approval authority
+      // They do NOT need a committeeScope — their approval is unlimited across all committees
+      if (isLeadership) {
+        // Leadership approval is conference-wide, no scope restriction needed
+        // Chair can approve all payments, and can delegate to Vice Chair or Secretary
+      } else {
+        // Non-leadership roles (COMMITTEE) require a committeeScope for approval rights
+        if (!effectiveScope) {
+          return NextResponse.json(
+            {
+              error:
+                "committeeScope is required when granting committee-level payment approval rights to non-leadership roles",
+            },
+            { status: 400 },
+          );
+        }
 
-      const existingChair = await ensureUniqueCommitteeApprover({
-        confId,
-        committeeScope: effectiveScope,
-        excludeMemberId: memberId,
-      });
+        const existingChair = await ensureUniqueCommitteeApprover({
+          confId,
+          committeeScope: effectiveScope,
+          excludeMemberId: memberId,
+        });
 
-      if (existingChair) {
-        return NextResponse.json(
-          {
-            error: `Committee scope '${effectiveScope}' already has an active chair approver (${existingChair.name})`,
-          },
-          { status: 409 },
-        );
+        if (existingChair) {
+          return NextResponse.json(
+            {
+              error: `Committee scope '${effectiveScope}' already has an active approver (${existingChair.name})`,
+            },
+            { status: 409 },
+          );
+        }
       }
     }
 

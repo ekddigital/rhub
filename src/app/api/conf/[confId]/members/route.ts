@@ -229,28 +229,39 @@ export async function POST(
 
     const grantCommitteeApproval = Boolean(canApprovePayments);
     if (grantCommitteeApproval) {
-      if (!resolvedScope) {
-        return NextResponse.json(
-          {
-            error:
-              "committeeScope is required when granting committee payment approval rights",
-          },
-          { status: 400 },
-        );
-      }
+      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY"];
+      const isLeadership = leadershipRoles.includes(resolvedRole);
 
-      const existingChair = await ensureUniqueCommitteeApprover({
-        confId,
-        committeeScope: resolvedScope,
-      });
+      // Leadership roles (CHAIR, VICE_CHAIR, SECRETARY) have conference-wide approval authority
+      // They do NOT need a committeeScope — their approval is unlimited across all committees
+      if (isLeadership) {
+        // Leadership approval is conference-wide, no scope restriction needed
+        // Chair can approve all payments, and can delegate to Vice Chair or Secretary
+      } else {
+        // Non-leadership roles (COMMITTEE) require a committeeScope for approval rights
+        if (!resolvedScope) {
+          return NextResponse.json(
+            {
+              error:
+                "committeeScope is required when granting committee-level payment approval rights to non-leadership roles",
+            },
+            { status: 400 },
+          );
+        }
 
-      if (existingChair) {
-        return NextResponse.json(
-          {
-            error: `Committee scope '${resolvedScope}' already has an active chair approver (${existingChair.name})`,
-          },
-          { status: 409 },
-        );
+        const existingChair = await ensureUniqueCommitteeApprover({
+          confId,
+          committeeScope: resolvedScope,
+        });
+
+        if (existingChair) {
+          return NextResponse.json(
+            {
+              error: `Committee scope '${resolvedScope}' already has an active approver (${existingChair.name})`,
+            },
+            { status: 409 },
+          );
+        }
       }
     }
 

@@ -1611,6 +1611,8 @@ function MemberPermissionsPanel({
   );
   const [title, setTitle] = useState(member.title ?? "");
 
+  const isLeadershipRole = ["CHAIR", "VICE_CHAIR", "SECRETARY"].includes(role);
+
   const handleSave = () => {
     const patch: Parameters<typeof onSave>[0] = {
       role,
@@ -1743,6 +1745,40 @@ function MemberPermissionsPanel({
           </label>
         )}
       </div>
+
+      {/* Permission hierarchy guidance */}
+      {isLeadershipRole && canApprove && (
+        <div className="rounded-md bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-2 text-xs text-blue-900 dark:text-blue-100">
+          <div className="flex gap-2">
+            <Crown className="size-3 flex-shrink-0 mt-0.5" />
+            <div>
+              <strong className="block">Conference-Wide Approval Authority</strong>
+              <p className="mt-1">
+                {role === "CHAIR" &&
+                  "As Chair, you have unlimited approval authority across all conferences committees and payments."}
+                {role === "VICE_CHAIR" &&
+                  "As Vice Chair, you have conference-wide approval authority and can delegate to Secretary if needed."}
+                {role === "SECRETARY" &&
+                  "As Secretary, you have conference-wide approval authority delegated from the Chair."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isLeadershipRole && canApprove && !committeeScope && (
+        <div className="rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 p-2 text-xs text-amber-900 dark:text-amber-100">
+          <div className="flex gap-2">
+            <AlertCircle className="size-3 flex-shrink-0 mt-0.5" />
+            <div>
+              <strong className="block">Committee Scope Required</strong>
+              <p className="mt-1">
+                Non-leadership roles need a committee scope (e.g., &quot;Cooking&quot;, &quot;Sports&quot;) to approve payments within that committee only.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* User account linking (super admin only) */}
       {isSuperAdmin && (
