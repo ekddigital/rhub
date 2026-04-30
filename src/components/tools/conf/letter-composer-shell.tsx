@@ -333,6 +333,94 @@ function normalizeMarkdownToReadableText(text: string): string {
     .trim();
 }
 
+function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
+  const trimmed = html.trim();
+  if (!trimmed) return [];
+
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(trimmed, "text/html");
+    const blocks: LetterBodyBlock[] = [];
+
+    const readText = (el: Element) =>
+      (el.textContent || "").replace(/\s+/g, " ").trim();
+
+    Array.from(doc.body.children).forEach((el) => {
+      const tag = el.tagName.toLowerCase();
+
+      if (/^h[1-4]$/.test(tag)) {
+        const level = Number(tag[1]) as 1 | 2 | 3 | 4;
+        const text = readText(el);
+        if (text) blocks.push({ type: "heading", level, text });
+        return;
+      }
+
+      if (tag === "p" || tag === "div") {
+        const text = readText(el);
+        if (text) blocks.push({ type: "paragraph", text });
+        return;
+      }
+
+      if (tag === "blockquote") {
+        const text = readText(el);
+        if (text) blocks.push({ type: "blockquote", text });
+        return;
+      }
+
+      if (tag === "hr") {
+        blocks.push({ type: "divider" });
+        return;
+      }
+
+      if (tag === "ul" || tag === "ol") {
+        const items = Array.from(el.querySelectorAll(":scope > li"))
+          .map((li) => readText(li))
+          .filter(Boolean);
+        if (items.length > 0) {
+          blocks.push({ type: "list", ordered: tag === "ol", items });
+        }
+        return;
+      }
+
+      if (tag === "table") {
+        const headerCells = Array.from(el.querySelectorAll("thead tr th, thead tr td"))
+          .map((cell) => readText(cell))
+          .filter(Boolean);
+        const bodyRows = Array.from(el.querySelectorAll("tbody tr"))
+          .map((row) =>
+            Array.from(row.querySelectorAll("th,td"))
+              .map((cell) => readText(cell))
+              .filter(Boolean),
+          )
+          .filter((row) => row.length > 0);
+
+        if (headerCells.length > 0 || bodyRows.length > 0) {
+          const inferredHeaders =
+            headerCells.length > 0
+              ? headerCells
+              : bodyRows.length > 0
+                ? bodyRows[0]
+                : [];
+          const inferredRows =
+            headerCells.length > 0 ? bodyRows : bodyRows.slice(1);
+          blocks.push({
+            type: "table",
+            headers: inferredHeaders,
+            rows: inferredRows,
+          });
+        }
+      }
+    });
+
+    if (blocks.length > 0) return blocks;
+  }
+
+  // Fallback for SSR or legacy drafts not carrying structured HTML.
+  const fallback = normalizeMarkdownToReadableText(richHtmlToPlainText(trimmed));
+  if (!fallback) return [];
+  return fallback.split("\n\n").map((text) => ({ type: "paragraph", text }));
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -510,6 +598,14 @@ type Signatory = {
   sigScale: number;
 };
 
+type LetterBodyBlock =
+  | { type: "heading"; level: 1 | 2 | 3 | 4; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; ordered: boolean; items: string[] }
+  | { type: "table"; headers: string[]; rows: string[][] }
+  | { type: "blockquote"; text: string }
+  | { type: "divider" };
+
 // ── Page Metrics: Geometry helpers for layout-aware pagination ─────────────
 
 /**
@@ -594,72 +690,268 @@ function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
-/**
- * Break body text into lines using page-aware metrics.
- * Respects user paragraph breaks and applies word wrapping.
- */
-function bodyToWrappedLines(body: string, metrics: PageMetrics): string[] {
-  const paragraphs = body.split("\n");
-  const wrapped: string[] = [];
+function estimateBlockLines(block: LetterBodyBlock, metrics: PageMetrics): number {
+  const paragraphLines = (text: string, bonus = 1) =>
+    Math.max(1, wrapParagraph(text, metrics).length + bonus);
 
-  for (const paragraph of paragraphs) {
-    if (!paragraph.trim()) {
-      wrapped.push("");
-      continue;
-    }
-    wrapped.push(...wrapParagraph(paragraph, metrics));
+  if (block.type === "heading") {
+    return paragraphLines(block.text, block.level <= 2 ? 2 : 1);
   }
-  return wrapped;
+  if (block.type === "paragraph") {
+    return paragraphLines(block.text, 1);
+  }
+  if (block.type === "blockquote") {
+    return paragraphLines(block.text, 2);
+  }
+  if (block.type === "divider") {
+    return 2;
+  }
+  if (block.type === "list") {
+    return (
+      block.items.reduce(
+        (sum, item, idx) =>
+          sum +
+          Math.max(1, wrapParagraph(`${block.ordered ? `${idx + 1}. ` : "• "}${item}`, metrics).length),
+        0,
+      ) + 1
+    );
+  }
+  if (block.type === "table") {
+    const rowCount = block.rows.length + (block.headers.length > 0 ? 1 : 0);
+    return Math.max(4, rowCount * 2 + 2);
+  }
+  return 2;
 }
 
-/**
- * Paginate body text across first page and continuation pages.
- * Accounts for different geometries (sidebar on first page, full width on continuations).
- * Reserves space at bottom of last page for signatures.
- */
-function paginateBodyText(
-  body: string,
+function paginateBodyBlocks(
+  blocks: LetterBodyBlock[],
   firstPageMetrics: PageMetrics,
   continuationPageMetrics: PageMetrics,
   signatoryLinesNeeded: number,
-): string[] {
-  const firstPageWrapped = bodyToWrappedLines(body, firstPageMetrics);
-  if (firstPageWrapped.length === 0) return [""];
+): LetterBodyBlock[][] {
+  if (blocks.length === 0) return [[]];
 
-  // Calculate capacity per page, accounting for signatures on last page
-  const firstPageCapacity = estimateLinesPerPage(firstPageMetrics);
-  const continuationCapacity = estimateLinesPerPage(continuationPageMetrics);
+  const firstCap = estimateLinesPerPage(firstPageMetrics);
+  const continuationCap = estimateLinesPerPage(continuationPageMetrics);
 
-  // Paginate with dynamic capacities
-  const pages: string[][] = [];
-  let cursor = 0;
+  const pages: LetterBodyBlock[][] = [[]];
   let pageIndex = 0;
+  let usedLines = 0;
 
-  while (cursor < firstPageWrapped.length) {
-    const isFirstPage = pageIndex === 0;
-    const cap = isFirstPage ? firstPageCapacity : continuationCapacity;
-    pages.push(firstPageWrapped.slice(cursor, cursor + cap));
-    cursor += cap;
-    pageIndex += 1;
+  const pageCap = () => (pageIndex === 0 ? firstCap : continuationCap);
+
+  for (const block of blocks) {
+    const blockLines = estimateBlockLines(
+      block,
+      pageIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+    );
+
+    if (usedLines + blockLines > pageCap() && pages[pageIndex].length > 0) {
+      pages.push([]);
+      pageIndex += 1;
+      usedLines = 0;
+    }
+
+    pages[pageIndex].push(block);
+    usedLines += estimateBlockLines(
+      block,
+      pageIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+    );
   }
 
-  // Adjust last page to reserve space for signatures
   if (signatoryLinesNeeded > 0 && pages.length > 0) {
     let lastIndex = pages.length - 1;
-    const isLastPageFirstPage = lastIndex === 0;
-    const lastPageCap = isLastPageFirstPage
-      ? firstPageCapacity
-      : continuationCapacity;
-    const reservedCap = Math.max(8, lastPageCap - signatoryLinesNeeded);
+    const reserveCap = Math.max(
+      8,
+      (lastIndex === 0 ? firstCap : continuationCap) - signatoryLinesNeeded,
+    );
 
-    while (pages[lastIndex].length > reservedCap) {
-      const overflow = pages[lastIndex].splice(reservedCap);
-      pages.push(overflow);
+    let used = pages[lastIndex].reduce(
+      (sum, block) =>
+        sum +
+        estimateBlockLines(
+          block,
+          lastIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+        ),
+      0,
+    );
+
+    while (used > reserveCap && pages[lastIndex].length > 1) {
+      const moved = pages[lastIndex].pop();
+      if (!moved) break;
+      if (!pages[lastIndex + 1]) pages.push([]);
+      pages[lastIndex + 1].unshift(moved);
+      used = pages[lastIndex].reduce(
+        (sum, block) =>
+          sum +
+          estimateBlockLines(
+            block,
+            lastIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+          ),
+        0,
+      );
       lastIndex = pages.length - 1;
     }
   }
 
-  return pages.map((lines) => lines.join("\n").trimEnd());
+  return pages;
+}
+
+function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
+  return blocks.map((block, idx) => {
+    const key = `${keyPrefix}-${idx}`;
+
+    if (block.type === "heading") {
+      const fontSize = block.level === 1 ? 17 : block.level === 2 ? 15 : 13;
+      return (
+        <div
+          key={key}
+          style={{
+            fontSize,
+            fontWeight: 700,
+            color: C.navy,
+            marginTop: block.level <= 2 ? 8 : 6,
+            marginBottom: 6,
+            lineHeight: 1.4,
+          }}
+        >
+          {block.text}
+        </div>
+      );
+    }
+
+    if (block.type === "paragraph") {
+      return (
+        <p
+          key={key}
+          style={{
+            fontSize: 12,
+            color: "#222",
+            lineHeight: 1.8,
+            margin: "0 0 8px",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "break-word",
+          }}
+        >
+          {block.text}
+        </p>
+      );
+    }
+
+    if (block.type === "blockquote") {
+      return (
+        <blockquote
+          key={key}
+          style={{
+            margin: "6px 0 10px",
+            padding: "2px 0 2px 10px",
+            borderLeft: `3px solid ${C.gold}`,
+            color: "#444",
+            fontStyle: "italic",
+            fontSize: 11.5,
+            lineHeight: 1.7,
+          }}
+        >
+          {block.text}
+        </blockquote>
+      );
+    }
+
+    if (block.type === "divider") {
+      return (
+        <div
+          key={key}
+          style={{ height: 1, background: `${C.gold}80`, margin: "10px 0" }}
+        />
+      );
+    }
+
+    if (block.type === "list") {
+      return (
+        <div key={key} style={{ marginBottom: 10 }}>
+          {block.items.map((item, itemIdx) => (
+            <div
+              key={`${key}-item-${itemIdx}`}
+              style={{
+                fontSize: 12,
+                color: "#222",
+                lineHeight: 1.8,
+                marginBottom: 3,
+                paddingLeft: 2,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 6,
+              }}
+            >
+              <span style={{ minWidth: 18 }}>
+                {block.ordered ? `${itemIdx + 1}.` : "•"}
+              </span>
+              <span style={{ flex: 1, whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>
+                {item}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (block.type === "table") {
+      return (
+        <div key={key} style={{ margin: "8px 0 12px", overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: 10.5,
+              color: "#222",
+            }}
+          >
+            {block.headers.length > 0 && (
+              <thead>
+                <tr>
+                  {block.headers.map((header, headerIdx) => (
+                    <th
+                      key={`${key}-head-${headerIdx}`}
+                      style={{
+                        border: `1px solid ${C.divider}55`,
+                        background: `${C.navy}10`,
+                        padding: "4px 6px",
+                        textAlign: "left",
+                        fontWeight: 700,
+                        color: C.navy,
+                      }}
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {block.rows.map((row, rowIdx) => (
+                <tr key={`${key}-row-${rowIdx}`}>
+                  {row.map((cell, cellIdx) => (
+                    <td
+                      key={`${key}-cell-${rowIdx}-${cellIdx}`}
+                      style={{
+                        border: `1px solid ${C.divider}40`,
+                        padding: "4px 6px",
+                        verticalAlign: "top",
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return null;
+  });
 }
 
 // ── A4 Letter Preview ─────────────────────────────────────────────────────────
@@ -769,19 +1061,27 @@ function LetterA4Preview({
     lineHeight: 1.8,
   };
 
-  // Paginate body text using page-aware metrics
-  const bodyForLayout = normalizeMarkdownToReadableText(
-    richHtmlToPlainText(draft.bodyRich ?? "") || draft.body || "",
-  );
+  // Paginate structured body blocks using page-aware metrics
+  const bodyBlocks = richHtmlToBodyBlocks(draft.bodyRich ?? "");
+  const fallbackBody = normalizeMarkdownToReadableText(draft.body || "");
+  const normalizedBlocks =
+    bodyBlocks.length > 0
+      ? bodyBlocks
+      : fallbackBody
+        ? fallbackBody
+            .split("\n\n")
+            .filter(Boolean)
+            .map((text) => ({ type: "paragraph", text }) as LetterBodyBlock)
+        : [];
 
-  const bodyPages = paginateBodyText(
-    bodyForLayout,
+  const blockPages = paginateBodyBlocks(
+    normalizedBlocks,
     firstPageMetrics,
     continuationPageMetrics,
     signatureReserveLines,
   );
-  const firstPageBody = bodyPages[0] ?? "";
-  const continuationBodies = bodyPages.slice(1);
+  const firstPageBlocks = blockPages[0] ?? [];
+  const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
@@ -1154,17 +1454,9 @@ function LetterA4Preview({
             />
 
             {/* Body text */}
-            <div
-              style={{
-                fontSize: 12,
-                color: "#222",
-                lineHeight: 1.8,
-                whiteSpace: "pre-wrap",
-                overflowWrap: "break-word",
-              }}
-            >
-              {firstPageBody ? (
-                firstPageBody
+            <div>
+              {firstPageBlocks.length > 0 ? (
+                renderBodyBlocks(firstPageBlocks, "first-page")
               ) : (
                 <span style={{ color: "#bbb", fontStyle: "italic" }}>
                   Your letter content will appear here as you type…
@@ -1312,7 +1604,7 @@ function LetterA4Preview({
         </div>
       </div>
 
-      {continuationBodies.map((segment, idx) => {
+      {continuationBodies.map((segmentBlocks, idx) => {
         const isLast = idx === continuationBodies.length - 1;
         return (
           <div
@@ -1357,17 +1649,7 @@ function LetterA4Preview({
                 padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
               }}
             >
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#222",
-                  lineHeight: 1.8,
-                  whiteSpace: "pre-wrap",
-                  overflowWrap: "break-word",
-                }}
-              >
-                {segment}
-              </div>
+              <div>{renderBodyBlocks(segmentBlocks, `continuation-${idx}`)}</div>
 
               {isLast && signatories.length > 0 && (
                 <div
