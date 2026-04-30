@@ -227,12 +227,32 @@ function PaymentsDocumentPreview({
   const receiptSamples = payments
     .filter((payment) => payment.proofs.length > 0)
     .slice(0, 6);
-  const sidebarMembers = members.slice(0, 8).map((member, idx) => ({
-    id: `payments-member-${idx}`,
+  const scopedCommitteeKeys = Array.from(
+    new Set(
+      payments
+        .map((payment) => payment.committeeScope?.trim() || "")
+        .filter(Boolean)
+        .map((scope) => scope.toLowerCase()),
+    ),
+  );
+  const scopedMembers =
+    scopedCommitteeKeys.length > 0
+      ? members.filter((member) =>
+          scopedCommitteeKeys.includes(
+            (member.committeeScope || "").trim().toLowerCase(),
+          ),
+        )
+      : members;
+  const sidebarSource = scopedMembers.length > 0 ? scopedMembers : members;
+  const sidebarMembers = sidebarSource.slice(0, 8).map((member, idx) => ({
+    id: member.id || `payments-member-${idx}`,
     name: member.name,
-    role: "COMMITTEE",
-    title: member.title || member.role || "Committee Member",
-    committeeScope: member.role || null,
+    role: member.role || "COMMITTEE",
+    title:
+      member.title || member.committeeScope || member.role || "Committee Member",
+    committeeScope: member.committeeScope || null,
+    city: member.city || null,
+    phone: member.phone || null,
   }));
   const normalizedConfInfo = confInfo
     ? {
@@ -481,15 +501,23 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
         if (membersRes.ok) {
           const payload = (await membersRes.json()) as Array<{
+            id: string;
             name: string;
             role?: string | null;
             title?: string | null;
+            committeeScope?: string | null;
+            city?: string | null;
+            phone?: string | null;
           }>;
           setMembers(
             payload.map((member) => ({
+              id: member.id,
               name: member.name,
               role: member.role,
               title: member.title,
+              committeeScope: member.committeeScope ?? null,
+              city: member.city ?? null,
+              phone: member.phone ?? null,
             })),
           );
         }

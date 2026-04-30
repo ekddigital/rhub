@@ -23,9 +23,13 @@ export type SignatoryDraft = {
 };
 
 export type SignatoryMember = {
+  id?: string;
   name: string;
   role?: string | null;
   title?: string | null;
+  committeeScope?: string | null;
+  city?: string | null;
+  phone?: string | null;
 };
 
 export function createDefaultSignatoryDraft(): SignatoryDraft {

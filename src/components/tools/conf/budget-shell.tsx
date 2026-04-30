@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -86,6 +86,8 @@ type MemberOption = {
   title?: string | null;
   committeeScope: string | null;
   canApprovePayments: boolean;
+  city?: string | null;
+  phone?: string | null;
 };
 
 type ConferenceEventInfo = {
@@ -237,9 +239,11 @@ function BudgetDocumentPreview({
   const sidebarMembers = members.slice(0, 8).map((member) => ({
     id: member.id,
     name: member.name,
-    role: "COMMITTEE",
-    title: member.committeeScope || "Committee Member",
+    role: member.role || "COMMITTEE",
+    title: member.title || member.committeeScope || "Committee Member",
     committeeScope: member.committeeScope,
+    city: member.city || null,
+    phone: member.phone || null,
   }));
   const normalizedConfInfo = confInfo
     ? {
@@ -538,6 +542,19 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const grandTotal = calcBudgetTotal(activeDraft.items);
   const preparedByName =
     members.find((member) => member.id === creatorMemberId)?.name ?? "";
+  const creatorCommitteeScope = useMemo(() => {
+    const selected = members.find((member) => member.id === creatorMemberId);
+    return selected?.committeeScope?.trim() || null;
+  }, [creatorMemberId, members]);
+  const documentMembers = useMemo(() => {
+    if (!members.length) return [];
+    if (!creatorCommitteeScope) return members;
+    const scopeKey = creatorCommitteeScope.toLowerCase();
+    const scoped = members.filter(
+      (member) => (member.committeeScope || "").trim().toLowerCase() === scopeKey,
+    );
+    return scoped.length > 0 ? scoped : members;
+  }, [creatorCommitteeScope, members]);
 
   const handleExportCsv = useCallback(() => {
     const header = "No.,Item,Qty,Unit,Unit Price (¥),Total (¥),Notes";
@@ -1126,7 +1143,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 draft={activeDraft}
                 grandTotal={grandTotal}
                 confInfo={confInfo}
-                members={members}
+                members={documentMembers}
                 preparedByName={preparedByName}
                 signatoryDraft={signatoryDraft}
               />
@@ -1265,7 +1282,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           draft={activeDraft}
           grandTotal={grandTotal}
           confInfo={confInfo}
-          members={members}
+          members={documentMembers}
           preparedByName={preparedByName}
           signatoryDraft={signatoryDraft}
           forPrint
