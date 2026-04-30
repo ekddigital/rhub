@@ -196,7 +196,8 @@ export async function POST(
     if (userId !== undefined && !auth.access.isSuperAdmin) {
       return NextResponse.json(
         {
-          error: "Super Admin required to link committee members to user accounts",
+          error:
+            "Super Admin required to link committee members to user accounts",
         },
         { status: 403 },
       );

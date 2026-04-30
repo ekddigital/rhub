@@ -3,6 +3,8 @@ import { FinanceSecretaryShell } from "@/components/tools/conf/finance-secretary
 import { ensureDefaultConference } from "@/lib/conf/bootstrap";
 import { getConferenceAccess } from "@/lib/conf/access";
 
+export const dynamic = "force-dynamic";
+
 export default async function FinanceSecretaryPage() {
   const conf = await ensureDefaultConference();
   const access = await getConferenceAccess(conf.id);

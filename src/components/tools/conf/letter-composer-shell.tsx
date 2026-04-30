@@ -477,6 +477,10 @@ function LetterA4Preview({
   const FOOTER_H = 32;
   const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
   const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
+  const CONTINUATION_TEXT_PADDING_TOP = 30;
+  const CONTINUATION_TEXT_PADDING_RIGHT = 84;
+  const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
+  const CONTINUATION_TEXT_PADDING_LEFT = 104;
 
   const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
   const sortedMembers = [
@@ -548,8 +552,8 @@ function LetterA4Preview({
     name: "continuation-page",
     contentWidth: PAGE_W, // Full width, no sidebar
     contentHeight: continuationBodyHeight, // ~1051px
-    paddingLeft: 26,
-    paddingRight: 32,
+    paddingLeft: CONTINUATION_TEXT_PADDING_LEFT,
+    paddingRight: CONTINUATION_TEXT_PADDING_RIGHT,
     fontSize: 12,
     lineHeight: 1.8,
   };
@@ -941,6 +945,7 @@ function LetterA4Preview({
                 color: "#222",
                 lineHeight: 1.8,
                 whiteSpace: "pre-wrap",
+                overflowWrap: "break-word",
               }}
             >
               {firstPageBody ? (
@@ -1131,13 +1136,19 @@ function LetterA4Preview({
               </div>
             </div>
 
-            <div style={{ flex: 1, padding: "26px 32px 24px" }}>
+            <div
+              style={{
+                flex: 1,
+                padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
+              }}
+            >
               <div
                 style={{
                   fontSize: 12,
                   color: "#222",
                   lineHeight: 1.8,
                   whiteSpace: "pre-wrap",
+                  overflowWrap: "break-word",
                 }}
               >
                 {segment}

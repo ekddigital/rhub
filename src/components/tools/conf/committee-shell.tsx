@@ -86,7 +86,13 @@ type RoleTemplate = {
   id: string;
   key: string;
   label: string;
-  baseRole: "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE";
+  baseRole:
+    | "CHAIR"
+    | "VICE_CHAIR"
+    | "SECRETARY"
+    | "TREASURER"
+    | "COMMITTEE"
+    | "DELEGATE";
   title: string | null;
   committeeScope: string | null;
   officeLabel: string | null;
@@ -159,7 +165,12 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [newMemberRoleKey, setNewMemberRoleKey] = useState("");
   const [roleLabelInput, setRoleLabelInput] = useState("");
   const [roleBaseInput, setRoleBaseInput] = useState<
-    "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "TREASURER" | "COMMITTEE" | "DELEGATE"
+    | "CHAIR"
+    | "VICE_CHAIR"
+    | "SECRETARY"
+    | "TREASURER"
+    | "COMMITTEE"
+    | "DELEGATE"
   >("COMMITTEE");
   const [roleTitleInput, setRoleTitleInput] = useState("");
   const [roleScopeInput, setRoleScopeInput] = useState("");
@@ -243,25 +254,30 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setMembers(data);
   }, []);
 
-  const loadRoles = useCallback(async (id: string) => {
-    setRolesLoading(true);
-    try {
-      const includeInactive = accessInfo?.isSuperAdmin ? "?includeInactive=1" : "";
-      const res = await fetch(`/api/conf/${id}/roles${includeInactive}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) {
-        throw new Error("Failed to load committee roles");
+  const loadRoles = useCallback(
+    async (id: string) => {
+      setRolesLoading(true);
+      try {
+        const includeInactive = accessInfo?.isSuperAdmin
+          ? "?includeInactive=1"
+          : "";
+        const res = await fetch(`/api/conf/${id}/roles${includeInactive}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to load committee roles");
+        }
+        const data = (await res.json()) as RoleTemplate[];
+        setRoles(data);
+        if (!newMemberRoleKey && data.length > 0) {
+          setNewMemberRoleKey(data[0].key);
+        }
+      } finally {
+        setRolesLoading(false);
       }
-      const data = (await res.json()) as RoleTemplate[];
-      setRoles(data);
-      if (!newMemberRoleKey && data.length > 0) {
-        setNewMemberRoleKey(data[0].key);
-      }
-    } finally {
-      setRolesLoading(false);
-    }
-  }, [accessInfo?.isSuperAdmin, newMemberRoleKey]);
+    },
+    [accessInfo?.isSuperAdmin, newMemberRoleKey],
+  );
 
   const loadAssignables = useCallback(
     async (id: string) => {
@@ -271,10 +287,12 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       if (delegatesRes.ok) {
         const delegates = (await delegatesRes.json()) as DelegateOption[];
         setDelegateOptions(
-          delegates.filter((d) => d.status !== "CANCELLED").sort((a, b) => {
-            if (a.feePaid !== b.feePaid) return a.feePaid ? -1 : 1;
-            return a.name.localeCompare(b.name);
-          }),
+          delegates
+            .filter((d) => d.status !== "CANCELLED")
+            .sort((a, b) => {
+              if (a.feePaid !== b.feePaid) return a.feePaid ? -1 : 1;
+              return a.name.localeCompare(b.name);
+            }),
         );
       }
 
@@ -283,7 +301,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           cache: "no-store",
         });
         if (usersRes.ok) {
-          const payload = (await usersRes.json()) as { users: UserSearchResult[] };
+          const payload = (await usersRes.json()) as {
+            users: UserSearchResult[];
+          };
           setAllUsers(
             (payload.users ?? []).sort((a, b) => a.name.localeCompare(b.name)),
           );
@@ -328,10 +348,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [members],
   );
 
-  const activeRoles = useMemo(
-    () => roles.filter((r) => r.isActive),
-    [roles],
-  );
+  const activeRoles = useMemo(() => roles.filter((r) => r.isActive), [roles]);
 
   const roleByKey = useMemo(
     () => new Map(roles.map((r) => [r.key, r])),
@@ -504,7 +521,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
       await loadRoles(confId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete role template");
+      setError(
+        e instanceof Error ? e.message : "Failed to delete role template",
+      );
     } finally {
       setRoleDeletingId(null);
     }
@@ -528,7 +547,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       const selectedTargetMember = assignTargetMemberId
         ? members.find((m) => m.id === assignTargetMemberId) || null
         : null;
-      const existingMemberByUser = members.find((m) => m.userId === selectedUser.id);
+      const existingMemberByUser = members.find(
+        (m) => m.userId === selectedUser.id,
+      );
       const existingMemberByRole = members.find(
         (m) =>
           m.role === selectedRole.baseRole &&
@@ -577,7 +598,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           error?: string;
         };
         if (!patchRes.ok) {
-          throw new Error(patchPayload.error || "Failed to update existing member");
+          throw new Error(
+            patchPayload.error || "Failed to update existing member",
+          );
         }
       } else if (!res.ok) {
         throw new Error(responsePayload.error || "Failed to assign role");
@@ -612,7 +635,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       const res = await fetch(`/api/conf/${confId}/members/${member.id}`, {
         method: "DELETE",
       });
-      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      const payload = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      };
       if (!res.ok) {
         throw new Error(payload.error || "Failed to delete member");
       }
@@ -716,7 +741,11 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       if (!res.ok) {
         const payload = await parseUploadErrorPayload(res);
         throw new Error(
-          formatUploadError(payload, "Failed to upload profile photo", res.status),
+          formatUploadError(
+            payload,
+            "Failed to upload profile photo",
+            res.status,
+          ),
         );
       }
 
@@ -942,15 +971,15 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               >
                 Close
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={resetRoleForm}
-              >
+              <Button variant="outline" size="sm" onClick={resetRoleForm}>
                 Reset Form
               </Button>
               <Button size="sm" onClick={() => void handleSaveRoleTemplate()}>
-                {roleSaving ? "Saving..." : editingRoleId ? "Update Role" : "Create Role"}
+                {roleSaving
+                  ? "Saving..."
+                  : editingRoleId
+                    ? "Update Role"
+                    : "Create Role"}
               </Button>
             </div>
 
@@ -959,9 +988,13 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 Existing Role Templates
               </p>
               {rolesLoading ? (
-                <div className="text-xs text-muted-foreground">Loading roles...</div>
+                <div className="text-xs text-muted-foreground">
+                  Loading roles...
+                </div>
               ) : roles.length === 0 ? (
-                <div className="text-xs text-muted-foreground">No role templates yet.</div>
+                <div className="text-xs text-muted-foreground">
+                  No role templates yet.
+                </div>
               ) : (
                 <div className="space-y-2">
                   {roles.map((template) => (
@@ -970,7 +1003,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       className="flex items-center justify-between rounded-md border border-border px-2 py-1.5"
                     >
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{template.label}</p>
+                        <p className="truncate text-sm font-medium">
+                          {template.label}
+                        </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {template.baseRole}
                           {template.title ? ` · ${template.title}` : ""}
@@ -993,7 +1028,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           variant="ghost"
                           className="text-red-500"
                           disabled={roleDeletingId === template.id}
-                          onClick={() => void handleDeleteRoleTemplate(template)}
+                          onClick={() =>
+                            void handleDeleteRoleTemplate(template)
+                          }
                         >
                           <Trash2 className="size-3.5" />
                         </Button>
@@ -1066,7 +1103,8 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 If the user is already in committee, this updates their role.
-                Otherwise, it creates a new committee member with the selected role.
+                Otherwise, it creates a new committee member with the selected
+                role.
               </p>
               <div className="mt-3 flex justify-end">
                 <Button
@@ -1097,7 +1135,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   onChange={(e) => {
                     const delegateId = e.target.value;
                     setSelectedDelegateId(delegateId);
-                    const selected = delegateOptions.find((d) => d.id === delegateId);
+                    const selected = delegateOptions.find(
+                      (d) => d.id === delegateId,
+                    );
                     if (!selected) return;
                     setName(selected.name);
                     setEmail(selected.email ?? "");
@@ -1111,7 +1151,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     }
                   }}
                 >
-                  <option value="">Choose a delegate to prefill member form</option>
+                  <option value="">
+                    Choose a delegate to prefill member form
+                  </option>
                   {delegateOptions.map((delegate) => (
                     <option key={delegate.id} value={delegate.id}>
                       {delegate.name}
@@ -1132,7 +1174,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     onChange={(e) => {
                       const userId = e.target.value;
                       setSelectedUserId(userId);
-                      const selected = allUsers.find((user) => user.id === userId);
+                      const selected = allUsers.find(
+                        (user) => user.id === userId,
+                      );
                       if (!selected) return;
                       if (!name.trim()) setName(selected.name);
                       if (!email.trim()) setEmail(selected.email);
@@ -1430,7 +1474,9 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       onClick={() => void handleDeleteMember(member)}
                     >
                       <Trash2 className="size-3" />
-                      {deletingMemberId === member.id ? "Deleting..." : "Delete"}
+                      {deletingMemberId === member.id
+                        ? "Deleting..."
+                        : "Delete"}
                     </Button>
                   )}
                 </div>
@@ -1752,7 +1798,9 @@ function MemberPermissionsPanel({
           <div className="flex gap-2">
             <Crown className="size-3 flex-shrink-0 mt-0.5" />
             <div>
-              <strong className="block">Conference-Wide Approval Authority</strong>
+              <strong className="block">
+                Conference-Wide Approval Authority
+              </strong>
               <p className="mt-1">
                 {role === "CHAIR" &&
                   "As Chair, you have unlimited approval authority across all conferences committees and payments."}
@@ -1773,7 +1821,9 @@ function MemberPermissionsPanel({
             <div>
               <strong className="block">Committee Scope Required</strong>
               <p className="mt-1">
-                Non-leadership roles need a committee scope (e.g., &quot;Cooking&quot;, &quot;Sports&quot;) to approve payments within that committee only.
+                Non-leadership roles need a committee scope (e.g.,
+                &quot;Cooking&quot;, &quot;Sports&quot;) to approve payments
+                within that committee only.
               </p>
             </div>
           </div>
