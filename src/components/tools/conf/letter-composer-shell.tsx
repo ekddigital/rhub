@@ -343,13 +343,25 @@ type PageMetrics = {
   lineHeight: number; // Multiplier (e.g., 1.8 = 1.8x fontSize)
 };
 
-/** Calculate character capacity based on content width and font metrics */
-function estimateMaxCharsPerLine(metrics: PageMetrics): number {
-  // Monospace estimate: ~1.9 chars per 10px of width (Helvetica Neue 12px)
-  // Adjusted for typical proportional spacing. ~2 chars per ~13px
-  const usableWidth =
-    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight;
-  return Math.max(40, Math.floor(usableWidth / 6.5));
+function getUsableTextWidth(metrics: PageMetrics): number {
+  return Math.max(
+    120,
+    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight,
+  );
+}
+
+function measureTextWidth(text: string, metrics: PageMetrics): number {
+  if (typeof document === "undefined") {
+    // SSR fallback; keeps behavior deterministic outside browser context.
+    return text.length * (metrics.fontSize * 0.52);
+  }
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return text.length * (metrics.fontSize * 0.52);
+  }
+  ctx.font = `${metrics.fontSize}px Helvetica Neue, Arial, sans-serif`;
+  return ctx.measureText(text).width;
 }
 
 /** Calculate line count capacity based on available height */
@@ -361,20 +373,36 @@ function estimateLinesPerPage(metrics: PageMetrics): number {
 /**
  * Wrap a single paragraph into lines, respecting max character width.
  */
-function wrapParagraph(paragraph: string, maxChars: number): string[] {
+function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
   const words = paragraph.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [""];
 
   const lines: string[] = [];
   let current = "";
+  const maxWidth = getUsableTextWidth(metrics);
 
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word;
-    if (candidate.length <= maxChars) {
+    if (measureTextWidth(candidate, metrics) <= maxWidth) {
       current = candidate;
     } else {
       if (current) lines.push(current);
-      current = word;
+      if (measureTextWidth(word, metrics) <= maxWidth) {
+        current = word;
+        continue;
+      }
+      // Hard-wrap very long tokens so they don't overflow.
+      let segment = "";
+      for (const ch of word) {
+        const next = segment + ch;
+        if (measureTextWidth(next, metrics) <= maxWidth) {
+          segment = next;
+        } else {
+          if (segment) lines.push(segment);
+          segment = ch;
+        }
+      }
+      current = segment;
     }
   }
 
@@ -388,7 +416,6 @@ function wrapParagraph(paragraph: string, maxChars: number): string[] {
  */
 function bodyToWrappedLines(body: string, metrics: PageMetrics): string[] {
   const paragraphs = body.split("\n");
-  const maxChars = estimateMaxCharsPerLine(metrics);
   const wrapped: string[] = [];
 
   for (const paragraph of paragraphs) {
@@ -396,7 +423,7 @@ function bodyToWrappedLines(body: string, metrics: PageMetrics): string[] {
       wrapped.push("");
       continue;
     }
-    wrapped.push(...wrapParagraph(paragraph, maxChars));
+    wrapped.push(...wrapParagraph(paragraph, metrics));
   }
   return wrapped;
 }
@@ -478,9 +505,9 @@ function LetterA4Preview({
   const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
   const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
   const CONTINUATION_TEXT_PADDING_TOP = 30;
-  const CONTINUATION_TEXT_PADDING_RIGHT = 84;
+  const CONTINUATION_TEXT_PADDING_RIGHT = 96;
   const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
-  const CONTINUATION_TEXT_PADDING_LEFT = 104;
+  const CONTINUATION_TEXT_PADDING_LEFT = 96;
 
   const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
   const sortedMembers = [
