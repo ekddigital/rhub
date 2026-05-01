@@ -1161,12 +1161,14 @@ function LetterA4Preview({
   const fundraisingAttachmentInlineBlock = (
     <div
       style={{
-        marginTop: 12,
+        marginTop: 14,
         border: `1px solid ${C.gold}`,
         borderLeft: `4px solid ${C.navy}`,
         borderRadius: 6,
         background: "#fffdf7",
-        padding: "10px 12px",
+        padding: "12px 14px",
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
@@ -1175,28 +1177,6 @@ function LetterA4Preview({
       <div style={{ fontSize: 10.5, color: "#1f2937", marginTop: 4 }}>
         Attached is the payment medium guide. Kindly make payment through the
         approved channels on the flyer: Mobile Money, UBA, WeChat, and Alipay.
-      </div>
-      <div
-        style={{
-          marginTop: 8,
-          border: "1px solid #d9d9d9",
-          borderRadius: 6,
-          background: "#fff",
-          padding: 6,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/conf/funraising.png"
-          alt="Fundraising flyer attachment preview"
-          style={{
-            width: "100%",
-            maxHeight: 170,
-            objectFit: "contain",
-          }}
-        />
       </div>
     </div>
   );
