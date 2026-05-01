@@ -114,6 +114,20 @@ type LetterDraft = {
   signatory3Label: string;
   signatory3Sig: string;
   signatory3SigScale: number;
+  fundraisingEnabled: boolean;
+  fundraisingInviteRole: string;
+  fundraisingInviteRoleOther: string;
+  fundraisingRecipientName: string;
+  fundraisingRecipientAddress: string;
+  fundraisingTargetAmount: string;
+  fundraisingUseOfFunds: string;
+  fundraisingPaymentDeadline: string;
+  fundraisingEventDate: string;
+  fundraisingEventTime: string;
+  fundraisingMeetingMedium: string;
+  fundraisingMeetingLink: string;
+  fundraisingMeetingId: string;
+  fundraisingMeetingPassword: string;
   savedAt: string;
 };
 
@@ -157,6 +171,14 @@ type RoleTemplate = {
 // ── localStorage helpers ─────────────────────────────────────────────────────
 
 const LS_KEY = "conf_letter_drafts";
+const DEFAULT_FUNDRAISING_PAYMENT_DEADLINE = "June 6, 2026";
+const DEFAULT_FUNDRAISING_EVENT_DATE = "May 29, 2026";
+const DEFAULT_FUNDRAISING_EVENT_TIME = "21:00 China Time";
+const DEFAULT_FUNDRAISING_MEETING_MEDIUM = "Zoom";
+const DEFAULT_FUNDRAISING_MEETING_LINK =
+  "https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09";
+const DEFAULT_FUNDRAISING_MEETING_ID = "2312312006";
+const DEFAULT_FUNDRAISING_MEETING_PASSWORD = "LSUIC2006";
 
 function escapeHtml(value: string): string {
   return value
@@ -475,6 +497,26 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatory3Label: d.signatory3Label ?? "Attested",
     signatory3Sig: d.signatory3Sig ?? "",
     signatory3SigScale: d.signatory3SigScale ?? 1,
+    fundraisingEnabled: d.fundraisingEnabled ?? false,
+    fundraisingInviteRole: d.fundraisingInviteRole ?? "Sponsor",
+    fundraisingInviteRoleOther: d.fundraisingInviteRoleOther ?? "",
+    fundraisingRecipientName: d.fundraisingRecipientName ?? "",
+    fundraisingRecipientAddress: d.fundraisingRecipientAddress ?? "",
+    fundraisingTargetAmount: d.fundraisingTargetAmount ?? "",
+    fundraisingUseOfFunds: d.fundraisingUseOfFunds ?? "",
+    fundraisingPaymentDeadline:
+      d.fundraisingPaymentDeadline ?? DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
+    fundraisingEventDate:
+      d.fundraisingEventDate ?? DEFAULT_FUNDRAISING_EVENT_DATE,
+    fundraisingEventTime:
+      d.fundraisingEventTime ?? DEFAULT_FUNDRAISING_EVENT_TIME,
+    fundraisingMeetingMedium:
+      d.fundraisingMeetingMedium ?? DEFAULT_FUNDRAISING_MEETING_MEDIUM,
+    fundraisingMeetingLink:
+      d.fundraisingMeetingLink ?? DEFAULT_FUNDRAISING_MEETING_LINK,
+    fundraisingMeetingId: d.fundraisingMeetingId ?? DEFAULT_FUNDRAISING_MEETING_ID,
+    fundraisingMeetingPassword:
+      d.fundraisingMeetingPassword ?? DEFAULT_FUNDRAISING_MEETING_PASSWORD,
     savedAt: d.savedAt ?? "",
   };
 }
@@ -536,6 +578,20 @@ function newDraft(): LetterDraft {
     signatory3Label: "Attested",
     signatory3Sig: "",
     signatory3SigScale: 1,
+    fundraisingEnabled: false,
+    fundraisingInviteRole: "Sponsor",
+    fundraisingInviteRoleOther: "",
+    fundraisingRecipientName: "",
+    fundraisingRecipientAddress: "",
+    fundraisingTargetAmount: "",
+    fundraisingUseOfFunds: "",
+    fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
+    fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
+    fundraisingEventTime: DEFAULT_FUNDRAISING_EVENT_TIME,
+    fundraisingMeetingMedium: DEFAULT_FUNDRAISING_MEETING_MEDIUM,
+    fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
+    fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
+    fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
     savedAt: "",
   };
 }
@@ -1083,6 +1139,13 @@ function LetterA4Preview({
   const firstPageBlocks = blockPages[0] ?? [];
   const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
+  const showFundraisingFlyer = Boolean(draft.fundraisingEnabled);
+  const effectiveInviteRole =
+    draft.fundraisingInviteRole === "Other"
+      ? draft.fundraisingInviteRoleOther || "Fundraising Invitee"
+      : draft.fundraisingInviteRole || "Fundraising Invitee";
+  const totalPages =
+    1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
 
@@ -1448,6 +1511,87 @@ function LetterA4Preview({
               )}
             </div>
 
+            {showFundraisingFlyer && (
+              <div
+                style={{
+                  marginTop: 8,
+                  marginBottom: 8,
+                  border: `1px solid ${C.gold}`,
+                  borderLeft: `4px solid ${C.red}`,
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                  background: "#fffdf7",
+                  fontSize: 10.5,
+                  lineHeight: 1.55,
+                  color: "#233",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
+                  Fundraising Invitation Details
+                </div>
+                <div>
+                  <strong>Invite Category:</strong> {effectiveInviteRole}
+                </div>
+                {draft.fundraisingRecipientName.trim() && (
+                  <div>
+                    <strong>Recipient:</strong> {draft.fundraisingRecipientName}
+                  </div>
+                )}
+                {draft.fundraisingRecipientAddress.trim() && (
+                  <div>
+                    <strong>Address:</strong>{" "}
+                    <span style={{ whiteSpace: "pre-line" }}>
+                      {draft.fundraisingRecipientAddress}
+                    </span>
+                  </div>
+                )}
+                {draft.fundraisingTargetAmount.trim() && (
+                  <div>
+                    <strong>Fundraising Target:</strong>{" "}
+                    {draft.fundraisingTargetAmount}
+                  </div>
+                )}
+                {draft.fundraisingUseOfFunds.trim() && (
+                  <div>
+                    <strong>Use of Funds:</strong>{" "}
+                    <span style={{ whiteSpace: "pre-line" }}>
+                      {draft.fundraisingUseOfFunds}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <strong>Fundraising Date:</strong>{" "}
+                  {draft.fundraisingEventDate || DEFAULT_FUNDRAISING_EVENT_DATE} (
+                  {draft.fundraisingEventTime || DEFAULT_FUNDRAISING_EVENT_TIME})
+                </div>
+                <div>
+                  <strong>Payment Deadline:</strong>{" "}
+                  {draft.fundraisingPaymentDeadline ||
+                    DEFAULT_FUNDRAISING_PAYMENT_DEADLINE}
+                </div>
+                <div>
+                  <strong>Meeting Medium:</strong>{" "}
+                  {draft.fundraisingMeetingMedium ||
+                    DEFAULT_FUNDRAISING_MEETING_MEDIUM}
+                </div>
+                {draft.fundraisingMeetingLink.trim() && (
+                  <div>
+                    <strong>Meeting Link:</strong> {draft.fundraisingMeetingLink}
+                  </div>
+                )}
+                {(draft.fundraisingMeetingId.trim() ||
+                  draft.fundraisingMeetingPassword.trim()) && (
+                  <div>
+                    <strong>Meeting ID / Password:</strong>{" "}
+                    {draft.fundraisingMeetingId || DEFAULT_FUNDRAISING_MEETING_ID}
+                    {" / "}
+                    {draft.fundraisingMeetingPassword ||
+                      DEFAULT_FUNDRAISING_MEETING_PASSWORD}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Gold divider */}
             <div
               style={{ height: 1.5, background: C.gold, margin: "12px 0" }}
@@ -1598,7 +1742,7 @@ function LetterA4Preview({
                 textAlign: "right",
               }}
             >
-              Page 1 of {1 + continuationBodies.length}
+              Page 1 of {totalPages}
             </div>
           </div>
         </div>
@@ -1780,13 +1924,119 @@ function LetterA4Preview({
                     textAlign: "right",
                   }}
                 >
-                  Page {idx + 2} of {1 + continuationBodies.length}
+                  Page {idx + 2} of {totalPages}
                 </div>
               </div>
             </div>
           </div>
         );
       })}
+      {showFundraisingFlyer && (
+        <div
+          className="letter-page continuation-page"
+          style={{
+            width: PAGE_W,
+            minHeight: PAGE_H,
+            background: C.white,
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+            fontFamily: "'Helvetica Neue', Arial, sans-serif",
+            marginTop: 18,
+          }}
+        >
+          <div style={{ display: "flex", height: 8, flexShrink: 0 }}>
+            {FLAG_STRIPES_11.map((color, i) => (
+              <div key={i} style={{ flex: 1, background: color }} />
+            ))}
+          </div>
+          <div
+            style={{
+              padding: "10px 22px",
+              borderBottom: `2px solid ${C.gold}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
+              Fundraising Flyer (Payment Methods Included)
+            </div>
+            <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+              {officeLabel}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              padding: "18px 18px 14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/funraising.png"
+              alt="LSUIC fundraising campaign flyer"
+              style={{
+                width: "100%",
+                maxHeight: PAGE_H - 170,
+                objectFit: "contain",
+                border: "1px solid #d9d9d9",
+                borderRadius: 8,
+                background: "#fff",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              height: FOOTER_H,
+              background: C.navy,
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <div style={{ height: 2, background: C.red, width: "100%" }} />
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 14px",
+              }}
+            >
+              <div style={{ width: 48 }} />
+              <div
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: C.gold,
+                  letterSpacing: "0.5px",
+                  textAlign: "center",
+                }}
+              >
+                Fundraising Campaign Payment Channels: Mobile Money & UBA, WeChat & Alipay
+              </div>
+              <div
+                style={{
+                  fontSize: 8,
+                  color: C.gold,
+                  opacity: 0.75,
+                  fontVariantNumeric: "tabular-nums",
+                  width: 48,
+                  textAlign: "right",
+                }}
+              >
+                Page {totalPages} of {totalPages}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -2800,6 +3050,200 @@ export function LetterComposerShell() {
                       onChange={(e) => set("re")(e.target.value)}
                     />
                   </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">
+                    Fundraising Attachment & Invite Context
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Enable this to append the fundraising flyer as the last page.
+                    Add invite context for sponsors, keynote speakers, patrons, or
+                    donors.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <label className="flex items-center gap-2 text-xs font-medium text-[#002868]">
+                    <input
+                      type="checkbox"
+                      checked={activeDraft.fundraisingEnabled}
+                      onChange={(e) =>
+                        setActiveDraft((d) => ({
+                          ...d,
+                          fundraisingEnabled: e.target.checked,
+                        }))
+                      }
+                    />
+                    Enable fundraising mode and add flyer (`/conf/funraising.png`)
+                  </label>
+
+                  {activeDraft.fundraisingEnabled && (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Invitation Category</Label>
+                        <select
+                          className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                          value={activeDraft.fundraisingInviteRole}
+                          onChange={(e) =>
+                            set("fundraisingInviteRole")(e.target.value)
+                          }
+                        >
+                          {[
+                            "Sponsor",
+                            "Keynote Speaker",
+                            "Patron",
+                            "Donor",
+                            "Partner Organization",
+                            "Well-wisher",
+                            "Other",
+                          ].map((role) => (
+                            <option key={role} value={role}>
+                              {role}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {activeDraft.fundraisingInviteRole === "Other" && (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">
+                            Custom Invitation Category
+                          </Label>
+                          <Input
+                            className="h-8 text-sm"
+                            placeholder="e.g. Strategic Development Partner"
+                            value={activeDraft.fundraisingInviteRoleOther}
+                            onChange={(e) =>
+                              set("fundraisingInviteRoleOther")(e.target.value)
+                            }
+                          />
+                        </div>
+                      )}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Recipient Name (optional)</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          placeholder="e.g. Ms. Jane Doe"
+                          value={activeDraft.fundraisingRecipientName}
+                          onChange={(e) =>
+                            set("fundraisingRecipientName")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">
+                          Recipient Address (optional)
+                        </Label>
+                        <Textarea
+                          className="text-sm resize-none"
+                          rows={2}
+                          placeholder="Organization / mailing address"
+                          value={activeDraft.fundraisingRecipientAddress}
+                          onChange={(e) =>
+                            set("fundraisingRecipientAddress")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Target Fundraising Amount</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          placeholder="e.g. RMB 120,000"
+                          value={activeDraft.fundraisingTargetAmount}
+                          onChange={(e) =>
+                            set("fundraisingTargetAmount")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Intended Use of Funds</Label>
+                        <Textarea
+                          className="text-sm resize-none"
+                          rows={3}
+                          placeholder="State what the fundraising amount will cover."
+                          value={activeDraft.fundraisingUseOfFunds}
+                          onChange={(e) =>
+                            set("fundraisingUseOfFunds")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Fundraising Date</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingEventDate}
+                            onChange={(e) =>
+                              set("fundraisingEventDate")(e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Fundraising Time</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingEventTime}
+                            onChange={(e) =>
+                              set("fundraisingEventTime")(e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Payment Deadline</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={activeDraft.fundraisingPaymentDeadline}
+                          onChange={(e) =>
+                            set("fundraisingPaymentDeadline")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Meeting Medium</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={activeDraft.fundraisingMeetingMedium}
+                          onChange={(e) =>
+                            set("fundraisingMeetingMedium")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Meeting Link</Label>
+                        <Input
+                          className="h-8 text-sm"
+                          value={activeDraft.fundraisingMeetingLink}
+                          onChange={(e) =>
+                            set("fundraisingMeetingLink")(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Meeting ID</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingMeetingId}
+                            onChange={(e) =>
+                              set("fundraisingMeetingId")(e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Meeting Password</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingMeetingPassword}
+                            onChange={(e) =>
+                              set("fundraisingMeetingPassword")(e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
