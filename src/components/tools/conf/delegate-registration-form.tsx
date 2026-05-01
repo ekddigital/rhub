@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +61,28 @@ export type DelegateRegistrationPayload = {
   bookletPhoto: File | null;
   conferencePosition: string;
 };
+
+export type DelegatePhotoField =
+  | "passportPhoto"
+  | "lastEntryStampPhoto"
+  | "currentVisaPhoto"
+  | "bookletPhoto";
+
+export type UploadFeedback = {
+  status: "idle" | "uploading" | "done" | "error";
+  progress: number;
+  message?: string;
+};
+
+export type UploadedPhotoMeta = {
+  fileName: string;
+  filePath: string;
+};
+
+export type DelegateRegistrationSnapshot = Omit<
+  DelegateRegistrationPayload,
+  "passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto"
+>;
 
 /** Pre-populated field values for edit mode (files are not pre-populated). */
 export type InitialFormValues = Partial<
@@ -160,23 +183,13 @@ type Props = {
    * or a stable string like "new" for new registrations.
    */
   draftKey?: string;
+  onSnapshotChange?: (snapshot: DelegateRegistrationSnapshot) => void;
+  uploadedPhotoMeta?: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>;
   photoFieldErrors?: Partial<Record<DelegatePhotoField, string>>;
   photoUploadFeedback?: Partial<Record<DelegatePhotoField, UploadFeedback>>;
   onPhotoFileChange?: (field: DelegatePhotoField, file: File | null) => void;
   onCancel?: () => void;
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
-};
-
-export type DelegatePhotoField =
-  | "passportPhoto"
-  | "lastEntryStampPhoto"
-  | "currentVisaPhoto"
-  | "bookletPhoto";
-
-export type UploadFeedback = {
-  status: "idle" | "uploading" | "done" | "error";
-  progress: number;
-  message?: string;
 };
 
 type FeeOption = {
@@ -217,6 +230,8 @@ export function DelegateRegistrationForm({
   initialValues,
   isManagerMode = true,
   draftKey,
+  onSnapshotChange,
+  uploadedPhotoMeta,
   photoFieldErrors,
   photoUploadFeedback,
   onPhotoFileChange,
@@ -341,8 +356,99 @@ export function DelegateRegistrationForm({
   const [draftRestored, setDraftRestored] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const registrationSnapshot = useMemo<DelegateRegistrationSnapshot>(
+    () => ({
+      name,
+      province,
+      passportNo,
+      university,
+      city,
+      phone,
+      wechat,
+      email,
+      gender,
+      attendanceIntent,
+      travelAssistanceNeeded,
+      schoolCommunicationNeeded,
+      schoolCommunicationDetails: schoolCommunicationDetails.trim(),
+      studyYear,
+      bringingForeignGuest,
+      guestNationality: guestNationality.trim(),
+      accommodationNeeded,
+      dietaryNeeds,
+      dietaryDetails: dietaryDetails.trim(),
+      additionalComments: additionalComments.trim(),
+      feePaid,
+      feeAmount: Number(feeAmount) || 0,
+      feePackageId: selectedFeePackage,
+      addOnPackageIds: selectedAddOnPackageIds,
+      amountPaid: amountPaid.trim() ? Number(amountPaid) : 0,
+      roomPref,
+      partnerClaimNote,
+      conferencePosition: conferencePosition.trim(),
+    }),
+    [
+      name,
+      province,
+      passportNo,
+      university,
+      city,
+      phone,
+      wechat,
+      email,
+      gender,
+      attendanceIntent,
+      travelAssistanceNeeded,
+      schoolCommunicationNeeded,
+      schoolCommunicationDetails,
+      studyYear,
+      bringingForeignGuest,
+      guestNationality,
+      accommodationNeeded,
+      dietaryNeeds,
+      dietaryDetails,
+      additionalComments,
+      feePaid,
+      feeAmount,
+      selectedFeePackage,
+      selectedAddOnPackageIds,
+      amountPaid,
+      roomPref,
+      partnerClaimNote,
+      conferencePosition,
+    ],
+  );
+
   const resolvePhotoError = (field: DelegatePhotoField) =>
     fieldErrors[field] || photoFieldErrors?.[field] || "";
+
+  const renderUploadedPreview = (field: DelegatePhotoField) => {
+    const meta = uploadedPhotoMeta?.[field];
+    if (!meta) return null;
+    const lower = meta.filePath.toLowerCase();
+    const isPdf = lower.endsWith(".pdf");
+
+    if (isPdf) {
+      return (
+        <p className="text-xs text-muted-foreground">
+          Uploaded: {meta.fileName} (PDF)
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-1.5">
+        <Image
+          src={meta.filePath}
+          alt={meta.fileName}
+          width={64}
+          height={64}
+          className="h-16 w-16 rounded border border-border object-cover"
+        />
+        <p className="text-xs text-muted-foreground">Uploaded: {meta.fileName}</p>
+      </div>
+    );
+  };
 
   const renderUploadFeedback = (field: DelegatePhotoField) => {
     const feedback = photoUploadFeedback?.[field];
@@ -640,6 +746,10 @@ export function DelegateRegistrationForm({
     conferencePositionSelect,
     customConferenceRoles,
   ]);
+
+  useEffect(() => {
+    onSnapshotChange?.(registrationSnapshot);
+  }, [onSnapshotChange, registrationSnapshot]);
 
   const resetForm = () => {
     setName(initialValues?.name ?? "");
@@ -1616,6 +1726,7 @@ export function DelegateRegistrationForm({
               {passportPhoto.name}
             </p>
           )}
+          {!passportPhoto && renderUploadedPreview("passportPhoto")}
         </div>
 
         <div className="space-y-2">
@@ -1647,6 +1758,7 @@ export function DelegateRegistrationForm({
               {lastEntryStampPhoto.name}
             </p>
           )}
+          {!lastEntryStampPhoto && renderUploadedPreview("lastEntryStampPhoto")}
         </div>
 
         <div className="space-y-2">
@@ -1676,6 +1788,7 @@ export function DelegateRegistrationForm({
               {currentVisaPhoto.name}
             </p>
           )}
+          {!currentVisaPhoto && renderUploadedPreview("currentVisaPhoto")}
         </div>
 
         <div className="space-y-2">
@@ -1701,6 +1814,7 @@ export function DelegateRegistrationForm({
           {bookletPhoto && (
             <p className="text-xs text-muted-foreground">{bookletPhoto.name}</p>
           )}
+          {!bookletPhoto && renderUploadedPreview("bookletPhoto")}
         </div>
       </div>
 

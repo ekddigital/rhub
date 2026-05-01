@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -24,8 +24,10 @@ import { Button } from "@/components/ui/button";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   DelegateRegistrationForm,
+  type DelegateRegistrationSnapshot,
   type DelegatePhotoField,
   type DelegateRegistrationPayload,
+  type UploadedPhotoMeta,
   type UploadFeedback,
 } from "@/components/tools/conf/delegate-registration-form";
 import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
@@ -45,6 +47,13 @@ type SuccessState = {
 type DelegatePhotoSample = {
   id: string;
   imageUrl: string;
+};
+
+type UploadDraftState = {
+  confId: string;
+  delegateId: string;
+  passportNo: string;
+  uploadedPhotoMeta: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>;
 };
 
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
@@ -90,6 +99,8 @@ const FEATURED_VIDEOS = [
   },
 ] as const;
 
+const UPLOAD_DRAFT_STORAGE_KEY = "conf-public-register-upload-draft";
+
 export function DelegatePublicRegister() {
   const [confId, setConfId] = useState("");
   const [confYear, setConfYear] = useState(new Date().getFullYear());
@@ -99,6 +110,12 @@ export function DelegatePublicRegister() {
   const [samplePhotos, setSamplePhotos] = useState<DelegatePhotoSample[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [latestSnapshot, setLatestSnapshot] =
+    useState<DelegateRegistrationSnapshot | null>(null);
+  const [draftDelegateId, setDraftDelegateId] = useState<string | null>(null);
+  const [uploadedPhotoMeta, setUploadedPhotoMeta] = useState<
+    Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>
+  >({});
   const [photoFieldErrors, setPhotoFieldErrors] = useState<
     Partial<Record<DelegatePhotoField, string>>
   >({});
@@ -114,15 +131,257 @@ export function DelegatePublicRegister() {
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
 
-  const FILE_KIND_META: Record<
-    DelegatePhotoField,
-    { kind: "passport" | "booklet" | "entry-stamp" | "visa"; label: string }
-  > = {
-    passportPhoto: { kind: "passport", label: "Passport Photo Page" },
-    lastEntryStampPhoto: { kind: "entry-stamp", label: "Last Entry Stamp Page" },
-    currentVisaPhoto: { kind: "visa", label: "Current Visa Page" },
-    bookletPhoto: { kind: "booklet", label: "Conference Booklet Photo" },
-  };
+  const clearUploadDraftState = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.removeItem(UPLOAD_DRAFT_STORAGE_KEY);
+    } catch {
+      // ignore browser storage issues
+    }
+  }, []);
+
+  const FILE_KIND_META = useMemo<
+    Record<
+      DelegatePhotoField,
+      { kind: "passport" | "booklet" | "entry-stamp" | "visa"; label: string }
+    >
+  >(
+    () => ({
+      passportPhoto: { kind: "passport", label: "Passport Photo Page" },
+      lastEntryStampPhoto: {
+        kind: "entry-stamp",
+        label: "Last Entry Stamp Page",
+      },
+      currentVisaPhoto: { kind: "visa", label: "Current Visa Page" },
+      bookletPhoto: { kind: "booklet", label: "Conference Booklet Photo" },
+    }),
+    [],
+  );
+
+  const persistUploadDraftState = useCallback(
+    (
+      delegateId: string,
+      passportNo: string,
+      nextUploadedMeta: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>,
+    ) => {
+      if (typeof window === "undefined" || !confId) return;
+      const payload: UploadDraftState = {
+        confId,
+        delegateId,
+        passportNo,
+        uploadedPhotoMeta: nextUploadedMeta,
+      };
+      try {
+        localStorage.setItem(UPLOAD_DRAFT_STORAGE_KEY, JSON.stringify(payload));
+      } catch {
+        // ignore browser storage issues
+      }
+    },
+    [confId],
+  );
+
+  const buildRegistrationBody = useCallback(
+    (snapshot: DelegateRegistrationSnapshot) => ({
+      name: snapshot.name,
+      province: snapshot.province,
+      passportNo: snapshot.passportNo,
+      university: snapshot.university,
+      city: snapshot.city,
+      phone: snapshot.phone,
+      wechat: snapshot.wechat,
+      email: snapshot.email,
+      gender: snapshot.gender,
+      attendanceIntent: snapshot.attendanceIntent,
+      travelAssistanceNeeded: snapshot.travelAssistanceNeeded,
+      schoolCommunicationNeeded: snapshot.schoolCommunicationNeeded,
+      schoolCommunicationDetails: snapshot.schoolCommunicationDetails,
+      studyYear: snapshot.studyYear,
+      bringingForeignGuest: snapshot.bringingForeignGuest,
+      guestNationality: snapshot.guestNationality,
+      accommodationNeeded: snapshot.accommodationNeeded,
+      dietaryNeeds: snapshot.dietaryNeeds,
+      dietaryDetails: snapshot.dietaryDetails,
+      additionalComments: snapshot.additionalComments,
+      feePackageId: snapshot.feePackageId,
+      addOnPackageIds: snapshot.addOnPackageIds,
+      feeAmount: snapshot.feeAmount,
+      amountPaid: snapshot.amountPaid,
+      feePaid: snapshot.feePaid,
+      roomPref: snapshot.roomPref,
+      wantsSingleRoom: snapshot.roomPref === "SINGLE",
+      partnerClaimNote: snapshot.partnerClaimNote,
+      conferencePosition: snapshot.conferencePosition || null,
+    }),
+    [],
+  );
+
+  const validateSnapshotForAutoUpload = useCallback(
+    (snapshot: DelegateRegistrationSnapshot | null): string | null => {
+      if (!snapshot) return "Please complete registration details before uploading.";
+      if (!snapshot.name.trim()) return "Full name is required before uploading files.";
+      if (!snapshot.passportNo.trim()) {
+        return "Passport number is required before uploading files.";
+      }
+      if (!snapshot.university.trim()) {
+        return "University is required before uploading files.";
+      }
+      if (!snapshot.province.trim()) return "Province is required before uploading files.";
+      if (!snapshot.city.trim()) return "City is required before uploading files.";
+      if (!snapshot.phone.trim()) return "Phone number is required before uploading files.";
+      if (!snapshot.wechat.trim()) return "WeChat ID is required before uploading files.";
+      if (!snapshot.email.trim()) return "Email is required before uploading files.";
+      if (!snapshot.feePackageId.trim()) {
+        return "Please select a conference package before uploading files.";
+      }
+      return null;
+    },
+    [],
+  );
+
+  const ensureDraftDelegate = useCallback(
+    async (snapshot: DelegateRegistrationSnapshot): Promise<string> => {
+      if (draftDelegateId) return draftDelegateId;
+
+      const createRes = await fetch(`/api/conf/${confId}/delegates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildRegistrationBody(snapshot)),
+      });
+      const createdPayload = (await createRes.json().catch(() => ({}))) as {
+        id?: string;
+        error?: string;
+      };
+      if (!createRes.ok || !createdPayload.id) {
+        throw new Error(createdPayload.error || "Failed to prepare draft for upload");
+      }
+      const nextId = createdPayload.id;
+      setDraftDelegateId(nextId);
+      persistUploadDraftState(nextId, snapshot.passportNo, uploadedPhotoMeta);
+      return nextId;
+    },
+    [
+      buildRegistrationBody,
+      confId,
+      draftDelegateId,
+      persistUploadDraftState,
+      uploadedPhotoMeta,
+    ],
+  );
+
+  const uploadFieldFile = useCallback(
+    async (
+      delegateId: string,
+      field: DelegatePhotoField,
+      file: File,
+      snapshot: DelegateRegistrationSnapshot,
+      onFlyerReady?: (ready: boolean) => void,
+    ) => {
+      const meta = FILE_KIND_META[field];
+      const validation = validateDelegateUploadFile(file, meta.kind);
+      if (!validation.ok) {
+        const message = `${meta.label}: ${validation.error}`;
+        setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+        setPhotoUploadFeedback((prev) => ({
+          ...prev,
+          [field]: { status: "error", progress: 0, message },
+        }));
+        throw new Error(message);
+      }
+
+      setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
+      setPhotoUploadFeedback((prev) => ({
+        ...prev,
+        [field]: { status: "uploading", progress: 0, message: `Uploading ${meta.label}...` },
+      }));
+
+      await new Promise<void>((resolve, reject) => {
+        const fd = new FormData();
+        fd.append("kind", meta.kind);
+        fd.append("file", file);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", `/api/conf/${confId}/delegates/${delegateId}/documents`);
+        xhr.upload.onprogress = (event) => {
+          if (!event.lengthComputable) return;
+          const progress = Math.round((event.loaded / event.total) * 100);
+          setPhotoUploadFeedback((prev) => ({
+            ...prev,
+            [field]: {
+              status: "uploading",
+              progress,
+              message: `Uploading ${meta.label}...`,
+            },
+          }));
+        };
+        xhr.onerror = () => {
+          const message = `${meta.label}: Upload failed due to a network error.`;
+          setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+          setPhotoUploadFeedback((prev) => ({
+            ...prev,
+            [field]: { status: "error", progress: 0, message },
+          }));
+          reject(new Error(message));
+        };
+        xhr.onload = async () => {
+          const status = xhr.status || 0;
+          const raw = xhr.responseText || "";
+          if (status < 200 || status >= 300) {
+            const payloadForError = await parseUploadErrorPayload(
+              new Response(raw, { status }),
+            );
+            const detail = formatUploadError(
+              payloadForError,
+              `Failed to upload ${meta.label}`,
+              status,
+            );
+            const message = `${meta.label}: ${detail}`;
+            setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+            setPhotoUploadFeedback((prev) => ({
+              ...prev,
+              [field]: { status: "error", progress: 0, message },
+            }));
+            reject(new Error(message));
+            return;
+          }
+          let payload: { flyerReady?: boolean; filePath?: string } = {};
+          try {
+            payload = raw
+              ? (JSON.parse(raw) as { flyerReady?: boolean; filePath?: string })
+              : {};
+          } catch {
+            payload = {};
+          }
+          const filePath = payload.filePath || "";
+          if (filePath) {
+            setUploadedPhotoMeta((prev) => {
+              const next = {
+                ...prev,
+                [field]: {
+                  fileName: file.name,
+                  filePath,
+                },
+              };
+              persistUploadDraftState(delegateId, snapshot.passportNo, next);
+              return next;
+            });
+          }
+          if (typeof payload.flyerReady === "boolean") {
+            onFlyerReady?.(payload.flyerReady);
+          }
+          setPhotoUploadFeedback((prev) => ({
+            ...prev,
+            [field]: {
+              status: "done",
+              progress: 100,
+              message: `${meta.label} uploaded successfully.`,
+            },
+          }));
+          resolve();
+        };
+        xhr.send(fd);
+      });
+    },
+    [FILE_KIND_META, confId, persistUploadDraftState],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -159,6 +418,20 @@ export function DelegatePublicRegister() {
     void init();
   }, []);
 
+  useEffect(() => {
+    if (!confId || typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(UPLOAD_DRAFT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as UploadDraftState;
+      if (parsed.confId !== confId) return;
+      setDraftDelegateId(parsed.delegateId || null);
+      setUploadedPhotoMeta(parsed.uploadedPhotoMeta || {});
+    } catch {
+      // ignore invalid local cache
+    }
+  }, [confId]);
+
   const handleSubmit = async (
     payload: DelegateRegistrationPayload,
   ): Promise<boolean> => {
@@ -175,37 +448,7 @@ export function DelegatePublicRegister() {
       const createRes = await fetch(`/api/conf/${confId}/delegates`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: payload.name,
-          province: payload.province,
-          passportNo: payload.passportNo,
-          university: payload.university,
-          city: payload.city,
-          phone: payload.phone,
-          wechat: payload.wechat,
-          email: payload.email,
-          gender: payload.gender,
-          attendanceIntent: payload.attendanceIntent,
-          travelAssistanceNeeded: payload.travelAssistanceNeeded,
-          schoolCommunicationNeeded: payload.schoolCommunicationNeeded,
-          schoolCommunicationDetails: payload.schoolCommunicationDetails,
-          studyYear: payload.studyYear,
-          bringingForeignGuest: payload.bringingForeignGuest,
-          guestNationality: payload.guestNationality,
-          accommodationNeeded: payload.accommodationNeeded,
-          dietaryNeeds: payload.dietaryNeeds,
-          dietaryDetails: payload.dietaryDetails,
-          additionalComments: payload.additionalComments,
-          feePackageId: payload.feePackageId,
-          addOnPackageIds: payload.addOnPackageIds,
-          feeAmount: payload.feeAmount,
-          amountPaid: payload.amountPaid,
-          feePaid: payload.feePaid,
-          roomPref: payload.roomPref,
-          wantsSingleRoom: payload.roomPref === "SINGLE",
-          partnerClaimNote: payload.partnerClaimNote,
-          conferencePosition: payload.conferencePosition || null,
-        }),
+        body: JSON.stringify(buildRegistrationBody(payload)),
       });
 
       const createdPayload = await createRes.json().catch(() => ({}));
@@ -216,121 +459,54 @@ export function DelegatePublicRegister() {
       }
 
       const delegateId = createdPayload.id as string;
+      setDraftDelegateId(delegateId);
       let flyerReady = Boolean(createdPayload.flyerReady);
+      persistUploadDraftState(delegateId, payload.passportNo, uploadedPhotoMeta);
 
-      const uploadDocument = async (
-        field: DelegatePhotoField,
-        file: File | null,
-      ) => {
-        if (!file) return;
-        const meta = FILE_KIND_META[field];
-        const kind = meta.kind;
-        const fileLabel = meta.label;
-        const validation = validateDelegateUploadFile(file, kind);
-        if (!validation.ok) {
-          const message = `${fileLabel}: ${validation.error}`;
-          setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
-          setPhotoUploadFeedback((prev) => ({
-            ...prev,
-            [field]: {
-              status: "error",
-              progress: 0,
-              message,
-            },
-          }));
-          throw new Error(message);
-        }
-        setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
-        setPhotoUploadFeedback((prev) => ({
-          ...prev,
-          [field]: {
-            status: "uploading",
-            progress: 0,
-            message: `Uploading ${fileLabel}...`,
+      if (!uploadedPhotoMeta.passportPhoto && payload.passportPhoto) {
+        await uploadFieldFile(
+          delegateId,
+          "passportPhoto",
+          payload.passportPhoto,
+          payload,
+          (ready) => {
+            flyerReady = flyerReady || ready;
           },
-        }));
-
-        await new Promise<void>((resolve, reject) => {
-          const fd = new FormData();
-          fd.append("kind", kind);
-          fd.append("file", file);
-          const xhr = new XMLHttpRequest();
-          xhr.open("POST", `/api/conf/${confId}/delegates/${delegateId}/documents`);
-          xhr.upload.onprogress = (event) => {
-            if (!event.lengthComputable) return;
-            const progress = Math.round((event.loaded / event.total) * 100);
-            setPhotoUploadFeedback((prev) => ({
-              ...prev,
-              [field]: {
-                status: "uploading",
-                progress,
-                message: `Uploading ${fileLabel}...`,
-              },
-            }));
-          };
-          xhr.onerror = () => {
-            const message = `${fileLabel}: Upload failed due to a network error.`;
-            setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
-            setPhotoUploadFeedback((prev) => ({
-              ...prev,
-              [field]: {
-                status: "error",
-                progress: 0,
-                message,
-              },
-            }));
-            reject(new Error(message));
-          };
-          xhr.onload = async () => {
-            const status = xhr.status || 0;
-            const raw = xhr.responseText || "";
-            if (status < 200 || status >= 300) {
-              const payloadForError = await parseUploadErrorPayload(
-                new Response(raw, { status }),
-              );
-              const detail = formatUploadError(
-                payloadForError,
-                `Failed to upload ${fileLabel}`,
-                status,
-              );
-              const message = `${fileLabel}: ${detail}`;
-              setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
-              setPhotoUploadFeedback((prev) => ({
-                ...prev,
-                [field]: {
-                  status: "error",
-                  progress: 0,
-                  message,
-                },
-              }));
-              reject(new Error(message));
-              return;
-            }
-            let payload: { flyerReady?: boolean } = {};
-            try {
-              payload = raw ? (JSON.parse(raw) as { flyerReady?: boolean }) : {};
-            } catch {
-              payload = {};
-            }
-            flyerReady = flyerReady || Boolean(payload.flyerReady);
-            setPhotoUploadFeedback((prev) => ({
-              ...prev,
-              [field]: {
-                status: "done",
-                progress: 100,
-                message: `${fileLabel} uploaded successfully.`,
-              },
-            }));
-            resolve();
-          };
-          xhr.send(fd);
-        });
-      };
-
-      await uploadDocument("passportPhoto", payload.passportPhoto);
-      await uploadDocument("lastEntryStampPhoto", payload.lastEntryStampPhoto);
-      await uploadDocument("currentVisaPhoto", payload.currentVisaPhoto);
-      await uploadDocument("bookletPhoto", payload.bookletPhoto);
+        );
+      }
+      if (!uploadedPhotoMeta.lastEntryStampPhoto && payload.lastEntryStampPhoto) {
+        await uploadFieldFile(
+          delegateId,
+          "lastEntryStampPhoto",
+          payload.lastEntryStampPhoto,
+          payload,
+          (ready) => {
+            flyerReady = flyerReady || ready;
+          },
+        );
+      }
+      if (!uploadedPhotoMeta.currentVisaPhoto && payload.currentVisaPhoto) {
+        await uploadFieldFile(
+          delegateId,
+          "currentVisaPhoto",
+          payload.currentVisaPhoto,
+          payload,
+          (ready) => {
+            flyerReady = flyerReady || ready;
+          },
+        );
+      }
+      if (!uploadedPhotoMeta.bookletPhoto && payload.bookletPhoto) {
+        await uploadFieldFile(
+          delegateId,
+          "bookletPhoto",
+          payload.bookletPhoto,
+          payload,
+          (ready) => {
+            flyerReady = flyerReady || ready;
+          },
+        );
+      }
 
       setSuccess({
         confId,
@@ -339,6 +515,8 @@ export function DelegatePublicRegister() {
         flyerReady,
         updatedExisting: Boolean(createdPayload.updatedExisting),
       });
+      clearUploadDraftState();
+      setUploadedPhotoMeta({});
 
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -356,6 +534,51 @@ export function DelegatePublicRegister() {
       setSubmitting(false);
     }
   };
+
+  const handleAutoPhotoFileChange = useCallback(
+    async (field: DelegatePhotoField, file: File | null) => {
+      if (!file || !confId || submitting) return;
+
+      setError(null);
+      setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
+
+      const snapshot = latestSnapshot;
+      const snapshotError = validateSnapshotForAutoUpload(snapshot);
+      if (snapshotError || !snapshot) {
+        const label = FILE_KIND_META[field].label;
+        const message = `${label}: ${snapshotError || "Please complete registration fields first."}`;
+        setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+        setPhotoUploadFeedback((prev) => ({
+          ...prev,
+          [field]: { status: "error", progress: 0, message },
+        }));
+        return;
+      }
+
+      try {
+        const delegateId = await ensureDraftDelegate(snapshot);
+        await uploadFieldFile(delegateId, field, file, snapshot);
+      } catch (e) {
+        const message =
+          e instanceof Error ? e.message : "Automatic upload failed for this field.";
+        setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+        setPhotoUploadFeedback((prev) => ({
+          ...prev,
+          [field]: { status: "error", progress: 0, message },
+        }));
+        setError(`${message} Please retry after checking this field.`);
+      }
+    },
+    [
+      FILE_KIND_META,
+      confId,
+      ensureDraftDelegate,
+      latestSnapshot,
+      submitting,
+      uploadFieldFile,
+      validateSnapshotForAutoUpload,
+    ],
+  );
 
   const handleCorrectionUpload = async (
     kind: "passport" | "booklet" | "entry-stamp" | "visa",
@@ -411,6 +634,38 @@ export function DelegatePublicRegister() {
             }
           : prev,
       );
+
+      const parsedPayload = (payload || {}) as {
+        flyerReady?: boolean;
+        filePath?: string;
+      };
+      const fieldByKind: Record<
+        "passport" | "entry-stamp" | "visa" | "booklet",
+        DelegatePhotoField
+      > = {
+        passport: "passportPhoto",
+        "entry-stamp": "lastEntryStampPhoto",
+        visa: "currentVisaPhoto",
+        booklet: "bookletPhoto",
+      };
+      if (parsedPayload.filePath && success) {
+        const mappedField = fieldByKind[kind];
+        setUploadedPhotoMeta((prev) => {
+          const next = {
+            ...prev,
+            [mappedField]: {
+              fileName: file.name,
+              filePath: parsedPayload.filePath as string,
+            },
+          };
+          persistUploadDraftState(
+            success.delegateId,
+            latestSnapshot?.passportNo ?? "",
+            next,
+          );
+          return next;
+        });
+      }
 
       setSuccessMessage(
         kind === "passport"
@@ -655,6 +910,11 @@ export function DelegatePublicRegister() {
                     setSuccess(null);
                     setSuccessMessage(null);
                     setError(null);
+                    setPhotoFieldErrors({});
+                    setPhotoUploadFeedback({});
+                    setUploadedPhotoMeta({});
+                    setDraftDelegateId(null);
+                    clearUploadDraftState();
                   }}
                 >
                   Register Another Delegate
@@ -805,14 +1065,19 @@ export function DelegatePublicRegister() {
                 defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
                 draftKey="public-new"
+                onSnapshotChange={setLatestSnapshot}
+                uploadedPhotoMeta={uploadedPhotoMeta}
                 photoFieldErrors={photoFieldErrors}
                 photoUploadFeedback={photoUploadFeedback}
-                onPhotoFileChange={(field) => {
+                onPhotoFileChange={(field, file) => {
                   setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
                   setPhotoUploadFeedback((prev) => ({
                     ...prev,
                     [field]: { status: "idle", progress: 0, message: "" },
                   }));
+                  if (file) {
+                    void handleAutoPhotoFileChange(field, file);
+                  }
                 }}
                 onSubmit={handleSubmit}
               />
