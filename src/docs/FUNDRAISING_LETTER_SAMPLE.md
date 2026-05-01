@@ -1,53 +1,60 @@
-# LSUIC 2026 Fundraising Invitation Sample
+# LSUIC 2026 Fundraising Letter Template (Improved)
 
-Date: May 29, 2026  
+Date: [Insert Date]  
 To: [Recipient Name / Organization]  
 Address: [Recipient Address]  
-From: Conference Chair, LSUIC 2026  
-Subject: Invitation to Support LSUIC Jinan 2026 Conference Fundraising Campaign
+From: Liberian Student Union in China (LSUIC), Jinan 2026 Organizing Committee  
+Subject: Invitation to Support LSUIC Jinan 2026 Conference and Student Participation
 
 Dear [Recipient Title and Name],
 
-Greetings from the Liberian Student Union in China (LSUIC).
+Warm greetings from the Liberian Student Union in China (LSUIC).
 
-On behalf of the Organizing Committee, we warmly invite you as a **[Sponsor / Keynote Speaker / Patron / Donor / Partner]** to support our **Jinan 2026 Conference Fundraising Campaign**.
+We are writing to respectfully invite you to support the **LSUIC Jinan 2026 Conference Fundraising Campaign** as a **[Sponsor / Keynote Speaker / Patron / Donor / Partner / Well-wisher]**.
 
-Our anticipated fundraising target is:
+Each year, LSUIC organizes this conference to unite Liberian students across China for leadership development, mentorship, professional networking, and national service planning. It is one of the few spaces where students from different cities can gather, learn, and build practical support systems together.
 
-- **Total target amount:** RMB [insert target amount]
+As a student organization, we face a real challenge: many students are not fully funded. Some are on partial scholarships, while others carry significant financial disadvantages. Most students are not working, and conference-related costs can easily prevent participation.
 
-The funds will be used for:
+Our goal is simple and urgent: **raise support to reduce conference fees so more Liberian students can attend**.
 
-- Venue and accommodation support
-- Logistics and transportation
-- Conference materials and print assets
-- Program and delegate support
-- Technical and communication requirements
+## Fundraising Goal
+
+- **Target Amount:** **RMB 180,000**
+- **USD Equivalent (approx.):** **USD 25,000** (using RMB 7.2 = USD 1)
+- This target is structured around an anticipated **170 participants**, including support for accommodation, feeding, logistics, souvenirs, and conference printing/material production.
+
+## What Your Support Will Fund
+
+- Fee reduction support for financially constrained students
+- Venue and accommodation costs
+- Transportation and logistics coordination
+- Program delivery (sessions, speakers, coordination)
+- Conference materials, communication, and documentation
+
+Every contribution, regardless of size, directly helps a student remain included in this national student platform.
 
 ## Key Dates and Meeting Information
 
-- **Fundraising date:** May 29, 2026
-- **Fundraising meeting time:** 21:00 China Time
-- **Payment deadline:** June 6, 2026
-- **Meeting medium:** Zoom
+- **Fundraising Date:** May 29, 2026
+- **Time:** 21:00 (China Time)
+- **Payment Deadline:** June 6, 2026
+- **Meeting Medium:** Zoom
 - **Meeting ID:** 2312312006
-- **Meeting password:** LSUIC2006
-- **Meeting link:** https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
+- **Meeting Password:** LSUIC2006
+- **Meeting Link:** https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09
 
 ## Payment Channels
 
-Payment channels are available in our official fundraising flyer and include:
+Kindly use any of the channels shown on our official fundraising flyer:
 
 - Mobile Money
 - UBA
 - WeChat
 - Alipay
 
-When fundraising mode is enabled in Letter Composer, the fundraising flyer at `public/conf/funraising.png` is appended as the final page of the letter.
+If needed, we can share confirmation steps immediately after your payment for accountability and record keeping.
 
-We sincerely appreciate your support and partnership. Your contribution will directly strengthen the success and impact of LSUIC Jinan 2026 Conference.
+We would be honored to have your support. Your contribution is not only financial help; it is an investment in the growth, stability, and future leadership capacity of Liberian students in China.
 
-Respectfully,  
-[Name]  
-[Role / Office]  
-LSUIC 2026 Organizing Committee
+Thank you for your time, trust, and partnership.

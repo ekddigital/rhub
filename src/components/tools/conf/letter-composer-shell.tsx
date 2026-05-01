@@ -43,6 +43,7 @@ import {
   buildCityRegionLine,
   buildLetterheadEmailLine,
 } from "@/lib/conf/letterhead-config";
+import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -166,6 +167,13 @@ type RoleTemplate = {
   sortOrder: number;
   isSystem: boolean;
   isActive: boolean;
+};
+
+type SignatureProfile = {
+  key: string;
+  name: string;
+  title?: string;
+  signatureDataUrl: string;
 };
 
 // ── localStorage helpers ─────────────────────────────────────────────────────
@@ -2072,6 +2080,78 @@ export function LetterComposerShell() {
     "idle" | "saved" | "error"
   >("idle");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [signatureLibrary, setSignatureLibrary] = useState<
+    Record<string, SignatureProfile>
+  >({});
+
+  const resolveSignatureForName = useCallback(
+    (name: string) => {
+      const key = normalizeSignatureProfileKey(name);
+      return signatureLibrary[key]?.signatureDataUrl ?? "";
+    },
+    [signatureLibrary],
+  );
+
+  const hydrateDraftSignatures = useCallback(
+    (draft: LetterDraft): LetterDraft => {
+      const sig1 =
+        draft.signatory1Sig || resolveSignatureForName(draft.signatory1Name);
+      const sig2 =
+        draft.signatory2Sig || resolveSignatureForName(draft.signatory2Name);
+      const sig3 =
+        draft.signatory3Sig || resolveSignatureForName(draft.signatory3Name);
+      return {
+        ...draft,
+        signatory1Sig: sig1,
+        signatory2Sig: sig2,
+        signatory3Sig: sig3,
+      };
+    },
+    [resolveSignatureForName],
+  );
+
+  const saveSignatureProfile = useCallback(
+    async (name: string, title: string, signatureDataUrl: string) => {
+      const normalizedName = name.trim();
+      if (!confId || !normalizedName || !signatureDataUrl) return;
+
+      const key = normalizeSignatureProfileKey(normalizedName);
+      const profile: SignatureProfile = {
+        key,
+        name: normalizedName,
+        title: title.trim(),
+        signatureDataUrl,
+      };
+
+      setSignatureLibrary((prev) => ({ ...prev, [key]: profile }));
+      setActiveDraft((draft) => ({
+        ...draft,
+        signatory1Sig:
+          normalizeSignatureProfileKey(draft.signatory1Name) === key
+            ? signatureDataUrl
+            : draft.signatory1Sig,
+        signatory2Sig:
+          normalizeSignatureProfileKey(draft.signatory2Name) === key
+            ? signatureDataUrl
+            : draft.signatory2Sig,
+        signatory3Sig:
+          normalizeSignatureProfileKey(draft.signatory3Name) === key
+            ? signatureDataUrl
+            : draft.signatory3Sig,
+      }));
+
+      try {
+        await fetch(`/api/conf/${confId}/letters/signatures`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(profile),
+        });
+      } catch (err) {
+        console.warn("Failed to persist signature profile", err);
+      }
+    },
+    [confId],
+  );
 
   // ── Fetch conf data ──────────────────────────────────────────────────────
 
@@ -2081,16 +2161,16 @@ export function LetterComposerShell() {
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
 
-        const [eventRes, membersRes] = await Promise.all([
-          fetch(`/api/conf/${conf.id}/route`).catch(() => null),
-          fetch(`/api/conf/${conf.id}/members`),
-        ]);
+        const membersRes = await fetch(`/api/conf/${conf.id}/members`);
 
-        const [rolesRes, bookletRes] = await Promise.all([
+        const [rolesRes, bookletRes, signaturesRes] = await Promise.all([
           fetch(`/api/conf/${conf.id}/roles`, { cache: "no-store" }).catch(
             () => null,
           ),
           fetch(`/api/conf/${conf.id}/booklet/data`, {
+            cache: "no-store",
+          }).catch(() => null),
+          fetch(`/api/conf/${conf.id}/letters/signatures`, {
             cache: "no-store",
           }).catch(() => null),
         ]);
@@ -2117,6 +2197,20 @@ export function LetterComposerShell() {
           if (necPresident?.name) {
             setNecPresidentName(String(necPresident.name));
           }
+        }
+
+        if (signaturesRes?.ok) {
+          const signatureData = (await signaturesRes.json()) as {
+            profiles?: SignatureProfile[];
+          };
+          const mapped = (signatureData.profiles ?? []).reduce<
+            Record<string, SignatureProfile>
+          >((acc, profile) => {
+            if (!profile?.key || !profile?.signatureDataUrl) return acc;
+            acc[profile.key] = profile;
+            return acc;
+          }, {});
+          setSignatureLibrary(mapped);
         }
 
         // Try to get event info from members endpoint data or fallback
@@ -2158,6 +2252,12 @@ export function LetterComposerShell() {
   }, []);
 
   useEffect(() => {
+    if (Object.keys(signatureLibrary).length === 0) return;
+    setActiveDraft((current) => hydrateDraftSignatures(current));
+    setDrafts((current) => current.map((draft) => hydrateDraftSignatures(draft)));
+  }, [signatureLibrary, hydrateDraftSignatures]);
+
+  useEffect(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       persistDraft(activeDraft);
@@ -2195,9 +2295,9 @@ export function LetterComposerShell() {
   }, []);
 
   const handleLoad = useCallback((d: LetterDraft) => {
-    setActiveDraft(d);
+    setActiveDraft(hydrateDraftSignatures(d));
     setShowList(false);
-  }, []);
+  }, [hydrateDraftSignatures]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -2310,13 +2410,15 @@ export function LetterComposerShell() {
             dbId: full.id,
           }),
         );
-        setActiveDraft(draft);
+        setActiveDraft(hydrateDraftSignatures(draft));
         // Also persist to local drafts so auto-save keeps it
         setDrafts((prev) => {
           const exists = prev.find((d) => d.id === draft.id);
           const next = exists
-            ? prev.map((d) => (d.id === draft.id ? draft : d))
-            : [draft, ...prev];
+            ? prev.map((d) =>
+                d.id === draft.id ? hydrateDraftSignatures(draft) : d,
+              )
+            : [hydrateDraftSignatures(draft), ...prev];
           saveDrafts(next);
           return next;
         });
@@ -2325,7 +2427,7 @@ export function LetterComposerShell() {
         // ignore
       }
     },
-    [confId],
+    [confId, hydrateDraftSignatures],
   );
 
   const handleDeleteFromLibrary = useCallback(
@@ -2399,59 +2501,71 @@ export function LetterComposerShell() {
 
         if (mode === "STANDARD") {
           // Order: Secretary (Signed) → Vice-Chair (Approved) → Chair (Attested)
+          const s1Name = secretary?.name ?? "";
+          const s2Name = viceChair?.name ?? "";
+          const s3Name = chair?.name ?? "";
           return {
             ...d,
             signatoryMode: mode,
-            signatory1Name: secretary?.name ?? "",
+            signatory1Name: s1Name,
             signatory1Title:
               secretary?.title ??
               ROLE_LABELS[secretary?.role ?? ""] ??
               "Conference Secretary",
             signatory1Label: "Signed",
-            signatory2Name: viceChair?.name ?? "",
+            signatory1Sig: resolveSignatureForName(s1Name),
+            signatory2Name: s2Name,
             signatory2Title:
               viceChair?.title ??
               ROLE_LABELS[viceChair?.role ?? ""] ??
               "Conference Vice-Chair",
             signatory2Label: "Approved",
-            signatory3Name: chair?.name ?? "",
+            signatory2Sig: resolveSignatureForName(s2Name),
+            signatory3Name: s3Name,
             signatory3Title:
               chair?.title ??
               ROLE_LABELS[chair?.role ?? ""] ??
               "Conference Chair",
             signatory3Label: "Attested",
+            signatory3Sig: resolveSignatureForName(s3Name),
           };
         }
 
         if (mode === "FUNDRAISING") {
           // Order: Secretary (Signed) → Chair (Approved) → NEC President (Attested)
+          const s1Name = secretary?.name ?? "";
+          const s2Name = chair?.name ?? "";
+          const s3Name = necPresidentName || "";
           return {
             ...d,
             signatoryMode: mode,
-            signatory1Name: secretary?.name ?? "",
+            signatory1Name: s1Name,
             signatory1Title:
               secretary?.title ??
               ROLE_LABELS[secretary?.role ?? ""] ??
               "Conference Secretary",
             signatory1Label: "Signed",
-            signatory2Name: chair?.name ?? "",
+            signatory1Sig: resolveSignatureForName(s1Name),
+            signatory2Name: s2Name,
             signatory2Title:
               chair?.title ??
               ROLE_LABELS[chair?.role ?? ""] ??
               "Conference Chair",
             signatory2Label: "Approved",
-            signatory3Name: necPresidentName || "",
+            signatory2Sig: resolveSignatureForName(s2Name),
+            signatory3Name: s3Name,
             signatory3Title: necPresidentName
               ? "National President (LSUIC)"
               : "",
             signatory3Label: "Attested",
+            signatory3Sig: resolveSignatureForName(s3Name),
           };
         }
 
         return { ...d, signatoryMode: mode };
       });
     },
-    [members, necPresidentName],
+    [members, necPresidentName, resolveSignatureForName],
   );
 
   const handlePrint = useCallback(() => {
@@ -3411,7 +3525,16 @@ export function LetterComposerShell() {
                               placeholder="Full name"
                               className="h-7 text-sm"
                               value={activeDraft[nameKey]}
-                              onChange={(e) => set(nameKey)(e.target.value)}
+                              onChange={(e) => {
+                                const nextName = e.target.value;
+                                const matchedSignature =
+                                  resolveSignatureForName(nextName);
+                                setActiveDraft((d) => ({
+                                  ...d,
+                                  [nameKey]: nextName,
+                                  [sigKey]: matchedSignature,
+                                }));
+                              }}
                             />
                             {/* Title */}
                             <Input
@@ -3514,10 +3637,25 @@ export function LetterComposerShell() {
                                       reader.onload = (ev) => {
                                         const result = ev.target
                                           ?.result as string;
-                                        setActiveDraft((d) => ({
-                                          ...d,
-                                          [sigKey]: result,
-                                        }));
+                                        setActiveDraft((d) => {
+                                          const signatoryName = String(
+                                            d[nameKey] ?? "",
+                                          );
+                                          const signatoryTitle = String(
+                                            d[titleKey] ?? "",
+                                          );
+                                          if (signatoryName.trim()) {
+                                            void saveSignatureProfile(
+                                              signatoryName,
+                                              signatoryTitle,
+                                              result,
+                                            );
+                                          }
+                                          return {
+                                            ...d,
+                                            [sigKey]: result,
+                                          };
+                                        });
                                       };
                                       reader.readAsDataURL(file);
                                       e.target.value = "";

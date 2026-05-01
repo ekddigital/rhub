@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { ConfLetterType } from "@prisma/client";
+import { SIGNATURE_PROFILE_TITLE_PREFIX } from "@/lib/conf/signature-profiles";
 
 const PAGE_SIZE = 12;
 
@@ -22,6 +23,7 @@ export async function GET(
     const where = {
       confId,
       isDeleted: false,
+      title: { not: { startsWith: SIGNATURE_PROFILE_TITLE_PREFIX } },
       ...(type ? { type } : {}),
     };
 
