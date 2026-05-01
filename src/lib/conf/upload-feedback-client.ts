@@ -10,6 +10,8 @@ export type UploadErrorPayload = {
   };
 };
 
+const DEFAULT_UPLOAD_MAX_SIZE_LABEL = "5 MB";
+
 function isLikelyHtml(raw: string) {
   return /<\s*html[\s>]|<\s*body[\s>]|<\s*\/?[a-z][^>]*>/i.test(raw);
 }
@@ -51,7 +53,7 @@ export async function parseUploadErrorPayload(
     if (isPayloadTooLarge) {
       return {
         message:
-          "Upload failed because the file is too large for the server. Please reduce file size and try again.",
+          `Upload failed because the file is too large. Maximum file size is ${DEFAULT_UPLOAD_MAX_SIZE_LABEL}. Please reduce file size and try again.`,
       };
     }
 

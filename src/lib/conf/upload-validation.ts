@@ -25,6 +25,9 @@ type ValidateUploadResult = {
   maxSizeBytes: number;
 };
 
+export const CONFERENCE_UPLOAD_MAX_SIZE_BYTES = 5 * 1024 * 1024;
+export const CONFERENCE_UPLOAD_MAX_SIZE_LABEL = "5 MB";
+
 function extensionFromName(fileName: string) {
   const parts = fileName.toLowerCase().split(".");
   if (parts.length < 2) return "";
@@ -49,7 +52,7 @@ export function validateDelegateDocumentUpload(
   file: File,
   kind: UploadKind,
 ): ValidateUploadResult {
-  const maxSizeBytes = 10 * 1024 * 1024;
+  const maxSizeBytes = CONFERENCE_UPLOAD_MAX_SIZE_BYTES;
   const normalizedMime = inferMimeTypeFromFile(file);
   const supportsPdf = kind !== "booklet";
   const supportedMimeTypes = supportsPdf
@@ -73,7 +76,7 @@ export function validateDelegateDocumentUpload(
       normalizedMime,
       supportedMimeTypes,
       maxSizeBytes,
-      error: "File size must be under 10MB",
+      error: `File size must be ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL} or less.`,
     };
   }
 

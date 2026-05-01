@@ -21,7 +21,7 @@ const IMAGE_MIME_TYPES = [
   "image/gif",
 ] as const;
 
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function extensionFromName(fileName: string) {
   const parts = fileName.toLowerCase().split(".");
@@ -65,7 +65,7 @@ export function validateDelegateUploadFile(
   if (file.size > MAX_UPLOAD_BYTES) {
     return {
       ok: false,
-      error: "File is too large. Maximum size is 10MB.",
+      error: "File is too large. Maximum size is 5 MB.",
     };
   }
 
