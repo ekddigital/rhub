@@ -505,7 +505,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatory3Label: d.signatory3Label ?? "Attested",
     signatory3Sig: d.signatory3Sig ?? "",
     signatory3SigScale: d.signatory3SigScale ?? 1,
-    fundraisingEnabled: d.fundraisingEnabled ?? false,
+    fundraisingEnabled:
+      d.fundraisingEnabled ?? d.signatoryMode === "FUNDRAISING",
     fundraisingInviteRole: d.fundraisingInviteRole ?? "Sponsor",
     fundraisingInviteRoleOther: d.fundraisingInviteRoleOther ?? "",
     fundraisingRecipientName: d.fundraisingRecipientName ?? "",
@@ -2309,6 +2310,15 @@ export function LetterComposerShell() {
     setActiveDraft((current) => hydrateDraftSignatures(current));
     setDrafts((current) => current.map((draft) => hydrateDraftSignatures(draft)));
   }, [signatureLibrary, hydrateDraftSignatures]);
+
+  useEffect(() => {
+    if (
+      activeDraft.signatoryMode === "FUNDRAISING" &&
+      !activeDraft.fundraisingEnabled
+    ) {
+      setActiveDraft((draft) => ({ ...draft, fundraisingEnabled: true }));
+    }
+  }, [activeDraft.signatoryMode, activeDraft.fundraisingEnabled]);
 
   useEffect(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
