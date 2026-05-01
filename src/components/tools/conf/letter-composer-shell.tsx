@@ -722,6 +722,20 @@ function estimateLinesPerPage(metrics: PageMetrics): number {
   return Math.floor(metrics.contentHeight / lineHeightPx);
 }
 
+/** Approximate pagination lines for the embedded fundraising flyer at full column width */
+function estimateEmbeddedFlyerEquivalentLines(metrics: PageMetrics): number {
+  const linePx = metrics.fontSize * metrics.lineHeight;
+  const textWidthPx = Math.max(
+    120,
+    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight,
+  );
+  const approxFlyerHeightPx = Math.min(
+    metrics.contentHeight * 0.88,
+    textWidthPx * 1.22,
+  );
+  return Math.max(14, Math.ceil(approxFlyerHeightPx / linePx));
+}
+
 /**
  * Wrap a single paragraph into lines, respecting max character width.
  */
@@ -1052,7 +1066,7 @@ function LetterA4Preview({
   const FOOTER_H = 32;
   const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
   const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
-  const CONTINUATION_TEXT_PADDING_TOP = 30;
+  const CONTINUATION_TEXT_PADDING_TOP = 20;
   const CONTINUATION_TEXT_PADDING_RIGHT = 96;
   const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
   const CONTINUATION_TEXT_PADDING_LEFT = 96;
@@ -1106,33 +1120,44 @@ function LetterA4Preview({
     },
   ].filter((s) => s.name.trim() || s.title.trim());
 
-  const signatureReserveLines =
-    signatories.length > 0 ? 12 + (draft.fundraisingEnabled ? 14 : 0) : 0;
-
-  // Define page metrics for layout-aware text wrapping and pagination
-  // First page: has sidebar (reduces content width) + full header
+  // Geometry for pagination capacity (reserve must use these first)
   const firstPageMetrics: PageMetrics = {
     name: "first-page",
-    contentWidth: PAGE_W - SIDEBAR_W, // 794 - 215 = 579px
-    contentHeight: BODY_H, // Height available for body text
+    contentWidth: PAGE_W - SIDEBAR_W,
+    contentHeight: BODY_H,
     paddingLeft: 24,
     paddingRight: 32,
     fontSize: 12,
     lineHeight: 1.8,
   };
 
-  // Continuation pages: full width, simplified header
-  const continuationHeaderHeight = 8 + 10 + 2 + 10; // stripes + title bar + border + padding = ~40px
+  const continuationHeaderHeight = 8 + 10 + 2 + 10;
   const continuationBodyHeight = PAGE_H - continuationHeaderHeight - FOOTER_H;
   const continuationPageMetrics: PageMetrics = {
     name: "continuation-page",
-    contentWidth: PAGE_W, // Full width, no sidebar
-    contentHeight: continuationBodyHeight, // ~1051px
+    contentWidth: PAGE_W,
+    contentHeight: continuationBodyHeight,
     paddingLeft: CONTINUATION_TEXT_PADDING_LEFT,
     paddingRight: CONTINUATION_TEXT_PADDING_RIGHT,
     fontSize: 12,
     lineHeight: 1.8,
   };
+
+  /** Trailing slab: signatures + payment note + embedded flyer (same page as body tail) */
+  const signaturesBlockLines = signatories.length > 0 ? 11 : 0;
+  const fundraiserFooterPack =
+    draft.fundraisingEnabled && signatories.length > 0;
+  const paymentNoteLinesApprox = fundraiserFooterPack ? 8 : 0;
+  const embeddedFlyerLinesApprox = fundraiserFooterPack
+    ? Math.max(
+        estimateEmbeddedFlyerEquivalentLines(firstPageMetrics),
+        estimateEmbeddedFlyerEquivalentLines(continuationPageMetrics),
+      )
+    : 0;
+  const signatureReserveLines =
+    signaturesBlockLines +
+    paymentNoteLinesApprox +
+    embeddedFlyerLinesApprox;
 
   // Paginate structured body blocks using page-aware metrics
   const bodyBlocks = richHtmlToBodyBlocks(draft.bodyRich ?? "");
@@ -1161,8 +1186,7 @@ function LetterA4Preview({
     draft.fundraisingInviteRole === "Other"
       ? draft.fundraisingInviteRoleOther || "Fundraising Invitee"
       : draft.fundraisingInviteRole || "Fundraising Invitee";
-  const totalPages =
-    1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
+  const totalPages = 1 + continuationBodies.length;
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
   const fundraisingInvitationRowStyle: CSSProperties = {
@@ -1186,7 +1210,68 @@ function LetterA4Preview({
     wordBreak: "break-word",
   };
 
-  /** Full-width note immediately before the flyer attachment page */
+  /** Embedded flyer + payment slabs (flows under signatures on final letter sheet) */
+  function renderEmbeddedFundraisingFlyer(): ReactNode {
+    if (!showFundraisingFlyer) return null;
+
+    return (
+      <div
+        className="letter-embedded-flyer"
+        style={{
+          width: "100%",
+          marginTop: 10,
+          pageBreakInside: "avoid",
+          breakInside: "avoid",
+          borderTop: `1px solid ${C.gold}`,
+          paddingTop: 10,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            flexWrap: "wrap",
+            gap: 8,
+            marginBottom: 6,
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 700, color: C.navy }}>
+            Fundraising flyer — payment methods
+          </div>
+          <div style={{ fontSize: 8.5, color: C.muted, fontStyle: "italic" }}>
+            {officeLabel}
+          </div>
+        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/conf/funraising.png"
+          alt="LSUIC fundraising campaign flyer — payment channels"
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+            border: "1px solid #d9d9d9",
+            borderRadius: 6,
+            background: "#fff",
+          }}
+        />
+        <div
+          style={{
+            fontSize: 8.5,
+            color: C.muted,
+            marginTop: 6,
+            lineHeight: 1.35,
+          }}
+        >
+          Scannable payment details: Mobile Money, UBA, WeChat Pay, and Alipay
+          (see the flyer graphic in this section).
+        </div>
+      </div>
+    );
+  }
+
+  /** Note immediately above the embedded payment flyer */
   function renderPaymentMediumPreflyerNote(): ReactNode {
     if (!showFundraisingFlyer) return null;
 
@@ -1217,7 +1302,7 @@ function LetterA4Preview({
             marginBottom: 6,
           }}
         >
-          Payment instructions (flyer on next page)
+          Payment instructions (see flyer below)
         </div>
         <p
           style={{
@@ -1229,11 +1314,11 @@ function LetterA4Preview({
           }}
         >
           Detailed <strong style={{ fontWeight: 700 }}>payment mediums</strong>{" "}
-          are printed on the following page. Please pay only through those
-          channels —
+          are shown on <strong>the flyer image directly below</strong>. Please
+          pay only through those channels —
           <strong> Mobile Money</strong>, <strong>UBA (bank)</strong>,{" "}
-          <strong>WeChat Pay</strong>, or <strong>Alipay</strong> — using the QR
-          codes and account details shown on that flyer.
+          <strong>WeChat Pay</strong>, or <strong>Alipay</strong> — using the
+          QR codes and account titles on that flyer.
         </p>
       </div>
     );
@@ -1819,6 +1904,9 @@ function LetterA4Preview({
             {showSignaturesOnFirstPage &&
               signatories.length > 0 &&
               renderPaymentMediumPreflyerNote()}
+            {showSignaturesOnFirstPage &&
+              signatories.length > 0 &&
+              renderEmbeddedFundraisingFlyer()}
           </div>
         </div>
 
@@ -2006,6 +2094,9 @@ function LetterA4Preview({
               {isLast &&
                 signatories.length > 0 &&
                 renderPaymentMediumPreflyerNote()}
+              {isLast &&
+                signatories.length > 0 &&
+                renderEmbeddedFundraisingFlyer()}
             </div>
 
             <div
@@ -2058,112 +2149,6 @@ function LetterA4Preview({
           </div>
         );
       })}
-      {showFundraisingFlyer && (
-        <div
-          className="letter-page continuation-page"
-          style={{
-            width: PAGE_W,
-            minHeight: PAGE_H,
-            background: C.white,
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
-            fontFamily: "'Helvetica Neue', Arial, sans-serif",
-            marginTop: 18,
-          }}
-        >
-          <div style={{ display: "flex", height: 8, flexShrink: 0 }}>
-            {FLAG_STRIPES_11.map((color, i) => (
-              <div key={i} style={{ flex: 1, background: color }} />
-            ))}
-          </div>
-          <div
-            style={{
-              padding: "10px 22px",
-              borderBottom: `2px solid ${C.gold}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
-              Fundraising Flyer (Payment Methods Included)
-            </div>
-            <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
-              {officeLabel}
-            </div>
-          </div>
-          <div
-            style={{
-              flex: 1,
-              padding: "18px 18px 14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/conf/funraising.png"
-              alt="LSUIC fundraising campaign flyer"
-              style={{
-                width: "100%",
-                maxHeight: PAGE_H - 170,
-                objectFit: "contain",
-                border: "1px solid #d9d9d9",
-                borderRadius: 8,
-                background: "#fff",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              height: FOOTER_H,
-              background: C.navy,
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ height: 2, background: C.red, width: "100%" }} />
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 14px",
-              }}
-            >
-              <div style={{ width: 48 }} />
-              <div
-                style={{
-                  fontSize: 8,
-                  fontWeight: 700,
-                  color: C.gold,
-                  letterSpacing: "0.5px",
-                  textAlign: "center",
-                }}
-              >
-                Fundraising Campaign Payment Channels: Mobile Money & UBA, WeChat & Alipay
-              </div>
-              <div
-                style={{
-                  fontSize: 8,
-                  color: C.gold,
-                  opacity: 0.75,
-                  fontVariantNumeric: "tabular-nums",
-                  width: 48,
-                  textAlign: "right",
-                }}
-              >
-                Page {totalPages} of {totalPages}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -2827,6 +2812,10 @@ export function LetterComposerShell() {
           }
           .continuation-page {
             margin-top: 0 !important;
+          }
+          .letter-embedded-flyer {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
           @page { size: A4 portrait; margin: 0; }
         }
