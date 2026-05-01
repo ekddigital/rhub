@@ -1098,7 +1098,8 @@ function LetterA4Preview({
     },
   ].filter((s) => s.name.trim() || s.title.trim());
 
-  const signatureReserveLines = signatories.length > 0 ? 10 : 0;
+  const signatureReserveLines =
+    signatories.length > 0 ? 10 + (draft.fundraisingEnabled ? 5 : 0) : 0;
 
   // Define page metrics for layout-aware text wrapping and pagination
   // First page: has sidebar (reduces content width) + full header
@@ -1156,6 +1157,48 @@ function LetterA4Preview({
     1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
+  const fundraisingAttachmentInlineBlock = (
+    <div
+      style={{
+        marginTop: 12,
+        border: `1px solid ${C.gold}`,
+        borderLeft: `4px solid ${C.navy}`,
+        borderRadius: 6,
+        background: "#fffdf7",
+        padding: "10px 12px",
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
+        Attachment Note
+      </div>
+      <div style={{ fontSize: 10.5, color: "#1f2937", marginTop: 4 }}>
+        Attached is the official LSUIC fundraising flyer with payment channels
+        (Mobile Money, UBA, WeChat, and Alipay).
+      </div>
+      <div
+        style={{
+          marginTop: 8,
+          border: "1px solid #d9d9d9",
+          borderRadius: 6,
+          background: "#fff",
+          padding: 6,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/conf/funraising.png"
+          alt="Fundraising flyer attachment preview"
+          style={{
+            width: "100%",
+            maxHeight: 170,
+            objectFit: "contain",
+          }}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -1701,6 +1744,11 @@ function LetterA4Preview({
                     )}
                   </div>
                 ))}
+                {showFundraisingFlyer && (
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    {fundraisingAttachmentInlineBlock}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1885,6 +1933,11 @@ function LetterA4Preview({
                       )}
                     </div>
                   ))}
+                  {showFundraisingFlyer && (
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      {fundraisingAttachmentInlineBlock}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
