@@ -1107,7 +1107,7 @@ function LetterA4Preview({
   ].filter((s) => s.name.trim() || s.title.trim());
 
   const signatureReserveLines =
-    signatories.length > 0 ? 10 + (draft.fundraisingEnabled ? 5 : 0) : 0;
+    signatories.length > 0 ? 12 + (draft.fundraisingEnabled ? 14 : 0) : 0;
 
   // Define page metrics for layout-aware text wrapping and pagination
   // First page: has sidebar (reduces content width) + full header
@@ -1225,6 +1225,7 @@ function LetterA4Preview({
             fontSize: 11,
             color: "#1e293b",
             lineHeight: 1.6,
+            overflowWrap: "break-word",
           }}
         >
           Detailed <strong style={{ fontWeight: 700 }}>payment mediums</strong>{" "}
@@ -1349,11 +1350,12 @@ function LetterA4Preview({
         className="letter-page"
         style={{
           width: PAGE_W,
-          height: forPrint ? "auto" : PAGE_H,
+          minHeight: PAGE_H,
+          height: "auto",
           background: C.white,
           display: "flex",
           flexDirection: "column",
-          overflow: forPrint ? "visible" : "hidden",
+          overflow: "visible",
           boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
         }}
@@ -1525,9 +1527,11 @@ function LetterA4Preview({
         <div
           style={{
             display: "flex",
-            height: forPrint ? "auto" : BODY_H,
-            flexShrink: 0,
-            overflow: forPrint ? "visible" : "hidden",
+            flex: "1 1 auto",
+            alignItems: "stretch",
+            width: "100%",
+            minHeight: BODY_H,
+            overflow: "visible",
           }}
         >
           {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
@@ -1536,7 +1540,8 @@ function LetterA4Preview({
               width: SIDEBAR_W,
               background: C.white,
               flexShrink: 0,
-              overflow: forPrint ? "visible" : "hidden",
+              alignSelf: "stretch",
+              overflow: "visible",
               display: "flex",
               borderRight: `1px solid #dde3ef`,
             }}
@@ -1552,7 +1557,7 @@ function LetterA4Preview({
               style={{
                 flex: 1,
                 padding: "12px 8px 12px 9px",
-                overflowY: forPrint ? "visible" : "hidden",
+                overflowY: "visible",
               }}
             >
               <div
@@ -1652,8 +1657,9 @@ function LetterA4Preview({
           <div
             style={{
               flex: 1,
+              minWidth: 0,
               padding: "24px 32px 24px",
-              overflow: forPrint ? "visible" : "hidden",
+              overflow: "visible",
             }}
           >
             {/* Date (right-aligned) */}
@@ -2725,8 +2731,19 @@ export function LetterComposerShell() {
     .letter-page { box-shadow: none !important; display: block !important; }
     @page { size: A4 portrait; margin: 0; }
     @media print {
-      html, body { background: #fff !important; width: 210mm; height: 297mm; overflow: hidden; }
-      .letter-page { width: 210mm !important; height: 297mm !important; box-shadow: none !important; }
+      html, body { background: #fff !important; width: 210mm; overflow: visible; }
+      .letter-page {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        height: auto !important;
+        box-shadow: none !important;
+        break-after: page;
+        page-break-after: always;
+      }
+      .letter-page:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
     }
   </style>
 </head>
