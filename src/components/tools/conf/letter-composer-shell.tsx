@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -1158,28 +1165,183 @@ function LetterA4Preview({
     1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
-  const fundraisingAttachmentInlineBlock = (
-    <div
-      style={{
-        marginTop: 14,
-        border: `1px solid ${C.gold}`,
-        borderLeft: `4px solid ${C.navy}`,
-        borderRadius: 6,
-        background: "#fffdf7",
-        padding: "12px 14px",
-        width: "100%",
-        boxSizing: "border-box",
-      }}
-    >
-      <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
-        Payment Medium Note
+  const fundraisingInvitationRowStyle: CSSProperties = {
+    display: "flex",
+    gap: 10,
+    alignItems: "flex-start",
+    marginBottom: 5,
+    fontSize: 10.5,
+    lineHeight: 1.55,
+    color: "#1f2937",
+    width: "100%",
+    boxSizing: "border-box",
+  };
+
+  const fundraisingInvitationLabelStyle: CSSProperties = {
+    flex: "0 0 128px",
+    fontWeight: 700,
+    color: C.navy,
+    fontSize: 10,
+    lineHeight: 1.5,
+    wordBreak: "break-word",
+  };
+
+  /** Full-width note immediately before the flyer attachment page */
+  function renderPaymentMediumPreflyerNote(): ReactNode {
+    if (!showFundraisingFlyer) return null;
+
+    return (
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+          boxSizing: "border-box",
+          marginTop: 18,
+          marginBottom: 4,
+          border: `1px solid ${C.navy}`,
+          borderLeftWidth: 4,
+          borderLeftColor: C.navy,
+          borderRadius: 4,
+          background: "#f8fafc",
+          padding: "12px 16px",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: C.navy,
+            letterSpacing: "0.4px",
+            textTransform: "uppercase",
+            marginBottom: 6,
+          }}
+        >
+          Payment instructions (flyer on next page)
+        </div>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 11,
+            color: "#1e293b",
+            lineHeight: 1.6,
+          }}
+        >
+          Detailed <strong style={{ fontWeight: 700 }}>payment mediums</strong>{" "}
+          are printed on the following page. Please pay only through those
+          channels —
+          <strong> Mobile Money</strong>, <strong>UBA (bank)</strong>,{" "}
+          <strong>WeChat Pay</strong>, or <strong>Alipay</strong> — using the QR
+          codes and account details shown on that flyer.
+        </p>
       </div>
-      <div style={{ fontSize: 10.5, color: "#1f2937", marginTop: 4 }}>
-        Attached is the payment medium guide. Kindly make payment through the
-        approved channels on the flyer: Mobile Money, UBA, WeChat, and Alipay.
+    );
+  }
+
+  const fundraisingInvitationDetailsBlock =
+    showFundraisingFlyer && (
+      <div
+        style={{
+          marginTop: 8,
+          marginBottom: 8,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+          boxSizing: "border-box",
+          border: `1px solid ${C.gold}`,
+          borderLeft: `4px solid ${C.red}`,
+          borderRadius: 6,
+          padding: "12px 14px",
+          background: "#fffdf7",
+        }}
+      >
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.navy, marginBottom: 8 }}>
+          Fundraising Invitation Details
+        </div>
+
+        <div style={fundraisingInvitationRowStyle}>
+          <span style={fundraisingInvitationLabelStyle}>Invite category</span>
+          <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" as const }}>
+            {effectiveInviteRole}
+          </span>
+        </div>
+        {draft.fundraisingRecipientName.trim() ? (
+          <div style={fundraisingInvitationRowStyle}>
+            <span style={fundraisingInvitationLabelStyle}>Recipient</span>
+            <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" as const }}>
+              {draft.fundraisingRecipientName}
+            </span>
+          </div>
+        ) : null}
+        {draft.fundraisingRecipientAddress.trim() ? (
+          <div style={fundraisingInvitationRowStyle}>
+            <span style={fundraisingInvitationLabelStyle}>Address</span>
+            <span style={{ flex: 1, minWidth: 0, whiteSpace: "pre-line" }}>
+              {draft.fundraisingRecipientAddress}
+            </span>
+          </div>
+        ) : null}
+        {draft.fundraisingTargetAmount.trim() ? (
+          <div style={fundraisingInvitationRowStyle}>
+            <span style={fundraisingInvitationLabelStyle}>Target</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {draft.fundraisingTargetAmount}
+            </span>
+          </div>
+        ) : null}
+        {draft.fundraisingUseOfFunds.trim() ? (
+          <div style={fundraisingInvitationRowStyle}>
+            <span style={fundraisingInvitationLabelStyle}>Use of funds</span>
+            <span style={{ flex: 1, minWidth: 0, whiteSpace: "pre-line" }}>
+              {draft.fundraisingUseOfFunds}
+            </span>
+          </div>
+        ) : null}
+        <div style={fundraisingInvitationRowStyle}>
+          <span style={fundraisingInvitationLabelStyle}>Fundraising session</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            {draft.fundraisingEventDate || DEFAULT_FUNDRAISING_EVENT_DATE} (
+            {draft.fundraisingEventTime || DEFAULT_FUNDRAISING_EVENT_TIME})
+          </span>
+        </div>
+        <div style={fundraisingInvitationRowStyle}>
+          <span style={fundraisingInvitationLabelStyle}>Payment deadline</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            {draft.fundraisingPaymentDeadline ||
+              DEFAULT_FUNDRAISING_PAYMENT_DEADLINE}
+          </span>
+        </div>
+        <div style={fundraisingInvitationRowStyle}>
+          <span style={fundraisingInvitationLabelStyle}>Meeting medium</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            {draft.fundraisingMeetingMedium ||
+              DEFAULT_FUNDRAISING_MEETING_MEDIUM}
+          </span>
+        </div>
+        {draft.fundraisingMeetingLink.trim() ? (
+          <div style={fundraisingInvitationRowStyle}>
+            <span style={fundraisingInvitationLabelStyle}>Meeting link</span>
+            <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+              {draft.fundraisingMeetingLink}
+            </span>
+          </div>
+        ) : null}
+        {(draft.fundraisingMeetingId.trim() ||
+          draft.fundraisingMeetingPassword.trim()) ? (
+          <div style={{ ...fundraisingInvitationRowStyle, marginBottom: 0 }}>
+            <span style={fundraisingInvitationLabelStyle}>
+              Meeting ID / password
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              {draft.fundraisingMeetingId || DEFAULT_FUNDRAISING_MEETING_ID}
+              {" · "}
+              {draft.fundraisingMeetingPassword ||
+                DEFAULT_FUNDRAISING_MEETING_PASSWORD}
+            </span>
+          </div>
+        ) : null}
       </div>
-    </div>
-  );
+    );
 
   return (
     <>
@@ -1543,86 +1705,7 @@ function LetterA4Preview({
               )}
             </div>
 
-            {showFundraisingFlyer && (
-              <div
-                style={{
-                  marginTop: 8,
-                  marginBottom: 8,
-                  border: `1px solid ${C.gold}`,
-                  borderLeft: `4px solid ${C.red}`,
-                  borderRadius: 6,
-                  padding: "8px 10px",
-                  background: "#fffdf7",
-                  fontSize: 10.5,
-                  lineHeight: 1.55,
-                  color: "#233",
-                }}
-              >
-                <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
-                  Fundraising Invitation Details
-                </div>
-                <div>
-                  <strong>Invite Category:</strong> {effectiveInviteRole}
-                </div>
-                {draft.fundraisingRecipientName.trim() && (
-                  <div>
-                    <strong>Recipient:</strong> {draft.fundraisingRecipientName}
-                  </div>
-                )}
-                {draft.fundraisingRecipientAddress.trim() && (
-                  <div>
-                    <strong>Address:</strong>{" "}
-                    <span style={{ whiteSpace: "pre-line" }}>
-                      {draft.fundraisingRecipientAddress}
-                    </span>
-                  </div>
-                )}
-                {draft.fundraisingTargetAmount.trim() && (
-                  <div>
-                    <strong>Fundraising Target:</strong>{" "}
-                    {draft.fundraisingTargetAmount}
-                  </div>
-                )}
-                {draft.fundraisingUseOfFunds.trim() && (
-                  <div>
-                    <strong>Use of Funds:</strong>{" "}
-                    <span style={{ whiteSpace: "pre-line" }}>
-                      {draft.fundraisingUseOfFunds}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <strong>Fundraising Date:</strong>{" "}
-                  {draft.fundraisingEventDate || DEFAULT_FUNDRAISING_EVENT_DATE} (
-                  {draft.fundraisingEventTime || DEFAULT_FUNDRAISING_EVENT_TIME})
-                </div>
-                <div>
-                  <strong>Payment Deadline:</strong>{" "}
-                  {draft.fundraisingPaymentDeadline ||
-                    DEFAULT_FUNDRAISING_PAYMENT_DEADLINE}
-                </div>
-                <div>
-                  <strong>Meeting Medium:</strong>{" "}
-                  {draft.fundraisingMeetingMedium ||
-                    DEFAULT_FUNDRAISING_MEETING_MEDIUM}
-                </div>
-                {draft.fundraisingMeetingLink.trim() && (
-                  <div>
-                    <strong>Meeting Link:</strong> {draft.fundraisingMeetingLink}
-                  </div>
-                )}
-                {(draft.fundraisingMeetingId.trim() ||
-                  draft.fundraisingMeetingPassword.trim()) && (
-                  <div>
-                    <strong>Meeting ID / Password:</strong>{" "}
-                    {draft.fundraisingMeetingId || DEFAULT_FUNDRAISING_MEETING_ID}
-                    {" / "}
-                    {draft.fundraisingMeetingPassword ||
-                      DEFAULT_FUNDRAISING_MEETING_PASSWORD}
-                  </div>
-                )}
-              </div>
-            )}
+            {fundraisingInvitationDetailsBlock}
 
             {/* Gold divider */}
             <div
@@ -1725,13 +1808,11 @@ function LetterA4Preview({
                     )}
                   </div>
                 ))}
-                {showFundraisingFlyer && (
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    {fundraisingAttachmentInlineBlock}
-                  </div>
-                )}
               </div>
             )}
+            {showSignaturesOnFirstPage &&
+              signatories.length > 0 &&
+              renderPaymentMediumPreflyerNote()}
           </div>
         </div>
 
@@ -1914,13 +1995,11 @@ function LetterA4Preview({
                       )}
                     </div>
                   ))}
-                  {showFundraisingFlyer && (
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      {fundraisingAttachmentInlineBlock}
-                    </div>
-                  )}
                 </div>
               )}
+              {isLast &&
+                signatories.length > 0 &&
+                renderPaymentMediumPreflyerNote()}
             </div>
 
             <div
