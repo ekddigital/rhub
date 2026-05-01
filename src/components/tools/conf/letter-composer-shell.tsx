@@ -1169,11 +1169,11 @@ function LetterA4Preview({
       }}
     >
       <div style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>
-        Attachment Note
+        Payment Medium Note
       </div>
       <div style={{ fontSize: 10.5, color: "#1f2937", marginTop: 4 }}>
-        Attached is the official LSUIC fundraising flyer with payment channels
-        (Mobile Money, UBA, WeChat, and Alipay).
+        Attached is the payment medium guide. Kindly make payment through the
+        approved channels on the flyer: Mobile Money, UBA, WeChat, and Alipay.
       </div>
       <div
         style={{
