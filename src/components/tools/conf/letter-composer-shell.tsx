@@ -2592,6 +2592,7 @@ export function LetterComposerShell() {
           return {
             ...d,
             signatoryMode: mode,
+            fundraisingEnabled: true,
             signatory1Name: s1Name,
             signatory1Title:
               secretary?.title ??
