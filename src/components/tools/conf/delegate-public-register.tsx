@@ -24,7 +24,9 @@ import { Button } from "@/components/ui/button";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   DelegateRegistrationForm,
+  type DelegatePhotoField,
   type DelegateRegistrationPayload,
+  type UploadFeedback,
 } from "@/components/tools/conf/delegate-registration-form";
 import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 import {
@@ -97,6 +99,12 @@ export function DelegatePublicRegister() {
   const [samplePhotos, setSamplePhotos] = useState<DelegatePhotoSample[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoFieldErrors, setPhotoFieldErrors] = useState<
+    Partial<Record<DelegatePhotoField, string>>
+  >({});
+  const [photoUploadFeedback, setPhotoUploadFeedback] = useState<
+    Partial<Record<DelegatePhotoField, UploadFeedback>>
+  >({});
   const [success, setSuccess] = useState<SuccessState | null>(null);
   const [correctionBusy, setCorrectionBusy] = useState<
     "passport" | "booklet" | "entry-stamp" | "visa" | null
@@ -105,6 +113,16 @@ export function DelegatePublicRegister() {
   const liberiaAnniversary = getLiberiaIndependenceAnniversary(confYear);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
+
+  const FILE_KIND_META: Record<
+    DelegatePhotoField,
+    { kind: "passport" | "booklet" | "entry-stamp" | "visa"; label: string }
+  > = {
+    passportPhoto: { kind: "passport", label: "Passport Photo Page" },
+    lastEntryStampPhoto: { kind: "entry-stamp", label: "Last Entry Stamp Page" },
+    currentVisaPhoto: { kind: "visa", label: "Current Visa Page" },
+    bookletPhoto: { kind: "booklet", label: "Conference Booklet Photo" },
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -148,6 +166,8 @@ export function DelegatePublicRegister() {
 
     setSubmitting(true);
     setError(null);
+    setPhotoFieldErrors({});
+    setPhotoUploadFeedback({});
     setSuccess(null);
     setSuccessMessage(null);
 
@@ -199,56 +219,118 @@ export function DelegatePublicRegister() {
       let flyerReady = Boolean(createdPayload.flyerReady);
 
       const uploadDocument = async (
-        kind: "passport" | "booklet" | "entry-stamp" | "visa",
+        field: DelegatePhotoField,
         file: File | null,
       ) => {
         if (!file) return;
-        const fileLabel =
-          kind === "booklet"
-            ? "booklet photo"
-            : kind === "entry-stamp"
-              ? "last entry stamp"
-              : kind === "visa"
-                ? "current visa"
-                : "passport";
+        const meta = FILE_KIND_META[field];
+        const kind = meta.kind;
+        const fileLabel = meta.label;
         const validation = validateDelegateUploadFile(file, kind);
         if (!validation.ok) {
-          throw new Error(
-            `Cannot upload ${fileLabel}: ${validation.error} (File: ${file.name})`,
-          );
+          const message = `${fileLabel}: ${validation.error}`;
+          setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+          setPhotoUploadFeedback((prev) => ({
+            ...prev,
+            [field]: {
+              status: "error",
+              progress: 0,
+              message,
+            },
+          }));
+          throw new Error(message);
         }
-        const fd = new FormData();
-        fd.append("kind", kind);
-        fd.append("file", file);
-
-        const res = await fetch(
-          `/api/conf/${confId}/delegates/${delegateId}/documents`,
-          {
-            method: "POST",
-            body: fd,
+        setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
+        setPhotoUploadFeedback((prev) => ({
+          ...prev,
+          [field]: {
+            status: "uploading",
+            progress: 0,
+            message: `Uploading ${fileLabel}...`,
           },
-        );
+        }));
 
-        const responsePayload = await parseUploadErrorPayload(res);
-        if (!res.ok) {
-          throw new Error(
-            formatUploadError(
-              responsePayload,
-              `Failed to upload ${fileLabel}`,
-              res.status,
-            ),
-          );
-        }
-
-        flyerReady =
-          flyerReady ||
-          Boolean((responsePayload as { flyerReady?: boolean }).flyerReady);
+        await new Promise<void>((resolve, reject) => {
+          const fd = new FormData();
+          fd.append("kind", kind);
+          fd.append("file", file);
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", `/api/conf/${confId}/delegates/${delegateId}/documents`);
+          xhr.upload.onprogress = (event) => {
+            if (!event.lengthComputable) return;
+            const progress = Math.round((event.loaded / event.total) * 100);
+            setPhotoUploadFeedback((prev) => ({
+              ...prev,
+              [field]: {
+                status: "uploading",
+                progress,
+                message: `Uploading ${fileLabel}...`,
+              },
+            }));
+          };
+          xhr.onerror = () => {
+            const message = `${fileLabel}: Upload failed due to a network error.`;
+            setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+            setPhotoUploadFeedback((prev) => ({
+              ...prev,
+              [field]: {
+                status: "error",
+                progress: 0,
+                message,
+              },
+            }));
+            reject(new Error(message));
+          };
+          xhr.onload = async () => {
+            const status = xhr.status || 0;
+            const raw = xhr.responseText || "";
+            if (status < 200 || status >= 300) {
+              const payloadForError = await parseUploadErrorPayload(
+                new Response(raw, { status }),
+              );
+              const detail = formatUploadError(
+                payloadForError,
+                `Failed to upload ${fileLabel}`,
+                status,
+              );
+              const message = `${fileLabel}: ${detail}`;
+              setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
+              setPhotoUploadFeedback((prev) => ({
+                ...prev,
+                [field]: {
+                  status: "error",
+                  progress: 0,
+                  message,
+                },
+              }));
+              reject(new Error(message));
+              return;
+            }
+            let payload: { flyerReady?: boolean } = {};
+            try {
+              payload = raw ? (JSON.parse(raw) as { flyerReady?: boolean }) : {};
+            } catch {
+              payload = {};
+            }
+            flyerReady = flyerReady || Boolean(payload.flyerReady);
+            setPhotoUploadFeedback((prev) => ({
+              ...prev,
+              [field]: {
+                status: "done",
+                progress: 100,
+                message: `${fileLabel} uploaded successfully.`,
+              },
+            }));
+            resolve();
+          };
+          xhr.send(fd);
+        });
       };
 
-      await uploadDocument("passport", payload.passportPhoto);
-      await uploadDocument("entry-stamp", payload.lastEntryStampPhoto);
-      await uploadDocument("visa", payload.currentVisaPhoto);
-      await uploadDocument("booklet", payload.bookletPhoto);
+      await uploadDocument("passportPhoto", payload.passportPhoto);
+      await uploadDocument("lastEntryStampPhoto", payload.lastEntryStampPhoto);
+      await uploadDocument("currentVisaPhoto", payload.currentVisaPhoto);
+      await uploadDocument("bookletPhoto", payload.bookletPhoto);
 
       setSuccess({
         confId,
@@ -264,7 +346,11 @@ export function DelegatePublicRegister() {
 
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Registration failed");
+      setError(
+        e instanceof Error
+          ? `${e.message} Please check the highlighted upload field and retry.`
+          : "Registration failed. Please check the highlighted upload field and retry.",
+      );
       return false;
     } finally {
       setSubmitting(false);
@@ -719,6 +805,15 @@ export function DelegatePublicRegister() {
                 defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
                 draftKey="public-new"
+                photoFieldErrors={photoFieldErrors}
+                photoUploadFeedback={photoUploadFeedback}
+                onPhotoFileChange={(field) => {
+                  setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
+                  setPhotoUploadFeedback((prev) => ({
+                    ...prev,
+                    [field]: { status: "idle", progress: 0, message: "" },
+                  }));
+                }}
                 onSubmit={handleSubmit}
               />
             </CardContent>

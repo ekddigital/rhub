@@ -160,8 +160,23 @@ type Props = {
    * or a stable string like "new" for new registrations.
    */
   draftKey?: string;
+  photoFieldErrors?: Partial<Record<DelegatePhotoField, string>>;
+  photoUploadFeedback?: Partial<Record<DelegatePhotoField, UploadFeedback>>;
+  onPhotoFileChange?: (field: DelegatePhotoField, file: File | null) => void;
   onCancel?: () => void;
   onSubmit: (payload: DelegateRegistrationPayload) => Promise<boolean>;
+};
+
+export type DelegatePhotoField =
+  | "passportPhoto"
+  | "lastEntryStampPhoto"
+  | "currentVisaPhoto"
+  | "bookletPhoto";
+
+export type UploadFeedback = {
+  status: "idle" | "uploading" | "done" | "error";
+  progress: number;
+  message?: string;
 };
 
 type FeeOption = {
@@ -202,6 +217,9 @@ export function DelegateRegistrationForm({
   initialValues,
   isManagerMode = true,
   draftKey,
+  photoFieldErrors,
+  photoUploadFeedback,
+  onPhotoFileChange,
   onCancel,
   onSubmit,
 }: Props) {
@@ -322,6 +340,46 @@ export function DelegateRegistrationForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [draftRestored, setDraftRestored] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resolvePhotoError = (field: DelegatePhotoField) =>
+    fieldErrors[field] || photoFieldErrors?.[field] || "";
+
+  const renderUploadFeedback = (field: DelegatePhotoField) => {
+    const feedback = photoUploadFeedback?.[field];
+    if (!feedback || feedback.status === "idle") return null;
+    if (feedback.status === "uploading") {
+      return (
+        <div className="space-y-1">
+          <p className="text-xs text-[#002868]">
+            Uploading... {Math.max(0, Math.min(100, Math.round(feedback.progress)))}%
+          </p>
+          <div className="h-1.5 w-full rounded bg-[#002868]/15">
+            <div
+              className="h-full rounded bg-[#002868] transition-[width] duration-200"
+              style={{
+                width: `${Math.max(2, Math.min(100, Math.round(feedback.progress)))}%`,
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+    if (feedback.status === "done") {
+      return (
+        <p className="text-xs text-emerald-700">
+          {feedback.message || "Uploaded successfully."}
+        </p>
+      );
+    }
+    if (feedback.status === "error") {
+      return (
+        <p className="text-xs text-red-600">
+          {feedback.message || "Upload failed for this file."}
+        </p>
+      );
+    }
+    return null;
+  };
 
   const groupedRequiredFeeOptions = feeOptions.reduce<Record<string, FeeOption[]>>(
     (acc, item) => {
@@ -1542,14 +1600,17 @@ export function DelegateRegistrationForm({
             type="file"
             accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
-              setPassportPhoto(e.target.files?.[0] || null);
+              const nextFile = e.target.files?.[0] || null;
+              setPassportPhoto(nextFile);
               setFieldErrors((p) => ({ ...p, passportPhoto: "" }));
+              onPhotoFileChange?.("passportPhoto", nextFile);
             }}
-            className={fieldErrors.passportPhoto ? "border-red-500" : ""}
+            className={resolvePhotoError("passportPhoto") ? "border-red-500" : ""}
           />
-          {fieldErrors.passportPhoto && (
-            <p className="text-xs text-red-600">{fieldErrors.passportPhoto}</p>
+          {resolvePhotoError("passportPhoto") && (
+            <p className="text-xs text-red-600">{resolvePhotoError("passportPhoto")}</p>
           )}
+          {renderUploadFeedback("passportPhoto")}
           {passportPhoto && (
             <p className="text-xs text-muted-foreground">
               {passportPhoto.name}
@@ -1566,16 +1627,21 @@ export function DelegateRegistrationForm({
             type="file"
             accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
-              setLastEntryStampPhoto(e.target.files?.[0] || null);
+              const nextFile = e.target.files?.[0] || null;
+              setLastEntryStampPhoto(nextFile);
               setFieldErrors((p) => ({ ...p, lastEntryStampPhoto: "" }));
+              onPhotoFileChange?.("lastEntryStampPhoto", nextFile);
             }}
-            className={fieldErrors.lastEntryStampPhoto ? "border-red-500" : ""}
+            className={
+              resolvePhotoError("lastEntryStampPhoto") ? "border-red-500" : ""
+            }
           />
-          {fieldErrors.lastEntryStampPhoto && (
+          {resolvePhotoError("lastEntryStampPhoto") && (
             <p className="text-xs text-red-600">
-              {fieldErrors.lastEntryStampPhoto}
+              {resolvePhotoError("lastEntryStampPhoto")}
             </p>
           )}
+          {renderUploadFeedback("lastEntryStampPhoto")}
           {lastEntryStampPhoto && (
             <p className="text-xs text-muted-foreground">
               {lastEntryStampPhoto.name}
@@ -1592,16 +1658,19 @@ export function DelegateRegistrationForm({
             type="file"
             accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
             onChange={(e) => {
-              setCurrentVisaPhoto(e.target.files?.[0] || null);
+              const nextFile = e.target.files?.[0] || null;
+              setCurrentVisaPhoto(nextFile);
               setFieldErrors((p) => ({ ...p, currentVisaPhoto: "" }));
+              onPhotoFileChange?.("currentVisaPhoto", nextFile);
             }}
-            className={fieldErrors.currentVisaPhoto ? "border-red-500" : ""}
+            className={resolvePhotoError("currentVisaPhoto") ? "border-red-500" : ""}
           />
-          {fieldErrors.currentVisaPhoto && (
+          {resolvePhotoError("currentVisaPhoto") && (
             <p className="text-xs text-red-600">
-              {fieldErrors.currentVisaPhoto}
+              {resolvePhotoError("currentVisaPhoto")}
             </p>
           )}
+          {renderUploadFeedback("currentVisaPhoto")}
           {currentVisaPhoto && (
             <p className="text-xs text-muted-foreground">
               {currentVisaPhoto.name}
@@ -1618,14 +1687,17 @@ export function DelegateRegistrationForm({
             type="file"
             accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
             onChange={(e) => {
-              setBookletPhoto(e.target.files?.[0] || null);
+              const nextFile = e.target.files?.[0] || null;
+              setBookletPhoto(nextFile);
               setFieldErrors((p) => ({ ...p, bookletPhoto: "" }));
+              onPhotoFileChange?.("bookletPhoto", nextFile);
             }}
-            className={fieldErrors.bookletPhoto ? "border-red-500" : ""}
+            className={resolvePhotoError("bookletPhoto") ? "border-red-500" : ""}
           />
-          {fieldErrors.bookletPhoto && (
-            <p className="text-xs text-red-600">{fieldErrors.bookletPhoto}</p>
+          {resolvePhotoError("bookletPhoto") && (
+            <p className="text-xs text-red-600">{resolvePhotoError("bookletPhoto")}</p>
           )}
+          {renderUploadFeedback("bookletPhoto")}
           {bookletPhoto && (
             <p className="text-xs text-muted-foreground">{bookletPhoto.name}</p>
           )}
