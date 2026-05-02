@@ -96,6 +96,7 @@ type LetterType =
   | "ANNOUNCEMENT"
   | "BUDGET_LETTER"
   | "PAYMENT_RECEIPT"
+  | "FUNDRAISING"
   | "GENERAL";
 
 const LETTER_TYPE_LABELS: Record<LetterType, string> = {
@@ -104,6 +105,7 @@ const LETTER_TYPE_LABELS: Record<LetterType, string> = {
   ANNOUNCEMENT: "Announcement",
   BUDGET_LETTER: "Budget Letter",
   PAYMENT_RECEIPT: "Payment Receipt",
+  FUNDRAISING: "Fundraising",
   GENERAL: "General",
 };
 
@@ -113,6 +115,7 @@ const LETTER_TYPE_COLORS: Record<LetterType, string> = {
   ANNOUNCEMENT: "#BF0A30",
   BUDGET_LETTER: "#1a7a4a",
   PAYMENT_RECEIPT: "#7c3aed",
+  FUNDRAISING: "#8E0E00",
   GENERAL: "#666666",
 };
 
@@ -232,6 +235,27 @@ type SignatureProfile = {
   title?: string;
   signatureDataUrl: string;
 };
+
+const FUNDRAISING_BODY_SYNC_FIELDS: ReadonlySet<keyof LetterDraft> = new Set([
+  "fundraisingCategory",
+  "fundraisingRecipientName",
+  "fundraisingInviteRole",
+  "fundraisingInviteRoleOther",
+  "fundraisingTargetAmount",
+  "fundraisingUseOfFunds",
+  "fundraisingEventDate",
+  "fundraisingEventTime",
+  "fundraisingPaymentDeadline",
+  "fundraisingMeetingMedium",
+  "fundraisingMeetingId",
+  "fundraisingMeetingPassword",
+  "fundraisingMeetingLink",
+  "fundraisingOrgName",
+  "fundraisingConferenceTheme",
+  "fundraisingOfficeName",
+  "fundraisingAlumniGradYear",
+  "fundraisingPartnershipType",
+]);
 
 // ── localStorage helpers ─────────────────────────────────────────────────────
 
@@ -805,6 +829,29 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingAlumniGradYear: d.fundraisingAlumniGradYear,
     // NGO
     fundraisingPartnershipType: d.fundraisingPartnershipType,
+  };
+}
+
+function shouldAutoSyncFundraisingBody(draft: LetterDraft): boolean {
+  if (!draft.fundraisingEnabled) return false;
+  if (isLetterDraftBodyEmpty(draft)) return true;
+
+  const generatedRich = buildLetterBodyRichHtml(
+    allLetterBodyFieldsFromDraft(draft),
+  );
+  return (
+    richHtmlToPlainText(draft.bodyRich ?? "") ===
+    richHtmlToPlainText(generatedRich)
+  );
+}
+
+function syncFundraisingBodyFromFields(draft: LetterDraft): LetterDraft {
+  const html = buildLetterBodyRichHtml(allLetterBodyFieldsFromDraft(draft));
+  return {
+    ...draft,
+    bodyRich: html,
+    body: richHtmlToPlainText(html),
+    fundraisingLetterSampleApplied: true,
   };
 }
 
@@ -2555,8 +2602,10 @@ function LetterA4Preview({
           className="letter-page continuation-page letter-flyer-page"
           style={{
             width: PAGE_W,
+            height: PAGE_H,
             minHeight: PAGE_H,
-            height: "auto",
+            maxHeight: PAGE_H,
+            overflow: "hidden",
             flexShrink: 0,
             background: C.white,
             display: "flex",
@@ -2599,10 +2648,12 @@ function LetterA4Preview({
               {officeLabel}
             </div>
           </div>
-          {/* Flyer body — unrestricted height so the image is never clipped */}
+          {/* Flyer body — flex:1 fills remaining space so footer is pinned to bottom */}
           <div
             style={{
               flex: 1,
+              minHeight: 0,
+              overflow: "hidden",
               padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
               display: "flex",
               flexDirection: "column",
@@ -2611,7 +2662,7 @@ function LetterA4Preview({
             {renderPaymentMediumPreflyerNote()}
             {renderEmbeddedFundraisingFlyer()}
           </div>
-          {/* Footer */}
+          {/* Footer — always at the bottom because wrapper has fixed PAGE_H and body has flex:1 */}
           <div
             style={{
               height: FOOTER_H,
@@ -2880,9 +2931,32 @@ export function LetterComposerShell() {
       activeDraft.signatoryMode === "FUNDRAISING" &&
       !activeDraft.fundraisingEnabled
     ) {
-      setActiveDraft((draft) => ({ ...draft, fundraisingEnabled: true }));
+      setActiveDraft((draft) => ({
+        ...draft,
+        fundraisingEnabled: true,
+        type: "FUNDRAISING",
+      }));
     }
   }, [activeDraft.signatoryMode, activeDraft.fundraisingEnabled]);
+
+  useEffect(() => {
+    if (activeDraft.fundraisingEnabled && activeDraft.type !== "FUNDRAISING") {
+      setActiveDraft((draft) =>
+        draft.fundraisingEnabled && draft.type !== "FUNDRAISING"
+          ? { ...draft, type: "FUNDRAISING" }
+          : draft,
+      );
+      return;
+    }
+
+    if (!activeDraft.fundraisingEnabled && activeDraft.type === "FUNDRAISING") {
+      setActiveDraft((draft) =>
+        !draft.fundraisingEnabled && draft.type === "FUNDRAISING"
+          ? { ...draft, type: "GENERAL" }
+          : draft,
+      );
+    }
+  }, [activeDraft.fundraisingEnabled, activeDraft.type]);
 
   useEffect(() => {
     setActiveDraft((d) => mergeFundraisingTemplateIfEligible(d));
@@ -3089,9 +3163,47 @@ export function LetterComposerShell() {
 
   const set = useCallback(
     (field: keyof LetterDraft) => (v: string) =>
-      setActiveDraft((d) => ({ ...d, [field]: v })),
+      setActiveDraft((d) => {
+        const next = { ...d, [field]: v };
+        if (!FUNDRAISING_BODY_SYNC_FIELDS.has(field)) {
+          return next;
+        }
+        if (!shouldAutoSyncFundraisingBody(d)) {
+          return next;
+        }
+        return syncFundraisingBodyFromFields(next);
+      }),
     [],
   );
+
+  const handleLetterTypeChange = useCallback((nextType: LetterType) => {
+    setActiveDraft((d) => {
+      const switchingOffFundraisingType =
+        d.type === "FUNDRAISING" && nextType !== "FUNDRAISING";
+
+      const next: LetterDraft = {
+        ...d,
+        type: nextType,
+        fundraisingEnabled:
+          nextType === "FUNDRAISING"
+            ? true
+            : switchingOffFundraisingType
+              ? false
+              : d.fundraisingEnabled,
+        signatoryMode:
+          switchingOffFundraisingType && d.signatoryMode === "FUNDRAISING"
+            ? "CUSTOM"
+            : d.signatoryMode,
+        fundraisingLetterSampleApplied: switchingOffFundraisingType
+          ? false
+          : d.fundraisingLetterSampleApplied,
+      };
+
+      return nextType === "FUNDRAISING"
+        ? mergeFundraisingTemplateIfEligible(next)
+        : next;
+    });
+  }, []);
 
   const applyOfficeFromRole = useCallback(
     (roleKey: string) => {
@@ -3173,6 +3285,7 @@ export function LetterComposerShell() {
           const next: LetterDraft = {
             ...d,
             signatoryMode: mode,
+            type: "FUNDRAISING",
             fundraisingEnabled: true,
             signatory1Name: s1Name,
             signatory1Title:
@@ -3235,7 +3348,11 @@ export function LetterComposerShell() {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 794px; background: #888; }
-    .letter-page { box-shadow: none !important; display: block !important; }
+    .letter-page {
+      box-shadow: none !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
     @page { size: A4 portrait; margin: 0; }
     @media print {
       html, body { background: #fff !important; width: 210mm; overflow: visible; }
@@ -3243,7 +3360,9 @@ export function LetterComposerShell() {
         width: 210mm !important;
         min-height: 297mm !important;
         height: 297mm !important;
-        max-height: 297mm !important;
+        max-height: none !important;
+        display: flex !important;
+        flex-direction: column !important;
         box-shadow: none !important;
         break-after: page;
         page-break-after: always;
@@ -3323,7 +3442,9 @@ export function LetterComposerShell() {
             width: 210mm !important;
             min-height: 297mm !important;
             height: 297mm !important;
-            max-height: 297mm !important;
+            max-height: none !important;
+            display: flex !important;
+            flex-direction: column !important;
             box-shadow: none !important;
             transform: none !important;
             margin: 0 !important;
@@ -3490,6 +3611,7 @@ export function LetterComposerShell() {
                   "ANNOUNCEMENT",
                   "BUDGET_LETTER",
                   "PAYMENT_RECEIPT",
+                  "FUNDRAISING",
                   "GENERAL",
                 ] as (LetterType | "")[]
               ).map((t) => (
@@ -3755,10 +3877,7 @@ export function LetterComposerShell() {
                       className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
                       value={activeDraft.type}
                       onChange={(e) =>
-                        setActiveDraft((d) => ({
-                          ...d,
-                          type: e.target.value as LetterType,
-                        }))
+                        handleLetterTypeChange(e.target.value as LetterType)
                       }
                     >
                       {(Object.keys(LETTER_TYPE_LABELS) as LetterType[]).map(
@@ -3839,15 +3958,27 @@ export function LetterComposerShell() {
                       checked={activeDraft.fundraisingEnabled}
                       onChange={(e) => {
                         const checked = e.target.checked;
-                        setActiveDraft((d) =>
-                          mergeFundraisingTemplateIfEligible({
+                        setActiveDraft((d) => {
+                          const next: LetterDraft = {
                             ...d,
                             fundraisingEnabled: checked,
+                            type: checked
+                              ? "FUNDRAISING"
+                              : d.type === "FUNDRAISING"
+                                ? "GENERAL"
+                                : d.type,
+                            signatoryMode:
+                              !checked && d.signatoryMode === "FUNDRAISING"
+                                ? "CUSTOM"
+                                : d.signatoryMode,
                             ...(checked
                               ? {}
                               : { fundraisingLetterSampleApplied: false }),
-                          }),
-                        );
+                          };
+                          return checked
+                            ? mergeFundraisingTemplateIfEligible(next)
+                            : next;
+                        });
                       }}
                     />
                     Enable outreach / fundraising letter mode
@@ -3868,6 +3999,7 @@ export function LetterComposerShell() {
                             setActiveDraft((d) =>
                               mergeFundraisingTemplateIfEligible({
                                 ...d,
+                                type: "FUNDRAISING",
                                 fundraisingCategory: cat,
                                 bodyRich: "<p></p>",
                                 body: "",

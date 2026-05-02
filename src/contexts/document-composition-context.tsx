@@ -14,6 +14,7 @@ export type DocumentType =
   | "ANNOUNCEMENT"
   | "BUDGET_LETTER"
   | "PAYMENT_RECEIPT"
+  | "FUNDRAISING"
   | "GENERAL";
 
 export interface DocumentSignatory {
