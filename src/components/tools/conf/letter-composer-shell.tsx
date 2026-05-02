@@ -5,7 +5,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  type CSSProperties,
   type ReactNode,
 } from "react";
 import Link from "next/link";
@@ -51,6 +50,21 @@ import {
   buildLetterheadEmailLine,
 } from "@/lib/conf/letterhead-config";
 import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
+import {
+  buildFundraisingLetterBodyRichHtml,
+  FUNDRAISING_SAMPLE_DOC_TITLE,
+  FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
+  FUNDRAISING_SAMPLE_TO,
+  FUNDRAISING_SAMPLE_FROM,
+  FUNDRAISING_SAMPLE_SUBJECT,
+  FUNDRAISING_SAMPLE_ADDRESS,
+  FUNDRAISING_SAMPLE_RECIPIENT_NAME,
+  FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+  FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+  FUNDRAISING_SAMPLE_EVENT_DATE,
+  FUNDRAISING_SAMPLE_EVENT_TIME,
+  FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
+} from "@/lib/conf/fundraising-letter-template";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -136,6 +150,8 @@ type LetterDraft = {
   fundraisingMeetingLink: string;
   fundraisingMeetingId: string;
   fundraisingMeetingPassword: string;
+  /** Last time we merged the FUNDRAISING_LETTER sample on enable (avoid clobbering edits). Reset when disabling fundraising mode. */
+  fundraisingLetterSampleApplied: boolean;
   savedAt: string;
 };
 
@@ -370,6 +386,25 @@ function normalizeMarkdownToReadableText(text: string): string {
     .trim();
 }
 
+/** TipTap often wraps paragraphs in single root `<div>`; DOMParser would treat that as one paragraph. */
+function letterHtmlTopLevelElements(doc: Document): Element[] {
+  let nodes = Array.from(doc.body.children);
+  for (let depth = 0; depth < 6; depth++) {
+    if (nodes.length === 1) {
+      const tag = nodes[0].tagName.toLowerCase();
+      if (tag === "div" || tag === "article" || tag === "section") {
+        const inner = Array.from(nodes[0].children);
+        if (inner.length > 0) {
+          nodes = inner;
+          continue;
+        }
+      }
+    }
+    break;
+  }
+  return nodes;
+}
+
 function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
   const trimmed = html.trim();
   if (!trimmed) return [];
@@ -382,7 +417,7 @@ function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
     const readText = (el: Element) =>
       (el.textContent || "").replace(/\s+/g, " ").trim();
 
-    Array.from(doc.body.children).forEach((el) => {
+    letterHtmlTopLevelElements(doc).forEach((el) => {
       const tag = el.tagName.toLowerCase();
 
       if (/^h[1-4]$/.test(tag)) {
@@ -458,6 +493,17 @@ function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
   return fallback.split("\n\n").map((text) => ({ type: "paragraph", text }));
 }
 
+/** Older fundraiser drafts stored list-based markup; regenerate table layout from sidebar fields */
+function legacyBulletedFundraisingBody(html: string): boolean {
+  const h = html.trim();
+  if (!h || /<table\b/i.test(h)) return false;
+  if (!/<ul\b/i.test(h)) return false;
+  return (
+    /<h[34][^>]*>\s*Fundraising\s+goal\b/i.test(h) ||
+    /<h[34][^>]*>\s*What your support will fund\b/i.test(h)
+  );
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -483,7 +529,7 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     ? (d.signatory1Title ?? "")
     : (d.signatory3Title ?? "");
 
-  return {
+  const base: LetterDraft = {
     id: d.id ?? newId(),
     dbId: (d as Partial<LetterDraft>).dbId ?? "",
     type: (d as Partial<LetterDraft>).type ?? "GENERAL",
@@ -533,8 +579,36 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     fundraisingMeetingId: d.fundraisingMeetingId ?? DEFAULT_FUNDRAISING_MEETING_ID,
     fundraisingMeetingPassword:
       d.fundraisingMeetingPassword ?? DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    fundraisingLetterSampleApplied: d.fundraisingLetterSampleApplied ?? false,
     savedAt: d.savedAt ?? "",
   };
+
+  if (
+    base.fundraisingEnabled &&
+    legacyBulletedFundraisingBody(base.bodyRich ?? "")
+  ) {
+    const rebuiltHtml = buildFundraisingLetterBodyRichHtml({
+      fundraisingRecipientName: base.fundraisingRecipientName,
+      fundraisingInviteRole: base.fundraisingInviteRole,
+      fundraisingInviteRoleOther: base.fundraisingInviteRoleOther,
+      fundraisingTargetAmount: base.fundraisingTargetAmount,
+      fundraisingUseOfFunds: base.fundraisingUseOfFunds,
+      fundraisingEventDate: base.fundraisingEventDate,
+      fundraisingEventTime: base.fundraisingEventTime,
+      fundraisingPaymentDeadline: base.fundraisingPaymentDeadline,
+      fundraisingMeetingMedium: base.fundraisingMeetingMedium,
+      fundraisingMeetingId: base.fundraisingMeetingId,
+      fundraisingMeetingPassword: base.fundraisingMeetingPassword,
+      fundraisingMeetingLink: base.fundraisingMeetingLink,
+    });
+    return {
+      ...base,
+      bodyRich: rebuiltHtml,
+      body: richHtmlToPlainText(rebuiltHtml),
+    };
+  }
+
+  return base;
 }
 
 function loadDrafts(): LetterDraft[] {
@@ -608,7 +682,138 @@ function newDraft(): LetterDraft {
     fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
     fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
     fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    fundraisingLetterSampleApplied: false,
     savedAt: "",
+  };
+}
+
+function richTextIsEssentiallyEmpty(rich: string): boolean {
+  const t = (rich ?? "").trim();
+  if (!t) return true;
+  if (t === "<p></p>" || t === "<p><br></p>" || t === "<p><br/></p>") {
+    return true;
+  }
+  const plain = richHtmlToPlainText(t)
+    .replace(/\u00a0/g, " ")
+    .replace(/\u200b/g, "")
+    .trim();
+  return plain.length === 0;
+}
+
+function isLetterDraftBodyEmpty(d: LetterDraft): boolean {
+  const rawBody = (d.body ?? "").replace(/\u00a0/g, " ").trim();
+  if (rawBody) return false;
+  return richTextIsEssentiallyEmpty(d.bodyRich ?? "");
+}
+
+function mergeFundraisingTemplateIfEligible(draft: LetterDraft): LetterDraft {
+  if (!draft.fundraisingEnabled || !isLetterDraftBodyEmpty(draft)) {
+    return draft;
+  }
+  return {
+    ...applyFundraisingLetterSample(draft, "if-empty"),
+    fundraisingLetterSampleApplied: true,
+  };
+}
+
+function fundraisingBodyFieldsFromDraft(
+  d: LetterDraft,
+): Parameters<typeof buildFundraisingLetterBodyRichHtml>[0] {
+  return {
+    fundraisingRecipientName: d.fundraisingRecipientName,
+    fundraisingInviteRole: d.fundraisingInviteRole,
+    fundraisingInviteRoleOther: d.fundraisingInviteRoleOther,
+    fundraisingTargetAmount: d.fundraisingTargetAmount,
+    fundraisingUseOfFunds: d.fundraisingUseOfFunds,
+    fundraisingEventDate: d.fundraisingEventDate,
+    fundraisingEventTime: d.fundraisingEventTime,
+    fundraisingPaymentDeadline: d.fundraisingPaymentDeadline,
+    fundraisingMeetingMedium: d.fundraisingMeetingMedium,
+    fundraisingMeetingId: d.fundraisingMeetingId,
+    fundraisingMeetingPassword: d.fundraisingMeetingPassword,
+    fundraisingMeetingLink: d.fundraisingMeetingLink,
+  };
+}
+
+/** Fundraising defaults from `@/lib/conf/fundraising-letter-template` — editable in Composer afterward. */
+function applyFundraisingLetterSample(
+  draft: LetterDraft,
+  mode: "if-empty" | "replace-all",
+): LetterDraft {
+  const trimmedUseOfFunds = FUNDRAISING_SAMPLE_USE_OF_FUNDS.trim();
+  const bodyWasEmpty = isLetterDraftBodyEmpty(draft);
+  let merged: LetterDraft = { ...draft };
+
+  if (mode === "replace-all") {
+    merged = {
+      ...merged,
+      title: FUNDRAISING_SAMPLE_DOC_TITLE,
+      date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
+      to: FUNDRAISING_SAMPLE_TO,
+      from: FUNDRAISING_SAMPLE_FROM,
+      re: FUNDRAISING_SAMPLE_SUBJECT,
+      fundraisingInviteRole: "Sponsor",
+      fundraisingInviteRoleOther: "",
+      fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
+      fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
+      fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+      fundraisingUseOfFunds: trimmedUseOfFunds,
+      fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
+      fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
+      fundraisingPaymentDeadline: FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
+      fundraisingMeetingMedium: DEFAULT_FUNDRAISING_MEETING_MEDIUM,
+      fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
+      fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
+      fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    };
+  } else {
+    if (!(merged.title ?? "").trim()) {
+      merged = { ...merged, title: FUNDRAISING_SAMPLE_DOC_TITLE };
+    }
+    if (!(merged.date ?? "").trim()) {
+      merged = { ...merged, date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER };
+    }
+    if (!(merged.to ?? "").trim()) merged = { ...merged, to: FUNDRAISING_SAMPLE_TO };
+    if (!(merged.from ?? "").trim())
+      merged = { ...merged, from: FUNDRAISING_SAMPLE_FROM };
+    if (!(merged.re ?? "").trim())
+      merged = { ...merged, re: FUNDRAISING_SAMPLE_SUBJECT };
+    if (!(merged.fundraisingRecipientName ?? "").trim()) {
+      merged = {
+        ...merged,
+        fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
+      };
+    }
+    if (!(merged.fundraisingRecipientAddress ?? "").trim()) {
+      merged = {
+        ...merged,
+        fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
+      };
+    }
+    if (!(merged.fundraisingTargetAmount ?? "").trim()) {
+      merged = {
+        ...merged,
+        fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+      };
+    }
+    if (!(merged.fundraisingUseOfFunds ?? "").trim()) {
+      merged = {
+        ...merged,
+        fundraisingUseOfFunds: trimmedUseOfFunds,
+      };
+    }
+  }
+
+  const wantBody = mode === "replace-all" || bodyWasEmpty;
+  if (!wantBody) return merged;
+
+  const html = buildFundraisingLetterBodyRichHtml(
+    fundraisingBodyFieldsFromDraft(merged),
+  );
+  return {
+    ...merged,
+    bodyRich: html,
+    body: richHtmlToPlainText(html),
   };
 }
 
@@ -776,6 +981,13 @@ function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
+/**
+ * When estimating "will this block fit on the previous sheet?", allow a few extra
+ * line-slots so preview pages fill closer to the A4 limit (table/heading heuristics
+ * are slightly pessimistic). Keeps greedy breaks strict; only slack backfill uses this.
+ */
+const PAGINATION_BACKFILL_LINE_TOLERANCE = 3;
+
 function estimateBlockLines(block: LetterBodyBlock, metrics: PageMetrics): number {
   const paragraphLines = (text: string, bonus = 1) =>
     Math.max(1, wrapParagraph(text, metrics).length + bonus);
@@ -803,22 +1015,137 @@ function estimateBlockLines(block: LetterBodyBlock, metrics: PageMetrics): numbe
     );
   }
   if (block.type === "table") {
-    const rowCount = block.rows.length + (block.headers.length > 0 ? 1 : 0);
-    return Math.max(4, rowCount * 2 + 2);
+    const hasHeaderRow = block.headers.length > 0 ? 1 : 0;
+    const rowCount = hasHeaderRow + block.rows.length;
+    // Render uses 10.5px type and ~4px padding; ~1.15–1.25 "line units" per row is closer than 1.65.
+    return Math.max(3, Math.ceil(rowCount * 1.22) + 1);
   }
   return 2;
+}
+
+/**
+ * Headings stranded alone at the foot of a page (with their table/list on the next sheet)
+ * create large empty margins. Pull trailing headings onto the next page whenever possible.
+ */
+function coalesceTrailingHeadingsOntoNextPage(
+  pages: LetterBodyBlock[][],
+): LetterBodyBlock[][] {
+  const out = pages;
+  let p = 0;
+  while (p < Math.max(0, out.length - 1)) {
+    const cur = out[p];
+    const nxt = out[p + 1];
+    if (!cur?.length || !nxt?.length) {
+      p++;
+      continue;
+    }
+    if (cur[cur.length - 1].type !== "heading") {
+      p++;
+      continue;
+    }
+    nxt.unshift(cur.pop()!);
+    if (cur.length === 0) out.splice(p, 1);
+    else p++;
+  }
+  return out.length > 0 ? out : [[]];
+}
+
+/** Fix stray empty pagination buckets */
+function dropEmptyPaginationPages(pages: LetterBodyBlock[][]): LetterBodyBlock[][] {
+  const next = pages.filter((seg) => seg.length > 0);
+  return next.length > 0 ? next : [[]];
+}
+
+/**
+ * Greedy pagination can leave large trailing slack on page P while P+1 begins with
+ * a block that would still fit (e.g. a table after a section title). Pull blocks
+ * forward so we fill vertical slack for every letter body, not just this template.
+ */
+function backfillSlackOnce(
+  pages: LetterBodyBlock[][],
+  firstCap: number,
+  continuationCap: number,
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  lineTolerance = 0,
+): boolean {
+  let moved = false;
+  for (let p = 0; p < pages.length - 1; p++) {
+    const cap = p === 0 ? firstCap : continuationCap;
+    const targetMetrics =
+      p === 0 ? firstPageMetrics : continuationPageMetrics;
+    while (pages[p + 1]?.length) {
+      const head = pages[p + 1][0];
+      const used = pages[p].reduce(
+        (sum, b) => sum + estimateBlockLines(b, targetMetrics),
+        0,
+      );
+      const add = estimateBlockLines(head, targetMetrics);
+      if (used + add <= cap + lineTolerance) {
+        pages[p].push(pages[p + 1].shift()!);
+        moved = true;
+      } else {
+        break;
+      }
+    }
+  }
+  return moved;
+}
+
+function spliceOutEmptyIntermediatePages(pages: LetterBodyBlock[][]): void {
+  for (let i = pages.length - 1; i >= 0; i--) {
+    if (pages[i].length === 0 && pages.length > 1) {
+      pages.splice(i, 1);
+    }
+  }
+}
+
+function runBackfillSlackConvergence(
+  pages: LetterBodyBlock[][],
+  firstCap: number,
+  continuationCap: number,
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  lineTolerance = 0,
+): void {
+  for (let guard = 0; guard < 32; guard++) {
+    spliceOutEmptyIntermediatePages(pages);
+    const moved = backfillSlackOnce(
+      pages,
+      firstCap,
+      continuationCap,
+      firstPageMetrics,
+      continuationPageMetrics,
+      lineTolerance,
+    );
+    if (!moved) break;
+  }
+  spliceOutEmptyIntermediatePages(pages);
 }
 
 function paginateBodyBlocks(
   blocks: LetterBodyBlock[],
   firstPageMetrics: PageMetrics,
   continuationPageMetrics: PageMetrics,
-  signatoryLinesNeeded: number,
+  signatureReserveLines: number,
+  firstPageLeadReserveLines: number,
 ): LetterBodyBlock[][] {
   if (blocks.length === 0) return [[]];
 
-  const firstCap = estimateLinesPerPage(firstPageMetrics);
-  const continuationCap = estimateLinesPerPage(continuationPageMetrics);
+  const rawFirstCap = estimateLinesPerPage(firstPageMetrics);
+  const rawContinuationCap = estimateLinesPerPage(continuationPageMetrics);
+  // Subtract To/From/date chrome from raw line budget first, then apply a light margin.
+  // (Applying margin to the full page before subtracting lead was over-penalizing body space.)
+  const firstCap = Math.max(
+    14,
+    Math.floor(
+      Math.max(0, rawFirstCap - Math.max(0, firstPageLeadReserveLines)) * 0.985,
+    ),
+  );
+  const continuationCap = Math.max(
+    14,
+    Math.floor(rawContinuationCap * 0.985),
+  );
 
   const pages: LetterBodyBlock[][] = [[]];
   let pageIndex = 0;
@@ -826,11 +1153,33 @@ function paginateBodyBlocks(
 
   const pageCap = () => (pageIndex === 0 ? firstCap : continuationCap);
 
-  for (const block of blocks) {
-    const blockLines = estimateBlockLines(
-      block,
-      pageIndex === 0 ? firstPageMetrics : continuationPageMetrics,
-    );
+  const metricsAt = () =>
+    pageIndex === 0 ? firstPageMetrics : continuationPageMetrics;
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const metrics = metricsAt();
+    const blockLines = estimateBlockLines(block, metrics);
+    const nextBlock = blocks[i + 1];
+    const nextLines = nextBlock
+      ? estimateBlockLines(nextBlock, metrics)
+      : 0;
+
+    // Do not end a page with a section title while its following block is forced to the next sheet.
+    if (
+      block.type === "heading" &&
+      nextBlock &&
+      pages[pageIndex].length > 0
+    ) {
+      const remainder = pageCap() - usedLines;
+      const headingFitsInRemainder = remainder >= blockLines;
+      const pairFitsInRemainder = remainder >= blockLines + nextLines;
+      if (headingFitsInRemainder && !pairFitsInRemainder) {
+        pages.push([]);
+        pageIndex += 1;
+        usedLines = 0;
+      }
+    }
 
     if (usedLines + blockLines > pageCap() && pages[pageIndex].length > 0) {
       pages.push([]);
@@ -838,21 +1187,31 @@ function paginateBodyBlocks(
       usedLines = 0;
     }
 
+    const blockMetrics = metricsAt();
     pages[pageIndex].push(block);
-    usedLines += estimateBlockLines(
-      block,
-      pageIndex === 0 ? firstPageMetrics : continuationPageMetrics,
-    );
+    usedLines += estimateBlockLines(block, blockMetrics);
   }
 
-  if (signatoryLinesNeeded > 0 && pages.length > 0) {
-    let lastIndex = pages.length - 1;
+  runBackfillSlackConvergence(
+    pages,
+    firstCap,
+    continuationCap,
+    firstPageMetrics,
+    continuationPageMetrics,
+    PAGINATION_BACKFILL_LINE_TOLERANCE,
+  );
+  let normalized = dropEmptyPaginationPages(pages);
+  normalized = coalesceTrailingHeadingsOntoNextPage(normalized);
+  normalized = dropEmptyPaginationPages(normalized);
+
+  if (signatureReserveLines > 0 && normalized.length > 0) {
+    let lastIndex = normalized.length - 1;
     const reserveCap = Math.max(
       8,
-      (lastIndex === 0 ? firstCap : continuationCap) - signatoryLinesNeeded,
+      (lastIndex === 0 ? firstCap : continuationCap) - signatureReserveLines,
     );
 
-    let used = pages[lastIndex].reduce(
+    let used = normalized[lastIndex].reduce(
       (sum, block) =>
         sum +
         estimateBlockLines(
@@ -862,12 +1221,12 @@ function paginateBodyBlocks(
       0,
     );
 
-    while (used > reserveCap && pages[lastIndex].length > 1) {
-      const moved = pages[lastIndex].pop();
+    while (used > reserveCap && normalized[lastIndex].length > 1) {
+      const moved = normalized[lastIndex].pop();
       if (!moved) break;
-      if (!pages[lastIndex + 1]) pages.push([]);
-      pages[lastIndex + 1].unshift(moved);
-      used = pages[lastIndex].reduce(
+      if (!normalized[lastIndex + 1]) normalized.push([]);
+      normalized[lastIndex + 1].unshift(moved);
+      used = normalized[lastIndex].reduce(
         (sum, block) =>
           sum +
           estimateBlockLines(
@@ -876,11 +1235,22 @@ function paginateBodyBlocks(
           ),
         0,
       );
-      lastIndex = pages.length - 1;
+      lastIndex = normalized.length - 1;
     }
   }
 
-  return pages;
+  runBackfillSlackConvergence(
+    normalized,
+    firstCap,
+    continuationCap,
+    firstPageMetrics,
+    continuationPageMetrics,
+    PAGINATION_BACKFILL_LINE_TOLERANCE,
+  );
+  normalized = coalesceTrailingHeadingsOntoNextPage(normalized);
+  normalized = dropEmptyPaginationPages(normalized);
+
+  return normalized;
 }
 
 function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
@@ -1066,10 +1436,28 @@ function LetterA4Preview({
   const FOOTER_H = 32;
   const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
   const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
+  /** Main letter column vertical padding (`paddingTop` + `paddingBottom` on primary body pane) */
+  const FIRST_MAIN_VERTICAL_PADDING = 24 + 24;
+  /** Continuation sheet: stripes + condensed title strip — keep JSX heights in sync for true A4 pages */
+  const CONTINUATION_STRIPES_H = 8;
+  const CONTINUATION_TITLEBAR_BODY_H = 62; // padded bar + gold border-bottom
+  const CONTINUATION_LETTERHEAD_H =
+    CONTINUATION_STRIPES_H + CONTINUATION_TITLEBAR_BODY_H;
+  const continuationMiddlePx = PAGE_H - CONTINUATION_LETTERHEAD_H - FOOTER_H;
   const CONTINUATION_TEXT_PADDING_TOP = 20;
   const CONTINUATION_TEXT_PADDING_RIGHT = 96;
   const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
   const CONTINUATION_TEXT_PADDING_LEFT = 96;
+
+  /** Screen preview: rigid A4 frame; `@media print` / popup print CSS overrides with height:auto */
+  const letterPageChrome = {
+    width: PAGE_W,
+    minHeight: PAGE_H,
+    height: PAGE_H,
+    maxHeight: PAGE_H,
+    overflow: "hidden" as const,
+    flexShrink: 0 as const,
+  };
 
   const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
   const sortedMembers = [
@@ -1124,19 +1512,22 @@ function LetterA4Preview({
   const firstPageMetrics: PageMetrics = {
     name: "first-page",
     contentWidth: PAGE_W - SIDEBAR_W,
-    contentHeight: BODY_H,
+    contentHeight: Math.max(120, BODY_H - FIRST_MAIN_VERTICAL_PADDING),
     paddingLeft: 24,
     paddingRight: 32,
     fontSize: 12,
     lineHeight: 1.8,
   };
 
-  const continuationHeaderHeight = 8 + 10 + 2 + 10;
-  const continuationBodyHeight = PAGE_H - continuationHeaderHeight - FOOTER_H;
   const continuationPageMetrics: PageMetrics = {
     name: "continuation-page",
     contentWidth: PAGE_W,
-    contentHeight: continuationBodyHeight,
+    contentHeight: Math.max(
+      120,
+      continuationMiddlePx -
+        CONTINUATION_TEXT_PADDING_TOP -
+        CONTINUATION_TEXT_PADDING_BOTTOM,
+    ),
     paddingLeft: CONTINUATION_TEXT_PADDING_LEFT,
     paddingRight: CONTINUATION_TEXT_PADDING_RIGHT,
     fontSize: 12,
@@ -1148,16 +1539,20 @@ function LetterA4Preview({
   const fundraiserFooterPack =
     draft.fundraisingEnabled && signatories.length > 0;
   const paymentNoteLinesApprox = fundraiserFooterPack ? 8 : 0;
-  const embeddedFlyerLinesApprox = fundraiserFooterPack
+  const embeddedFlyerLinesApproxRaw = fundraiserFooterPack
     ? Math.max(
         estimateEmbeddedFlyerEquivalentLines(firstPageMetrics),
         estimateEmbeddedFlyerEquivalentLines(continuationPageMetrics),
       )
     : 0;
+  // The flyer attaches only to the signature sheet — reserving its full px height against
+  // pagination line counts was forcing almost all Letter Body blocks off page 1.
+  const embeddedFlyerLinesApproxForPagination =
+    fundraiserFooterPack ? Math.min(embeddedFlyerLinesApproxRaw, 22) : 0;
   const signatureReserveLines =
     signaturesBlockLines +
     paymentNoteLinesApprox +
-    embeddedFlyerLinesApprox;
+    embeddedFlyerLinesApproxForPagination;
 
   // Paginate structured body blocks using page-aware metrics
   const bodyBlocks = richHtmlToBodyBlocks(draft.bodyRich ?? "");
@@ -1172,43 +1567,27 @@ function LetterA4Preview({
             .map((text) => ({ type: "paragraph", text }) as LetterBodyBlock)
         : [];
 
+  const newlineRows = (s: string) => (s.trim() ? s.split("\n").length : 0);
+  const firstPageLeadReserveLines =
+    8 +
+    newlineRows(draft.to) * 2 +
+    newlineRows(draft.from) * 2 +
+    (draft.re.trim() ? 3 : 0);
+
   const blockPages = paginateBodyBlocks(
     normalizedBlocks,
     firstPageMetrics,
     continuationPageMetrics,
     signatureReserveLines,
+    firstPageLeadReserveLines,
   );
   const firstPageBlocks = blockPages[0] ?? [];
   const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
   const showFundraisingFlyer = Boolean(draft.fundraisingEnabled);
-  const effectiveInviteRole =
-    draft.fundraisingInviteRole === "Other"
-      ? draft.fundraisingInviteRoleOther || "Fundraising Invitee"
-      : draft.fundraisingInviteRole || "Fundraising Invitee";
   const totalPages = 1 + continuationBodies.length;
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
-  const fundraisingInvitationRowStyle: CSSProperties = {
-    display: "flex",
-    gap: 10,
-    alignItems: "flex-start",
-    marginBottom: 5,
-    fontSize: 10.5,
-    lineHeight: 1.55,
-    color: "#1f2937",
-    width: "100%",
-    boxSizing: "border-box",
-  };
-
-  const fundraisingInvitationLabelStyle: CSSProperties = {
-    flex: "0 0 128px",
-    fontWeight: 700,
-    color: C.navy,
-    fontSize: 10,
-    lineHeight: 1.5,
-    wordBreak: "break-word",
-  };
 
   /** Embedded flyer + payment slabs (flows under signatures on final letter sheet) */
   function renderEmbeddedFundraisingFlyer(): ReactNode {
@@ -1324,124 +1703,17 @@ function LetterA4Preview({
     );
   }
 
-  const fundraisingInvitationDetailsBlock =
-    showFundraisingFlyer && (
-      <div
-        style={{
-          marginTop: 8,
-          marginBottom: 8,
-          width: "100%",
-          maxWidth: "100%",
-          minWidth: 0,
-          boxSizing: "border-box",
-          border: `1px solid ${C.gold}`,
-          borderLeft: `4px solid ${C.red}`,
-          borderRadius: 6,
-          padding: "12px 14px",
-          background: "#fffdf7",
-        }}
-      >
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.navy, marginBottom: 8 }}>
-          Fundraising Invitation Details
-        </div>
-
-        <div style={fundraisingInvitationRowStyle}>
-          <span style={fundraisingInvitationLabelStyle}>Invite category</span>
-          <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" as const }}>
-            {effectiveInviteRole}
-          </span>
-        </div>
-        {draft.fundraisingRecipientName.trim() ? (
-          <div style={fundraisingInvitationRowStyle}>
-            <span style={fundraisingInvitationLabelStyle}>Recipient</span>
-            <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" as const }}>
-              {draft.fundraisingRecipientName}
-            </span>
-          </div>
-        ) : null}
-        {draft.fundraisingRecipientAddress.trim() ? (
-          <div style={fundraisingInvitationRowStyle}>
-            <span style={fundraisingInvitationLabelStyle}>Address</span>
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: "pre-line" }}>
-              {draft.fundraisingRecipientAddress}
-            </span>
-          </div>
-        ) : null}
-        {draft.fundraisingTargetAmount.trim() ? (
-          <div style={fundraisingInvitationRowStyle}>
-            <span style={fundraisingInvitationLabelStyle}>Target</span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              {draft.fundraisingTargetAmount}
-            </span>
-          </div>
-        ) : null}
-        {draft.fundraisingUseOfFunds.trim() ? (
-          <div style={fundraisingInvitationRowStyle}>
-            <span style={fundraisingInvitationLabelStyle}>Use of funds</span>
-            <span style={{ flex: 1, minWidth: 0, whiteSpace: "pre-line" }}>
-              {draft.fundraisingUseOfFunds}
-            </span>
-          </div>
-        ) : null}
-        <div style={fundraisingInvitationRowStyle}>
-          <span style={fundraisingInvitationLabelStyle}>Fundraising session</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            {draft.fundraisingEventDate || DEFAULT_FUNDRAISING_EVENT_DATE} (
-            {draft.fundraisingEventTime || DEFAULT_FUNDRAISING_EVENT_TIME})
-          </span>
-        </div>
-        <div style={fundraisingInvitationRowStyle}>
-          <span style={fundraisingInvitationLabelStyle}>Payment deadline</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            {draft.fundraisingPaymentDeadline ||
-              DEFAULT_FUNDRAISING_PAYMENT_DEADLINE}
-          </span>
-        </div>
-        <div style={fundraisingInvitationRowStyle}>
-          <span style={fundraisingInvitationLabelStyle}>Meeting medium</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            {draft.fundraisingMeetingMedium ||
-              DEFAULT_FUNDRAISING_MEETING_MEDIUM}
-          </span>
-        </div>
-        {draft.fundraisingMeetingLink.trim() ? (
-          <div style={fundraisingInvitationRowStyle}>
-            <span style={fundraisingInvitationLabelStyle}>Meeting link</span>
-            <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-              {draft.fundraisingMeetingLink}
-            </span>
-          </div>
-        ) : null}
-        {(draft.fundraisingMeetingId.trim() ||
-          draft.fundraisingMeetingPassword.trim()) ? (
-          <div style={{ ...fundraisingInvitationRowStyle, marginBottom: 0 }}>
-            <span style={fundraisingInvitationLabelStyle}>
-              Meeting ID / password
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              {draft.fundraisingMeetingId || DEFAULT_FUNDRAISING_MEETING_ID}
-              {" · "}
-              {draft.fundraisingMeetingPassword ||
-                DEFAULT_FUNDRAISING_MEETING_PASSWORD}
-            </span>
-          </div>
-        ) : null}
-      </div>
-    );
-
   return (
     <>
       <div
         className="letter-page"
         style={{
-          width: PAGE_W,
-          minHeight: PAGE_H,
-          height: "auto",
+          ...letterPageChrome,
           background: C.white,
           display: "flex",
           flexDirection: "column",
-          overflow: "visible",
           boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+          outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
           fontFamily: "'Helvetica Neue', Arial, sans-serif",
         }}
       >
@@ -1612,21 +1884,24 @@ function LetterA4Preview({
         <div
           style={{
             display: "flex",
-            flex: "1 1 auto",
             alignItems: "stretch",
             width: "100%",
-            minHeight: BODY_H,
-            overflow: "visible",
+            flexShrink: 0,
+            height: BODY_H,
+            maxHeight: BODY_H,
+            minHeight: 0,
+            overflow: "hidden",
           }}
         >
           {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
           <div
             style={{
               width: SIDEBAR_W,
+              height: BODY_H,
+              maxHeight: BODY_H,
               background: C.white,
               flexShrink: 0,
-              alignSelf: "stretch",
-              overflow: "visible",
+              overflow: "hidden",
               display: "flex",
               borderRight: `1px solid #dde3ef`,
             }}
@@ -1637,36 +1912,43 @@ function LetterA4Preview({
               <div style={{ width: 3, background: C.red }} />
             </div>
 
-            {/* Member list */}
+            {/* Member list column — header fixed, roster scrolls so long NEC lists obey A4 body height */}
             <div
               style={{
                 flex: 1,
+                minWidth: 0,
+                minHeight: 0,
                 padding: "12px 8px 12px 9px",
-                overflowY: "visible",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
               }}
             >
-              <div
-                style={{
-                  fontSize: 7.5,
-                  fontWeight: 800,
-                  color: C.navy,
-                  letterSpacing: "0.8px",
-                  textTransform: "uppercase" as const,
-                  textAlign: "center",
-                  marginBottom: 5,
-                }}
-              >
-                CONFERENCE COMMITTEE
+              <div style={{ flexShrink: 0 }}>
+                <div
+                  style={{
+                    fontSize: 7.5,
+                    fontWeight: 800,
+                    color: C.navy,
+                    letterSpacing: "0.8px",
+                    textTransform: "uppercase" as const,
+                    textAlign: "center",
+                    marginBottom: 5,
+                  }}
+                >
+                  CONFERENCE COMMITTEE
+                </div>
+                <div
+                  style={{
+                    height: 1,
+                    background: C.navy,
+                    opacity: 0.25,
+                    marginBottom: 9,
+                  }}
+                />
               </div>
-              <div
-                style={{
-                  height: 1,
-                  background: C.navy,
-                  opacity: 0.25,
-                  marginBottom: 9,
-                }}
-              />
-              {sortedMembers.map((m) => (
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+                {sortedMembers.map((m) => (
                 <div
                   key={m.id}
                   style={{ marginBottom: 6, textAlign: "center" }}
@@ -1735,6 +2017,7 @@ function LetterA4Preview({
                   />
                 </div>
               ))}
+              </div>
             </div>
           </div>
 
@@ -1743,8 +2026,11 @@ function LetterA4Preview({
             style={{
               flex: 1,
               minWidth: 0,
+              minHeight: 0,
+              height: BODY_H,
+              maxHeight: BODY_H,
               padding: "24px 32px 24px",
-              overflow: "visible",
+              overflow: "hidden",
             }}
           >
             {/* Date (right-aligned) */}
@@ -1795,8 +2081,6 @@ function LetterA4Preview({
                 </div>
               )}
             </div>
-
-            {fundraisingInvitationDetailsBlock}
 
             {/* Gold divider */}
             <div
@@ -1910,7 +2194,8 @@ function LetterA4Preview({
           </div>
         </div>
 
-        {/* ── Footer ── */}
+
+
         <div
           style={{
             height: FOOTER_H,
@@ -1967,23 +2252,32 @@ function LetterA4Preview({
             key={`cont-${idx}`}
             className="letter-page continuation-page"
             style={{
-              width: PAGE_W,
-              minHeight: PAGE_H,
+              ...letterPageChrome,
               background: C.white,
               display: "flex",
               flexDirection: "column",
               boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+              outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
               fontFamily: "'Helvetica Neue', Arial, sans-serif",
-              marginTop: 18,
+              marginTop: 0,
             }}
           >
-            <div style={{ display: "flex", height: 8, flexShrink: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                height: CONTINUATION_STRIPES_H,
+                flexShrink: 0,
+              }}
+            >
               {FLAG_STRIPES_11.map((color, i) => (
                 <div key={i} style={{ flex: 1, background: color }} />
               ))}
             </div>
             <div
               style={{
+                flexShrink: 0,
+                height: CONTINUATION_TITLEBAR_BODY_H,
+                boxSizing: "border-box",
                 padding: "10px 22px",
                 borderBottom: `2px solid ${C.gold}`,
                 display: "flex",
@@ -2001,7 +2295,10 @@ function LetterA4Preview({
 
             <div
               style={{
-                flex: 1,
+                flexShrink: 0,
+                height: continuationMiddlePx,
+                maxHeight: continuationMiddlePx,
+                overflow: "hidden",
                 padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
               }}
             >
@@ -2371,6 +2668,10 @@ export function LetterComposerShell() {
   }, [activeDraft.signatoryMode, activeDraft.fundraisingEnabled]);
 
   useEffect(() => {
+    setActiveDraft((d) => mergeFundraisingTemplateIfEligible(d));
+  }, [activeDraft.fundraisingEnabled, activeDraft.body, activeDraft.bodyRich]);
+
+  useEffect(() => {
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       persistDraft(activeDraft);
@@ -2649,7 +2950,7 @@ export function LetterComposerShell() {
           const s1Name = secretary?.name ?? "";
           const s2Name = chair?.name ?? "";
           const s3Name = necPresidentName || "";
-          return {
+          const next: LetterDraft = {
             ...d,
             signatoryMode: mode,
             fundraisingEnabled: true,
@@ -2674,6 +2975,7 @@ export function LetterComposerShell() {
             signatory3Label: "Attested",
             signatory3Sig: resolveSignatureForName(s3Name),
           };
+          return mergeFundraisingTemplateIfEligible(next);
         }
 
         return { ...d, signatoryMode: mode };
@@ -3302,9 +3604,12 @@ export function LetterComposerShell() {
                     Fundraising Attachment & Invite Context
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Enable this to append the fundraising flyer as the last page.
-                    Add invite context for sponsors, keynote speakers, patrons, or
-                    donors.
+                    Appends the fundraiser flyer on the last page. Letter copy is
+                    generated in TypeScript from the fundraising fields when the body
+                    is blank or when you load the sample. After changing dates, Zoom,
+                    target, invitation category, or use-of-funds, click &quot;Update
+                    letter from fields&quot; to refresh the Letter Body (replacing
+                    its current text).
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -3312,18 +3617,96 @@ export function LetterComposerShell() {
                     <input
                       type="checkbox"
                       checked={activeDraft.fundraisingEnabled}
-                      onChange={(e) =>
-                        setActiveDraft((d) => ({
-                          ...d,
-                          fundraisingEnabled: e.target.checked,
-                        }))
-                      }
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setActiveDraft((d) =>
+                          mergeFundraisingTemplateIfEligible({
+                            ...d,
+                            fundraisingEnabled: checked,
+                            ...(checked
+                              ? {}
+                              : { fundraisingLetterSampleApplied: false }),
+                          }),
+                        );
+                      }}
                     />
                     Enable fundraising mode and add flyer (`/conf/funraising.png`)
                   </label>
 
                   {activeDraft.fundraisingEnabled && (
                     <>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            className="h-8 shrink-0 text-xs"
+                            onClick={() => {
+                              const touched =
+                                !isLetterDraftBodyEmpty(activeDraft) ||
+                                !!(activeDraft.to ?? "").trim() ||
+                                !!(activeDraft.from ?? "").trim() ||
+                                !!(activeDraft.re ?? "").trim() ||
+                                !!(activeDraft.title ?? "").trim();
+
+                              if (
+                                touched &&
+                                typeof window !== "undefined" &&
+                                !window.confirm(
+                                  "Replace letter body, header fields, and fundraising details with the built-in LSUIC fundraising sample?",
+                                )
+                              ) {
+                                return;
+                              }
+                              setActiveDraft((d) => ({
+                                ...applyFundraisingLetterSample(d, "replace-all"),
+                                fundraisingLetterSampleApplied: true,
+                              }));
+                            }}
+                          >
+                            Load full sample letter
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            type="button"
+                            className="h-8 shrink-0 border-dashed text-xs"
+                            onClick={() => {
+                              if (
+                                typeof window !== "undefined" &&
+                                !isLetterDraftBodyEmpty(activeDraft) &&
+                                !window.confirm(
+                                  "Replace the Letter Body with freshly generated text from the fundraising fields on the left?",
+                                )
+                              ) {
+                                return;
+                              }
+                              setActiveDraft((d) => {
+                                const html = buildFundraisingLetterBodyRichHtml(
+                                  fundraisingBodyFieldsFromDraft(d),
+                                );
+                                return {
+                                  ...d,
+                                  bodyRich: html,
+                                  body: richHtmlToPlainText(html),
+                                  fundraisingLetterSampleApplied: true,
+                                };
+                              });
+                            }}
+                          >
+                            Update letter from fields
+                          </Button>
+                        </div>
+                        <p className="text-[11px] leading-snug text-muted-foreground">
+                          Source:{" "}
+                          <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
+                            src/lib/conf/fundraising-letter-template.ts
+                          </code>{" "}
+                          (not loaded from markdown).
+                        </p>
+                      </div>
+
                       <div className="space-y-1.5">
                         <Label className="text-xs">Invitation Category</Label>
                         <select
@@ -3861,6 +4244,10 @@ export function LetterComposerShell() {
                     margin: "0 auto",
                     marginBottom:
                       zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 16,
                   }}
                 >
                   <LetterA4Preview

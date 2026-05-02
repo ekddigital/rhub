@@ -58,3 +58,7 @@ If needed, we can share confirmation steps immediately after your payment for ac
 We would be honored to have your support. Your contribution is not only financial help; it is an investment in the growth, stability, and future leadership capacity of Liberian students in China.
 
 Thank you for your time, trust, and partnership.
+
+---
+
+_Stakeholder reference only — the app does not load this file. Production wording lives in `src/lib/conf/fundraising-letter-template.ts` (`buildFundraisingLetterBodyRichHtml`). Change messaging there first, then mirror here if you keep this document._
