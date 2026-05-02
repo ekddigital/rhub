@@ -1642,24 +1642,9 @@ function LetterA4Preview({
 
   /** Trailing slab: signatures + payment note + embedded flyer (same page as body tail) */
   const signaturesBlockLines = signatories.length > 0 ? 11 : 0;
-  const fundraiserFooterPack =
-    draft.fundraisingEnabled && signatories.length > 0;
-  const paymentNoteLinesApprox = fundraiserFooterPack ? 8 : 0;
-  const embeddedFlyerLinesApproxRaw = fundraiserFooterPack
-    ? Math.max(
-        estimateEmbeddedFlyerEquivalentLines(firstPageMetrics),
-        estimateEmbeddedFlyerEquivalentLines(continuationPageMetrics),
-      )
-    : 0;
-  // The flyer attaches only to the signature sheet — reserving its full px height against
-  // pagination line counts was forcing almost all Letter Body blocks off page 1.
-  const embeddedFlyerLinesApproxForPagination = fundraiserFooterPack
-    ? Math.min(embeddedFlyerLinesApproxRaw, 22)
-    : 0;
-  const signatureReserveLines =
-    signaturesBlockLines +
-    paymentNoteLinesApprox +
-    embeddedFlyerLinesApproxForPagination;
+  // Flyer and payment note now go on a dedicated attachment page — only reserve
+  // space for the signature block itself on the final body content page.
+  const signatureReserveLines = signaturesBlockLines;
 
   // Paginate structured body blocks using page-aware metrics
   const bodyBlocks = richHtmlToBodyBlocks(draft.bodyRich ?? "");
@@ -1696,7 +1681,8 @@ function LetterA4Preview({
   const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
   const showFundraisingFlyer = Boolean(draft.fundraisingEnabled);
-  const totalPages = 1 + continuationBodies.length;
+  const totalPages =
+    1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
 
@@ -2296,12 +2282,6 @@ function LetterA4Preview({
                 ))}
               </div>
             )}
-            {showSignaturesOnFirstPage &&
-              signatories.length > 0 &&
-              renderPaymentMediumPreflyerNote()}
-            {showSignaturesOnFirstPage &&
-              signatories.length > 0 &&
-              renderEmbeddedFundraisingFlyer()}
           </div>
         </div>
 
@@ -2499,12 +2479,6 @@ function LetterA4Preview({
                   ))}
                 </div>
               )}
-              {isLast &&
-                signatories.length > 0 &&
-                renderPaymentMediumPreflyerNote()}
-              {isLast &&
-                signatories.length > 0 &&
-                renderEmbeddedFundraisingFlyer()}
             </div>
 
             <div
@@ -2557,6 +2531,119 @@ function LetterA4Preview({
           </div>
         );
       })}
+
+      {/* ── Dedicated payment / flyer attachment page ── */}
+      {showFundraisingFlyer && (
+        <div
+          className="letter-page continuation-page letter-flyer-page"
+          style={{
+            width: PAGE_W,
+            minHeight: PAGE_H,
+            height: "auto",
+            flexShrink: 0,
+            background: C.white,
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+            outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
+            fontFamily: "'Helvetica Neue', Arial, sans-serif",
+            marginTop: 0,
+          }}
+        >
+          {/* Flag stripes */}
+          <div
+            style={{
+              display: "flex",
+              height: CONTINUATION_STRIPES_H,
+              flexShrink: 0,
+            }}
+          >
+            {FLAG_STRIPES_11.map((color, i) => (
+              <div key={i} style={{ flex: 1, background: color }} />
+            ))}
+          </div>
+          {/* Title bar */}
+          <div
+            style={{
+              flexShrink: 0,
+              height: CONTINUATION_TITLEBAR_BODY_H,
+              boxSizing: "border-box",
+              padding: "10px 22px",
+              borderBottom: `2px solid ${C.gold}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
+              {LETTERHEAD_CONFIG.organizationName}
+            </div>
+            <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+              {officeLabel}
+            </div>
+          </div>
+          {/* Flyer body — unrestricted height so the image is never clipped */}
+          <div
+            style={{
+              flex: 1,
+              padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {renderPaymentMediumPreflyerNote()}
+            {renderEmbeddedFundraisingFlyer()}
+          </div>
+          {/* Footer */}
+          <div
+            style={{
+              height: FOOTER_H,
+              background: C.navy,
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <div style={{ height: 2, background: C.red, width: "100%" }} />
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 14px",
+              }}
+            >
+              <div style={{ width: 48 }} />
+              <div
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: C.gold,
+                  letterSpacing: "0.5px",
+                  textAlign: "center",
+                }}
+              >
+                Honoring Our Past, Engaging Our Present, and Inspiring Our
+                Future
+              </div>
+              <div
+                style={{
+                  fontSize: 8,
+                  color: C.gold,
+                  opacity: 0.75,
+                  fontVariantNumeric: "tabular-nums",
+                  width: 48,
+                  textAlign: "right",
+                }}
+              >
+                Page {totalPages} of {totalPages}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -3751,7 +3838,9 @@ export function LetterComposerShell() {
                     <>
                       {/* ── Letter Category ── */}
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold">Letter Version</Label>
+                        <Label className="text-xs font-semibold">
+                          Letter Version
+                        </Label>
                         <select
                           className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
                           value={activeDraft.fundraisingCategory}
@@ -3768,13 +3857,16 @@ export function LetterComposerShell() {
                             );
                           }}
                         >
-                          {(Object.entries(FUNDRAISING_CATEGORY_LABELS) as [FundraisingCategory, string][]).map(
-                            ([key, label]) => (
-                              <option key={key} value={key}>
-                                {label}
-                              </option>
-                            ),
-                          )}
+                          {(
+                            Object.entries(FUNDRAISING_CATEGORY_LABELS) as [
+                              FundraisingCategory,
+                              string,
+                            ][]
+                          ).map(([key, label]) => (
+                            <option key={key} value={key}>
+                              {label}
+                            </option>
+                          ))}
                         </select>
                         <p className="text-[10px] text-muted-foreground leading-snug">
                           {activeDraft.fundraisingCategory === "general" &&
@@ -3861,7 +3953,10 @@ export function LetterComposerShell() {
                             : activeDraft.fundraisingCategory === "government"
                               ? "Title and Name"
                               : "Recipient Name"}
-                          <span className="text-muted-foreground"> (optional)</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            (optional)
+                          </span>
                         </Label>
                         <Input
                           className="h-8 text-sm"
@@ -3883,7 +3978,10 @@ export function LetterComposerShell() {
                       <div className="space-y-1.5">
                         <Label className="text-xs">
                           Recipient Address
-                          <span className="text-muted-foreground"> (optional)</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            (optional)
+                          </span>
                         </Label>
                         <Textarea
                           className="text-sm resize-none"
@@ -3900,7 +3998,9 @@ export function LetterComposerShell() {
                       {activeDraft.fundraisingCategory === "corporate" && (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Company / Organization Name</Label>
+                            <Label className="text-xs">
+                              Company / Organization Name
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               placeholder="e.g. Acme Corporation"
@@ -3917,14 +4017,19 @@ export function LetterComposerShell() {
                               placeholder={CONF_THEME}
                               value={activeDraft.fundraisingConferenceTheme}
                               onChange={(e) =>
-                                set("fundraisingConferenceTheme")(e.target.value)
+                                set("fundraisingConferenceTheme")(
+                                  e.target.value,
+                                )
                               }
                             />
                           </div>
                           <div className="space-y-1.5">
                             <Label className="text-xs">
                               Target Amount
-                              <span className="text-muted-foreground"> (optional)</span>
+                              <span className="text-muted-foreground">
+                                {" "}
+                                (optional)
+                              </span>
                             </Label>
                             <Input
                               className="h-8 text-sm"
@@ -3942,7 +4047,9 @@ export function LetterComposerShell() {
                       {activeDraft.fundraisingCategory === "government" && (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Embassy / Government Office Name</Label>
+                            <Label className="text-xs">
+                              Embassy / Government Office Name
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               placeholder="e.g. Embassy of Liberia in Beijing"
@@ -3959,7 +4066,9 @@ export function LetterComposerShell() {
                               placeholder={CONF_THEME}
                               value={activeDraft.fundraisingConferenceTheme}
                               onChange={(e) =>
-                                set("fundraisingConferenceTheme")(e.target.value)
+                                set("fundraisingConferenceTheme")(
+                                  e.target.value,
+                                )
                               }
                             />
                           </div>
@@ -3971,7 +4080,10 @@ export function LetterComposerShell() {
                         <div className="space-y-1.5">
                           <Label className="text-xs">
                             Graduation / Class Year
-                            <span className="text-muted-foreground"> (optional)</span>
+                            <span className="text-muted-foreground">
+                              {" "}
+                              (optional)
+                            </span>
                           </Label>
                           <Input
                             className="h-8 text-sm"
@@ -3988,13 +4100,17 @@ export function LetterComposerShell() {
                       {activeDraft.fundraisingCategory === "ngo" && (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Form of Partnership Sought</Label>
+                            <Label className="text-xs">
+                              Form of Partnership Sought
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               placeholder="e.g. funding, program collaboration, or resource sharing"
                               value={activeDraft.fundraisingPartnershipType}
                               onChange={(e) =>
-                                set("fundraisingPartnershipType")(e.target.value)
+                                set("fundraisingPartnershipType")(
+                                  e.target.value,
+                                )
                               }
                             />
                           </div>
@@ -4005,7 +4121,9 @@ export function LetterComposerShell() {
                               placeholder={CONF_THEME}
                               value={activeDraft.fundraisingConferenceTheme}
                               onChange={(e) =>
-                                set("fundraisingConferenceTheme")(e.target.value)
+                                set("fundraisingConferenceTheme")(
+                                  e.target.value,
+                                )
                               }
                             />
                           </div>
@@ -4024,7 +4142,10 @@ export function LetterComposerShell() {
                                 : activeDraft.fundraisingCategory === "ngo"
                                   ? "Impact Areas"
                                   : "Intended Use of Funds"}
-                          <span className="text-muted-foreground"> (one per line)</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            (one per line)
+                          </span>
                         </Label>
                         <Textarea
                           className="text-sm resize-none"
@@ -4046,7 +4167,8 @@ export function LetterComposerShell() {
                           }
                         />
                         <p className="text-[10px] text-muted-foreground">
-                          Start each line with <code>-</code> or leave plain. Leave blank to use defaults.
+                          Start each line with <code>-</code> or leave plain.
+                          Leave blank to use defaults.
                         </p>
                       </div>
 
@@ -4054,7 +4176,9 @@ export function LetterComposerShell() {
                       {activeDraft.fundraisingCategory === "general" && (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Invitation Category</Label>
+                            <Label className="text-xs">
+                              Invitation Category
+                            </Label>
                             <select
                               className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
                               value={activeDraft.fundraisingInviteRole}
@@ -4079,19 +4203,25 @@ export function LetterComposerShell() {
                           </div>
                           {activeDraft.fundraisingInviteRole === "Other" && (
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Custom Invitation Category</Label>
+                              <Label className="text-xs">
+                                Custom Invitation Category
+                              </Label>
                               <Input
                                 className="h-8 text-sm"
                                 placeholder="e.g. Strategic Development Partner"
                                 value={activeDraft.fundraisingInviteRoleOther}
                                 onChange={(e) =>
-                                  set("fundraisingInviteRoleOther")(e.target.value)
+                                  set("fundraisingInviteRoleOther")(
+                                    e.target.value,
+                                  )
                                 }
                               />
                             </div>
                           )}
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Target Fundraising Amount</Label>
+                            <Label className="text-xs">
+                              Target Fundraising Amount
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               placeholder="e.g. RMB 180,000"
@@ -4103,7 +4233,9 @@ export function LetterComposerShell() {
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Fundraising Date</Label>
+                              <Label className="text-xs">
+                                Fundraising Date
+                              </Label>
                               <Input
                                 className="h-8 text-sm"
                                 value={activeDraft.fundraisingEventDate}
@@ -4113,7 +4245,9 @@ export function LetterComposerShell() {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Fundraising Time</Label>
+                              <Label className="text-xs">
+                                Fundraising Time
+                              </Label>
                               <Input
                                 className="h-8 text-sm"
                                 value={activeDraft.fundraisingEventTime}
@@ -4129,7 +4263,9 @@ export function LetterComposerShell() {
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingPaymentDeadline}
                               onChange={(e) =>
-                                set("fundraisingPaymentDeadline")(e.target.value)
+                                set("fundraisingPaymentDeadline")(
+                                  e.target.value,
+                                )
                               }
                             />
                           </div>
@@ -4165,12 +4301,16 @@ export function LetterComposerShell() {
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <Label className="text-xs">Meeting Password</Label>
+                              <Label className="text-xs">
+                                Meeting Password
+                              </Label>
                               <Input
                                 className="h-8 text-sm"
                                 value={activeDraft.fundraisingMeetingPassword}
                                 onChange={(e) =>
-                                  set("fundraisingMeetingPassword")(e.target.value)
+                                  set("fundraisingMeetingPassword")(
+                                    e.target.value,
+                                  )
                                 }
                               />
                             </div>
@@ -4546,12 +4686,9 @@ export function LetterComposerShell() {
                 <div
                   className="letter-document"
                   style={{
-                    transform: `scale(${zoom / 100})`,
-                    transformOrigin: "top center",
+                    zoom: zoom / 100,
                     width: 794,
                     margin: "0 auto",
-                    marginBottom:
-                      zoom < 100 ? `${((zoom - 100) / 100) * 900}px` : 0,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
