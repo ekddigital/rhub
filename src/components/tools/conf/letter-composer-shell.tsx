@@ -52,6 +52,8 @@ import {
 import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 import {
   buildFundraisingLetterBodyRichHtml,
+  buildLetterBodyRichHtml,
+  FUNDRAISING_CATEGORY_LABELS,
   FUNDRAISING_SAMPLE_DOC_TITLE,
   FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
   FUNDRAISING_SAMPLE_TO,
@@ -64,6 +66,25 @@ import {
   FUNDRAISING_SAMPLE_EVENT_DATE,
   FUNDRAISING_SAMPLE_EVENT_TIME,
   FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
+  CONF_FROM_COMMITTEE,
+  CONF_THEME,
+  CORPORATE_SAMPLE_RECIPIENT,
+  CORPORATE_SAMPLE_ORG_NAME,
+  CORPORATE_SAMPLE_SUBJECT,
+  CORPORATE_SAMPLE_USE_OF_FUNDS,
+  GOVERNMENT_SAMPLE_RECIPIENT,
+  GOVERNMENT_SAMPLE_OFFICE,
+  GOVERNMENT_SAMPLE_SUBJECT,
+  GOVERNMENT_SAMPLE_USE_OF_FUNDS,
+  ALUMNI_SAMPLE_RECIPIENT,
+  ALUMNI_SAMPLE_SUBJECT,
+  ALUMNI_SAMPLE_USE_OF_FUNDS,
+  NGO_SAMPLE_RECIPIENT,
+  NGO_SAMPLE_SUBJECT,
+  NGO_SAMPLE_USE_OF_FUNDS,
+  NGO_SAMPLE_PARTNERSHIP_TYPE,
+  type FundraisingCategory,
+  type AllLetterBodyFields,
 } from "@/lib/conf/fundraising-letter-template";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -137,6 +158,8 @@ type LetterDraft = {
   signatory3Sig: string;
   signatory3SigScale: number;
   fundraisingEnabled: boolean;
+  /** Which letter version/audience this fundraising draft targets. */
+  fundraisingCategory: FundraisingCategory;
   fundraisingInviteRole: string;
   fundraisingInviteRoleOther: string;
   fundraisingRecipientName: string;
@@ -150,6 +173,16 @@ type LetterDraft = {
   fundraisingMeetingLink: string;
   fundraisingMeetingId: string;
   fundraisingMeetingPassword: string;
+  /** Corporate: company/organization name (separate from contact person). */
+  fundraisingOrgName: string;
+  /** Corporate / Government / NGO: conference theme to quote in the letter. */
+  fundraisingConferenceTheme: string;
+  /** Government: embassy or government office name. */
+  fundraisingOfficeName: string;
+  /** Alumni: graduation year or class year (optional). */
+  fundraisingAlumniGradYear: string;
+  /** NGO: form of partnership being requested. */
+  fundraisingPartnershipType: string;
   /** Last time we merged the FUNDRAISING_LETTER sample on enable (avoid clobbering edits). Reset when disabling fundraising mode. */
   fundraisingLetterSampleApplied: boolean;
   savedAt: string;
@@ -222,7 +255,10 @@ function plainBodyToRichHtml(body: string): string {
   if (!body.trim()) return "<p></p>";
   return body
     .split(/\n{2,}/)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`)
+    .map(
+      (paragraph) =>
+        `<p>${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`,
+    )
     .join("");
 }
 
@@ -288,7 +324,11 @@ function richHtmlToPlainText(html: string): string {
       }
 
       pushLine(text);
-      if (["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"].includes(tag)) {
+      if (
+        ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"].includes(
+          tag,
+        )
+      ) {
         pushBlankLine();
       }
     });
@@ -455,7 +495,9 @@ function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
       }
 
       if (tag === "table") {
-        const headerCells = Array.from(el.querySelectorAll("thead tr th, thead tr td"))
+        const headerCells = Array.from(
+          el.querySelectorAll("thead tr th, thead tr td"),
+        )
           .map((cell) => readText(cell))
           .filter(Boolean);
         const bodyRows = Array.from(el.querySelectorAll("tbody tr"))
@@ -488,7 +530,9 @@ function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
   }
 
   // Fallback for SSR or legacy drafts not carrying structured HTML.
-  const fallback = normalizeMarkdownToReadableText(richHtmlToPlainText(trimmed));
+  const fallback = normalizeMarkdownToReadableText(
+    richHtmlToPlainText(trimmed),
+  );
   if (!fallback) return [];
   return fallback.split("\n\n").map((text) => ({ type: "paragraph", text }));
 }
@@ -560,6 +604,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatory3SigScale: d.signatory3SigScale ?? 1,
     fundraisingEnabled:
       d.fundraisingEnabled ?? d.signatoryMode === "FUNDRAISING",
+    fundraisingCategory:
+      (d as Partial<LetterDraft>).fundraisingCategory ?? "general",
     fundraisingInviteRole: d.fundraisingInviteRole ?? "Sponsor",
     fundraisingInviteRoleOther: d.fundraisingInviteRoleOther ?? "",
     fundraisingRecipientName: d.fundraisingRecipientName ?? "",
@@ -576,9 +622,19 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       d.fundraisingMeetingMedium ?? DEFAULT_FUNDRAISING_MEETING_MEDIUM,
     fundraisingMeetingLink:
       d.fundraisingMeetingLink ?? DEFAULT_FUNDRAISING_MEETING_LINK,
-    fundraisingMeetingId: d.fundraisingMeetingId ?? DEFAULT_FUNDRAISING_MEETING_ID,
+    fundraisingMeetingId:
+      d.fundraisingMeetingId ?? DEFAULT_FUNDRAISING_MEETING_ID,
     fundraisingMeetingPassword:
       d.fundraisingMeetingPassword ?? DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    fundraisingOrgName: (d as Partial<LetterDraft>).fundraisingOrgName ?? "",
+    fundraisingConferenceTheme:
+      (d as Partial<LetterDraft>).fundraisingConferenceTheme ?? "",
+    fundraisingOfficeName:
+      (d as Partial<LetterDraft>).fundraisingOfficeName ?? "",
+    fundraisingAlumniGradYear:
+      (d as Partial<LetterDraft>).fundraisingAlumniGradYear ?? "",
+    fundraisingPartnershipType:
+      (d as Partial<LetterDraft>).fundraisingPartnershipType ?? "",
     fundraisingLetterSampleApplied: d.fundraisingLetterSampleApplied ?? false,
     savedAt: d.savedAt ?? "",
   };
@@ -669,6 +725,7 @@ function newDraft(): LetterDraft {
     signatory3Sig: "",
     signatory3SigScale: 1,
     fundraisingEnabled: false,
+    fundraisingCategory: "general" as FundraisingCategory,
     fundraisingInviteRole: "Sponsor",
     fundraisingInviteRoleOther: "",
     fundraisingRecipientName: "",
@@ -682,6 +739,11 @@ function newDraft(): LetterDraft {
     fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
     fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
     fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    fundraisingOrgName: "",
+    fundraisingConferenceTheme: "",
+    fundraisingOfficeName: "",
+    fundraisingAlumniGradYear: "",
+    fundraisingPartnershipType: "",
     fundraisingLetterSampleApplied: false,
     savedAt: "",
   };
@@ -711,15 +773,16 @@ function mergeFundraisingTemplateIfEligible(draft: LetterDraft): LetterDraft {
     return draft;
   }
   return {
-    ...applyFundraisingLetterSample(draft, "if-empty"),
+    ...applyLetterSample(draft, "if-empty"),
     fundraisingLetterSampleApplied: true,
   };
 }
 
-function fundraisingBodyFieldsFromDraft(
-  d: LetterDraft,
-): Parameters<typeof buildFundraisingLetterBodyRichHtml>[0] {
+/** Maps all draft fields to the AllLetterBodyFields shape consumed by the category dispatch builder. */
+function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
   return {
+    fundraisingCategory: d.fundraisingCategory,
+    // General / Sponsor fields
     fundraisingRecipientName: d.fundraisingRecipientName,
     fundraisingInviteRole: d.fundraisingInviteRole,
     fundraisingInviteRoleOther: d.fundraisingInviteRoleOther,
@@ -732,23 +795,36 @@ function fundraisingBodyFieldsFromDraft(
     fundraisingMeetingId: d.fundraisingMeetingId,
     fundraisingMeetingPassword: d.fundraisingMeetingPassword,
     fundraisingMeetingLink: d.fundraisingMeetingLink,
+    // Corporate
+    fundraisingOrgName: d.fundraisingOrgName,
+    fundraisingConferenceTheme: d.fundraisingConferenceTheme,
+    // Government
+    fundraisingOfficeName: d.fundraisingOfficeName,
+    // Alumni
+    fundraisingAlumniGradYear: d.fundraisingAlumniGradYear,
+    // NGO
+    fundraisingPartnershipType: d.fundraisingPartnershipType,
   };
 }
 
-/** Fundraising defaults from `@/lib/conf/fundraising-letter-template` — editable in Composer afterward. */
-function applyFundraisingLetterSample(
+/**
+ * Category-aware sample defaults. Each category fills sensible placeholder values for
+ * all header fields (to/from/re/title) and its own sidebar fields. Body is always
+ * regenerated from those values via the dispatcher `buildLetterBodyRichHtml`.
+ */
+function applyLetterSample(
   draft: LetterDraft,
   mode: "if-empty" | "replace-all",
 ): LetterDraft {
-  const trimmedUseOfFunds = FUNDRAISING_SAMPLE_USE_OF_FUNDS.trim();
   const bodyWasEmpty = isLetterDraftBodyEmpty(draft);
+  const cat = draft.fundraisingCategory;
   let merged: LetterDraft = { ...draft };
 
-  if (mode === "replace-all") {
-    merged = {
-      ...merged,
+  // Per-category default overrides
+  type Defaults = Partial<LetterDraft>;
+  const defaults: Record<FundraisingCategory, Defaults> = {
+    general: {
       title: FUNDRAISING_SAMPLE_DOC_TITLE,
-      date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
       to: FUNDRAISING_SAMPLE_TO,
       from: FUNDRAISING_SAMPLE_FROM,
       re: FUNDRAISING_SAMPLE_SUBJECT,
@@ -757,7 +833,7 @@ function applyFundraisingLetterSample(
       fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
       fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
       fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
-      fundraisingUseOfFunds: trimmedUseOfFunds,
+      fundraisingUseOfFunds: FUNDRAISING_SAMPLE_USE_OF_FUNDS.trim(),
       fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
       fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
       fundraisingPaymentDeadline: FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
@@ -765,56 +841,79 @@ function applyFundraisingLetterSample(
       fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
       fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
       fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+    },
+    corporate: {
+      title: "Corporate Sponsorship Request — LSUIC 2026 Conference",
+      to: CORPORATE_SAMPLE_RECIPIENT,
+      from: CONF_FROM_COMMITTEE,
+      re: CORPORATE_SAMPLE_SUBJECT,
+      fundraisingRecipientName: CORPORATE_SAMPLE_RECIPIENT,
+      fundraisingRecipientAddress: "",
+      fundraisingOrgName: CORPORATE_SAMPLE_ORG_NAME,
+      fundraisingConferenceTheme: CONF_THEME,
+      fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+      fundraisingUseOfFunds: CORPORATE_SAMPLE_USE_OF_FUNDS.trim(),
+    },
+    government: {
+      title: "Request for Support — LSUIC 2026 Conference",
+      to: GOVERNMENT_SAMPLE_RECIPIENT,
+      from: CONF_FROM_COMMITTEE,
+      re: GOVERNMENT_SAMPLE_SUBJECT,
+      fundraisingRecipientName: GOVERNMENT_SAMPLE_RECIPIENT,
+      fundraisingRecipientAddress: "",
+      fundraisingOfficeName: GOVERNMENT_SAMPLE_OFFICE,
+      fundraisingConferenceTheme: CONF_THEME,
+      fundraisingUseOfFunds: GOVERNMENT_SAMPLE_USE_OF_FUNDS.trim(),
+    },
+    alumni: {
+      title: "Alumni Giving — LSUIC 20th Anniversary",
+      to: ALUMNI_SAMPLE_RECIPIENT,
+      from: CONF_FROM_COMMITTEE,
+      re: ALUMNI_SAMPLE_SUBJECT,
+      fundraisingRecipientName: ALUMNI_SAMPLE_RECIPIENT,
+      fundraisingRecipientAddress: "",
+      fundraisingAlumniGradYear: "",
+      fundraisingUseOfFunds: ALUMNI_SAMPLE_USE_OF_FUNDS.trim(),
+    },
+    ngo: {
+      title: "NGO Partnership Request — LSUIC 2026 Conference",
+      to: NGO_SAMPLE_RECIPIENT,
+      from: CONF_FROM_COMMITTEE,
+      re: NGO_SAMPLE_SUBJECT,
+      fundraisingRecipientName: NGO_SAMPLE_RECIPIENT,
+      fundraisingRecipientAddress: "",
+      fundraisingConferenceTheme: CONF_THEME,
+      fundraisingPartnershipType: NGO_SAMPLE_PARTNERSHIP_TYPE,
+      fundraisingUseOfFunds: NGO_SAMPLE_USE_OF_FUNDS.trim(),
+    },
+  };
+
+  const catDefaults = defaults[cat] ?? defaults.general;
+
+  if (mode === "replace-all") {
+    merged = {
+      ...merged,
+      date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
+      ...catDefaults,
     };
   } else {
-    if (!(merged.title ?? "").trim()) {
-      merged = { ...merged, title: FUNDRAISING_SAMPLE_DOC_TITLE };
+    // Only fill empty fields
+    for (const [key, val] of Object.entries(catDefaults)) {
+      const k = key as keyof LetterDraft;
+      if (!(merged[k] as string | boolean | undefined)?.toString().trim()) {
+        (merged as Record<string, unknown>)[k] = val;
+      }
     }
     if (!(merged.date ?? "").trim()) {
       merged = { ...merged, date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER };
-    }
-    if (!(merged.to ?? "").trim()) merged = { ...merged, to: FUNDRAISING_SAMPLE_TO };
-    if (!(merged.from ?? "").trim())
-      merged = { ...merged, from: FUNDRAISING_SAMPLE_FROM };
-    if (!(merged.re ?? "").trim())
-      merged = { ...merged, re: FUNDRAISING_SAMPLE_SUBJECT };
-    if (!(merged.fundraisingRecipientName ?? "").trim()) {
-      merged = {
-        ...merged,
-        fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
-      };
-    }
-    if (!(merged.fundraisingRecipientAddress ?? "").trim()) {
-      merged = {
-        ...merged,
-        fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
-      };
-    }
-    if (!(merged.fundraisingTargetAmount ?? "").trim()) {
-      merged = {
-        ...merged,
-        fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
-      };
-    }
-    if (!(merged.fundraisingUseOfFunds ?? "").trim()) {
-      merged = {
-        ...merged,
-        fundraisingUseOfFunds: trimmedUseOfFunds,
-      };
     }
   }
 
   const wantBody = mode === "replace-all" || bodyWasEmpty;
   if (!wantBody) return merged;
 
-  const html = buildFundraisingLetterBodyRichHtml(
-    fundraisingBodyFieldsFromDraft(merged),
-  );
-  return {
-    ...merged,
-    bodyRich: html,
-    body: richHtmlToPlainText(html),
-  };
+  const html = buildLetterBodyRichHtml(allLetterBodyFieldsFromDraft(merged));
+  return { ...merged, bodyRich: html, body: richHtmlToPlainText(html) };
 }
 
 // ── Design constants (mirrors letterhead route) ───────────────────────────────
@@ -988,7 +1087,10 @@ function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
  */
 const PAGINATION_BACKFILL_LINE_TOLERANCE = 3;
 
-function estimateBlockLines(block: LetterBodyBlock, metrics: PageMetrics): number {
+function estimateBlockLines(
+  block: LetterBodyBlock,
+  metrics: PageMetrics,
+): number {
   const paragraphLines = (text: string, bonus = 1) =>
     Math.max(1, wrapParagraph(text, metrics).length + bonus);
 
@@ -1009,7 +1111,13 @@ function estimateBlockLines(block: LetterBodyBlock, metrics: PageMetrics): numbe
       block.items.reduce(
         (sum, item, idx) =>
           sum +
-          Math.max(1, wrapParagraph(`${block.ordered ? `${idx + 1}. ` : "• "}${item}`, metrics).length),
+          Math.max(
+            1,
+            wrapParagraph(
+              `${block.ordered ? `${idx + 1}. ` : "• "}${item}`,
+              metrics,
+            ).length,
+          ),
         0,
       ) + 1
     );
@@ -1051,7 +1159,9 @@ function coalesceTrailingHeadingsOntoNextPage(
 }
 
 /** Fix stray empty pagination buckets */
-function dropEmptyPaginationPages(pages: LetterBodyBlock[][]): LetterBodyBlock[][] {
+function dropEmptyPaginationPages(
+  pages: LetterBodyBlock[][],
+): LetterBodyBlock[][] {
   const next = pages.filter((seg) => seg.length > 0);
   return next.length > 0 ? next : [[]];
 }
@@ -1072,8 +1182,7 @@ function backfillSlackOnce(
   let moved = false;
   for (let p = 0; p < pages.length - 1; p++) {
     const cap = p === 0 ? firstCap : continuationCap;
-    const targetMetrics =
-      p === 0 ? firstPageMetrics : continuationPageMetrics;
+    const targetMetrics = p === 0 ? firstPageMetrics : continuationPageMetrics;
     while (pages[p + 1]?.length) {
       const head = pages[p + 1][0];
       const used = pages[p].reduce(
@@ -1142,10 +1251,7 @@ function paginateBodyBlocks(
       Math.max(0, rawFirstCap - Math.max(0, firstPageLeadReserveLines)) * 0.985,
     ),
   );
-  const continuationCap = Math.max(
-    14,
-    Math.floor(rawContinuationCap * 0.985),
-  );
+  const continuationCap = Math.max(14, Math.floor(rawContinuationCap * 0.985));
 
   const pages: LetterBodyBlock[][] = [[]];
   let pageIndex = 0;
@@ -1161,16 +1267,10 @@ function paginateBodyBlocks(
     const metrics = metricsAt();
     const blockLines = estimateBlockLines(block, metrics);
     const nextBlock = blocks[i + 1];
-    const nextLines = nextBlock
-      ? estimateBlockLines(nextBlock, metrics)
-      : 0;
+    const nextLines = nextBlock ? estimateBlockLines(nextBlock, metrics) : 0;
 
     // Do not end a page with a section title while its following block is forced to the next sheet.
-    if (
-      block.type === "heading" &&
-      nextBlock &&
-      pages[pageIndex].length > 0
-    ) {
+    if (block.type === "heading" && nextBlock && pages[pageIndex].length > 0) {
       const remainder = pageCap() - usedLines;
       const headingFitsInRemainder = remainder >= blockLines;
       const pairFitsInRemainder = remainder >= blockLines + nextLines;
@@ -1342,7 +1442,13 @@ function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
               <span style={{ minWidth: 18 }}>
                 {block.ordered ? `${itemIdx + 1}.` : "•"}
               </span>
-              <span style={{ flex: 1, whiteSpace: "pre-wrap", overflowWrap: "break-word" }}>
+              <span
+                style={{
+                  flex: 1,
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "break-word",
+                }}
+              >
                 {item}
               </span>
             </div>
@@ -1547,8 +1653,9 @@ function LetterA4Preview({
     : 0;
   // The flyer attaches only to the signature sheet — reserving its full px height against
   // pagination line counts was forcing almost all Letter Body blocks off page 1.
-  const embeddedFlyerLinesApproxForPagination =
-    fundraiserFooterPack ? Math.min(embeddedFlyerLinesApproxRaw, 22) : 0;
+  const embeddedFlyerLinesApproxForPagination = fundraiserFooterPack
+    ? Math.min(embeddedFlyerLinesApproxRaw, 22)
+    : 0;
   const signatureReserveLines =
     signaturesBlockLines +
     paymentNoteLinesApprox +
@@ -1568,11 +1675,15 @@ function LetterA4Preview({
         : [];
 
   const newlineRows = (s: string) => (s.trim() ? s.split("\n").length : 0);
+  // Chrome overhead: date row (~1.2 lines) + divider with margins (~1.2 lines) + spacing (~0.6 lines)
+  // = ~3 base lines, then 1 line per wrapped row of To/From, ~2 for Re (includes marginTop).
+  // Previous formula used *2 multiplier on to/from which over-reserved by ~9 lines on a standard
+  // single-line letter, artificially dropping page-1 body capacity from ~30 lines to ~22.
   const firstPageLeadReserveLines =
-    8 +
-    newlineRows(draft.to) * 2 +
-    newlineRows(draft.from) * 2 +
-    (draft.re.trim() ? 3 : 0);
+    3 +
+    Math.max(1, newlineRows(draft.to)) +
+    Math.max(1, newlineRows(draft.from)) +
+    (draft.re.trim() ? 2 : 0);
 
   const blockPages = paginateBodyBlocks(
     normalizedBlocks,
@@ -1694,10 +1805,10 @@ function LetterA4Preview({
         >
           Detailed <strong style={{ fontWeight: 700 }}>payment mediums</strong>{" "}
           are shown on <strong>the flyer image directly below</strong>. Please
-          pay only through those channels —
-          <strong> Mobile Money</strong>, <strong>UBA (bank)</strong>,{" "}
-          <strong>WeChat Pay</strong>, or <strong>Alipay</strong> — using the
-          QR codes and account titles on that flyer.
+          pay only through those channels —<strong> Mobile Money</strong>,{" "}
+          <strong>UBA (bank)</strong>, <strong>WeChat Pay</strong>, or{" "}
+          <strong>Alipay</strong> — using the QR codes and account titles on
+          that flyer.
         </p>
       </div>
     );
@@ -1949,74 +2060,74 @@ function LetterA4Preview({
               </div>
               <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
                 {sortedMembers.map((m) => (
-                <div
-                  key={m.id}
-                  style={{ marginBottom: 6, textAlign: "center" }}
-                >
-                  {/* Name: bold italic navy, largest */}
                   <div
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: C.navy,
-                      fontStyle: "italic",
-                      lineHeight: 1.25,
-                      wordBreak: "break-word" as const,
-                    }}
+                    key={m.id}
+                    style={{ marginBottom: 6, textAlign: "center" }}
                   >
-                    {m.name}
-                  </div>
-                  {/* Role: italic navy, slightly smaller */}
-                  <div
-                    style={{
-                      fontSize: 9.5,
-                      color: C.navy,
-                      fontStyle: "italic",
-                      lineHeight: 1.3,
-                      opacity: 0.8,
-                    }}
-                  >
-                    {memberLabel(m)}
-                  </div>
-                  {/* City */}
-                  {m.city && (
+                    {/* Name: bold italic navy, largest */}
                     <div
                       style={{
-                        fontSize: 9,
-                        color: "#444",
-                        fontStyle: "italic",
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      {m.city}, China
-                    </div>
-                  )}
-                  {/* Phone: bold italic, prominent — matches reference */}
-                  {m.phone && (
-                    <div
-                      style={{
-                        fontSize: 10.5,
+                        fontSize: 11,
                         fontWeight: 700,
                         color: C.navy,
                         fontStyle: "italic",
-                        lineHeight: 1.4,
-                        marginTop: 2,
+                        lineHeight: 1.25,
+                        wordBreak: "break-word" as const,
                       }}
                     >
-                      {m.phone}
+                      {m.name}
                     </div>
-                  )}
-                  {/* Thin divider */}
-                  <div
-                    style={{
-                      height: 0.8,
-                      background: C.navy,
-                      opacity: 0.15,
-                      marginTop: 6,
-                    }}
-                  />
-                </div>
-              ))}
+                    {/* Role: italic navy, slightly smaller */}
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: C.navy,
+                        fontStyle: "italic",
+                        lineHeight: 1.3,
+                        opacity: 0.8,
+                      }}
+                    >
+                      {memberLabel(m)}
+                    </div>
+                    {/* City */}
+                    {m.city && (
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "#444",
+                          fontStyle: "italic",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {m.city}, China
+                      </div>
+                    )}
+                    {/* Phone: bold italic, prominent — matches reference */}
+                    {m.phone && (
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          color: C.navy,
+                          fontStyle: "italic",
+                          lineHeight: 1.4,
+                          marginTop: 2,
+                        }}
+                      >
+                        {m.phone}
+                      </div>
+                    )}
+                    {/* Thin divider */}
+                    <div
+                      style={{
+                        height: 0.8,
+                        background: C.navy,
+                        opacity: 0.15,
+                        marginTop: 6,
+                      }}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -2194,8 +2305,6 @@ function LetterA4Preview({
           </div>
         </div>
 
-
-
         <div
           style={{
             height: FOOTER_H,
@@ -2302,7 +2411,9 @@ function LetterA4Preview({
                 padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
               }}
             >
-              <div>{renderBodyBlocks(segmentBlocks, `continuation-${idx}`)}</div>
+              <div>
+                {renderBodyBlocks(segmentBlocks, `continuation-${idx}`)}
+              </div>
 
               {isLast && signatories.length > 0 && (
                 <div
@@ -2655,7 +2766,9 @@ export function LetterComposerShell() {
   useEffect(() => {
     if (Object.keys(signatureLibrary).length === 0) return;
     setActiveDraft((current) => hydrateDraftSignatures(current));
-    setDrafts((current) => current.map((draft) => hydrateDraftSignatures(draft)));
+    setDrafts((current) =>
+      current.map((draft) => hydrateDraftSignatures(draft)),
+    );
   }, [signatureLibrary, hydrateDraftSignatures]);
 
   useEffect(() => {
@@ -2708,10 +2821,13 @@ export function LetterComposerShell() {
     setShowList(false);
   }, []);
 
-  const handleLoad = useCallback((d: LetterDraft) => {
-    setActiveDraft(hydrateDraftSignatures(d));
-    setShowList(false);
-  }, [hydrateDraftSignatures]);
+  const handleLoad = useCallback(
+    (d: LetterDraft) => {
+      setActiveDraft(hydrateDraftSignatures(d));
+      setShowList(false);
+    },
+    [hydrateDraftSignatures],
+  );
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -3601,18 +3717,16 @@ export function LetterComposerShell() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">
-                    Fundraising Attachment & Invite Context
+                    Outreach Letter Type
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Appends the fundraiser flyer on the last page. Letter copy is
-                    generated in TypeScript from the fundraising fields when the body
-                    is blank or when you load the sample. After changing dates, Zoom,
-                    target, invitation category, or use-of-funds, click &quot;Update
-                    letter from fields&quot; to refresh the Letter Body (replacing
-                    its current text).
+                    Choose the audience for this letter. Each version generates
+                    tailored copy. The fundraising flyer is appended on the last
+                    page when enabled. Edit any field freely after generating.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Enable toggle */}
                   <label className="flex items-center gap-2 text-xs font-medium text-[#002868]">
                     <input
                       type="checkbox"
@@ -3630,127 +3744,136 @@ export function LetterComposerShell() {
                         );
                       }}
                     />
-                    Enable fundraising mode and add flyer (`/conf/funraising.png`)
+                    Enable outreach / fundraising letter mode
                   </label>
 
                   {activeDraft.fundraisingEnabled && (
                     <>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            type="button"
-                            className="h-8 shrink-0 text-xs"
-                            onClick={() => {
-                              const touched =
-                                !isLetterDraftBodyEmpty(activeDraft) ||
-                                !!(activeDraft.to ?? "").trim() ||
-                                !!(activeDraft.from ?? "").trim() ||
-                                !!(activeDraft.re ?? "").trim() ||
-                                !!(activeDraft.title ?? "").trim();
-
-                              if (
-                                touched &&
-                                typeof window !== "undefined" &&
-                                !window.confirm(
-                                  "Replace letter body, header fields, and fundraising details with the built-in LSUIC fundraising sample?",
-                                )
-                              ) {
-                                return;
-                              }
-                              setActiveDraft((d) => ({
-                                ...applyFundraisingLetterSample(d, "replace-all"),
-                                fundraisingLetterSampleApplied: true,
-                              }));
-                            }}
-                          >
-                            Load full sample letter
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            type="button"
-                            className="h-8 shrink-0 border-dashed text-xs"
-                            onClick={() => {
-                              if (
-                                typeof window !== "undefined" &&
-                                !isLetterDraftBodyEmpty(activeDraft) &&
-                                !window.confirm(
-                                  "Replace the Letter Body with freshly generated text from the fundraising fields on the left?",
-                                )
-                              ) {
-                                return;
-                              }
-                              setActiveDraft((d) => {
-                                const html = buildFundraisingLetterBodyRichHtml(
-                                  fundraisingBodyFieldsFromDraft(d),
-                                );
-                                return {
-                                  ...d,
-                                  bodyRich: html,
-                                  body: richHtmlToPlainText(html),
-                                  fundraisingLetterSampleApplied: true,
-                                };
-                              });
-                            }}
-                          >
-                            Update letter from fields
-                          </Button>
-                        </div>
-                        <p className="text-[11px] leading-snug text-muted-foreground">
-                          Source:{" "}
-                          <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10px]">
-                            src/lib/conf/fundraising-letter-template.ts
-                          </code>{" "}
-                          (not loaded from markdown).
+                      {/* ── Letter Category ── */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold">Letter Version</Label>
+                        <select
+                          className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                          value={activeDraft.fundraisingCategory}
+                          onChange={(e) => {
+                            const cat = e.target.value as FundraisingCategory;
+                            setActiveDraft((d) =>
+                              mergeFundraisingTemplateIfEligible({
+                                ...d,
+                                fundraisingCategory: cat,
+                                bodyRich: "<p></p>",
+                                body: "",
+                                fundraisingLetterSampleApplied: false,
+                              }),
+                            );
+                          }}
+                        >
+                          {(Object.entries(FUNDRAISING_CATEGORY_LABELS) as [FundraisingCategory, string][]).map(
+                            ([key, label]) => (
+                              <option key={key} value={key}>
+                                {label}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <p className="text-[10px] text-muted-foreground leading-snug">
+                          {activeDraft.fundraisingCategory === "general" &&
+                            "Classic fundraising invite — payment methods, Zoom session, target amount."}
+                          {activeDraft.fundraisingCategory === "corporate" &&
+                            "Sponsor invite — brand benefits, partnership package, conference theme."}
+                          {activeDraft.fundraisingCategory === "government" &&
+                            "Embassy / government support request — national impact, student welfare."}
+                          {activeDraft.fundraisingCategory === "alumni" &&
+                            "Alumni giving appeal — legacy, mentorship, student support."}
+                          {activeDraft.fundraisingCategory === "ngo" &&
+                            "Development partner — capacity building, mutual impact, program collaboration."}
                         </p>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Invitation Category</Label>
-                        <select
-                          className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
-                          value={activeDraft.fundraisingInviteRole}
-                          onChange={(e) =>
-                            set("fundraisingInviteRole")(e.target.value)
-                          }
-                        >
-                          {[
-                            "Sponsor",
-                            "Keynote Speaker",
-                            "Patron",
-                            "Donor",
-                            "Partner Organization",
-                            "Well-wisher",
-                            "Other",
-                          ].map((role) => (
-                            <option key={role} value={role}>
-                              {role}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      {activeDraft.fundraisingInviteRole === "Other" && (
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">
-                            Custom Invitation Category
-                          </Label>
-                          <Input
-                            className="h-8 text-sm"
-                            placeholder="e.g. Strategic Development Partner"
-                            value={activeDraft.fundraisingInviteRoleOther}
-                            onChange={(e) =>
-                              set("fundraisingInviteRoleOther")(e.target.value)
+                      {/* ── Action buttons ── */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="h-8 shrink-0 text-xs"
+                          onClick={() => {
+                            const touched =
+                              !isLetterDraftBodyEmpty(activeDraft) ||
+                              !!(activeDraft.to ?? "").trim() ||
+                              !!(activeDraft.from ?? "").trim() ||
+                              !!(activeDraft.re ?? "").trim() ||
+                              !!(activeDraft.title ?? "").trim();
+                            if (
+                              touched &&
+                              typeof window !== "undefined" &&
+                              !window.confirm(
+                                `Replace letter body and header fields with the ${FUNDRAISING_CATEGORY_LABELS[activeDraft.fundraisingCategory]} sample?`,
+                              )
+                            ) {
+                              return;
                             }
-                          />
-                        </div>
-                      )}
+                            setActiveDraft((d) => ({
+                              ...applyLetterSample(d, "replace-all"),
+                              fundraisingLetterSampleApplied: true,
+                            }));
+                          }}
+                        >
+                          Load sample letter
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="h-8 shrink-0 border-dashed text-xs"
+                          onClick={() => {
+                            if (
+                              typeof window !== "undefined" &&
+                              !isLetterDraftBodyEmpty(activeDraft) &&
+                              !window.confirm(
+                                "Replace the Letter Body with freshly generated text from the fields below?",
+                              )
+                            ) {
+                              return;
+                            }
+                            setActiveDraft((d) => {
+                              const html = buildLetterBodyRichHtml(
+                                allLetterBodyFieldsFromDraft(d),
+                              );
+                              return {
+                                ...d,
+                                bodyRich: html,
+                                body: richHtmlToPlainText(html),
+                                fundraisingLetterSampleApplied: true,
+                              };
+                            });
+                          }}
+                        >
+                          Update letter from fields
+                        </Button>
+                      </div>
+
+                      {/* ── Shared: Recipient ── */}
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Recipient Name (optional)</Label>
+                        <Label className="text-xs">
+                          {activeDraft.fundraisingCategory === "corporate"
+                            ? "Contact Person / Representative"
+                            : activeDraft.fundraisingCategory === "government"
+                              ? "Title and Name"
+                              : "Recipient Name"}
+                          <span className="text-muted-foreground"> (optional)</span>
+                        </Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. Ms. Jane Doe"
+                          placeholder={
+                            activeDraft.fundraisingCategory === "corporate"
+                              ? "e.g. Ms. Jane Doe, Head of CSR"
+                              : activeDraft.fundraisingCategory === "government"
+                                ? "e.g. H.E. Ambassador John Smith"
+                                : activeDraft.fundraisingCategory === "alumni"
+                                  ? "e.g. Esteemed Alumnus / Alumna"
+                                  : "e.g. [Organization Name]"
+                          }
                           value={activeDraft.fundraisingRecipientName}
                           onChange={(e) =>
                             set("fundraisingRecipientName")(e.target.value)
@@ -3759,7 +3882,8 @@ export function LetterComposerShell() {
                       </div>
                       <div className="space-y-1.5">
                         <Label className="text-xs">
-                          Recipient Address (optional)
+                          Recipient Address
+                          <span className="text-muted-foreground"> (optional)</span>
                         </Label>
                         <Textarea
                           className="text-sm resize-none"
@@ -3771,108 +3895,292 @@ export function LetterComposerShell() {
                           }
                         />
                       </div>
+
+                      {/* ── Corporate-specific ── */}
+                      {activeDraft.fundraisingCategory === "corporate" && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Company / Organization Name</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. Acme Corporation"
+                              value={activeDraft.fundraisingOrgName}
+                              onChange={(e) =>
+                                set("fundraisingOrgName")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Conference Theme</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder={CONF_THEME}
+                              value={activeDraft.fundraisingConferenceTheme}
+                              onChange={(e) =>
+                                set("fundraisingConferenceTheme")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">
+                              Target Amount
+                              <span className="text-muted-foreground"> (optional)</span>
+                            </Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. RMB 180,000"
+                              value={activeDraft.fundraisingTargetAmount}
+                              onChange={(e) =>
+                                set("fundraisingTargetAmount")(e.target.value)
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* ── Government-specific ── */}
+                      {activeDraft.fundraisingCategory === "government" && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Embassy / Government Office Name</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. Embassy of Liberia in Beijing"
+                              value={activeDraft.fundraisingOfficeName}
+                              onChange={(e) =>
+                                set("fundraisingOfficeName")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Conference Theme</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder={CONF_THEME}
+                              value={activeDraft.fundraisingConferenceTheme}
+                              onChange={(e) =>
+                                set("fundraisingConferenceTheme")(e.target.value)
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* ── Alumni-specific ── */}
+                      {activeDraft.fundraisingCategory === "alumni" && (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">
+                            Graduation / Class Year
+                            <span className="text-muted-foreground"> (optional)</span>
+                          </Label>
+                          <Input
+                            className="h-8 text-sm"
+                            placeholder="e.g. 2018"
+                            value={activeDraft.fundraisingAlumniGradYear}
+                            onChange={(e) =>
+                              set("fundraisingAlumniGradYear")(e.target.value)
+                            }
+                          />
+                        </div>
+                      )}
+
+                      {/* ── NGO-specific ── */}
+                      {activeDraft.fundraisingCategory === "ngo" && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Form of Partnership Sought</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. funding, program collaboration, or resource sharing"
+                              value={activeDraft.fundraisingPartnershipType}
+                              onChange={(e) =>
+                                set("fundraisingPartnershipType")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Conference Theme</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder={CONF_THEME}
+                              value={activeDraft.fundraisingConferenceTheme}
+                              onChange={(e) =>
+                                set("fundraisingConferenceTheme")(e.target.value)
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {/* ── Shared: Use of Funds / Benefits textarea (label varies) ── */}
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Target Fundraising Amount</Label>
-                        <Input
-                          className="h-8 text-sm"
-                          placeholder="e.g. RMB 120,000"
-                          value={activeDraft.fundraisingTargetAmount}
-                          onChange={(e) =>
-                            set("fundraisingTargetAmount")(e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Intended Use of Funds</Label>
+                        <Label className="text-xs">
+                          {activeDraft.fundraisingCategory === "corporate"
+                            ? "Partnership Benefits"
+                            : activeDraft.fundraisingCategory === "government"
+                              ? "Areas of Impact"
+                              : activeDraft.fundraisingCategory === "alumni"
+                                ? "Contribution Areas"
+                                : activeDraft.fundraisingCategory === "ngo"
+                                  ? "Impact Areas"
+                                  : "Intended Use of Funds"}
+                          <span className="text-muted-foreground"> (one per line)</span>
+                        </Label>
                         <Textarea
                           className="text-sm resize-none"
-                          rows={3}
-                          placeholder="State what the fundraising amount will cover."
+                          rows={4}
+                          placeholder={
+                            activeDraft.fundraisingCategory === "corporate"
+                              ? CORPORATE_SAMPLE_USE_OF_FUNDS
+                              : activeDraft.fundraisingCategory === "government"
+                                ? GOVERNMENT_SAMPLE_USE_OF_FUNDS
+                                : activeDraft.fundraisingCategory === "alumni"
+                                  ? ALUMNI_SAMPLE_USE_OF_FUNDS
+                                  : activeDraft.fundraisingCategory === "ngo"
+                                    ? NGO_SAMPLE_USE_OF_FUNDS
+                                    : "- Fee reduction support for financially constrained students\n- Venue and accommodation costs"
+                          }
                           value={activeDraft.fundraisingUseOfFunds}
                           onChange={(e) =>
                             set("fundraisingUseOfFunds")(e.target.value)
                           }
                         />
+                        <p className="text-[10px] text-muted-foreground">
+                          Start each line with <code>-</code> or leave plain. Leave blank to use defaults.
+                        </p>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Fundraising Date</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingEventDate}
-                            onChange={(e) =>
-                              set("fundraisingEventDate")(e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Fundraising Time</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingEventTime}
-                            onChange={(e) =>
-                              set("fundraisingEventTime")(e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Payment Deadline</Label>
-                        <Input
-                          className="h-8 text-sm"
-                          value={activeDraft.fundraisingPaymentDeadline}
-                          onChange={(e) =>
-                            set("fundraisingPaymentDeadline")(e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Meeting Medium</Label>
-                        <Input
-                          className="h-8 text-sm"
-                          value={activeDraft.fundraisingMeetingMedium}
-                          onChange={(e) =>
-                            set("fundraisingMeetingMedium")(e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Meeting Link</Label>
-                        <Input
-                          className="h-8 text-sm"
-                          value={activeDraft.fundraisingMeetingLink}
-                          onChange={(e) =>
-                            set("fundraisingMeetingLink")(e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Meeting ID</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingMeetingId}
-                            onChange={(e) =>
-                              set("fundraisingMeetingId")(e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Meeting Password</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingMeetingPassword}
-                            onChange={(e) =>
-                              set("fundraisingMeetingPassword")(e.target.value)
-                            }
-                          />
-                        </div>
-                      </div>
+
+                      {/* ── General only: invite role + payment / Zoom logistics ── */}
+                      {activeDraft.fundraisingCategory === "general" && (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Invitation Category</Label>
+                            <select
+                              className="w-full h-8 text-sm rounded-md border border-input bg-background px-2"
+                              value={activeDraft.fundraisingInviteRole}
+                              onChange={(e) =>
+                                set("fundraisingInviteRole")(e.target.value)
+                              }
+                            >
+                              {[
+                                "Sponsor",
+                                "Keynote Speaker",
+                                "Patron",
+                                "Donor",
+                                "Partner Organization",
+                                "Well-wisher",
+                                "Other",
+                              ].map((role) => (
+                                <option key={role} value={role}>
+                                  {role}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {activeDraft.fundraisingInviteRole === "Other" && (
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Custom Invitation Category</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                placeholder="e.g. Strategic Development Partner"
+                                value={activeDraft.fundraisingInviteRoleOther}
+                                onChange={(e) =>
+                                  set("fundraisingInviteRoleOther")(e.target.value)
+                                }
+                              />
+                            </div>
+                          )}
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Target Fundraising Amount</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. RMB 180,000"
+                              value={activeDraft.fundraisingTargetAmount}
+                              onChange={(e) =>
+                                set("fundraisingTargetAmount")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Fundraising Date</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingEventDate}
+                                onChange={(e) =>
+                                  set("fundraisingEventDate")(e.target.value)
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Fundraising Time</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingEventTime}
+                                onChange={(e) =>
+                                  set("fundraisingEventTime")(e.target.value)
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Payment Deadline</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingPaymentDeadline}
+                              onChange={(e) =>
+                                set("fundraisingPaymentDeadline")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Meeting Medium</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingMeetingMedium}
+                              onChange={(e) =>
+                                set("fundraisingMeetingMedium")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Meeting Link</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingMeetingLink}
+                              onChange={(e) =>
+                                set("fundraisingMeetingLink")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Meeting ID</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingMeetingId}
+                                onChange={(e) =>
+                                  set("fundraisingMeetingId")(e.target.value)
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Meeting Password</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingMeetingPassword}
+                                onChange={(e) =>
+                                  set("fundraisingMeetingPassword")(e.target.value)
+                                }
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Letter Body</CardTitle>

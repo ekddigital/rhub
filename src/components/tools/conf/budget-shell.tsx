@@ -39,11 +39,21 @@ import {
   fmtDual,
 } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  DocumentLayout,
+  DocumentTable,
+  normalizeConfInfo,
+  normalizeSidebarMembers,
+} from "@/lib/conf/document-layout";
+import {
+  computePageChunks,
+  estimateTextBlockH,
+} from "@/lib/conf/document-pagination";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
   SignatoryDraft,
+  hasSignatories,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 
@@ -178,15 +188,6 @@ function unitLabel(item: BudgetItem) {
   return item.unit === "custom" ? item.customUnit || "—" : item.unit;
 }
 
-function chunkArray<T>(items: T[], size: number): T[][] {
-  if (items.length === 0) return [[]];
-  const chunks: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-}
-
 function BudgetDocumentPreview({
   draft,
   grandTotal,
@@ -234,23 +235,19 @@ function BudgetDocumentPreview({
             total: "—",
           },
         ];
-  const rowChunks = chunkArray(rows, 20);
+  // ── Dynamic pagination ─────────────────────────────────────────────────
+  // Page-1 overhead: title+date block (~62px) + optional notes box.
+  // Trailing overhead: grand total line + signature block (if sigs present).
+  // Continuation pages: "Continued…" label (~32px).
+  const notesH = estimateTextBlockH(draft.notes, 70, 50, 15);
+  const rowChunks = computePageChunks(rows, {
+    page1OverheadPx: 62 + notesH,
+    trailingPx: 42 + (hasSignatories(signatoryDraft) ? 140 : 0),
+    contHeaderPx: 32,
+  });
 
-  const sidebarMembers = members.slice(0, 8).map((member) => ({
-    id: member.id,
-    name: member.name,
-    role: member.role || "COMMITTEE",
-    title: member.title || member.committeeScope || "Committee Member",
-    committeeScope: member.committeeScope,
-    city: member.city || null,
-    phone: member.phone || null,
-  }));
-  const normalizedConfInfo = confInfo
-    ? {
-        ...confInfo,
-        venue: confInfo.venue ?? undefined,
-      }
-    : undefined;
+  const sidebarMembers = normalizeSidebarMembers(members);
+  const normalizedConfInfo = normalizeConfInfo(confInfo);
 
   return rowChunks.map((pageRows, pageIndex) => (
     <DocumentLayout
@@ -266,7 +263,11 @@ function BudgetDocumentPreview({
       {pageIndex === 0 ? (
         <>
           <div
-            style={{ display: "flex", justifyContent: "space-between", gap: 16 }}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 16,
+            }}
           >
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
@@ -318,7 +319,12 @@ function BudgetDocumentPreview({
           { key: "item", label: "Item", width: 34 },
           { key: "qty", label: "Qty", width: 10, align: "center" },
           { key: "unit", label: "Unit", width: 14, align: "center" },
-          { key: "unitPrice", label: "Unit Price (¥)", width: 17, align: "right" },
+          {
+            key: "unitPrice",
+            label: "Unit Price (¥)",
+            width: 17,
+            align: "right",
+          },
           { key: "total", label: "Total (¥)", width: 17, align: "right" },
         ]}
         data={pageRows}
@@ -551,7 +557,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (!creatorCommitteeScope) return members;
     const scopeKey = creatorCommitteeScope.toLowerCase();
     const scoped = members.filter(
-      (member) => (member.committeeScope || "").trim().toLowerCase() === scopeKey,
+      (member) =>
+        (member.committeeScope || "").trim().toLowerCase() === scopeKey,
     );
     return scoped.length > 0 ? scoped : members;
   }, [creatorCommitteeScope, members]);
@@ -918,7 +925,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             />
           </div>
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="itemsHeading">Line Items Section Title (Document)</Label>
+            <Label htmlFor="itemsHeading">
+              Line Items Section Title (Document)
+            </Label>
             <Input
               id="itemsHeading"
               placeholder="e.g. Day 1 Budget Breakdown"
@@ -1136,7 +1145,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 transform: `scale(${previewZoom / 100})`,
                 transformOrigin: "top center",
                 marginBottom:
-                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+                  previewZoom < 100
+                    ? `${((previewZoom - 100) / 100) * 900}px`
+                    : 0,
               }}
             >
               <BudgetDocumentPreview

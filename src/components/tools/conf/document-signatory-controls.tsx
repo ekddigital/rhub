@@ -53,6 +53,19 @@ export function createDefaultSignatoryDraft(): SignatoryDraft {
   };
 }
 
+/**
+ * Returns true when a SignatoryDraft has at least one populated signatory slot.
+ * Use this instead of repeating the same check inline in every document shell.
+ */
+export function hasSignatories(draft: SignatoryDraft): boolean {
+  return (
+    draft.signatoryMode !== "NONE" &&
+    [draft.signatory1, draft.signatory2, draft.signatory3].some(
+      (s) => s.name.trim() || s.title.trim(),
+    )
+  );
+}
+
 function findByRole(members: SignatoryMember[], role: string) {
   return members.find((member) => (member.role || "").toUpperCase() === role);
 }
@@ -224,8 +237,9 @@ export function DocumentSignatoryControls({
                             updateSlot(key, {
                               sigScale: Math.min(
                                 3,
-                                Math.round(((slot.sigScale ?? 1) + 0.25) * 100) /
-                                  100,
+                                Math.round(
+                                  ((slot.sigScale ?? 1) + 0.25) * 100,
+                                ) / 100,
                               ),
                             })
                           }
@@ -243,8 +257,9 @@ export function DocumentSignatoryControls({
                             updateSlot(key, {
                               sigScale: Math.max(
                                 0.25,
-                                Math.round(((slot.sigScale ?? 1) - 0.25) * 100) /
-                                  100,
+                                Math.round(
+                                  ((slot.sigScale ?? 1) - 0.25) * 100,
+                                ) / 100,
                               ),
                             })
                           }

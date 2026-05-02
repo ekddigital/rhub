@@ -556,3 +556,54 @@ export function DocumentTable({
     </div>
   );
 }
+
+// ── Shared document helpers ──────────────────────────────────────────────────
+
+/**
+ * Normalises a confInfo object for DocumentLayout.
+ * Converts `venue: string | null` → `venue: string | undefined` so it
+ * satisfies the DocumentLayoutProps.confInfo type without repetition in
+ * every shell that owns a nullable venue field.
+ */
+export function normalizeConfInfo(
+  confInfo:
+    | {
+        name: string;
+        city: string;
+        venue?: string | null;
+        startsAt: string;
+        endsAt: string;
+      }
+    | null
+    | undefined,
+): DocumentLayoutProps["confInfo"] {
+  if (!confInfo) return undefined;
+  return { ...confInfo, venue: confInfo.venue ?? undefined };
+}
+
+/**
+ * Normalises any member array into the shape DocumentLayout's sidebar expects.
+ * Handles optional `id`, optional role/title fields, and caps the list.
+ */
+export function normalizeSidebarMembers(
+  members: Array<{
+    id?: string | null;
+    name: string;
+    role?: string | null;
+    title?: string | null;
+    city?: string | null;
+    phone?: string | null;
+    committeeScope?: string | null;
+  }>,
+  maxCount = 8,
+): NonNullable<DocumentLayoutProps["members"]> {
+  return members.slice(0, maxCount).map((m, idx) => ({
+    id: m.id || `sidebar-member-${idx}`,
+    name: m.name,
+    role: m.role || "COMMITTEE",
+    title: m.title || m.committeeScope || m.role || "Committee Member",
+    committeeScope: m.committeeScope || null,
+    city: m.city || null,
+    phone: m.phone || null,
+  }));
+}

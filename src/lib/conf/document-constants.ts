@@ -123,3 +123,29 @@ export function formatDate(d: Date | string): string {
     day: "numeric",
   });
 }
+
+// ── Page content metrics (for dynamic pagination) ─────────────────────────────
+
+/**
+ * Measured heights (px) used to compute how many table rows fit per page.
+ *
+ * Body area:     880px  (LETTERHEAD_SECTIONS.bodyHeight)
+ * Content padding: 20px top + 20px bottom = 40px
+ * Usable height: 840px
+ *
+ * Table row heights come from DocumentTable:
+ *   - cellPadding / 2 = 4px top+bottom per cell
+ *   - fontSize 10 (tableBody) → line-height ~14px  → row ≈ 22px
+ *   - fontSize 11 (tableHeader) → ~15px + padding → ≈ 23px
+ *   - caption h3 fontSize 13 + marginBottom 12     → ≈ 30px
+ */
+export const PAGE_METRICS = {
+  /** Usable vertical space inside the document content area (bodyHeight − padding). */
+  contentH: 840,
+  /** Height of the DocumentTable caption (h3 + marginBottom). */
+  tableCaptionH: 30,
+  /** Height of the DocumentTable header row. */
+  tableHeaderH: 23,
+  /** Height of each DocumentTable data row. */
+  rowH: 22,
+} as const;

@@ -5,20 +5,26 @@
 
 "use client";
 
-import React, { useState, useCallback } from "react";
-import { Download, Printer, Copy, ChevronRight } from "lucide-react";
+import React, { useCallback } from "react";
+import { Download, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DocumentLayout,
   DocumentTable,
   type TableColumn,
+  normalizeConfInfo,
+  normalizeSidebarMembers,
 } from "@/lib/conf/document-layout";
 import {
   DOCUMENT_COLORS as C,
   FONT_SIZES,
   formatDate,
 } from "@/lib/conf/document-constants";
+import {
+  computePageChunks,
+  estimateTextBlockH,
+} from "@/lib/conf/document-pagination";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -67,7 +73,7 @@ export interface ReportDocumentViewerProps {
 // ── Report Document Viewer ───────────────────────────────────────────────────
 
 export function ReportDocumentViewer({
-  reportId,
+  reportId: _reportId,
   title,
   description,
   entries,
@@ -81,7 +87,8 @@ export function ReportDocumentViewer({
   onExport,
   isExporting = false,
 }: ReportDocumentViewerProps) {
-  const [printMode, setPrintMode] = useState(false);
+  // printMode is always false (window.print() handles media queries); no state setter needed.
+  const printMode = false;
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -102,7 +109,9 @@ export function ReportDocumentViewer({
 
   // ── Calculate totals ────────────────────────────────────────────────────────
 
-  const confirmedEntries = entries.filter((entry) => entry.status === "APPROVED");
+  const confirmedEntries = entries.filter(
+    (entry) => entry.status === "APPROVED",
+  );
 
   const expenses = confirmedEntries
     .filter((e) => e.paymentType === "EXPENSE")
@@ -182,9 +191,34 @@ export function ReportDocumentViewer({
     },
   ];
 
-  // ── Document content (shared by preview and print) ────────────────────────
+  // ── Table rows + pagination ────────────────────────────────────────────────
 
-  const documentContent = (
+  const tableRows = confirmedEntries.map((e) => ({
+    displayOrder: e.displayOrder,
+    description: e.description,
+    paymentType: e.paymentType,
+    amount: e.amount,
+    currency: e.currency,
+    committeeScope: e.committeeScope,
+    lineComment: e.lineComment,
+  }));
+
+  // Page-1 overhead: h1 (~32px) + h2 (~32px) + metadata grid (~54px) + description block.
+  // Trailing: summary totals + general comment estimate (~155px).
+  // Continuation pages: "Continued…" label (~28px).
+  const descH = estimateTextBlockH(description ?? "", 80, 40, 13);
+  const rowChunks = computePageChunks(tableRows, {
+    page1OverheadPx: 120 + descH,
+    trailingPx: 155,
+    contHeaderPx: 28,
+  });
+
+  const normalizedConfInfo = normalizeConfInfo(confInfo);
+  const sidebarMembers = normalizeSidebarMembers(members ?? []);
+
+  // ── Page-1 header (title + metadata + description — first page only) ──────
+
+  const page1Header = (
     <div style={{ fontSize: FONT_SIZES.tableBody }}>
       {/* Title */}
       <h1
@@ -259,39 +293,86 @@ export function ReportDocumentViewer({
           <strong>Description:</strong> {description}
         </div>
       )}
+    </div>
+  );
 
-      {/* Payment entries table */}
-      <DocumentTable
-        columns={columns}
-        data={confirmedEntries.map((e) => ({
-          displayOrder: e.displayOrder,
-          description: e.description,
-          paymentType: e.paymentType,
-          amount: e.amount,
-          currency: e.currency,
-          committeeScope: e.committeeScope,
-          lineComment: e.lineComment,
-        }))}
-        caption="Payment Entries"
-        forPrint={printMode}
-      />
+  // ── Trailing block (totals + general notes — last page only) ─────────────
 
-      {/* Totals section */}
+  const trailingBlock = (
+    <div
+      style={{
+        marginTop: 20,
+        paddingTop: 12,
+        borderTop: `2px solid ${C.navy}`,
+      }}
+    >
       <div
         style={{
-          marginTop: 20,
-          paddingTop: 12,
-          borderTop: `2px solid ${C.navy}`,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 40,
+          marginBottom: 20,
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 40,
-            marginBottom: 20,
-          }}
-        >
+        <div>
+          <div
+            style={{
+              fontSize: FONT_SIZES.tableBody,
+              fontWeight: 600,
+              color: C.navy,
+              marginBottom: 8,
+            }}
+          >
+            Summary
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              fontSize: FONT_SIZES.tableBody,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: C.red, fontWeight: 600 }}>
+                Total Expenses:
+              </span>
+              <span style={{ color: C.red, fontWeight: 700 }}>
+                {formatCurrency(expenses)}
+              </span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#047857", fontWeight: 600 }}>
+                Total Income:
+              </span>
+              <span style={{ color: "#047857", fontWeight: 700 }}>
+                {formatCurrency(income)}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                paddingTop: 8,
+                borderTop: `1px solid ${C.divider}`,
+              }}
+            >
+              <span style={{ color: C.navy, fontWeight: 700 }}>Net:</span>
+              <span
+                style={{
+                  color: net >= 0 ? "#047857" : C.red,
+                  fontWeight: 700,
+                  fontSize: FONT_SIZES.sectionHeading,
+                }}
+              >
+                {formatCurrency(net)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* General comment */}
+        {generalComment && (
           <div>
             <div
               style={{
@@ -301,83 +382,23 @@ export function ReportDocumentViewer({
                 marginBottom: 8,
               }}
             >
-              Summary
+              General Notes
             </div>
             <div
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                fontSize: FONT_SIZES.tableBody,
+                fontSize: FONT_SIZES.caption,
+                lineHeight: 1.6,
+                color: "#555",
+                fontStyle: "italic",
+                background: "#f9f9f9",
+                padding: 10,
+                borderRadius: 4,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: C.red, fontWeight: 600 }}>
-                  Total Expenses:
-                </span>
-                <span style={{ color: C.red, fontWeight: 700 }}>
-                  {formatCurrency(expenses)}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#047857", fontWeight: 600 }}>
-                  Total Income:
-                </span>
-                <span style={{ color: "#047857", fontWeight: 700 }}>
-                  {formatCurrency(income)}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  paddingTop: 8,
-                  borderTop: `1px solid ${C.divider}`,
-                }}
-              >
-                <span style={{ color: C.navy, fontWeight: 700 }}>Net:</span>
-                <span
-                  style={{
-                    color: net >= 0 ? "#047857" : C.red,
-                    fontWeight: 700,
-                    fontSize: FONT_SIZES.sectionHeading,
-                  }}
-                >
-                  {formatCurrency(net)}
-                </span>
-              </div>
+              {generalComment}
             </div>
           </div>
-
-          {/* General comment */}
-          {generalComment && (
-            <div>
-              <div
-                style={{
-                  fontSize: FONT_SIZES.tableBody,
-                  fontWeight: 600,
-                  color: C.navy,
-                  marginBottom: 8,
-                }}
-              >
-                General Notes
-              </div>
-              <div
-                style={{
-                  fontSize: FONT_SIZES.caption,
-                  lineHeight: 1.6,
-                  color: "#555",
-                  fontStyle: "italic",
-                  background: "#f9f9f9",
-                  padding: 10,
-                  borderRadius: 4,
-                }}
-              >
-                {generalComment}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -417,7 +438,7 @@ export function ReportDocumentViewer({
         </Button>
       </div>
 
-      {/* Document preview */}
+      {/* Document preview — one DocumentLayout per page chunk */}
       <Card>
         <CardContent className="p-0 overflow-hidden">
           <div
@@ -428,14 +449,41 @@ export function ReportDocumentViewer({
               padding: "20px",
             }}
           >
-            <DocumentLayout
-              confInfo={confInfo}
-              officeLabel="Office of Finance"
-              members={members}
-              forPrint={printMode}
-            >
-              {documentContent}
-            </DocumentLayout>
+            {rowChunks.map((pageRows, pageIdx) => {
+              const isFirst = pageIdx === 0;
+              const isLast = pageIdx === rowChunks.length - 1;
+              return (
+                <DocumentLayout
+                  key={`report-page-${pageIdx}`}
+                  confInfo={normalizedConfInfo}
+                  officeLabel="Office of Finance"
+                  members={sidebarMembers}
+                  forPrint={printMode}
+                  className={pageIdx > 0 ? "mt-4" : ""}
+                  pageNumber={pageIdx + 1}
+                  totalPages={rowChunks.length}
+                >
+                  {isFirst ? (
+                    page1Header
+                  ) : (
+                    <div
+                      style={{ fontSize: 11, color: "#777", marginBottom: 12 }}
+                    >
+                      Continued Report Entries (Page {pageIdx + 1})
+                    </div>
+                  )}
+                  <DocumentTable
+                    columns={columns}
+                    data={pageRows}
+                    caption={
+                      isFirst ? "Payment Entries" : "Payment Entries (cont.)"
+                    }
+                    forPrint={printMode}
+                  />
+                  {isLast && trailingBlock}
+                </DocumentLayout>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

@@ -46,12 +46,19 @@ import {
   formatUploadError,
   type UploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
-import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  DocumentLayout,
+  DocumentTable,
+  normalizeConfInfo,
+  normalizeSidebarMembers,
+} from "@/lib/conf/document-layout";
+import { computePageChunks } from "@/lib/conf/document-pagination";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
   SignatoryDraft,
   SignatoryMember,
+  hasSignatories,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 
@@ -162,15 +169,6 @@ const INCOME_SOURCES = [
   "Other",
 ];
 
-function chunkArray<T>(items: T[], size: number): T[][] {
-  if (items.length === 0) return [[]];
-  const chunks: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-}
-
 function PaymentsDocumentPreview({
   payments,
   totalExpense,
@@ -223,10 +221,25 @@ function PaymentsDocumentPreview({
           },
         ];
 
-  const rowChunks = chunkArray(rows, 22);
   const receiptSamples = payments
     .filter((payment) => payment.proofs.length > 0)
     .slice(0, 6);
+
+  // ── Dynamic pagination ─────────────────────────────────────────────────
+  // Page-1 overhead: title + date + income/expense summary line (~70px).
+  // Trailing overhead: net balance line + receipt thumbnails + signature.
+  // Continuation pages: "Continued…" label (~28px).
+  const receiptTrailingH =
+    receiptSamples.length > 0
+      ? 38 + Math.ceil(receiptSamples.length / 2) * 110
+      : 0;
+  const rowChunks = computePageChunks(rows, {
+    page1OverheadPx: 70,
+    trailingPx:
+      42 + receiptTrailingH + (hasSignatories(signatoryDraft) ? 140 : 0),
+    contHeaderPx: 28,
+  });
+  // Scope sidebar to committees represented in this payment set (falls back to all members).
   const scopedCommitteeKeys = Array.from(
     new Set(
       payments
@@ -243,23 +256,10 @@ function PaymentsDocumentPreview({
           ),
         )
       : members;
-  const sidebarSource = scopedMembers.length > 0 ? scopedMembers : members;
-  const sidebarMembers = sidebarSource.slice(0, 8).map((member, idx) => ({
-    id: member.id || `payments-member-${idx}`,
-    name: member.name,
-    role: member.role || "COMMITTEE",
-    title:
-      member.title || member.committeeScope || member.role || "Committee Member",
-    committeeScope: member.committeeScope || null,
-    city: member.city || null,
-    phone: member.phone || null,
-  }));
-  const normalizedConfInfo = confInfo
-    ? {
-        ...confInfo,
-        venue: confInfo.venue ?? undefined,
-      }
-    : undefined;
+  const sidebarMembers = normalizeSidebarMembers(
+    scopedMembers.length > 0 ? scopedMembers : members,
+  );
+  const normalizedConfInfo = normalizeConfInfo(confInfo);
 
   return rowChunks.map((pageRows, pageIndex) => (
     <DocumentLayout
@@ -272,7 +272,7 @@ function PaymentsDocumentPreview({
       pageNumber={pageIndex + 1}
       totalPages={rowChunks.length}
     >
-      {pageIndex === 0 && (
+      {pageIndex === 0 ? (
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
             Payments Register
@@ -286,13 +286,20 @@ function PaymentsDocumentPreview({
             })}
           </div>
           <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
-            Total Income: {fmtRmb(totalIncome)} · Total Expense: {fmtRmb(totalExpense)}
+            Total Income: {fmtRmb(totalIncome)} · Total Expense:{" "}
+            {fmtRmb(totalExpense)}
           </div>
+        </div>
+      ) : (
+        <div style={{ fontSize: 11, color: "#777", marginBottom: 12 }}>
+          Continued Payment Records (Page {pageIndex + 1})
         </div>
       )}
 
       <DocumentTable
-        caption={pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"}
+        caption={
+          pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"
+        }
         columns={[
           { key: "date", label: "Date", width: 11 },
           { key: "type", label: "Type", width: 8 },
@@ -387,10 +394,16 @@ function PaymentsDocumentPreview({
                             <img
                               src={proof.filePath}
                               alt={proof.fileName}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
                             />
                           ) : (
-                            <span style={{ fontSize: 8, color: "#666" }}>FILE</span>
+                            <span style={{ fontSize: 8, color: "#666" }}>
+                              FILE
+                            </span>
                           )}
                         </div>
                       ))}
@@ -422,7 +435,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [filterType, setFilterType] = useState<PaymentType | "ALL">("ALL");
-  const [filterStatus, setFilterStatus] = useState<PaymentStatusFilter>("ACTIVE");
+  const [filterStatus, setFilterStatus] =
+    useState<PaymentStatusFilter>("ACTIVE");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -440,9 +454,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [incomeSource, setIncomeSource] = useState("");
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
-  const [proofValidationFeedback, setProofValidationFeedback] = useState<string | null>(
-    null,
-  );
+  const [proofValidationFeedback, setProofValidationFeedback] = useState<
+    string | null
+  >(null);
   const [uploadStatus, setUploadStatus] = useState<{
     currentFile: number;
     totalFiles: number;
@@ -583,7 +597,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           }
           reject(
             new Error(
-              formatUploadError(payload, "Failed to upload payment proof", xhr.status),
+              formatUploadError(
+                payload,
+                "Failed to upload payment proof",
+                xhr.status,
+              ),
             ),
           );
         };
@@ -680,7 +698,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const err = (await res.json()) as { error?: string };
         throw new Error(
           err.error ??
-            (editingPaymentId ? "Failed to update payment" : "Failed to create payment"),
+            (editingPaymentId
+              ? "Failed to update payment"
+              : "Failed to create payment"),
         );
       }
       const payment = (await res.json()) as Payment;
@@ -841,8 +861,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const activePayments = payments.filter((p) => p.status !== "REJECTED");
   const rejectedPayments = payments.filter((p) => p.status === "REJECTED");
-  const confirmedPayments = activePayments.filter((p) => p.status === "APPROVED");
-  const unconfirmedPayments = activePayments.filter((p) => p.status !== "APPROVED");
+  const confirmedPayments = activePayments.filter(
+    (p) => p.status === "APPROVED",
+  );
+  const unconfirmedPayments = activePayments.filter(
+    (p) => p.status !== "APPROVED",
+  );
 
   const expenses = confirmedPayments.filter(
     (p) => p.paymentType === "EXPENSE" || !p.paymentType,
@@ -854,19 +878,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const pendingCount = unconfirmedPayments.length;
   const isScopeLockedToMember =
     Boolean(accessInfo?.committeeScope) && !accessInfo?.isSuperAdmin;
-  const canFinalApproveFromPending = useCallback(
-    (payment: Payment) => {
-      if (payment.status !== "PENDING") return false;
-      if (!payment.committeeScope) return true;
-      const submitter = payment.submittedBy;
-      if (!submitter) return false;
-      return (
-        Boolean(submitter.canApprovePayments) &&
-        submitter.committeeScope === payment.committeeScope
-      );
-    },
-    [],
-  );
+  const canFinalApproveFromPending = useCallback((payment: Payment) => {
+    if (payment.status !== "PENDING") return false;
+    if (!payment.committeeScope) return true;
+    const submitter = payment.submittedBy;
+    if (!submitter) return false;
+    return (
+      Boolean(submitter.canApprovePayments) &&
+      submitter.committeeScope === payment.committeeScope
+    );
+  }, []);
   const committeeHint = useMemo(() => {
     if (committeeOptions.length === 0) return "";
     return committeeOptions.join(", ");
@@ -995,7 +1016,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             </div>
             <div>
               <p className="text-lg font-bold">{pendingCount}</p>
-              <p className="text-xs text-muted-foreground">Unconfirmed Records</p>
+              <p className="text-xs text-muted-foreground">
+                Unconfirmed Records
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -1057,10 +1080,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               {s === "ACTIVE"
                 ? "Active"
                 : s === "ALL"
-                ? "All Status"
-                : s === "COMMITTEE_APPROVED"
-                  ? "Cmt. Approved"
-                  : s.charAt(0) + s.slice(1).toLowerCase()}
+                  ? "All Status"
+                  : s === "COMMITTEE_APPROVED"
+                    ? "Cmt. Approved"
+                    : s.charAt(0) + s.slice(1).toLowerCase()}
             </Button>
           ))}
         </div>
@@ -1071,7 +1094,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <Card className="border-[#C8A061]/40">
           <CardHeader>
             <CardTitle className="text-base">
-              {editingPaymentId ? "Edit Financial Record" : "New Financial Record"}
+              {editingPaymentId
+                ? "Edit Financial Record"
+                : "New Financial Record"}
             </CardTitle>
             <CardDescription>
               {editingPaymentId
@@ -1266,8 +1291,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 <div className="space-y-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2">
                   <div className="flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
                     <span className="truncate">
-                      Uploading {uploadStatus.currentFile}/{uploadStatus.totalFiles}:{" "}
-                      {uploadStatus.fileName}
+                      Uploading {uploadStatus.currentFile}/
+                      {uploadStatus.totalFiles}: {uploadStatus.fileName}
                     </span>
                     <span>{uploadStatus.percent}%</span>
                   </div>
@@ -1285,31 +1310,32 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     Existing proof files
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {(payments.find((p) => p.id === editingPaymentId)?.proofs ?? []).map(
-                      (proof) => (
-                        <a
-                          key={`editing-proof-${proof.id}`}
-                          href={proof.filePath}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block size-20 overflow-hidden rounded border border-muted"
-                          title={proof.fileName}
-                        >
-                          {proof.fileType?.startsWith("image/") ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={proof.filePath}
-                              alt={proof.fileName}
-                              className="size-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex size-full items-center justify-center bg-muted">
-                              <ImageIcon className="size-6 text-muted-foreground" />
-                            </div>
-                          )}
-                        </a>
-                      ),
-                    )}
+                    {(
+                      payments.find((p) => p.id === editingPaymentId)?.proofs ??
+                      []
+                    ).map((proof) => (
+                      <a
+                        key={`editing-proof-${proof.id}`}
+                        href={proof.filePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block size-20 overflow-hidden rounded border border-muted"
+                        title={proof.fileName}
+                      >
+                        {proof.fileType?.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={proof.filePath}
+                            alt={proof.fileName}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center bg-muted">
+                            <ImageIcon className="size-6 text-muted-foreground" />
+                          </div>
+                        )}
+                      </a>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1368,7 +1394,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <Card>
           <CardContent className="flex flex-col items-center py-12 text-center">
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
-            <p className="text-lg font-medium">No active payments recorded yet</p>
+            <p className="text-lg font-medium">
+              No active payments recorded yet
+            </p>
             <p className="text-sm text-muted-foreground">
               Start by adding an expense or incoming fund record.
             </p>
@@ -1679,7 +1707,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       {rejectedPayments.length > 0 && (
         <Card className="border-red-500/30">
           <CardHeader>
-            <CardTitle className="text-base text-red-600">Rejected Records</CardTitle>
+            <CardTitle className="text-base text-red-600">
+              Rejected Records
+            </CardTitle>
             <CardDescription>
               Records rejected in the approval workflow are tracked here.
             </CardDescription>
@@ -1716,7 +1746,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           <div>
             <CardTitle className="text-base">Live Payment Document</CardTitle>
             <CardDescription>
-              Reusable document layout preview (same shared source used elsewhere).
+              Reusable document layout preview (same shared source used
+              elsewhere).
             </CardDescription>
           </div>
           <div className="flex items-center gap-1 rounded-md border px-1 py-1">
@@ -1728,7 +1759,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             >
               <ZoomOut className="size-3.5" />
             </button>
-            <span className="w-10 text-center text-xs font-mono">{previewZoom}%</span>
+            <span className="w-10 text-center text-xs font-mono">
+              {previewZoom}%
+            </span>
             <button
               type="button"
               className="rounded p-1 hover:bg-muted"
@@ -1748,7 +1781,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 transform: `scale(${previewZoom / 100})`,
                 transformOrigin: "top center",
                 marginBottom:
-                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+                  previewZoom < 100
+                    ? `${((previewZoom - 100) / 100) * 900}px`
+                    : 0,
               }}
             >
               <PaymentsDocumentPreview

@@ -30,7 +30,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PAY_METHODS } from "@/lib/conf/config";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { DocumentLayout, DocumentTable } from "@/lib/conf/document-layout";
+import {
+  DocumentLayout,
+  DocumentTable,
+  normalizeConfInfo,
+  normalizeSidebarMembers,
+} from "@/lib/conf/document-layout";
+import { computePageChunks } from "@/lib/conf/document-pagination";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
@@ -82,15 +88,6 @@ const STATUS_CONFIG = {
   },
 };
 
-function chunkArray<T>(items: T[], size: number): T[][] {
-  if (items.length === 0) return [[]];
-  const chunks: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    chunks.push(items.slice(i, i + size));
-  }
-  return chunks;
-}
-
 function PaymentsDocumentPreview({
   payments,
   totalPaid,
@@ -133,21 +130,13 @@ function PaymentsDocumentPreview({
             amount: "—",
           },
         ];
-  const rowChunks = chunkArray(rows, 24);
-  const normalizedConfInfo = confInfo
-    ? {
-        ...confInfo,
-        venue: confInfo.venue ?? undefined,
-      }
-    : undefined;
-
-  const sidebarMembers = members.slice(0, 8).map((member, idx) => ({
-    id: `payment-member-${idx}`,
-    name: member.name,
-    role: "COMMITTEE",
-    title: member.title || member.role || "Committee Member",
-    committeeScope: member.role || null,
-  }));
+  const rowChunks = computePageChunks(rows, {
+    page1OverheadPx: 62,
+    trailingPx: 60,
+    contHeaderPx: 28,
+  });
+  const normalizedConfInfo = normalizeConfInfo(confInfo);
+  const sidebarMembers = normalizeSidebarMembers(members);
 
   return rowChunks.map((pageRows, pageIndex) => (
     <DocumentLayout
@@ -169,7 +158,8 @@ function PaymentsDocumentPreview({
             Date: {createdAt}
           </div>
           <div style={{ marginTop: 3, fontSize: 10, color: "#555" }}>
-            Total Recorded: {fmtRmb(totalPaid)} · Verified: {fmtRmb(approvedTotal)}
+            Total Recorded: {fmtRmb(totalPaid)} · Verified:{" "}
+            {fmtRmb(approvedTotal)}
           </div>
         </div>
       ) : (
@@ -573,7 +563,8 @@ export function PaymentShell() {
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
             <p className="text-lg font-medium">No payments recorded yet</p>
             <p className="text-sm text-muted-foreground">
-              Click &quot;Add Payment&quot; to record a payment with receipt screenshot
+              Click &quot;Add Payment&quot; to record a payment with receipt
+              screenshot
             </p>
           </CardContent>
         </Card>
@@ -588,7 +579,9 @@ export function PaymentShell() {
               <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold">{fmtRmb(payment.amount)}</span>
+                    <span className="text-lg font-bold">
+                      {fmtRmb(payment.amount)}
+                    </span>
                     <Badge variant={config.variant}>
                       <StatusIcon className={`size-3 ${config.color}`} />
                       {config.label}
@@ -606,7 +599,9 @@ export function PaymentShell() {
                     )}
                   </p>
                   {payment.note && (
-                    <p className="text-xs text-muted-foreground">{payment.note}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {payment.note}
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -620,7 +615,8 @@ export function PaymentShell() {
           <div>
             <CardTitle className="text-base">Live Payment Document</CardTitle>
             <CardDescription>
-              Full letter-style payment page with proper pagination and signatures.
+              Full letter-style payment page with proper pagination and
+              signatures.
             </CardDescription>
           </div>
           <div className="flex items-center gap-1 rounded-md border px-1 py-1">
@@ -632,7 +628,9 @@ export function PaymentShell() {
             >
               <ZoomOut className="size-3.5" />
             </button>
-            <span className="w-10 text-center text-xs font-mono">{previewZoom}%</span>
+            <span className="w-10 text-center text-xs font-mono">
+              {previewZoom}%
+            </span>
             <button
               type="button"
               className="rounded p-1 hover:bg-muted"
@@ -652,7 +650,9 @@ export function PaymentShell() {
                 transform: `scale(${previewZoom / 100})`,
                 transformOrigin: "top center",
                 marginBottom:
-                  previewZoom < 100 ? `${((previewZoom - 100) / 100) * 900}px` : 0,
+                  previewZoom < 100
+                    ? `${((previewZoom - 100) / 100) * 900}px`
+                    : 0,
               }}
             >
               <PaymentsDocumentPreview
