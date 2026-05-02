@@ -12,8 +12,7 @@ export const FUNDRAISING_SAMPLE_DOC_TITLE =
 export const FUNDRAISING_SAMPLE_DATE_PLACEHOLDER = "[Insert date]";
 export const FUNDRAISING_SAMPLE_TO = "[Recipient name / organization]";
 export const FUNDRAISING_SAMPLE_ADDRESS = "[Recipient address]";
-export const FUNDRAISING_SAMPLE_FROM =
-  "Liberian Student Union in China (LSUIC), Jinan 2026 Organizing Committee";
+export const FUNDRAISING_SAMPLE_FROM = "LSUIC, 2026 Conference Committee";
 export const FUNDRAISING_SAMPLE_SUBJECT =
   "Invitation to Support LSUIC Jinan 2026 Conference and Student Participation";
 export const FUNDRAISING_SAMPLE_RECIPIENT_NAME = "[Recipient title and name]";
@@ -47,8 +46,7 @@ export const FUNDRAISING_CATEGORY_LABELS: Record<FundraisingCategory, string> =
     ngo: "NGO / Development Partner",
   };
 
-export const CONF_FROM_COMMITTEE =
-  "Liberian Student Union in China (LSUIC)\nJinan 2026 Conference Committee";
+export const CONF_FROM_COMMITTEE = "LSUIC, 2026 Conference Committee";
 export const CONF_THEME =
   "Honoring Our Past, Engaging Our Present, Inspiring Our Future";
 export const CONF_DATES = "July 24\u201327, 2026";

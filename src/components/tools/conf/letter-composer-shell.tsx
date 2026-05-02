@@ -48,6 +48,7 @@ import {
   LETTERHEAD_CONFIG,
   buildCityRegionLine,
   buildLetterheadEmailLine,
+  buildLetterheadWebsiteLine,
 } from "@/lib/conf/letterhead-config";
 import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 import {
@@ -956,6 +957,17 @@ function memberLabel(m: Member): string {
   return m.title ?? m.committeeScope ?? "Committee Member";
 }
 
+function formatChinaPhone(phone: string | null | undefined): string {
+  const raw = (phone ?? "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("+")) return raw;
+
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return raw;
+  if (digits.startsWith("86")) return `+${digits}`;
+  return `+86${digits}`;
+}
+
 function fmtDateRange(start: string, end: string): string {
   const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) =>
     d.toLocaleDateString("en-US", opts);
@@ -1555,7 +1567,7 @@ function LetterA4Preview({
   const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
   const CONTINUATION_TEXT_PADDING_LEFT = 96;
 
-  /** Screen preview: rigid A4 frame; `@media print` / popup print CSS overrides with height:auto */
+  /** Screen preview: rigid A4 frame; print CSS keeps each page at exact A4 height */
   const letterPageChrome = {
     width: PAGE_W,
     minHeight: PAGE_H,
@@ -1576,12 +1588,14 @@ function LetterA4Preview({
   const viceChair = members.find((m) => m.role === "VICE_CHAIR");
   const secretary = members.find((m) => m.role === "SECRETARY");
   const officerPhones = [
-    chair && chair.phone ? { label: "Chair", phone: chair.phone } : null,
+    chair && chair.phone
+      ? { label: "Chair", phone: formatChinaPhone(chair.phone) }
+      : null,
     viceChair && viceChair.phone
-      ? { label: "Co-Chair", phone: viceChair.phone }
+      ? { label: "Co-Chair", phone: formatChinaPhone(viceChair.phone) }
       : null,
     secretary && secretary.phone
-      ? { label: "Secretary", phone: secretary.phone }
+      ? { label: "Secretary", phone: formatChinaPhone(secretary.phone) }
       : null,
   ].filter(Boolean) as { label: string; phone: string }[];
 
@@ -1898,6 +1912,9 @@ function LetterA4Preview({
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
               {buildLetterheadEmailLine()}
             </div>
+            <div style={{ fontSize: 8, color: C.muted, marginTop: 2 }}>
+              {buildLetterheadWebsiteLine()}
+            </div>
             {officerPhones.length > 0 && (
               <div
                 style={{
@@ -2100,7 +2117,7 @@ function LetterA4Preview({
                           marginTop: 2,
                         }}
                       >
-                        {m.phone}
+                        {formatChinaPhone(m.phone)}
                       </div>
                     )}
                     {/* Thin divider */}
@@ -3225,7 +3242,8 @@ export function LetterComposerShell() {
       .letter-page {
         width: 210mm !important;
         min-height: 297mm !important;
-        height: auto !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
         box-shadow: none !important;
         break-after: page;
         page-break-after: always;
@@ -3304,7 +3322,8 @@ export function LetterComposerShell() {
           .letter-page {
             width: 210mm !important;
             min-height: 297mm !important;
-            height: auto !important;
+            height: 297mm !important;
+            max-height: 297mm !important;
             box-shadow: none !important;
             transform: none !important;
             margin: 0 !important;

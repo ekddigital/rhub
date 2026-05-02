@@ -3,7 +3,7 @@
 Date: [Insert Date]  
 To: [Recipient Name / Organization]  
 Address: [Recipient Address]  
-From: Liberian Student Union in China (LSUIC), Jinan 2026 Organizing Committee  
+From: LSUIC, 2026 Conference Committee  
 Subject: Invitation to Support LSUIC Jinan 2026 Conference and Student Participation
 
 Dear [Recipient Title and Name],

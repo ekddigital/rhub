@@ -18,6 +18,7 @@ import {
   LETTERHEAD_CONFIG,
   buildCityRegionLine,
   buildLetterheadEmailLine,
+  buildLetterheadWebsiteLine,
 } from "./letterhead-config";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -216,6 +217,9 @@ export function DocumentLayout({
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
               {buildLetterheadEmailLine()}
+            </div>
+            <div style={{ fontSize: 8, color: C.muted, marginTop: 2 }}>
+              {buildLetterheadWebsiteLine()}
             </div>
           </div>
 

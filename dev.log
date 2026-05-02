@@ -4,569 +4,24 @@
 
 ▲ Next.js 16.2.3 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.173.179:3000
+- Network:       http://192.168.41.179:3000
 - Environments: .env
-✓ Ready in 335ms
+✓ Ready in 387ms
 
-○ Compiling / ...
+○ Compiling /tools/conf/letters ...
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 70s (next.js: 12.6s, proxy.ts: 153ms, application-code: 57s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /login 200 in 8.6s (next.js: 8.1s, proxy.ts: 8ms, application-code: 480ms)
- GET / 200 in 13.8s (next.js: 13.1s, proxy.ts: 97ms, application-code: 563ms)
- GET /api/auth/me?_t=1777457034100 200 in 2.0s (next.js: 602ms, proxy.ts: 13ms, application-code: 1410ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/login" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           data-new-gr-c-s-check-loaded="14.1287.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
- 
- GET /api/auth/me?_t=1777457036251 200 in 10.1s (next.js: 12ms, proxy.ts: 17ms, application-code: 10.0s)
- GET /api/auth/me?_t=1777457036251 200 in 10.1s (next.js: 14ms, proxy.ts: 20ms, application-code: 10.0s)
- GET /api/auth/me 200 in 10.1s (next.js: 19ms, proxy.ts: 22ms, application-code: 10.0s)
-Login error: Error [PrismaClientInitializationError]: 
-Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.findUnique()` invocation in
-/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0nk-nu1._.js:823:160
-
-  820     });
-  821 }
-  822 const { email, password } = parsed.data;
-→ 823 let user = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.findUnique(
-Can't reach database server at `31.97.41.230:9909`
-
-Please make sure your database server is running at `31.97.41.230:9909`.
-    at <unknown> (src/app/api/auth/login/route.ts:16:34)
-    at async POST (src/app/api/auth/login/route.ts:16:16)
-  14 |     const { email, password } = parsed.data;
-  15 |
-> 16 |     let user = await prisma.user.findUnique({
-     |                                  ^
-  17 |       where: { email },
-  18 |     });
-  19 | {
-  clientVersion: '6.19.3',
-  errorCode: undefined,
-  retryable: undefined
-}
- POST /api/auth/login 500 in 10.4s (next.js: 232ms, proxy.ts: 8ms, application-code: 10.2s)
- POST /api/auth/login 503 in 10.0s (next.js: 4ms, proxy.ts: 2ms, application-code: 10.0s)
- POST /api/auth/login 503 in 2.7s (next.js: 7ms, proxy.ts: 7ms, application-code: 2.7s)
- POST /api/auth/login 503 in 10.0s (next.js: 1180µs, proxy.ts: 1567µs, application-code: 10.0s)
- POST /api/auth/login 401 in 9.7s (next.js: 4ms, proxy.ts: 1703µs, application-code: 9.7s)
+ GET /tools/conf/letters 307 in 50s (next.js: 7ms, proxy.ts: 6ms, application-code: 50s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /login 200 in 100ms (next.js: 5ms, proxy.ts: 5ms, application-code: 91ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/login" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /api/auth/me?_t=1777457283565 200 in 1193ms (next.js: 13ms, proxy.ts: 21ms, application-code: 1158ms)
- GET /api/auth/me 200 in 8.4s (next.js: 26ms, proxy.ts: 19ms, application-code: 8.4s)
- GET /dashboard 200 in 578ms (next.js: 562ms, proxy.ts: 3ms, application-code: 12ms)
- GET /api/admin/impersonate 200 in 732ms (next.js: 100ms, proxy.ts: 7ms, application-code: 625ms)
- GET /api/admin/impersonate 200 in 587ms (next.js: 4ms, proxy.ts: 6ms, application-code: 577ms)
- GET /api/auth/me?_t=1777457283566 200 in 10.6s (next.js: 18ms, proxy.ts: 21ms, application-code: 10.5s)
- GET /tools/conf 200 in 500ms (next.js: 481ms, proxy.ts: 4ms, application-code: 14ms)
- GET /api/auth/me 200 in 608ms (next.js: 9ms, proxy.ts: 7ms, application-code: 591ms)
- GET /api/auth/me 200 in 791ms (next.js: 7ms, proxy.ts: 12ms, application-code: 773ms)
- GET /api/auth/me 200 in 541ms (next.js: 1648µs, proxy.ts: 3ms, application-code: 537ms)
- GET /api/auth/me 200 in 519ms (next.js: 1422µs, proxy.ts: 2ms, application-code: 516ms)
- GET /api/conf/default 200 in 34.6s (next.js: 140ms, proxy.ts: 3ms, application-code: 34.4s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /api/conf/default/access 200 in 35.2s (next.js: 198ms, proxy.ts: 10ms, application-code: 35.0s)
- GET /api/conf/default/access 200 in 33.1s (next.js: 1943µs, proxy.ts: 2ms, application-code: 33.1s)
- GET /api/conf/default/access 200 in 34.0s (next.js: 1520µs, proxy.ts: 1623µs, application-code: 34.0s)
- GET /api/conf/default/access 200 in 34.2s (next.js: 8ms, proxy.ts: 4ms, application-code: 34.2s)
- GET /api/conf/default/access 200 in 35.0s (next.js: 12ms, proxy.ts: 8ms, application-code: 35.0s)
- GET /tools/conf 200 in 179ms (next.js: 7ms, proxy.ts: 4ms, application-code: 168ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/conf" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
--                           data-new-gr-c-s-check-loaded="14.1287.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
- 
- GET /api/conf/default 200 in 28ms (next.js: 17ms, proxy.ts: 9ms, application-code: 1847µs)
- GET /api/auth/me 200 in 1086ms (next.js: 11ms, proxy.ts: 10ms, application-code: 1064ms)
- GET /api/auth/me 200 in 1374ms (next.js: 16ms, proxy.ts: 9ms, application-code: 1348ms)
- GET /api/auth/me 200 in 1642ms (next.js: 1236µs, proxy.ts: 5ms, application-code: 1635ms)
- GET /api/auth/me?_t=1777457337112 200 in 1622ms (next.js: 1895µs, proxy.ts: 4ms, application-code: 1616ms)
- GET /api/conf/default/access 200 in 2.8s (next.js: 7ms, proxy.ts: 11ms, application-code: 2.8s)
- GET /api/conf/default/access 200 in 3.1s (next.js: 15ms, proxy.ts: 10ms, application-code: 3.0s)
- GET /api/auth/me?_t=1777457337112 200 in 1851ms (next.js: 1211µs, proxy.ts: 3ms, application-code: 1847ms)
- GET /api/conf/default/access 200 in 3.3s (next.js: 3ms, proxy.ts: 3ms, application-code: 3.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1493ms (next.js: 654ms, proxy.ts: 4ms, application-code: 835ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1510ms (next.js: 661ms, proxy.ts: 10ms, application-code: 839ms)
- GET /tools/conf/budget 200 in 38.4s (next.js: 400ms, proxy.ts: 6ms, application-code: 38.0s)
- GET /api/conf/default 200 in 63ms (next.js: 27ms, proxy.ts: 23ms, application-code: 13ms)
- GET /api/conf/default 200 in 72ms (next.js: 40ms, proxy.ts: 27ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.7s (next.js: 885ms, proxy.ts: 8ms, application-code: 1823ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/budgets 200 in 2.7s (next.js: 896ms, proxy.ts: 14ms, application-code: 1831ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.8s (next.js: 891ms, proxy.ts: 16ms, application-code: 1851ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/budgets 200 in 2.9s (next.js: 889ms, proxy.ts: 6ms, application-code: 1978ms)
- GET /tools/conf 200 in 37ms (next.js: 6ms, proxy.ts: 5ms, application-code: 26ms)
- GET /api/conf/default 200 in 50ms (next.js: 30ms, proxy.ts: 18ms, application-code: 2ms)
- GET /api/conf/default 200 in 47ms (next.js: 17ms, proxy.ts: 29ms, application-code: 1533µs)
- GET /api/auth/me 200 in 1023ms (next.js: 16ms, proxy.ts: 34ms, application-code: 974ms)
- GET /api/auth/me 200 in 993ms (next.js: 11ms, proxy.ts: 15ms, application-code: 967ms)
- GET /api/conf/default/access 200 in 1542ms (next.js: 15ms, proxy.ts: 23ms, application-code: 1503ms)
- GET /api/conf/default/access 200 in 1846ms (next.js: 21ms, proxy.ts: 28ms, application-code: 1797ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 596ms (next.js: 10ms, proxy.ts: 5ms, application-code: 581ms)
-✓ Compiled in 342ms
- GET /tools/conf 200 in 750ms (next.js: 90ms, proxy.ts: 71ms, application-code: 590ms)
- GET /tools/conf 200 in 325ms (next.js: 14ms, proxy.ts: 17ms, application-code: 294ms)
- GET /tools/conf 200 in 176ms (next.js: 98ms, proxy.ts: 23ms, application-code: 54ms)
- GET / 200 in 770ms (next.js: 168ms, proxy.ts: 55ms, application-code: 547ms)
- GET / 200 in 401ms (next.js: 61ms, proxy.ts: 22ms, application-code: 317ms)
- GET / 200 in 271ms (next.js: 15ms, proxy.ts: 17ms, application-code: 238ms)
-✓ Compiled in 237ms
- GET /tools/conf/committee 200 in 32.4s (next.js: 569ms, proxy.ts: 9ms, application-code: 31.8s)
- GET /api/conf/default 200 in 35.2s (next.js: 28ms, proxy.ts: 3ms, application-code: 35.2s)
- GET /api/conf/default 200 in 35.2s (next.js: 35ms, proxy.ts: 3ms, application-code: 35.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1815ms (next.js: 61ms, proxy.ts: 8ms, application-code: 1746ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.0s (next.js: 3ms, proxy.ts: 3ms, application-code: 2.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 5.0s (next.js: 663ms, proxy.ts: 6ms, application-code: 4.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 5.0s (next.js: 54ms, proxy.ts: 11ms, application-code: 4.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 5.0s (next.js: 669ms, proxy.ts: 10ms, application-code: 4.3s)
- GET /api/conf/default 200 in 82ms (next.js: 68ms, proxy.ts: 11ms, application-code: 3ms)
- GET /api/auth/me 200 in 646ms (next.js: 56ms, proxy.ts: 24ms, application-code: 566ms)
- GET /api/auth/me 200 in 1227ms (next.js: 65ms, proxy.ts: 12ms, application-code: 1150ms)
- GET /api/auth/me?_t=1777457598645 200 in 1764ms (next.js: 71ms, proxy.ts: 11ms, application-code: 1682ms)
- GET /api/auth/me?_t=1777457598645 200 in 1701ms (next.js: 1482µs, proxy.ts: 2ms, application-code: 1698ms)
- GET /api/conf/default/access 200 in 2.1s (next.js: 31ms, proxy.ts: 25ms, application-code: 2.0s)
- GET /api/conf/default/access 200 in 2.7s (next.js: 58ms, proxy.ts: 19ms, application-code: 2.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.1s (next.js: 10ms, proxy.ts: 7ms, application-code: 3.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 3.0s (next.js: 4ms, proxy.ts: 1894µs, application-code: 3.0s)
- GET /api/conf/default 200 in 11ms (next.js: 3ms, proxy.ts: 4ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1515ms (next.js: 9ms, proxy.ts: 3ms, application-code: 1503ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 6ms, proxy.ts: 3ms, application-code: 2.1s)
-✓ Compiled in 120ms
-✓ Compiled in 165ms
- GET / 200 in 681ms (next.js: 92ms, proxy.ts: 144ms, application-code: 445ms)
- GET / 200 in 371ms (next.js: 4ms, proxy.ts: 3ms, application-code: 364ms)
- GET / 200 in 350ms (next.js: 3ms, proxy.ts: 3ms, application-code: 344ms)
- GET / 200 in 304ms (next.js: 3ms, proxy.ts: 3ms, application-code: 298ms)
- GET / 200 in 319ms (next.js: 6ms, proxy.ts: 5ms, application-code: 308ms)
- GET / 200 in 274ms (next.js: 3ms, proxy.ts: 13ms, application-code: 258ms)
- GET / 200 in 228ms (next.js: 5ms, proxy.ts: 5ms, application-code: 218ms)
- GET / 200 in 219ms (next.js: 1554µs, proxy.ts: 2ms, application-code: 215ms)
- GET / 200 in 221ms (next.js: 3ms, proxy.ts: 2ms, application-code: 216ms)
- GET / 200 in 195ms (next.js: 2ms, proxy.ts: 2ms, application-code: 191ms)
- GET / 200 in 190ms (next.js: 2ms, proxy.ts: 3ms, application-code: 185ms)
- GET / 200 in 210ms (next.js: 1693µs, proxy.ts: 1910µs, application-code: 206ms)
- GET / 200 in 202ms (next.js: 1776µs, proxy.ts: 2ms, application-code: 198ms)
- GET / 200 in 170ms (next.js: 4ms, proxy.ts: 2ms, application-code: 164ms)
- GET / 200 in 224ms (next.js: 4ms, proxy.ts: 4ms, application-code: 216ms)
- GET / 200 in 208ms (next.js: 3ms, proxy.ts: 3ms, application-code: 203ms)
- GET / 200 in 174ms (next.js: 1737µs, proxy.ts: 2ms, application-code: 170ms)
- GET / 200 in 176ms (next.js: 2ms, proxy.ts: 2ms, application-code: 171ms)
- GET / 200 in 214ms (next.js: 4ms, proxy.ts: 3ms, application-code: 207ms)
- GET / 200 in 188ms (next.js: 5ms, proxy.ts: 5ms, application-code: 178ms)
- GET / 200 in 199ms (next.js: 1849µs, proxy.ts: 3ms, application-code: 194ms)
- GET / 200 in 220ms (next.js: 2ms, proxy.ts: 1909µs, application-code: 216ms)
- GET / 200 in 197ms (next.js: 2ms, proxy.ts: 1940µs, application-code: 193ms)
- GET / 200 in 205ms (next.js: 2ms, proxy.ts: 1822µs, application-code: 201ms)
- GET / 200 in 236ms (next.js: 3ms, proxy.ts: 2ms, application-code: 231ms)
- GET / 200 in 249ms (next.js: 1669µs, proxy.ts: 2ms, application-code: 245ms)
- GET / 200 in 237ms (next.js: 3ms, proxy.ts: 4ms, application-code: 231ms)
- GET / 200 in 231ms (next.js: 5ms, proxy.ts: 3ms, application-code: 222ms)
- GET / 200 in 192ms (next.js: 3ms, proxy.ts: 2ms, application-code: 186ms)
- GET / 200 in 190ms (next.js: 3ms, proxy.ts: 1974µs, application-code: 185ms)
- GET / 200 in 218ms (next.js: 2ms, proxy.ts: 4ms, application-code: 212ms)
- GET / 200 in 178ms (next.js: 1899µs, proxy.ts: 2ms, application-code: 174ms)
- GET / 200 in 206ms (next.js: 3ms, proxy.ts: 2ms, application-code: 201ms)
- GET / 200 in 173ms (next.js: 3ms, proxy.ts: 3ms, application-code: 167ms)
- GET / 200 in 178ms (next.js: 2ms, proxy.ts: 3ms, application-code: 172ms)
- GET / 200 in 174ms (next.js: 3ms, proxy.ts: 1799µs, application-code: 169ms)
- GET / 200 in 181ms (next.js: 3ms, proxy.ts: 2ms, application-code: 176ms)
- GET / 200 in 156ms (next.js: 1741µs, proxy.ts: 1963µs, application-code: 152ms)
- GET / 200 in 157ms (next.js: 3ms, proxy.ts: 2ms, application-code: 152ms)
- GET / 200 in 142ms (next.js: 3ms, proxy.ts: 3ms, application-code: 136ms)
- GET / 200 in 127ms (next.js: 2ms, proxy.ts: 3ms, application-code: 122ms)
- GET / 200 in 207ms (next.js: 2ms, proxy.ts: 2ms, application-code: 203ms)
- GET / 200 in 177ms (next.js: 4ms, proxy.ts: 4ms, application-code: 169ms)
- GET / 200 in 172ms (next.js: 1859µs, proxy.ts: 2ms, application-code: 168ms)
- GET / 200 in 195ms (next.js: 1987µs, proxy.ts: 1832µs, application-code: 191ms)
- GET / 200 in 178ms (next.js: 11ms, proxy.ts: 6ms, application-code: 161ms)
- GET / 200 in 109ms (next.js: 4ms, proxy.ts: 2ms, application-code: 102ms)
- GET / 200 in 146ms (next.js: 4ms, proxy.ts: 1594µs, application-code: 141ms)
- GET / 200 in 132ms (next.js: 1420µs, proxy.ts: 3ms, application-code: 128ms)
- GET / 200 in 151ms (next.js: 1767µs, proxy.ts: 3ms, application-code: 146ms)
- GET / 200 in 192ms (next.js: 2ms, proxy.ts: 2ms, application-code: 188ms)
- GET / 200 in 207ms (next.js: 3ms, proxy.ts: 1914µs, application-code: 202ms)
- GET / 200 in 206ms (next.js: 1962µs, proxy.ts: 1834µs, application-code: 202ms)
- GET / 200 in 206ms (next.js: 3ms, proxy.ts: 1958µs, application-code: 201ms)
- GET / 200 in 201ms (next.js: 3ms, proxy.ts: 2ms, application-code: 196ms)
- GET / 200 in 237ms (next.js: 1744µs, proxy.ts: 2ms, application-code: 233ms)
- GET / 200 in 234ms (next.js: 1770µs, proxy.ts: 1808µs, application-code: 231ms)
- GET / 200 in 224ms (next.js: 7ms, proxy.ts: 7ms, application-code: 211ms)
- GET / 200 in 218ms (next.js: 3ms, proxy.ts: 2ms, application-code: 213ms)
- GET / 200 in 192ms (next.js: 2ms, proxy.ts: 1909µs, application-code: 187ms)
- GET / 200 in 192ms (next.js: 1697µs, proxy.ts: 2ms, application-code: 188ms)
- GET / 200 in 193ms (next.js: 3ms, proxy.ts: 3ms, application-code: 188ms)
- GET / 200 in 189ms (next.js: 2ms, proxy.ts: 3ms, application-code: 184ms)
- GET / 200 in 211ms (next.js: 3ms, proxy.ts: 3ms, application-code: 205ms)
- GET / 200 in 206ms (next.js: 4ms, proxy.ts: 4ms, application-code: 198ms)
- GET / 200 in 176ms (next.js: 4ms, proxy.ts: 4ms, application-code: 167ms)
- GET / 200 in 156ms (next.js: 2ms, proxy.ts: 1983µs, application-code: 152ms)
- GET / 200 in 151ms (next.js: 3ms, proxy.ts: 3ms, application-code: 144ms)
- GET / 200 in 133ms (next.js: 2ms, proxy.ts: 2ms, application-code: 129ms)
- GET / 200 in 130ms (next.js: 3ms, proxy.ts: 2ms, application-code: 125ms)
- GET / 200 in 121ms (next.js: 3ms, proxy.ts: 3ms, application-code: 115ms)
- GET / 200 in 103ms (next.js: 2ms, proxy.ts: 1871µs, application-code: 99ms)
- GET / 200 in 110ms (next.js: 2ms, proxy.ts: 4ms, application-code: 104ms)
- GET / 200 in 109ms (next.js: 3ms, proxy.ts: 2ms, application-code: 105ms)
- GET / 200 in 97ms (next.js: 1643µs, proxy.ts: 2ms, application-code: 93ms)
- GET / 200 in 110ms (next.js: 1664µs, proxy.ts: 2ms, application-code: 106ms)
- GET / 200 in 137ms (next.js: 2ms, proxy.ts: 1928µs, application-code: 133ms)
- GET / 200 in 128ms (next.js: 2ms, proxy.ts: 1985µs, application-code: 124ms)
- GET / 200 in 146ms (next.js: 2ms, proxy.ts: 2ms, application-code: 142ms)
- GET / 200 in 174ms (next.js: 2ms, proxy.ts: 3ms, application-code: 169ms)
- GET / 200 in 150ms (next.js: 3ms, proxy.ts: 5ms, application-code: 141ms)
- GET / 200 in 161ms (next.js: 2ms, proxy.ts: 2ms, application-code: 156ms)
- GET / 200 in 183ms (next.js: 4ms, proxy.ts: 4ms, application-code: 176ms)
- GET / 200 in 201ms (next.js: 3ms, proxy.ts: 3ms, application-code: 196ms)
- GET / 200 in 212ms (next.js: 3ms, proxy.ts: 5ms, application-code: 205ms)
- GET / 200 in 234ms (next.js: 5ms, proxy.ts: 3ms, application-code: 226ms)
- GET / 200 in 200ms (next.js: 4ms, proxy.ts: 4ms, application-code: 191ms)
- GET / 200 in 229ms (next.js: 4ms, proxy.ts: 3ms, application-code: 222ms)
- GET / 200 in 195ms (next.js: 3ms, proxy.ts: 3ms, application-code: 190ms)
- GET / 200 in 196ms (next.js: 3ms, proxy.ts: 3ms, application-code: 190ms)
- GET / 200 in 198ms (next.js: 2ms, proxy.ts: 3ms, application-code: 193ms)
- GET / 200 in 233ms (next.js: 4ms, proxy.ts: 3ms, application-code: 226ms)
- GET / 200 in 196ms (next.js: 2ms, proxy.ts: 2ms, application-code: 191ms)
- GET / 200 in 229ms (next.js: 4ms, proxy.ts: 3ms, application-code: 222ms)
- GET / 200 in 199ms (next.js: 4ms, proxy.ts: 3ms, application-code: 193ms)
- GET / 200 in 199ms (next.js: 3ms, proxy.ts: 3ms, application-code: 193ms)
- GET / 200 in 218ms (next.js: 2ms, proxy.ts: 3ms, application-code: 213ms)
- GET / 200 in 274ms (next.js: 3ms, proxy.ts: 3ms, application-code: 267ms)
- GET / 200 in 288ms (next.js: 2ms, proxy.ts: 3ms, application-code: 283ms)
- GET / 200 in 286ms (next.js: 3ms, proxy.ts: 3ms, application-code: 280ms)
- GET / 200 in 275ms (next.js: 5ms, proxy.ts: 4ms, application-code: 266ms)
- GET / 200 in 255ms (next.js: 4ms, proxy.ts: 6ms, application-code: 244ms)
- GET / 200 in 247ms (next.js: 16ms, proxy.ts: 6ms, application-code: 225ms)
-✓ Compiled in 299ms
- GET / 200 in 281ms (next.js: 6ms, proxy.ts: 11ms, application-code: 264ms)
- GET / 200 in 399ms (next.js: 4ms, proxy.ts: 8ms, application-code: 387ms)
- GET / 200 in 413ms (next.js: 4ms, proxy.ts: 4ms, application-code: 405ms)
- GET / 200 in 425ms (next.js: 5ms, proxy.ts: 8ms, application-code: 413ms)
- GET / 200 in 457ms (next.js: 6ms, proxy.ts: 5ms, application-code: 446ms)
- GET / 200 in 474ms (next.js: 63ms, proxy.ts: 67ms, application-code: 343ms)
- GET / 200 in 261ms (next.js: 5ms, proxy.ts: 5ms, application-code: 252ms)
- GET / 200 in 258ms (next.js: 1972µs, proxy.ts: 3ms, application-code: 253ms)
- GET / 200 in 291ms (next.js: 8ms, proxy.ts: 4ms, application-code: 279ms)
- GET / 200 in 233ms (next.js: 6ms, proxy.ts: 5ms, application-code: 223ms)
- GET / 200 in 216ms (next.js: 6ms, proxy.ts: 8ms, application-code: 203ms)
- GET / 200 in 246ms (next.js: 3ms, proxy.ts: 3ms, application-code: 240ms)
- GET / 200 in 212ms (next.js: 5ms, proxy.ts: 4ms, application-code: 203ms)
- GET / 200 in 214ms (next.js: 4ms, proxy.ts: 3ms, application-code: 207ms)
- GET / 200 in 247ms (next.js: 4ms, proxy.ts: 3ms, application-code: 241ms)
- GET / 200 in 237ms (next.js: 3ms, proxy.ts: 4ms, application-code: 231ms)
- GET / 200 in 201ms (next.js: 3ms, proxy.ts: 5ms, application-code: 194ms)
- GET / 200 in 236ms (next.js: 3ms, proxy.ts: 3ms, application-code: 230ms)
- GET / 200 in 206ms (next.js: 3ms, proxy.ts: 4ms, application-code: 199ms)
- GET / 200 in 202ms (next.js: 3ms, proxy.ts: 3ms, application-code: 196ms)
- GET / 200 in 181ms (next.js: 2ms, proxy.ts: 3ms, application-code: 176ms)
- GET / 200 in 170ms (next.js: 3ms, proxy.ts: 2ms, application-code: 165ms)
- GET / 200 in 163ms (next.js: 2ms, proxy.ts: 5ms, application-code: 155ms)
- GET / 200 in 155ms (next.js: 4ms, proxy.ts: 3ms, application-code: 148ms)
- GET / 200 in 144ms (next.js: 4ms, proxy.ts: 2ms, application-code: 138ms)
- GET / 200 in 157ms (next.js: 3ms, proxy.ts: 3ms, application-code: 152ms)
- GET / 200 in 138ms (next.js: 5ms, proxy.ts: 3ms, application-code: 131ms)
- GET / 200 in 188ms (next.js: 3ms, proxy.ts: 3ms, application-code: 182ms)
- GET / 200 in 207ms (next.js: 2ms, proxy.ts: 3ms, application-code: 203ms)
- GET / 200 in 195ms (next.js: 5ms, proxy.ts: 3ms, application-code: 187ms)
- GET / 200 in 207ms (next.js: 2ms, proxy.ts: 2ms, application-code: 203ms)
- GET / 200 in 242ms (next.js: 7ms, proxy.ts: 2ms, application-code: 233ms)
- GET / 200 in 274ms (next.js: 2ms, proxy.ts: 3ms, application-code: 268ms)
- GET / 200 in 286ms (next.js: 4ms, proxy.ts: 2ms, application-code: 279ms)
- GET / 200 in 291ms (next.js: 3ms, proxy.ts: 3ms, application-code: 285ms)
- GET / 200 in 267ms (next.js: 3ms, proxy.ts: 2ms, application-code: 262ms)
- GET / 200 in 310ms (next.js: 2ms, proxy.ts: 5ms, application-code: 303ms)
- GET / 200 in 314ms (next.js: 3ms, proxy.ts: 3ms, application-code: 308ms)
- GET / 200 in 276ms (next.js: 4ms, proxy.ts: 5ms, application-code: 267ms)
- GET / 200 in 226ms (next.js: 4ms, proxy.ts: 4ms, application-code: 218ms)
- GET / 200 in 235ms (next.js: 4ms, proxy.ts: 7ms, application-code: 224ms)
- GET / 200 in 222ms (next.js: 2ms, proxy.ts: 3ms, application-code: 217ms)
- GET / 200 in 221ms (next.js: 1926µs, proxy.ts: 1846µs, application-code: 217ms)
- GET / 200 in 184ms (next.js: 1864µs, proxy.ts: 2ms, application-code: 180ms)
- GET / 200 in 197ms (next.js: 3ms, proxy.ts: 1912µs, application-code: 193ms)
- GET / 200 in 170ms (next.js: 1866µs, proxy.ts: 2ms, application-code: 166ms)
- GET / 200 in 162ms (next.js: 2ms, proxy.ts: 1973µs, application-code: 157ms)
- GET / 200 in 150ms (next.js: 3ms, proxy.ts: 2ms, application-code: 145ms)
- GET / 200 in 145ms (next.js: 3ms, proxy.ts: 4ms, application-code: 138ms)
- GET / 200 in 130ms (next.js: 2ms, proxy.ts: 3ms, application-code: 125ms)
- GET / 200 in 204ms (next.js: 3ms, proxy.ts: 3ms, application-code: 198ms)
- GET / 200 in 192ms (next.js: 6ms, proxy.ts: 3ms, application-code: 183ms)
- GET / 200 in 205ms (next.js: 3ms, proxy.ts: 2ms, application-code: 199ms)
- GET / 200 in 227ms (next.js: 1553µs, proxy.ts: 3ms, application-code: 222ms)
- GET / 200 in 240ms (next.js: 3ms, proxy.ts: 1970µs, application-code: 236ms)
- GET / 200 in 289ms (next.js: 11ms, proxy.ts: 3ms, application-code: 276ms)
- GET / 200 in 228ms (next.js: 4ms, proxy.ts: 7ms, application-code: 217ms)
- GET / 200 in 223ms (next.js: 3ms, proxy.ts: 4ms, application-code: 217ms)
- GET / 200 in 191ms (next.js: 4ms, proxy.ts: 3ms, application-code: 183ms)
- GET / 200 in 217ms (next.js: 3ms, proxy.ts: 3ms, application-code: 212ms)
- GET / 200 in 189ms (next.js: 4ms, proxy.ts: 3ms, application-code: 182ms)
- GET / 200 in 185ms (next.js: 1443µs, proxy.ts: 1909µs, application-code: 181ms)
- GET / 200 in 206ms (next.js: 1903µs, proxy.ts: 2ms, application-code: 202ms)
- GET / 200 in 203ms (next.js: 5ms, proxy.ts: 3ms, application-code: 194ms)
- GET / 200 in 172ms (next.js: 1851µs, proxy.ts: 2ms, application-code: 168ms)
- GET / 200 in 202ms (next.js: 3ms, proxy.ts: 2ms, application-code: 197ms)
- GET / 200 in 168ms (next.js: 3ms, proxy.ts: 1977µs, application-code: 163ms)
- GET / 200 in 181ms (next.js: 1585µs, proxy.ts: 2ms, application-code: 177ms)
- GET / 200 in 209ms (next.js: 1717µs, proxy.ts: 3ms, application-code: 204ms)
- GET / 200 in 204ms (next.js: 3ms, proxy.ts: 1787µs, application-code: 199ms)
- GET / 200 in 190ms (next.js: 1741µs, proxy.ts: 1780µs, application-code: 186ms)
- GET / 200 in 180ms (next.js: 4ms, proxy.ts: 2ms, application-code: 174ms)
- GET / 200 in 140ms (next.js: 2ms, proxy.ts: 3ms, application-code: 134ms)
- GET / 200 in 125ms (next.js: 3ms, proxy.ts: 3ms, application-code: 119ms)
- GET / 200 in 122ms (next.js: 1891µs, proxy.ts: 2ms, application-code: 118ms)
- GET / 200 in 114ms (next.js: 1843µs, proxy.ts: 2ms, application-code: 110ms)
- GET / 200 in 118ms (next.js: 1383µs, proxy.ts: 3ms, application-code: 114ms)
- GET / 200 in 111ms (next.js: 3ms, proxy.ts: 1918µs, application-code: 106ms)
- GET / 200 in 98ms (next.js: 2ms, proxy.ts: 1924µs, application-code: 94ms)
- GET / 200 in 100ms (next.js: 1758µs, proxy.ts: 2ms, application-code: 96ms)
- GET / 200 in 125ms (next.js: 1831µs, proxy.ts: 2ms, application-code: 121ms)
- GET / 200 in 124ms (next.js: 1696µs, proxy.ts: 2ms, application-code: 120ms)
- GET / 200 in 120ms (next.js: 2ms, proxy.ts: 2ms, application-code: 115ms)
- GET / 200 in 120ms (next.js: 3ms, proxy.ts: 3ms, application-code: 115ms)
- GET / 200 in 119ms (next.js: 3ms, proxy.ts: 3ms, application-code: 113ms)
- GET / 200 in 99ms (next.js: 2ms, proxy.ts: 2ms, application-code: 95ms)
- GET / 200 in 93ms (next.js: 3ms, proxy.ts: 3ms, application-code: 88ms)
- GET / 200 in 122ms (next.js: 1479µs, proxy.ts: 2ms, application-code: 119ms)
- GET / 200 in 143ms (next.js: 1707µs, proxy.ts: 2ms, application-code: 139ms)
- GET / 200 in 131ms (next.js: 1770µs, proxy.ts: 2ms, application-code: 127ms)
- GET / 200 in 189ms (next.js: 3ms, proxy.ts: 1950µs, application-code: 184ms)
- GET / 200 in 203ms (next.js: 3ms, proxy.ts: 1937µs, application-code: 199ms)
- GET / 200 in 190ms (next.js: 1758µs, proxy.ts: 1914µs, application-code: 186ms)
- GET / 200 in 223ms (next.js: 1645µs, proxy.ts: 2ms, application-code: 220ms)
- GET / 200 in 215ms (next.js: 3ms, proxy.ts: 2ms, application-code: 211ms)
- GET / 200 in 174ms (next.js: 2ms, proxy.ts: 1775µs, application-code: 170ms)
- GET / 200 in 174ms (next.js: 1760µs, proxy.ts: 1750µs, application-code: 171ms)
- GET / 200 in 275ms (next.js: 2ms, proxy.ts: 1916µs, application-code: 270ms)
- GET / 200 in 244ms (next.js: 1833µs, proxy.ts: 1976µs, application-code: 240ms)
- GET / 200 in 267ms (next.js: 1794µs, proxy.ts: 1932µs, application-code: 263ms)
- GET / 200 in 266ms (next.js: 2ms, proxy.ts: 5ms, application-code: 259ms)
- GET / 200 in 264ms (next.js: 2ms, proxy.ts: 2ms, application-code: 260ms)
- GET / 200 in 237ms (next.js: 1999µs, proxy.ts: 2ms, application-code: 233ms)
- GET / 200 in 198ms (next.js: 3ms, proxy.ts: 3ms, application-code: 192ms)
- GET / 200 in 194ms (next.js: 1365µs, proxy.ts: 3ms, application-code: 190ms)
- GET / 200 in 169ms (next.js: 1615µs, proxy.ts: 1893µs, application-code: 166ms)
- GET / 200 in 180ms (next.js: 2ms, proxy.ts: 2ms, application-code: 175ms)
- GET / 200 in 165ms (next.js: 1795µs, proxy.ts: 4ms, application-code: 159ms)
- GET / 200 in 133ms (next.js: 1786µs, proxy.ts: 1937µs, application-code: 129ms)
- GET / 200 in 135ms (next.js: 1584µs, proxy.ts: 2ms, application-code: 132ms)
- GET / 200 in 109ms (next.js: 4ms, proxy.ts: 2ms, application-code: 104ms)
- GET / 200 in 120ms (next.js: 2ms, proxy.ts: 2000µs, application-code: 115ms)
- GET / 200 in 108ms (next.js: 1589µs, proxy.ts: 3ms, application-code: 104ms)
- GET / 200 in 121ms (next.js: 3ms, proxy.ts: 3ms, application-code: 115ms)
- GET / 200 in 121ms (next.js: 1723µs, proxy.ts: 3ms, application-code: 116ms)
- GET / 200 in 117ms (next.js: 2ms, proxy.ts: 1935µs, application-code: 112ms)
- GET / 200 in 100ms (next.js: 2ms, proxy.ts: 2ms, application-code: 96ms)
- GET / 200 in 113ms (next.js: 2ms, proxy.ts: 4ms, application-code: 107ms)
- GET / 200 in 100ms (next.js: 1766µs, proxy.ts: 2ms, application-code: 96ms)
- GET / 200 in 112ms (next.js: 1523µs, proxy.ts: 1934µs, application-code: 109ms)
- GET / 200 in 112ms (next.js: 1931µs, proxy.ts: 3ms, application-code: 107ms)
- GET / 200 in 130ms (next.js: 3ms, proxy.ts: 3ms, application-code: 125ms)
- GET / 200 in 116ms (next.js: 1781µs, proxy.ts: 1771µs, application-code: 112ms)
- GET / 200 in 156ms (next.js: 2ms, proxy.ts: 2ms, application-code: 152ms)
- GET / 200 in 175ms (next.js: 1762µs, proxy.ts: 2ms, application-code: 171ms)
- GET / 200 in 162ms (next.js: 1629µs, proxy.ts: 1984µs, application-code: 158ms)
- GET / 200 in 212ms (next.js: 1827µs, proxy.ts: 2ms, application-code: 208ms)
- GET / 200 in 217ms (next.js: 3ms, proxy.ts: 2ms, application-code: 212ms)
- GET / 200 in 190ms (next.js: 1799µs, proxy.ts: 1923µs, application-code: 186ms)
- GET / 200 in 205ms (next.js: 1513µs, proxy.ts: 1887µs, application-code: 201ms)
- GET / 200 in 202ms (next.js: 2ms, proxy.ts: 1926µs, application-code: 198ms)
- GET / 200 in 205ms (next.js: 3ms, proxy.ts: 3ms, application-code: 199ms)
- GET / 200 in 220ms (next.js: 3ms, proxy.ts: 4ms, application-code: 213ms)
- GET / 200 in 217ms (next.js: 3ms, proxy.ts: 1998µs, application-code: 213ms)
- GET / 200 in 170ms (next.js: 3ms, proxy.ts: 2ms, application-code: 164ms)
- GET / 200 in 169ms (next.js: 3ms, proxy.ts: 1796µs, application-code: 165ms)
- GET / 200 in 165ms (next.js: 3ms, proxy.ts: 1917µs, application-code: 160ms)
- GET / 200 in 165ms (next.js: 1550µs, proxy.ts: 2ms, application-code: 162ms)
- GET / 200 in 196ms (next.js: 1696µs, proxy.ts: 2ms, application-code: 193ms)
- GET / 200 in 198ms (next.js: 2ms, proxy.ts: 1875µs, application-code: 194ms)
- GET / 200 in 170ms (next.js: 2ms, proxy.ts: 2ms, application-code: 165ms)
- GET / 200 in 169ms (next.js: 2ms, proxy.ts: 1908µs, application-code: 164ms)
- GET / 200 in 142ms (next.js: 2ms, proxy.ts: 2ms, application-code: 138ms)
- GET / 200 in 140ms (next.js: 1699µs, proxy.ts: 2ms, application-code: 136ms)
- GET / 200 in 120ms (next.js: 1530µs, proxy.ts: 2ms, application-code: 116ms)
- GET / 200 in 101ms (next.js: 2ms, proxy.ts: 1828µs, application-code: 97ms)
- GET / 200 in 87ms (next.js: 2ms, proxy.ts: 1497µs, application-code: 84ms)
- GET / 200 in 110ms (next.js: 2ms, proxy.ts: 1876µs, application-code: 105ms)
- GET / 200 in 111ms (next.js: 1599µs, proxy.ts: 1753µs, application-code: 108ms)
- GET / 200 in 112ms (next.js: 1565µs, proxy.ts: 1924µs, application-code: 109ms)
- GET / 200 in 101ms (next.js: 1584µs, proxy.ts: 1860µs, application-code: 97ms)
- GET / 200 in 118ms (next.js: 3ms, proxy.ts: 1881µs, application-code: 114ms)
- GET / 200 in 100ms (next.js: 1771µs, proxy.ts: 3ms, application-code: 95ms)
- GET / 200 in 99ms (next.js: 1849µs, proxy.ts: 1831µs, application-code: 96ms)
- GET / 200 in 97ms (next.js: 1645µs, proxy.ts: 1944µs, application-code: 93ms)
- GET / 200 in 121ms (next.js: 2ms, proxy.ts: 2ms, application-code: 117ms)
- GET / 200 in 118ms (next.js: 1957µs, proxy.ts: 1937µs, application-code: 114ms)
- GET / 200 in 115ms (next.js: 3ms, proxy.ts: 1970µs, application-code: 111ms)
- GET / 200 in 102ms (next.js: 2ms, proxy.ts: 3ms, application-code: 97ms)
- GET / 200 in 140ms (next.js: 1617µs, proxy.ts: 3ms, application-code: 136ms)
- GET / 200 in 153ms (next.js: 1689µs, proxy.ts: 1927µs, application-code: 150ms)
- GET / 200 in 137ms (next.js: 1707µs, proxy.ts: 3ms, application-code: 132ms)
- GET / 200 in 155ms (next.js: 1818µs, proxy.ts: 3ms, application-code: 150ms)
- GET / 200 in 192ms (next.js: 2ms, proxy.ts: 1759µs, application-code: 188ms)
- GET / 200 in 195ms (next.js: 1617µs, proxy.ts: 3ms, application-code: 190ms)
- GET / 200 in 169ms (next.js: 1824µs, proxy.ts: 1642µs, application-code: 165ms)
- GET / 200 in 199ms (next.js: 3ms, proxy.ts: 3ms, application-code: 192ms)
- GET / 200 in 193ms (next.js: 1582µs, proxy.ts: 3ms, application-code: 189ms)
- GET / 200 in 167ms (next.js: 1637µs, proxy.ts: 3ms, application-code: 163ms)
- GET / 200 in 193ms (next.js: 1935µs, proxy.ts: 1854µs, application-code: 189ms)
- GET / 200 in 202ms (next.js: 3ms, proxy.ts: 1871µs, application-code: 197ms)
- GET / 200 in 203ms (next.js: 1706µs, proxy.ts: 3ms, application-code: 198ms)
- GET / 200 in 174ms (next.js: 2ms, proxy.ts: 2ms, application-code: 169ms)
- GET / 200 in 198ms (next.js: 3ms, proxy.ts: 1816µs, application-code: 193ms)
- GET / 200 in 172ms (next.js: 1439µs, proxy.ts: 1893µs, application-code: 169ms)
- GET / 200 in 204ms (next.js: 1562µs, proxy.ts: 1735µs, application-code: 201ms)
- GET / 200 in 193ms (next.js: 1990µs, proxy.ts: 2ms, application-code: 189ms)
- GET / 200 in 175ms (next.js: 2ms, proxy.ts: 2ms, application-code: 170ms)
- GET / 200 in 148ms (next.js: 1760µs, proxy.ts: 1908µs, application-code: 144ms)
- GET / 200 in 148ms (next.js: 4ms, proxy.ts: 1882µs, application-code: 142ms)
- GET / 200 in 140ms (next.js: 1617µs, proxy.ts: 1662µs, application-code: 137ms)
- GET / 200 in 122ms (next.js: 2ms, proxy.ts: 2ms, application-code: 117ms)
- GET / 200 in 99ms (next.js: 1661µs, proxy.ts: 3ms, application-code: 94ms)
- GET / 200 in 115ms (next.js: 2ms, proxy.ts: 1929µs, application-code: 110ms)
- GET / 200 in 102ms (next.js: 1764µs, proxy.ts: 1725µs, application-code: 99ms)
- GET / 200 in 116ms (next.js: 3ms, proxy.ts: 2ms, application-code: 111ms)
- GET / 200 in 109ms (next.js: 1453µs, proxy.ts: 1937µs, application-code: 106ms)
- GET / 200 in 109ms (next.js: 2ms, proxy.ts: 3ms, application-code: 104ms)
- GET / 200 in 98ms (next.js: 1716µs, proxy.ts: 2ms, application-code: 95ms)
- GET /tools/conf/committee 200 in 10.0s (next.js: 29ms, proxy.ts: 3ms, application-code: 9.9s)
- GET /tools/conf/committee 200 in 9.8s (next.js: 47ms, proxy.ts: 7ms, application-code: 9.8s)
- GET /tools/conf/committee 200 in 10.4s (next.js: 169ms, proxy.ts: 146ms, application-code: 10.1s)
- GET /tools/conf/committee 200 in 10.0s (next.js: 33ms, proxy.ts: 3ms, application-code: 10.0s)
- GET /tools/conf/committee 200 in 9.8s (next.js: 42ms, proxy.ts: 12ms, application-code: 9.7s)
- GET /tools/conf/committee 200 in 9.9s (next.js: 31ms, proxy.ts: 4ms, application-code: 9.9s)
- GET / 200 in 123ms (next.js: 3ms, proxy.ts: 1778µs, application-code: 118ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET / 200 in 358ms (next.js: 2ms, proxy.ts: 1741µs, application-code: 354ms)
- GET / 200 in 408ms (next.js: 2ms, proxy.ts: 1712µs, application-code: 404ms)
- GET / 200 in 442ms (next.js: 3ms, proxy.ts: 1905µs, application-code: 438ms)
- GET / 200 in 457ms (next.js: 4ms, proxy.ts: 2ms, application-code: 450ms)
- GET / 200 in 453ms (next.js: 1774µs, proxy.ts: 5ms, application-code: 446ms)
- GET / 200 in 425ms (next.js: 6ms, proxy.ts: 248ms, application-code: 172ms)
- GET / 200 in 137ms (next.js: 4ms, proxy.ts: 22ms, application-code: 110ms)
-✓ Compiled in 226ms
- GET /tools/conf/committee 200 in 10.1s (next.js: 65ms, proxy.ts: 7ms, application-code: 10.1s)
- GET /tools/conf/committee 200 in 9.9s (next.js: 4ms, proxy.ts: 40ms, application-code: 9.8s)
- GET /tools/conf/committee 200 in 9.8s (next.js: 5ms, proxy.ts: 31ms, application-code: 9.8s)
- GET /tools/conf/committee 200 in 9.7s (next.js: 2ms, proxy.ts: 3ms, application-code: 9.7s)
- GET /tools/conf/committee 200 in 9.8s (next.js: 3ms, proxy.ts: 3ms, application-code: 9.8s)
- GET /tools/conf/committee 307 in 10.2s (next.js: 32ms, proxy.ts: 9ms, application-code: 10.2s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 322ms (next.js: 3ms, proxy.ts: 8ms, application-code: 310ms)
- GET /tools/conf/committee 200 in 273ms (next.js: 2ms, proxy.ts: 10ms, application-code: 260ms)
- GET /tools/conf/committee 200 in 429ms (next.js: 4ms, proxy.ts: 2ms, application-code: 422ms)
- GET /tools/conf/committee 200 in 378ms (next.js: 5ms, proxy.ts: 4ms, application-code: 370ms)
- GET /tools/conf/committee 200 in 405ms (next.js: 4ms, proxy.ts: 1596µs, application-code: 400ms)
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 450ms (next.js: 362ms, proxy.ts: 2ms, application-code: 86ms)
+ GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fletters 200 in 463ms (next.js: 388ms, proxy.ts: 7ms, application-code: 69ms)
+ GET /api/auth/me?_t=1777689746647 200 in 1274ms (next.js: 282ms, proxy.ts: 15ms, application-code: 978ms)
+ GET /api/auth/me 200 in 6.9s (next.js: 299ms, proxy.ts: 13ms, application-code: 6.6s)
+ GET /api/auth/me?_t=1777689746647 200 in 8.5s (next.js: 292ms, proxy.ts: 14ms, application-code: 8.2s)
+ GET /api/auth/me 200 in 8.6s (next.js: 290ms, proxy.ts: 13ms, application-code: 8.3s)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -604,379 +59,39 @@ https://react.dev/link/hydration-mismatch
                           >
                   ...
  
- GET /api/auth/me 200 in 6.6s (next.js: 96ms, proxy.ts: 11ms, application-code: 6.5s)
- GET /api/auth/me?_t=1777458135497 200 in 7.2s (next.js: 106ms, proxy.ts: 10ms, application-code: 7.1s)
- GET /api/auth/me?_t=1777458135497 200 in 8.3s (next.js: 101ms, proxy.ts: 10ms, application-code: 8.2s)
- GET /api/auth/me 200 in 8.7s (next.js: 80ms, proxy.ts: 11ms, application-code: 8.6s)
-✓ Compiled in 73ms
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 119ms (next.js: 4ms, proxy.ts: 4ms, application-code: 111ms)
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 61ms (next.js: 5ms, proxy.ts: 3ms, application-code: 53ms)
- GET / 200 in 125ms (next.js: 26ms, proxy.ts: 4ms, application-code: 95ms)
- GET / 200 in 63ms (next.js: 19ms, proxy.ts: 5ms, application-code: 40ms)
- GET /api/conf/default/access 200 in 42s (next.js: 46ms, proxy.ts: 15ms, application-code: 42s)
- GET /api/conf/default/access 200 in 42s (next.js: 93ms, proxy.ts: 12ms, application-code: 42s)
- GET /tools/conf/finance/secretary 200 in 34.7s (next.js: 396ms, proxy.ts: 5ms, application-code: 34.3s)
- GET /tools/conf/finance/secretary 200 in 16.6s (next.js: 4ms, proxy.ts: 4ms, application-code: 16.6s)
- GET /api/conf/default 200 in 28.0s (next.js: 64ms, proxy.ts: 16ms, application-code: 27.9s)
- GET /api/conf/default 200 in 28.0s (next.js: 55ms, proxy.ts: 36ms, application-code: 27.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.4s (next.js: 718ms, proxy.ts: 6ms, application-code: 1703ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.6s (next.js: 703ms, proxy.ts: 11ms, application-code: 1904ms)
-✓ Compiled in 142ms
- GET / 200 in 284ms (next.js: 62ms, proxy.ts: 38ms, application-code: 184ms)
- GET / 200 in 100ms (next.js: 5ms, proxy.ts: 3ms, application-code: 92ms)
- GET /tools/conf/finance/secretary 200 in 37.6s (next.js: 118ms, proxy.ts: 42ms, application-code: 37.4s)
- GET /tools/conf/finance/secretary 200 in 37.6s (next.js: 39ms, proxy.ts: 5ms, application-code: 37.6s)
-✓ Compiled in 414ms
- GET / 200 in 528ms (next.js: 85ms, proxy.ts: 38ms, application-code: 405ms)
- GET / 200 in 286ms (next.js: 24ms, proxy.ts: 72ms, application-code: 190ms)
- GET / 200 in 165ms (next.js: 2ms, proxy.ts: 2ms, application-code: 160ms)
- GET / 200 in 112ms (next.js: 1988µs, proxy.ts: 2ms, application-code: 108ms)
- GET / 200 in 65ms (next.js: 4ms, proxy.ts: 3ms, application-code: 58ms)
- GET /api/conf/default 200 in 43s (next.js: 166ms, proxy.ts: 24ms, application-code: 43s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.5s (next.js: 40ms, proxy.ts: 7ms, application-code: 2.5s)
- GET /tools/conf/finance/secretary 200 in 39.7s (next.js: 31ms, proxy.ts: 3ms, application-code: 39.7s)
- GET /tools/conf/finance/secretary 200 in 40s (next.js: 33ms, proxy.ts: 2ms, application-code: 40s)
- GET /tools/conf/finance/secretary 200 in 40s (next.js: 29ms, proxy.ts: 3ms, application-code: 40s)
- GET /tools/conf/finance/secretary 200 in 49s (next.js: 144ms, proxy.ts: 67ms, application-code: 49s)
- GET /tools/conf/finance/secretary 200 in 49s (next.js: 79ms, proxy.ts: 111ms, application-code: 48s)
-✓ Compiled in 119ms
-✓ Compiled in 356ms
-✓ Compiled in 176ms
- GET / 200 in 401ms (next.js: 65ms, proxy.ts: 36ms, application-code: 300ms)
- GET / 200 in 188ms (next.js: 69ms, proxy.ts: 7ms, application-code: 112ms)
- GET / 200 in 70ms (next.js: 3ms, proxy.ts: 4ms, application-code: 63ms)
- GET /tools/conf/finance/secretary 200 in 31.0s (next.js: 135ms, proxy.ts: 38ms, application-code: 30.8s)
- GET /tools/conf/finance/secretary 200 in 30.8s (next.js: 34ms, proxy.ts: 4ms, application-code: 30.8s)
- GET /tools/conf/finance/secretary 200 in 31.0s (next.js: 63ms, proxy.ts: 42ms, application-code: 30.9s)
- GET /api/conf/default 200 in 32.5s (next.js: 38ms, proxy.ts: 64ms, application-code: 32.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1764ms (next.js: 26ms, proxy.ts: 2ms, application-code: 1736ms)
+ GET /tools/conf 200 in 472ms (next.js: 450ms, proxy.ts: 8ms, application-code: 14ms)
+ GET /api/auth/me 200 in 876ms (next.js: 7ms, proxy.ts: 12ms, application-code: 857ms)
+ GET /api/conf/default 200 in 45s (next.js: 167ms, proxy.ts: 7ms, application-code: 45s)
+ GET /api/conf/default 200 in 45s (next.js: 176ms, proxy.ts: 13ms, application-code: 45s)
+ GET /api/auth/me 200 in 810ms (next.js: 2ms, proxy.ts: 5ms, application-code: 803ms)
+ GET /api/conf/default/access 200 in 47s (next.js: 5ms, proxy.ts: 13ms, application-code: 47s)
+ GET /api/conf/default/access 200 in 46s (next.js: 3ms, proxy.ts: 4ms, application-code: 46s)
+ GET /api/conf/default/access 200 in 93s (next.js: 272ms, proxy.ts: 11ms, application-code: 93s)
+ GET /api/conf/default/access 200 in 93s (next.js: 261ms, proxy.ts: 13ms, application-code: 93s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1354ms (next.js: 640ms, proxy.ts: 4ms, application-code: 709ms)
+ GET /tools/conf/letters 200 in 1954ms (next.js: 8ms, proxy.ts: 8ms, application-code: 1938ms)
+ GET /api/conf/default 200 in 54ms (next.js: 10ms, proxy.ts: 40ms, application-code: 4ms)
+ GET /api/conf/default 200 in 62ms (next.js: 15ms, proxy.ts: 40ms, application-code: 6ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.8s (next.js: 676ms, proxy.ts: 1556µs, application-code: 2.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.2s (next.js: 646ms, proxy.ts: 10ms, application-code: 1575ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.2s (next.js: 19ms, proxy.ts: 9ms, application-code: 2.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.4s (next.js: 675ms, proxy.ts: 9ms, application-code: 1733ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.8s (next.js: 687ms, proxy.ts: 10ms, application-code: 3.1s)
+ GET /api/conf/default 200 in 11ms (next.js: 2ms, proxy.ts: 4ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 1948ms (next.js: 7ms, proxy.ts: 2ms, application-code: 1939ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.6s (next.js: 14ms, proxy.ts: 3ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.7s (next.js: 11ms, proxy.ts: 3ms, application-code: 2.7s)
+ GET /api/conf/default 200 in 12ms (next.js: 2ms, proxy.ts: 5ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.0s (next.js: 6ms, proxy.ts: 4ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.3s (next.js: 3ms, proxy.ts: 1833µs, application-code: 2.3s)
+[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 307 in 11.6s (next.js: 1275ms, proxy.ts: 5ms, application-code: 10.3s)
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 61ms (next.js: 15ms, proxy.ts: 2ms, application-code: 44ms)
- GET /api/auth/me?_t=1777458909765 200 in 9.3s (next.js: 37ms, proxy.ts: 5ms, application-code: 9.2s)
- GET /api/auth/me 200 in 9.4s (next.js: 2ms, proxy.ts: 50ms, application-code: 9.3s)
- GET /tools/conf/delegates 200 in 40ms (next.js: 5ms, proxy.ts: 5ms, application-code: 30ms)
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 85ms (next.js: 11ms, proxy.ts: 61ms, application-code: 13ms)
- GET /api/auth/me?_t=1777458909765 200 in 10.1s (next.js: 48ms, proxy.ts: 5ms, application-code: 10.0s)
- GET /api/auth/me 200 in 12ms (next.js: 3ms, proxy.ts: 3ms, application-code: 6ms)
- GET /api/conf/default/access 200 in 10ms (next.js: 2ms, proxy.ts: 3ms, application-code: 5ms)
- GET /api/auth/me 200 in 9ms (next.js: 1469µs, proxy.ts: 2ms, application-code: 5ms)
- GET /api/auth/me 200 in 622ms (next.js: 59ms, proxy.ts: 14ms, application-code: 549ms)
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 21ms (next.js: 1831µs, proxy.ts: 2ms, application-code: 17ms)
- GET /api/auth/me 200 in 18ms (next.js: 5ms, proxy.ts: 3ms, application-code: 10ms)
- GET /api/auth/me 200 in 19ms (next.js: 8ms, proxy.ts: 3ms, application-code: 9ms)
- GET /api/conf/default/access 200 in 1238ms (next.js: 48ms, proxy.ts: 14ms, application-code: 1177ms)
- GET /api/auth/me 200 in 9.5s (next.js: 58ms, proxy.ts: 16ms, application-code: 9.4s)
- GET /api/conf/default/access 200 in 10.0s (next.js: 58ms, proxy.ts: 14ms, application-code: 9.9s)
- GET /api/conf/default/access 200 in 10.2s (next.js: 1725µs, proxy.ts: 1350µs, application-code: 10.2s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 89ms (next.js: 6ms, proxy.ts: 5ms, application-code: 78ms)
- GET /api/auth/me?_t=1777458932114 200 in 36ms (next.js: 17ms, proxy.ts: 7ms, application-code: 12ms)
- GET /api/auth/me 200 in 37ms (next.js: 16ms, proxy.ts: 9ms, application-code: 12ms)
- GET /api/auth/me?_t=1777458932115 200 in 41ms (next.js: 16ms, proxy.ts: 16ms, application-code: 9ms)
-✓ Compiled in 120ms
- POST /api/auth/login 200 in 2.4s (next.js: 64ms, proxy.ts: 5ms, application-code: 2.3s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 200 in 1315ms (next.js: 3ms, proxy.ts: 1658µs, application-code: 1311ms)
- GET /api/conf/default/access 200 in 62ms (next.js: 12ms, proxy.ts: 45ms, application-code: 5ms)
- GET /api/auth/me 200 in 76ms (next.js: 9ms, proxy.ts: 49ms, application-code: 17ms)
- GET /api/auth/me 200 in 76ms (next.js: 15ms, proxy.ts: 48ms, application-code: 12ms)
- GET /api/conf/default/access 200 in 77ms (next.js: 19ms, proxy.ts: 46ms, application-code: 12ms)
- GET /api/conf/default 200 in 58ms (next.js: 33ms, proxy.ts: 23ms, application-code: 3ms)
- GET /api/auth/me?_t=1777458941083 200 in 49ms (next.js: 36ms, proxy.ts: 10ms, application-code: 3ms)
- GET /api/auth/me?_t=1777458941083 200 in 39ms (next.js: 11ms, proxy.ts: 18ms, application-code: 10ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 669ms (next.js: 54ms, proxy.ts: 10ms, application-code: 605ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 662ms (next.js: 651ms, proxy.ts: 1801µs, application-code: 9ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 704ms (next.js: 696ms, proxy.ts: 1773µs, application-code: 6ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 200 in 1449ms (next.js: 7ms, proxy.ts: 6ms, application-code: 1436ms)
- GET /api/conf/default 200 in 29ms (next.js: 13ms, proxy.ts: 13ms, application-code: 2ms)
- GET /api/auth/me 200 in 577ms (next.js: 8ms, proxy.ts: 14ms, application-code: 555ms)
- GET /api/auth/me?_t=1777458954667 200 in 861ms (next.js: 18ms, proxy.ts: 13ms, application-code: 830ms)
- GET /api/auth/me 200 in 892ms (next.js: 10ms, proxy.ts: 13ms, application-code: 869ms)
- GET /api/auth/me?_t=1777458954667 200 in 1064ms (next.js: 922µs, proxy.ts: 1758µs, application-code: 1061ms)
- GET /api/conf/default/access 200 in 1352ms (next.js: 5ms, proxy.ts: 13ms, application-code: 1333ms)
- GET /api/conf/default/access 200 in 1396ms (next.js: 17ms, proxy.ts: 13ms, application-code: 1366ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1666ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1659ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 1427ms (next.js: 7ms, proxy.ts: 3ms, application-code: 1417ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 1476ms (next.js: 13ms, proxy.ts: 3ms, application-code: 1460ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/finance/secretary 200 in 1694ms (next.js: 7ms, proxy.ts: 4ms, application-code: 1683ms)
- GET /api/conf/default 200 in 113ms (next.js: 59ms, proxy.ts: 37ms, application-code: 17ms)
- GET /api/auth/me 200 in 845ms (next.js: 14ms, proxy.ts: 35ms, application-code: 796ms)
- GET /api/auth/me 200 in 1102ms (next.js: 36ms, proxy.ts: 37ms, application-code: 1029ms)
- GET /api/auth/me?_t=1777459034415 200 in 1095ms (next.js: 76ms, proxy.ts: 22ms, application-code: 996ms)
- GET /api/conf/default/access 200 in 1373ms (next.js: 12ms, proxy.ts: 35ms, application-code: 1326ms)
- GET /api/conf/default/access 200 in 1421ms (next.js: 34ms, proxy.ts: 36ms, application-code: 1352ms)
- GET /api/auth/me?_t=1777459034415 200 in 1293ms (next.js: 36ms, proxy.ts: 15ms, application-code: 1242ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1467ms (next.js: 7ms, proxy.ts: 3ms, application-code: 1458ms)
-✓ Compiled in 601ms
-✓ Compiled in 218ms
- GET / 200 in 427ms (next.js: 65ms, proxy.ts: 49ms, application-code: 313ms)
- GET / 200 in 102ms (next.js: 8ms, proxy.ts: 6ms, application-code: 88ms)
- GET /api/conf/default 503 in 10.3s (next.js: 252ms, proxy.ts: 6ms, application-code: 10.0s)
- GET /tools/conf/delegates 200 in 51s (next.js: 183ms, proxy.ts: 46ms, application-code: 51s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/finance/secretary 200 in 52s (next.js: 134ms, proxy.ts: 49ms, application-code: 52s)
- GET /tools/conf/delegates 200 in 53s (next.js: 54ms, proxy.ts: 8ms, application-code: 53s)
- GET /tools/conf/finance/secretary 200 in 53s (next.js: 35ms, proxy.ts: 8ms, application-code: 53s)
- GET /tools/conf/finance/secretary 200 in 1953ms (next.js: 17ms, proxy.ts: 5ms, application-code: 1932ms)
- GET /api/auth/me 200 in 626ms (next.js: 57ms, proxy.ts: 9ms, application-code: 561ms)
- GET /api/auth/me 200 in 758ms (next.js: 86ms, proxy.ts: 7ms, application-code: 665ms)
- GET /api/auth/me?_t=1777459446997 200 in 779ms (next.js: 95ms, proxy.ts: 6ms, application-code: 679ms)
- GET /api/auth/me?_t=1777459446997 200 in 616ms (next.js: 1892µs, proxy.ts: 4ms, application-code: 610ms)
- GET /api/conf/default 200 in 31.7s (next.js: 89ms, proxy.ts: 7ms, application-code: 31.6s)
-✓ Compiled in 582ms
- GET /api/conf/default/access 200 in 32.8s (next.js: 31ms, proxy.ts: 10ms, application-code: 32.8s)
- GET /api/conf/default/access 200 in 32.8s (next.js: 68ms, proxy.ts: 7ms, application-code: 32.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.2s (next.js: 31ms, proxy.ts: 2ms, application-code: 2.1s)
-✓ Compiled in 485ms
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 307 in 20.2s (next.js: 11ms, proxy.ts: 9ms, application-code: 20.1s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 69ms (next.js: 18ms, proxy.ts: 1690µs, application-code: 49ms)
- GET /api/auth/me 200 in 6.4s (next.js: 4ms, proxy.ts: 3ms, application-code: 6.4s)
- GET /api/auth/me?_t=1777459769816 200 in 6.5s (next.js: 4ms, proxy.ts: 2ms, application-code: 6.5s)
- GET /api/auth/me?_t=1777459769817 200 in 9.5s (next.js: 12ms, proxy.ts: 2ms, application-code: 9.5s)
- GET /tools/conf/committee 200 in 10.1s (next.js: 37ms, proxy.ts: 5ms, application-code: 10.0s)
- GET /tools/conf/delegates 200 in 6.1s (next.js: 6ms, proxy.ts: 5ms, application-code: 6.1s)
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 57ms (next.js: 17ms, proxy.ts: 17ms, application-code: 22ms)
- GET /api/auth/me 200 in 600ms (next.js: 35ms, proxy.ts: 17ms, application-code: 548ms)
- GET /api/auth/me 200 in 631ms (next.js: 17ms, proxy.ts: 19ms, application-code: 595ms)
- GET /api/auth/me 200 in 607ms (next.js: 978µs, proxy.ts: 1446µs, application-code: 605ms)
- GET /login?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 24ms (next.js: 3ms, proxy.ts: 3ms, application-code: 19ms)
- GET /login?redirect=%2Ftools%2Fconf%2Fdelegates 200 in 20ms (next.js: 2ms, proxy.ts: 4ms, application-code: 14ms)
- GET /login?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 21ms (next.js: 1455µs, proxy.ts: 1739µs, application-code: 17ms)
- GET /api/auth/me 200 in 639ms (next.js: 914µs, proxy.ts: 1430µs, application-code: 637ms)
- GET /api/auth/me 200 in 647ms (next.js: 3ms, proxy.ts: 5ms, application-code: 639ms)
- GET /api/auth/me 200 in 6.3s (next.js: 3ms, proxy.ts: 1358µs, application-code: 6.2s)
- GET /api/conf/default/access 200 in 34.7s (next.js: 15ms, proxy.ts: 20ms, application-code: 34.7s)
- GET /api/conf/default/access 200 in 35.2s (next.js: 14ms, proxy.ts: 16ms, application-code: 35.2s)
- GET /api/conf/default/access 200 in 35.3s (next.js: 33ms, proxy.ts: 17ms, application-code: 35.2s)
- GET /api/auth/me 200 in 623ms (next.js: 3ms, proxy.ts: 3ms, application-code: 617ms)
- GET /api/auth/me 200 in 1064ms (next.js: 4ms, proxy.ts: 7ms, application-code: 1054ms)
- GET /tools/conf/delegates 200 in 37.8s (next.js: 3ms, proxy.ts: 3ms, application-code: 37.8s)
- GET /tools/conf/delegates 200 in 34.7s (next.js: 2ms, proxy.ts: 3ms, application-code: 34.7s)
- GET /tools/conf/committee 200 in 5.4s (next.js: 5ms, proxy.ts: 17ms, application-code: 5.4s)
- GET /tools/conf/committee 200 in 5.8s (next.js: 18ms, proxy.ts: 16ms, application-code: 5.7s)
- GET /api/conf/default 200 in 6ms (next.js: 1646µs, proxy.ts: 1823µs, application-code: 3ms)
- GET /api/auth/me 200 in 792ms (next.js: 8ms, proxy.ts: 6ms, application-code: 778ms)
- GET /api/conf/default/access 200 in 1061ms (next.js: 10ms, proxy.ts: 6ms, application-code: 1044ms)
- GET /api/auth/me 200 in 962ms (next.js: 3ms, proxy.ts: 6ms, application-code: 953ms)
- GET /api/conf/default/access 200 in 1323ms (next.js: 5ms, proxy.ts: 6ms, application-code: 1311ms)
- GET /api/conf/default 200 in 12ms (next.js: 3ms, proxy.ts: 5ms, application-code: 4ms)
- GET /api/auth/me 200 in 1023ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1015ms)
- GET /api/auth/me 200 in 612ms (next.js: 3ms, proxy.ts: 3ms, application-code: 606ms)
- GET /api/conf/default/access 200 in 1271ms (next.js: 1559µs, proxy.ts: 2ms, application-code: 1267ms)
- GET /api/conf/default/access 200 in 1071ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1063ms)
- GET /api/conf/default/access 200 in 43s (next.js: 1831µs, proxy.ts: 5ms, application-code: 43s)
- GET /api/auth/me 200 in 14ms (next.js: 5ms, proxy.ts: 3ms, application-code: 5ms)
- GET /api/conf/default 200 in 8ms (next.js: 1999µs, proxy.ts: 3ms, application-code: 4ms)
- GET /api/conf/default/access 200 in 9ms (next.js: 1582µs, proxy.ts: 2ms, application-code: 5ms)
- GET /api/auth/me 200 in 7ms (next.js: 1773µs, proxy.ts: 2ms, application-code: 3ms)
- GET /api/conf/default/access 200 in 8ms (next.js: 1630µs, proxy.ts: 2ms, application-code: 4ms)
- GET /api/auth/me 200 in 7ms (next.js: 1192µs, proxy.ts: 1802µs, application-code: 4ms)
- GET /api/conf/default 200 in 6ms (next.js: 1409µs, proxy.ts: 1726µs, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 36ms (next.js: 29ms, proxy.ts: 1669µs, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 401 in 39ms (next.js: 33ms, proxy.ts: 1158µs, application-code: 5ms)
- GET /api/auth/me 200 in 803ms (next.js: 19ms, proxy.ts: 12ms, application-code: 772ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 27ms (next.js: 13ms, proxy.ts: 4ms, application-code: 9ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 401 in 9ms (next.js: 3ms, proxy.ts: 2ms, application-code: 4ms)
- GET /api/conf/default/access 200 in 1475ms (next.js: 19ms, proxy.ts: 11ms, application-code: 1445ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 882ms (next.js: 4ms, proxy.ts: 3ms, application-code: 874ms)
- GET /api/admin/users?limit=100 403 in 145ms (next.js: 139ms, proxy.ts: 3ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.4s (next.js: 10ms, proxy.ts: 3ms, application-code: 2.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1041ms (next.js: 16ms, proxy.ts: 2ms, application-code: 1023ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 55ms (next.js: 39ms, proxy.ts: 3ms, application-code: 13ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 95ms (next.js: 86ms, proxy.ts: 3ms, application-code: 6ms)
- GET /api/admin/users?limit=100 403 in 28ms (next.js: 7ms, proxy.ts: 11ms, application-code: 10ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.1s (next.js: 7ms, proxy.ts: 5ms, application-code: 2.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 401 in 12ms (next.js: 3ms, proxy.ts: 2ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 401 in 12ms (next.js: 6ms, proxy.ts: 2ms, application-code: 4ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 3.3s (next.js: 1688µs, proxy.ts: 1622µs, application-code: 3.3s)
- GET /api/conf/default/access 200 in 8.1s (next.js: 1614µs, proxy.ts: 1937µs, application-code: 8.1s)
- GET /api/auth/me 200 in 44ms (next.js: 19ms, proxy.ts: 16ms, application-code: 9ms)
- GET /api/conf/default 200 in 45ms (next.js: 27ms, proxy.ts: 16ms, application-code: 1566µs)
- GET /api/auth/me 200 in 51ms (next.js: 24ms, proxy.ts: 17ms, application-code: 11ms)
- GET /api/conf/default/access 200 in 55ms (next.js: 40ms, proxy.ts: 9ms, application-code: 6ms)
- GET /api/conf/default/access 200 in 57ms (next.js: 33ms, proxy.ts: 16ms, application-code: 7ms)
- GET /api/auth/me?_t=1777459834155 200 in 57ms (next.js: 28ms, proxy.ts: 25ms, application-code: 5ms)
- GET /api/auth/me?_t=1777459834155 200 in 11ms (next.js: 1415µs, proxy.ts: 3ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 27ms (next.js: 11ms, proxy.ts: 5ms, application-code: 11ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 401 in 27ms (next.js: 16ms, proxy.ts: 5ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 408ms (next.js: 18ms, proxy.ts: 5ms, application-code: 385ms)
- GET /api/admin/users?limit=100 403 in 8ms (next.js: 1918µs, proxy.ts: 2ms, application-code: 4ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.1s (next.js: 2ms, proxy.ts: 3ms, application-code: 2.1s)
- GET /api/conf/default/access 200 in 47ms (next.js: 28ms, proxy.ts: 8ms, application-code: 10ms)
- GET /api/auth/me 200 in 46ms (next.js: 34ms, proxy.ts: 7ms, application-code: 6ms)
- GET /api/conf/default 200 in 51ms (next.js: 41ms, proxy.ts: 8ms, application-code: 2ms)
- GET /api/auth/me 200 in 63ms (next.js: 39ms, proxy.ts: 7ms, application-code: 17ms)
- GET /api/auth/me?_t=1777459840027 200 in 63ms (next.js: 43ms, proxy.ts: 9ms, application-code: 11ms)
- GET /api/conf/default/access 200 in 65ms (next.js: 50ms, proxy.ts: 6ms, application-code: 10ms)
- GET /api/auth/me?_t=1777459840027 200 in 9ms (next.js: 1688µs, proxy.ts: 3ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 31ms (next.js: 10ms, proxy.ts: 5ms, application-code: 17ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 401 in 32ms (next.js: 13ms, proxy.ts: 6ms, application-code: 14ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 369ms (next.js: 18ms, proxy.ts: 5ms, application-code: 345ms)
- GET /api/admin/users?limit=100 403 in 5ms (next.js: 995µs, proxy.ts: 1499µs, application-code: 3ms)
- GET /login 200 in 34ms (next.js: 5ms, proxy.ts: 4ms, application-code: 26ms)
- GET /api/auth/me 200 in 25ms (next.js: 4ms, proxy.ts: 10ms, application-code: 11ms)
- GET /api/auth/me 200 in 26ms (next.js: 10ms, proxy.ts: 9ms, application-code: 6ms)
- POST /api/auth/login 200 in 2.5s (next.js: 57ms, proxy.ts: 5ms, application-code: 2.5s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /dashboard 200 in 96ms (next.js: 24ms, proxy.ts: 7ms, application-code: 65ms)
- GET /api/auth/me?_t=1777459853409 200 in 36ms (next.js: 6ms, proxy.ts: 3ms, application-code: 27ms)
- GET /api/auth/me?_t=1777459853409 200 in 37ms (next.js: 26ms, proxy.ts: 4ms, application-code: 7ms)
- GET /login?redirect=%2Fdashboard 200 in 22ms (next.js: 3ms, proxy.ts: 3ms, application-code: 15ms)
- GET /api/auth/me 200 in 22ms (next.js: 4ms, proxy.ts: 11ms, application-code: 7ms)
- GET /api/auth/me 200 in 24ms (next.js: 11ms, proxy.ts: 10ms, application-code: 4ms)
- POST /api/auth/login 200 in 1941ms (next.js: 5ms, proxy.ts: 6ms, application-code: 1931ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /dashboard 200 in 186ms (next.js: 6ms, proxy.ts: 5ms, application-code: 175ms)
- GET /api/auth/me?_t=1777459862411 200 in 604ms (next.js: 7ms, proxy.ts: 12ms, application-code: 586ms)
- GET /api/auth/me?_t=1777459862411 200 in 841ms (next.js: 12ms, proxy.ts: 10ms, application-code: 819ms)
- GET /api/admin/impersonate 200 in 609ms (next.js: 21ms, proxy.ts: 4ms, application-code: 584ms)
- GET /api/admin/impersonate 200 in 676ms (next.js: 1307µs, proxy.ts: 8ms, application-code: 667ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /login?redirect=/dashboard 200 in 88ms (next.js: 4ms, proxy.ts: 4ms, application-code: 80ms)
- GET / 200 in 443ms (next.js: 167ms, proxy.ts: 38ms, application-code: 238ms)
- GET / 200 in 221ms (next.js: 25ms, proxy.ts: 4ms, application-code: 192ms)
- GET / 200 in 187ms (next.js: 34ms, proxy.ts: 6ms, application-code: 147ms)
-[browser] Uncaught Error: Internal Next.js error: Router action dispatched before initialization.
-[browser] Uncaught Error: Internal Next.js error: Router action dispatched before initialization.
-[browser] Uncaught Error: Internal Next.js error: Router action dispatched before initialization.
- GET /tools/conf/delegates 200 in 34.8s (next.js: 82ms, proxy.ts: 42ms, application-code: 34.7s)
- GET /tools/conf/delegates 200 in 34.6s (next.js: 3ms, proxy.ts: 4ms, application-code: 34.6s)
- GET /tools/conf/delegates 200 in 34.6s (next.js: 13ms, proxy.ts: 5ms, application-code: 34.6s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 696ms (next.js: 43ms, proxy.ts: 8ms, application-code: 645ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/delegates 200 in 1071ms (next.js: 6ms, proxy.ts: 7ms, application-code: 1058ms)
- GET /api/auth/me 200 in 651ms (next.js: 70ms, proxy.ts: 14ms, application-code: 568ms)
- GET /api/auth/me 200 in 655ms (next.js: 111ms, proxy.ts: 12ms, application-code: 531ms)
- GET /api/auth/me?_t=1777460127389 200 in 536ms (next.js: 3ms, proxy.ts: 3ms, application-code: 530ms)
- GET /api/auth/me?_t=1777460127389 200 in 581ms (next.js: 1948µs, proxy.ts: 1411µs, application-code: 577ms)
- GET /tools/conf/committee 200 in 25.0s (next.js: 4ms, proxy.ts: 5ms, application-code: 25.0s)
- GET /api/auth/me 200 in 1148ms (next.js: 11ms, proxy.ts: 7ms, application-code: 1129ms)
- GET /api/auth/me 200 in 605ms (next.js: 1898µs, proxy.ts: 4ms, application-code: 599ms)
- GET /api/conf/default 200 in 42s (next.js: 108ms, proxy.ts: 13ms, application-code: 42s)
- GET /api/conf/default 200 in 32.2s (next.js: 5ms, proxy.ts: 8ms, application-code: 32.2s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /api/conf/default/access 200 in 44s (next.js: 43ms, proxy.ts: 12ms, application-code: 44s)
- GET /api/conf/default/access 200 in 35.6s (next.js: 17ms, proxy.ts: 7ms, application-code: 35.6s)
- GET /api/conf/default/access 200 in 35.7s (next.js: 4ms, proxy.ts: 7ms, application-code: 35.7s)
- GET /api/conf/default/access 200 in 44s (next.js: 41ms, proxy.ts: 12ms, application-code: 44s)
- GET /tools/conf/delegates 200 in 2.4s (next.js: 45ms, proxy.ts: 2ms, application-code: 2.3s)
- GET /api/auth/me?_t=1777460135690 200 in 819ms (next.js: 3ms, proxy.ts: 4ms, application-code: 812ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 668ms (next.js: 45ms, proxy.ts: 2ms, application-code: 620ms)
- GET /api/auth/me?_t=1777460135690 200 in 878ms (next.js: 1434µs, proxy.ts: 2ms, application-code: 875ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1756ms (next.js: 30ms, proxy.ts: 1325µs, application-code: 1725ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1219ms (next.js: 30ms, proxy.ts: 12ms, application-code: 1177ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1214ms (next.js: 35ms, proxy.ts: 8ms, application-code: 1172ms)
- GET /api/conf/default 200 in 23ms (next.js: 10ms, proxy.ts: 11ms, application-code: 2ms)
- GET /tools/conf/committee 200 in 3.7s (next.js: 1790µs, proxy.ts: 1999µs, application-code: 3.6s)
- GET /api/auth/me 200 in 917ms (next.js: 4ms, proxy.ts: 3ms, application-code: 910ms)
- GET /api/auth/me 200 in 893ms (next.js: 8ms, proxy.ts: 12ms, application-code: 873ms)
- GET /api/auth/me?_t=1777460172848 200 in 1077ms (next.js: 1156µs, proxy.ts: 3ms, application-code: 1073ms)
- GET /api/auth/me?_t=1777460172848 200 in 1118ms (next.js: 989µs, proxy.ts: 1266µs, application-code: 1115ms)
- GET /api/conf/default/access 200 in 1649ms (next.js: 2ms, proxy.ts: 2ms, application-code: 1645ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           data-new-gr-c-s-check-loaded="14.1287.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
- 
- GET /api/conf/default/access 200 in 1466ms (next.js: 8ms, proxy.ts: 15ms, application-code: 1443ms)
- GET /api/conf/default 200 in 7ms (next.js: 1759µs, proxy.ts: 1744µs, application-code: 4ms)
- GET /api/auth/me 200 in 757ms (next.js: 15ms, proxy.ts: 14ms, application-code: 728ms)
- GET /api/auth/me 200 in 819ms (next.js: 67ms, proxy.ts: 11ms, application-code: 741ms)
- GET /api/conf/default/access 200 in 1117ms (next.js: 14ms, proxy.ts: 11ms, application-code: 1091ms)
- GET /api/auth/me?_t=1777460174550 200 in 955ms (next.js: 1533µs, proxy.ts: 5ms, application-code: 949ms)
- GET /api/conf/default/access 200 in 1403ms (next.js: 17ms, proxy.ts: 12ms, application-code: 1374ms)
- GET /api/auth/me?_t=1777460174550 200 in 899ms (next.js: 3ms, proxy.ts: 7ms, application-code: 889ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.8s (next.js: 4ms, proxy.ts: 3ms, application-code: 2.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1708ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1702ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1623ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1617ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1817ms (next.js: 4ms, proxy.ts: 1472µs, application-code: 1811ms)
- GET /api/conf/default 200 in 5ms (next.js: 1405µs, proxy.ts: 1836µs, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 1850ms (next.js: 26ms, proxy.ts: 5ms, application-code: 1819ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 2.1s (next.js: 59ms, proxy.ts: 5ms, application-code: 2.1s)
- GET /api/admin/users?limit=100 200 in 1537ms (next.js: 76ms, proxy.ts: 4ms, application-code: 1457ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1634ms (next.js: 13ms, proxy.ts: 4ms, application-code: 1618ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1749ms (next.js: 11ms, proxy.ts: 5ms, application-code: 1734ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 7ms, proxy.ts: 4ms, application-code: 2.1s)
- GET /api/admin/users?limit=100 200 in 827ms (next.js: 1752µs, proxy.ts: 3ms, application-code: 822ms)
-✓ Compiled in 772ms
- GET /api/conf/default 200 in 16ms (next.js: 3ms, proxy.ts: 6ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1657ms (next.js: 41ms, proxy.ts: 22ms, application-code: 1595ms)
- GET /api/conf/default 200 in 11ms (next.js: 2ms, proxy.ts: 4ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1992ms (next.js: 33ms, proxy.ts: 17ms, application-code: 1941ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 27ms, proxy.ts: 16ms, application-code: 2.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1292ms (next.js: 8ms, proxy.ts: 4ms, application-code: 1280ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1456ms (next.js: 15ms, proxy.ts: 5ms, application-code: 1437ms)
- GET /api/admin/users?limit=500 200 in 1186ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1179ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1499ms (next.js: 20ms, proxy.ts: 5ms, application-code: 1475ms)
- GET /api/admin/users?limit=500 200 in 1251ms (next.js: 1430µs, proxy.ts: 2ms, application-code: 1247ms)
- POST /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 10.0s (next.js: 10ms, proxy.ts: 8ms, application-code: 10.0s)
- POST /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 401 in 20ms (next.js: 8ms, proxy.ts: 5ms, application-code: 7ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 55s (next.js: 14ms, proxy.ts: 4ms, application-code: 55s)
+ GET /tools/conf/letters 200 in 27.3s (next.js: 10ms, proxy.ts: 11ms, application-code: 27.3s)
+ GET /api/auth/me 200 in 583ms (next.js: 13ms, proxy.ts: 15ms, application-code: 555ms)
+ GET /api/auth/me?_t=1777691982405 200 in 632ms (next.js: 1688µs, proxy.ts: 1721µs, application-code: 629ms)
+ GET /api/auth/me?_t=1777691982405 200 in 6.4s (next.js: 11ms, proxy.ts: 17ms, application-code: 6.3s)
+ GET /api/auth/me 200 in 9.3s (next.js: 19ms, proxy.ts: 13ms, application-code: 9.3s)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -1014,162 +129,239 @@ https://react.dev/link/hydration-mismatch
                           >
                   ...
  
- GET /api/auth/me 200 in 697ms (next.js: 8ms, proxy.ts: 13ms, application-code: 676ms)
- GET /api/auth/me?_t=1777460638004 200 in 591ms (next.js: 1592µs, proxy.ts: 3ms, application-code: 586ms)
- GET /api/auth/me?_t=1777460638004 200 in 6.3s (next.js: 16ms, proxy.ts: 13ms, application-code: 6.3s)
- GET /api/auth/me 200 in 8.4s (next.js: 13ms, proxy.ts: 13ms, application-code: 8.4s)
- GET /api/conf/default 200 in 38.2s (next.js: 14ms, proxy.ts: 13ms, application-code: 38.2s)
- GET /api/conf/default/access 200 in 41s (next.js: 11ms, proxy.ts: 13ms, application-code: 41s)
- GET /api/conf/default/access 200 in 41s (next.js: 6ms, proxy.ts: 13ms, application-code: 41s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.2s (next.js: 13ms, proxy.ts: 6ms, application-code: 3.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 3.4s (next.js: 20ms, proxy.ts: 6ms, application-code: 3.3s)
- GET /api/conf/default 200 in 5ms (next.js: 1317µs, proxy.ts: 2ms, application-code: 1877µs)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1458ms (next.js: 7ms, proxy.ts: 2ms, application-code: 1449ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1676ms (next.js: 10ms, proxy.ts: 2ms, application-code: 1663ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1783ms (next.js: 13ms, proxy.ts: 2ms, application-code: 1767ms)
- GET /api/admin/users?limit=500 200 in 1773ms (next.js: 1973µs, proxy.ts: 2ms, application-code: 1769ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 9.5s (next.js: 24ms, proxy.ts: 6ms, application-code: 9.5s)
- GET /api/admin/users?limit=500 200 in 1206ms (next.js: 1474µs, proxy.ts: 3ms, application-code: 1202ms)
-✓ Compiled in 95ms
- GET / 200 in 485ms (next.js: 23ms, proxy.ts: 4ms, application-code: 458ms)
- GET / 200 in 388ms (next.js: 54ms, proxy.ts: 7ms, application-code: 327ms)
- GET / 200 in 138ms (next.js: 18ms, proxy.ts: 4ms, application-code: 116ms)
- GET / 200 in 58ms (next.js: 4ms, proxy.ts: 6ms, application-code: 48ms)
- GET /tools/conf/delegates 200 in 1318ms (next.js: 58ms, proxy.ts: 4ms, application-code: 1257ms)
- GET /tools/conf/delegates 200 in 1378ms (next.js: 41ms, proxy.ts: 18ms, application-code: 1319ms)
- GET /tools/conf/delegates 200 in 1843ms (next.js: 222ms, proxy.ts: 9ms, application-code: 1612ms)
- GET /tools/conf/committee 200 in 2.6s (next.js: 8ms, proxy.ts: 6ms, application-code: 2.5s)
- GET /tools/conf/committee 200 in 2.5s (next.js: 3ms, proxy.ts: 26ms, application-code: 2.5s)
- GET /tools/conf/committee 200 in 2.9s (next.js: 5ms, proxy.ts: 5ms, application-code: 2.9s)
- GET /tools/conf/delegates 200 in 1425ms (next.js: 1837µs, proxy.ts: 1391µs, application-code: 1422ms)
- GET /tools/conf/committee 200 in 2.4s (next.js: 1194µs, proxy.ts: 1410µs, application-code: 2.4s)
-✓ Compiled in 519ms
- GET /api/conf/default 200 in 14ms (next.js: 3ms, proxy.ts: 6ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1402ms (next.js: 20ms, proxy.ts: 6ms, application-code: 1375ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1548ms (next.js: 23ms, proxy.ts: 5ms, application-code: 1520ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1947ms (next.js: 14ms, proxy.ts: 5ms, application-code: 1928ms)
- GET /api/admin/users?limit=500 200 in 1201ms (next.js: 1569µs, proxy.ts: 1961µs, application-code: 1198ms)
- POST /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 201 in 4.8s (next.js: 9ms, proxy.ts: 8ms, application-code: 4.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1300ms (next.js: 7ms, proxy.ts: 5ms, application-code: 1288ms)
-✓ Compiled in 425ms
-✓ Compiled in 438ms
- GET /api/conf/default 200 in 43s (next.js: 15ms, proxy.ts: 8ms, application-code: 43s)
- GET /api/conf/default 200 in 38.4s (next.js: 5ms, proxy.ts: 3ms, application-code: 38.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.7s (next.js: 21ms, proxy.ts: 17ms, application-code: 3.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 4.2s (next.js: 91ms, proxy.ts: 7ms, application-code: 4.1s)
- GET /api/conf/default 200 in 7ms (next.js: 3ms, proxy.ts: 2ms, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.0s (next.js: 3ms, proxy.ts: 1380µs, application-code: 3.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.7s (next.js: 4ms, proxy.ts: 1533µs, application-code: 2.7s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 2.9s (next.js: 6ms, proxy.ts: 1532µs, application-code: 2.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.2s (next.js: 6ms, proxy.ts: 3ms, application-code: 3.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 10.1s (next.js: 81ms, proxy.ts: 17ms, application-code: 10.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 10.8s (next.js: 91ms, proxy.ts: 6ms, application-code: 10.7s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 10.8s (next.js: 91ms, proxy.ts: 12ms, application-code: 10.7s)
- GET /api/admin/users?limit=500 200 in 1729ms (next.js: 4ms, proxy.ts: 4ms, application-code: 1721ms)
- GET /api/admin/users?limit=500 200 in 1295ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1286ms)
- GET /api/admin/users?limit=500 200 in 1060ms (next.js: 2ms, proxy.ts: 3ms, application-code: 1055ms)
- GET /tools/conf/delegates/cmnxcr390000acreqwoalj98h 200 in 46s (next.js: 1492ms, proxy.ts: 4ms, application-code: 44s)
- GET /api/conf/default 200 in 90ms (next.js: 41ms, proxy.ts: 27ms, application-code: 22ms)
- GET /api/conf/default 200 in 85ms (next.js: 48ms, proxy.ts: 32ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 2.6s (next.js: 792ms, proxy.ts: 9ms, application-code: 1751ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h 200 in 2.9s (next.js: 790ms, proxy.ts: 7ms, application-code: 2.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 200 in 5.3s (next.js: 703ms, proxy.ts: 7ms, application-code: 4.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 200 in 5.4s (next.js: 720ms, proxy.ts: 11ms, application-code: 4.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 200 in 5.5s (next.js: 705ms, proxy.ts: 7ms, application-code: 4.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 200 in 5.7s (next.js: 714ms, proxy.ts: 13ms, application-code: 5.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 200 in 6.1s (next.js: 714ms, proxy.ts: 13ms, application-code: 5.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 200 in 6.1s (next.js: 709ms, proxy.ts: 5ms, application-code: 5.4s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.7s (next.js: 22ms, proxy.ts: 7ms, application-code: 2.6s)
- GET /api/conf/default 200 in 29ms (next.js: 19ms, proxy.ts: 7ms, application-code: 2ms)
- GET /api/auth/me 200 in 564ms (next.js: 13ms, proxy.ts: 8ms, application-code: 543ms)
- GET /api/auth/me?_t=1777461195032 200 in 939ms (next.js: 23ms, proxy.ts: 6ms, application-code: 910ms)
- GET /api/auth/me 200 in 943ms (next.js: 17ms, proxy.ts: 8ms, application-code: 918ms)
- GET /api/auth/me?_t=1777461195032 200 in 1163ms (next.js: 1166µs, proxy.ts: 1552µs, application-code: 1160ms)
- GET /api/conf/default/access 200 in 1245ms (next.js: 7ms, proxy.ts: 25ms, application-code: 1213ms)
- GET /api/conf/default/access 200 in 1487ms (next.js: 16ms, proxy.ts: 8ms, application-code: 1463ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1285ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1275ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1398ms (next.js: 6ms, proxy.ts: 2ms, application-code: 1389ms)
- GET /api/conf/default 200 in 8ms (next.js: 2ms, proxy.ts: 4ms, application-code: 1933µs)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1711ms (next.js: 14ms, proxy.ts: 2ms, application-code: 1695ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1254ms (next.js: 11ms, proxy.ts: 3ms, application-code: 1240ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1539ms (next.js: 8ms, proxy.ts: 3ms, application-code: 1527ms)
- GET /api/admin/users?limit=500 200 in 1415ms (next.js: 1515µs, proxy.ts: 1611µs, application-code: 1412ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1785ms (next.js: 6ms, proxy.ts: 3ms, application-code: 1776ms)
- GET /api/admin/users?limit=500 200 in 1291ms (next.js: 3ms, proxy.ts: 5ms, application-code: 1284ms)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmojyae1c016zrw3nur54go1s 200 in 6.1s (next.js: 761ms, proxy.ts: 1901µs, application-code: 5.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1438ms (next.js: 7ms, proxy.ts: 5ms, application-code: 1427ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.1s (next.js: 4ms, proxy.ts: 3ms, application-code: 2.1s)
- GET /api/conf/default 200 in 35ms (next.js: 18ms, proxy.ts: 16ms, application-code: 1496µs)
- GET /api/auth/me 200 in 950ms (next.js: 15ms, proxy.ts: 15ms, application-code: 920ms)
- GET /api/auth/me?_t=1777461235656 200 in 978ms (next.js: 21ms, proxy.ts: 16ms, application-code: 941ms)
- GET /api/auth/me 200 in 1001ms (next.js: 17ms, proxy.ts: 16ms, application-code: 968ms)
- GET /api/conf/default/access 200 in 1209ms (next.js: 13ms, proxy.ts: 15ms, application-code: 1181ms)
- GET /api/auth/me?_t=1777461235656 200 in 1230ms (next.js: 4ms, proxy.ts: 12ms, application-code: 1215ms)
- GET /api/conf/default/access 200 in 1294ms (next.js: 16ms, proxy.ts: 15ms, application-code: 1262ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1361ms (next.js: 3ms, proxy.ts: 3ms, application-code: 1355ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1529ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1522ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1616ms (next.js: 3ms, proxy.ts: 1706µs, application-code: 1611ms)
- GET /api/conf/default 200 in 11ms (next.js: 3ms, proxy.ts: 4ms, application-code: 4ms)
- GET /api/admin/users?limit=500 200 in 818ms (next.js: 3ms, proxy.ts: 4ms, application-code: 811ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1222ms (next.js: 11ms, proxy.ts: 5ms, application-code: 1206ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1285ms (next.js: 17ms, proxy.ts: 5ms, application-code: 1263ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1498ms (next.js: 22ms, proxy.ts: 5ms, application-code: 1471ms)
- GET /api/admin/users?limit=500 200 in 1143ms (next.js: 4ms, proxy.ts: 5ms, application-code: 1134ms)
- GET /api/admin/users?q=ek&limit=10 200 in 1773ms (next.js: 5ms, proxy.ts: 6ms, application-code: 1762ms)
-✓ Compiled in 487ms
- GET /api/conf/default 200 in 22ms (next.js: 9ms, proxy.ts: 7ms, application-code: 6ms)
-Failed to fetch members: Error [PrismaClientValidationError]: 
-Invalid `prisma.confMember.findMany()` invocation:
+ GET /api/conf/default 200 in 90s (next.js: 20ms, proxy.ts: 11ms, application-code: 90s)
+ GET /api/conf/default/access 200 in 92s (next.js: 17ms, proxy.ts: 13ms, application-code: 92s)
+ GET /api/conf/default/access 200 in 92s (next.js: 8ms, proxy.ts: 16ms, application-code: 92s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 12.0s (next.js: 9ms, proxy.ts: 4ms, application-code: 11.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.5s (next.js: 19ms, proxy.ts: 7ms, application-code: 2.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.5s (next.js: 26ms, proxy.ts: 8ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.8s (next.js: 14ms, proxy.ts: 10ms, application-code: 2.7s)
+ GET /api/conf/default 200 in 8ms (next.js: 2ms, proxy.ts: 3ms, application-code: 2ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.8s (next.js: 3ms, proxy.ts: 2ms, application-code: 2.8s)
+[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
+✓ Compiled in 1188ms
+✓ Compiled in 1998ms
+✓ Compiled in 112ms
+✓ Compiled in 150ms
+✓ Compiled in 959ms
+✓ Compiled in 763ms
+✓ Compiled in 793ms
+✓ Compiled in 393ms
+✓ Compiled in 1141ms
+✓ Compiled in 398ms
+✓ Compiled in 891ms
+✓ Compiled in 389ms
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
 
-{
-  where: {
-    confId: "cmnwxmdn80000rw8uwrttdzf7"
-  },
-  orderBy: {
-    joinedAt: "asc"
-  },
-  include: {
-    user: {
-    ~~~~
-      select: {
-        id: true,
-        name: true,
-        email: true
-      }
-    },
-?   conf?: true,
-?   budgets?: true,
-?   submittedPayments?: true,
-?   committeeApprovals?: true
-  }
-}
+Parsing ecmascript source code failed
 
-Unknown field `user` for include statement on model `ConfMember`. Available options are marked with ?.
-    at async GET (src/app/api/conf/[confId]/members/route.ts:35:21)
-  33 |     if (!auth.ok) return auth.response;
-  34 |
-> 35 |     const members = await prisma.confMember.findMany({
-     |                     ^
-  36 |       where: { confId },
-  37 |       orderBy: { joinedAt: "asc" },
-  38 |       include: { {
-  clientVersion: '6.19.3'
-}
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 500 in 1568ms (next.js: 29ms, proxy.ts: 15ms, application-code: 1524ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1753ms (next.js: 34ms, proxy.ts: 16ms, application-code: 1703ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1752ms (next.js: 39ms, proxy.ts: 15ms, application-code: 1698ms)
- GET /api/admin/users?limit=500 200 in 864ms (next.js: 6ms, proxy.ts: 7ms, application-code: 852ms)
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/letters 500 in 1039ms (next.js: 859ms, proxy.ts: 70ms, application-code: 110ms)
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Parsing ecmascript source code failed
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
+  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
+[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
+  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
+  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
+  [90m4191 |[0m                     <input
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+ GET /tools/conf/letters 500 in 142ms (next.js: 102ms, proxy.ts: 20ms, application-code: 20ms)
+ GET /tools/conf/letters 500 in 134ms (next.js: 68ms, proxy.ts: 54ms, application-code: 12ms)
+[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+Expected '</', got 'jsx text'
+  4185 |                     use-of-funds, click &quot;Update letter from fields&quot; to
+  4186 |                     refresh the Letter Body (replacing its current text).
+> 4187 |                   </CardDescription>
+       |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 4188 |                 </CardHeader>
+       | ^^^^^^^^^^^^^^^^
+  4189 |                 <CardContent className="space-y-3">
+  4190 |                   <label className="flex items-center gap-2 text-xs font-medium text-[#...
+  4191 |                     <input
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
+./src/components/tools/conf/letter-composer-shell.tsx:4187:37
+  4185 |                     use-of-funds, click &quot;Update letter from fields&quot; to
+  4186 |                     refresh the Letter Body (replacing its current text).
+> 4187 |                   </CardDescription>
+       |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 4188 |                 </CardHeader>
+       | ^^^^^^^^^^^^^^^^
+  4189 |                 <CardContent className="space-y-3">
+  4190 |                   <label className="flex items-center gap-2 text-xs font-medium text-[#...
+  4191 |                     <input
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/letter-composer-shell.tsx
+    ./src/app/(hub)/tools/conf/letters/page.tsx
+
+
+    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
+    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
+    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
+✓ Compiled in 963ms
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 57s (next.js: 17ms, proxy.ts: 12ms, application-code: 57s)
- GET /api/auth/me 200 in 663ms (next.js: 17ms, proxy.ts: 7ms, application-code: 640ms)
- GET /api/auth/me?_t=1777461600662 200 in 697ms (next.js: 2ms, proxy.ts: 5ms, application-code: 690ms)
- GET /api/auth/me 200 in 6.5s (next.js: 19ms, proxy.ts: 9ms, application-code: 6.4s)
- GET /api/auth/me?_t=1777461600662 200 in 6.6s (next.js: 25ms, proxy.ts: 7ms, application-code: 6.6s)
+ GET /tools/conf/letters 307 in 10.3s (next.js: 156ms, proxy.ts: 75ms, application-code: 10.1s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fletters 200 in 89ms (next.js: 24ms, proxy.ts: 5ms, application-code: 60ms)
+ GET /api/auth/me?_t=1777693399275 200 in 9.7s (next.js: 19ms, proxy.ts: 86ms, application-code: 9.6s)
+ GET /api/conf/default/access 503 in 10.1s (next.js: 56ms, proxy.ts: 24ms, application-code: 10.0s)
+ GET /api/conf/default/access 503 in 10.1s (next.js: 82ms, proxy.ts: 32ms, application-code: 10.0s)
+ GET /api/auth/me 200 in 10.1s (next.js: 85ms, proxy.ts: 25ms, application-code: 10.0s)
+ GET /api/auth/me 200 in 10.1s (next.js: 82ms, proxy.ts: 22ms, application-code: 10.0s)
+ GET /api/auth/me?_t=1777693399275 200 in 10.1s (next.js: 13ms, proxy.ts: 98ms, application-code: 10.0s)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -1207,163 +399,40 @@ https://react.dev/link/hydration-mismatch
                           >
                   ...
  
- GET /api/conf/default 200 in 35.3s (next.js: 24ms, proxy.ts: 9ms, application-code: 35.3s)
- GET /api/conf/default/access 200 in 36.8s (next.js: 12ms, proxy.ts: 7ms, application-code: 36.8s)
- GET /api/conf/default/access 200 in 36.9s (next.js: 20ms, proxy.ts: 7ms, application-code: 36.8s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 2.4s (next.js: 20ms, proxy.ts: 6ms, application-code: 2.4s)
- GET /api/conf/default 200 in 10ms (next.js: 5ms, proxy.ts: 3ms, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.9s (next.js: 34ms, proxy.ts: 6ms, application-code: 2.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1733ms (next.js: 18ms, proxy.ts: 4ms, application-code: 1711ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1911ms (next.js: 14ms, proxy.ts: 4ms, application-code: 1893ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.4s (next.js: 8ms, proxy.ts: 4ms, application-code: 2.4s)
- GET /api/admin/users?limit=500 200 in 1330ms (next.js: 3ms, proxy.ts: 6ms, application-code: 1322ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 7.7s (next.js: 37ms, proxy.ts: 5ms, application-code: 7.6s)
- GET /api/admin/users?limit=500 200 in 1238ms (next.js: 1572µs, proxy.ts: 3ms, application-code: 1233ms)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmojyae1c016zrw3nur54go1s 200 in 7.4s (next.js: 6ms, proxy.ts: 5ms, application-code: 7.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 6ms, proxy.ts: 4ms, application-code: 2.1s)
+ GET /tools/conf 200 in 62ms (next.js: 28ms, proxy.ts: 8ms, application-code: 27ms)
+ GET /api/auth/me 200 in 8.6s (next.js: 60ms, proxy.ts: 24ms, application-code: 8.6s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.5s (next.js: 4ms, proxy.ts: 6ms, application-code: 2.5s)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /api/conf/default 200 in 36ms (next.js: 17ms, proxy.ts: 17ms, application-code: 1864µs)
- GET /api/auth/me 200 in 569ms (next.js: 8ms, proxy.ts: 17ms, application-code: 544ms)
- GET /api/auth/me 200 in 947ms (next.js: 15ms, proxy.ts: 17ms, application-code: 915ms)
- GET /api/auth/me?_t=1777461700836 200 in 942ms (next.js: 19ms, proxy.ts: 12ms, application-code: 911ms)
- GET /api/auth/me?_t=1777461700836 200 in 1087ms (next.js: 3ms, proxy.ts: 1715µs, application-code: 1082ms)
- GET /api/conf/default/access 200 in 1273ms (next.js: 6ms, proxy.ts: 18ms, application-code: 1249ms)
- GET /api/conf/default/access 200 in 1414ms (next.js: 9ms, proxy.ts: 17ms, application-code: 1388ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1839ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1830ms)
- GET /api/conf/default 200 in 14ms (next.js: 4ms, proxy.ts: 6ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.3s (next.js: 4ms, proxy.ts: 1876µs, application-code: 2.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1973ms (next.js: 14ms, proxy.ts: 3ms, application-code: 1957ms)
- GET /api/admin/users?limit=500 200 in 1530ms (next.js: 5ms, proxy.ts: 6ms, application-code: 1518ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1681ms (next.js: 22ms, proxy.ts: 10ms, application-code: 1649ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1758ms (next.js: 19ms, proxy.ts: 10ms, application-code: 1730ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1836ms (next.js: 11ms, proxy.ts: 10ms, application-code: 1816ms)
- GET /api/admin/users?limit=500 200 in 1243ms (next.js: 2ms, proxy.ts: 4ms, application-code: 1237ms)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmnwxmgo80005rw8uf7rgnwtc 200 in 8.0s (next.js: 8ms, proxy.ts: 4ms, application-code: 8.0s)
- POST /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 201 in 5.6s (next.js: 5ms, proxy.ts: 6ms, application-code: 5.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1940ms (next.js: 10ms, proxy.ts: 5ms, application-code: 1925ms)
+ GET /tools/conf 200 in 75ms (next.js: 3ms, proxy.ts: 4ms, application-code: 68ms)
+ GET /api/auth/me 200 in 8.7s (next.js: 14ms, proxy.ts: 112ms, application-code: 8.5s)
+ GET /api/conf/default/access 200 in 8.7s (next.js: 12ms, proxy.ts: 114ms, application-code: 8.5s)
+ GET /api/conf/default/access 200 in 8.7s (next.js: 112ms, proxy.ts: 40ms, application-code: 8.6s)
+ GET /api/conf/default 200 in 8.7s (next.js: 105ms, proxy.ts: 39ms, application-code: 8.6s)
+ GET /api/conf/default 200 in 8.7s (next.js: 115ms, proxy.ts: 37ms, application-code: 8.6s)
+ GET /api/auth/me 200 in 610ms (next.js: 13ms, proxy.ts: 16ms, application-code: 581ms)
+ GET /api/auth/me 200 in 624ms (next.js: 9ms, proxy.ts: 17ms, application-code: 597ms)
+ GET /api/auth/me?_t=1777693644149 200 in 544ms (next.js: 1577µs, proxy.ts: 1794µs, application-code: 541ms)
+ GET /api/auth/me 200 in 602ms (next.js: 1249µs, proxy.ts: 1758µs, application-code: 599ms)
+ GET /api/auth/me?_t=1777693644149 200 in 584ms (next.js: 4ms, proxy.ts: 2ms, application-code: 577ms)
+[browser] Image with src "/conf/assets/jinan_city/morning_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 2.5s (next.js: 5ms, proxy.ts: 3ms, application-code: 2.5s)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /api/conf/default 200 in 32ms (next.js: 22ms, proxy.ts: 9ms, application-code: 1877µs)
- GET /api/auth/me 200 in 610ms (next.js: 11ms, proxy.ts: 10ms, application-code: 588ms)
- GET /api/auth/me 200 in 936ms (next.js: 20ms, proxy.ts: 9ms, application-code: 908ms)
- GET /api/auth/me?_t=1777461792331 200 in 953ms (next.js: 26ms, proxy.ts: 11ms, application-code: 916ms)
- GET /api/conf/default/access 200 in 1183ms (next.js: 7ms, proxy.ts: 12ms, application-code: 1164ms)
- GET /api/auth/me?_t=1777461792332 200 in 1174ms (next.js: 3ms, proxy.ts: 1697µs, application-code: 1170ms)
- GET /api/conf/default/access 200 in 1238ms (next.js: 15ms, proxy.ts: 9ms, application-code: 1214ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1590ms (next.js: 6ms, proxy.ts: 2ms, application-code: 1581ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1678ms (next.js: 5ms, proxy.ts: 1448µs, application-code: 1672ms)
- GET /api/conf/default 200 in 10ms (next.js: 3ms, proxy.ts: 4ms, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.2s (next.js: 3ms, proxy.ts: 1334µs, application-code: 2.2s)
- GET /api/admin/users?limit=500 200 in 1007ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1000ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1478ms (next.js: 15ms, proxy.ts: 4ms, application-code: 1459ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1561ms (next.js: 21ms, proxy.ts: 5ms, application-code: 1535ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.2s (next.js: 9ms, proxy.ts: 4ms, application-code: 2.2s)
- GET /api/admin/users?limit=500 200 in 1227ms (next.js: 1682µs, proxy.ts: 3ms, application-code: 1222ms)
-✓ Compiled in 875ms
-[browser] Uncaught ReferenceError: Cannot access 'roleByKey' before initialization
-    at CommitteeShell (src/components/tools/conf/committee-shell.tsx:367:31)
-    at S.scheduleRefresh (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
-    at Set.forEach (<anonymous>)
-    at CommitteePage (src/app/(hub)/tools/conf/committee/page.tsx:9:62)
-  365 |       return sameTitle && sameScope;
-  366 |     });
-> 367 |   }, [assignRoleKey, members, roleByKey]);
-      |                               ^
-  368 |
-  369 |   const roleByKey = useMemo(
-  370 |     () => new Map(roles.map((r) => [r.key, r])),
-✓ Compiled in 402ms
-⚠ Fast Refresh had to perform a full reload due to a runtime error.
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /api/conf/default 200 in 257ms (next.js: 12ms, proxy.ts: 243ms, application-code: 2ms)
- GET /api/auth/me 200 in 1237ms (next.js: 244ms, proxy.ts: 97ms, application-code: 895ms)
- GET /api/auth/me?_t=1777461918758 200 in 1467ms (next.js: 1986µs, proxy.ts: 3ms, application-code: 1462ms)
- GET /api/auth/me?_t=1777461918758 200 in 1211ms (next.js: 1115µs, proxy.ts: 1476µs, application-code: 1209ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 3.0s (next.js: 4ms, proxy.ts: 1256µs, application-code: 3.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.9s (next.js: 6ms, proxy.ts: 4ms, application-code: 3.9s)
- GET /api/conf/default 200 in 8ms (next.js: 2ms, proxy.ts: 2ms, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 3.2s (next.js: 9ms, proxy.ts: 4ms, application-code: 3.2s)
- GET /api/conf/default/access 200 in 9.7s (next.js: 257ms, proxy.ts: 89ms, application-code: 9.3s)
- GET /api/auth/me 200 in 9.7s (next.js: 17ms, proxy.ts: 271ms, application-code: 9.5s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 4.2s (next.js: 5ms, proxy.ts: 2ms, application-code: 4.2s)
+ GET /api/conf/default/access 200 in 27.6s (next.js: 10ms, proxy.ts: 16ms, application-code: 27.5s)
+ GET /api/conf/default/access 200 in 27.6s (next.js: 11ms, proxy.ts: 17ms, application-code: 27.5s)
+ GET /api/conf/default 200 in 27.6s (next.js: 17ms, proxy.ts: 6ms, application-code: 27.5s)
+ GET /api/conf/default/access 200 in 27.6s (next.js: 9ms, proxy.ts: 14ms, application-code: 27.5s)
+ GET /tools/conf 200 in 88ms (next.js: 6ms, proxy.ts: 7ms, application-code: 75ms)
+ GET /api/auth/me 200 in 1044ms (next.js: 12ms, proxy.ts: 6ms, application-code: 1025ms)
+ GET /api/auth/me 200 in 1044ms (next.js: 23ms, proxy.ts: 10ms, application-code: 1011ms)
+ GET /api/auth/me 200 in 654ms (next.js: 5ms, proxy.ts: 9ms, application-code: 640ms)
+ GET /api/auth/me?_t=1777693672246 200 in 679ms (next.js: 51ms, proxy.ts: 9ms, application-code: 619ms)
+ GET /api/auth/me?_t=1777693672246 200 in 595ms (next.js: 1023µs, proxy.ts: 1624µs, application-code: 593ms)
+ GET /api/conf/default 200 in 63s (next.js: 78ms, proxy.ts: 11ms, application-code: 63s)
+ GET /api/conf/default/access 200 in 66s (next.js: 14ms, proxy.ts: 8ms, application-code: 66s)
+ GET /api/conf/default/access 200 in 66s (next.js: 9ms, proxy.ts: 6ms, application-code: 66s)
+ GET /api/conf/default/access 200 in 66s (next.js: 91ms, proxy.ts: 10ms, application-code: 66s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 699ms (next.js: 36ms, proxy.ts: 2ms, application-code: 661ms)
 Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
     at findSessionWithUser (src/lib/auth.ts:63:13)
     at async validateSessionFull (src/lib/auth.ts:197:19)
@@ -1379,12 +448,12 @@ Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth 
   66 |       ); {
   [cause]: Error [PrismaClientKnownRequestError]: 
   Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique()` invocation in
-  /Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0xiba5c._.js:1658:159
+  /Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0-69jh8._.js:1770:159
   
-    1655     throw new AuthDatabaseUnavailableError("Auth database is temporarily unavailable. Please retry shortly.");
-    1656 }
-    1657 try {
-  → 1658     return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
+    1767     throw new AuthDatabaseUnavailableError("Auth database is temporarily unavailable. Please retry shortly.");
+    1768 }
+    1769 try {
+  → 1770     return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
   Can't reach database server at `31.97.41.230:9909`
   
   Please make sure your database server is running at `31.97.41.230:9909`.
@@ -1406,307 +475,24 @@ Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth 
     clientVersion: '6.19.3'
   }
 }
- GET /api/conf/default/access 500 in 10.5s (next.js: 35ms, proxy.ts: 261ms, application-code: 10.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 2.2s (next.js: 5ms, proxy.ts: 1676µs, application-code: 2.2s)
- GET /api/admin/users?limit=500 200 in 1531ms (next.js: 1476µs, proxy.ts: 1536µs, application-code: 1528ms)
-[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
-    at S.scheduleRefresh (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
-    at Set.forEach (<anonymous>) (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
- GET /tools/conf/committee 200 in 17.7s (next.js: 66ms, proxy.ts: 86ms, application-code: 17.6s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 10.6s (next.js: 8ms, proxy.ts: 3ms, application-code: 10.6s)
- GET /api/admin/users?limit=500 403 in 99ms (next.js: 57ms, proxy.ts: 29ms, application-code: 13ms)
- GET /tools/conf/committee 200 in 44s (next.js: 4ms, proxy.ts: 5ms, application-code: 44s)
- GET /api/auth/me 200 in 620ms (next.js: 20ms, proxy.ts: 12ms, application-code: 588ms)
- GET /api/auth/me 200 in 1010ms (next.js: 51ms, proxy.ts: 10ms, application-code: 949ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /api/auth/me?_t=1777461981845 200 in 608ms (next.js: 1256µs, proxy.ts: 3ms, application-code: 605ms)
- GET /api/auth/me?_t=1777461981844 200 in 1857ms (next.js: 38ms, proxy.ts: 29ms, application-code: 1789ms)
- GET /api/conf/default 200 in 35.0s (next.js: 57ms, proxy.ts: 13ms, application-code: 34.9s)
- GET /api/conf/default/access 200 in 36.5s (next.js: 12ms, proxy.ts: 12ms, application-code: 36.4s)
- GET /api/conf/default/access 200 in 36.6s (next.js: 31ms, proxy.ts: 11ms, application-code: 36.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 2.2s (next.js: 28ms, proxy.ts: 9ms, application-code: 2.2s)
- GET /api/conf/default 200 in 11ms (next.js: 3ms, proxy.ts: 4ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.5s (next.js: 33ms, proxy.ts: 9ms, application-code: 2.5s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.2s (next.js: 19ms, proxy.ts: 9ms, application-code: 3.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1618ms (next.js: 27ms, proxy.ts: 5ms, application-code: 1586ms)
- GET /api/admin/users?limit=500 200 in 1365ms (next.js: 1998µs, proxy.ts: 5ms, application-code: 1358ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1872ms (next.js: 23ms, proxy.ts: 5ms, application-code: 1844ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 12ms, proxy.ts: 5ms, application-code: 2.1s)
- GET /api/admin/users?limit=500 200 in 1268ms (next.js: 1446µs, proxy.ts: 1555µs, application-code: 1265ms)
- PATCH /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmnwxmgo80005rw8uf7rgnwtc 200 in 9.6s (next.js: 8ms, proxy.ts: 5ms, application-code: 9.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.4s (next.js: 5ms, proxy.ts: 4ms, application-code: 2.3s)
-✓ Compiled in 796ms
- GET /api/conf/default 200 in 8ms (next.js: 3ms, proxy.ts: 1552µs, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 503 in 10.0s (next.js: 11ms, proxy.ts: 9ms, application-code: 10.0s)
-Failed to fetch delegates: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:63:13)
-    at async validateSessionFull (src/lib/auth.ts:197:19)
-    at async getSessionUser (src/lib/conf/access.ts:47:19)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/[confId]/delegates/route.ts:45:20)
-  61 |     if (isTransientAuthDatabaseError(error)) {
-  62 |       authDbUnavailableUntil = Date.now() + AUTH_DB_COOLDOWN_MS;
-> 63 |       throw new AuthDatabaseUnavailableError(
-     |             ^
-  64 |         "Auth database is temporarily unavailable. Please retry shortly.",
-  65 |         error,
-  66 |       ); {
-  [cause]: Error [PrismaClientKnownRequestError]: 
-  Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique()` invocation in
-  /Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0xiba5c._.js:1658:159
-  
-    1655     throw new AuthDatabaseUnavailableError("Auth database is temporarily unavailable. Please retry shortly.");
-    1656 }
-    1657 try {
-  → 1658     return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
-  Can't reach database server at `31.97.41.230:9909`
-  
-  Please make sure your database server is running at `31.97.41.230:9909`.
-      at <unknown> (src/lib/auth.ts:54:33)
-      at async findSessionWithUser (src/lib/auth.ts:54:12)
-      at async validateSessionFull (src/lib/auth.ts:197:19)
-      at async getSessionUser (src/lib/conf/access.ts:47:19)
-      at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-      at async GET (src/app/api/conf/[confId]/delegates/route.ts:45:20)
-    52 |
-    53 |   try {
-  > 54 |     return await prisma.session.findUnique({
-       |                                 ^
-    55 |       where: { token },
-    56 |       include: {
-    57 |         user: true, {
-    code: 'P1001',
-    meta: { modelName: 'Session', database_location: '31.97.41.230:9909' },
-    clientVersion: '6.19.3'
-  }
-}
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 500 in 10.3s (next.js: 26ms, proxy.ts: 8ms, application-code: 10.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 503 in 10.3s (next.js: 35ms, proxy.ts: 8ms, application-code: 10.2s)
- GET /api/admin/users?limit=500 403 in 14ms (next.js: 2ms, proxy.ts: 7ms, application-code: 5ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 200 in 47s (next.js: 17ms, proxy.ts: 9ms, application-code: 47s)
- GET /api/auth/me 200 in 568ms (next.js: 10ms, proxy.ts: 8ms, application-code: 551ms)
- GET /api/auth/me?_t=1777462404934 200 in 546ms (next.js: 3ms, proxy.ts: 1784µs, application-code: 542ms)
- GET /api/auth/me?_t=1777462404934 200 in 6.2s (next.js: 5ms, proxy.ts: 17ms, application-code: 6.2s)
- GET /api/auth/me 200 in 8.4s (next.js: 16ms, proxy.ts: 9ms, application-code: 8.3s)
- GET /api/conf/default 200 in 28.3s (next.js: 16ms, proxy.ts: 7ms, application-code: 28.3s)
- GET /api/conf/default/access 200 in 30.0s (next.js: 7ms, proxy.ts: 8ms, application-code: 29.9s)
- GET /api/conf/default/access 200 in 30.3s (next.js: 13ms, proxy.ts: 8ms, application-code: 30.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 5.1s (next.js: 26ms, proxy.ts: 14ms, application-code: 5.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 6.0s (next.js: 30ms, proxy.ts: 13ms, application-code: 6.0s)
- GET /api/conf/default 200 in 8ms (next.js: 1739µs, proxy.ts: 2ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 1383ms (next.js: 7ms, proxy.ts: 4ms, application-code: 1372ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1524ms (next.js: 11ms, proxy.ts: 4ms, application-code: 1509ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1698ms (next.js: 14ms, proxy.ts: 4ms, application-code: 1680ms)
- GET /api/admin/users?limit=500 200 in 1131ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1124ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 9.6s (next.js: 34ms, proxy.ts: 13ms, application-code: 9.6s)
- GET /api/admin/users?limit=500 200 in 1243ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1237ms)
-✓ Compiled in 339ms
- GET /api/conf/default 200 in 15ms (next.js: 2ms, proxy.ts: 9ms, application-code: 3ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1675ms (next.js: 22ms, proxy.ts: 19ms, application-code: 1634ms)
- GET /api/conf/default 200 in 7ms (next.js: 1859µs, proxy.ts: 2ms, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 2.1s (next.js: 28ms, proxy.ts: 19ms, application-code: 2.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.4s (next.js: 15ms, proxy.ts: 17ms, application-code: 2.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1347ms (next.js: 16ms, proxy.ts: 4ms, application-code: 1328ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles?includeInactive=1 200 in 1516ms (next.js: 12ms, proxy.ts: 4ms, application-code: 1500ms)
- GET /api/admin/users?limit=500 200 in 1173ms (next.js: 1755µs, proxy.ts: 1538µs, application-code: 1170ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.0s (next.js: 6ms, proxy.ts: 4ms, application-code: 2.0s)
- GET /api/admin/users?limit=500 200 in 812ms (next.js: 5ms, proxy.ts: 7ms, application-code: 800ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- DELETE /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmojyae1c016zrw3nur54go1s 200 in 4.0s (next.js: 9ms, proxy.ts: 5ms, application-code: 4.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.1s (next.js: 3ms, proxy.ts: 2ms, application-code: 2.1s)
- DELETE /api/conf/cmnwxmdn80000rw8uwrttdzf7/members/cmojyukbz01evrw3nj21gxo92 200 in 3.2s (next.js: 5ms, proxy.ts: 4ms, application-code: 3.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.4s (next.js: 8ms, proxy.ts: 4ms, application-code: 2.4s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/committee 307 in 142ms (next.js: 13ms, proxy.ts: 8ms, application-code: 120ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 70ms (next.js: 19ms, proxy.ts: 1986µs, application-code: 50ms)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /api/auth/me 200 in 81ms (next.js: 28ms, proxy.ts: 18ms, application-code: 35ms)
- GET /api/auth/me 200 in 78ms (next.js: 31ms, proxy.ts: 18ms, application-code: 29ms)
- GET /api/auth/me?_t=1777465213178 200 in 78ms (next.js: 32ms, proxy.ts: 20ms, application-code: 27ms)
- GET /api/auth/me?_t=1777465213178 200 in 76ms (next.js: 35ms, proxy.ts: 17ms, application-code: 23ms)
-Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:48:11)
-    at validateSessionFull (src/lib/auth.ts:197:25)
-    at getSessionUser (src/lib/conf/access.ts:47:44)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/default/access/route.ts:13:20)
-  46 | async function findSessionWithUser(token: string) {
-  47 |   if (Date.now() < authDbUnavailableUntil) {
-> 48 |     throw new AuthDatabaseUnavailableError(
-     |           ^
-  49 |       "Auth database is temporarily unavailable. Please retry shortly.",
-  50 |     );
-  51 |   } {
-  cause: undefined
-}
- GET /api/conf/default/access 500 in 159ms (next.js: 22ms, proxy.ts: 18ms, application-code: 120ms)
-Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:48:11)
-    at validateSessionFull (src/lib/auth.ts:197:25)
-    at getSessionUser (src/lib/conf/access.ts:47:44)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/default/access/route.ts:13:20)
-  46 | async function findSessionWithUser(token: string) {
-  47 |   if (Date.now() < authDbUnavailableUntil) {
-> 48 |     throw new AuthDatabaseUnavailableError(
-     |           ^
-  49 |       "Auth database is temporarily unavailable. Please retry shortly.",
-  50 |     );
-  51 |   } {
-  cause: undefined
-}
- GET /api/conf/default/access 500 in 210ms (next.js: 27ms, proxy.ts: 18ms, application-code: 165ms)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fcommittee 200 in 52ms (next.js: 3ms, proxy.ts: 4ms, application-code: 45ms)
- GET /api/auth/me 200 in 43ms (next.js: 11ms, proxy.ts: 29ms, application-code: 3ms)
- GET /api/auth/me 200 in 49ms (next.js: 12ms, proxy.ts: 29ms, application-code: 8ms)
- GET /api/auth/me?_t=1777465215087 200 in 50ms (next.js: 13ms, proxy.ts: 30ms, application-code: 7ms)
-Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:48:11)
-    at validateSessionFull (src/lib/auth.ts:197:25)
-    at getSessionUser (src/lib/conf/access.ts:47:44)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/default/access/route.ts:13:20)
-  46 | async function findSessionWithUser(token: string) {
-  47 |   if (Date.now() < authDbUnavailableUntil) {
-> 48 |     throw new AuthDatabaseUnavailableError(
-     |           ^
-  49 |       "Auth database is temporarily unavailable. Please retry shortly.",
-  50 |     );
-  51 |   } {
-  cause: undefined
-}
- GET /api/conf/default/access 500 in 132ms (next.js: 8ms, proxy.ts: 29ms, application-code: 94ms)
-Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:48:11)
-    at validateSessionFull (src/lib/auth.ts:197:25)
-    at getSessionUser (src/lib/conf/access.ts:47:44)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/default/access/route.ts:13:20)
-  46 | async function findSessionWithUser(token: string) {
-  47 |   if (Date.now() < authDbUnavailableUntil) {
-> 48 |     throw new AuthDatabaseUnavailableError(
-     |           ^
-  49 |       "Auth database is temporarily unavailable. Please retry shortly.",
-  50 |     );
-  51 |   } {
-  cause: undefined
-}
- GET /api/conf/default/access 500 in 169ms (next.js: 14ms, proxy.ts: 29ms, application-code: 125ms)
- GET /api/auth/me?_t=1777465215087 200 in 144ms (next.js: 1198µs, proxy.ts: 139ms, application-code: 4ms)
+ GET /tools/conf/letters 200 in 86s (next.js: 11ms, proxy.ts: 6ms, application-code: 86s)
+ GET /api/conf/default 200 in 26ms (next.js: 10ms, proxy.ts: 10ms, application-code: 6ms)
+ GET /api/conf/default 200 in 28ms (next.js: 15ms, proxy.ts: 7ms, application-code: 6ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.3s (next.js: 35ms, proxy.ts: 2ms, application-code: 2.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 1674ms (next.js: 56ms, proxy.ts: 10ms, application-code: 1608ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 9.4s (next.js: 12ms, proxy.ts: 10ms, application-code: 9.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 503 in 10.1s (next.js: 114ms, proxy.ts: 8ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.7s (next.js: 15ms, proxy.ts: 9ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.7s (next.js: 23ms, proxy.ts: 9ms, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 12.7s (next.js: 85ms, proxy.ts: 10ms, application-code: 12.6s)
+ GET /api/conf/default 200 in 13ms (next.js: 4ms, proxy.ts: 4ms, application-code: 6ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 14ms (next.js: 6ms, proxy.ts: 3ms, application-code: 5ms)
+[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 8.6s (next.js: 19ms, proxy.ts: 8ms, application-code: 8.6s)
+ GET /api/conf/default 200 in 11ms (next.js: 1444µs, proxy.ts: 8ms, application-code: 2ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 16ms (next.js: 6ms, proxy.ts: 7ms, application-code: 3ms)
+✓ Compiled in 1582ms
+✓ Compiled in 917ms
+✓ Compiled in 936ms
+[browser] Removing a style property during rerender (marginBottom) when a conflicting property is set (margin) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values. 
+✓ Compiled in 1276ms

@@ -7,6 +7,7 @@ import {
   LETTERHEAD_CONFIG,
   buildCityRegionLine,
   buildLetterheadEmailLine,
+  buildLetterheadWebsiteLine,
 } from "@/lib/conf/letterhead-config";
 
 // GET /api/conf/[confId]/letterhead
@@ -201,6 +202,7 @@ function buildFirstPageSvg(opts: {
   const t4 = t3 + 15; // city / country
   const t5 = t4 + 14; // date range
   const t6 = t5 + 16; // email
+  const t7 = t6 + 12; // website
 
   // Separator positions
   const goldY = STRIPE_H + LOGO_ROW_H; // 150
@@ -294,6 +296,7 @@ function buildFirstPageSvg(opts: {
   <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(buildCityRegionLine(opts.city))}</text>
   <text x="${textCX}" y="${t5}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.dateRange)}</text>
   <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml(buildLetterheadEmailLine("  |  "))}</text>
+  <text x="${textCX}" y="${t7}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7.5" fill="#777777">${escapeXml(buildLetterheadWebsiteLine("  |  "))}</text>
 
   <!-- Liberia National Seal (right) -->
   ${sealBlock}
