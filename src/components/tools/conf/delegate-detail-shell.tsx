@@ -29,6 +29,7 @@ import { fmtRmb } from "@/lib/conf/currency";
 import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
+  type UploadedPhotoMeta,
 } from "@/components/tools/conf/delegate-registration-form";
 import {
   validateDelegateUploadFile,
@@ -882,6 +883,27 @@ export function DelegateDetailShell({
               submitting={editSubmitting}
               submitLabel="Save Changes"
               draftKey={`edit-${delegate.id}`}
+              uploadedPhotoMeta={(() => {
+                const base = `/api/conf/${confId}/delegates/${delegate.id}/secure-document`;
+                const meta: Partial<Record<"passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto", UploadedPhotoMeta>> = {};
+                // Passport proxy is manager-only; for owners show text-only indicator
+                if (delegate.passportPhotoPath) {
+                  if (canManage) {
+                    meta.passportPhoto = { fileName: "Passport (on file)", filePath: `${base}?kind=passport` };
+                  } else {
+                    // Use a fake .pdf path so the renderer shows text not a broken image
+                    meta.passportPhoto = { fileName: "Passport (on file)", filePath: "existing.pdf" };
+                  }
+                }
+                if (delegate.lastEntryStampPath)
+                  meta.lastEntryStampPhoto = { fileName: "Entry stamp (on file)", filePath: `${base}?kind=entry-stamp` };
+                if (delegate.currentVisaPath)
+                  meta.currentVisaPhoto = { fileName: "Visa (on file)", filePath: `${base}?kind=visa` };
+                // Booklet photo is a direct CDN URL
+                if (delegate.bookletPhotoPath)
+                  meta.bookletPhoto = { fileName: "Conference photo (on file)", filePath: delegate.bookletPhotoPath };
+                return meta;
+              })()}
               initialValues={{
                 name: delegate.name,
                 province: delegate.province ?? "",

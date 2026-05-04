@@ -1,15 +1,21 @@
 import { C } from "./constants";
-import type { BookletSection } from "./types";
+import type { BookletTocSectionRow } from "./booklet-section-pages";
 import { PageHeader } from "./PageHeader";
 import { PageFooter } from "./PageFooter";
 
 export function TableOfContentsPage({
-  sections,
+  tocPageNum,
+  hasCover,
+  hasBackCover,
+  sectionRows,
   confName,
   confYear,
   totalPages,
 }: {
-  sections: BookletSection[];
+  tocPageNum: number;
+  hasCover: boolean;
+  hasBackCover: boolean;
+  sectionRows: BookletTocSectionRow[];
   confName: string;
   confYear: number;
   totalPages: number;
@@ -29,7 +35,7 @@ export function TableOfContentsPage({
       <PageHeader
         confName={confName}
         sectionLabel="Table of Contents"
-        pageNum={2}
+        pageNum={tocPageNum}
       />
 
       <div style={{ flex: 1, padding: "28px 40px 20px" }}>
@@ -56,27 +62,26 @@ export function TableOfContentsPage({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-          {/* Cover entry */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "9px 12px",
-              borderRadius: "6px",
-              background: C.lightBlue,
-              marginBottom: "4px",
-            }}
-          >
-            <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
-              Cover Page
+          {hasCover && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "9px 12px",
+                borderRadius: "6px",
+                background: C.lightBlue,
+                marginBottom: "4px",
+              }}
+            >
+              <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
+                Cover Page
+              </div>
+              <PageRangeBadge startPage={1} pageSpan={1} highlighted />
             </div>
-            <PageNumBadge n={1} highlighted />
-          </div>
+          )}
 
-          {/* Body sections */}
-          {sections.map((s, i) => {
-            const pg = i + 3; // cover=1, TOC=2, body starts at 3
+          {sectionRows.map(({ section: s, startPage, pageSpan }) => {
             const isKey =
               s.type === "LEADER" ||
               s.type === "NEC" ||
@@ -129,7 +134,6 @@ export function TableOfContentsPage({
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "6px" }}
                 >
-                  {/* Dotted leader */}
                   <div
                     style={{
                       width: "80px",
@@ -138,32 +142,71 @@ export function TableOfContentsPage({
                         "repeating-linear-gradient(90deg, transparent, transparent 3px, #D1D9F0 3px, #D1D9F0 4px)",
                     }}
                   />
-                  <PageNumBadge n={pg} highlighted={isKey} />
+                  <PageRangeBadge
+                    startPage={startPage}
+                    pageSpan={pageSpan}
+                    highlighted={isKey}
+                  />
                 </div>
               </div>
             );
           })}
+
+          {hasBackCover && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "9px 12px",
+                borderRadius: "6px",
+                background: C.lightBlue,
+                marginTop: "6px",
+              }}
+            >
+              <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
+                Back Cover
+              </div>
+              <PageRangeBadge
+                startPage={totalPages}
+                pageSpan={1}
+                highlighted={false}
+              />
+            </div>
+          )}
         </div>
       </div>
 
       <PageFooter
         confName={confName}
         confYear={confYear}
-        pageNum={2}
+        pageNum={tocPageNum}
         totalPages={totalPages}
       />
     </div>
   );
 }
 
-// Small helper – not exported
-function PageNumBadge({ n, highlighted }: { n: number; highlighted: boolean }) {
+function PageRangeBadge({
+  startPage,
+  pageSpan,
+  highlighted,
+}: {
+  startPage: number;
+  pageSpan: number;
+  highlighted: boolean;
+}) {
+  const multi = pageSpan > 1;
+  const endPage = startPage + pageSpan - 1;
+  const label = multi ? `${startPage}–${endPage}` : String(startPage);
+
   return (
     <div
       style={{
-        width: "22px",
+        minWidth: multi ? 38 : 22,
         height: "22px",
-        borderRadius: "50%",
+        padding: multi ? "0 7px" : "0",
+        borderRadius: multi ? "11px" : "50%",
         background: highlighted ? C.blue : C.lightBlue,
         border: `1px solid ${highlighted ? C.blue : C.border}`,
         display: "flex",
@@ -175,7 +218,7 @@ function PageNumBadge({ n, highlighted }: { n: number; highlighted: boolean }) {
         flexShrink: 0,
       }}
     >
-      {n}
+      {label}
     </div>
   );
 }

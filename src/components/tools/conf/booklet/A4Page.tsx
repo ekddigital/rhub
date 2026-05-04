@@ -60,6 +60,9 @@ export function A4Page({
       <div
         style={{
           flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
           padding: "28px 40px 20px",
           position: "relative",
           zIndex: 1,

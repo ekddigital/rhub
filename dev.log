@@ -2239,3 +2239,68 @@ Failed to fetch Q&A questions: TypeError: Cannot read properties of undefined (r
  GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 503 in 23ms (next.js: 9ms, proxy.ts: 9ms, application-code: 6ms)
 ✓ Compiled in 693ms
  GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 503 in 10.1s (next.js: 20ms, proxy.ts: 20ms, application-code: 10.0s)
+✓ Compiled in 522ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 503 in 29ms (next.js: 7ms, proxy.ts: 7ms, application-code: 15ms)
+ GET /tools/conf/delegates 200 in 118s (next.js: 51ms, proxy.ts: 11ms, application-code: 118s)
+ GET /api/conf/default 200 in 95s (next.js: 87ms, proxy.ts: 17ms, application-code: 95s)
+ GET /api/conf/default 200 in 95s (next.js: 98ms, proxy.ts: 15ms, application-code: 95s)
+ GET /api/conf/default/access 200 in 1774ms (next.js: 88ms, proxy.ts: 8ms, application-code: 1678ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1596ms (next.js: 58ms, proxy.ts: 5ms, application-code: 1532ms)
+Failed to resolve conference access: Error [PrismaClientKnownRequestError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0aubjh1._.js:2006:151
+
+  2003         canAssignCommittee: true
+  2004     }
+  2005 }),
+→ 2006 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].confDelegate.findFirst(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 5)
+    at <unknown> (src/lib/conf/access.ts:90:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:75:30)
+    at async GET (src/app/api/conf/default/access/route.ts:13:20)
+  88 |       },
+  89 |     }),
+> 90 |     prisma.confDelegate.findFirst({
+     |                         ^
+  91 |       where: {
+  92 |         confId,
+  93 |         status: { not: "CANCELLED" }, {
+  code: 'P2024',
+  meta: { modelName: 'ConfDelegate', connection_limit: 5, timeout: 10 },
+  clientVersion: '6.19.3'
+}
+ GET /api/conf/default/access 500 in 11.1s (next.js: 1201µs, proxy.ts: 96ms, application-code: 11.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates 200 in 1269ms (next.js: 3ms, proxy.ts: 1473µs, application-code: 1265ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 10.4s (next.js: 323ms, proxy.ts: 90ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 10.5s (next.js: 350ms, proxy.ts: 106ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/room-assignments 200 in 1664ms (next.js: 20ms, proxy.ts: 5ms, application-code: 1639ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/pair-requests 200 in 7.2s (next.js: 10ms, proxy.ts: 6ms, application-code: 7.2s)
+✓ Compiled in 915ms
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `{imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst()` invocation in
+/Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/ssr/[root-of-the-server]__052ax~3._.js:2018:149
+
+  2015         canAssignCommittee: true
+  2016     }
+  2017 }),
+→ 2018 {imported module ./src/lib/prisma.ts}["prisma"].confDelegate.findFirst(
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at <unknown> (src/lib/conf/access.ts:90:25)
+    at async getConferenceAccess (src/lib/conf/access.ts:75:30)
+    at async requireConferencePageAccess (src/lib/conf/access.ts:242:14)
+    at async LettersPage (src/app/(hub)/tools/conf/letters/page.tsx:9:3)
+  88 |       },
+  89 |     }),
+> 90 |     prisma.confDelegate.findFirst({
+     |                         ^
+  91 |       where: {
+  92 |         confId,
+  93 |         status: { not: "CANCELLED" }, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3',
+  digest: '4148501912'
+}
+ GET /tools/conf/letters 200 in 2.1min (next.js: 367ms, proxy.ts: 80ms, application-code: 2.1min)

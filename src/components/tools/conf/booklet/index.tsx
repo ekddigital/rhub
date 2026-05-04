@@ -5,10 +5,16 @@ import { Download, ExternalLink, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { C } from "./constants";
+import { C, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 import type { BookletData, BookletSection } from "./types";
+import {
+  bookletBodyPageCount,
+  chunkDelegates,
+  computeSectionTocRows,
+  getTocPageNum,
+  sectionPageSpan,
+} from "./booklet-section-pages";
 
-// ── Page components
 import { CoverPage } from "./CoverPage";
 import { BackCoverPage } from "./BackCoverPage";
 import { TableOfContentsPage } from "./TableOfContentsPage";
@@ -136,15 +142,30 @@ function renderSection(
         />
       );
 
-    case "DELEGATES":
+    case "DELEGATES": {
+      const rosterChunks =
+        delegates.length === 0
+          ? [[] as typeof delegates]
+          : chunkDelegates(delegates, DELEGATES_PER_BOOKLET_PAGE);
       return (
-        <DelegatesSection
-          key={key}
-          section={section}
-          delegates={delegates}
-          {...commonSingle}
-        />
+        <>
+          {rosterChunks.map((chunk, idx) => (
+            <DelegatesSection
+              key={`${key}-${idx}`}
+              section={section}
+              delegates={chunk}
+              totalDelegateCount={delegates.length}
+              rosterPageIndex={idx}
+              rosterPageCount={rosterChunks.length}
+              pageNum={startPageNum + idx}
+              totalPages={totalPages}
+              confName={confName}
+              confYear={confYear}
+            />
+          ))}
+        </>
       );
+    }
 
     default:
       return <TextSection key={key} section={section} {...commonSingle} />;
@@ -180,42 +201,13 @@ export function BookletPreview({
 
   // Count pages properly: LEADER sections → leaders.length pages each
   // Committee sections → 2 pages when there are general members (role=COMMITTEE), else 1
-  const leaderCount = data.leaders.length;
-  const committeeTypes = [
-    "COMMITTEE",
-    "COC",
-    "COC_MEMBERS",
-    "CITY_PRESIDENTS",
-    "JUDICIAL",
-  ];
-  const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
-
-  function sectionMembersForPageCount(s: (typeof enabledSections)[0]) {
-    if (s.type === "NEC") return data.necMembers;
-    if (s.committeeScope) {
-      return data.committeeMembers.filter(
-        (m) => m.committeeScope === s.committeeScope,
-      );
-    }
-    return data.committeeMembers;
-  }
-
-  function committeeSectionPageCount(s: (typeof enabledSections)[0]): number {
-    const relevant = sectionMembersForPageCount(s);
-    const isMainConferenceCommittee =
-      s.type === "COMMITTEE" && !s.committeeScope?.trim();
-    if (s.type === "NEC" && relevant.length <= 10) return 1;
-    if (isMainConferenceCommittee && relevant.length <= 7) return 1;
-    const generalCount = relevant.filter((m) => !KEY_ROLES.includes(m.role)).length;
-    return 1 + Math.ceil(generalCount / 9);
-  }
-  const bodyPageCount = enabledSections.reduce((sum, s) => {
-    if (s.type === "LEADER") return sum + Math.max(1, leaderCount);
-    if (s.type === "NEC") return sum + committeeSectionPageCount(s);
-    if (committeeTypes.includes(s.type))
-      return sum + committeeSectionPageCount(s);
-    return sum + 1;
-  }, 0);
+  const bodyPageCount = bookletBodyPageCount(enabledSections, data);
+  const tocSectionRows = computeSectionTocRows(
+    enabledSections,
+    data,
+    hasCover,
+  );
+  const tocPageNum = getTocPageNum(hasCover);
   const totalPages =
     (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
 
@@ -386,7 +378,10 @@ export function BookletPreview({
             )}
 
             <TableOfContentsPage
-              sections={enabledSections}
+              tocPageNum={tocPageNum}
+              hasCover={hasCover}
+              hasBackCover={hasBackCover}
+              sectionRows={tocSectionRows}
               confName={data.event.name}
               confYear={data.event.year}
               totalPages={totalPages}
@@ -396,12 +391,7 @@ export function BookletPreview({
               enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
                 ({ nodes, rp }, s) => {
                   const startPage = rp;
-                  const delta =
-                    s.type === "LEADER"
-                      ? Math.max(1, leaderCount)
-                      : s.type === "NEC" || committeeTypes.includes(s.type)
-                        ? committeeSectionPageCount(s)
-                        : 1;
+                  const delta = sectionPageSpan(s, data);
                   return {
                     nodes: [
                       ...nodes,

@@ -491,26 +491,39 @@ export function DelegateRegistrationForm({
     const meta = uploadedPhotoMeta?.[field];
     if (!meta) return null;
     const lower = meta.filePath.toLowerCase();
-    const isPdf = lower.endsWith(".pdf");
+    const isPdf = lower.endsWith(".pdf") || meta.filePath === "existing.pdf";
 
     if (isPdf) {
       return (
-        <p className="text-xs text-muted-foreground">
-          Uploaded: {meta.fileName} (PDF)
-        </p>
+        <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-800 dark:bg-emerald-950/30">
+          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold">✓</span>
+          <div>
+            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">File already on file</p>
+            <p className="text-[11px] text-muted-foreground">{meta.fileName} — uploading a new file will replace it</p>
+          </div>
+        </div>
       );
     }
 
     return (
-      <div className="space-y-1.5">
-        <Image
-          src={meta.filePath}
-          alt={meta.fileName}
-          width={64}
-          height={64}
-          className="h-16 w-16 rounded border border-border object-cover"
-        />
-        <p className="text-xs text-muted-foreground">Uploaded: {meta.fileName}</p>
+      <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 dark:border-emerald-800 dark:bg-emerald-950/30">
+        <div className="flex items-start gap-3">
+          <Image
+            src={meta.filePath}
+            alt={meta.fileName}
+            width={80}
+            height={80}
+            className="h-20 w-20 shrink-0 rounded border border-border object-cover"
+          />
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[9px] font-bold">✓</span>
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">File already on file</p>
+            </div>
+            <p className="text-[11px] text-muted-foreground truncate">{meta.fileName}</p>
+            <p className="text-[11px] text-muted-foreground">Uploading a new file will replace it.</p>
+          </div>
+        </div>
       </div>
     );
   };

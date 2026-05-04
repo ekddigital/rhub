@@ -94,17 +94,14 @@ interface FAQCategory {
 }
 
 // helper so we can keep answer as ReactNode while still searching plain text
-function a(node: React.ReactNode, plain: string): Pick<FAQItem, "answer" | "searchText"> {
+function a(
+  node: React.ReactNode,
+  plain: string,
+): Pick<FAQItem, "answer" | "searchText"> {
   return { answer: node, searchText: plain };
 }
 
-const L = ({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) => (
+const L = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <Link
     href={href}
     className="font-medium text-[#C8A061] underline underline-offset-2 hover:text-[#C8A061]/80 transition-colors"
@@ -126,13 +123,11 @@ const STATIC_FAQ: FAQCategory[] = [
         question: "How do I create an account on the platform?",
         ...a(
           <>
-            Visit the{" "}
-            <L href="/login">registration page</L> and enter your full name,
-            email address, and a secure password. After submitting, you will
-            receive a verification email — click the confirmation link to
-            activate your account. Once verified,{" "}
-            <L href="/login">log in</L> to access the conference portal, view
-            your delegate profile, and{" "}
+            Visit the <L href="/login">registration page</L> and enter your full
+            name, email address, and a secure password. After submitting, you
+            will receive a verification email — click the confirmation link to
+            activate your account. Once verified, <L href="/login">log in</L> to
+            access the conference portal, view your delegate profile, and{" "}
             <L href="/tools/conf/delegates/register">
               complete your registration
             </L>
@@ -172,17 +167,16 @@ const STATIC_FAQ: FAQCategory[] = [
               <li>
                 <strong>Conference registration details</strong> (dietary needs,
                 travel info, accommodation preferences, emergency contact, etc.)
-                — go to the{" "}
-                <L href="/tools/conf/delegates">Delegates page</L>, find your
-                name in the list, click <strong>Details</strong>, then click{" "}
-                <strong>Edit Registration</strong> on your delegate profile page.
+                — go to the <L href="/tools/conf/delegates">Delegates page</L>,
+                find your name in the list, click <strong>Details</strong>, then
+                click <strong>Edit Registration</strong> on your delegate
+                profile page.
               </li>
             </ul>
             <span className="block mt-2 text-xs text-muted-foreground">
               Your email address is tied to your account — contact the committee
-              via the{" "}
-              <L href="/tools/conf/committee">Committee page</L> if you need it
-              changed.
+              via the <L href="/tools/conf/committee">Committee page</L> if you
+              need it changed.
             </span>
           </>,
           "Platform account info (name, phone, photo): click your avatar top-right and go to Profile. Conference registration details (dietary, travel, accommodation): go to the Delegates page, find your name, click Details, then Edit Registration.",
@@ -222,10 +216,9 @@ const STATIC_FAQ: FAQCategory[] = [
           <>
             Yes — you can update certain fields (dietary preferences, emergency
             contact, travel details) at any time before the registration
-            deadline via the{" "}
-            <L href="/tools/conf/delegates">Delegates page</L>. For changes to
-            your package or accommodation type, contact the conference committee
-            directly through the{" "}
+            deadline via the <L href="/tools/conf/delegates">Delegates page</L>.
+            For changes to your package or accommodation type, contact the
+            conference committee directly through the{" "}
             <L href="/tools/conf/committee">Committee page</L> as these may
             affect your fee amount.
           </>,
@@ -245,14 +238,18 @@ const STATIC_FAQ: FAQCategory[] = [
               <li>Emergency contact details</li>
               <li>Any dietary or accessibility requirements</li>
             </ul>
-            <span className="block mt-2">All documents are stored securely and only accessible to authorised committee members.</span>
+            <span className="block mt-2">
+              All documents are stored securely and only accessible to
+              authorised committee members.
+            </span>
           </>,
           "You need a passport-style photo, national ID or passport number, emergency contact details, and dietary or accessibility requirements.",
         ),
       },
       {
         id: "packages",
-        question: "What attendance packages are available and what do they include?",
+        question:
+          "What attendance packages are available and what do they include?",
         ...a(
           <>
             The conference offers packages designed for different needs (exact
@@ -260,9 +257,8 @@ const STATIC_FAQ: FAQCategory[] = [
             <L href="/tools/conf/delegates/register">registration form</L>):
             <ul className="mt-2 space-y-1.5 list-disc list-inside text-sm">
               <li>
-                <strong>Full Package</strong> — Accommodation (shared room),
-                all meals, transport to/from the venue, and access to all
-                sessions.
+                <strong>Full Package</strong> — Accommodation (shared room), all
+                meals, transport to/from the venue, and access to all sessions.
               </li>
               <li>
                 <strong>Day Attendance</strong> — Access to conference sessions
@@ -299,8 +295,7 @@ const STATIC_FAQ: FAQCategory[] = [
             Any delegate whose selected package includes accommodation is
             eligible to choose a roommate. If your package does not include
             accommodation (e.g. Day Attendance), the Room Pairing section will
-            not apply to you.{" "}
-            <L href="/login">Log in</L> and visit the{" "}
+            not apply to you. <L href="/login">Log in</L> and visit the{" "}
             <L href="/tools/conf/delegates">Delegates page</L> to check your
             eligibility status under the Room Pairing section.
           </>,
@@ -397,8 +392,8 @@ const STATIC_FAQ: FAQCategory[] = [
             upload your proof of payment (bank receipt or screenshot) on the{" "}
             <L href="/tools/conf/payments">Payments page</L> under Conference
             Hub. The{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
-            will review and confirm within 2–3 business days.
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L> will
+            review and confirm within 2–3 business days.
           </>,
           "After approval, transfer payment to the conference account and upload your proof of payment on the Payments page. The Financial Secretary confirms within 2-3 business days.",
         ),
@@ -467,14 +462,11 @@ const STATIC_FAQ: FAQCategory[] = [
             All key dates — registration deadlines, payment deadlines, room
             pairing deadlines, and the full conference schedule — are available
             on the{" "}
-            <L href="/tools/conf/timeline">Conference Hub Timeline page</L>.
-            The{" "}
-            <L href="/tools/conf">
-              dashboard
-            </L>{" "}
-            also displays a countdown to the conference and highlights any
-            upcoming deadlines. Submit your registration and payment well before
-            the deadlines to secure your place.
+            <L href="/tools/conf/timeline">Conference Hub Timeline page</L>. The{" "}
+            <L href="/tools/conf">dashboard</L> also displays a countdown to the
+            conference and highlights any upcoming deadlines. Submit your
+            registration and payment well before the deadlines to secure your
+            place.
           </>,
           "All key dates and deadlines are on the Conference Hub Timeline page. The dashboard also shows a countdown and upcoming deadlines.",
         ),

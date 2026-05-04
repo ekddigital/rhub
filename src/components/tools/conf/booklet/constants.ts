@@ -11,6 +11,13 @@ export const C = {
   border: "#D1D9F0",
 } as const;
 
+// ─── Delegate roster (booklet / print) ─────────────────────────────────────
+/** Grid columns × rows = delegates per page (minimum 12 when full). */
+export const DELEGATE_ROSTER_COLS = 3;
+export const DELEGATE_ROSTER_ROWS = 4;
+export const DELEGATES_PER_BOOKLET_PAGE =
+  DELEGATE_ROSTER_COLS * DELEGATE_ROSTER_ROWS;
+
 // ─── Static asset paths (served from /public) ─────────────────────────────────
 export const ASSETS = {
   lsuicLogo: "/conf/lsuic_logo.png",
