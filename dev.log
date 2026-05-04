@@ -2311,3 +2311,113 @@ Please make sure your database server is running at `31.97.41.230:9909`.
 ⚠ Fast Refresh had to perform a full reload due to a runtime error.
 ✓ Compiled in 946ms
 ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/letters 200 in 2.2min (next.js: 10ms, proxy.ts: 22ms, application-code: 2.2min)
+ GET /api/auth/me 200 in 935ms (next.js: 156ms, proxy.ts: 19ms, application-code: 760ms)
+ GET /api/auth/me?_t=1777889261806 200 in 684ms (next.js: 3ms, proxy.ts: 3ms, application-code: 678ms)
+ GET /api/auth/me?_t=1777889261805 200 in 10.0s (next.js: 204ms, proxy.ts: 24ms, application-code: 9.8s)
+ GET /api/auth/me 200 in 10.3s (next.js: 182ms, proxy.ts: 20ms, application-code: 10.1s)
+ GET /api/conf/default 200 in 116s (next.js: 200ms, proxy.ts: 22ms, application-code: 116s)
+ GET /tools/conf/letters 200 in 112s (next.js: 306ms, proxy.ts: 142ms, application-code: 111s)
+ GET /tools/conf/letters 200 in 108s (next.js: 1950µs, proxy.ts: 3ms, application-code: 108s)
+ GET /tools/conf/letters 200 in 108s (next.js: 4ms, proxy.ts: 4ms, application-code: 108s)
+ GET /api/conf/default/access 200 in 119s (next.js: 21ms, proxy.ts: 34ms, application-code: 118s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.5s (next.js: 90ms, proxy.ts: 9ms, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 1907ms (next.js: 74ms, proxy.ts: 5ms, application-code: 1828ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.5s (next.js: 213ms, proxy.ts: 6ms, application-code: 2.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 4.1s (next.js: 135ms, proxy.ts: 6ms, application-code: 4.0s)
+ GET /api/conf/default/access 200 in 2.1min (next.js: 172ms, proxy.ts: 22ms, application-code: 2.1min)
+ GET /api/conf/default 200 in 116s (next.js: 115ms, proxy.ts: 6ms, application-code: 116s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 10.1s (next.js: 16ms, proxy.ts: 8ms, application-code: 10.1s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           cz-shortcut-listen="true"
+                          >
+                  ...
+ 
+[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf/letters 200 in 12.7s (next.js: 9ms, proxy.ts: 8ms, application-code: 12.7s)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+                        <html lang="en" suppressHydrationWarning={true}>
+                          <body
+                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
+-                           data-new-gr-c-s-check-loaded="14.1288.0"
+-                           data-gr-ext-installed=""
+                          >
+                  ...
+ 
+ GET /api/conf/default 200 in 175ms (next.js: 151ms, proxy.ts: 21ms, application-code: 2ms)
+ GET /api/auth/me 200 in 1319ms (next.js: 147ms, proxy.ts: 31ms, application-code: 1141ms)
+ GET /api/auth/me?_t=1777889603753 200 in 1347ms (next.js: 8ms, proxy.ts: 8ms, application-code: 1332ms)
+ GET /api/conf/default/access 200 in 2.3s (next.js: 150ms, proxy.ts: 28ms, application-code: 2.1s)
+ GET /api/conf/default/access 200 in 2.5s (next.js: 110ms, proxy.ts: 31ms, application-code: 2.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.3s (next.js: 4ms, proxy.ts: 1957µs, application-code: 3.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.9s (next.js: 15ms, proxy.ts: 6ms, application-code: 3.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 4.0s (next.js: 22ms, proxy.ts: 7ms, application-code: 4.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 4.1s (next.js: 31ms, proxy.ts: 6ms, application-code: 4.1s)
+ GET /api/conf/default 200 in 6ms (next.js: 1346µs, proxy.ts: 2ms, application-code: 2ms)
+ GET /api/auth/me 200 in 9.9s (next.js: 150ms, proxy.ts: 25ms, application-code: 9.7s)
+ GET /api/auth/me?_t=1777889603753 200 in 11.7s (next.js: 11ms, proxy.ts: 153ms, application-code: 11.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.2s (next.js: 4ms, proxy.ts: 1764µs, application-code: 3.2s)
+[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
