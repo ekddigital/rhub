@@ -46,6 +46,8 @@ import {
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   LETTERHEAD_CONFIG,
+  LETTER_COMPOSER_HEADER_PRIMARY_LINE,
+  LETTER_COMPOSER_HEADER_UNION_LINE,
   buildCityRegionLine,
   buildLetterheadEmailLine,
   buildLetterheadWebsiteLine,
@@ -1671,7 +1673,6 @@ function LetterA4Preview({
   const dateRange = confInfo
     ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
     : "July 24 – 27, 2026";
-  const venue = confInfo?.venue ?? LETTERHEAD_CONFIG.defaultVenue;
 
   const signatories: Signatory[] = [
     {
@@ -1959,7 +1960,7 @@ function LetterA4Preview({
                 lineHeight: 1.2,
               }}
             >
-              {LETTERHEAD_CONFIG.organizationName}
+              {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
             </div>
             <div
               style={{
@@ -1972,7 +1973,7 @@ function LetterA4Preview({
               {confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName}
             </div>
             <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
-              {venue}
+              {LETTER_COMPOSER_HEADER_UNION_LINE}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>
               {buildCityRegionLine(confInfo?.city)}
@@ -2461,7 +2462,7 @@ function LetterA4Preview({
               }}
             >
               <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
-                {LETTERHEAD_CONFIG.organizationName}
+                {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
               </div>
               <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
                 {officeLabel}
@@ -2664,7 +2665,7 @@ function LetterA4Preview({
             }}
           >
             <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
-              {LETTERHEAD_CONFIG.organizationName}
+              {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
             </div>
             <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
               {officeLabel}

@@ -16,6 +16,14 @@ export const LETTERHEAD_CONFIG = {
   motto: 'Motto: "Excellence Through Hard Work"',
 } as const;
 
+/** Letter Composer masthead — main title line (replaces full LSUIC name at top). */
+export const LETTER_COMPOSER_HEADER_PRIMARY_LINE =
+  "Conference Committee (CC)" as const;
+
+/** Letter Composer masthead — slot that previously showed venue/hotel; union identity instead. */
+export const LETTER_COMPOSER_HEADER_UNION_LINE =
+  "LIBERIAN STUDENT UNION IN CHINA (LSUIC)" as const;
+
 export function buildCityRegionLine(city?: string | null): string {
   return `${city || LETTERHEAD_CONFIG.defaultCity}, ${LETTERHEAD_CONFIG.cityRegionCountry}`;
 }
