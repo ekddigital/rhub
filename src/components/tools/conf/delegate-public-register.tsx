@@ -11,6 +11,7 @@ import {
   FileImage,
   FileUp,
   Film,
+  UserPlus,
 } from "lucide-react";
 import {
   Card,
@@ -41,6 +42,7 @@ import {
   formatUploadError,
   parseUploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
+import { useUser } from "@/contexts/user-context";
 
 type SuccessState = {
   delegateId: string;
@@ -106,8 +108,21 @@ const FEATURED_VIDEOS = [
 ] as const;
 
 const UPLOAD_DRAFT_STORAGE_KEY = "conf-public-register-upload-draft";
+/** sessionStorage: "self" | "other" — persists registering-for-another-person across refresh */
+const REGISTER_TARGET_SESSION_KEY = "rhub-delegate-register-target";
 
 export function DelegatePublicRegister() {
+  const { user: authUser } = useUser();
+  const [registeringForOther, setRegisteringForOther] = useState(false);
+  const [formInstanceKey, setFormInstanceKey] = useState(0);
+  const [accountPrefill, setAccountPrefill] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    city: string;
+    province: string;
+  } | null>(null);
+
   const [confId, setConfId] = useState("");
   const [confYear, setConfYear] = useState(new Date().getFullYear());
   const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
@@ -145,6 +160,95 @@ export function DelegatePublicRegister() {
       // ignore browser storage issues
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem(REGISTER_TARGET_SESSION_KEY) === "other") {
+        setRegisteringForOther(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/conf/default/delegate-register-prefill", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          authenticated?: boolean;
+          name?: string;
+          email?: string;
+          phone?: string;
+          city?: string;
+          province?: string;
+        };
+        if (cancelled || !data.authenticated) return;
+        setAccountPrefill({
+          name: data.name ?? "",
+          email: data.email ?? "",
+          phone: data.phone ?? "",
+          city: data.city ?? "",
+          province: data.province ?? "",
+        });
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const beginRegisterForSomeoneElse = useCallback(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(REGISTER_TARGET_SESSION_KEY, "other");
+      } catch {
+        /* ignore */
+      }
+      try {
+        localStorage.removeItem("conf-delegate-draft:public-new");
+      } catch {
+        /* ignore */
+      }
+    }
+    setRegisteringForOther(true);
+    setFormInstanceKey((k) => k + 1);
+    setDraftDelegateId(null);
+    setUploadedPhotoMeta({});
+    setPhotoFieldErrors({});
+    setPhotoUploadFeedback({});
+    clearUploadDraftState();
+  }, [clearUploadDraftState]);
+
+  const beginRegisterForSelf = useCallback(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(REGISTER_TARGET_SESSION_KEY, "self");
+      } catch {
+        /* ignore */
+      }
+      try {
+        localStorage.removeItem("conf-delegate-draft:public-new");
+      } catch {
+        /* ignore */
+      }
+    }
+    setRegisteringForOther(false);
+    setFormInstanceKey((k) => k + 1);
+    setDraftDelegateId(null);
+    setUploadedPhotoMeta({});
+    setPhotoFieldErrors({});
+    setPhotoUploadFeedback({});
+    clearUploadDraftState();
+  }, [clearUploadDraftState]);
 
   const FILE_KIND_META = useMemo<
     Record<
@@ -521,6 +625,14 @@ export function DelegatePublicRegister() {
         flyerReady,
         updatedExisting: Boolean(createdPayload.updatedExisting),
       });
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.setItem(REGISTER_TARGET_SESSION_KEY, "self");
+        } catch {
+          /* ignore */
+        }
+      }
+      setRegisteringForOther(false);
       clearUploadDraftState();
       setUploadedPhotoMeta({});
 
@@ -717,6 +829,64 @@ export function DelegatePublicRegister() {
           </p>
         </div>
       </div>
+
+      {!loading && !success && (authUser || registeringForOther) && (
+        <div className="flex flex-col gap-3 rounded-lg border border-[#C8A061]/35 bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            {registeringForOther ? (
+              <>
+                <span className="font-medium text-foreground">
+                  Registering someone else
+                </span>
+                {" — "}
+                Use this form only for that delegate&apos;s details. Your login is
+                just for access; nothing here updates your own hub profile until you
+                submit their registration.
+              </>
+            ) : (
+              <>
+                Signed in as{" "}
+                <span className="font-medium text-foreground">
+                  {authUser?.name}
+                </span>
+                . We&apos;ll fill{" "}
+                <strong className="font-medium text-foreground">
+                  name, email
+                </strong>
+                , and when available{" "}
+                <strong className="font-medium text-foreground">
+                  phone &amp; city
+                </strong>{" "}
+                from your account / committee roster — only where a field is still
+                empty (including after draft restore).
+              </>
+            )}
+          </p>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {!registeringForOther ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-[#C8A061]/50"
+                onClick={beginRegisterForSomeoneElse}
+              >
+                <UserPlus className="mr-1.5 size-4" />
+                Register for someone else
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                className="bg-[#0B4FD9] text-white hover:bg-[#0B4FD9]/90"
+                onClick={beginRegisterForSelf}
+              >
+                I&apos;m registering myself
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
@@ -1074,10 +1244,13 @@ export function DelegatePublicRegister() {
             </CardHeader>
             <CardContent>
               <DelegateRegistrationForm
+                key={`public-register-${formInstanceKey}-${registeringForOther ? "other" : "self"}`}
                 submitting={submitting}
                 defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
                 draftKey="public-new"
+                accountPrefill={registeringForOther ? null : accountPrefill}
+                skipAccountPrefill={registeringForOther}
                 onSnapshotChange={setLatestSnapshot}
                 uploadedPhotoMeta={uploadedPhotoMeta}
                 photoFieldErrors={photoFieldErrors}

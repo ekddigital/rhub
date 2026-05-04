@@ -200,6 +200,18 @@ type Props = {
    * or a stable string like "new" for new registrations.
    */
   draftKey?: string;
+  /**
+   * Public registration: merge hub/committee hints into fields that are still empty
+   * (runs after local draft restore; won't overwrite typed values).
+   */
+  accountPrefill?: Partial<
+    Pick<
+      DelegateRegistrationPayload,
+      "name" | "email" | "phone" | "city" | "province"
+    >
+  > | null;
+  /** When true, skips applying `accountPrefill` (e.g. registering on behalf of someone else). */
+  skipAccountPrefill?: boolean;
   onSnapshotChange?: (snapshot: DelegateRegistrationSnapshot) => void;
   uploadedPhotoMeta?: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>;
   photoFieldErrors?: Partial<Record<DelegatePhotoField, string>>;
@@ -247,6 +259,8 @@ export function DelegateRegistrationForm({
   initialValues,
   isManagerMode = true,
   draftKey,
+  accountPrefill,
+  skipAccountPrefill = false,
   onSnapshotChange,
   uploadedPhotoMeta,
   photoFieldErrors,
@@ -739,6 +753,23 @@ export function DelegateRegistrationForm({
       // ignore corrupt drafts
     }
   }, [STORAGE_KEY, applyPackageAccommodationMode, feeOptions]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    if (skipAccountPrefill) return;
+    const p = accountPrefill;
+    if (!p) return;
+    const merge = (prev: string, hint: string | undefined): string => {
+      const t = hint?.trim();
+      if (!t) return prev;
+      return prev.trim() ? prev : t;
+    };
+    setName((prev) => merge(prev, p.name));
+    setEmail((prev) => merge(prev, p.email));
+    setPhone((prev) => merge(prev, p.phone));
+    setCity((prev) => merge(prev, p.city));
+    setProvince((prev) => merge(prev, p.province));
+  }, [accountPrefill, skipAccountPrefill, isEditMode]);
 
   // Auto-save to localStorage (debounced 1.5 s)
   useEffect(() => {
