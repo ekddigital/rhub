@@ -10,6 +10,7 @@ import {
   buildLetterheadWebsiteLine,
 } from "@/lib/conf/letterhead-config";
 import { CONFERENCE_LETTER_ROSTER_ROLES } from "@/lib/conf/conference-letter-roster";
+import { getBootstrapMemberContactFallback } from "@/lib/conf/bootstrap";
 
 // GET /api/conf/[confId]/letterhead
 // Returns SVG or PNG of the LSUIC conference committee letterhead.
@@ -433,7 +434,7 @@ export async function GET(
       | "continuation";
     const format = url.searchParams.get("format") ?? "png";
 
-    const [event, members] = await Promise.all([
+    const [event, membersRows] = await Promise.all([
       prisma.confEvent.findUnique({
         where: { id: confId },
         select: {
@@ -461,6 +462,15 @@ export async function GET(
         },
       }),
     ]);
+
+    const members = membersRows.map((m) => {
+      const fb = getBootstrapMemberContactFallback(m.name);
+      return {
+        ...m,
+        phone: (m.phone ?? "").trim() || fb?.phone || null,
+        city: (m.city ?? "").trim() || fb?.city || null,
+      };
+    });
 
     if (!event) {
       return NextResponse.json(

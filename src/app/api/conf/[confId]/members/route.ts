@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { getBootstrapMemberContactFallback } from "@/lib/conf/bootstrap";
 
 async function ensureUniqueCommitteeApprover(input: {
   confId: string;
@@ -53,15 +54,22 @@ export async function GET(
     const userById = new Map(linkedUsers.map((user) => [user.id, user]));
 
     const origin = new URL(req.url).origin;
-    const normalized = members.map((member) => ({
-      ...member,
-      email: member.email || userById.get(member.userId || "")?.email || null,
-      linkedUserName: userById.get(member.userId || "")?.name || null,
-      linkedUserEmail: userById.get(member.userId || "")?.email || null,
-      photoPath: member.photoPath
-        ? resolveStoredAssetUrl(member.photoPath, origin)
-        : null,
-    }));
+    const normalized = members.map((member) => {
+      const fb = getBootstrapMemberContactFallback(member.name);
+      const phone = (member.phone ?? "").trim() || fb?.phone || null;
+      const city = (member.city ?? "").trim() || fb?.city || null;
+      return {
+        ...member,
+        phone,
+        city,
+        email: member.email || userById.get(member.userId || "")?.email || null,
+        linkedUserName: userById.get(member.userId || "")?.name || null,
+        linkedUserEmail: userById.get(member.userId || "")?.email || null,
+        photoPath: member.photoPath
+          ? resolveStoredAssetUrl(member.photoPath, origin)
+          : null,
+      };
+    });
 
     return NextResponse.json(normalized);
   } catch (error) {

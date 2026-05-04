@@ -173,6 +173,53 @@ const DEFAULT_MEMBER_NAME_CORRECTIONS = [
   },
 ] as const;
 
+/**
+ * Normalize a display name so "Abdul M. Corneh" ↔ "Abdul Corneh" match (drops
+ * single-letter middle initials): used only to pair live ConfMember rows with
+ * seeded default roster contact when DB phone/city are blank.
+ */
+function committeeNameMatchKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\./g, " ")
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1)
+    .join(" ");
+}
+
+/**
+ * Returns seeded phone/city from the default conference bootstrap roster when
+ * the given display name matches a bootstrap member (including known aliases).
+ * Does not replace non-empty values — merge in the API layer.
+ */
+export function getBootstrapMemberContactFallback(displayName: string): {
+  phone: string;
+  city: string;
+} | null {
+  const key = committeeNameMatchKey(displayName);
+  if (!key) return null;
+
+  const contactByKey = new Map<string, { phone: string; city: string }>();
+  for (const row of DEFAULT_MEMBERS) {
+    contactByKey.set(committeeNameMatchKey(row.name), {
+      phone: row.phone,
+      city: row.city,
+    });
+  }
+
+  for (const correction of DEFAULT_MEMBER_NAME_CORRECTIONS) {
+    const src = contactByKey.get(committeeNameMatchKey(correction.canonical));
+    if (!src) continue;
+    for (const alias of correction.aliases) {
+      const ak = committeeNameMatchKey(alias);
+      if (ak) contactByKey.set(ak, src);
+    }
+  }
+
+  return contactByKey.get(key) ?? null;
+}
+
 async function bootstrapDefaultConference() {
   let event = await prisma.confEvent.findUnique({
     where: { slug: DEFAULT_CONF_SLUG },
