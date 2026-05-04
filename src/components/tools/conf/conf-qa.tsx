@@ -161,14 +161,31 @@ const STATIC_FAQ: FAQCategory[] = [
         question: "How do I update my personal information?",
         ...a(
           <>
-            After{" "}
-            <L href="/login">logging in</L>, click your name or avatar in the
-            top-right corner and go to <strong>Profile</strong>. You can update
-            your display name, phone number, and profile photo there. Your email
-            address is tied to your account — contact the committee if you need
-            it changed.
+            There are two places where you can update your information:
+            <ul className="mt-2 space-y-3 text-sm list-none">
+              <li>
+                <strong>Platform account</strong> (display name, phone, profile
+                photo) — after <L href="/login">logging in</L>, click your name
+                or avatar in the top-right corner and go to{" "}
+                <strong>Profile</strong>.
+              </li>
+              <li>
+                <strong>Conference registration details</strong> (dietary needs,
+                travel info, accommodation preferences, emergency contact, etc.)
+                — go to the{" "}
+                <L href="/tools/conf/delegates">Delegates page</L>, find your
+                name in the list, click <strong>Details</strong>, then click{" "}
+                <strong>Edit Registration</strong> on your delegate profile page.
+              </li>
+            </ul>
+            <span className="block mt-2 text-xs text-muted-foreground">
+              Your email address is tied to your account — contact the committee
+              via the{" "}
+              <L href="/tools/conf/committee">Committee page</L> if you need it
+              changed.
+            </span>
           </>,
-          "After logging in, click your name or avatar in the top-right corner and go to Profile to update your personal information.",
+          "Platform account info (name, phone, photo): click your avatar top-right and go to Profile. Conference registration details (dietary, travel, accommodation): go to the Delegates page, find your name, click Details, then Edit Registration.",
         ),
       },
     ],
