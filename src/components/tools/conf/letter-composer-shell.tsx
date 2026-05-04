@@ -48,6 +48,7 @@ import {
   LETTERHEAD_CONFIG,
   LETTER_COMPOSER_HEADER_PRIMARY_LINE,
   LETTER_COMPOSER_HEADER_UNION_LINE,
+  letterComposerConferenceSubtitle,
   buildCityRegionLine,
   buildLetterheadEmailLine,
   buildLetterheadWebsiteLine,
@@ -1962,6 +1963,9 @@ function LetterA4Preview({
             >
               {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
             </div>
+            <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
+              {LETTER_COMPOSER_HEADER_UNION_LINE}
+            </div>
             <div
               style={{
                 fontSize: 10,
@@ -1970,10 +1974,9 @@ function LetterA4Preview({
                 marginTop: 4,
               }}
             >
-              {confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName}
-            </div>
-            <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
-              {LETTER_COMPOSER_HEADER_UNION_LINE}
+              {letterComposerConferenceSubtitle(
+                confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName,
+              )}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>
               {buildCityRegionLine(confInfo?.city)}

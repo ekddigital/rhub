@@ -24,6 +24,16 @@ export const LETTER_COMPOSER_HEADER_PRIMARY_LINE =
 export const LETTER_COMPOSER_HEADER_UNION_LINE =
   "LIBERIAN STUDENT UNION IN CHINA (LSUIC)" as const;
 
+/**
+ * Conference subtitle under the union line in Letter Composer — drops a leading "LSUIC "
+ * because the full union name appears on the line above.
+ */
+export function letterComposerConferenceSubtitle(raw: string): string {
+  const base = raw.trim() || CONF_2026.name;
+  const stripped = base.replace(/^LSUIC\s+/i, "").trim();
+  return stripped || base;
+}
+
 export function buildCityRegionLine(city?: string | null): string {
   return `${city || LETTERHEAD_CONFIG.defaultCity}, ${LETTERHEAD_CONFIG.cityRegionCountry}`;
 }
