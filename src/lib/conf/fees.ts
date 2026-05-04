@@ -191,20 +191,64 @@ export function getConferenceOptionalAddOnPackages() {
   return CONFERENCE_FEE_PACKAGES.filter((item) => item.isOptionalAddOn);
 }
 
+/** Optional add-on id for male + female jersey set — quantity is encoded by repeating this id. */
+export const CONFERENCE_JERSEY_PACKAGE_ID = "conference-jersey";
+
+/** Upper bound on jersey sets per registration (abuse / typo guard). */
+export const MAX_CONFERENCE_JERSEY_SETS = 20;
+
+export function countConferenceJerseySets(packageIds: string[]): number {
+  return packageIds.filter((id) => id === CONFERENCE_JERSEY_PACKAGE_ID).length;
+}
+
+/**
+ * Normalizes optional add-on ids: achievers tables etc. stay unique;
+ * `conference-jersey` may appear multiple times (one per set ordered).
+ */
 export function normalizeConferenceOptionalAddOnPackageIds(
   packageIds: unknown,
 ): string[] {
   if (!Array.isArray(packageIds)) return [];
-  const seen = new Set<string>();
-  const result: string[] = [];
+  const jerseySlots: string[] = [];
+  const seenNonJersey = new Set<string>();
+  const othersOrdered: string[] = [];
+
   for (const value of packageIds) {
     if (typeof value !== "string") continue;
     const id = value.trim();
-    if (!id || seen.has(id) || !isConferenceOptionalAddOnPackage(id)) continue;
-    seen.add(id);
-    result.push(id);
+    if (!id || !isConferenceOptionalAddOnPackage(id)) continue;
+    if (id === CONFERENCE_JERSEY_PACKAGE_ID) {
+      jerseySlots.push(id);
+      continue;
+    }
+    if (seenNonJersey.has(id)) continue;
+    seenNonJersey.add(id);
+    othersOrdered.push(id);
   }
-  return result;
+
+  const jerseys = jerseySlots.slice(0, MAX_CONFERENCE_JERSEY_SETS);
+  return [...othersOrdered, ...jerseys];
+}
+
+/** Human-readable list for emails/admin (collapses duplicate jersey ids). */
+export function formatConferenceOptionalAddOnsSummary(
+  packageIds: string[],
+): string {
+  if (!packageIds.length) return "None";
+  const order: string[] = [];
+  const counts = new Map<string, number>();
+  for (const id of packageIds) {
+    if (!counts.has(id)) order.push(id);
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return order
+    .map((id) => {
+      const pkg = getConferenceFeePackageById(id);
+      const label = pkg?.label ?? id;
+      const n = counts.get(id) ?? 1;
+      return n > 1 ? `${label} × ${n}` : label;
+    })
+    .join(", ");
 }
 
 export function sumConferenceOptionalAddOns(packageIds: string[]): number {

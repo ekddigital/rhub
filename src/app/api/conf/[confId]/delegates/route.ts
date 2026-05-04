@@ -4,6 +4,7 @@ import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
+  formatConferenceOptionalAddOnsSummary,
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
   isConferenceOptionalAddOnPackage,
@@ -476,11 +477,8 @@ export async function POST(
       : feePackageId
         ? String(feePackageId)
         : "Conference fee";
-    const addOnsLabel = normalizedAddOnPackageIds.length
-      ? normalizedAddOnPackageIds
-          .map((id) => getConferenceFeePackageById(id)?.label || id)
-          .join(", ")
-      : "None";
+    const addOnsLabel =
+      formatConferenceOptionalAddOnsSummary(normalizedAddOnPackageIds);
     const balanceDue = Math.max(resolvedFeeAmount - resolvedAmountPaid, 0);
     const notifyHtml = `
       <h2 style="margin:0 0 12px;color:#1f1c18">New conference signup</h2>

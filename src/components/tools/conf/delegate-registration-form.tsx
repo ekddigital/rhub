@@ -8,6 +8,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
+import { Minus, Plus } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,9 @@ import {
   getConferenceFeePackageByPrice,
   getConferenceOptionalAddOnPackages,
   getConferenceRequiredFeePackages,
+  CONFERENCE_JERSEY_PACKAGE_ID,
+  MAX_CONFERENCE_JERSEY_SETS,
+  countConferenceJerseySets,
   normalizeConferenceOptionalAddOnPackageIds,
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
@@ -553,6 +557,27 @@ export function DelegateRegistrationForm({
     const corePackage = feeOptions.find((option) => option.id === corePackageId);
     const corePrice = corePackage?.price ?? 0;
     return corePrice + sumConferenceOptionalAddOns(addOnIds);
+  };
+
+  const jerseyQuantity = useMemo(
+    () => countConferenceJerseySets(selectedAddOnPackageIds),
+    [selectedAddOnPackageIds],
+  );
+
+  const adjustJerseyQuantity = (delta: number) => {
+    const nonJersey = selectedAddOnPackageIds.filter(
+      (id) => id !== CONFERENCE_JERSEY_PACKAGE_ID,
+    );
+    const nextQty = Math.max(
+      0,
+      Math.min(MAX_CONFERENCE_JERSEY_SETS, jerseyQuantity + delta),
+    );
+    const next = normalizeConferenceOptionalAddOnPackageIds([
+      ...nonJersey,
+      ...Array.from({ length: nextQty }, () => CONFERENCE_JERSEY_PACKAGE_ID),
+    ]);
+    setSelectedAddOnPackageIds(next);
+    setFeeAmount(String(computeSelectedTotal(selectedFeePackage, next)));
   };
 
   const applyPackageAccommodationMode = useCallback((packageId: string) => {
@@ -1555,8 +1580,10 @@ export function DelegateRegistrationForm({
         <div className="space-y-2 sm:col-span-2">
           <Label>Optional Add-ons (Conference Jersey and below)</Label>
           <p className="text-xs text-muted-foreground">
-            You can select zero or more optional add-ons such as conference jersey
-            and achievers award dinner table packages.
+            Add achievers dinner tables and as many{" "}
+            <strong className="font-medium text-foreground">jersey sets</strong>{" "}
+            as you need — each set is male + female. Use + / − to include extras
+            for family or friends.
           </p>
           <div className="space-y-2 rounded-md border border-border/70 p-3">
             {Object.entries(groupedAddOnOptions).map(([category, items]) => (
@@ -1566,6 +1593,58 @@ export function DelegateRegistrationForm({
                 </p>
                 <div className="space-y-1.5">
                   {items.map((item) => {
+                    if (item.id === CONFERENCE_JERSEY_PACKAGE_ID) {
+                      const lineTotal = item.price * jerseyQuantity;
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex flex-col gap-2 rounded-md border border-border/60 px-2 py-2 text-xs sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="font-medium">{item.label}</p>
+                            <p className="text-muted-foreground leading-snug">
+                              {formatFeeRmb(item.price)} per set. Quantity =
+                              number of male+female sets ordered (max{" "}
+                              {MAX_CONFERENCE_JERSEY_SETS}).
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              className="shrink-0"
+                              aria-label="Decrease jersey sets"
+                              disabled={jerseyQuantity <= 0 || submitting}
+                              onClick={() => adjustJerseyQuantity(-1)}
+                            >
+                              <Minus className="size-4" />
+                            </Button>
+                            <span className="min-w-8 text-center text-sm font-semibold tabular-nums">
+                              {jerseyQuantity}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon-sm"
+                              className="shrink-0"
+                              aria-label="Increase jersey sets"
+                              disabled={
+                                jerseyQuantity >= MAX_CONFERENCE_JERSEY_SETS ||
+                                submitting
+                              }
+                              onClick={() => adjustJerseyQuantity(1)}
+                            >
+                              <Plus className="size-4" />
+                            </Button>
+                            <span className="ml-1 tabular-nums text-muted-foreground">
+                              {jerseyQuantity > 0 ? formatFeeRmb(lineTotal) : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+
                     const checked = selectedAddOnPackageIds.includes(item.id);
                     return (
                       <label
@@ -1579,10 +1658,17 @@ export function DelegateRegistrationForm({
                             const next = checked
                               ? selectedAddOnPackageIds.filter((id) => id !== item.id)
                               : [...selectedAddOnPackageIds, item.id];
-                            setSelectedAddOnPackageIds(next);
-                            setFeeAmount(String(computeSelectedTotal(selectedFeePackage, next)));
+                            const normalized =
+                              normalizeConferenceOptionalAddOnPackageIds(next);
+                            setSelectedAddOnPackageIds(normalized);
+                            setFeeAmount(
+                              String(
+                                computeSelectedTotal(selectedFeePackage, normalized),
+                              ),
+                            );
                           }}
                           className="mt-0.5"
+                          disabled={submitting}
                         />
                         <span className="flex-1">
                           <span className="font-medium">{item.label}</span>
