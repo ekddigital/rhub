@@ -68,6 +68,7 @@ function renderSection(
           key={key}
           section={section}
           leaders={leaders}
+          conferenceId={event.id}
           startPageNum={common.startPageNum}
           totalPages={totalPages}
           confName={confName}

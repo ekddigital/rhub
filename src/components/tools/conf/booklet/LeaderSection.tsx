@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ASSETS, C } from "./constants";
+import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
 import { A4Page } from "./A4Page";
 import type { BookletSection, LeaderProfile } from "./types";
 
@@ -216,21 +217,7 @@ function LeaderPortraitPage({
             {leader.name}
           </div>
 
-          {/* Official title — bold small-caps */}
-          <div
-            style={{
-              fontSize: "13px",
-              fontWeight: 700,
-              color: C.darkBlue,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              lineHeight: 1.45,
-              maxWidth: "440px",
-              margin: "0 auto",
-            }}
-          >
-            {leader.title}
-          </div>
+          {/* Official title is shown once in the page header (`sectionLabel`). */}
 
           {/* Country + flag */}
           {(flagEmoji ?? leader.country) && (
@@ -278,6 +265,7 @@ function LeaderPortraitPage({
 export function LeaderSection({
   section,
   leaders,
+  conferenceId,
   confName,
   confYear,
   startPageNum,
@@ -285,13 +273,17 @@ export function LeaderSection({
 }: {
   section: BookletSection;
   leaders: LeaderProfile[];
+  /** Collapses duplicate rows from global (`confId=null`) + conference templates in the API query. */
+  conferenceId: string;
   confName: string;
   confYear: number;
   /** Page number of the FIRST leader page. Subsequent leaders increment from here. */
   startPageNum: number;
   totalPages: number;
 }) {
-  if (leaders.length === 0) {
+  const rosterLeaders = dedupeLeaderProfilesForConference(leaders, conferenceId);
+
+  if (rosterLeaders.length === 0) {
     // Empty state — single page placeholder
     return (
       <A4Page
@@ -332,7 +324,7 @@ export function LeaderSection({
   // Each leader gets their own full page
   return (
     <>
-      {leaders.map((l, idx) => (
+      {rosterLeaders.map((l, idx) => (
         <LeaderPortraitPage
           key={l.id}
           leader={l}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
 
 // Official NEC roster from conference letterhead / directives.
 // This remains distinct from Conference Committee members (ConfMember).
@@ -386,6 +387,11 @@ export async function GET(
       photoPath: l.photoPath ? resolveLeaderPhoto(l.photoPath) : null,
     }));
 
+    const dedupedLeaders = dedupeLeaderProfilesForConference(
+      resolvedLeaders,
+      confId,
+    );
+
     const resolvedMembers = members.map((m) => ({
       ...m,
       photoPath: m.photoPath
@@ -544,7 +550,7 @@ export async function GET(
     return NextResponse.json({
       event,
       booklet,
-      leaders: resolvedLeaders,
+      leaders: dedupedLeaders,
       necMembers,
       committeeMembers,
       conferenceChair,
@@ -557,7 +563,7 @@ export async function GET(
         sectionsEnabled:
           booklet?.sections.filter((s) => s.isEnabled).length ?? 0,
         sectionsTotal: booklet?.sections.length ?? 0,
-        leadersStored: resolvedLeaders.length,
+        leadersStored: dedupedLeaders.length,
       },
     });
   } catch (error) {
