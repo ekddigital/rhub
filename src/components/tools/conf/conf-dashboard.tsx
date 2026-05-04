@@ -36,6 +36,7 @@ import { daysUntilDate } from "@/lib/conf/dates";
 import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { groupConferenceFeePackages, formatFeeRmb } from "@/lib/conf/fees";
+import { ConfQA } from "@/components/tools/conf/conf-qa";
 
 type ConfNavItem = {
   href: string;
@@ -482,6 +483,15 @@ export function ConfDashboard() {
 
       {/* Countdown Flyer */}
       {confId && <CountdownFlyerCard confId={confId} />}
+
+      {/* Q&A / FAQ Section */}
+      {confId && (
+        <ConfQA
+          confId={confId}
+          isManager={isManager}
+          isSuperAdmin={isSuperAdmin}
+        />
+      )}
 
       {/* Navigation Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

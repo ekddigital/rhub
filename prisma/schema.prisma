@@ -715,6 +715,7 @@ model ConfEvent {
     booklet        ConfBooklet?
     leaderProfiles ConfLeaderProfile[]
     letters        ConfLetter[]
+    questions      ConfQuestion[]
 
     @@index([slug])
     @@index([status])
@@ -1200,4 +1201,50 @@ model ConfLetter {
 
     @@index([confId, isDeleted, createdAt(sort: Desc)])
     @@index([confId, type])
+}
+
+// ==========================================
+// CONFERENCE Q&A / FAQ SYSTEM
+// ==========================================
+
+model ConfQuestion {
+    id          String   @id @default(cuid())
+    confEventId String
+    authorId    String? // ConfMember id — null if anonymous
+    authorName  String
+    authorRole  String   @default("USER") // "SUPER_ADMIN"|"ADMIN"|"COMMITTEE"|"DELEGATE"|"USER"
+    body        String   @db.Text
+    isPinned    Boolean  @default(false) // pinned → shows in FAQ section
+    isAnswered  Boolean  @default(false) // true when any comment is marked isAnswer
+    isAnonymous Boolean  @default(false)
+    upvotes     Int      @default(0)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    confEvent ConfEvent      @relation(fields: [confEventId], references: [id], onDelete: Cascade)
+    comments  ConfQAComment[]
+
+    @@index([confEventId, isPinned])
+    @@index([confEventId, createdAt(sort: Desc)])
+}
+
+model ConfQAComment {
+    id         String   @id @default(cuid())
+    questionId String
+    parentId   String? // null = top-level answer; set = nested reply
+    authorId   String? // ConfMember id — null if anonymous
+    authorName String
+    authorRole String   @default("USER") // "SUPER_ADMIN"|"ADMIN"|"COMMITTEE"|"DELEGATE"|"USER"
+    body       String   @db.Text
+    isAnswer   Boolean  @default(false) // admin/committee can mark as official answer
+    upvotes    Int      @default(0)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    question ConfQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+    parent   ConfQAComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+    replies  ConfQAComment[] @relation("CommentReplies")
+
+    @@index([questionId, parentId])
+    @@index([questionId, createdAt(sort: Asc)])
 }
