@@ -264,7 +264,7 @@ ${useOfFundsRows}
 </tbody>
 </table>
 
-<p>Detailed QR codes and account titles appear on our official flyer included with this letter.</p>
+<p>Detailed QR codes and account titles appear on our official flyer included within this letter.</p>
 <p>If needed, we can share confirmation steps immediately after payment for accountability and record keeping.</p>
 <p>We would be honored to have your support. Your contribution is an investment in the leadership capacity of Liberian students in China.</p>
 <p>Thank you for your time, trust, and partnership.</p>`;
