@@ -245,7 +245,7 @@ export function ConfDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="flex flex-col items-center gap-3 py-8 text-center">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs">
             {CONF_2026.shortLabel}
@@ -254,24 +254,26 @@ export function ConfDashboard() {
             {CONF_2026.phase}
           </Badge>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">Conference Hub</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+          Conference Hub
+        </h1>
+        <p className="text-lg font-medium text-muted-foreground">
           {CONF_2026.name} — {CONF_2026.city}, {CONF_2026.province}
         </p>
         {/* Theme */}
-        <div className="mt-1 space-y-1.5">
-          <p className="text-sm font-semibold text-[#C8A061]">
-            “{CONF_2026.theme}”
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-xl font-bold text-[#C8A061] sm:text-2xl">
+            &ldquo;{CONF_2026.theme}&rdquo;
           </p>
-          <p className="text-xs italic text-muted-foreground">
+          <p className="text-sm italic text-muted-foreground">
             {CONF_2026.subTheme}
           </p>
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
+          <div className="mt-1 flex flex-wrap justify-center gap-2">
             {CONF_2026.coreValues.map((v) => (
               <Badge
                 key={v}
                 variant="outline"
-                className="border-[#C8A061]/30 px-2 py-0 text-[10px] text-[#C8A061]/80"
+                className="border-[#C8A061]/40 px-3 py-0.5 text-xs font-semibold text-[#C8A061]"
               >
                 {v}
               </Badge>

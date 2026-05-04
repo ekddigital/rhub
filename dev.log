@@ -4,24 +4,18 @@
 
 ▲ Next.js 16.2.3 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.41.179:3000
+- Network:       http://192.168.89.179:3000
 - Environments: .env
-✓ Ready in 387ms
+✓ Ready in 452ms
 
-○ Compiling /tools/conf/letters ...
+○ Compiling /tools/conf ...
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/letters 200 in 70s (next.js: 12.6s, proxy.ts: 153ms, application-code: 57s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/letters 307 in 50s (next.js: 7ms, proxy.ts: 6ms, application-code: 50s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fletters 200 in 463ms (next.js: 388ms, proxy.ts: 7ms, application-code: 69ms)
- GET /api/auth/me?_t=1777689746647 200 in 1274ms (next.js: 282ms, proxy.ts: 15ms, application-code: 978ms)
- GET /api/auth/me 200 in 6.9s (next.js: 299ms, proxy.ts: 13ms, application-code: 6.6s)
- GET /api/auth/me?_t=1777689746647 200 in 8.5s (next.js: 292ms, proxy.ts: 14ms, application-code: 8.2s)
- GET /api/auth/me 200 in 8.6s (next.js: 290ms, proxy.ts: 13ms, application-code: 8.3s)
+ GET /tools/conf 200 in 13.6s (next.js: 12.6s, proxy.ts: 382ms, application-code: 600ms)
+ GET / 200 in 10.8s (next.js: 9.9s, proxy.ts: 21ms, application-code: 830ms)
+ GET /api/auth/me?_t=1777878842859 200 in 841ms (next.js: 823ms, proxy.ts: 9ms, application-code: 9ms)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -40,7 +34,7 @@ https://react.dev/link/hydration-mismatch
         <ReplaySsrOnlyErrors>
         <DevRootHTTPAccessFallbackBoundary>
           <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/conf" notFound={<NotAllowedRootHTTPFallbackError>} ...>
               <RedirectBoundary>
                 <RedirectErrorBoundary router={{...}}>
                   <Head>
@@ -59,39 +53,61 @@ https://react.dev/link/hydration-mismatch
                           >
                   ...
  
- GET /tools/conf 200 in 472ms (next.js: 450ms, proxy.ts: 8ms, application-code: 14ms)
- GET /api/auth/me 200 in 876ms (next.js: 7ms, proxy.ts: 12ms, application-code: 857ms)
- GET /api/conf/default 200 in 45s (next.js: 167ms, proxy.ts: 7ms, application-code: 45s)
- GET /api/conf/default 200 in 45s (next.js: 176ms, proxy.ts: 13ms, application-code: 45s)
- GET /api/auth/me 200 in 810ms (next.js: 2ms, proxy.ts: 5ms, application-code: 803ms)
- GET /api/conf/default/access 200 in 47s (next.js: 5ms, proxy.ts: 13ms, application-code: 47s)
- GET /api/conf/default/access 200 in 46s (next.js: 3ms, proxy.ts: 4ms, application-code: 46s)
- GET /api/conf/default/access 200 in 93s (next.js: 272ms, proxy.ts: 11ms, application-code: 93s)
- GET /api/conf/default/access 200 in 93s (next.js: 261ms, proxy.ts: 13ms, application-code: 93s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1354ms (next.js: 640ms, proxy.ts: 4ms, application-code: 709ms)
- GET /tools/conf/letters 200 in 1954ms (next.js: 8ms, proxy.ts: 8ms, application-code: 1938ms)
- GET /api/conf/default 200 in 54ms (next.js: 10ms, proxy.ts: 40ms, application-code: 4ms)
- GET /api/conf/default 200 in 62ms (next.js: 15ms, proxy.ts: 40ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.8s (next.js: 676ms, proxy.ts: 1556µs, application-code: 2.1s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.2s (next.js: 646ms, proxy.ts: 10ms, application-code: 1575ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.2s (next.js: 19ms, proxy.ts: 9ms, application-code: 2.2s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.4s (next.js: 675ms, proxy.ts: 9ms, application-code: 1733ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.8s (next.js: 687ms, proxy.ts: 10ms, application-code: 3.1s)
- GET /api/conf/default 200 in 11ms (next.js: 2ms, proxy.ts: 4ms, application-code: 4ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 1948ms (next.js: 7ms, proxy.ts: 2ms, application-code: 1939ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.6s (next.js: 14ms, proxy.ts: 3ms, application-code: 2.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.7s (next.js: 11ms, proxy.ts: 3ms, application-code: 2.7s)
- GET /api/conf/default 200 in 12ms (next.js: 2ms, proxy.ts: 5ms, application-code: 5ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.0s (next.js: 6ms, proxy.ts: 4ms, application-code: 3.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.3s (next.js: 3ms, proxy.ts: 1833µs, application-code: 2.3s)
-[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
+ GET /api/auth/me 200 in 10.5s (next.js: 436ms, proxy.ts: 35ms, application-code: 10.0s)
+ GET /api/auth/me 200 in 10.5s (next.js: 464ms, proxy.ts: 35ms, application-code: 10.0s)
+ GET /api/conf/default 503 in 10.5s (next.js: 366ms, proxy.ts: 23ms, application-code: 10.1s)
+ GET /api/conf/default/access 503 in 10.5s (next.js: 464ms, proxy.ts: 37ms, application-code: 10.0s)
+ GET /api/conf/default/access 503 in 10.5s (next.js: 473ms, proxy.ts: 72ms, application-code: 10.0s)
+ GET /api/conf/default/access 503 in 10.4s (next.js: 478ms, proxy.ts: 7ms, application-code: 9.9s)
+ GET /api/auth/me 200 in 35ms (next.js: 8ms, proxy.ts: 17ms, application-code: 10ms)
+ GET /api/auth/me?_t=1777878843127 200 in 35ms (next.js: 11ms, proxy.ts: 17ms, application-code: 7ms)
+ GET /api/auth/me?_t=1777878843127 200 in 36ms (next.js: 13ms, proxy.ts: 17ms, application-code: 6ms)
+ GET /login 200 in 601ms (next.js: 570ms, proxy.ts: 17ms, application-code: 14ms)
+ GET /api/auth/me 200 in 34ms (next.js: 4ms, proxy.ts: 19ms, application-code: 10ms)
+ GET /api/auth/me 200 in 60ms (next.js: 18ms, proxy.ts: 20ms, application-code: 22ms)
+ POST /api/auth/login 200 in 9.9s (next.js: 253ms, proxy.ts: 4ms, application-code: 9.7s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf/letters 200 in 27.3s (next.js: 10ms, proxy.ts: 11ms, application-code: 27.3s)
- GET /api/auth/me 200 in 583ms (next.js: 13ms, proxy.ts: 15ms, application-code: 555ms)
- GET /api/auth/me?_t=1777691982405 200 in 632ms (next.js: 1688µs, proxy.ts: 1721µs, application-code: 629ms)
- GET /api/auth/me?_t=1777691982405 200 in 6.4s (next.js: 11ms, proxy.ts: 17ms, application-code: 6.3s)
- GET /api/auth/me 200 in 9.3s (next.js: 19ms, proxy.ts: 13ms, application-code: 9.3s)
+ GET /dashboard 200 in 627ms (next.js: 569ms, proxy.ts: 5ms, application-code: 52ms)
+ GET /api/auth/me?_t=1777878870812 200 in 76ms (next.js: 14ms, proxy.ts: 45ms, application-code: 17ms)
+ GET /api/auth/me?_t=1777878870812 200 in 78ms (next.js: 20ms, proxy.ts: 47ms, application-code: 11ms)
+ GET /login?redirect=%2Fdashboard 200 in 34ms (next.js: 7ms, proxy.ts: 5ms, application-code: 22ms)
+ GET /api/auth/me 200 in 22ms (next.js: 5ms, proxy.ts: 12ms, application-code: 6ms)
+ GET /api/auth/me 200 in 25ms (next.js: 11ms, proxy.ts: 10ms, application-code: 4ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /login?redirect=/dashboard 200 in 97ms (next.js: 9ms, proxy.ts: 10ms, application-code: 78ms)
+ GET /api/auth/me?_t=1777878893300 200 in 1344ms (next.js: 12ms, proxy.ts: 13ms, application-code: 1320ms)
+ GET /api/auth/me 200 in 8.7s (next.js: 14ms, proxy.ts: 12ms, application-code: 8.6s)
+ GET /dashboard 200 in 35ms (next.js: 5ms, proxy.ts: 6ms, application-code: 23ms)
+ GET /api/auth/me?_t=1777878893300 200 in 9.4s (next.js: 14ms, proxy.ts: 11ms, application-code: 9.3s)
+ GET /api/admin/impersonate 200 in 713ms (next.js: 98ms, proxy.ts: 8ms, application-code: 608ms)
+ GET /api/admin/impersonate 200 in 606ms (next.js: 1238µs, proxy.ts: 2ms, application-code: 603ms)
+ GET /api/admin/impersonate 200 in 1008ms (next.js: 8ms, proxy.ts: 9ms, application-code: 990ms)
+ GET /tools/conf 200 in 56ms (next.js: 7ms, proxy.ts: 4ms, application-code: 45ms)
+ GET /api/auth/me 200 in 885ms (next.js: 49ms, proxy.ts: 53ms, application-code: 784ms)
+ GET /api/auth/me 200 in 934ms (next.js: 38ms, proxy.ts: 49ms, application-code: 847ms)
+ GET /api/auth/me 200 in 586ms (next.js: 6ms, proxy.ts: 4ms, application-code: 576ms)
+ GET /api/auth/me 200 in 565ms (next.js: 3ms, proxy.ts: 5ms, application-code: 557ms)
+ GET /api/conf/default 200 in 100s (next.js: 46ms, proxy.ts: 47ms, application-code: 100s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/default/access 200 in 100s (next.js: 74ms, proxy.ts: 65ms, application-code: 100s)
+ GET /api/conf/default/access 200 in 100s (next.js: 25ms, proxy.ts: 41ms, application-code: 100s)
+ GET /api/conf/default/access 200 in 100s (next.js: 13ms, proxy.ts: 6ms, application-code: 100s)
+ GET /api/conf/default/access 200 in 99s (next.js: 3ms, proxy.ts: 1971µs, application-code: 99s)
+ GET /api/conf/default/access 200 in 98s (next.js: 4ms, proxy.ts: 4ms, application-code: 98s)
+ GET /tools/conf 200 in 129ms (next.js: 9ms, proxy.ts: 5ms, application-code: 115ms)
+ GET /api/conf/default 200 in 23ms (next.js: 14ms, proxy.ts: 7ms, application-code: 2ms)
+ GET /api/auth/me 200 in 1031ms (next.js: 9ms, proxy.ts: 5ms, application-code: 1016ms)
+ GET /api/auth/me 200 in 1176ms (next.js: 13ms, proxy.ts: 6ms, application-code: 1156ms)
+ GET /api/auth/me 200 in 1603ms (next.js: 1066µs, proxy.ts: 3ms, application-code: 1599ms)
+ GET /api/conf/default/access 200 in 2.7s (next.js: 7ms, proxy.ts: 6ms, application-code: 2.7s)
+ GET /api/auth/me?_t=1777879077887 200 in 1844ms (next.js: 3ms, proxy.ts: 6ms, application-code: 1834ms)
+ GET /api/conf/default/access 200 in 3.0s (next.js: 13ms, proxy.ts: 5ms, application-code: 3.0s)
+ GET /api/auth/me?_t=1777879077887 200 in 2.1s (next.js: 3ms, proxy.ts: 4ms, application-code: 2.1s)
+ GET /api/conf/default/access 200 in 3.4s (next.js: 7ms, proxy.ts: 14ms, application-code: 3.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1608ms (next.js: 748ms, proxy.ts: 3ms, application-code: 858ms)
 [browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
 
 - A server/client branch `if (typeof window !== 'undefined')`.
@@ -110,7 +126,7 @@ https://react.dev/link/hydration-mismatch
         <ReplaySsrOnlyErrors>
         <DevRootHTTPAccessFallbackBoundary>
           <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+            <HTTPAccessFallbackErrorBoundary pathname="/tools/conf" notFound={<NotAllowedRootHTTPFallbackError>} ...>
               <RedirectBoundary>
                 <RedirectErrorBoundary router={{...}}>
                   <Head>
@@ -129,370 +145,30 @@ https://react.dev/link/hydration-mismatch
                           >
                   ...
  
- GET /api/conf/default 200 in 90s (next.js: 20ms, proxy.ts: 11ms, application-code: 90s)
- GET /api/conf/default/access 200 in 92s (next.js: 17ms, proxy.ts: 13ms, application-code: 92s)
- GET /api/conf/default/access 200 in 92s (next.js: 8ms, proxy.ts: 16ms, application-code: 92s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 12.0s (next.js: 9ms, proxy.ts: 4ms, application-code: 11.9s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.5s (next.js: 19ms, proxy.ts: 7ms, application-code: 2.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.5s (next.js: 26ms, proxy.ts: 8ms, application-code: 2.5s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.8s (next.js: 14ms, proxy.ts: 10ms, application-code: 2.7s)
- GET /api/conf/default 200 in 8ms (next.js: 2ms, proxy.ts: 3ms, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.8s (next.js: 3ms, proxy.ts: 2ms, application-code: 2.8s)
-[browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
-✓ Compiled in 1188ms
-✓ Compiled in 1998ms
-✓ Compiled in 112ms
-✓ Compiled in 150ms
-✓ Compiled in 959ms
-✓ Compiled in 763ms
-✓ Compiled in 793ms
-✓ Compiled in 393ms
-✓ Compiled in 1141ms
-✓ Compiled in 398ms
-✓ Compiled in 891ms
-✓ Compiled in 389ms
-⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
-
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
- GET /tools/conf/letters 500 in 1039ms (next.js: 859ms, proxy.ts: 70ms, application-code: 110ms)
-⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
-
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
-⨯ ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
-
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Parsing ecmascript source code failed
-
-Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-  [90m4185 |[0m                     use-[36mof[0m-funds, click &quot;[33mUpdate[0m letter [36mfrom[0m fields&quot; to
-  [90m4186 |[0m                     refresh the [33mLetter[0m [33mBody[0m (replacing its current text).
-[31m[1m>[0m [90m4187 |[0m                   </[33mCardDescription[0m>
-  [90m     |[0m                                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
-[31m[1m>[0m [90m4188 |[0m                 </[33mCardHeader[0m>
-  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^[0m
-  [90m4189 |[0m                 <[33mCardContent[0m className=[32m"space-y-3"[0m>
-  [90m4190 |[0m                   <label className=[32m"flex items-center gap-2 text-xs font-medium text-[#...[0m
-  [90m4191 |[0m                     <input
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
- GET /tools/conf/letters 500 in 142ms (next.js: 102ms, proxy.ts: 20ms, application-code: 20ms)
- GET /tools/conf/letters 500 in 134ms (next.js: 68ms, proxy.ts: 54ms, application-code: 12ms)
-[browser] Uncaught Error: ./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-Expected '</', got 'jsx text'
-  4185 |                     use-of-funds, click &quot;Update letter from fields&quot; to
-  4186 |                     refresh the Letter Body (replacing its current text).
-> 4187 |                   </CardDescription>
-       |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 4188 |                 </CardHeader>
-       | ^^^^^^^^^^^^^^^^
-  4189 |                 <CardContent className="space-y-3">
-  4190 |                   <label className="flex items-center gap-2 text-xs font-medium text-[#...
-  4191 |                     <input
-
-Parsing ecmascript source code failed
-
-Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/letter-composer-shell.tsx:
-./src/components/tools/conf/letter-composer-shell.tsx:4187:37
-  4185 |                     use-of-funds, click &quot;Update letter from fields&quot; to
-  4186 |                     refresh the Letter Body (replacing its current text).
-> 4187 |                   </CardDescription>
-       |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 4188 |                 </CardHeader>
-       | ^^^^^^^^^^^^^^^^
-  4189 |                 <CardContent className="space-y-3">
-  4190 |                   <label className="flex items-center gap-2 text-xs font-medium text-[#...
-  4191 |                     <input
-
-Import trace:
-  Server Component:
-    ./src/components/tools/conf/letter-composer-shell.tsx
-    ./src/app/(hub)/tools/conf/letters/page.tsx
-
-
-    at <unknown> (Error: ./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
-    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
-    at <unknown> (Error: (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
-    at <unknown> (./src/components/tools/conf/letter-composer-shell.tsx:4187:37)
-✓ Compiled in 963ms
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/letters 307 in 10.3s (next.js: 156ms, proxy.ts: 75ms, application-code: 10.1s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf/unavailable?redirect=%2Ftools%2Fconf%2Fletters 200 in 89ms (next.js: 24ms, proxy.ts: 5ms, application-code: 60ms)
- GET /api/auth/me?_t=1777693399275 200 in 9.7s (next.js: 19ms, proxy.ts: 86ms, application-code: 9.6s)
- GET /api/conf/default/access 503 in 10.1s (next.js: 56ms, proxy.ts: 24ms, application-code: 10.0s)
- GET /api/conf/default/access 503 in 10.1s (next.js: 82ms, proxy.ts: 32ms, application-code: 10.0s)
- GET /api/auth/me 200 in 10.1s (next.js: 85ms, proxy.ts: 25ms, application-code: 10.0s)
- GET /api/auth/me 200 in 10.1s (next.js: 82ms, proxy.ts: 22ms, application-code: 10.0s)
- GET /api/auth/me?_t=1777693399275 200 in 10.1s (next.js: 13ms, proxy.ts: 98ms, application-code: 10.0s)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/con..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <body
-                            className="geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__var..."
--                           cz-shortcut-listen="true"
-                          >
-                  ...
- 
- GET /tools/conf 200 in 62ms (next.js: 28ms, proxy.ts: 8ms, application-code: 27ms)
- GET /api/auth/me 200 in 8.6s (next.js: 60ms, proxy.ts: 24ms, application-code: 8.6s)
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /tools/conf 200 in 75ms (next.js: 3ms, proxy.ts: 4ms, application-code: 68ms)
- GET /api/auth/me 200 in 8.7s (next.js: 14ms, proxy.ts: 112ms, application-code: 8.5s)
- GET /api/conf/default/access 200 in 8.7s (next.js: 12ms, proxy.ts: 114ms, application-code: 8.5s)
- GET /api/conf/default/access 200 in 8.7s (next.js: 112ms, proxy.ts: 40ms, application-code: 8.6s)
- GET /api/conf/default 200 in 8.7s (next.js: 105ms, proxy.ts: 39ms, application-code: 8.6s)
- GET /api/conf/default 200 in 8.7s (next.js: 115ms, proxy.ts: 37ms, application-code: 8.6s)
- GET /api/auth/me 200 in 610ms (next.js: 13ms, proxy.ts: 16ms, application-code: 581ms)
- GET /api/auth/me 200 in 624ms (next.js: 9ms, proxy.ts: 17ms, application-code: 597ms)
- GET /api/auth/me?_t=1777693644149 200 in 544ms (next.js: 1577µs, proxy.ts: 1794µs, application-code: 541ms)
- GET /api/auth/me 200 in 602ms (next.js: 1249µs, proxy.ts: 1758µs, application-code: 599ms)
- GET /api/auth/me?_t=1777693644149 200 in 584ms (next.js: 4ms, proxy.ts: 2ms, application-code: 577ms)
 [browser] Image with src "/conf/assets/jinan_city/morning_view_landscape.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading
-[UserMenu] Render - loading: true user: null
-[UserMenu] Showing loading skeleton
- GET /api/conf/default/access 200 in 27.6s (next.js: 10ms, proxy.ts: 16ms, application-code: 27.5s)
- GET /api/conf/default/access 200 in 27.6s (next.js: 11ms, proxy.ts: 17ms, application-code: 27.5s)
- GET /api/conf/default 200 in 27.6s (next.js: 17ms, proxy.ts: 6ms, application-code: 27.5s)
- GET /api/conf/default/access 200 in 27.6s (next.js: 9ms, proxy.ts: 14ms, application-code: 27.5s)
- GET /tools/conf 200 in 88ms (next.js: 6ms, proxy.ts: 7ms, application-code: 75ms)
- GET /api/auth/me 200 in 1044ms (next.js: 12ms, proxy.ts: 6ms, application-code: 1025ms)
- GET /api/auth/me 200 in 1044ms (next.js: 23ms, proxy.ts: 10ms, application-code: 1011ms)
- GET /api/auth/me 200 in 654ms (next.js: 5ms, proxy.ts: 9ms, application-code: 640ms)
- GET /api/auth/me?_t=1777693672246 200 in 679ms (next.js: 51ms, proxy.ts: 9ms, application-code: 619ms)
- GET /api/auth/me?_t=1777693672246 200 in 595ms (next.js: 1023µs, proxy.ts: 1624µs, application-code: 593ms)
- GET /api/conf/default 200 in 63s (next.js: 78ms, proxy.ts: 11ms, application-code: 63s)
- GET /api/conf/default/access 200 in 66s (next.js: 14ms, proxy.ts: 8ms, application-code: 66s)
- GET /api/conf/default/access 200 in 66s (next.js: 9ms, proxy.ts: 6ms, application-code: 66s)
- GET /api/conf/default/access 200 in 66s (next.js: 91ms, proxy.ts: 10ms, application-code: 66s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 699ms (next.js: 36ms, proxy.ts: 2ms, application-code: 661ms)
-Failed to resolve conference access: Error [AuthDatabaseUnavailableError]: Auth database is temporarily unavailable. Please retry shortly.
-    at findSessionWithUser (src/lib/auth.ts:63:13)
-    at async validateSessionFull (src/lib/auth.ts:197:19)
-    at async getSessionUser (src/lib/conf/access.ts:47:19)
-    at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-    at async GET (src/app/api/conf/default/access/route.ts:13:20)
-  61 |     if (isTransientAuthDatabaseError(error)) {
-  62 |       authDbUnavailableUntil = Date.now() + AUTH_DB_COOLDOWN_MS;
-> 63 |       throw new AuthDatabaseUnavailableError(
-     |             ^
-  64 |         "Auth database is temporarily unavailable. Please retry shortly.",
-  65 |         error,
-  66 |       ); {
-  [cause]: Error [PrismaClientKnownRequestError]: 
-  Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique()` invocation in
-  /Users/ekd/Documents/coding/web/andgroupco/rhub/.next/dev/server/chunks/[root-of-the-server]__0-69jh8._.js:1770:159
-  
-    1767     throw new AuthDatabaseUnavailableError("Auth database is temporarily unavailable. Please retry shortly.");
-    1768 }
-    1769 try {
-  → 1770     return await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findUnique(
-  Can't reach database server at `31.97.41.230:9909`
-  
-  Please make sure your database server is running at `31.97.41.230:9909`.
-      at <unknown> (src/lib/auth.ts:54:33)
-      at async findSessionWithUser (src/lib/auth.ts:54:12)
-      at async validateSessionFull (src/lib/auth.ts:197:19)
-      at async getSessionUser (src/lib/conf/access.ts:47:19)
-      at async getConferenceAccess (src/lib/conf/access.ts:56:16)
-      at async GET (src/app/api/conf/default/access/route.ts:13:20)
-    52 |
-    53 |   try {
-  > 54 |     return await prisma.session.findUnique({
-       |                                 ^
-    55 |       where: { token },
-    56 |       include: {
-    57 |         user: true, {
-    code: 'P1001',
-    meta: { modelName: 'Session', database_location: '31.97.41.230:9909' },
-    clientVersion: '6.19.3'
-  }
-}
- GET /tools/conf/letters 200 in 86s (next.js: 11ms, proxy.ts: 6ms, application-code: 86s)
- GET /api/conf/default 200 in 26ms (next.js: 10ms, proxy.ts: 10ms, application-code: 6ms)
- GET /api/conf/default 200 in 28ms (next.js: 15ms, proxy.ts: 7ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.3s (next.js: 35ms, proxy.ts: 2ms, application-code: 2.3s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 1674ms (next.js: 56ms, proxy.ts: 10ms, application-code: 1608ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 9.4s (next.js: 12ms, proxy.ts: 10ms, application-code: 9.4s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 503 in 10.1s (next.js: 114ms, proxy.ts: 8ms, application-code: 10.0s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.7s (next.js: 15ms, proxy.ts: 9ms, application-code: 2.6s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.7s (next.js: 23ms, proxy.ts: 9ms, application-code: 2.7s)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 12.7s (next.js: 85ms, proxy.ts: 10ms, application-code: 12.6s)
- GET /api/conf/default 200 in 13ms (next.js: 4ms, proxy.ts: 4ms, application-code: 6ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 14ms (next.js: 6ms, proxy.ts: 3ms, application-code: 5ms)
+ GET /tools/conf/letters 200 in 94s (next.js: 1138ms, proxy.ts: 6ms, application-code: 93s)
+ GET /api/conf/default 200 in 70ms (next.js: 15ms, proxy.ts: 41ms, application-code: 14ms)
+ GET /api/conf/default 200 in 61ms (next.js: 27ms, proxy.ts: 31ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 3.3s (next.js: 957ms, proxy.ts: 4ms, application-code: 2.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 2.0s (next.js: 18ms, proxy.ts: 10ms, application-code: 2.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.4s (next.js: 684ms, proxy.ts: 8ms, application-code: 1684ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 3.1s (next.js: 747ms, proxy.ts: 9ms, application-code: 2.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/roles 200 in 2.2s (next.js: 6ms, proxy.ts: 3ms, application-code: 2.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/letters/signatures 200 in 2.7s (next.js: 13ms, proxy.ts: 3ms, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 3.0s (next.js: 10ms, proxy.ts: 3ms, application-code: 2.9s)
+ GET /api/conf/default 200 in 21ms (next.js: 3ms, proxy.ts: 12ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 2.4s (next.js: 8ms, proxy.ts: 4ms, application-code: 2.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 10.7s (next.js: 722ms, proxy.ts: 9ms, application-code: 10.0s)
+ GET /api/conf/default 200 in 10ms (next.js: 3ms, proxy.ts: 4ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 8ms (next.js: 3ms, proxy.ts: 1393µs, application-code: 4ms)
+✓ Compiled in 420ms
 [browser] [tiptap warn]: Duplicate extension names found: ['link', 'underline']. This can lead to issues.
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 200 in 8.6s (next.js: 19ms, proxy.ts: 8ms, application-code: 8.6s)
- GET /api/conf/default 200 in 11ms (next.js: 1444µs, proxy.ts: 8ms, application-code: 2ms)
- GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/booklet/data 503 in 16ms (next.js: 6ms, proxy.ts: 7ms, application-code: 3ms)
-✓ Compiled in 1582ms
-✓ Compiled in 917ms
-✓ Compiled in 936ms
-[browser] Removing a style property during rerender (marginBottom) when a conflicting property is set (margin) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values. 
-✓ Compiled in 1276ms
+ GET /tools/conf 200 in 44ms (next.js: 10ms, proxy.ts: 11ms, application-code: 23ms)
+ GET /api/conf/default 200 in 120ms (next.js: 31ms, proxy.ts: 84ms, application-code: 6ms)
+ GET /api/conf/default 200 in 21ms (next.js: 3ms, proxy.ts: 15ms, application-code: 3ms)
+ GET /api/auth/me 200 in 894ms (next.js: 13ms, proxy.ts: 24ms, application-code: 857ms)
+ GET /api/auth/me 200 in 851ms (next.js: 4ms, proxy.ts: 8ms, application-code: 839ms)
+ GET /api/conf/default/access 200 in 10.8s (next.js: 17ms, proxy.ts: 72ms, application-code: 10.7s)
+ GET /api/conf/default/access 200 in 10.8s (next.js: 7ms, proxy.ts: 14ms, application-code: 10.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 612ms (next.js: 14ms, proxy.ts: 5ms, application-code: 593ms)

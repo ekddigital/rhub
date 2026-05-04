@@ -187,11 +187,6 @@ export function buildFundraisingLetterBodyRichHtml(
   const targetSummary =
     fields.fundraisingTargetAmount.trim() || FUNDRAISING_SAMPLE_TARGET_AMOUNT;
 
-  const raisedToDate = fields.fundraisingRaisedToDate.trim();
-  const raisedSnapshotRow = raisedToDate
-    ? `<tr><td>Progress secured toward goal</td><td><strong>${escapeLetterHtml(raisedToDate)}</strong> reflects resources mobilized through other channels outside this letter—alongside sustained outreach to alumni, partners, and individual supporters—as we continue toward the full target noted above.</td></tr>`
-    : "";
-
   const bullets = parseUseOfFundsLines(fields.fundraisingUseOfFunds);
   const fundItems =
     bullets.length > 0 ? bullets : [...DEFAULT_USE_OF_FUND_ITEMS];
@@ -234,7 +229,6 @@ export function buildFundraisingLetterBodyRichHtml(
 <tbody>
 <tr><td>Invitation category</td><td>${inviteClauseEscaped}</td></tr>
 <tr><td>Public target communicated</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
-${raisedSnapshotRow}
 <tr><td>Scale / planning premise</td><td>This target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-production costs.</td></tr>
 </tbody>
 </table>
