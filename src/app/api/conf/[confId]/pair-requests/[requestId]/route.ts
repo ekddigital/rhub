@@ -26,6 +26,8 @@ async function hasActiveAssignment(delegateId: string) {
 }
 
 // PATCH /api/conf/[confId]/pair-requests/[requestId]
+// Participants can accept/decline/cancel their own requests.
+// chair-approve and chair-reject require manager access.
 export async function PATCH(
   req: Request,
   {
@@ -36,7 +38,8 @@ export async function PATCH(
 ) {
   try {
     const { confId, requestId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
+    // Allow participants for accept/decline/cancel; chair actions need manager
+    const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
 
     const body = await req.json();
@@ -58,6 +61,16 @@ export async function PATCH(
       ].includes(action)
     ) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+
+    // chair-approve and chair-reject require manager privileges
+    } if (
+      (action === "chair-approve" || action === "chair-reject") &&
+      !auth.access.isManager
+    ) {
+      return NextResponse.json(
+        { error: "Committee/admin access required to approve or reject requests" },
+        { status: 403 },
+      );
     }
 
     const pairRequest = await prisma.confPairRequest.findUnique({

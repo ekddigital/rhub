@@ -36,7 +36,10 @@ export async function POST(
     });
 
     if (!question) {
-      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 },
+      );
     }
 
     // Verify parentId if provided
@@ -55,7 +58,12 @@ export async function POST(
 
     const user = auth.access.user;
     const userRole = String(user?.role ?? "USER").toUpperCase();
-    const isManager = ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE"].includes(userRole);
+    const isManager = [
+      "SUPER_ADMIN",
+      "ADMIN",
+      "JUDGE_ADMIN",
+      "HEAD_JUDGE",
+    ].includes(userRole);
 
     // Only managers can mark a comment as an official answer
     const markAsAnswer = Boolean(body.isAnswer) && isManager;
@@ -66,10 +74,9 @@ export async function POST(
         ? "COMMITTEE"
         : "USER";
 
-    const authorName =
-      body.isAnonymous
-        ? "Anonymous"
-        : (body.authorName?.trim() || user?.name || "Member");
+    const authorName = body.isAnonymous
+      ? "Anonymous"
+      : body.authorName?.trim() || user?.name || "Member";
 
     const comment = await prisma.confQAComment.create({
       data: {
@@ -131,7 +138,8 @@ export async function DELETE(
 
     const role = String(auth.access.user?.role ?? "USER").toUpperCase();
     const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
-    const isOwner = auth.access.user?.id && comment.authorId === auth.access.user.id;
+    const isOwner =
+      auth.access.user?.id && comment.authorId === auth.access.user.id;
 
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -143,6 +151,50 @@ export async function DELETE(
     console.error("Failed to delete comment:", error);
     return NextResponse.json(
       { error: "Failed to delete comment" },
+      { status: 500 },
+    );
+  }
+}
+
+// PATCH /api/conf/[confId]/qa/[questionId]/comments
+// Any participant can upvote a comment.
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ confId: string; questionId: string }> },
+) {
+  try {
+    const { confId, questionId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "participant");
+    if (!auth.ok) return auth.response;
+
+    const body = (await req.json()) as { commentId?: string };
+    if (!body.commentId) {
+      return NextResponse.json(
+        { error: "commentId is required" },
+        { status: 400 },
+      );
+    }
+
+    const comment = await prisma.confQAComment.findFirst({
+      where: { id: body.commentId, questionId },
+      select: { id: true },
+    });
+    if (!comment) {
+      return NextResponse.json(
+        { error: "Comment not found" },
+        { status: 404 },
+      );
+    }
+
+    const updated = await prisma.confQAComment.update({
+      where: { id: body.commentId },
+      data: { upvotes: { increment: 1 } },
+    });
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Failed to upvote comment:", error);
+    return NextResponse.json(
+      { error: "Failed to upvote comment" },
       { status: 500 },
     );
   }

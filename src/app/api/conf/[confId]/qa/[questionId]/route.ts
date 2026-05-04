@@ -43,7 +43,10 @@ export async function GET(
     });
 
     if (!question) {
-      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 },
+      );
     }
 
     const comments = await loadCommentTree(questionId);
@@ -58,20 +61,35 @@ export async function GET(
 }
 
 // PATCH /api/conf/[confId]/qa/[questionId]
-// Admin+ can pin/unpin or mark as answered/unanswered.
+// - Any participant can upvote (action: "upvote")
+// - Admin+ can pin/unpin or mark as answered/unanswered
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ confId: string; questionId: string }> },
 ) {
   try {
     const { confId, questionId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
-    if (!auth.ok) return auth.response;
 
+    // Parse body first to route to correct auth level
     const body = (await req.json()) as {
+      action?: string;
       isPinned?: boolean;
       isAnswered?: boolean;
     };
+
+    if (body.action === "upvote") {
+      const auth = await requireConferenceApiAccess(confId, "participant");
+      if (!auth.ok) return auth.response;
+      const updated = await prisma.confQuestion.update({
+        where: { id: questionId },
+        data: { upvotes: { increment: 1 } },
+      });
+      return NextResponse.json(updated);
+    }
+
+    // All other operations require manager
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
 
     const updated = await prisma.confQuestion.update({
       where: { id: questionId },
@@ -107,12 +125,16 @@ export async function DELETE(
     });
 
     if (!question) {
-      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Question not found" },
+        { status: 404 },
+      );
     }
 
     const role = String(auth.access.user?.role ?? "USER").toUpperCase();
     const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
-    const isOwner = auth.access.user?.id && question.authorId === auth.access.user.id;
+    const isOwner =
+      auth.access.user?.id && question.authorId === auth.access.user.id;
 
     if (!isAdmin && !isOwner) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

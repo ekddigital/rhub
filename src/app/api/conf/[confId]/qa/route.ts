@@ -59,13 +59,10 @@ export async function POST(
     // Determine author display name and role badge
     const user = auth.access.user;
     const role = String(user?.role ?? "USER").toUpperCase();
-    const authorRole = ["SUPER_ADMIN", "ADMIN"].includes(role)
-      ? role
-      : "USER";
-    const authorName =
-      body.isAnonymous
-        ? "Anonymous"
-        : (body.authorName?.trim() || user?.name || "Member");
+    const authorRole = ["SUPER_ADMIN", "ADMIN"].includes(role) ? role : "USER";
+    const authorName = body.isAnonymous
+      ? "Anonymous"
+      : body.authorName?.trim() || user?.name || "Member";
 
     const question = await prisma.confQuestion.create({
       data: {

@@ -66,18 +66,42 @@ export async function GET(
 }
 
 // POST /api/conf/[confId]/pair-requests
+// Any registered participant can submit a pair request on behalf of themselves.
+// Managers can submit on behalf of any delegate (by passing requesterId).
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
 ) {
   try {
     const { confId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
+    const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
 
     const body = await req.json();
 
-    const requesterId = String(body.requesterId || "");
+    // Managers can specify an arbitrary requesterId; participants can only request for themselves.
+    // We resolve the participant's own delegateId by matching userId on the ConfDelegate table.
+    let requesterId = body.requesterId ? String(body.requesterId) : "";
+
+    if (!requesterId || !auth.access.isManager) {
+      // Auto-resolve: find the calling user's own delegate record for this conference
+      const selfDelegate = auth.access.user
+        ? await prisma.confDelegate.findFirst({
+            where: { confId, userId: auth.access.user.id },
+            select: { id: true },
+          })
+        : null;
+      if (!selfDelegate) {
+        return NextResponse.json(
+          {
+            error:
+              "You are not registered as a delegate for this conference. Please complete your registration first.",
+          },
+          { status: 403 },
+        );
+      }
+      requesterId = selfDelegate.id;
+    }
     const targetId = body.targetId ? String(body.targetId) : null;
     const requestType = String(body.requestType || "STANDARD_PAIR");
     const note = body.note ? String(body.note) : null;

@@ -23,6 +23,7 @@ import {
   Megaphone,
   Download,
   ImageIcon,
+  BedDouble,
 } from "lucide-react";
 import {
   Card,
@@ -112,6 +113,14 @@ const NAV_ITEMS: ConfNavItem[] = [
     title: "Booklet Builder",
     desc: "Printable participant booklet cards with IDs, photos, and room assignments",
     color: "text-rose-500",
+    minAccess: "delegate",
+  },
+  {
+    href: "/tools/conf/rooms",
+    icon: BedDouble,
+    title: "Room Pairing",
+    desc: "Choose your roommate. Same-gender pairing by default — legal partner exceptions require committee approval",
+    color: "text-[#C8A061]",
     minAccess: "delegate",
   },
   {

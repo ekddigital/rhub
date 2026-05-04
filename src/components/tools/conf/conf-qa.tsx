@@ -23,6 +23,12 @@ import {
   Star,
   Loader2,
   X,
+  BookOpen,
+  User,
+  CreditCard,
+  BedDouble,
+  Building2,
+  Search,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +70,332 @@ interface ConfQAProps {
   isManager: boolean;
   isSuperAdmin: boolean;
   currentUserName?: string;
+}
+
+// ─── Static FAQ Data ─────────────────────────────────────────────────────────
+
+interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+interface FAQCategory {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+  bg: string;
+  items: FAQItem[];
+}
+
+const STATIC_FAQ: FAQCategory[] = [
+  {
+    id: "getting-started",
+    label: "Getting Started",
+    icon: User,
+    color: "text-blue-400",
+    bg: "bg-blue-500/10 border-blue-500/20",
+    items: [
+      {
+        id: "create-account",
+        question: "How do I create an account on the platform?",
+        answer:
+          "Visit the registration page and enter your full name, email address, and a secure password. After submitting, you will receive a verification email — click the confirmation link to activate your account. Once verified, log in to access the conference portal, view your delegate profile, and complete your registration.",
+      },
+      {
+        id: "forgot-password",
+        question: "I forgot my password. How do I reset it?",
+        answer:
+          'Click \"Forgot Password\" on the login page and enter your registered email address. A password reset link will arrive in your inbox within a few minutes. Click the link and follow the prompts to set a new password. If you don\'t see the email, check your spam folder.',
+      },
+      {
+        id: "update-profile",
+        question: "How do I update my personal information?",
+        answer:
+          "After logging in, click your name or avatar in the top-right corner and go to Profile. You can update your display name, phone number, and profile photo there. Your email address is tied to your account — contact the committee if you need it changed.",
+      },
+    ],
+  },
+  {
+    id: "registration",
+    label: "Conference Registration",
+    icon: BookOpen,
+    color: "text-[#C8A061]",
+    bg: "bg-[#C8A061]/10 border-[#C8A061]/20",
+    items: [
+      {
+        id: "how-to-register",
+        question: "How do I register as a delegate?",
+        answer:
+          "Navigate to Conference Hub → Register. Fill in your personal details, select your attendance package, indicate your accommodation preference, and upload a clear passport-sized photo. Submit your registration for committee review. You will be notified once approved and payment instructions will follow.",
+      },
+      {
+        id: "update-registration",
+        question: "Can I update my registration details after submitting?",
+        answer:
+          "Yes — you can update certain fields (dietary preferences, emergency contact, travel details) at any time before the registration deadline. For changes to your package or accommodation type, contact the conference committee directly as these may affect your fee amount.",
+      },
+      {
+        id: "required-documents",
+        question: "What information do I need to complete registration?",
+        answer:
+          "You will need: (1) A clear, recent passport-style photo; (2) Your valid national ID or passport number; (3) Emergency contact details; (4) Any dietary or accessibility requirements. All documents uploaded are stored securely and only accessible to authorised committee members.",
+      },
+      {
+        id: "packages",
+        question: "What attendance packages are available and what do they include?",
+        answer:
+          "The conference offers packages designed for different needs:\n\n• Full Package — Accommodation (shared room), all meals during the conference, transport to and from the venue, and access to all sessions and events.\n\n• Day Attendance — Access to conference sessions only, without accommodation or meals.\n\n• Partial Package — Accommodation and select meals, without transport.\n\nExact pricing and availability are shown on the registration form. Contact the financial secretary for payment schedule details.",
+      },
+    ],
+  },
+  {
+    id: "accommodation",
+    label: "Accommodation & Room Pairing",
+    icon: BedDouble,
+    color: "text-teal-400",
+    bg: "bg-teal-500/10 border-teal-500/20",
+    items: [
+      {
+        id: "who-can-pair",
+        question: "Who is eligible to choose a roommate?",
+        answer:
+          "Any delegate whose selected package includes accommodation is eligible to choose a roommate. If your package does not include accommodation (e.g. Day Attendance), the Room Pairing section will not apply to you. Log in and visit Conference Hub → Room Pairing to check your eligibility status.",
+      },
+      {
+        id: "how-pairing-works",
+        question: "How does the room pairing system work?",
+        answer:
+          "Visit Conference Hub → Room Pairing once registered with an accommodation package. You will see a list of eligible delegates to send a roommate request to. When you send a request, the other delegate receives a notification and can accept or decline. Once both parties agree, the committee confirms and assigns the shared room. You can only have one active roommate pairing at a time.",
+      },
+      {
+        id: "same-gender-rule",
+        question: "Can male and female delegates share a room?",
+        answer:
+          "No — by default, room assignments are same-gender only. Male delegates are matched with male delegates, and female delegates with female delegates. This policy ensures the comfort and safety of all conference attendees.\n\nThe only exception is for legally recognised partners (see the Legal Partner Exception question below).",
+      },
+      {
+        id: "legal-partner-exception",
+        question: "What is the Legal Partner Exception for room pairing?",
+        answer:
+          "If you and your partner are legally married or in a registered partnership and you are both attending the conference, you may apply for the Legal Partner Exception to share a room together.\n\nTo apply: go to the Room Pairing page, click \"Legal Partner Exception\" on the other delegate's card, provide a brief note explaining your relationship, and submit. The NEC or conference committee will review and confirm before the room is assigned. Please allow 2–5 business days for review.",
+      },
+      {
+        id: "no-roommate",
+        question: "What if I don't choose a roommate before the deadline?",
+        answer:
+          "If you have not completed a roommate pairing by the assignment deadline, the conference committee will assign you a roommate based on gender and package type. You will be notified of your room assignment before the conference begins. If you have any concerns about your assigned roommate, contact the committee directly.",
+      },
+    ],
+  },
+  {
+    id: "payments",
+    label: "Payments & Fees",
+    icon: CreditCard,
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10 border-emerald-500/20",
+    items: [
+      {
+        id: "how-to-pay",
+        question: "How do I pay my conference fees?",
+        answer:
+          "After your registration is approved, you will receive payment instructions from the financial secretary. Payment is typically made via bank transfer to the conference account. Once transferred, upload your proof of payment (bank receipt or screenshot) on the Payments page under Conference Hub. The financial secretary will review and confirm within 2–3 business days.",
+      },
+      {
+        id: "payment-confirmation",
+        question: "How long does payment confirmation take?",
+        answer:
+          "Payment confirmations are typically processed within 2–3 business days after proof of payment is uploaded. During peak registration periods close to the conference date, this may take slightly longer. You will receive a notification once confirmed. If more than 5 business days have passed, please follow up with the financial secretary.",
+      },
+      {
+        id: "payment-receipt",
+        question: "Can I get a receipt for my payment?",
+        answer:
+          "Yes — once your payment is confirmed, an official receipt is generated and available to download from the Payments page. You can view your full payment history there at any time. If you need a formal receipt letter for visa or administrative purposes, contact the conference secretary.",
+      },
+    ],
+  },
+  {
+    id: "general",
+    label: "General Questions",
+    icon: Building2,
+    color: "text-purple-400",
+    bg: "bg-purple-500/10 border-purple-500/20",
+    items: [
+      {
+        id: "contact",
+        question: "Who do I contact if I have a problem not answered here?",
+        answer:
+          "Use the Community Q&A tab to post a question — committee members monitor it and will respond. For urgent matters, contact the conference secretariat through official LSUIC communication channels. Platform or technical issues can also be raised in Community Q&A and a committee member with admin access will assist you.",
+      },
+      {
+        id: "important-dates",
+        question: "Where can I find important conference dates and deadlines?",
+        answer:
+          "All key dates — registration deadlines, payment deadlines, room pairing deadlines, and the full conference schedule — are available on the Conference Hub Timeline page. The dashboard also displays a countdown to the conference and highlights any upcoming deadlines. Submit your registration and payment well before the deadlines to secure your place.",
+      },
+    ],
+  },
+];
+
+// ─── Static FAQ Accordion ─────────────────────────────────────────────────────
+
+function StaticFAQSection() {
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+
+  const toggleItem = (id: string) => {
+    setOpenItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const searchLower = search.toLowerCase();
+  const filteredCategories = STATIC_FAQ.map((cat) => ({
+    ...cat,
+    items: cat.items.filter(
+      (item) =>
+        (activeCategory === "all" || activeCategory === cat.id) &&
+        (!search ||
+          item.question.toLowerCase().includes(searchLower) ||
+          item.answer.toLowerCase().includes(searchLower)),
+    ),
+  })).filter((cat) => cat.items.length > 0);
+
+  const totalCount = STATIC_FAQ.reduce((n, c) => n + c.items.length, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search frequently asked questions…"
+          className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-8 pr-8 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#C8A061]/40 focus:outline-none focus:ring-1 focus:ring-[#C8A061]/30"
+        />
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Category filter pills */}
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          onClick={() => setActiveCategory("all")}
+          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            activeCategory === "all"
+              ? "bg-[#C8A061] text-white"
+              : "border border-white/10 bg-white/5 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          All ({totalCount})
+        </button>
+        {STATIC_FAQ.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              activeCategory === cat.id
+                ? "bg-[#C8A061] text-white"
+                : "border border-white/10 bg-white/5 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <cat.icon className="size-3" />
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* FAQ accordion */}
+      {filteredCategories.length === 0 ? (
+        <div className="rounded-xl border border-white/10 py-10 text-center">
+          <HelpCircle className="mx-auto mb-2 size-8 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
+            No questions match your search.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground/60">
+            Try the Community Q&amp;A tab to ask your question directly!
+          </p>
+        </div>
+      ) : (
+        filteredCategories.map((cat) => (
+          <div key={cat.id} className="space-y-2">
+            {activeCategory === "all" && (
+              <div
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
+                  cat.bg
+                }`}
+              >
+                <cat.icon className={`size-3.5 ${cat.color}`} />
+                <span className={`text-xs font-bold ${cat.color}`}>
+                  {cat.label}
+                </span>
+              </div>
+            )}
+            {cat.items.map((item) => {
+              const isOpen = openItems.has(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className={`overflow-hidden rounded-xl border transition-all ${
+                    isOpen
+                      ? "border-[#C8A061]/30 bg-[#C8A061]/5"
+                      : "border-white/8 bg-white/3 hover:border-white/15"
+                  }`}
+                >
+                  <button
+                    onClick={() => toggleItem(item.id)}
+                    className="flex w-full items-start justify-between gap-3 p-4 text-left"
+                  >
+                    <span
+                      className={`text-sm font-medium leading-snug ${
+                        isOpen ? "text-[#C8A061]" : "text-foreground"
+                      }`}
+                    >
+                      {item.question}
+                    </span>
+                    {isOpen ? (
+                      <ChevronUp className="mt-0.5 size-4 shrink-0 text-[#C8A061]" />
+                    ) : (
+                      <ChevronDown className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    )}
+                  </button>
+                  {isOpen && (
+                    <div className="border-t border-[#C8A061]/15 px-4 pb-4 pt-3">
+                      <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">
+                        {item.answer}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))
+      )}
+
+      <p className="flex items-center gap-1.5 pt-1 text-[11px] text-muted-foreground/60">
+        <HelpCircle className="size-3" />
+        Can&apos;t find what you&apos;re looking for? Switch to Community Q&amp;A and ask the committee directly.
+      </p>
+    </div>
+  );
 }
 
 // ─── Role Badge ───────────────────────────────────────────────────────────────
@@ -232,10 +564,23 @@ function CommentNode({
 }) {
   const [showReply, setShowReply] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [localUpvotes, setLocalUpvotes] = useState(comment.upvotes);
+  const [justUpvoted, setJustUpvoted] = useState(false);
   const canDelete =
     isSuperAdmin ||
     isManager ||
     (currentUserId && comment.authorId === currentUserId);
+
+  const handleUpvote = async () => {
+    setLocalUpvotes((p) => p + 1);
+    setJustUpvoted(true);
+    setTimeout(() => setJustUpvoted(false), 1200);
+    await fetch(`/api/conf/${confId}/qa/${questionId}/comments`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commentId: comment.id }),
+    });
+  };
 
   const handleDelete = async () => {
     if (!confirm("Delete this comment?")) return;
@@ -313,6 +658,21 @@ function CommentNode({
 
         {/* Actions */}
         <div className="mt-2 flex items-center gap-3">
+          <button
+            onClick={handleUpvote}
+            className={`flex items-center gap-1 text-[11px] transition-colors ${
+              justUpvoted
+                ? "text-[#C8A061]"
+                : "text-muted-foreground hover:text-[#C8A061]"
+            }`}
+          >
+            <ThumbsUp
+              className={`size-3 ${
+                justUpvoted ? "fill-current" : ""
+              }`}
+            />
+            {localUpvotes > 0 ? localUpvotes : "Like"}
+          </button>
           {depth < MAX_DEPTH && (
             <button
               onClick={() => setShowReply((p) => !p)}
@@ -423,6 +783,19 @@ function QuestionCard({
   const [commentCount, setCommentCount] = useState(
     question._count?.comments ?? 0,
   );
+  const [localUpvotes, setLocalUpvotes] = useState(question.upvotes);
+  const [justUpvoted, setJustUpvoted] = useState(false);
+
+  const handleUpvote = async () => {
+    setLocalUpvotes((p) => p + 1);
+    setJustUpvoted(true);
+    setTimeout(() => setJustUpvoted(false), 1200);
+    await fetch(`/api/conf/${confId}/qa/${question.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upvote" }),
+    });
+  };
 
   const loadComments = useCallback(async () => {
     if (loadingComments) return;
@@ -622,6 +995,23 @@ function QuestionCard({
             <Reply className="size-3.5" />
             {isManager ? "Answer / Reply" : "Reply"}
           </button>
+
+          <button
+            onClick={handleUpvote}
+            className={`ml-auto flex items-center gap-1.5 text-xs transition-colors ${
+              justUpvoted
+                ? "font-semibold text-[#C8A061]"
+                : "text-muted-foreground hover:text-[#C8A061]"
+            }`}
+          >
+            <ThumbsUp
+              className={`size-3.5 ${justUpvoted ? "fill-current" : ""}`}
+            />
+            {localUpvotes > 0 ? localUpvotes : "Like"}
+            {justUpvoted && (
+              <span className="text-[10px] opacity-80"> +1</span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -682,6 +1072,7 @@ export function ConfQA({
   isSuperAdmin,
   currentUserName,
 }: ConfQAProps) {
+  const [mainTab, setMainTab] = useState<"faq" | "qa">("faq");
   const [questions, setQuestions] = useState<QAQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAskForm, setShowAskForm] = useState(false);
@@ -766,34 +1157,71 @@ export function ConfQA({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <HelpCircle className="size-5 text-[#C8A061]" />
-            Q&amp;A &amp; FAQ
+            Help &amp; FAQ
           </CardTitle>
 
-          <button
-            onClick={() => setShowAskForm((p) => !p)}
-            className="flex items-center gap-1.5 rounded-lg bg-[#C8A061] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            {showAskForm ? (
-              <>
-                <X className="size-3.5" />
-                Cancel
-              </>
-            ) : (
-              <>
-                <Plus className="size-3.5" />
-                Ask a question
-              </>
-            )}
-          </button>
+          {mainTab === "qa" && (
+            <button
+              onClick={() => setShowAskForm((p) => !p)}
+              className="flex items-center gap-1.5 rounded-lg bg-[#C8A061] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              {showAskForm ? (
+                <>
+                  <X className="size-3.5" />
+                  Cancel
+                </>
+              ) : (
+                <>
+                  <Plus className="size-3.5" />
+                  Ask a question
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          Ask anything about the conference. Committee members and leaders will
-          answer. Pinned questions appear in the FAQ section.
+          Browse answers to common questions, or ask the community anything about
+          the conference.
         </p>
+
+        {/* Main tab switcher */}
+        <div className="mt-3 flex items-center gap-1 rounded-lg border border-white/10 bg-white/3 p-1">
+          <button
+            onClick={() => setMainTab("faq")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              mainTab === "faq"
+                ? "bg-[#C8A061] text-white"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <BookOpen className="size-3.5" />
+            FAQ
+          </button>
+          <button
+            onClick={() => setMainTab("qa")}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              mainTab === "qa"
+                ? "bg-[#C8A061] text-white"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <MessageCircle className="size-3.5" />
+            Community Q&amp;A
+            {!loading && unansweredQuestions.length > 0 && (
+              <span className="ml-1 rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                {unansweredQuestions.length}
+              </span>
+            )}
+          </button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {mainTab === "faq" ? (
+          <StaticFAQSection />
+        ) : (
+          <div className="space-y-4">
         {/* Ask form */}
         {showAskForm && (
           <div className="rounded-xl border border-[#C8A061]/30 bg-[#C8A061]/5 p-4">
@@ -940,6 +1368,8 @@ export function ConfQA({
           <ThumbsUp className="size-3" />
           Committee members and leaders can pin questions or mark official answers
         </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
