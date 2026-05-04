@@ -19,7 +19,7 @@ export const FUNDRAISING_SAMPLE_RECIPIENT_NAME = "[Recipient title and name]";
 export const FUNDRAISING_SAMPLE_TARGET_AMOUNT =
   "RMB 180,000 (approx. USD 25,000 at RMB 7.2 ≈ USD 1)";
 /** Amount-only sample line for Letter Composer; the letter adds standard explanatory wording. */
-export const FUNDRAISING_SAMPLE_RAISED_TO_DATE = "RMB 70,000";
+export const FUNDRAISING_SAMPLE_RAISED_TO_DATE = "";
 export const FUNDRAISING_SAMPLE_EVENT_DATE = "May 29, 2026";
 export const FUNDRAISING_SAMPLE_EVENT_TIME = "21:00 (China time)";
 export const FUNDRAISING_SAMPLE_PAYMENT_DEADLINE = "June 6, 2026";

@@ -110,8 +110,6 @@ export function DocumentLayout({
       })}`
     : "";
 
-  const venue = confInfo?.venue || LETTERHEAD_CONFIG.defaultVenue;
-
   return (
     <div
       className={className}
@@ -209,9 +207,6 @@ export function DocumentLayout({
               {confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName}
             </div>
             <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
-              {venue}
-            </div>
-            <div style={{ fontSize: 8.5, color: "#555" }}>
               {buildCityRegionLine(confInfo?.city)}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>

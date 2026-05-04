@@ -14,6 +14,15 @@ export const LETTERHEAD_CONFIG = {
   tertiaryEmail: "alfredap21@gmail.com",
   secondaryEmail: "harrisbowulom@gmail.com",
   motto: 'Motto: "Excellence Through Hard Work"',
+  /**
+   * Fallback mobiles for letter exports when roster rows omit `phone`.
+   * Digits-only or +86 — same shape as `@/lib/conf/bootstrap` defaults.
+   */
+  officerPhones: {
+    chair: "18506832159",
+    coChair: "13915437321",
+    secretary: "18514556295",
+  },
 } as const;
 
 /** Letter Composer masthead — main title line (replaces full LSUIC name at top). */

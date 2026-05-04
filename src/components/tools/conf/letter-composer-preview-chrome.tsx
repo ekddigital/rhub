@@ -42,8 +42,12 @@ export function letterPreviewPageChrome(forPrint: boolean) {
     maxHeight: LP.PAGE_H,
     overflow: "hidden" as const,
     flexShrink: 0 as const,
-    boxShadow: forPrint ? ("none" as const) : ("0 4px 32px rgba(0,0,0,0.18)" as const),
-    outline: forPrint ? ("none" as const) : ("1px solid rgba(0,0,0,0.06)" as const),
+    boxShadow: forPrint
+      ? ("none" as const)
+      : ("0 4px 32px rgba(0,0,0,0.18)" as const),
+    outline: forPrint
+      ? ("none" as const)
+      : ("1px solid rgba(0,0,0,0.06)" as const),
   };
 }
 
@@ -109,7 +113,7 @@ export function LetterPreviewFooter({
   );
 }
 
-/** Fundraising letters append the approved fundraising flyer image. */
+/** Fundraising letters append the approved fundraising flyer . */
 export function LetterPromotionalFlyerAttachmentPage({
   confId,
   pageNum,
@@ -132,8 +136,7 @@ export function LetterPromotionalFlyerAttachmentPage({
   const flyerSrc = "/conf/fundraising.png";
   const resolvedOffice =
     (officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
-  const bannerLine =
-    (topBannerTagline ?? "").trim() || CONF_2026.subTheme;
+  const bannerLine = (topBannerTagline ?? "").trim() || CONF_2026.subTheme;
 
   return (
     <div
@@ -271,8 +274,8 @@ export function LetterPromotionalFlyerAttachmentPage({
             lineHeight: 1.55,
           }}
         >
-          Detailed{" "}
-          <span style={{ fontWeight: 700 }}>payment methods</span> are shown on{" "}
+          Detailed <span style={{ fontWeight: 700 }}>payment methods</span> are
+          shown on{" "}
           <span style={{ fontWeight: 700 }}>the flyer directly below</span>.
           Please pay only through those channels —{" "}
           <span style={{ fontWeight: 700 }}>

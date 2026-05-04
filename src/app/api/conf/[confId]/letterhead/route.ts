@@ -198,11 +198,10 @@ function buildFirstPageSvg(opts: {
   // Y positions for text lines (absolute from SVG top)
   const t1 = STRIPE_H + 22; // org name
   const t2 = t1 + 22; // conf name
-  const t3 = t2 + 18; // venue line 1
-  const t4 = t3 + 15; // city / country
-  const t5 = t4 + 14; // date range
-  const t6 = t5 + 16; // email
-  const t7 = t6 + 12; // website
+  const t3 = t2 + 18; // city / country
+  const t4 = t3 + 14; // date range
+  const t5 = t4 + 16; // email
+  const t6 = t5 + 12; // website
 
   // Separator positions
   const goldY = STRIPE_H + LOGO_ROW_H; // 150
@@ -292,11 +291,10 @@ function buildFirstPageSvg(opts: {
   <!-- Org name + conference info (centered between logo and seal) -->
   <text x="${textCX}" y="${t1}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="15.5" font-weight="700" fill="#002868" letter-spacing="0.4">${escapeXml(LETTERHEAD_CONFIG.organizationName)}</text>
   <text x="${textCX}" y="${t2}" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="10.5" font-weight="600" fill="#C8A061">${escapeXml(opts.confName)}</text>
-  <text x="${textCX}" y="${t3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.venue ?? opts.city)}</text>
-  <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(buildCityRegionLine(opts.city))}</text>
-  <text x="${textCX}" y="${t5}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.dateRange)}</text>
-  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml(buildLetterheadEmailLine("  |  "))}</text>
-  <text x="${textCX}" y="${t7}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7.5" fill="#777777">${escapeXml(buildLetterheadWebsiteLine("  |  "))}</text>
+  <text x="${textCX}" y="${t3}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(buildCityRegionLine(opts.city))}</text>
+  <text x="${textCX}" y="${t4}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8.5" fill="#555555">${escapeXml(opts.dateRange)}</text>
+  <text x="${textCX}" y="${t5}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="8" fill="#777777">${escapeXml(buildLetterheadEmailLine("  |  "))}</text>
+  <text x="${textCX}" y="${t6}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="7.5" fill="#777777">${escapeXml(buildLetterheadWebsiteLine("  |  "))}</text>
 
   <!-- Liberia National Seal (right) -->
   ${sealBlock}

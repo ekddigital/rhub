@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import {
@@ -43,7 +44,15 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
+import {
+  LETTERHEAD_CONFIG,
+  LETTER_COMPOSER_HEADER_PRIMARY_LINE,
+  LETTER_COMPOSER_HEADER_UNION_LINE,
+  letterComposerConferenceSubtitle,
+  buildCityRegionLine,
+  buildLetterheadEmailLine,
+  buildLetterheadWebsiteLine,
+} from "@/lib/conf/letterhead-config";
 import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 import {
   buildFundraisingLetterBodyRichHtml,
@@ -83,30 +92,483 @@ import {
   type FundraisingCategory,
   type AllLetterBodyFields,
 } from "@/lib/conf/fundraising-letter-template";
-import type {
-  LetterType,
-  LetterRecord,
-  LetterDraft,
-  LetterComposerMember as Member,
-  LetterComposerConfInfo as ConfInfo,
-  LetterComposerRoleTemplate as RoleTemplate,
-  LetterComposerSignatureProfile as SignatureProfile,
-} from "./letter-composer-types";
-import { LETTER_TYPE_LABELS, LETTER_TYPE_COLORS } from "./letter-composer-types";
-import {
-  richHtmlToPlainText,
-  plainBodyToRichHtml,
-} from "./letter-composer-plain";
-import { LetterA4Preview } from "./letter-composer-a4-preview";
-import { LETTER_COMPOSER_ROLE_LABELS as ROLE_LABELS } from "./letter-composer-member-format";
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type LetterType =
+  | "MEMO"
+  | "MINUTES"
+  | "ANNOUNCEMENT"
+  | "BUDGET_LETTER"
+  | "PAYMENT_RECEIPT"
+  | "FUNDRAISING"
+  | "GENERAL";
+
+const LETTER_TYPE_LABELS: Record<LetterType, string> = {
+  MEMO: "Memo",
+  MINUTES: "Minutes",
+  ANNOUNCEMENT: "Announcement",
+  BUDGET_LETTER: "Budget Letter",
+  PAYMENT_RECEIPT: "Payment Receipt",
+  FUNDRAISING: "Fundraising",
+  GENERAL: "General",
+};
+
+const LETTER_TYPE_COLORS: Record<LetterType, string> = {
+  MEMO: "#C8A061",
+  MINUTES: "#002868",
+  ANNOUNCEMENT: "#BF0A30",
+  BUDGET_LETTER: "#1a7a4a",
+  PAYMENT_RECEIPT: "#7c3aed",
+  FUNDRAISING: "#8E0E00",
+  GENERAL: "#666666",
+};
+
+// Lightweight record returned by GET /letters (no draft JSON)
+type LetterRecord = {
+  id: string;
+  title: string;
+  type: LetterType;
+  letterDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type RoleTemplate = {
+  id: string;
+  key: string;
+  label: string;
+  baseRole:
+    | "CHAIR"
+    | "VICE_CHAIR"
+    | "SECRETARY"
+    | "TREASURER"
+    | "COMMITTEE"
+    | "DELEGATE";
+  title: string | null;
+  committeeScope: string | null;
+  officeLabel: string | null;
+  isSystem: boolean;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+type SignatureProfile = {
+  key: string;
+  name: string;
+  title?: string;
+  signatureDataUrl: string;
+};
+
+type LetterDraft = {
+  id: string;
+  dbId: string; // DB ConfLetter.id — empty string if not yet saved to DB
+  type: LetterType;
+  title: string;
+  to: string;
+  from: string;
+  re: string;
+  date: string;
+  body: string;
+  bodyRich: string;
+  issuingRoleKey: string;
+  officeLabel: string;
+  signatoryMode: "NONE" | "STANDARD" | "FUNDRAISING" | "CUSTOM";
+  // Signatory 1 (left — least authority, e.g. Secretary → "Signed")
+  signatory1Name: string;
+  signatory1Title: string;
+  signatory1Label: string; // e.g. "Signed"
+  signatory1Sig: string;
+  signatory1SigScale: number;
+  // Signatory 2 (middle)
+  signatory2Name: string;
+  signatory2Title: string;
+  signatory2Label: string;
+  signatory2Sig: string;
+  signatory2SigScale: number;
+  // Signatory 3 (right)
+  signatory3Name: string;
+  signatory3Title: string;
+  signatory3Label: string;
+  signatory3Sig: string;
+  signatory3SigScale: number;
+  fundraisingEnabled: boolean;
+  fundraisingCategory: FundraisingCategory;
+  fundraisingInviteRole: string;
+  fundraisingInviteRoleOther: string;
+  fundraisingRecipientName: string;
+  fundraisingRecipientAddress: string;
+  fundraisingTargetAmount: string;
+  fundraisingRaisedToDate: string;
+  fundraisingUseOfFunds: string;
+  fundraisingPaymentDeadline: string;
+  fundraisingEventDate: string;
+  fundraisingEventTime: string;
+  fundraisingMeetingMedium: string;
+  fundraisingMeetingLink: string;
+  fundraisingMeetingId: string;
+  fundraisingMeetingPassword: string;
+  fundraisingOrgName: string;
+  fundraisingConferenceTheme: string;
+  fundraisingOfficeName: string;
+  fundraisingAlumniGradYear: string;
+  fundraisingPartnershipType: string;
+  fundraisingLetterSampleApplied: boolean;
+  savedAt: string;
+};
 
 const DEFAULT_FUNDRAISING_MEETING_MEDIUM = "Zoom";
+const DEFAULT_FUNDRAISING_PAYMENT_DEADLINE =
+  FUNDRAISING_SAMPLE_PAYMENT_DEADLINE;
+const DEFAULT_FUNDRAISING_EVENT_DATE = FUNDRAISING_SAMPLE_EVENT_DATE;
+const DEFAULT_FUNDRAISING_EVENT_TIME = FUNDRAISING_SAMPLE_EVENT_TIME;
 const DEFAULT_FUNDRAISING_MEETING_LINK =
   "https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09";
 const DEFAULT_FUNDRAISING_MEETING_ID = "2312312006";
 const DEFAULT_FUNDRAISING_MEETING_PASSWORD = "LSUIC2006";
 
-const LS_KEY = "rhub_conf_letter_composer_drafts_v1";
+const FUNDRAISING_BODY_SYNC_FIELDS = new Set<keyof LetterDraft>([
+  "fundraisingCategory",
+  "fundraisingRecipientName",
+  "fundraisingInviteRole",
+  "fundraisingInviteRoleOther",
+  "fundraisingTargetAmount",
+  "fundraisingRaisedToDate",
+  "fundraisingUseOfFunds",
+  "fundraisingPaymentDeadline",
+  "fundraisingEventDate",
+  "fundraisingEventTime",
+  "fundraisingMeetingMedium",
+  "fundraisingMeetingLink",
+  "fundraisingMeetingId",
+  "fundraisingMeetingPassword",
+  "fundraisingOrgName",
+  "fundraisingConferenceTheme",
+  "fundraisingOfficeName",
+  "fundraisingAlumniGradYear",
+  "fundraisingPartnershipType",
+]);
+
+const LS_KEY = "rhub:letter-composer:drafts-v2";
+
+type Member = {
+  id: string;
+  name: string;
+  role: string;
+  title: string | null;
+  city: string | null;
+  phone: string | null;
+  email: string | null;
+  photoPath: string | null;
+  joinedAt: string;
+  committeeScope: string | null;
+  canAssignCommittee: boolean;
+  canApprovePayments: boolean;
+  userId: string | null;
+  linkedUserName?: string | null;
+  linkedUserEmail?: string | null;
+};
+
+type ConfInfo = {
+  name: string;
+  city: string | null;
+  venue: string | null;
+  startsAt: string;
+  endsAt: string;
+};
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function plainBodyToRichHtml(body: string): string {
+  if (!body.trim()) return "<p></p>";
+  return body
+    .split(/\n{2,}/)
+    .map(
+      (paragraph) =>
+        `<p>${escapeHtml(paragraph).replaceAll("\n", "<br />")}</p>`,
+    )
+    .join("");
+}
+
+function richHtmlToPlainText(html: string): string {
+  const trimmed = html.trim();
+  if (!trimmed) return "";
+
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(trimmed, "text/html");
+    const lines: string[] = [];
+
+    const pushLine = (line: string) => {
+      lines.push(line);
+    };
+    const pushBlankLine = () => {
+      if (lines.length === 0 || lines[lines.length - 1] !== "") {
+        lines.push("");
+      }
+    };
+
+    const parseList = (listEl: Element, ordered: boolean) => {
+      const items = Array.from(listEl.children).filter(
+        (child) => child.tagName.toLowerCase() === "li",
+      );
+      items.forEach((item, index) => {
+        const marker = ordered ? `${index + 1}. ` : "• ";
+        const text = item.textContent?.trim() || "";
+        if (text) pushLine(`${marker}${text}`);
+      });
+      pushBlankLine();
+    };
+
+    Array.from(doc.body.children).forEach((el) => {
+      const tag = el.tagName.toLowerCase();
+
+      if (tag === "table") {
+        const rows = Array.from(el.querySelectorAll("tr"));
+        rows.forEach((row) => {
+          const cells = Array.from(row.querySelectorAll("th,td"))
+            .map((cell) => cell.textContent?.trim() || "")
+            .filter(Boolean);
+          if (cells.length > 0) pushLine(cells.join(" | "));
+        });
+        pushBlankLine();
+        return;
+      }
+
+      if (tag === "ul") {
+        parseList(el, false);
+        return;
+      }
+
+      if (tag === "ol") {
+        parseList(el, true);
+        return;
+      }
+
+      const text = el.textContent?.trim() || "";
+      if (!text) {
+        pushBlankLine();
+        return;
+      }
+
+      pushLine(text);
+      if (
+        ["p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"].includes(
+          tag,
+        )
+      ) {
+        pushBlankLine();
+      }
+    });
+
+    return lines
+      .join("\n")
+      .replace(/\r\n/g, "\n")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  const withBreaks = trimmed
+    .replace(/<\/th>\s*<th[^>]*>/gi, " | ")
+    .replace(/<\/td>\s*<td[^>]*>/gi, " | ")
+    .replace(/<(th|td)[^>]*>/gi, "")
+    .replace(/<\/(th|td)>/gi, "")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/thead>/gi, "\n")
+    .replace(/<\/tbody>/gi, "\n")
+    .replace(/<\/table>/gi, "\n\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|h1|h2|h3|h4|h5|h6)>/gi, "\n\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, " ");
+
+  return withBreaks
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function normalizeMarkdownToReadableText(text: string): string {
+  const lines = text.split("\n");
+  const normalized: string[] = [];
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+    if (!line.trim()) {
+      normalized.push("");
+      continue;
+    }
+
+    // Remove markdown heading markers (#, ##, ###, etc.)
+    const headingMatch = line.match(/^\s*#{1,6}\s+(.+)$/);
+    if (headingMatch) {
+      normalized.push(headingMatch[1] ?? "");
+      continue;
+    }
+
+    // Convert markdown bullet lines to typographic bullets.
+    if (/^\s*[-*]\s+/.test(line)) {
+      normalized.push(line.replace(/^\s*[-*]\s+/, "• "));
+      continue;
+    }
+
+    // Keep numbered lists but normalize spacing.
+    if (/^\s*\d+\.\s+/.test(line)) {
+      normalized.push(line.replace(/^\s*(\d+)\.\s+/, "$1. "));
+      continue;
+    }
+
+    // Markdown table separators should never appear in the final letter.
+    if (/^\s*\|?[\s:-]+\|[\s|:-]*$/.test(line)) {
+      continue;
+    }
+
+    // Render markdown table rows as readable text rows.
+    if (line.includes("|")) {
+      const cells = line
+        .split("|")
+        .map((cell) => cell.trim())
+        .filter(Boolean);
+      if (cells.length > 1) {
+        normalized.push(cells.join(" | "));
+        continue;
+      }
+    }
+
+    normalized.push(line);
+  }
+
+  return normalized
+    .join("\n")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** TipTap often wraps paragraphs in single root `<div>`; DOMParser would treat that as one paragraph. */
+function letterHtmlTopLevelElements(doc: Document): Element[] {
+  let nodes = Array.from(doc.body.children);
+  for (let depth = 0; depth < 6; depth++) {
+    if (nodes.length === 1) {
+      const tag = nodes[0].tagName.toLowerCase();
+      if (tag === "div" || tag === "article" || tag === "section") {
+        const inner = Array.from(nodes[0].children);
+        if (inner.length > 0) {
+          nodes = inner;
+          continue;
+        }
+      }
+    }
+    break;
+  }
+  return nodes;
+}
+
+function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
+  const trimmed = html.trim();
+  if (!trimmed) return [];
+
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(trimmed, "text/html");
+    const blocks: LetterBodyBlock[] = [];
+
+    const readText = (el: Element) =>
+      (el.textContent || "").replace(/\s+/g, " ").trim();
+
+    letterHtmlTopLevelElements(doc).forEach((el) => {
+      const tag = el.tagName.toLowerCase();
+
+      if (/^h[1-4]$/.test(tag)) {
+        const level = Number(tag[1]) as 1 | 2 | 3 | 4;
+        const text = readText(el);
+        if (text) blocks.push({ type: "heading", level, text });
+        return;
+      }
+
+      if (tag === "p" || tag === "div") {
+        const text = readText(el);
+        if (text) blocks.push({ type: "paragraph", text });
+        return;
+      }
+
+      if (tag === "blockquote") {
+        const text = readText(el);
+        if (text) blocks.push({ type: "blockquote", text });
+        return;
+      }
+
+      if (tag === "hr") {
+        blocks.push({ type: "divider" });
+        return;
+      }
+
+      if (tag === "ul" || tag === "ol") {
+        const items = Array.from(el.querySelectorAll(":scope > li"))
+          .map((li) => readText(li))
+          .filter(Boolean);
+        if (items.length > 0) {
+          blocks.push({ type: "list", ordered: tag === "ol", items });
+        }
+        return;
+      }
+
+      if (tag === "table") {
+        const headerCells = Array.from(
+          el.querySelectorAll("thead tr th, thead tr td"),
+        )
+          .map((cell) => readText(cell))
+          .filter(Boolean);
+        const bodyRows = Array.from(el.querySelectorAll("tbody tr"))
+          .map((row) =>
+            Array.from(row.querySelectorAll("th,td"))
+              .map((cell) => readText(cell))
+              .filter(Boolean),
+          )
+          .filter((row) => row.length > 0);
+
+        if (headerCells.length > 0 || bodyRows.length > 0) {
+          const inferredHeaders =
+            headerCells.length > 0
+              ? headerCells
+              : bodyRows.length > 0
+                ? bodyRows[0]
+                : [];
+          const inferredRows =
+            headerCells.length > 0 ? bodyRows : bodyRows.slice(1);
+          blocks.push({
+            type: "table",
+            headers: inferredHeaders,
+            rows: inferredRows,
+          });
+        }
+      }
+    });
+
+    if (blocks.length > 0) return blocks;
+  }
+
+  // Fallback for SSR or legacy drafts not carrying structured HTML.
+  const fallback = normalizeMarkdownToReadableText(
+    richHtmlToPlainText(trimmed),
+  );
+  if (!fallback) return [];
+  return fallback.split("\n\n").map((text) => ({ type: "paragraph", text }));
+}
 
 /** Older fundraiser drafts stored list-based markup; regenerate table layout from sidebar fields */
 function legacyBulletedFundraisingBody(html: string): boolean {
@@ -190,11 +652,11 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       (d as Partial<LetterDraft>).fundraisingRaisedToDate ?? "",
     fundraisingUseOfFunds: d.fundraisingUseOfFunds ?? "",
     fundraisingPaymentDeadline:
-      d.fundraisingPaymentDeadline ?? FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
+      d.fundraisingPaymentDeadline ?? DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
     fundraisingEventDate:
-      d.fundraisingEventDate ?? FUNDRAISING_SAMPLE_EVENT_DATE,
+      d.fundraisingEventDate ?? DEFAULT_FUNDRAISING_EVENT_DATE,
     fundraisingEventTime:
-      d.fundraisingEventTime ?? FUNDRAISING_SAMPLE_EVENT_TIME,
+      d.fundraisingEventTime ?? DEFAULT_FUNDRAISING_EVENT_TIME,
     fundraisingMeetingMedium:
       d.fundraisingMeetingMedium ?? DEFAULT_FUNDRAISING_MEETING_MEDIUM,
     fundraisingMeetingLink:
@@ -311,9 +773,9 @@ function newDraft(): LetterDraft {
     fundraisingTargetAmount: "",
     fundraisingRaisedToDate: "",
     fundraisingUseOfFunds: "",
-    fundraisingPaymentDeadline: FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
-    fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
-    fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
+    fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
+    fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
+    fundraisingEventTime: DEFAULT_FUNDRAISING_EVENT_TIME,
     fundraisingMeetingMedium: DEFAULT_FUNDRAISING_MEETING_MEDIUM,
     fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
     fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
@@ -386,29 +848,6 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingPartnershipType: d.fundraisingPartnershipType,
   };
 }
-
-/** Keys that drive auto-regenerated fundraising letter HTML via `buildLetterBodyRichHtml`. */
-const FUNDRAISING_BODY_SYNC_FIELDS = new Set<keyof LetterDraft>([
-  "fundraisingCategory",
-  "fundraisingRecipientName",
-  "fundraisingInviteRole",
-  "fundraisingInviteRoleOther",
-  "fundraisingTargetAmount",
-  "fundraisingRaisedToDate",
-  "fundraisingUseOfFunds",
-  "fundraisingEventDate",
-  "fundraisingEventTime",
-  "fundraisingPaymentDeadline",
-  "fundraisingMeetingMedium",
-  "fundraisingMeetingId",
-  "fundraisingMeetingPassword",
-  "fundraisingMeetingLink",
-  "fundraisingOrgName",
-  "fundraisingConferenceTheme",
-  "fundraisingOfficeName",
-  "fundraisingAlumniGradYear",
-  "fundraisingPartnershipType",
-]);
 
 function shouldAutoSyncFundraisingBody(draft: LetterDraft): boolean {
   if (!draft.fundraisingEnabled) return false;
@@ -549,6 +988,1746 @@ function applyLetterSample(
 
   const html = buildLetterBodyRichHtml(allLetterBodyFieldsFromDraft(merged));
   return { ...merged, bodyRich: html, body: richHtmlToPlainText(html) };
+}
+
+// ── Design constants (mirrors letterhead route) ───────────────────────────────
+
+const C = {
+  navy: "#002868",
+  darkNavy: "#001A4E",
+  red: "#BF0A30",
+  gold: "#C8A061",
+  white: "#FFFFFF",
+  muted: "#777777",
+  sideAccent: "#88A4C8",
+  divider: "#1a3568",
+};
+
+const FLAG_STRIPES_11 = [
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+  "#FFFFFF",
+  "#BF0A30",
+] as const;
+
+const ROLE_LABELS: Record<string, string> = {
+  CHAIR: "General Chairman",
+  VICE_CHAIR: "General Co-Chair",
+  SECRETARY: "General Secretary",
+  TREASURER: "Treasurer",
+};
+
+function memberLabel(m: Member): string {
+  const base = ROLE_LABELS[m.role];
+  if (base) return base;
+  return m.title ?? m.committeeScope ?? "Committee Member";
+}
+
+function formatChinaPhone(phone: string | null | undefined): string {
+  const raw = (phone ?? "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("+")) return raw;
+
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return raw;
+  if (digits.startsWith("86")) return `+${digits}`;
+  return `+86${digits}`;
+}
+
+function normalizeRoleOrTitle(value: string | null | undefined): string {
+  return (value ?? "").toUpperCase().replace(/[^A-Z]/g, "");
+}
+
+function findOfficerByKeywords(members: Member[], keywords: string[]): Member | null {
+  for (const m of members) {
+    const role = normalizeRoleOrTitle(m.role);
+    const title = normalizeRoleOrTitle(m.title);
+    if (keywords.some((k) => role.includes(k) || title.includes(k))) {
+      return m;
+    }
+  }
+  return null;
+}
+
+function buildOfficerPhoneEntries(
+  members: Member[],
+): { label: string; phone: string }[] {
+  const chair =
+    members.find((m) => m.role === "CHAIR") ||
+    findOfficerByKeywords(members, ["CHAIRMAN", "CHAIR"]);
+  const viceChair =
+    members.find((m) => m.role === "VICE_CHAIR") ||
+    findOfficerByKeywords(members, ["VICECHAIR", "COCHAIR"]);
+  const secretary =
+    members.find((m) => m.role === "SECRETARY") ||
+    findOfficerByKeywords(members, ["SECRETARY"]);
+
+  const chairPhone = formatChinaPhone(chair?.phone) || LETTERHEAD_CONFIG.officerPhones.chair;
+  const viceChairPhone =
+    formatChinaPhone(viceChair?.phone) || LETTERHEAD_CONFIG.officerPhones.coChair;
+  const secretaryPhone =
+    formatChinaPhone(secretary?.phone) || LETTERHEAD_CONFIG.officerPhones.secretary;
+
+  return [
+    { label: "Chair", phone: chairPhone },
+    { label: "Co-Chair", phone: viceChairPhone },
+    { label: "Secretary", phone: secretaryPhone },
+  ].filter((entry) => Boolean(entry.phone));
+}
+
+function fmtDateRange(start: string, end: string): string {
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) =>
+    d.toLocaleDateString("en-US", opts);
+  return (
+    fmt(new Date(start), { month: "long", day: "numeric" }) +
+    " – " +
+    fmt(new Date(end), { month: "long", day: "numeric", year: "numeric" })
+  );
+}
+
+type Signatory = {
+  name: string;
+  title: string;
+  label: string; // "Signed" | "Approved" | "Attested"
+  sig: string; // base64 data URL
+  sigScale: number;
+};
+
+type LetterBodyBlock =
+  | { type: "heading"; level: 1 | 2 | 3 | 4; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; ordered: boolean; items: string[] }
+  | { type: "table"; headers: string[]; rows: string[][] }
+  | { type: "blockquote"; text: string }
+  | { type: "divider" };
+
+// ── Page Metrics: Geometry helpers for layout-aware pagination ─────────────
+
+/**
+ * Defines the dimensions and typography for a letter page variant.
+ * Enables proper text wrapping and capacity calculations based on actual
+ * page geometry rather than abstract line counts.
+ */
+type PageMetrics = {
+  name: string;
+  contentWidth: number; // Actual available width in px (after sidebars/padding)
+  contentHeight: number; // Available height in px (after header/footer)
+  paddingLeft: number;
+  paddingRight: number;
+  fontSize: number;
+  lineHeight: number; // Multiplier (e.g., 1.8 = 1.8x fontSize)
+};
+
+function getUsableTextWidth(metrics: PageMetrics): number {
+  return Math.max(
+    120,
+    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight,
+  );
+}
+
+function measureTextWidth(text: string, metrics: PageMetrics): number {
+  if (typeof document === "undefined") {
+    // SSR fallback; keeps behavior deterministic outside browser context.
+    return text.length * (metrics.fontSize * 0.52);
+  }
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    return text.length * (metrics.fontSize * 0.52);
+  }
+  ctx.font = `${metrics.fontSize}px Helvetica Neue, Arial, sans-serif`;
+  return ctx.measureText(text).width;
+}
+
+/** Calculate line count capacity based on available height */
+function estimateLinesPerPage(metrics: PageMetrics): number {
+  const lineHeightPx = metrics.fontSize * metrics.lineHeight;
+  return Math.floor(metrics.contentHeight / lineHeightPx);
+}
+
+/**
+ * Wrap a single paragraph into lines, respecting max character width.
+ */
+function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
+  const words = paragraph.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [""];
+
+  const lines: string[] = [];
+  let current = "";
+  const maxWidth = getUsableTextWidth(metrics);
+
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (measureTextWidth(candidate, metrics) <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) lines.push(current);
+      if (measureTextWidth(word, metrics) <= maxWidth) {
+        current = word;
+        continue;
+      }
+      // Hard-wrap very long tokens so they don't overflow.
+      let segment = "";
+      for (const ch of word) {
+        const next = segment + ch;
+        if (measureTextWidth(next, metrics) <= maxWidth) {
+          segment = next;
+        } else {
+          if (segment) lines.push(segment);
+          segment = ch;
+        }
+      }
+      current = segment;
+    }
+  }
+
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [""];
+}
+
+/**
+ * When estimating "will this block fit on the previous sheet?", allow a few extra
+ * line-slots so preview pages fill closer to the A4 limit (table/heading heuristics
+ * are slightly pessimistic). Keeps greedy breaks strict; only slack backfill uses this.
+ */
+const PAGINATION_BACKFILL_LINE_TOLERANCE = 3;
+
+function estimateBlockLines(
+  block: LetterBodyBlock,
+  metrics: PageMetrics,
+): number {
+  const paragraphLines = (text: string, bonus = 1) =>
+    Math.max(1, wrapParagraph(text, metrics).length + bonus);
+
+  if (block.type === "heading") {
+    return paragraphLines(block.text, block.level <= 2 ? 2 : 1);
+  }
+  if (block.type === "paragraph") {
+    return paragraphLines(block.text, 1);
+  }
+  if (block.type === "blockquote") {
+    return paragraphLines(block.text, 2);
+  }
+  if (block.type === "divider") {
+    return 2;
+  }
+  if (block.type === "list") {
+    return (
+      block.items.reduce(
+        (sum, item, idx) =>
+          sum +
+          Math.max(
+            1,
+            wrapParagraph(
+              `${block.ordered ? `${idx + 1}. ` : "• "}${item}`,
+              metrics,
+            ).length,
+          ),
+        0,
+      ) + 1
+    );
+  }
+  if (block.type === "table") {
+    const hasHeaderRow = block.headers.length > 0 ? 1 : 0;
+    const rowCount = hasHeaderRow + block.rows.length;
+    // Render uses 10.5px type and ~4px padding; ~1.15–1.25 "line units" per row is closer than 1.65.
+    return Math.max(3, Math.ceil(rowCount * 1.22) + 1);
+  }
+  return 2;
+}
+
+/**
+ * Headings stranded alone at the foot of a page (with their table/list on the next sheet)
+ * create large empty margins. Pull trailing headings onto the next page whenever possible.
+ */
+function coalesceTrailingHeadingsOntoNextPage(
+  pages: LetterBodyBlock[][],
+): LetterBodyBlock[][] {
+  const out = pages;
+  let p = 0;
+  while (p < Math.max(0, out.length - 1)) {
+    const cur = out[p];
+    const nxt = out[p + 1];
+    if (!cur?.length || !nxt?.length) {
+      p++;
+      continue;
+    }
+    if (cur[cur.length - 1].type !== "heading") {
+      p++;
+      continue;
+    }
+    nxt.unshift(cur.pop()!);
+    if (cur.length === 0) out.splice(p, 1);
+    else p++;
+  }
+  return out.length > 0 ? out : [[]];
+}
+
+/** Fix stray empty pagination buckets */
+function dropEmptyPaginationPages(
+  pages: LetterBodyBlock[][],
+): LetterBodyBlock[][] {
+  const next = pages.filter((seg) => seg.length > 0);
+  return next.length > 0 ? next : [[]];
+}
+
+/**
+ * Greedy pagination can leave large trailing slack on page P while P+1 begins with
+ * a block that would still fit (e.g. a table after a section title). Pull blocks
+ * forward so we fill vertical slack for every letter body, not just this template.
+ */
+function backfillSlackOnce(
+  pages: LetterBodyBlock[][],
+  firstCap: number,
+  continuationCap: number,
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  lineTolerance = 0,
+): boolean {
+  let moved = false;
+  for (let p = 0; p < pages.length - 1; p++) {
+    const cap = p === 0 ? firstCap : continuationCap;
+    const targetMetrics = p === 0 ? firstPageMetrics : continuationPageMetrics;
+    while (pages[p + 1]?.length) {
+      const head = pages[p + 1][0];
+      const used = pages[p].reduce(
+        (sum, b) => sum + estimateBlockLines(b, targetMetrics),
+        0,
+      );
+      const add = estimateBlockLines(head, targetMetrics);
+      if (used + add <= cap + lineTolerance) {
+        pages[p].push(pages[p + 1].shift()!);
+        moved = true;
+      } else {
+        break;
+      }
+    }
+  }
+  return moved;
+}
+
+function spliceOutEmptyIntermediatePages(pages: LetterBodyBlock[][]): void {
+  for (let i = pages.length - 1; i >= 0; i--) {
+    if (pages[i].length === 0 && pages.length > 1) {
+      pages.splice(i, 1);
+    }
+  }
+}
+
+function runBackfillSlackConvergence(
+  pages: LetterBodyBlock[][],
+  firstCap: number,
+  continuationCap: number,
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  lineTolerance = 0,
+): void {
+  for (let guard = 0; guard < 32; guard++) {
+    spliceOutEmptyIntermediatePages(pages);
+    const moved = backfillSlackOnce(
+      pages,
+      firstCap,
+      continuationCap,
+      firstPageMetrics,
+      continuationPageMetrics,
+      lineTolerance,
+    );
+    if (!moved) break;
+  }
+  spliceOutEmptyIntermediatePages(pages);
+}
+
+function paginateBodyBlocks(
+  blocks: LetterBodyBlock[],
+  firstPageMetrics: PageMetrics,
+  continuationPageMetrics: PageMetrics,
+  signatureReserveLines: number,
+  firstPageLeadReserveLines: number,
+): LetterBodyBlock[][] {
+  if (blocks.length === 0) return [[]];
+
+  const rawFirstCap = estimateLinesPerPage(firstPageMetrics);
+  const rawContinuationCap = estimateLinesPerPage(continuationPageMetrics);
+  // Subtract To/From/date chrome from raw line budget first, then apply a light margin.
+  // (Applying margin to the full page before subtracting lead was over-penalizing body space.)
+  const firstCap = Math.max(
+    14,
+    Math.floor(
+      Math.max(0, rawFirstCap - Math.max(0, firstPageLeadReserveLines)) * 0.985,
+    ),
+  );
+  const continuationCap = Math.max(14, Math.floor(rawContinuationCap * 0.985));
+
+  const pages: LetterBodyBlock[][] = [[]];
+  let pageIndex = 0;
+  let usedLines = 0;
+
+  const pageCap = () => (pageIndex === 0 ? firstCap : continuationCap);
+
+  const metricsAt = () =>
+    pageIndex === 0 ? firstPageMetrics : continuationPageMetrics;
+
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const metrics = metricsAt();
+    const blockLines = estimateBlockLines(block, metrics);
+    const nextBlock = blocks[i + 1];
+    const nextLines = nextBlock ? estimateBlockLines(nextBlock, metrics) : 0;
+
+    // Do not end a page with a section title while its following block is forced to the next sheet.
+    if (block.type === "heading" && nextBlock && pages[pageIndex].length > 0) {
+      const remainder = pageCap() - usedLines;
+      const headingFitsInRemainder = remainder >= blockLines;
+      const pairFitsInRemainder = remainder >= blockLines + nextLines;
+      if (headingFitsInRemainder && !pairFitsInRemainder) {
+        pages.push([]);
+        pageIndex += 1;
+        usedLines = 0;
+      }
+    }
+
+    if (usedLines + blockLines > pageCap() && pages[pageIndex].length > 0) {
+      pages.push([]);
+      pageIndex += 1;
+      usedLines = 0;
+    }
+
+    const blockMetrics = metricsAt();
+    pages[pageIndex].push(block);
+    usedLines += estimateBlockLines(block, blockMetrics);
+  }
+
+  runBackfillSlackConvergence(
+    pages,
+    firstCap,
+    continuationCap,
+    firstPageMetrics,
+    continuationPageMetrics,
+    PAGINATION_BACKFILL_LINE_TOLERANCE,
+  );
+  let normalized = dropEmptyPaginationPages(pages);
+  normalized = coalesceTrailingHeadingsOntoNextPage(normalized);
+  normalized = dropEmptyPaginationPages(normalized);
+
+  if (signatureReserveLines > 0 && normalized.length > 0) {
+    let lastIndex = normalized.length - 1;
+    const reserveCap = Math.max(
+      8,
+      (lastIndex === 0 ? firstCap : continuationCap) - signatureReserveLines,
+    );
+
+    let used = normalized[lastIndex].reduce(
+      (sum, block) =>
+        sum +
+        estimateBlockLines(
+          block,
+          lastIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+        ),
+      0,
+    );
+
+    while (used > reserveCap && normalized[lastIndex].length > 1) {
+      const moved = normalized[lastIndex].pop();
+      if (!moved) break;
+      if (!normalized[lastIndex + 1]) normalized.push([]);
+      normalized[lastIndex + 1].unshift(moved);
+      used = normalized[lastIndex].reduce(
+        (sum, block) =>
+          sum +
+          estimateBlockLines(
+            block,
+            lastIndex === 0 ? firstPageMetrics : continuationPageMetrics,
+          ),
+        0,
+      );
+      lastIndex = normalized.length - 1;
+    }
+  }
+
+  runBackfillSlackConvergence(
+    normalized,
+    firstCap,
+    continuationCap,
+    firstPageMetrics,
+    continuationPageMetrics,
+    PAGINATION_BACKFILL_LINE_TOLERANCE,
+  );
+  normalized = coalesceTrailingHeadingsOntoNextPage(normalized);
+  normalized = dropEmptyPaginationPages(normalized);
+
+  return normalized;
+}
+
+function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
+  return blocks.map((block, idx) => {
+    const key = `${keyPrefix}-${idx}`;
+
+    if (block.type === "heading") {
+      const fontSize = block.level === 1 ? 17 : block.level === 2 ? 15 : 13;
+      return (
+        <div
+          key={key}
+          style={{
+            fontSize,
+            fontWeight: 700,
+            color: C.navy,
+            marginTop: block.level <= 2 ? 8 : 6,
+            marginBottom: 6,
+            lineHeight: 1.4,
+          }}
+        >
+          {block.text}
+        </div>
+      );
+    }
+
+    if (block.type === "paragraph") {
+      return (
+        <p
+          key={key}
+          style={{
+            fontSize: 12,
+            color: "#222",
+            lineHeight: 1.8,
+            margin: "0 0 8px",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "break-word",
+          }}
+        >
+          {block.text}
+        </p>
+      );
+    }
+
+    if (block.type === "blockquote") {
+      return (
+        <blockquote
+          key={key}
+          style={{
+            margin: "6px 0 10px",
+            padding: "2px 0 2px 10px",
+            borderLeft: `3px solid ${C.gold}`,
+            color: "#444",
+            fontStyle: "italic",
+            fontSize: 11.5,
+            lineHeight: 1.7,
+          }}
+        >
+          {block.text}
+        </blockquote>
+      );
+    }
+
+    if (block.type === "divider") {
+      return (
+        <div
+          key={key}
+          style={{ height: 1, background: `${C.gold}80`, margin: "10px 0" }}
+        />
+      );
+    }
+
+    if (block.type === "list") {
+      return (
+        <div key={key} style={{ marginBottom: 10 }}>
+          {block.items.map((item, itemIdx) => (
+            <div
+              key={`${key}-item-${itemIdx}`}
+              style={{
+                fontSize: 12,
+                color: "#222",
+                lineHeight: 1.8,
+                marginBottom: 3,
+                paddingLeft: 2,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 6,
+              }}
+            >
+              <span style={{ minWidth: 18 }}>
+                {block.ordered ? `${itemIdx + 1}.` : "•"}
+              </span>
+              <span
+                style={{
+                  flex: 1,
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "break-word",
+                }}
+              >
+                {item}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (block.type === "table") {
+      return (
+        <div key={key} style={{ margin: "8px 0 12px", overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: 10.5,
+              color: "#222",
+            }}
+          >
+            {block.headers.length > 0 && (
+              <thead>
+                <tr>
+                  {block.headers.map((header, headerIdx) => (
+                    <th
+                      key={`${key}-head-${headerIdx}`}
+                      style={{
+                        border: `1px solid ${C.divider}55`,
+                        background: `${C.navy}10`,
+                        padding: "4px 6px",
+                        textAlign: "left",
+                        fontWeight: 700,
+                        color: C.navy,
+                      }}
+                    >
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {block.rows.map((row, rowIdx) => (
+                <tr key={`${key}-row-${rowIdx}`}>
+                  {row.map((cell, cellIdx) => (
+                    <td
+                      key={`${key}-cell-${rowIdx}-${cellIdx}`}
+                      style={{
+                        border: `1px solid ${C.divider}40`,
+                        padding: "4px 6px",
+                        verticalAlign: "top",
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return null;
+  });
+}
+
+// ── A4 Letter Preview ─────────────────────────────────────────────────────────
+
+function LetterA4Preview({
+  draft,
+  members,
+  confInfo,
+  forPrint = false,
+}: {
+  draft: LetterDraft;
+  members: Member[];
+  confInfo: ConfInfo | null;
+  forPrint?: boolean;
+}) {
+  const PAGE_W = 794;
+  const PAGE_H = 1123;
+  const STRIPE_H = 14;
+  const HEADER_H = 178; // keep all masthead lines visible (emails, websites, phones)
+  const GOLD_BAR = 2.5;
+  const OFFICE_ROW = 26;
+  const NAVY_BAR = 7;
+  const RED_BAR = 3;
+  const TOTAL_HEADER =
+    STRIPE_H + HEADER_H + GOLD_BAR + OFFICE_ROW + NAVY_BAR + RED_BAR;
+  const FOOTER_H = 32;
+  const SIDEBAR_W = 215; // navy-accent(8) + red-accent(3) + content(204)
+  const BODY_H = PAGE_H - TOTAL_HEADER - FOOTER_H;
+  /** Main letter column vertical padding (`paddingTop` + `paddingBottom` on primary body pane) */
+  const FIRST_MAIN_VERTICAL_PADDING = 24 + 24;
+  /** Continuation sheet: stripes + condensed title strip — keep JSX heights in sync for true A4 pages */
+  const CONTINUATION_STRIPES_H = 8;
+  const CONTINUATION_TITLEBAR_BODY_H = 62; // padded bar + gold border-bottom
+  const CONTINUATION_LETTERHEAD_H =
+    CONTINUATION_STRIPES_H + CONTINUATION_TITLEBAR_BODY_H;
+  const continuationMiddlePx = PAGE_H - CONTINUATION_LETTERHEAD_H - FOOTER_H;
+  const CONTINUATION_TEXT_PADDING_TOP = 20;
+  const CONTINUATION_TEXT_PADDING_RIGHT = 96;
+  const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
+  const CONTINUATION_TEXT_PADDING_LEFT = 96;
+
+  /** Screen preview: rigid A4 frame; print CSS keeps each page at exact A4 height */
+  const letterPageChrome = {
+    width: PAGE_W,
+    minHeight: PAGE_H,
+    height: PAGE_H,
+    maxHeight: PAGE_H,
+    overflow: "hidden" as const,
+    flexShrink: 0 as const,
+  };
+
+  const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+  const sortedMembers = [
+    ...KEY_ORDER.map((r) => members.find((m) => m.role === r)).filter(Boolean),
+    ...members.filter((m) => !KEY_ORDER.includes(m.role)),
+  ] as Member[];
+
+  // Officers whose phones go in the header
+  const officerPhones = buildOfficerPhoneEntries(members);
+
+  const dateRange = confInfo
+    ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
+    : "July 24 – 27, 2026";
+
+  const signatories: Signatory[] = [
+    {
+      name: draft.signatory1Name ?? "",
+      title: draft.signatory1Title ?? "",
+      label: draft.signatory1Label ?? "Signed",
+      sig: draft.signatory1Sig ?? "",
+      sigScale: draft.signatory1SigScale ?? 1,
+    },
+    {
+      name: draft.signatory2Name ?? "",
+      title: draft.signatory2Title ?? "",
+      label: draft.signatory2Label ?? "Approved",
+      sig: draft.signatory2Sig ?? "",
+      sigScale: draft.signatory2SigScale ?? 1,
+    },
+    {
+      name: draft.signatory3Name ?? "",
+      title: draft.signatory3Title ?? "",
+      label: draft.signatory3Label ?? "Attested",
+      sig: draft.signatory3Sig ?? "",
+      sigScale: draft.signatory3SigScale ?? 1,
+    },
+  ].filter((s) => s.name.trim() || s.title.trim());
+
+  // Geometry for pagination capacity (reserve must use these first)
+  const firstPageMetrics: PageMetrics = {
+    name: "first-page",
+    contentWidth: PAGE_W - SIDEBAR_W,
+    contentHeight: Math.max(120, BODY_H - FIRST_MAIN_VERTICAL_PADDING),
+    paddingLeft: 24,
+    paddingRight: 32,
+    fontSize: 12,
+    lineHeight: 1.8,
+  };
+
+  const continuationPageMetrics: PageMetrics = {
+    name: "continuation-page",
+    contentWidth: PAGE_W,
+    contentHeight: Math.max(
+      120,
+      continuationMiddlePx -
+        CONTINUATION_TEXT_PADDING_TOP -
+        CONTINUATION_TEXT_PADDING_BOTTOM,
+    ),
+    paddingLeft: CONTINUATION_TEXT_PADDING_LEFT,
+    paddingRight: CONTINUATION_TEXT_PADDING_RIGHT,
+    fontSize: 12,
+    lineHeight: 1.8,
+  };
+
+  /** Trailing slab: signatures + payment note + embedded flyer (same page as body tail) */
+  const signaturesBlockLines = signatories.length > 0 ? 11 : 0;
+  // Flyer and payment note now go on a dedicated attachment page — only reserve
+  // space for the signature block itself on the final body content page.
+  const signatureReserveLines = signaturesBlockLines;
+
+  // Paginate structured body blocks using page-aware metrics
+  const bodyBlocks = richHtmlToBodyBlocks(draft.bodyRich ?? "");
+  const fallbackBody = normalizeMarkdownToReadableText(draft.body || "");
+  const normalizedBlocks =
+    bodyBlocks.length > 0
+      ? bodyBlocks
+      : fallbackBody
+        ? fallbackBody
+            .split("\n\n")
+            .filter(Boolean)
+            .map((text) => ({ type: "paragraph", text }) as LetterBodyBlock)
+        : [];
+
+  const newlineRows = (s: string) => (s.trim() ? s.split("\n").length : 0);
+  // Chrome overhead: date row (~1.2 lines) + divider with margins (~1.2 lines) + spacing (~0.6 lines)
+  // = ~3 base lines, then 1 line per wrapped row of To/From, ~2 for Re (includes marginTop).
+  // Previous formula used *2 multiplier on to/from which over-reserved by ~9 lines on a standard
+  // single-line letter, artificially dropping page-1 body capacity from ~30 lines to ~22.
+  const firstPageLeadReserveLines =
+    3 +
+    Math.max(1, newlineRows(draft.to)) +
+    Math.max(1, newlineRows(draft.from)) +
+    (draft.re.trim() ? 2 : 0);
+
+  const blockPages = paginateBodyBlocks(
+    normalizedBlocks,
+    firstPageMetrics,
+    continuationPageMetrics,
+    signatureReserveLines,
+    firstPageLeadReserveLines,
+  );
+  const firstPageBlocks = blockPages[0] ?? [];
+  const continuationBodies = blockPages.slice(1);
+  const showSignaturesOnFirstPage = continuationBodies.length === 0;
+  const hasFundraisingContent =
+    (draft.fundraisingTargetAmount ?? "").trim().length > 0 ||
+    (draft.fundraisingUseOfFunds ?? "").trim().length > 0 ||
+    (draft.fundraisingRaisedToDate ?? "").trim().length > 0 ||
+    draft.fundraisingCategory !== "general";
+  const showFundraisingFlyer =
+    draft.type === "FUNDRAISING" ||
+    Boolean(draft.fundraisingEnabled) ||
+    draft.signatoryMode === "FUNDRAISING" ||
+    hasFundraisingContent;
+  const totalPages = 1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
+  const officeLabel =
+    (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
+
+  return (
+    <>
+      <div
+        className="letter-page"
+        style={{
+          ...letterPageChrome,
+          background: C.white,
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+          outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
+          fontFamily: "'Helvetica Neue', Arial, sans-serif",
+        }}
+      >
+        {/* ── Liberian flag stripes ── */}
+        <div style={{ display: "flex", height: STRIPE_H, flexShrink: 0 }}>
+          {FLAG_STRIPES_11.map((color, i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                background: color,
+                borderBottom: color === "#FFFFFF" ? "0.5px solid #ddd" : "none",
+              }}
+            />
+          ))}
+        </div>
+
+        {/* ── Header row: logo | text | seal ── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            height: HEADER_H,
+            flexShrink: 0,
+            background: C.white,
+            padding: "10px 18px 8px",
+            gap: 12,
+          }}
+        >
+          {/* LSUIC Logo */}
+          <div
+            style={{
+              flexShrink: 0,
+              width: 108,
+              height: 108,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 6,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/lsuic_logo.png"
+              alt="LSUIC"
+              style={{ width: 108, height: 108, objectFit: "contain" }}
+              onError={(e) => {
+                const el = e.target as HTMLImageElement;
+                el.style.display = "none";
+                (el.parentElement as HTMLElement).innerHTML =
+                  '<span style="font-size:10px;font-weight:800;color:#002868;">LSUIC</span>';
+              }}
+            />
+          </div>
+
+          {/* Center text block */}
+          <div style={{ flex: 1, textAlign: "center", paddingTop: 2 }}>
+            <div
+              style={{
+                fontSize: 14.5,
+                fontWeight: 800,
+                color: C.navy,
+                letterSpacing: "0.3px",
+                lineHeight: 1.2,
+              }}
+            >
+              {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555", marginTop: 4 }}>
+              {LETTER_COMPOSER_HEADER_UNION_LINE}
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: C.gold,
+                marginTop: 4,
+              }}
+            >
+              {letterComposerConferenceSubtitle(
+                confInfo?.name ?? LETTERHEAD_CONFIG.defaultConferenceName,
+              )}
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555" }}>
+              {buildCityRegionLine(confInfo?.city)}
+            </div>
+            <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
+            <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
+              {buildLetterheadEmailLine()}
+            </div>
+            <div style={{ fontSize: 8, color: C.muted, marginTop: 1 }}>
+              {buildLetterheadWebsiteLine()}
+            </div>
+            {officerPhones.length > 0 && (
+              <div
+                style={{
+                  marginTop: 4,
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 16,
+                  flexWrap: "wrap",
+                }}
+              >
+                {officerPhones.map((op) => (
+                  <span
+                    key={op.label}
+                    style={{ fontSize: 7.8, color: C.navy, fontWeight: 700 }}
+                  >
+                    {op.label}: {op.phone}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right column — Liberia seal */}
+          <div
+            style={{
+              flexShrink: 0,
+              width: 108,
+              height: 108,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: 6,
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/liberia-seal.svg"
+              alt="Republic of Liberia Seal"
+              style={{ width: 100, height: 100, objectFit: "contain" }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        </div>
+
+        {/* ── Gold divider bar ── */}
+        <div
+          style={{
+            height: GOLD_BAR,
+            background: C.gold,
+            flexShrink: 0,
+          }}
+        />
+
+        {/* ── Office label row ── */}
+        <div
+          style={{
+            height: OFFICE_ROW,
+            background: C.white,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingRight: 18,
+            borderBottom: `${NAVY_BAR}px solid ${C.navy}`,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 9,
+              fontStyle: "italic",
+              fontWeight: 700,
+              color: C.navy,
+            }}
+          >
+            {officeLabel}
+          </span>
+        </div>
+
+        <div style={{ height: RED_BAR, background: C.red, flexShrink: 0 }} />
+
+        {/* ── Body area: sidebar + content ── */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "stretch",
+            width: "100%",
+            flexShrink: 0,
+            height: BODY_H,
+            maxHeight: BODY_H,
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
+          {/* Left sidebar — white bg, navy+red left accent, center-aligned (matches reference letter) */}
+          <div
+            style={{
+              width: SIDEBAR_W,
+              height: BODY_H,
+              maxHeight: BODY_H,
+              background: C.white,
+              flexShrink: 0,
+              overflow: "hidden",
+              display: "flex",
+              borderRight: `1px solid #dde3ef`,
+            }}
+          >
+            {/* Vertical accent strips */}
+            <div style={{ display: "flex", flexShrink: 0, height: "100%" }}>
+              <div style={{ width: 8, background: C.navy }} />
+              <div style={{ width: 3, background: C.red }} />
+            </div>
+
+            {/* Member list column — header fixed, roster scrolls so long NEC lists obey A4 body height */}
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 0,
+                padding: "12px 8px 12px 9px",
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ flexShrink: 0 }}>
+                <div
+                  style={{
+                    fontSize: 7.5,
+                    fontWeight: 800,
+                    color: C.navy,
+                    letterSpacing: "0.8px",
+                    textTransform: "uppercase" as const,
+                    textAlign: "center",
+                    marginBottom: 5,
+                  }}
+                >
+                  CONFERENCE COMMITTEE
+                </div>
+                <div
+                  style={{
+                    height: 1,
+                    background: C.navy,
+                    opacity: 0.25,
+                    marginBottom: 9,
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+                {sortedMembers.map((m) => (
+                  <div
+                    key={m.id}
+                    style={{ marginBottom: 6, textAlign: "center" }}
+                  >
+                    {/* Name: bold italic navy, largest */}
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: C.navy,
+                        fontStyle: "italic",
+                        lineHeight: 1.25,
+                        wordBreak: "break-word" as const,
+                      }}
+                    >
+                      {m.name}
+                    </div>
+                    {/* Role: italic navy, slightly smaller */}
+                    <div
+                      style={{
+                        fontSize: 9.5,
+                        color: C.navy,
+                        fontStyle: "italic",
+                        lineHeight: 1.3,
+                        opacity: 0.8,
+                      }}
+                    >
+                      {memberLabel(m)}
+                    </div>
+                    {/* City */}
+                    {m.city && (
+                      <div
+                        style={{
+                          fontSize: 9,
+                          color: "#444",
+                          fontStyle: "italic",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {m.city}, China
+                      </div>
+                    )}
+                    {/* Phone: bold italic, prominent — matches reference */}
+                    {m.phone && (
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          color: C.navy,
+                          fontStyle: "italic",
+                          lineHeight: 1.4,
+                          marginTop: 2,
+                        }}
+                      >
+                        {formatChinaPhone(m.phone)}
+                      </div>
+                    )}
+                    {/* Thin divider */}
+                    <div
+                      style={{
+                        height: 0.8,
+                        background: C.navy,
+                        opacity: 0.15,
+                        marginTop: 6,
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main letter content */}
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              minHeight: 0,
+              height: BODY_H,
+              maxHeight: BODY_H,
+              padding: "24px 32px 24px",
+              overflow: "hidden",
+            }}
+          >
+            {/* Date (right-aligned) */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginBottom: 14,
+              }}
+            >
+              <span
+                style={{ fontSize: 11, color: C.muted, fontStyle: "italic" }}
+              >
+                {draft.date ||
+                  new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+              </span>
+            </div>
+
+            {/* To / From / Re */}
+            <div
+              style={{
+                fontSize: 12,
+                color: "#222",
+                lineHeight: 1.8,
+                marginBottom: 6,
+              }}
+            >
+              {draft.to && (
+                <div>
+                  <strong style={{ color: C.navy }}>To:</strong>{" "}
+                  <span style={{ whiteSpace: "pre-line" }}>{draft.to}</span>
+                </div>
+              )}
+              {draft.from && (
+                <div>
+                  <strong style={{ color: C.navy }}>From:</strong>{" "}
+                  <span style={{ whiteSpace: "pre-line" }}>{draft.from}</span>
+                </div>
+              )}
+              {draft.re && (
+                <div style={{ marginTop: 4 }}>
+                  <strong style={{ color: C.navy }}>Re:</strong>{" "}
+                  <strong>{draft.re}</strong>
+                </div>
+              )}
+            </div>
+
+            {/* Gold divider */}
+            <div
+              style={{ height: 1.5, background: C.gold, margin: "12px 0" }}
+            />
+
+            {/* Body text */}
+            <div>
+              {firstPageBlocks.length > 0 ? (
+                renderBodyBlocks(firstPageBlocks, "first-page")
+              ) : (
+                <span style={{ color: "#bbb", fontStyle: "italic" }}>
+                  Your letter content will appear here as you type…
+                </span>
+              )}
+            </div>
+
+            {showSignaturesOnFirstPage && signatories.length > 0 && (
+              <div
+                style={{
+                  marginTop: 28,
+                  paddingTop: 14,
+                  borderTop: `1px solid ${C.gold}`,
+                  display: "grid",
+                  gridTemplateColumns:
+                    signatories.length === 1
+                      ? "1fr"
+                      : signatories.length === 2
+                        ? "repeat(2, 1fr)"
+                        : "repeat(3, 1fr)",
+                  gap: 16,
+                }}
+              >
+                {signatories.map((sig, idx) => (
+                  <div
+                    key={`${sig.name}-${idx}`}
+                    style={{ minHeight: 80, textAlign: "center" }}
+                  >
+                    {(sig.name || sig.title) && (
+                      <>
+                        {/* Signature image */}
+                        {sig.sig && (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "center",
+                              marginBottom: 2,
+                            }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={sig.sig}
+                              alt="signature"
+                              style={{
+                                height: Math.round(36 * sig.sigScale),
+                                maxWidth: "100%",
+                                objectFit: "contain",
+                              }}
+                            />
+                          </div>
+                        )}
+                        {/* Signature line */}
+                        <div
+                          style={{
+                            borderTop: "1px solid #222",
+                            width: "100%",
+                            marginBottom: 4,
+                          }}
+                        />
+                        {/* Signature label — below the line */}
+                        {sig.label && (
+                          <div
+                            style={{
+                              fontSize: 9,
+                              color: C.muted,
+                              marginBottom: 4,
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {sig.label}
+                          </div>
+                        )}
+                        {sig.name && (
+                          <div
+                            style={{
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              color: "#222",
+                            }}
+                          >
+                            {sig.name}
+                          </div>
+                        )}
+                        {sig.title && (
+                          <div style={{ fontSize: 10.5, color: C.muted }}>
+                            {sig.title}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            height: FOOTER_H,
+            background: C.navy,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ height: 2, background: C.red, width: "100%" }} />
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0 14px",
+            }}
+          >
+            {/* left spacer to balance right page number */}
+            <div style={{ width: 48 }} />
+            <div
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                color: C.gold,
+                letterSpacing: "0.5px",
+                textAlign: "center",
+              }}
+            >
+              Honoring Our Past, Engaging Our Present, and Inspiring Our Future
+            </div>
+            <div
+              style={{
+                fontSize: 8,
+                color: C.gold,
+                opacity: 0.75,
+                fontVariantNumeric: "tabular-nums",
+                width: 48,
+                textAlign: "right",
+              }}
+            >
+              Page 1 of {totalPages}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {continuationBodies.map((segmentBlocks, idx) => {
+        const isLast = idx === continuationBodies.length - 1;
+        return (
+          <div
+            key={`cont-${idx}`}
+            className="letter-page continuation-page"
+            style={{
+              ...letterPageChrome,
+              background: C.white,
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+              outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
+              fontFamily: "'Helvetica Neue', Arial, sans-serif",
+              marginTop: 0,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                height: CONTINUATION_STRIPES_H,
+                flexShrink: 0,
+              }}
+            >
+              {FLAG_STRIPES_11.map((color, i) => (
+                <div key={i} style={{ flex: 1, background: color }} />
+              ))}
+            </div>
+            <div
+              style={{
+                flexShrink: 0,
+                height: CONTINUATION_TITLEBAR_BODY_H,
+                boxSizing: "border-box",
+                padding: "10px 22px",
+                borderBottom: `2px solid ${C.gold}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
+                {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
+              </div>
+              <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+                {officeLabel}
+              </div>
+            </div>
+
+            <div
+              style={{
+                flexShrink: 0,
+                height: continuationMiddlePx,
+                maxHeight: continuationMiddlePx,
+                overflow: "hidden",
+                padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
+              }}
+            >
+              <div>
+                {renderBodyBlocks(segmentBlocks, `continuation-${idx}`)}
+              </div>
+
+              {isLast && signatories.length > 0 && (
+                <div
+                  style={{
+                    marginTop: 28,
+                    paddingTop: 14,
+                    borderTop: `1px solid ${C.gold}`,
+                    display: "grid",
+                    gridTemplateColumns:
+                      signatories.length === 1
+                        ? "1fr"
+                        : signatories.length === 2
+                          ? "repeat(2, 1fr)"
+                          : "repeat(3, 1fr)",
+                    gap: 16,
+                  }}
+                >
+                  {signatories.map((sig, sigIdx) => (
+                    <div
+                      key={`${sig.name}-${sigIdx}`}
+                      style={{ minHeight: 80, textAlign: "center" }}
+                    >
+                      {(sig.name || sig.title) && (
+                        <>
+                          {sig.label && (
+                            <div
+                              style={{
+                                fontSize: 9,
+                                color: C.muted,
+                                marginBottom: 4,
+                                fontStyle: "italic",
+                              }}
+                            >
+                              {sig.label}
+                            </div>
+                          )}
+                          {sig.sig && (
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                marginBottom: 2,
+                              }}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={sig.sig}
+                                alt="signature"
+                                style={{
+                                  height: Math.round(36 * sig.sigScale),
+                                  maxWidth: "100%",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
+                          )}
+                          <div
+                            style={{
+                              borderTop: "1px solid #222",
+                              width: "100%",
+                              marginBottom: 6,
+                            }}
+                          />
+                          {sig.name && (
+                            <div
+                              style={{
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                color: "#222",
+                              }}
+                            >
+                              {sig.name}
+                            </div>
+                          )}
+                          {sig.title && (
+                            <div style={{ fontSize: 10.5, color: C.muted }}>
+                              {sig.title}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                height: FOOTER_H,
+                background: C.navy,
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <div style={{ height: 2, background: C.red, width: "100%" }} />
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0 14px",
+                }}
+              >
+                <div style={{ width: 48 }} />
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: C.gold,
+                    letterSpacing: "0.5px",
+                    textAlign: "center",
+                  }}
+                >
+                  Honoring Our Past, Engaging Our Present, and Inspiring Our
+                  Future
+                </div>
+                <div
+                  style={{
+                    fontSize: 8,
+                    color: C.gold,
+                    opacity: 0.75,
+                    fontVariantNumeric: "tabular-nums",
+                    width: 48,
+                    textAlign: "right",
+                  }}
+                >
+                  Page {idx + 2} of {totalPages}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* ── Fundraising flyer attachment page ── */}
+      {showFundraisingFlyer && (
+        <div
+          className="letter-page continuation-page letter-flyer-page"
+          style={{
+            ...letterPageChrome,
+            background: C.white,
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
+            outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
+            fontFamily: "'Helvetica Neue', Arial, sans-serif",
+            marginTop: 0,
+          }}
+        >
+          {/* Flag stripes */}
+          <div style={{ display: "flex", height: CONTINUATION_STRIPES_H, flexShrink: 0 }}>
+            {FLAG_STRIPES_11.map((color, i) => (
+              <div key={i} style={{ flex: 1, background: color }} />
+            ))}
+          </div>
+
+          {/* Mini header */}
+          <div
+            style={{
+              flexShrink: 0,
+              height: CONTINUATION_TITLEBAR_BODY_H,
+              boxSizing: "border-box",
+              padding: "10px 22px",
+              borderBottom: `2px solid ${C.gold}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
+              {LETTER_COMPOSER_HEADER_UNION_LINE}
+            </div>
+            <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+              {officeLabel}
+            </div>
+          </div>
+
+          {/* Payment instructions note */}
+          <div
+            style={{
+              margin: "18px 32px 14px 32px",
+              padding: "12px 16px",
+              border: `1.5px solid ${C.navy}`,
+              borderRadius: 4,
+              background: "#f8f9fc",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 9.5,
+                fontWeight: 800,
+                color: C.navy,
+                letterSpacing: "0.5px",
+                textTransform: "uppercase" as const,
+                marginBottom: 6,
+              }}
+            >
+              Payment Instructions (See Flyer Below)
+            </div>
+            <div style={{ fontSize: 9, color: "#333", lineHeight: 1.6 }}>
+              Detailed <strong>payment mediums</strong> are shown on{" "}
+              <strong>the flyer directly below</strong>. Please pay only
+              through those channels —{" "}
+              <strong>Mobile Money</strong>,{" "}
+              <strong>UBA (bank)</strong>,{" "}
+              <strong>WeChat Pay</strong>, or{" "}
+              <strong>Alipay</strong> — using the QR codes and account titles on
+              that flyer.
+            </div>
+          </div>
+
+          {/* Flyer  */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              padding: "0 32px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: C.gold,
+                  letterSpacing: "0.3px",
+                }}
+              >
+                Fundraising flyer — payment methods
+              </div>
+              <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
+                {officeLabel}
+              </div>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/conf/fundraising.png"
+              alt="Fundraising flyer — payment methods"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 580,
+                objectFit: "contain",
+                display: "block",
+              }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 8,
+                color: C.muted,
+                textAlign: "center",
+              }}
+            >
+              Scannable payment details: Mobile Money, UBA, WeChat Pay, and
+              Alipay (see the flyer graphic in this section).
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div
+            style={{
+              height: FOOTER_H,
+              background: C.navy,
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+            }}
+          >
+            <div style={{ height: 2, background: C.red, width: "100%" }} />
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0 14px",
+              }}
+            >
+              <div style={{ width: 48 }} />
+              <div
+                style={{
+                  fontSize: 8,
+                  fontWeight: 700,
+                  color: C.gold,
+                  letterSpacing: "0.5px",
+                  textAlign: "center",
+                }}
+              >
+                Honoring Our Past, Engaging Our Present, and Inspiring Our
+                Future
+              </div>
+              <div
+                style={{
+                  fontSize: 8,
+                  color: C.gold,
+                  opacity: 0.75,
+                  fontVariantNumeric: "tabular-nums",
+                  width: 48,
+                  textAlign: "right",
+                }}
+              >
+                Page {totalPages} of {totalPages}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </>
+  );
 }
 
 // ── Main shell ────────────────────────────────────────────────────────────────
@@ -1781,7 +3960,7 @@ export function LetterComposerShell() {
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Choose the audience for this letter. Each version generates
-                    tailored copy. The conference countdown flyer is appended on the last
+                    tailored copy. The fundraising flyer is appended on the last
                     page when enabled. Edit any field freely after generating.
                   </CardDescription>
                 </CardHeader>
@@ -2655,9 +4834,16 @@ export function LetterComposerShell() {
             <div className="flex-1 min-w-0 overflow-y-auto pb-6">
               {/* Zoom controls */}
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-xs font-semibold text-[#002868]">
-                  Live A4 Preview
-                </p>
+                <div>
+                  <p className="text-xs font-semibold text-[#002868]">
+                    Live A4 Preview
+                  </p>
+                  {activeDraft.fundraisingEnabled && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Fundraising flyer is attached on the last page. Scroll down to view it.
+                    </p>
+                  )}
+                </div>
                 <div className="flex items-center gap-1 rounded-lg border border-border overflow-hidden">
                   <button
                     onClick={() => setZoom((z) => Math.max(40, z - 5))}
@@ -2702,7 +4888,6 @@ export function LetterComposerShell() {
                     draft={activeDraft}
                     members={members}
                     confInfo={confInfo}
-                    confId={confId}
                   />
                 </div>
               </div>
@@ -2718,7 +4903,6 @@ export function LetterComposerShell() {
           draft={activeDraft}
           members={members}
           confInfo={confInfo}
-          confId={confId}
         />
       </div>
     </div>
