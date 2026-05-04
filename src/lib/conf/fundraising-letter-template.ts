@@ -49,6 +49,28 @@ export const FUNDRAISING_CATEGORY_LABELS: Record<FundraisingCategory, string> =
   };
 
 export const CONF_FROM_COMMITTEE = "LSUIC, 2026 Conference Committee";
+
+/** First line of legacy Letter Composer drafts that spelled out the union before the committee shorthand. */
+const LEGACY_LETTER_FROM_FULL_ORG_PREFIX =
+  /^LIBERIAN STUDENT UNION IN CHINA \(LSUIC\)/i;
+
+/**
+ * Replaces a spelled-out LSUIC header line with {@link FUNDRAISING_SAMPLE_FROM} while preserving
+ * any following lines (e.g. signatory name/title). No-op outside fundraising letter mode.
+ */
+export function normalizeFundraisingLetterFromField(
+  from: string,
+  opts: { fundraisingMode: boolean },
+): string {
+  if (!opts.fundraisingMode || !(from ?? "").trim()) return from;
+  const lines = from.split(/\r?\n/);
+  const firstRaw = lines[0] ?? "";
+  const firstTrim = firstRaw.trim();
+  if (!LEGACY_LETTER_FROM_FULL_ORG_PREFIX.test(firstTrim)) return from;
+  lines[0] = FUNDRAISING_SAMPLE_FROM;
+  return lines.join("\n");
+}
+
 export const CONF_THEME =
   "Honoring Our Past, Engaging Our Present, Inspiring Our Future";
 export const CONF_DATES = "July 24\u201327, 2026";

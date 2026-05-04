@@ -85,6 +85,7 @@ import {
   NGO_SAMPLE_SUBJECT,
   NGO_SAMPLE_USE_OF_FUNDS,
   NGO_SAMPLE_PARTNERSHIP_TYPE,
+  normalizeFundraisingLetterFromField,
   type FundraisingCategory,
   type AllLetterBodyFields,
 } from "@/lib/conf/fundraising-letter-template";
@@ -607,7 +608,11 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     type: (d as Partial<LetterDraft>).type ?? "GENERAL",
     title: d.title ?? "",
     to: d.to ?? "",
-    from: d.from ?? "",
+    from: normalizeFundraisingLetterFromField(d.from ?? "", {
+      fundraisingMode:
+        Boolean(d.fundraisingEnabled ?? d.signatoryMode === "FUNDRAISING") ||
+        (d as Partial<LetterDraft>).type === "FUNDRAISING",
+    }),
     re: d.re ?? "",
     date: d.date ?? "",
     body: d.body ?? "",
@@ -965,6 +970,14 @@ function applyLetterSample(
       merged = { ...merged, date: FUNDRAISING_SAMPLE_DATE_PLACEHOLDER };
     }
   }
+
+  merged = {
+    ...merged,
+    from: normalizeFundraisingLetterFromField(merged.from, {
+      fundraisingMode:
+        merged.fundraisingEnabled || merged.type === "FUNDRAISING",
+    }),
+  };
 
   const wantBody = mode === "replace-all" || bodyWasEmpty;
   if (!wantBody) return merged;
@@ -3929,7 +3942,7 @@ export function LetterComposerShell() {
                   <div className="space-y-1.5">
                     <Label className="text-xs">From</Label>
                     <Textarea
-                      placeholder="e.g. Enoch Kwateh Dongbo&#10;Conference Chair, LSUIC 2026"
+                      placeholder={`e.g. ${FUNDRAISING_SAMPLE_FROM}`}
                       className="text-sm resize-none"
                       rows={2}
                       value={activeDraft.from}
