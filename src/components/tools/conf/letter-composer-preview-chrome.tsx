@@ -246,7 +246,7 @@ export function LetterPromotionalFlyerAttachmentPage({
       <div
         style={{
           flexShrink: 0,
-          margin: "12px 28px 0",
+          margin: "8px 28px 0",
           padding: "10px 12px",
           border: `1.5px solid ${LP.navy}`,
           borderRadius: 4,
@@ -255,26 +255,26 @@ export function LetterPromotionalFlyerAttachmentPage({
       >
         <div
           style={{
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 800,
             color: LP.navy,
-            letterSpacing: "0.06em",
-            marginBottom: 6,
+            letterSpacing: "0.05em",
+            marginBottom: 8,
           }}
         >
           PAYMENT INSTRUCTIONS (SEE FLYER BELOW)
         </div>
         <div
           style={{
-            fontSize: 8.5,
-            color: "#333",
-            lineHeight: 1.45,
+            fontSize: 9.75,
+            color: "#1a1a1a",
+            lineHeight: 1.55,
           }}
         >
           Detailed{" "}
-          <span style={{ fontWeight: 700 }}>payment mediums</span> are shown on{" "}
-          <span style={{ fontWeight: 700 }}>the flyer image directly below</span>
-          . Please pay only through those channels —{" "}
+          <span style={{ fontWeight: 700 }}>payment methods</span> are shown on{" "}
+          <span style={{ fontWeight: 700 }}>the flyer directly below</span>.
+          Please pay only through those channels —{" "}
           <span style={{ fontWeight: 700 }}>
             Mobile Money, UBA (bank), WeChat Pay, or Alipay
           </span>{" "}
@@ -288,13 +288,13 @@ export function LetterPromotionalFlyerAttachmentPage({
           display: "flex",
           alignItems: "baseline",
           justifyContent: "space-between",
-          padding: "10px 28px 6px",
+          padding: "8px 28px 4px",
           gap: 12,
         }}
       >
         <div
           style={{
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: 800,
             color: LP.navy,
           }}
@@ -320,16 +320,14 @@ export function LetterPromotionalFlyerAttachmentPage({
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
-          padding: "0 28px 6px",
+          padding: "2px 28px 0",
           background: "#fafbfd",
         }}
       >
         <div
           style={{
-            flex: 1,
-            minHeight: 0,
+            flexShrink: 0,
             display: "flex",
-            alignItems: "center",
             justifyContent: "center",
           }}
         >
@@ -340,7 +338,6 @@ export function LetterPromotionalFlyerAttachmentPage({
             className="letter-embedded-flyer"
             style={{
               maxWidth: LP.PAGE_W - 56,
-              maxHeight: "100%",
               width: "100%",
               height: "auto",
               objectFit: "contain",
@@ -352,16 +349,18 @@ export function LetterPromotionalFlyerAttachmentPage({
         <div
           style={{
             flexShrink: 0,
-            fontSize: 7.5,
-            color: LP.muted,
+            fontSize: 8.25,
+            color: "#444",
             textAlign: "center",
-            lineHeight: 1.4,
-            padding: "8px 4px 6px",
+            lineHeight: 1.45,
+            padding: "10px 4px 4px",
           }}
         >
           Scannable payment details: Mobile Money, UBA, WeChat Pay, and Alipay
-          (see the flyer graphic in this section).
+          (see the flyer in this section).
         </div>
+        {/* soak remaining page height below caption so the flyer stays flush under the copy */}
+        <div style={{ flex: 1, minHeight: 0 }} aria-hidden />
       </div>
 
       <LetterPreviewFooter pageNum={pageNum} totalPages={totalPages} />
