@@ -63,6 +63,7 @@ import {
   FUNDRAISING_SAMPLE_ADDRESS,
   FUNDRAISING_SAMPLE_RECIPIENT_NAME,
   FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+  FUNDRAISING_SAMPLE_RAISED_TO_DATE,
   FUNDRAISING_SAMPLE_USE_OF_FUNDS,
   FUNDRAISING_SAMPLE_EVENT_DATE,
   FUNDRAISING_SAMPLE_EVENT_TIME,
@@ -169,6 +170,7 @@ type LetterDraft = {
   fundraisingRecipientName: string;
   fundraisingRecipientAddress: string;
   fundraisingTargetAmount: string;
+  fundraisingRaisedToDate: string;
   fundraisingUseOfFunds: string;
   fundraisingPaymentDeadline: string;
   fundraisingEventDate: string;
@@ -242,6 +244,7 @@ const FUNDRAISING_BODY_SYNC_FIELDS: ReadonlySet<keyof LetterDraft> = new Set([
   "fundraisingInviteRole",
   "fundraisingInviteRoleOther",
   "fundraisingTargetAmount",
+  "fundraisingRaisedToDate",
   "fundraisingUseOfFunds",
   "fundraisingEventDate",
   "fundraisingEventTime",
@@ -636,6 +639,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     fundraisingRecipientName: d.fundraisingRecipientName ?? "",
     fundraisingRecipientAddress: d.fundraisingRecipientAddress ?? "",
     fundraisingTargetAmount: d.fundraisingTargetAmount ?? "",
+    fundraisingRaisedToDate:
+      (d as Partial<LetterDraft>).fundraisingRaisedToDate ?? "",
     fundraisingUseOfFunds: d.fundraisingUseOfFunds ?? "",
     fundraisingPaymentDeadline:
       d.fundraisingPaymentDeadline ?? DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
@@ -673,6 +678,7 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       fundraisingInviteRole: base.fundraisingInviteRole,
       fundraisingInviteRoleOther: base.fundraisingInviteRoleOther,
       fundraisingTargetAmount: base.fundraisingTargetAmount,
+      fundraisingRaisedToDate: base.fundraisingRaisedToDate,
       fundraisingUseOfFunds: base.fundraisingUseOfFunds,
       fundraisingEventDate: base.fundraisingEventDate,
       fundraisingEventTime: base.fundraisingEventTime,
@@ -756,6 +762,7 @@ function newDraft(): LetterDraft {
     fundraisingRecipientName: "",
     fundraisingRecipientAddress: "",
     fundraisingTargetAmount: "",
+    fundraisingRaisedToDate: "",
     fundraisingUseOfFunds: "",
     fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
     fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
@@ -812,6 +819,7 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingInviteRole: d.fundraisingInviteRole,
     fundraisingInviteRoleOther: d.fundraisingInviteRoleOther,
     fundraisingTargetAmount: d.fundraisingTargetAmount,
+    fundraisingRaisedToDate: d.fundraisingRaisedToDate,
     fundraisingUseOfFunds: d.fundraisingUseOfFunds,
     fundraisingEventDate: d.fundraisingEventDate,
     fundraisingEventTime: d.fundraisingEventTime,
@@ -881,6 +889,7 @@ function applyLetterSample(
       fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
       fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
       fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
+      fundraisingRaisedToDate: FUNDRAISING_SAMPLE_RAISED_TO_DATE,
       fundraisingUseOfFunds: FUNDRAISING_SAMPLE_USE_OF_FUNDS.trim(),
       fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
       fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
@@ -4379,6 +4388,23 @@ export function LetterComposerShell() {
                               value={activeDraft.fundraisingTargetAmount}
                               onChange={(e) =>
                                 set("fundraisingTargetAmount")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">
+                              Secured toward goal so far
+                              <span className="text-muted-foreground">
+                                {" "}
+                                (optional — usually amount only)
+                              </span>
+                            </Label>
+                            <Input
+                              className="h-8 text-sm"
+                              placeholder="e.g. RMB 70,000"
+                              value={activeDraft.fundraisingRaisedToDate}
+                              onChange={(e) =>
+                                set("fundraisingRaisedToDate")(e.target.value)
                               }
                             />
                           </div>

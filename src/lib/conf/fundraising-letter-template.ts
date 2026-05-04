@@ -18,6 +18,8 @@ export const FUNDRAISING_SAMPLE_SUBJECT =
 export const FUNDRAISING_SAMPLE_RECIPIENT_NAME = "[Recipient title and name]";
 export const FUNDRAISING_SAMPLE_TARGET_AMOUNT =
   "RMB 180,000 (approx. USD 25,000 at RMB 7.2 ≈ USD 1)";
+/** Amount-only sample line for Letter Composer; the letter adds standard explanatory wording. */
+export const FUNDRAISING_SAMPLE_RAISED_TO_DATE = "RMB 70,000";
 export const FUNDRAISING_SAMPLE_EVENT_DATE = "May 29, 2026";
 export const FUNDRAISING_SAMPLE_EVENT_TIME = "21:00 (China time)";
 export const FUNDRAISING_SAMPLE_PAYMENT_DEADLINE = "June 6, 2026";
@@ -105,6 +107,8 @@ export type FundraisingLetterBodyFields = {
   fundraisingInviteRole: string;
   fundraisingInviteRoleOther: string;
   fundraisingTargetAmount: string;
+  /** Secured toward goal so far (typically an amount); omit when blank. */
+  fundraisingRaisedToDate: string;
   fundraisingUseOfFunds: string;
   fundraisingEventDate: string;
   fundraisingEventTime: string;
@@ -161,6 +165,11 @@ export function buildFundraisingLetterBodyRichHtml(
   const targetSummary =
     fields.fundraisingTargetAmount.trim() || FUNDRAISING_SAMPLE_TARGET_AMOUNT;
 
+  const raisedToDate = fields.fundraisingRaisedToDate.trim();
+  const raisedSnapshotRow = raisedToDate
+    ? `<tr><td>Progress secured toward goal</td><td><strong>${escapeLetterHtml(raisedToDate)}</strong> reflects resources mobilized through other channels outside this letter—alongside sustained outreach to alumni, partners, and individual supporters—as we continue toward the full target noted above.</td></tr>`
+    : "";
+
   const bullets = parseUseOfFundsLines(fields.fundraisingUseOfFunds);
   const fundItems =
     bullets.length > 0 ? bullets : [...DEFAULT_USE_OF_FUND_ITEMS];
@@ -203,6 +212,7 @@ export function buildFundraisingLetterBodyRichHtml(
 <tbody>
 <tr><td>Invitation category</td><td>${inviteClauseEscaped}</td></tr>
 <tr><td>Public target communicated</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
+${raisedSnapshotRow}
 <tr><td>Scale / planning premise</td><td>This target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-production costs.</td></tr>
 </tbody>
 </table>
@@ -232,18 +242,6 @@ ${useOfFundsRows}
 </tbody>
 </table>
 
-<h3>Payment channels</h3>
-<table>
-<thead>
-<tr><th scope="col">Accepted channel</th></tr>
-</thead>
-<tbody>
-<tr><td>Mobile Money</td></tr>
-<tr><td>UBA</td></tr>
-<tr><td>WeChat</td></tr>
-<tr><td>Alipay</td></tr>
-</tbody>
-</table>
 <p>Detailed QR codes and account titles appear on our official flyer included with this letter.</p>
 <p>If needed, we can share confirmation steps immediately after payment for accountability and record keeping.</p>
 <p>We would be honored to have your support. Your contribution is an investment in the leadership capacity of Liberian students in China.</p>
