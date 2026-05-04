@@ -6,6 +6,7 @@
  * JSX blocks inside `letter-composer-shell.tsx`.
  */
 
+import { CONF_2026 } from "@/lib/conf/config";
 import { LETTERHEAD_CONFIG } from "@/lib/conf/letterhead-config";
 
 export const LP = {
@@ -108,19 +109,31 @@ export function LetterPreviewFooter({
   );
 }
 
-/** Fundraising letters append the conference countdown flyer (GET PNG — matches dashboard export). */
+/** Fundraising letters append the approved fundraising flyer image. */
 export function LetterPromotionalFlyerAttachmentPage({
   confId,
   pageNum,
   totalPages,
   forPrint,
+  officeLabel,
+  topBannerTagline,
 }: {
+  /** Reserved for per-conference flyer assets (API routes keyed by conference). */
   confId: string;
   pageNum: number;
   totalPages: number;
   forPrint?: boolean;
+  /** Right-rail “Office of…” line; matches main letter sheets. */
+  officeLabel?: string;
+  /** Navy bar line under page numbers (defaults to conference sub-theme). */
+  topBannerTagline?: string;
 }) {
-  const flyerSrc = `/api/conf/${encodeURIComponent(confId)}/countdown-flyer?format=png`;
+  void confId;
+  const flyerSrc = "/conf/fundraising.png";
+  const resolvedOffice =
+    (officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
+  const bannerLine =
+    (topBannerTagline ?? "").trim() || CONF_2026.subTheme;
 
   return (
     <div
@@ -133,6 +146,55 @@ export function LetterPromotionalFlyerAttachmentPage({
         fontFamily: "'Helvetica Neue', Arial, sans-serif",
       }}
     >
+      {/* Top banner — conference tagline + pagination (matches prior flyer sheet) */}
+      <div
+        style={{
+          flexShrink: 0,
+          background: LP.navy,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "8px 14px",
+            gap: 8,
+          }}
+        >
+          <div style={{ width: 44, flexShrink: 0 }} />
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: 7.5,
+              fontWeight: 700,
+              color: LP.gold,
+              letterSpacing: "0.35px",
+              textAlign: "center",
+              lineHeight: 1.35,
+            }}
+          >
+            {bannerLine}
+          </div>
+          <div
+            style={{
+              fontSize: 8,
+              color: LP.gold,
+              opacity: 0.9,
+              fontVariantNumeric: "tabular-nums",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Page {pageNum} of {totalPages}
+          </div>
+        </div>
+      </div>
+
       <div style={{ display: "flex", height: 14, flexShrink: 0 }}>
         {LP_FLAG_STRIPES_11.map((color, i) => (
           <div
@@ -149,25 +211,105 @@ export function LetterPromotionalFlyerAttachmentPage({
       <div
         style={{
           flexShrink: 0,
-          padding: "12px 28px",
+          padding: "10px 22px",
           borderBottom: `2px solid ${LP.gold}`,
           background: LP.white,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
         }}
       >
         <div
           style={{
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 800,
             color: LP.navy,
-            letterSpacing: "0.04em",
+            letterSpacing: "0.02em",
+            lineHeight: 1.25,
           }}
         >
-          Conference countdown flyer
+          {LETTERHEAD_CONFIG.organizationName}
         </div>
-        <div style={{ fontSize: 8.5, color: LP.muted, marginTop: 4 }}>
-          Promotional artwork for this conference (same PNG as Flyer Studio /
-          dashboard). Shown on the page after your letter for fundraising
-          correspondence.
+        <div
+          style={{
+            fontSize: 9,
+            color: LP.muted,
+            fontStyle: "italic",
+            textAlign: "right",
+          }}
+        >
+          {resolvedOffice}
+        </div>
+      </div>
+
+      <div
+        style={{
+          flexShrink: 0,
+          margin: "12px 28px 0",
+          padding: "10px 12px",
+          border: `1.5px solid ${LP.navy}`,
+          borderRadius: 4,
+          boxSizing: "border-box",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 800,
+            color: LP.navy,
+            letterSpacing: "0.06em",
+            marginBottom: 6,
+          }}
+        >
+          PAYMENT INSTRUCTIONS (SEE FLYER BELOW)
+        </div>
+        <div
+          style={{
+            fontSize: 8.5,
+            color: "#333",
+            lineHeight: 1.45,
+          }}
+        >
+          Detailed{" "}
+          <span style={{ fontWeight: 700 }}>payment mediums</span> are shown on{" "}
+          <span style={{ fontWeight: 700 }}>the flyer image directly below</span>
+          . Please pay only through those channels —{" "}
+          <span style={{ fontWeight: 700 }}>
+            Mobile Money, UBA (bank), WeChat Pay, or Alipay
+          </span>{" "}
+          — using the QR codes and account titles on that flyer.
+        </div>
+      </div>
+
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          padding: "10px 28px 6px",
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 800,
+            color: LP.navy,
+          }}
+        >
+          Fundraising flyer — payment methods
+        </div>
+        <div
+          style={{
+            fontSize: 9,
+            color: LP.muted,
+            fontStyle: "italic",
+            textAlign: "right",
+          }}
+        >
+          {resolvedOffice}
         </div>
       </div>
 
@@ -177,26 +319,49 @@ export function LetterPromotionalFlyerAttachmentPage({
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "20px 28px",
+          alignItems: "stretch",
+          padding: "0 28px 6px",
           background: "#fafbfd",
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={flyerSrc}
-          alt="Conference countdown flyer"
-          className="letter-embedded-flyer"
+        <div
           style={{
-            maxWidth: LP.PAGE_W - 56,
-            width: "100%",
-            height: "auto",
-            objectFit: "contain",
-            borderRadius: 8,
-            boxShadow: forPrint ? "none" : "0 2px 12px rgba(0,40,104,0.08)",
+            flex: 1,
+            minHeight: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={flyerSrc}
+            alt="Fundraising flyer — campaign and payment methods"
+            className="letter-embedded-flyer"
+            style={{
+              maxWidth: LP.PAGE_W - 56,
+              maxHeight: "100%",
+              width: "100%",
+              height: "auto",
+              objectFit: "contain",
+              borderRadius: 8,
+              boxShadow: forPrint ? "none" : "0 2px 12px rgba(0,40,104,0.08)",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            flexShrink: 0,
+            fontSize: 7.5,
+            color: LP.muted,
+            textAlign: "center",
+            lineHeight: 1.4,
+            padding: "8px 4px 6px",
+          }}
+        >
+          Scannable payment details: Mobile Money, UBA, WeChat Pay, and Alipay
+          (see the flyer graphic in this section).
+        </div>
       </div>
 
       <LetterPreviewFooter pageNum={pageNum} totalPages={totalPages} />

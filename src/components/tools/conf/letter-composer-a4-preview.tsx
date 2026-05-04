@@ -848,6 +848,8 @@ export function LetterA4Preview({
           pageNum={bodySheetCount + 1}
           totalPages={totalPages}
           forPrint={forPrint}
+          officeLabel={officeLabel}
+          topBannerTagline={(draft.fundraisingConferenceTheme ?? "").trim()}
         />
       )}
     </>
