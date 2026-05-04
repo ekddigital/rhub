@@ -9,6 +9,7 @@ import {
   buildLetterheadEmailLine,
   buildLetterheadWebsiteLine,
 } from "@/lib/conf/letterhead-config";
+import { CONFERENCE_LETTER_ROSTER_ROLES } from "@/lib/conf/conference-letter-roster";
 
 // GET /api/conf/[confId]/letterhead
 // Returns SVG or PNG of the LSUIC conference committee letterhead.
@@ -444,7 +445,11 @@ export async function GET(
         },
       }),
       prisma.confMember.findMany({
-        where: { confId, isActive: true },
+        where: {
+          confId,
+          isActive: true,
+          role: { in: CONFERENCE_LETTER_ROSTER_ROLES },
+        },
         orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
         select: {
           name: true,

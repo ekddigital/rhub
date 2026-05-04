@@ -53,6 +53,7 @@ import {
   buildLetterheadEmailLine,
   buildLetterheadWebsiteLine,
 } from "@/lib/conf/letterhead-config";
+import { filterMembersForConferenceLetterRoster } from "@/lib/conf/conference-letter-roster";
 import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 import {
   buildFundraisingLetterBodyRichHtml,
@@ -2852,7 +2853,7 @@ export function LetterComposerShell() {
 
         if (membersRes.ok) {
           const mems = (await membersRes.json()) as Member[];
-          setMembers(mems.filter((m) => m.role !== "COMMITTEE" || m.title));
+          setMembers(filterMembersForConferenceLetterRoster(mems));
         }
 
         if (rolesRes?.ok) {
