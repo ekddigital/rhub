@@ -131,9 +131,13 @@ const STATIC_FAQ: FAQCategory[] = [
             <L href="/tools/conf/delegates/register">
               complete your registration
             </L>
-            .
+            . Delegates can open the{" "}
+            <L href="/tools/conf/committee">Committee page</L> to see the
+            conference committee roster. If you have questions, use the{" "}
+            <strong>Community Q&amp;A</strong> tab on this page — a committee
+            member will answer when they can.
           </>,
-          "Visit the registration page and enter your full name, email address, and a secure password. After submitting, you will receive a verification email. Once verified, log in to complete your registration.",
+          "Visit the registration page and enter your full name, email address, and a secure password. After submitting, you will receive a verification email. Once verified, log in to complete your registration. The Committee page lists the roster; use Community Q&A on this page for questions.",
         ),
       },
       {
@@ -186,12 +190,14 @@ const STATIC_FAQ: FAQCategory[] = [
               </li>
             </ul>
             <span className="block mt-2 text-xs text-muted-foreground">
-              Your email address is tied to your account — contact the committee
-              via the <L href="/tools/conf/committee">Committee page</L> if you
-              need it changed.
+              Your email address is tied to your account — if you need it
+              changed, contact the committee via the{" "}
+              <L href="/tools/conf/committee">Committee page</L> or post in{" "}
+              <strong>Community Q&amp;A</strong> on this page so a committee
+              member can follow up.
             </span>
           </>,
-          "You can update platform account info (name, profile photo) via the top-right avatar menu. Conference registration details (name, gender, WeChat, phone, province, city, attendance intent, travel assistance, school communication, study year, LSUIC position, foreign guest, accommodation, dietary needs, roommate preference, documents) can be edited on the Delegates page by clicking your name, then Edit Registration.",
+          "You can update platform account info (name, profile photo) via the top-right avatar menu. Conference registration details (name, gender, WeChat, phone, province, city, attendance intent, travel assistance, school communication, study year, LSUIC position, foreign guest, accommodation, dietary needs, roommate preference, documents) can be edited on the Delegates page by clicking your name, then Edit Registration. Email changes go through the committee or Community Q&A.",
         ),
       },
     ],
@@ -215,10 +221,15 @@ const STATIC_FAQ: FAQCategory[] = [
             . Fill in your personal details, select your attendance package,
             indicate your accommodation preference, and upload a clear
             passport-sized photo. Submit your registration for committee review.
-            You will be notified once approved and payment instructions will
-            follow.
+            You will be notified once your registration is approved. You then pay
+            the Financial Secretary according to the package you chose (see fees
+            on the registration form and under{" "}
+            <strong>Conference Fees Structure</strong> on the{" "}
+            <L href="/tools/conf">dashboard</L>
+            ). The Financial Secretary records your payment and updates your
+            status.
           </>,
-          "Go to Conference Hub Register. Fill in personal details, select your attendance package, upload a photo, and submit for committee review.",
+          "Go to Conference Hub Register. Fill in personal details, select your attendance package, upload a photo, and submit for committee review. After approval, pay the Financial Secretary according to your package; fees are shown on the form and dashboard.",
         ),
       },
       {
@@ -230,11 +241,12 @@ const STATIC_FAQ: FAQCategory[] = [
             contact, travel details) at any time before the registration
             deadline via the <L href="/tools/conf/delegates">Delegates page</L>.
             For changes to your package or accommodation type, contact the
-            conference committee directly through the{" "}
-            <L href="/tools/conf/committee">Committee page</L> as these may
-            affect your fee amount.
+            conference committee through the{" "}
+            <L href="/tools/conf/committee">Committee page</L> or post in{" "}
+            <strong>Community Q&amp;A</strong> on this page, as these may affect
+            your fee amount.
           </>,
-          "You can update dietary preferences, emergency contact, and travel details before the deadline. For package or accommodation changes contact the committee.",
+          "You can update dietary preferences, emergency contact, and travel details before the deadline. For package or accommodation changes use the Committee page or Community Q&A.",
         ),
       },
       {
@@ -264,9 +276,11 @@ const STATIC_FAQ: FAQCategory[] = [
           "What attendance packages are available and what do they include?",
         ...a(
           <>
-            The conference offers packages designed for different needs (exact
-            pricing shown on the{" "}
-            <L href="/tools/conf/delegates/register">registration form</L>):
+            The conference offers packages designed for different needs. Exact
+            pricing and the full fee breakdown appear on the{" "}
+            <L href="/tools/conf/delegates/register">registration form</L> and
+            under <strong>Conference Fees Structure</strong> on the{" "}
+            <L href="/tools/conf">Conference Hub dashboard</L>:
             <ul className="mt-2 space-y-1.5 list-disc list-inside text-sm">
               <li>
                 <strong>Full Package</strong> — Accommodation (shared room), all
@@ -287,7 +301,7 @@ const STATIC_FAQ: FAQCategory[] = [
               for payment schedule details.
             </span>
           </>,
-          "Full Package includes accommodation, meals, and transport. Day Attendance is sessions only. Partial Package is accommodation and select meals. Contact the Financial Secretary for payment details.",
+          "Full Package includes accommodation, meals, and transport. Day Attendance is sessions only. Partial Package is accommodation and select meals. Pricing is on the registration form and dashboard Conference Fees Structure. Contact the Financial Secretary for payment schedule details.",
         ),
       },
     ],
@@ -398,16 +412,17 @@ const STATIC_FAQ: FAQCategory[] = [
         question: "How do I pay my conference fees?",
         ...a(
           <>
-            After your registration is approved, you will receive payment
-            instructions from the financial secretary. Payment is typically made
-            via bank transfer to the conference account. Once transferred,
-            upload your proof of payment (bank receipt or screenshot) on the{" "}
-            <L href="/tools/conf/payments">Payments page</L> under Conference
-            Hub. The{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L> will
-            review and confirm within 2–3 business days.
+            After your registration is approved, pay the{" "}
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
+            according to the package you registered for. The amount and options
+            match what you selected — you can review the full structure on the{" "}
+            <L href="/tools/conf/delegates/register">registration form</L> and
+            under <strong>Conference Fees Structure</strong> on the{" "}
+            <L href="/tools/conf">dashboard</L>. The Financial Secretary records
+            your payment when received and updates your delegate record; you do
+            not upload proof of payment through this website.
           </>,
-          "After approval, transfer payment to the conference account and upload your proof of payment on the Payments page. The Financial Secretary confirms within 2-3 business days.",
+          "After approval, pay the Financial Secretary according to your package. Fees are shown on the registration form and dashboard. The Financial Secretary records payment when received. No proof upload in the portal.",
         ),
       },
       {
@@ -415,15 +430,16 @@ const STATIC_FAQ: FAQCategory[] = [
         question: "How long does payment confirmation take?",
         ...a(
           <>
-            Payment confirmations are typically processed within 2–3 business
-            days after proof of payment is uploaded to the{" "}
-            <L href="/tools/conf/payments">Payments page</L>. During peak
-            registration periods this may take slightly longer. You will receive
-            a notification once confirmed. If more than 5 business days have
-            passed, please follow up with the{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L>.
+            Once the{" "}
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L> has
+            received and recorded your payment, your status is usually updated
+            within <strong>2–3 business days</strong>. During peak registration
+            periods it may take a little longer. If you are unsure whether your
+            payment was recorded, contact the Financial Secretary. If more than{" "}
+            <strong>5 business days</strong> have passed with no update, follow
+            up with them directly.
           </>,
-          "Payment confirmations take 2-3 business days after uploading proof. If more than 5 days pass, follow up with the Financial Secretary.",
+          "The Financial Secretary usually records payment within 2-3 business days after receiving it. Peak periods may be slower. Follow up with the Financial Secretary if needed after 5 business days.",
         ),
       },
       {
@@ -431,14 +447,14 @@ const STATIC_FAQ: FAQCategory[] = [
         question: "Can I get a receipt for my payment?",
         ...a(
           <>
-            Yes — once your payment is confirmed, an official receipt is
-            generated and available to download from the{" "}
-            <L href="/tools/conf/payments">Payments page</L>. You can view your
-            full payment history there at any time. If you need a formal receipt
-            letter for visa or administrative purposes,{" "}
-            <L href="/tools/conf/letters">contact the conference secretary</L>.
+            Ask the{" "}
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L> if
+            you need written confirmation of your payment (for example for
+            records, reimbursement, or visa paperwork). What they can provide
+            depends on how your payment was made; the conference secretariat can
+            also help with official letters when required.
           </>,
-          "Official receipts are available on the Payments page once confirmed. Contact the conference secretary for formal receipt letters.",
+          "Request written confirmation from the Financial Secretary or conference secretariat if you need documentation for your payment.",
         ),
       },
     ],

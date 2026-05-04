@@ -88,7 +88,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/committee",
     label: "Committee",
     icon: Users,
-    minAccess: "manager",
+    minAccess: "delegate",
   },
   {
     href: "/tools/conf/meetings",

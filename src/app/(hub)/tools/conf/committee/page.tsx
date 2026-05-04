@@ -6,7 +6,7 @@ import {
 import { ensureDefaultConference } from "@/lib/conf/bootstrap";
 
 export default async function CommitteePage() {
-  await requireConferencePageAccess("/tools/conf/committee", "manager");
+  await requireConferencePageAccess("/tools/conf/committee", "participant");
 
   let accessInfo = {
     isSuperAdmin: false,
