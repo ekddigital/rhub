@@ -180,10 +180,7 @@ export async function PATCH(
       select: { id: true },
     });
     if (!comment) {
-      return NextResponse.json(
-        { error: "Comment not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Comment not found" }, { status: 404 });
     }
 
     const updated = await prisma.confQAComment.update({

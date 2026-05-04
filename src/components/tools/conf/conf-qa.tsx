@@ -144,7 +144,8 @@ const STATIC_FAQ: FAQCategory[] = [
       },
       {
         id: "packages",
-        question: "What attendance packages are available and what do they include?",
+        question:
+          "What attendance packages are available and what do they include?",
         answer:
           "The conference offers packages designed for different needs:\n\n• Full Package — Accommodation (shared room), all meals during the conference, transport to and from the venue, and access to all sessions and events.\n\n• Day Attendance — Access to conference sessions only, without accommodation or meals.\n\n• Partial Package — Accommodation and select meals, without transport.\n\nExact pricing and availability are shown on the registration form. Contact the financial secretary for payment schedule details.",
       },
@@ -179,7 +180,7 @@ const STATIC_FAQ: FAQCategory[] = [
         id: "legal-partner-exception",
         question: "What is the Legal Partner Exception for room pairing?",
         answer:
-          "If you and your partner are legally married or in a registered partnership and you are both attending the conference, you may apply for the Legal Partner Exception to share a room together.\n\nTo apply: go to the Room Pairing page, click \"Legal Partner Exception\" on the other delegate's card, provide a brief note explaining your relationship, and submit. The NEC or conference committee will review and confirm before the room is assigned. Please allow 2–5 business days for review.",
+          'If you and your partner are legally married or in a registered partnership and you are both attending the conference, you may apply for the Legal Partner Exception to share a room together.\n\nTo apply: go to the Room Pairing page, click "Legal Partner Exception" on the other delegate\'s card, provide a brief note explaining your relationship, and submit. The NEC or conference committee will review and confirm before the room is assigned. Please allow 2–5 business days for review.',
       },
       {
         id: "no-roommate",
@@ -392,7 +393,8 @@ function StaticFAQSection() {
 
       <p className="flex items-center gap-1.5 pt-1 text-[11px] text-muted-foreground/60">
         <HelpCircle className="size-3" />
-        Can&apos;t find what you&apos;re looking for? Switch to Community Q&amp;A and ask the committee directly.
+        Can&apos;t find what you&apos;re looking for? Switch to Community
+        Q&amp;A and ask the committee directly.
       </p>
     </div>
   );
@@ -598,14 +600,11 @@ function CommentNode({
     body: string;
     isAnswer: boolean;
   }) => {
-    const res = await fetch(
-      `/api/conf/${confId}/qa/${questionId}/comments`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, parentId: comment.id, isAnswer }),
-      },
-    );
+    const res = await fetch(`/api/conf/${confId}/qa/${questionId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body, parentId: comment.id, isAnswer }),
+    });
     if (!res.ok) throw new Error("Failed");
     const newComment = (await res.json()) as QAComment;
     newComment.replies = [];
@@ -667,9 +666,7 @@ function CommentNode({
             }`}
           >
             <ThumbsUp
-              className={`size-3 ${
-                justUpvoted ? "fill-current" : ""
-              }`}
+              className={`size-3 ${justUpvoted ? "fill-current" : ""}`}
             />
             {localUpvotes > 0 ? localUpvotes : "Like"}
           </button>
@@ -854,14 +851,11 @@ function QuestionCard({
     body: string;
     isAnswer: boolean;
   }) => {
-    const res = await fetch(
-      `/api/conf/${confId}/qa/${question.id}/comments`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, isAnswer }),
-      },
-    );
+    const res = await fetch(`/api/conf/${confId}/qa/${question.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body, isAnswer }),
+    });
     if (!res.ok) throw new Error("Failed");
     const newComment = (await res.json()) as QAComment;
     newComment.replies = [];
@@ -935,7 +929,9 @@ function QuestionCard({
               </button>
               <button
                 onClick={handleMarkAnswered}
-                title={question.isAnswered ? "Mark unanswered" : "Mark answered"}
+                title={
+                  question.isAnswered ? "Mark unanswered" : "Mark answered"
+                }
                 className="rounded p-1 text-muted-foreground hover:text-emerald-400"
               >
                 <CheckCircle2 className="size-3.5" />
@@ -1008,9 +1004,7 @@ function QuestionCard({
               className={`size-3.5 ${justUpvoted ? "fill-current" : ""}`}
             />
             {localUpvotes > 0 ? localUpvotes : "Like"}
-            {justUpvoted && (
-              <span className="text-[10px] opacity-80"> +1</span>
-            )}
+            {justUpvoted && <span className="text-[10px] opacity-80"> +1</span>}
           </button>
         </div>
       </div>
@@ -1019,7 +1013,9 @@ function QuestionCard({
       {showCommentBox && (
         <div className="border-t border-white/8 px-4 pb-4 pt-3">
           <CommentBox
-            placeholder={isManager ? "Write your answer or reply…" : "Write a reply…"}
+            placeholder={
+              isManager ? "Write your answer or reply…" : "Write a reply…"
+            }
             onSubmit={handleAddComment}
             onCancel={() => setShowCommentBox(false)}
             isManager={isManager}
@@ -1113,7 +1109,9 @@ export function ConfQA({
         body: JSON.stringify({
           body,
           isAnonymous: askAnonymous,
-          authorName: askAnonymous ? "Anonymous" : (currentUserName ?? "Member"),
+          authorName: askAnonymous
+            ? "Anonymous"
+            : (currentUserName ?? "Member"),
         }),
       });
       if (!res.ok) throw new Error("Failed");
@@ -1181,8 +1179,8 @@ export function ConfQA({
         </div>
 
         <p className="mt-1 text-xs text-muted-foreground">
-          Browse answers to common questions, or ask the community anything about
-          the conference.
+          Browse answers to common questions, or ask the community anything
+          about the conference.
         </p>
 
         {/* Main tab switcher */}
@@ -1222,152 +1220,153 @@ export function ConfQA({
           <StaticFAQSection />
         ) : (
           <div className="space-y-4">
-        {/* Ask form */}
-        {showAskForm && (
-          <div className="rounded-xl border border-[#C8A061]/30 bg-[#C8A061]/5 p-4">
-            <p className="mb-2 text-xs font-semibold text-[#C8A061]">
-              Ask a new question
-            </p>
-            <form onSubmit={handleAsk} className="flex flex-col gap-2">
-              <textarea
-                value={askText}
-                onChange={(e) => setAskText(e.target.value)}
-                placeholder="What would you like to know about the conference?"
-                rows={3}
-                className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#C8A061]/40 focus:outline-none focus:ring-1 focus:ring-[#C8A061]/30"
-              />
-              <div className="flex items-center gap-3">
-                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={askAnonymous}
-                    onChange={(e) => setAskAnonymous(e.target.checked)}
-                    className="h-3 w-3 rounded accent-[#C8A061]"
+            {/* Ask form */}
+            {showAskForm && (
+              <div className="rounded-xl border border-[#C8A061]/30 bg-[#C8A061]/5 p-4">
+                <p className="mb-2 text-xs font-semibold text-[#C8A061]">
+                  Ask a new question
+                </p>
+                <form onSubmit={handleAsk} className="flex flex-col gap-2">
+                  <textarea
+                    value={askText}
+                    onChange={(e) => setAskText(e.target.value)}
+                    placeholder="What would you like to know about the conference?"
+                    rows={3}
+                    className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-[#C8A061]/40 focus:outline-none focus:ring-1 focus:ring-[#C8A061]/30"
                   />
-                  Ask anonymously
-                </label>
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAskForm(false)}
-                    className="rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!askText.trim() || submitting}
-                    className="flex items-center gap-1.5 rounded-md bg-[#C8A061] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-                  >
-                    {submitting ? (
-                      <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                      <Send className="size-3" />
-                    )}
-                    Post question
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <label className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={askAnonymous}
+                        onChange={(e) => setAskAnonymous(e.target.checked)}
+                        className="h-3 w-3 rounded accent-[#C8A061]"
+                      />
+                      Ask anonymously
+                    </label>
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowAskForm(false)}
+                        className="rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={!askText.trim() || submitting}
+                        className="flex items-center gap-1.5 rounded-md bg-[#C8A061] px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                      >
+                        {submitting ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Send className="size-3" />
+                        )}
+                        Post question
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Pinned FAQ quick section */}
+            {pinnedQuestions.length > 0 && (
+              <div className="rounded-xl border border-[#C8A061]/20 bg-[#C8A061]/4 p-4">
+                <p className="mb-3 flex items-center gap-1.5 text-xs font-bold text-[#C8A061]">
+                  <Pin className="size-3.5" />
+                  Frequently Asked Questions
+                </p>
+                <div className="space-y-3">
+                  {pinnedQuestions.map((q) => (
+                    <QuestionCard
+                      key={q.id}
+                      question={q}
+                      confId={confId}
+                      isManager={isManager}
+                      isSuperAdmin={isSuperAdmin}
+                      onDelete={handleDelete}
+                      onPatch={handlePatch}
+                    />
+                  ))}
                 </div>
               </div>
-            </form>
-          </div>
-        )}
+            )}
 
-        {/* Pinned FAQ quick section */}
-        {pinnedQuestions.length > 0 && (
-          <div className="rounded-xl border border-[#C8A061]/20 bg-[#C8A061]/4 p-4">
-            <p className="mb-3 flex items-center gap-1.5 text-xs font-bold text-[#C8A061]">
-              <Pin className="size-3.5" />
-              Frequently Asked Questions
-            </p>
-            <div className="space-y-3">
-              {pinnedQuestions.map((q) => (
-                <QuestionCard
-                  key={q.id}
-                  question={q}
-                  confId={confId}
-                  isManager={isManager}
-                  isSuperAdmin={isSuperAdmin}
-                  onDelete={handleDelete}
-                  onPatch={handlePatch}
-                />
+            {/* Tab bar */}
+            <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/3 p-1">
+              {(
+                [
+                  { key: "all", label: `All (${allQuestions.length})` },
+                  {
+                    key: "unanswered",
+                    label: `Unanswered (${unansweredQuestions.length})`,
+                  },
+                  ...(pinnedQuestions.length > 0
+                    ? [{ key: "faq", label: `FAQ (${pinnedQuestions.length})` }]
+                    : []),
+                ] as { key: "all" | "faq" | "unanswered"; label: string }[]
+              ).map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    activeTab === tab.key
+                      ? "bg-[#C8A061] text-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Tab bar */}
-        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/3 p-1">
-          {(
-            [
-              { key: "all", label: `All (${allQuestions.length})` },
-              {
-                key: "unanswered",
-                label: `Unanswered (${unansweredQuestions.length})`,
-              },
-              ...(pinnedQuestions.length > 0
-                ? [{ key: "faq", label: `FAQ (${pinnedQuestions.length})` }]
-                : []),
-            ] as { key: "all" | "faq" | "unanswered"; label: string }[]
-          ).map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "bg-[#C8A061] text-white"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Questions list */}
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
-            Loading questions…
-          </div>
-        ) : tabQuestions.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <MessageCircle className="size-8 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              {activeTab === "unanswered"
-                ? "All questions have been answered!"
-                : "No questions yet. Be the first to ask!"}
-            </p>
-            {!showAskForm && (
-              <button
-                onClick={() => setShowAskForm(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-[#C8A061]/40 px-3 py-1.5 text-xs font-semibold text-[#C8A061] hover:bg-[#C8A061]/10"
-              >
-                <Plus className="size-3.5" />
-                Ask a question
-              </button>
+            {/* Questions list */}
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" />
+                Loading questions…
+              </div>
+            ) : tabQuestions.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-10 text-center">
+                <MessageCircle className="size-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">
+                  {activeTab === "unanswered"
+                    ? "All questions have been answered!"
+                    : "No questions yet. Be the first to ask!"}
+                </p>
+                {!showAskForm && (
+                  <button
+                    onClick={() => setShowAskForm(true)}
+                    className="flex items-center gap-1.5 rounded-lg border border-[#C8A061]/40 px-3 py-1.5 text-xs font-semibold text-[#C8A061] hover:bg-[#C8A061]/10"
+                  >
+                    <Plus className="size-3.5" />
+                    Ask a question
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tabQuestions.map((q) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    confId={confId}
+                    isManager={isManager}
+                    isSuperAdmin={isSuperAdmin}
+                    onDelete={handleDelete}
+                    onPatch={handlePatch}
+                  />
+                ))}
+              </div>
             )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {tabQuestions.map((q) => (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                confId={confId}
-                isManager={isManager}
-                isSuperAdmin={isSuperAdmin}
-                onDelete={handleDelete}
-                onPatch={handlePatch}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Upvote hint */}
-        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
-          <ThumbsUp className="size-3" />
-          Committee members and leaders can pin questions or mark official answers
-        </p>
+            {/* Upvote hint */}
+            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground/60">
+              <ThumbsUp className="size-3" />
+              Committee members and leaders can pin questions or mark official
+              answers
+            </p>
           </div>
         )}
       </CardContent>

@@ -12,7 +12,10 @@ function isPairEligible(delegate: {
   const packageAccommodationMode = getConferenceFeeAccommodationMode(
     delegate.feePackageId,
   );
-  if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
+  if (
+    packageAccommodationMode === "SINGLE" ||
+    packageAccommodationMode === "NONE"
+  ) {
     return false;
   }
   if (delegate.accommodationNeeded === "NO") return false;
