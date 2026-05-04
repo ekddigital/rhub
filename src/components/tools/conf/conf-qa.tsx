@@ -159,18 +159,30 @@ const STATIC_FAQ: FAQCategory[] = [
             There are two places where you can update your information:
             <ul className="mt-2 space-y-3 text-sm list-none">
               <li>
-                <strong>Platform account</strong> (display name, phone, profile
-                photo) — after <L href="/login">logging in</L>, click your name
-                or avatar in the top-right corner and go to{" "}
+                <strong>Platform account</strong> (display name, profile photo)
+                — after <L href="/login">logging in</L>, click your name or
+                avatar in the top-right corner and go to{" "}
                 <strong>Profile</strong>.
               </li>
               <li>
-                <strong>Conference registration details</strong> (dietary needs,
-                travel info, accommodation preferences, emergency contact, etc.)
-                — go to the <L href="/tools/conf/delegates">Delegates page</L>,
-                find your name in the list, click <strong>Details</strong>, then
-                click <strong>Edit Registration</strong> on your delegate
-                profile page.
+                <strong>Conference registration details</strong> — go to the{" "}
+                <L href="/tools/conf/delegates">Delegates page</L>, find your
+                name in the list, click <strong>Details</strong>, then click{" "}
+                <strong>Edit Registration</strong>. You can update:
+                <ul className="mt-1.5 space-y-0.5 pl-4 list-disc text-[13px] text-foreground/70">
+                  <li>Full name, gender, WeChat ID, phone number</li>
+                  <li>Province and city</li>
+                  <li>Attendance intent, travel assistance needs</li>
+                  <li>School/supervisor communication request</li>
+                  <li>Year of study, LSUIC position</li>
+                  <li>Foreign guest details, accommodation preference</li>
+                  <li>Dietary requirements and special needs</li>
+                  <li>Roommate preference and partner pairing note</li>
+                  <li>
+                    Documents: passport photo, entry stamp, current visa,
+                    conference booklet photo
+                  </li>
+                </ul>
               </li>
             </ul>
             <span className="block mt-2 text-xs text-muted-foreground">
@@ -179,7 +191,7 @@ const STATIC_FAQ: FAQCategory[] = [
               need it changed.
             </span>
           </>,
-          "Platform account info (name, phone, photo): click your avatar top-right and go to Profile. Conference registration details (dietary, travel, accommodation): go to the Delegates page, find your name, click Details, then Edit Registration.",
+          "You can update platform account info (name, profile photo) via the top-right avatar menu. Conference registration details (name, gender, WeChat, phone, province, city, attendance intent, travel assistance, school communication, study year, LSUIC position, foreign guest, accommodation, dietary needs, roommate preference, documents) can be edited on the Delegates page by clicking your name, then Edit Registration.",
         ),
       },
     ],

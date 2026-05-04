@@ -97,7 +97,9 @@ type Delegate = {
   updatedAt: string;
 };
 
-function uploadKindLabel(kind: "booklet" | "passport" | "entry-stamp" | "visa") {
+function uploadKindLabel(
+  kind: "booklet" | "passport" | "entry-stamp" | "visa",
+) {
   if (kind === "booklet") return "conference photo";
   if (kind === "entry-stamp") return "last entry stamp";
   if (kind === "visa") return "current visa";
@@ -552,9 +554,15 @@ export function DelegateDetailShell({
               </div>
 
               <div className="space-y-2 rounded-md border border-amber-200/70 bg-amber-50/80 px-3 py-2 text-xs text-muted-foreground dark:border-amber-900/45 dark:bg-amber-950/25">
-                <p className="font-medium text-foreground">Accepted file types</p>
-                <p className="leading-snug">{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</p>
-                <p className="leading-snug">{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
+                <p className="font-medium text-foreground">
+                  Accepted file types
+                </p>
+                <p className="leading-snug">
+                  {DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}
+                </p>
+                <p className="leading-snug">
+                  {DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}
+                </p>
                 <p className="leading-snug border-t border-amber-200/60 pt-2 mt-2 dark:border-amber-900/40">
                   {DELEGATE_UPLOAD_CONVERSION_TIP}
                 </p>
@@ -663,7 +671,9 @@ export function DelegateDetailShell({
                     />
                     <PassportViewerModal
                       proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=visa`}
-                      isPdf={delegate.currentVisaPath.toLowerCase().endsWith(".pdf")}
+                      isPdf={delegate.currentVisaPath
+                        .toLowerCase()
+                        .endsWith(".pdf")}
                       label="Open File"
                       title="Current Visa"
                     />
@@ -885,23 +895,46 @@ export function DelegateDetailShell({
               draftKey={`edit-${delegate.id}`}
               uploadedPhotoMeta={(() => {
                 const base = `/api/conf/${confId}/delegates/${delegate.id}/secure-document`;
-                const meta: Partial<Record<"passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto", UploadedPhotoMeta>> = {};
+                const meta: Partial<
+                  Record<
+                    | "passportPhoto"
+                    | "lastEntryStampPhoto"
+                    | "currentVisaPhoto"
+                    | "bookletPhoto",
+                    UploadedPhotoMeta
+                  >
+                > = {};
                 // Passport proxy is manager-only; for owners show text-only indicator
                 if (delegate.passportPhotoPath) {
                   if (canManage) {
-                    meta.passportPhoto = { fileName: "Passport (on file)", filePath: `${base}?kind=passport` };
+                    meta.passportPhoto = {
+                      fileName: "Passport (on file)",
+                      filePath: `${base}?kind=passport`,
+                    };
                   } else {
                     // Use a fake .pdf path so the renderer shows text not a broken image
-                    meta.passportPhoto = { fileName: "Passport (on file)", filePath: "existing.pdf" };
+                    meta.passportPhoto = {
+                      fileName: "Passport (on file)",
+                      filePath: "existing.pdf",
+                    };
                   }
                 }
                 if (delegate.lastEntryStampPath)
-                  meta.lastEntryStampPhoto = { fileName: "Entry stamp (on file)", filePath: `${base}?kind=entry-stamp` };
+                  meta.lastEntryStampPhoto = {
+                    fileName: "Entry stamp (on file)",
+                    filePath: `${base}?kind=entry-stamp`,
+                  };
                 if (delegate.currentVisaPath)
-                  meta.currentVisaPhoto = { fileName: "Visa (on file)", filePath: `${base}?kind=visa` };
+                  meta.currentVisaPhoto = {
+                    fileName: "Visa (on file)",
+                    filePath: `${base}?kind=visa`,
+                  };
                 // Booklet photo is a direct CDN URL
                 if (delegate.bookletPhotoPath)
-                  meta.bookletPhoto = { fileName: "Conference photo (on file)", filePath: delegate.bookletPhotoPath };
+                  meta.bookletPhoto = {
+                    fileName: "Conference photo (on file)",
+                    filePath: delegate.bookletPhotoPath,
+                  };
                 return meta;
               })()}
               initialValues={{

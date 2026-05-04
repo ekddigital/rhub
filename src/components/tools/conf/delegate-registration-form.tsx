@@ -338,8 +338,12 @@ export function DelegateRegistrationForm({
   const [selectedFeePackage, setSelectedFeePackage] = useState(
     resolveInitialFeePackageId(feeOptions, initialValues, defaultFeeAmount),
   );
-  const [selectedAddOnPackageIds, setSelectedAddOnPackageIds] = useState<string[]>(
-    normalizeConferenceOptionalAddOnPackageIds(initialValues?.addOnPackageIds ?? []),
+  const [selectedAddOnPackageIds, setSelectedAddOnPackageIds] = useState<
+    string[]
+  >(
+    normalizeConferenceOptionalAddOnPackageIds(
+      initialValues?.addOnPackageIds ?? [],
+    ),
   );
   const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
   const [feeAmount, setFeeAmount] = useState(
@@ -496,10 +500,16 @@ export function DelegateRegistrationForm({
     if (isPdf) {
       return (
         <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-800 dark:bg-emerald-950/30">
-          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold">✓</span>
+          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold">
+            ✓
+          </span>
           <div>
-            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">File already on file</p>
-            <p className="text-[11px] text-muted-foreground">{meta.fileName} — uploading a new file will replace it</p>
+            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              File already on file
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {meta.fileName} — uploading a new file will replace it
+            </p>
           </div>
         </div>
       );
@@ -517,11 +527,19 @@ export function DelegateRegistrationForm({
           />
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[9px] font-bold">✓</span>
-              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">File already on file</p>
+              <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[9px] font-bold">
+                ✓
+              </span>
+              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                File already on file
+              </p>
             </div>
-            <p className="text-[11px] text-muted-foreground truncate">{meta.fileName}</p>
-            <p className="text-[11px] text-muted-foreground">Uploading a new file will replace it.</p>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {meta.fileName}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Uploading a new file will replace it.
+            </p>
           </div>
         </div>
       </div>
@@ -535,7 +553,8 @@ export function DelegateRegistrationForm({
       return (
         <div className="space-y-1">
           <p className="text-xs text-[#002868]">
-            Uploading... {Math.max(0, Math.min(100, Math.round(feedback.progress)))}%
+            Uploading...{" "}
+            {Math.max(0, Math.min(100, Math.round(feedback.progress)))}%
           </p>
           <div className="h-1.5 w-full rounded bg-[#002868]/15">
             <div
@@ -565,13 +584,12 @@ export function DelegateRegistrationForm({
     return null;
   };
 
-  const groupedRequiredFeeOptions = feeOptions.reduce<Record<string, FeeOption[]>>(
-    (acc, item) => {
-      (acc[item.category] ||= []).push(item);
-      return acc;
-    },
-    {},
-  );
+  const groupedRequiredFeeOptions = feeOptions.reduce<
+    Record<string, FeeOption[]>
+  >((acc, item) => {
+    (acc[item.category] ||= []).push(item);
+    return acc;
+  }, {});
   const groupedAddOnOptions = addOnOptions.reduce<Record<string, FeeOption[]>>(
     (acc, item) => {
       (acc[item.category] ||= []).push(item);
@@ -581,7 +599,9 @@ export function DelegateRegistrationForm({
   );
 
   const computeSelectedTotal = (corePackageId: string, addOnIds: string[]) => {
-    const corePackage = feeOptions.find((option) => option.id === corePackageId);
+    const corePackage = feeOptions.find(
+      (option) => option.id === corePackageId,
+    );
     const corePrice = corePackage?.price ?? 0;
     return corePrice + sumConferenceOptionalAddOns(addOnIds);
   };
@@ -703,9 +723,11 @@ export function DelegateRegistrationForm({
         setAmountPaid(String(d.amountPaid));
       }
       if (typeof d.feePackageId === "string" && d.feePackageId.trim()) {
-        const nextCorePackage = feeOptions.find((item) => item.id === d.feePackageId)
+        const nextCorePackage = feeOptions.find(
+          (item) => item.id === d.feePackageId,
+        )
           ? d.feePackageId
-          : feeOptions[0]?.id ?? "";
+          : (feeOptions[0]?.id ?? "");
         setSelectedFeePackage(nextCorePackage);
         applyPackageAccommodationMode(nextCorePackage);
       } else if (typeof d.feeAmount === "string") {
@@ -901,7 +923,9 @@ export function DelegateRegistrationForm({
     setSelectedFeePackage(resetFeePackageId);
     applyPackageAccommodationMode(resetFeePackageId);
     setSelectedAddOnPackageIds(
-      normalizeConferenceOptionalAddOnPackageIds(initialValues?.addOnPackageIds ?? []),
+      normalizeConferenceOptionalAddOnPackageIds(
+        initialValues?.addOnPackageIds ?? [],
+      ),
     );
     setFeeAmount(
       String(
@@ -952,7 +976,9 @@ export function DelegateRegistrationForm({
 
   const selectedFee =
     feeOptions.find((option) => option.id === selectedFeePackage) ?? null;
-  const selectedAddOnsTotal = sumConferenceOptionalAddOns(selectedAddOnPackageIds);
+  const selectedAddOnsTotal = sumConferenceOptionalAddOns(
+    selectedAddOnPackageIds,
+  );
   const totalSelectedFee = (selectedFee?.price ?? 0) + selectedAddOnsTotal;
 
   const handleSubmit = async () => {
@@ -1012,7 +1038,11 @@ export function DelegateRegistrationForm({
     };
 
     validateSelectedFile("passportPhoto", "passport", passportPhoto);
-    validateSelectedFile("lastEntryStampPhoto", "entry-stamp", lastEntryStampPhoto);
+    validateSelectedFile(
+      "lastEntryStampPhoto",
+      "entry-stamp",
+      lastEntryStampPhoto,
+    );
     validateSelectedFile("currentVisaPhoto", "visa", currentVisaPhoto);
     validateSelectedFile("bookletPhoto", "booklet", bookletPhoto);
 
@@ -1337,9 +1367,7 @@ export function DelegateRegistrationForm({
               <option value="Conference Vice-Chair">
                 Conference Vice-Chair
               </option>
-              <option value="Conference Secretary">
-                Conference Secretary
-              </option>
+              <option value="Conference Secretary">Conference Secretary</option>
               <option value="Media &amp; Publicity Chair">
                 Media &amp; Publicity Chair
               </option>
@@ -1573,21 +1601,25 @@ export function DelegateRegistrationForm({
               setSelectedFeePackage(value);
               const selected = feeOptions.find((option) => option.id === value);
               if (selected) {
-                setFeeAmount(String(computeSelectedTotal(value, selectedAddOnPackageIds)));
+                setFeeAmount(
+                  String(computeSelectedTotal(value, selectedAddOnPackageIds)),
+                );
                 applyPackageAccommodationMode(value);
               }
             }}
           >
             <option value="">Select a package</option>
-            {Object.entries(groupedRequiredFeeOptions).map(([category, items]) => (
-              <optgroup key={category} label={category}>
-                {items.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.label} - {formatFeeRmb(item.price)}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
+            {Object.entries(groupedRequiredFeeOptions).map(
+              ([category, items]) => (
+                <optgroup key={category} label={category}>
+                  {items.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label} - {formatFeeRmb(item.price)}
+                    </option>
+                  ))}
+                </optgroup>
+              ),
+            )}
           </select>
           {selectedFeePackage && (
             <p className="text-xs text-muted-foreground">
@@ -1682,7 +1714,9 @@ export function DelegateRegistrationForm({
                               <Plus className="size-4" />
                             </Button>
                             <span className="ml-1 tabular-nums text-muted-foreground">
-                              {jerseyQuantity > 0 ? formatFeeRmb(lineTotal) : "—"}
+                              {jerseyQuantity > 0
+                                ? formatFeeRmb(lineTotal)
+                                : "—"}
                             </span>
                           </div>
                         </div>
@@ -1700,14 +1734,19 @@ export function DelegateRegistrationForm({
                           checked={checked}
                           onChange={() => {
                             const next = checked
-                              ? selectedAddOnPackageIds.filter((id) => id !== item.id)
+                              ? selectedAddOnPackageIds.filter(
+                                  (id) => id !== item.id,
+                                )
                               : [...selectedAddOnPackageIds, item.id];
                             const normalized =
                               normalizeConferenceOptionalAddOnPackageIds(next);
                             setSelectedAddOnPackageIds(normalized);
                             setFeeAmount(
                               String(
-                                computeSelectedTotal(selectedFeePackage, normalized),
+                                computeSelectedTotal(
+                                  selectedFeePackage,
+                                  normalized,
+                                ),
                               ),
                             );
                           }}
@@ -1804,7 +1843,9 @@ export function DelegateRegistrationForm({
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={roomPref}
             onChange={(e) => setRoomPref(e.target.value as "PAIR" | "SINGLE")}
-            disabled={Boolean(getConferenceFeeAccommodationMode(selectedFeePackage))}
+            disabled={Boolean(
+              getConferenceFeeAccommodationMode(selectedFeePackage),
+            )}
           >
             <option value="PAIR">Pair room (2 people)</option>
             <option value="SINGLE">Single room request</option>
@@ -1891,8 +1932,8 @@ export function DelegateRegistrationForm({
           </p>
           <p className="text-xs text-muted-foreground leading-snug">
             Other formats cannot be uploaded until you convert them. Your device
-            may still show disallowed files in the picker; choosing one will show
-            an error and clear the selection.
+            may still show disallowed files in the picker; choosing one will
+            show an error and clear the selection.
           </p>
         </div>
 
@@ -1905,12 +1946,21 @@ export function DelegateRegistrationForm({
             type="file"
             accept={delegateDocumentAcceptAttribute("passport")}
             onChange={(e) =>
-              handleCredentialFileChange(e, "passportPhoto", "passport", setPassportPhoto)
+              handleCredentialFileChange(
+                e,
+                "passportPhoto",
+                "passport",
+                setPassportPhoto,
+              )
             }
-            className={resolvePhotoError("passportPhoto") ? "border-red-500" : ""}
+            className={
+              resolvePhotoError("passportPhoto") ? "border-red-500" : ""
+            }
           />
           {resolvePhotoError("passportPhoto") && (
-            <p className="text-xs text-red-600">{resolvePhotoError("passportPhoto")}</p>
+            <p className="text-xs text-red-600">
+              {resolvePhotoError("passportPhoto")}
+            </p>
           )}
           {renderUploadFeedback("passportPhoto")}
           {passportPhoto && (
@@ -1964,9 +2014,16 @@ export function DelegateRegistrationForm({
             type="file"
             accept={delegateDocumentAcceptAttribute("visa")}
             onChange={(e) =>
-              handleCredentialFileChange(e, "currentVisaPhoto", "visa", setCurrentVisaPhoto)
+              handleCredentialFileChange(
+                e,
+                "currentVisaPhoto",
+                "visa",
+                setCurrentVisaPhoto,
+              )
             }
-            className={resolvePhotoError("currentVisaPhoto") ? "border-red-500" : ""}
+            className={
+              resolvePhotoError("currentVisaPhoto") ? "border-red-500" : ""
+            }
           />
           {resolvePhotoError("currentVisaPhoto") && (
             <p className="text-xs text-red-600">
@@ -1991,12 +2048,21 @@ export function DelegateRegistrationForm({
             type="file"
             accept={delegateDocumentAcceptAttribute("booklet")}
             onChange={(e) =>
-              handleCredentialFileChange(e, "bookletPhoto", "booklet", setBookletPhoto)
+              handleCredentialFileChange(
+                e,
+                "bookletPhoto",
+                "booklet",
+                setBookletPhoto,
+              )
             }
-            className={resolvePhotoError("bookletPhoto") ? "border-red-500" : ""}
+            className={
+              resolvePhotoError("bookletPhoto") ? "border-red-500" : ""
+            }
           />
           {resolvePhotoError("bookletPhoto") && (
-            <p className="text-xs text-red-600">{resolvePhotoError("bookletPhoto")}</p>
+            <p className="text-xs text-red-600">
+              {resolvePhotoError("bookletPhoto")}
+            </p>
           )}
           {renderUploadFeedback("bookletPhoto")}
           {bookletPhoto && (
