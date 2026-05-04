@@ -844,17 +844,26 @@ export function DelegatesShell() {
 
       {pairingAvailable ? (
         <>
+          {/* ── Room Pairing ─────────────────────────────────────────────── */}
+          <div className="flex items-center gap-2 pt-2">
+            <div className="rounded-lg bg-[#C8A061]/10 p-2">
+              <BedDouble className="size-5 text-[#C8A061]" />
+            </div>
+            <div>
+              <h3 className="font-semibold leading-none">Room Pairing</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Manage roommate pairing requests and room assignments. Same-gender by default — legal partner exceptions require chair approval.
+              </p>
+            </div>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Pairing Requests</CardTitle>
               <CardDescription>
-                Requests support same-gender pairing by default. Legal partner
-                exceptions require chair approval.
+                Submit and review pairing requests. Delegates with single-room
+                or no-accommodation registrations are excluded from target lists.
               </CardDescription>
-            <p className="text-xs text-muted-foreground">
-              Delegates with single-room or no-accommodation registration are
-              excluded from pairable target lists.
-            </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -942,37 +951,48 @@ export function DelegatesShell() {
 
               <div className="space-y-2">
                 {pairRequests.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No pairing requests yet.
-                  </p>
+                  <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center">
+                    <BedDouble className="mx-auto mb-2 size-8 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      No pairing requests yet.
+                    </p>
+                  </div>
                 )}
 
                 {pairRequests.map((request) => (
                   <div
                     key={request.id}
-                    className="rounded-lg border border-border p-3 text-sm"
+                    className="rounded-lg border border-border bg-card p-3 text-sm transition-colors hover:bg-muted/30"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-medium">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-medium leading-snug">
                           {request.requester.name}
                           {request.target
-                            ? ` → ${request.target.name}`
-                            : " (Single room request)"}
+                            ? (
+                              <>
+                                <span className="mx-1.5 text-muted-foreground">→</span>
+                                {request.target.name}
+                              </>
+                            )
+                            : (
+                              <span className="ml-1.5 text-muted-foreground text-xs">(Single room request)</span>
+                            )}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {request.requestType} ·{" "}
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          <span className="capitalize">{request.requestType.replace(/_/g, " ").toLowerCase()}</span>
+                          {" · "}
                           {new Date(request.createdAt).toLocaleString()}
                         </p>
                         {request.note && (
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {request.note}
+                          <p className="mt-1 text-xs text-muted-foreground italic">
+                            &ldquo;{request.note}&rdquo;
                           </p>
                         )}
                       </div>
                       <Badge
                         variant="outline"
-                        className={PAIR_STATUS_COLOR[request.status]}
+                        className={`shrink-0 ${PAIR_STATUS_COLOR[request.status]}`}
                       >
                         {request.status}
                       </Badge>
@@ -1034,12 +1054,10 @@ export function DelegatesShell() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                Room Assignment Workspace
-              </CardTitle>
+              <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
               <CardDescription>
-                Manual pairing is available for admins/chair controls, including
-                legal partner override notes.
+                Assign delegates to rooms manually. Provide an override reason
+                for cross-gender assignments (legal partner exceptions).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1115,28 +1133,34 @@ export function DelegatesShell() {
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {assignments.map((assignment) => (
-                  <Card key={assignment.id}>
+                  <Card key={assignment.id} className="border-border">
                     <CardContent className="pt-4">
-                      <div className="mb-1 flex items-center justify-between">
-                        <p className="font-semibold">
-                          Room {assignment.roomCode}
-                        </p>
-                        <Badge variant="outline">{assignment.status}</Badge>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <BedDouble className="size-4 text-[#C8A061]" />
+                          <p className="font-semibold text-sm">
+                            Room {assignment.roomCode}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">{assignment.status}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm font-medium leading-snug">
                         {assignment.occupantA.name}
                         {assignment.occupantB
                           ? ` + ${assignment.occupantB.name}`
-                          : " (Single)"}
+                          : ""}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {assignment.occupantA.delegateCode || "N/A"}
                         {assignment.occupantB
                           ? ` / ${assignment.occupantB.delegateCode || "N/A"}`
                           : ""}
+                        {!assignment.occupantB && (
+                          <span className="ml-1.5 italic">Single room</span>
+                        )}
                       </p>
                       {assignment.overrideReason && (
-                        <p className="mt-2 text-xs text-amber-700">
+                        <p className="mt-2 rounded bg-amber-50 border border-amber-200 px-2 py-1 text-xs text-amber-700">
                           {assignment.overrideReason}
                         </p>
                       )}
@@ -1146,9 +1170,10 @@ export function DelegatesShell() {
               </div>
 
               {assignments.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No room assignments yet.
-                </p>
+                <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center">
+                  <BedDouble className="mx-auto mb-2 size-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">No room assignments yet.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -1156,10 +1181,13 @@ export function DelegatesShell() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Pairing Workspace</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <BedDouble className="size-4 text-[#C8A061]" />
+              Room Pairing
+            </CardTitle>
             <CardDescription>
-              Pairing requests and room assignment tools appear after signing in
-              as a delegate or conference manager.
+              Pairing requests and room assignments appear after signing in as
+              a delegate or conference manager.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -30,6 +30,7 @@ import {
   Building2,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -77,7 +78,10 @@ interface ConfQAProps {
 interface FAQItem {
   id: string;
   question: string;
-  answer: string;
+  /** Plain-text version used for search filtering */
+  searchText: string;
+  /** Rich content with links shown in the expanded panel */
+  answer: React.ReactNode;
 }
 
 interface FAQCategory {
@@ -88,6 +92,26 @@ interface FAQCategory {
   bg: string;
   items: FAQItem[];
 }
+
+// helper so we can keep answer as ReactNode while still searching plain text
+function a(node: React.ReactNode, plain: string): Pick<FAQItem, "answer" | "searchText"> {
+  return { answer: node, searchText: plain };
+}
+
+const L = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => (
+  <Link
+    href={href}
+    className="font-medium text-[#C8A061] underline underline-offset-2 hover:text-[#C8A061]/80 transition-colors"
+  >
+    {children}
+  </Link>
+);
 
 const STATIC_FAQ: FAQCategory[] = [
   {
@@ -100,20 +124,52 @@ const STATIC_FAQ: FAQCategory[] = [
       {
         id: "create-account",
         question: "How do I create an account on the platform?",
-        answer:
-          "Visit the registration page and enter your full name, email address, and a secure password. After submitting, you will receive a verification email — click the confirmation link to activate your account. Once verified, log in to access the conference portal, view your delegate profile, and complete your registration.",
+        ...a(
+          <>
+            Visit the{" "}
+            <L href="/login">registration page</L> and enter your full name,
+            email address, and a secure password. After submitting, you will
+            receive a verification email — click the confirmation link to
+            activate your account. Once verified,{" "}
+            <L href="/login">log in</L> to access the conference portal, view
+            your delegate profile, and{" "}
+            <L href="/tools/conf/delegates/register">
+              complete your registration
+            </L>
+            .
+          </>,
+          "Visit the registration page and enter your full name, email address, and a secure password. After submitting, you will receive a verification email. Once verified, log in to complete your registration.",
+        ),
       },
       {
         id: "forgot-password",
         question: "I forgot my password. How do I reset it?",
-        answer:
-          'Click \"Forgot Password\" on the login page and enter your registered email address. A password reset link will arrive in your inbox within a few minutes. Click the link and follow the prompts to set a new password. If you don\'t see the email, check your spam folder.',
+        ...a(
+          <>
+            Click{" "}
+            <L href="/login">&ldquo;Forgot Password&rdquo; on the login page</L>{" "}
+            and enter your registered email address. A password reset link will
+            arrive in your inbox within a few minutes. Click the link and follow
+            the prompts to set a new password. If you don&apos;t see the email,
+            check your spam folder.
+          </>,
+          "Click Forgot Password on the login page. A reset link will arrive by email within a few minutes.",
+        ),
       },
       {
         id: "update-profile",
         question: "How do I update my personal information?",
-        answer:
-          "After logging in, click your name or avatar in the top-right corner and go to Profile. You can update your display name, phone number, and profile photo there. Your email address is tied to your account — contact the committee if you need it changed.",
+        ...a(
+          <>
+            After{" "}
+            <L href="/login">logging in</L>, click your name or avatar in the
+            top-right corner and go to <strong>Profile</strong>. You can update
+            your display name, phone number, and profile photo there. Your email
+            address is tied to your account — contact the committee if you need
+            it changed.
+          </>,
+          "After logging in, click your name or avatar in the top-right corner and go to Profile to update your personal information.",
+        ),
       },
     ],
   },
@@ -127,27 +183,87 @@ const STATIC_FAQ: FAQCategory[] = [
       {
         id: "how-to-register",
         question: "How do I register as a delegate?",
-        answer:
-          "Navigate to Conference Hub → Register. Fill in your personal details, select your attendance package, indicate your accommodation preference, and upload a clear passport-sized photo. Submit your registration for committee review. You will be notified once approved and payment instructions will follow.",
+        ...a(
+          <>
+            Go to{" "}
+            <L href="/tools/conf/delegates/register">
+              Conference Hub → Register
+            </L>
+            . Fill in your personal details, select your attendance package,
+            indicate your accommodation preference, and upload a clear
+            passport-sized photo. Submit your registration for committee review.
+            You will be notified once approved and payment instructions will
+            follow.
+          </>,
+          "Go to Conference Hub Register. Fill in personal details, select your attendance package, upload a photo, and submit for committee review.",
+        ),
       },
       {
         id: "update-registration",
         question: "Can I update my registration details after submitting?",
-        answer:
-          "Yes — you can update certain fields (dietary preferences, emergency contact, travel details) at any time before the registration deadline. For changes to your package or accommodation type, contact the conference committee directly as these may affect your fee amount.",
+        ...a(
+          <>
+            Yes — you can update certain fields (dietary preferences, emergency
+            contact, travel details) at any time before the registration
+            deadline via the{" "}
+            <L href="/tools/conf/delegates">Delegates page</L>. For changes to
+            your package or accommodation type, contact the conference committee
+            directly through the{" "}
+            <L href="/tools/conf/committee">Committee page</L> as these may
+            affect your fee amount.
+          </>,
+          "You can update dietary preferences, emergency contact, and travel details before the deadline. For package or accommodation changes contact the committee.",
+        ),
       },
       {
         id: "required-documents",
         question: "What information do I need to complete registration?",
-        answer:
-          "You will need: (1) A clear, recent passport-style photo; (2) Your valid national ID or passport number; (3) Emergency contact details; (4) Any dietary or accessibility requirements. All documents uploaded are stored securely and only accessible to authorised committee members.",
+        ...a(
+          <>
+            You will need when visiting the{" "}
+            <L href="/tools/conf/delegates/register">registration form</L>:
+            <ul className="mt-2 space-y-1 list-disc list-inside text-sm">
+              <li>A clear, recent passport-style photo</li>
+              <li>Your valid national ID or passport number</li>
+              <li>Emergency contact details</li>
+              <li>Any dietary or accessibility requirements</li>
+            </ul>
+            <span className="block mt-2">All documents are stored securely and only accessible to authorised committee members.</span>
+          </>,
+          "You need a passport-style photo, national ID or passport number, emergency contact details, and dietary or accessibility requirements.",
+        ),
       },
       {
         id: "packages",
-        question:
-          "What attendance packages are available and what do they include?",
-        answer:
-          "The conference offers packages designed for different needs:\n\n• Full Package — Accommodation (shared room), all meals during the conference, transport to and from the venue, and access to all sessions and events.\n\n• Day Attendance — Access to conference sessions only, without accommodation or meals.\n\n• Partial Package — Accommodation and select meals, without transport.\n\nExact pricing and availability are shown on the registration form. Contact the financial secretary for payment schedule details.",
+        question: "What attendance packages are available and what do they include?",
+        ...a(
+          <>
+            The conference offers packages designed for different needs (exact
+            pricing shown on the{" "}
+            <L href="/tools/conf/delegates/register">registration form</L>):
+            <ul className="mt-2 space-y-1.5 list-disc list-inside text-sm">
+              <li>
+                <strong>Full Package</strong> — Accommodation (shared room),
+                all meals, transport to/from the venue, and access to all
+                sessions.
+              </li>
+              <li>
+                <strong>Day Attendance</strong> — Access to conference sessions
+                only, without accommodation or meals.
+              </li>
+              <li>
+                <strong>Partial Package</strong> — Accommodation and select
+                meals, without transport.
+              </li>
+            </ul>
+            <span className="block mt-2">
+              Contact the{" "}
+              <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
+              for payment schedule details.
+            </span>
+          </>,
+          "Full Package includes accommodation, meals, and transport. Day Attendance is sessions only. Partial Package is accommodation and select meals. Contact the Financial Secretary for payment details.",
+        ),
       },
     ],
   },
@@ -161,32 +277,88 @@ const STATIC_FAQ: FAQCategory[] = [
       {
         id: "who-can-pair",
         question: "Who is eligible to choose a roommate?",
-        answer:
-          "Any delegate whose selected package includes accommodation is eligible to choose a roommate. If your package does not include accommodation (e.g. Day Attendance), the Room Pairing section will not apply to you. Log in and visit Conference Hub → Room Pairing to check your eligibility status.",
+        ...a(
+          <>
+            Any delegate whose selected package includes accommodation is
+            eligible to choose a roommate. If your package does not include
+            accommodation (e.g. Day Attendance), the Room Pairing section will
+            not apply to you.{" "}
+            <L href="/login">Log in</L> and visit the{" "}
+            <L href="/tools/conf/delegates">Delegates page</L> to check your
+            eligibility status under the Room Pairing section.
+          </>,
+          "Delegates with accommodation packages can choose a roommate. Log in and visit the Delegates page to check eligibility.",
+        ),
       },
       {
         id: "how-pairing-works",
         question: "How does the room pairing system work?",
-        answer:
-          "Visit Conference Hub → Room Pairing once registered with an accommodation package. You will see a list of eligible delegates to send a roommate request to. When you send a request, the other delegate receives a notification and can accept or decline. Once both parties agree, the committee confirms and assigns the shared room. You can only have one active roommate pairing at a time.",
+        ...a(
+          <>
+            Visit the{" "}
+            <L href="/tools/conf/delegates">Delegates page → Room Pairing</L>{" "}
+            section once registered with an accommodation package. You will see
+            a list of eligible delegates to send a roommate request to. When you
+            send a request, the other delegate can accept or decline. Once both
+            parties agree, the committee confirms and assigns the shared room.
+            You can only have one active roommate pairing at a time.
+          </>,
+          "Visit the Delegates page Room Pairing section. Send a request to an eligible delegate. Once accepted, the committee confirms and assigns the room.",
+        ),
       },
       {
         id: "same-gender-rule",
         question: "Can male and female delegates share a room?",
-        answer:
-          "No — by default, room assignments are same-gender only. Male delegates are matched with male delegates, and female delegates with female delegates. This policy ensures the comfort and safety of all conference attendees.\n\nThe only exception is for legally recognised partners (see the Legal Partner Exception question below).",
+        ...a(
+          <>
+            No — by default, room assignments are same-gender only. Male
+            delegates are matched with male delegates, and female delegates with
+            female delegates. This policy ensures the comfort and safety of all
+            attendees.
+            <br />
+            <br />
+            The only exception is for legally recognised partners — see the{" "}
+            <strong>Legal Partner Exception</strong> question below or visit the{" "}
+            <L href="/tools/conf/delegates">Delegates page</L> to apply.
+          </>,
+          "Room assignments are same-gender only by default. The only exception is for legally recognised partners via the Legal Partner Exception.",
+        ),
       },
       {
         id: "legal-partner-exception",
         question: "What is the Legal Partner Exception for room pairing?",
-        answer:
-          'If you and your partner are legally married or in a registered partnership and you are both attending the conference, you may apply for the Legal Partner Exception to share a room together.\n\nTo apply: go to the Room Pairing page, click "Legal Partner Exception" on the other delegate\'s card, provide a brief note explaining your relationship, and submit. The NEC or conference committee will review and confirm before the room is assigned. Please allow 2–5 business days for review.',
+        ...a(
+          <>
+            If you and your partner are legally married or in a registered
+            partnership and you are both attending the conference, you may apply
+            for the Legal Partner Exception to share a room together.
+            <br />
+            <br />
+            To apply: go to the{" "}
+            <L href="/tools/conf/delegates">Delegates page → Room Pairing</L>,
+            select <em>Legal Partner Exception</em> as the request type, provide
+            a brief note explaining your relationship, and submit. The NEC or
+            conference committee will review and confirm before the room is
+            assigned. Please allow 2–5 business days for review.
+          </>,
+          "Legally married or registered partners may apply for the Legal Partner Exception on the Delegates page. The committee reviews within 2-5 business days.",
+        ),
       },
       {
         id: "no-roommate",
         question: "What if I don't choose a roommate before the deadline?",
-        answer:
-          "If you have not completed a roommate pairing by the assignment deadline, the conference committee will assign you a roommate based on gender and package type. You will be notified of your room assignment before the conference begins. If you have any concerns about your assigned roommate, contact the committee directly.",
+        ...a(
+          <>
+            If you have not completed a roommate pairing by the assignment
+            deadline, the conference committee will assign you a roommate based
+            on gender and package type. You will be notified of your room
+            assignment before the conference begins. If you have any concerns
+            about your assigned roommate, contact the committee through the{" "}
+            <L href="/tools/conf/committee">Committee page</L> or post in the{" "}
+            <strong>Community Q&amp;A</strong> tab above.
+          </>,
+          "Unmatched delegates are assigned a roommate by the committee based on gender and package type before the conference.",
+        ),
       },
     ],
   },
@@ -200,20 +372,50 @@ const STATIC_FAQ: FAQCategory[] = [
       {
         id: "how-to-pay",
         question: "How do I pay my conference fees?",
-        answer:
-          "After your registration is approved, you will receive payment instructions from the financial secretary. Payment is typically made via bank transfer to the conference account. Once transferred, upload your proof of payment (bank receipt or screenshot) on the Payments page under Conference Hub. The financial secretary will review and confirm within 2–3 business days.",
+        ...a(
+          <>
+            After your registration is approved, you will receive payment
+            instructions from the financial secretary. Payment is typically made
+            via bank transfer to the conference account. Once transferred,
+            upload your proof of payment (bank receipt or screenshot) on the{" "}
+            <L href="/tools/conf/payments">Payments page</L> under Conference
+            Hub. The{" "}
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
+            will review and confirm within 2–3 business days.
+          </>,
+          "After approval, transfer payment to the conference account and upload your proof of payment on the Payments page. The Financial Secretary confirms within 2-3 business days.",
+        ),
       },
       {
         id: "payment-confirmation",
         question: "How long does payment confirmation take?",
-        answer:
-          "Payment confirmations are typically processed within 2–3 business days after proof of payment is uploaded. During peak registration periods close to the conference date, this may take slightly longer. You will receive a notification once confirmed. If more than 5 business days have passed, please follow up with the financial secretary.",
+        ...a(
+          <>
+            Payment confirmations are typically processed within 2–3 business
+            days after proof of payment is uploaded to the{" "}
+            <L href="/tools/conf/payments">Payments page</L>. During peak
+            registration periods this may take slightly longer. You will receive
+            a notification once confirmed. If more than 5 business days have
+            passed, please follow up with the{" "}
+            <L href="/tools/conf/finance/secretary">Financial Secretary</L>.
+          </>,
+          "Payment confirmations take 2-3 business days after uploading proof. If more than 5 days pass, follow up with the Financial Secretary.",
+        ),
       },
       {
         id: "payment-receipt",
         question: "Can I get a receipt for my payment?",
-        answer:
-          "Yes — once your payment is confirmed, an official receipt is generated and available to download from the Payments page. You can view your full payment history there at any time. If you need a formal receipt letter for visa or administrative purposes, contact the conference secretary.",
+        ...a(
+          <>
+            Yes — once your payment is confirmed, an official receipt is
+            generated and available to download from the{" "}
+            <L href="/tools/conf/payments">Payments page</L>. You can view your
+            full payment history there at any time. If you need a formal receipt
+            letter for visa or administrative purposes,{" "}
+            <L href="/tools/conf/letters">contact the conference secretary</L>.
+          </>,
+          "Official receipts are available on the Payments page once confirmed. Contact the conference secretary for formal receipt letters.",
+        ),
       },
     ],
   },
@@ -227,14 +429,38 @@ const STATIC_FAQ: FAQCategory[] = [
       {
         id: "contact",
         question: "Who do I contact if I have a problem not answered here?",
-        answer:
-          "Use the Community Q&A tab to post a question — committee members monitor it and will respond. For urgent matters, contact the conference secretariat through official LSUIC communication channels. Platform or technical issues can also be raised in Community Q&A and a committee member with admin access will assist you.",
+        ...a(
+          <>
+            Use the <strong>Community Q&amp;A</strong> tab on this page to post
+            a question — committee members monitor it and will respond. For
+            urgent matters, reach out via the{" "}
+            <L href="/tools/conf/committee">Committee page</L> or through
+            official LSUIC communication channels. Platform or technical issues
+            can also be raised in Community Q&amp;A and a member with admin
+            access will assist you.
+          </>,
+          "Use the Community Q&A tab on this page to post a question. Committee members monitor it and respond. Urgent matters can also be directed through the Committee page.",
+        ),
       },
       {
         id: "important-dates",
         question: "Where can I find important conference dates and deadlines?",
-        answer:
-          "All key dates — registration deadlines, payment deadlines, room pairing deadlines, and the full conference schedule — are available on the Conference Hub Timeline page. The dashboard also displays a countdown to the conference and highlights any upcoming deadlines. Submit your registration and payment well before the deadlines to secure your place.",
+        ...a(
+          <>
+            All key dates — registration deadlines, payment deadlines, room
+            pairing deadlines, and the full conference schedule — are available
+            on the{" "}
+            <L href="/tools/conf/timeline">Conference Hub Timeline page</L>.
+            The{" "}
+            <L href="/tools/conf">
+              dashboard
+            </L>{" "}
+            also displays a countdown to the conference and highlights any
+            upcoming deadlines. Submit your registration and payment well before
+            the deadlines to secure your place.
+          </>,
+          "All key dates and deadlines are on the Conference Hub Timeline page. The dashboard also shows a countdown and upcoming deadlines.",
+        ),
       },
     ],
   },
@@ -267,7 +493,7 @@ function StaticFAQSection() {
         (activeCategory === "all" || activeCategory === cat.id) &&
         (!search ||
           item.question.toLowerCase().includes(searchLower) ||
-          item.answer.toLowerCase().includes(searchLower)),
+          item.searchText.toLowerCase().includes(searchLower)),
     ),
   })).filter((cat) => cat.items.length > 0);
 
@@ -379,9 +605,9 @@ function StaticFAQSection() {
                   </button>
                   {isOpen && (
                     <div className="border-t border-[#C8A061]/15 px-4 pb-4 pt-3">
-                      <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">
+                      <div className="text-sm leading-relaxed text-foreground/80">
                         {item.answer}
-                      </p>
+                      </div>
                     </div>
                   )}
                 </div>

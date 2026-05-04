@@ -19,7 +19,6 @@ import {
   ClipboardList,
   BarChart3,
   Mail,
-  BedDouble,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,12 +58,6 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/booklet",
     label: "Booklet",
     icon: FileText,
-    minAccess: "delegate",
-  },
-  {
-    href: "/tools/conf/rooms",
-    label: "Room Pairing",
-    icon: BedDouble,
     minAccess: "delegate",
   },
   {
