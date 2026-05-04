@@ -75,7 +75,6 @@ export type LetterDraft = {
   fundraisingRecipientName: string;
   fundraisingRecipientAddress: string;
   fundraisingTargetAmount: string;
-  fundraisingRaisedToDate: string;
   fundraisingUseOfFunds: string;
   fundraisingPaymentDeadline: string;
   fundraisingEventDate: string;

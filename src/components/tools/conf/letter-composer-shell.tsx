@@ -57,6 +57,7 @@ import { normalizeSignatureProfileKey } from "@/lib/conf/signature-profiles";
 import {
   buildFundraisingLetterBodyRichHtml,
   buildLetterBodyRichHtml,
+  stripLegacyFundraisingProgressRow,
   FUNDRAISING_CATEGORY_LABELS,
   FUNDRAISING_SAMPLE_DOC_TITLE,
   FUNDRAISING_SAMPLE_DATE_PLACEHOLDER,
@@ -66,7 +67,6 @@ import {
   FUNDRAISING_SAMPLE_ADDRESS,
   FUNDRAISING_SAMPLE_RECIPIENT_NAME,
   FUNDRAISING_SAMPLE_TARGET_AMOUNT,
-  FUNDRAISING_SAMPLE_RAISED_TO_DATE,
   FUNDRAISING_SAMPLE_USE_OF_FUNDS,
   FUNDRAISING_SAMPLE_EVENT_DATE,
   FUNDRAISING_SAMPLE_EVENT_TIME,
@@ -199,7 +199,6 @@ type LetterDraft = {
   fundraisingRecipientName: string;
   fundraisingRecipientAddress: string;
   fundraisingTargetAmount: string;
-  fundraisingRaisedToDate: string;
   fundraisingUseOfFunds: string;
   fundraisingPaymentDeadline: string;
   fundraisingEventDate: string;
@@ -233,7 +232,6 @@ const FUNDRAISING_BODY_SYNC_FIELDS = new Set<keyof LetterDraft>([
   "fundraisingInviteRole",
   "fundraisingInviteRoleOther",
   "fundraisingTargetAmount",
-  "fundraisingRaisedToDate",
   "fundraisingUseOfFunds",
   "fundraisingPaymentDeadline",
   "fundraisingEventDate",
@@ -593,6 +591,9 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     (d.signatoryMode === "STANDARD" || d.signatoryMode === "FUNDRAISING") &&
     (d.signatory1Name || d.signatory3Name);
 
+  const richFromDisk = d.bodyRich ?? plainBodyToRichHtml(d.body ?? "");
+  const scrubbedRich = stripLegacyFundraisingProgressRow(richFromDisk);
+
   const s1Name = needsSwap
     ? (d.signatory3Name ?? "")
     : (d.signatory1Name ?? "");
@@ -619,8 +620,8 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     }),
     re: d.re ?? "",
     date: d.date ?? "",
-    body: d.body ?? "",
-    bodyRich: d.bodyRich ?? plainBodyToRichHtml(d.body ?? ""),
+    body: richHtmlToPlainText(scrubbedRich),
+    bodyRich: scrubbedRich,
     issuingRoleKey: d.issuingRoleKey ?? "",
     officeLabel: d.officeLabel ?? LETTERHEAD_CONFIG.defaultOfficeLabel,
     signatoryMode: d.signatoryMode ?? "NONE",
@@ -648,8 +649,6 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     fundraisingRecipientName: d.fundraisingRecipientName ?? "",
     fundraisingRecipientAddress: d.fundraisingRecipientAddress ?? "",
     fundraisingTargetAmount: d.fundraisingTargetAmount ?? "",
-    fundraisingRaisedToDate:
-      (d as Partial<LetterDraft>).fundraisingRaisedToDate ?? "",
     fundraisingUseOfFunds: d.fundraisingUseOfFunds ?? "",
     fundraisingPaymentDeadline:
       d.fundraisingPaymentDeadline ?? DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
@@ -687,7 +686,6 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       fundraisingInviteRole: base.fundraisingInviteRole,
       fundraisingInviteRoleOther: base.fundraisingInviteRoleOther,
       fundraisingTargetAmount: base.fundraisingTargetAmount,
-      fundraisingRaisedToDate: base.fundraisingRaisedToDate,
       fundraisingUseOfFunds: base.fundraisingUseOfFunds,
       fundraisingEventDate: base.fundraisingEventDate,
       fundraisingEventTime: base.fundraisingEventTime,
@@ -771,7 +769,6 @@ function newDraft(): LetterDraft {
     fundraisingRecipientName: "",
     fundraisingRecipientAddress: "",
     fundraisingTargetAmount: "",
-    fundraisingRaisedToDate: "",
     fundraisingUseOfFunds: "",
     fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
     fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
@@ -828,7 +825,6 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingInviteRole: d.fundraisingInviteRole,
     fundraisingInviteRoleOther: d.fundraisingInviteRoleOther,
     fundraisingTargetAmount: d.fundraisingTargetAmount,
-    fundraisingRaisedToDate: d.fundraisingRaisedToDate,
     fundraisingUseOfFunds: d.fundraisingUseOfFunds,
     fundraisingEventDate: d.fundraisingEventDate,
     fundraisingEventTime: d.fundraisingEventTime,
@@ -898,7 +894,6 @@ function applyLetterSample(
       fundraisingRecipientName: FUNDRAISING_SAMPLE_RECIPIENT_NAME,
       fundraisingRecipientAddress: FUNDRAISING_SAMPLE_ADDRESS,
       fundraisingTargetAmount: FUNDRAISING_SAMPLE_TARGET_AMOUNT,
-      fundraisingRaisedToDate: FUNDRAISING_SAMPLE_RAISED_TO_DATE,
       fundraisingUseOfFunds: FUNDRAISING_SAMPLE_USE_OF_FUNDS.trim(),
       fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
       fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
@@ -1783,7 +1778,6 @@ function LetterA4Preview({
   const hasFundraisingContent =
     (draft.fundraisingTargetAmount ?? "").trim().length > 0 ||
     (draft.fundraisingUseOfFunds ?? "").trim().length > 0 ||
-    (draft.fundraisingRaisedToDate ?? "").trim().length > 0 ||
     draft.fundraisingCategory !== "general";
   const showFundraisingFlyer =
     draft.type === "FUNDRAISING" ||
@@ -4393,23 +4387,6 @@ export function LetterComposerShell() {
                               value={activeDraft.fundraisingTargetAmount}
                               onChange={(e) =>
                                 set("fundraisingTargetAmount")(e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">
-                              Secured toward goal so far
-                              <span className="text-muted-foreground">
-                                {" "}
-                                (optional — usually amount only)
-                              </span>
-                            </Label>
-                            <Input
-                              className="h-8 text-sm"
-                              placeholder="e.g. RMB 70,000"
-                              value={activeDraft.fundraisingRaisedToDate}
-                              onChange={(e) =>
-                                set("fundraisingRaisedToDate")(e.target.value)
                               }
                             />
                           </div>

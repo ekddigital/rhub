@@ -18,8 +18,6 @@ export const FUNDRAISING_SAMPLE_SUBJECT =
 export const FUNDRAISING_SAMPLE_RECIPIENT_NAME = "[Recipient title and name]";
 export const FUNDRAISING_SAMPLE_TARGET_AMOUNT =
   "RMB 180,000 (approx. USD 25,000 at RMB 7.2 ≈ USD 1)";
-/** Amount-only sample line for Letter Composer; the letter adds standard explanatory wording. */
-export const FUNDRAISING_SAMPLE_RAISED_TO_DATE = "";
 export const FUNDRAISING_SAMPLE_EVENT_DATE = "May 29, 2026";
 export const FUNDRAISING_SAMPLE_EVENT_TIME = "21:00 (China time)";
 export const FUNDRAISING_SAMPLE_PAYMENT_DEADLINE = "June 6, 2026";
@@ -129,8 +127,6 @@ export type FundraisingLetterBodyFields = {
   fundraisingInviteRole: string;
   fundraisingInviteRoleOther: string;
   fundraisingTargetAmount: string;
-  /** Secured toward goal so far (typically an amount); omit when blank. */
-  fundraisingRaisedToDate: string;
   fundraisingUseOfFunds: string;
   fundraisingEventDate: string;
   fundraisingEventTime: string;
@@ -140,6 +136,18 @@ export type FundraisingLetterBodyFields = {
   fundraisingMeetingPassword: string;
   fundraisingMeetingLink: string;
 };
+
+/**
+ * Removes legacy “Progress secured toward goal” snapshot rows from rich HTML drafts.
+ * Older composer builds inserted this table row when a “raised to date” sidebar value was set.
+ */
+export function stripLegacyFundraisingProgressRow(html: string): string {
+  if (!html || !/Progress\s+secured\s+toward\s+goal/i.test(html)) return html;
+  return html.replace(
+    /<tr[^>]*>\s*<t[dh][^>]*>\s*Progress\s+secured\s+toward\s+goal\s*<\/t[dh]>\s*<t[dh][^>]*>[\s\S]*?<\/t[dh]>\s*<\/tr>/gi,
+    "",
+  );
+}
 
 function escapeLetterHtml(value: string): string {
   return value
