@@ -152,22 +152,21 @@ type LetterDraft = {
   signatory1Name: string;
   signatory1Title: string;
   signatory1Label: string; // e.g. "Signed"
-  signatory1Sig: string; // base64 data URL of signature image
-  signatory1SigScale: number; // 0.5–2.0, default 1
-  // Signatory 2 (centre — mid authority, e.g. Vice-Chair → "Approved")
+  signatory1Sig: string;
+  signatory1SigScale: number;
+  // Signatory 2 (middle)
   signatory2Name: string;
   signatory2Title: string;
   signatory2Label: string;
   signatory2Sig: string;
   signatory2SigScale: number;
-  // Signatory 3 (right — highest authority, e.g. Chair → "Attested")
+  // Signatory 3 (right)
   signatory3Name: string;
   signatory3Title: string;
   signatory3Label: string;
   signatory3Sig: string;
   signatory3SigScale: number;
   fundraisingEnabled: boolean;
-  /** Which letter version/audience this fundraising draft targets. */
   fundraisingCategory: FundraisingCategory;
   fundraisingInviteRole: string;
   fundraisingInviteRoleOther: string;
@@ -183,98 +182,73 @@ type LetterDraft = {
   fundraisingMeetingLink: string;
   fundraisingMeetingId: string;
   fundraisingMeetingPassword: string;
-  /** Corporate: company/organization name (separate from contact person). */
   fundraisingOrgName: string;
-  /** Corporate / Government / NGO: conference theme to quote in the letter. */
   fundraisingConferenceTheme: string;
-  /** Government: embassy or government office name. */
   fundraisingOfficeName: string;
-  /** Alumni: graduation year or class year (optional). */
   fundraisingAlumniGradYear: string;
-  /** NGO: form of partnership being requested. */
   fundraisingPartnershipType: string;
-  /** Last time we merged the FUNDRAISING_LETTER sample on enable (avoid clobbering edits). Reset when disabling fundraising mode. */
   fundraisingLetterSampleApplied: boolean;
   savedAt: string;
 };
 
+/** Row shape from GET /api/conf/:confId/members */
 type Member = {
   id: string;
   name: string;
   role: string;
   title: string | null;
   city: string | null;
-  committeeScope: string | null;
   phone: string | null;
+  email: string | null;
+  photoPath: string | null;
+  joinedAt: string;
+  committeeScope: string | null;
+  canAssignCommittee: boolean;
+  canApprovePayments: boolean;
+  userId: string | null;
+  linkedUserName?: string | null;
+  linkedUserEmail?: string | null;
 };
 
+/** Event slice from booklet/data for letterhead dates */
 type ConfInfo = {
   name: string;
-  city: string;
-  venue: string | null;
+  city?: string | null;
+  venue?: string | null;
   startsAt: string;
   endsAt: string;
 };
 
+/** Conference committee role template from GET /api/conf/:confId/roles */
 type RoleTemplate = {
   id: string;
+  confId: string;
   key: string;
   label: string;
-  baseRole:
-    | "CHAIR"
-    | "VICE_CHAIR"
-    | "SECRETARY"
-    | "TREASURER"
-    | "COMMITTEE"
-    | "DELEGATE";
+  baseRole: string;
   title: string | null;
   committeeScope: string | null;
   officeLabel: string | null;
-  sortOrder: number;
   isSystem: boolean;
+  sortOrder: number;
   isActive: boolean;
 };
 
+/** Saved signature image profile from letters/signatures API */
 type SignatureProfile = {
   key: string;
   name: string;
-  title?: string;
+  title: string;
   signatureDataUrl: string;
 };
 
-const FUNDRAISING_BODY_SYNC_FIELDS: ReadonlySet<keyof LetterDraft> = new Set([
-  "fundraisingCategory",
-  "fundraisingRecipientName",
-  "fundraisingInviteRole",
-  "fundraisingInviteRoleOther",
-  "fundraisingTargetAmount",
-  "fundraisingRaisedToDate",
-  "fundraisingUseOfFunds",
-  "fundraisingEventDate",
-  "fundraisingEventTime",
-  "fundraisingPaymentDeadline",
-  "fundraisingMeetingMedium",
-  "fundraisingMeetingId",
-  "fundraisingMeetingPassword",
-  "fundraisingMeetingLink",
-  "fundraisingOrgName",
-  "fundraisingConferenceTheme",
-  "fundraisingOfficeName",
-  "fundraisingAlumniGradYear",
-  "fundraisingPartnershipType",
-]);
-
-// ── localStorage helpers ─────────────────────────────────────────────────────
-
-const LS_KEY = "conf_letter_drafts";
-const DEFAULT_FUNDRAISING_PAYMENT_DEADLINE = "June 6, 2026";
-const DEFAULT_FUNDRAISING_EVENT_DATE = "May 29, 2026";
-const DEFAULT_FUNDRAISING_EVENT_TIME = "21:00 China Time";
 const DEFAULT_FUNDRAISING_MEETING_MEDIUM = "Zoom";
 const DEFAULT_FUNDRAISING_MEETING_LINK =
   "https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09";
 const DEFAULT_FUNDRAISING_MEETING_ID = "2312312006";
 const DEFAULT_FUNDRAISING_MEETING_PASSWORD = "LSUIC2006";
+
+const LS_KEY = "rhub_conf_letter_composer_drafts_v1";
 
 function escapeHtml(value: string): string {
   return value
@@ -651,11 +625,11 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       (d as Partial<LetterDraft>).fundraisingRaisedToDate ?? "",
     fundraisingUseOfFunds: d.fundraisingUseOfFunds ?? "",
     fundraisingPaymentDeadline:
-      d.fundraisingPaymentDeadline ?? DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
+      d.fundraisingPaymentDeadline ?? FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
     fundraisingEventDate:
-      d.fundraisingEventDate ?? DEFAULT_FUNDRAISING_EVENT_DATE,
+      d.fundraisingEventDate ?? FUNDRAISING_SAMPLE_EVENT_DATE,
     fundraisingEventTime:
-      d.fundraisingEventTime ?? DEFAULT_FUNDRAISING_EVENT_TIME,
+      d.fundraisingEventTime ?? FUNDRAISING_SAMPLE_EVENT_TIME,
     fundraisingMeetingMedium:
       d.fundraisingMeetingMedium ?? DEFAULT_FUNDRAISING_MEETING_MEDIUM,
     fundraisingMeetingLink:
@@ -772,9 +746,9 @@ function newDraft(): LetterDraft {
     fundraisingTargetAmount: "",
     fundraisingRaisedToDate: "",
     fundraisingUseOfFunds: "",
-    fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
-    fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
-    fundraisingEventTime: DEFAULT_FUNDRAISING_EVENT_TIME,
+    fundraisingPaymentDeadline: FUNDRAISING_SAMPLE_PAYMENT_DEADLINE,
+    fundraisingEventDate: FUNDRAISING_SAMPLE_EVENT_DATE,
+    fundraisingEventTime: FUNDRAISING_SAMPLE_EVENT_TIME,
     fundraisingMeetingMedium: DEFAULT_FUNDRAISING_MEETING_MEDIUM,
     fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
     fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
@@ -847,6 +821,29 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingPartnershipType: d.fundraisingPartnershipType,
   };
 }
+
+/** Keys that drive auto-regenerated fundraising letter HTML via `buildLetterBodyRichHtml`. */
+const FUNDRAISING_BODY_SYNC_FIELDS = new Set<keyof LetterDraft>([
+  "fundraisingCategory",
+  "fundraisingRecipientName",
+  "fundraisingInviteRole",
+  "fundraisingInviteRoleOther",
+  "fundraisingTargetAmount",
+  "fundraisingRaisedToDate",
+  "fundraisingUseOfFunds",
+  "fundraisingEventDate",
+  "fundraisingEventTime",
+  "fundraisingPaymentDeadline",
+  "fundraisingMeetingMedium",
+  "fundraisingMeetingId",
+  "fundraisingMeetingPassword",
+  "fundraisingMeetingLink",
+  "fundraisingOrgName",
+  "fundraisingConferenceTheme",
+  "fundraisingOfficeName",
+  "fundraisingAlumniGradYear",
+  "fundraisingPartnershipType",
+]);
 
 function shouldAutoSyncFundraisingBody(draft: LetterDraft): boolean {
   if (!draft.fundraisingEnabled) return false;
@@ -1108,20 +1105,6 @@ function measureTextWidth(text: string, metrics: PageMetrics): number {
 function estimateLinesPerPage(metrics: PageMetrics): number {
   const lineHeightPx = metrics.fontSize * metrics.lineHeight;
   return Math.floor(metrics.contentHeight / lineHeightPx);
-}
-
-/** Approximate pagination lines for the embedded fundraising flyer at full column width */
-function estimateEmbeddedFlyerEquivalentLines(metrics: PageMetrics): number {
-  const linePx = metrics.fontSize * metrics.lineHeight;
-  const textWidthPx = Math.max(
-    120,
-    metrics.contentWidth - metrics.paddingLeft - metrics.paddingRight,
-  );
-  const approxFlyerHeightPx = Math.min(
-    metrics.contentHeight * 0.88,
-    textWidthPx * 1.22,
-  );
-  return Math.max(14, Math.ceil(approxFlyerHeightPx / linePx));
 }
 
 /**
@@ -1765,125 +1748,9 @@ function LetterA4Preview({
   const firstPageBlocks = blockPages[0] ?? [];
   const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
-  const showFundraisingFlyer = Boolean(draft.fundraisingEnabled);
-  const totalPages =
-    1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
+  const totalPages = 1 + continuationBodies.length;
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
-
-  /** Embedded flyer + payment slabs (flows under signatures on final letter sheet) */
-  function renderEmbeddedFundraisingFlyer(): ReactNode {
-    if (!showFundraisingFlyer) return null;
-
-    return (
-      <div
-        className="letter-embedded-flyer"
-        style={{
-          width: "100%",
-          marginTop: 10,
-          pageBreakInside: "avoid",
-          breakInside: "avoid",
-          borderTop: `1px solid ${C.gold}`,
-          paddingTop: 10,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            flexWrap: "wrap",
-            gap: 8,
-            marginBottom: 6,
-          }}
-        >
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.navy }}>
-            Fundraising flyer — payment methods
-          </div>
-          <div style={{ fontSize: 8.5, color: C.muted, fontStyle: "italic" }}>
-            {officeLabel}
-          </div>
-        </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/conf/funraising.png"
-          alt="LSUIC fundraising campaign flyer — payment channels"
-          style={{
-            width: "100%",
-            height: "auto",
-            display: "block",
-            border: "1px solid #d9d9d9",
-            borderRadius: 6,
-            background: "#fff",
-          }}
-        />
-        <div
-          style={{
-            fontSize: 8.5,
-            color: C.muted,
-            marginTop: 6,
-            lineHeight: 1.35,
-          }}
-        >
-          Scannable payment details: Mobile Money, UBA, WeChat Pay, and Alipay
-          (see the flyer graphic in this section).
-        </div>
-      </div>
-    );
-  }
-
-  /** Note immediately above the embedded payment flyer */
-  function renderPaymentMediumPreflyerNote(): ReactNode {
-    if (!showFundraisingFlyer) return null;
-
-    return (
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "100%",
-          minWidth: 0,
-          boxSizing: "border-box",
-          marginTop: 18,
-          marginBottom: 4,
-          border: `1px solid ${C.navy}`,
-          borderLeftWidth: 4,
-          borderLeftColor: C.navy,
-          borderRadius: 4,
-          background: "#f8fafc",
-          padding: "12px 16px",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: C.navy,
-            letterSpacing: "0.4px",
-            textTransform: "uppercase",
-            marginBottom: 6,
-          }}
-        >
-          Payment instructions (see flyer below)
-        </div>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 11,
-            color: "#1e293b",
-            lineHeight: 1.6,
-            overflowWrap: "break-word",
-          }}
-        >
-          Detailed <strong style={{ fontWeight: 700 }}>payment mediums</strong>{" "}
-          are shown on <strong>the flyer image directly below</strong>. Please
-          pay only through those channels —<strong> Mobile Money</strong>,{" "}
-          <strong>UBA (bank)</strong>, <strong>WeChat Pay</strong>, or{" "}
-          <strong>Alipay</strong> — using the QR codes and account titles on
-          that flyer.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -1985,85 +1852,12 @@ function LetterA4Preview({
             <div style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>
               {buildLetterheadEmailLine()}
             </div>
-            <div style={{ fontSize: 8, color: C.muted, marginTop: 2 }}>
-              {buildLetterheadWebsiteLine()}
-            </div>
-            {officerPhones.length > 0 && (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: 16,
-                  marginTop: 5,
-                  flexWrap: "wrap" as const,
-                }}
-              >
-                {officerPhones.map(({ label, phone }) => (
-                  <span
-                    key={label}
-                    style={{ fontSize: 8.5, color: C.navy, fontWeight: 600 }}
-                  >
-                    {label}: {phone}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* Liberia National Seal */}
-          <div
-            style={{
-              flexShrink: 0,
-              width: 104,
-              height: 104,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/conf/liberia-seal.svg"
-              alt="Liberia Seal"
-              style={{ width: 104, height: 104, objectFit: "contain" }}
-              onError={(e) => {
-                const el = e.target as HTMLImageElement;
-                el.style.display = "none";
-                (el.parentElement as HTMLElement).innerHTML =
-                  '<span style="font-size:7px;text-align:center;color:#002868;">REPUBLIC OF LIBERIA</span>';
-              }}
-            />
-          </div>
+          {/* Right column — balances logo width (seal slot / spacer) */}
+          <div style={{ flexShrink: 0, width: 108 }} />
         </div>
 
-        {/* ── Gold separator ── */}
-        <div style={{ height: GOLD_BAR, background: C.gold, flexShrink: 0 }} />
-
-        {/* ── "Office of…" row ── */}
-        <div
-          style={{
-            height: OFFICE_ROW,
-            background: C.white,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "0 20px",
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: C.navy,
-              fontStyle: "italic",
-            }}
-          >
-            {officeLabel}
-          </span>
-        </div>
-
-        {/* ── Navy + Red bars ── */}
         <div style={{ height: NAVY_BAR, background: C.navy, flexShrink: 0 }} />
         <div style={{ height: RED_BAR, background: C.red, flexShrink: 0 }} />
 
@@ -2622,122 +2416,6 @@ function LetterA4Preview({
         );
       })}
 
-      {/* ── Dedicated payment / flyer attachment page ── */}
-      {showFundraisingFlyer && (
-        <div
-          className="letter-page continuation-page letter-flyer-page"
-          style={{
-            width: PAGE_W,
-            height: PAGE_H,
-            minHeight: PAGE_H,
-            maxHeight: PAGE_H,
-            overflow: "hidden",
-            flexShrink: 0,
-            background: C.white,
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: forPrint ? "none" : "0 4px 32px rgba(0,0,0,0.18)",
-            outline: forPrint ? "none" : "1px solid rgba(0,0,0,0.06)",
-            fontFamily: "'Helvetica Neue', Arial, sans-serif",
-            marginTop: 0,
-          }}
-        >
-          {/* Flag stripes */}
-          <div
-            style={{
-              display: "flex",
-              height: CONTINUATION_STRIPES_H,
-              flexShrink: 0,
-            }}
-          >
-            {FLAG_STRIPES_11.map((color, i) => (
-              <div key={i} style={{ flex: 1, background: color }} />
-            ))}
-          </div>
-          {/* Title bar */}
-          <div
-            style={{
-              flexShrink: 0,
-              height: CONTINUATION_TITLEBAR_BODY_H,
-              boxSizing: "border-box",
-              padding: "10px 22px",
-              borderBottom: `2px solid ${C.gold}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ fontSize: 10, color: C.navy, fontWeight: 700 }}>
-              {LETTER_COMPOSER_HEADER_PRIMARY_LINE}
-            </div>
-            <div style={{ fontSize: 9, color: C.muted, fontStyle: "italic" }}>
-              {officeLabel}
-            </div>
-          </div>
-          {/* Flyer body — flex:1 fills remaining space so footer is pinned to bottom */}
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              overflow: "hidden",
-              padding: `${CONTINUATION_TEXT_PADDING_TOP}px ${CONTINUATION_TEXT_PADDING_RIGHT}px ${CONTINUATION_TEXT_PADDING_BOTTOM}px ${CONTINUATION_TEXT_PADDING_LEFT}px`,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {renderPaymentMediumPreflyerNote()}
-            {renderEmbeddedFundraisingFlyer()}
-          </div>
-          {/* Footer — always at the bottom because wrapper has fixed PAGE_H and body has flex:1 */}
-          <div
-            style={{
-              height: FOOTER_H,
-              background: C.navy,
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-            }}
-          >
-            <div style={{ height: 2, background: C.red, width: "100%" }} />
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0 14px",
-              }}
-            >
-              <div style={{ width: 48 }} />
-              <div
-                style={{
-                  fontSize: 8,
-                  fontWeight: 700,
-                  color: C.gold,
-                  letterSpacing: "0.5px",
-                  textAlign: "center",
-                }}
-              >
-                Honoring Our Past, Engaging Our Present, and Inspiring Our
-                Future
-              </div>
-              <div
-                style={{
-                  fontSize: 8,
-                  color: C.gold,
-                  opacity: 0.75,
-                  fontVariantNumeric: "tabular-nums",
-                  width: 48,
-                  textAlign: "right",
-                }}
-              >
-                Page {totalPages} of {totalPages}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
