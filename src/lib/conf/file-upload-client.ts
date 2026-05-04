@@ -2,20 +2,24 @@ import type { DelegateDocumentKind } from "@/lib/conf/upload-validation";
 import {
   validateDelegateDocumentUpload,
   delegateDocumentAcceptAttribute,
+  CONFERENCE_UPLOAD_MAX_SIZE_LABEL,
   DELEGATE_IMAGE_EXTENSIONS_LABEL,
   DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL,
   DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/upload-validation";
 
 export type { DelegateDocumentKind };
 
 export {
   delegateDocumentAcceptAttribute,
+  CONFERENCE_UPLOAD_MAX_SIZE_LABEL,
   DELEGATE_IMAGE_EXTENSIONS_LABEL,
   DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL,
   DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
 };
 
 export function validateDelegateUploadFile(

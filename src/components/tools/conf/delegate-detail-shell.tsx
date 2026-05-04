@@ -35,6 +35,7 @@ import {
   delegateDocumentAcceptAttribute,
   DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
@@ -553,6 +554,9 @@ export function DelegateDetailShell({
                 <p className="font-medium text-foreground">Accepted file types</p>
                 <p className="leading-snug">{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</p>
                 <p className="leading-snug">{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
+                <p className="leading-snug border-t border-amber-200/60 pt-2 mt-2 dark:border-amber-900/40">
+                  {DELEGATE_UPLOAD_CONVERSION_TIP}
+                </p>
               </div>
 
               <p className="text-xs text-muted-foreground">

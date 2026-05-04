@@ -35,6 +35,7 @@ import {
   delegateDocumentAcceptAttribute,
   DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
@@ -814,7 +815,10 @@ export function DelegatePublicRegister() {
                       Accepted formats only
                     </p>
                     <p className="mb-1">{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</p>
-                    <p>{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
+                    <p className="mb-1">{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
+                    <p className="border-t border-amber-200/60 pt-1.5 dark:border-amber-900/40">
+                      {DELEGATE_UPLOAD_CONVERSION_TIP}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">

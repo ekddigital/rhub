@@ -15,7 +15,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "test:delegate-uploads": "tsx tooling/test-delegate-upload-validation.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

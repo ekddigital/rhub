@@ -28,6 +28,7 @@ import {
   delegateDocumentAcceptAttribute,
   DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/file-upload-client";
 
 export type DelegateRegistrationPayload = {
@@ -1755,6 +1756,9 @@ export function DelegateRegistrationForm({
             <li>{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</li>
             <li>{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</li>
           </ul>
+          <p className="text-xs text-muted-foreground leading-snug">
+            {DELEGATE_UPLOAD_CONVERSION_TIP}
+          </p>
           <p className="text-xs text-muted-foreground leading-snug">
             Other formats cannot be uploaded until you convert them. Your device
             may still show disallowed files in the picker; choosing one will show

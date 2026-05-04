@@ -41,7 +41,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PAY_METHODS } from "@/lib/conf/config";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { validatePaymentProofFile } from "@/lib/conf/file-upload-client";
+import {
+  validatePaymentProofFile,
+  delegateDocumentAcceptAttribute,
+  CONFERENCE_UPLOAD_MAX_SIZE_LABEL,
+  DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
+} from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
   type UploadErrorPayload,
@@ -1267,7 +1273,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,application/pdf"
+                accept={delegateDocumentAcceptAttribute("passport")}
                 multiple
                 onChange={handleFileChange}
                 className="hidden"
@@ -1278,9 +1284,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               >
                 <Upload className="mb-2 size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  Click to upload screenshots or receipts (PNG, JPEG, PDF)
+                  Screenshots or receipts: {DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}.
+                  Maximum {CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file.
                 </p>
-                <p className="text-xs text-muted-foreground">Max 10 MB each</p>
+                <p className="text-xs text-muted-foreground">
+                  {DELEGATE_UPLOAD_CONVERSION_TIP}
+                </p>
               </div>
               {proofValidationFeedback && (
                 <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">

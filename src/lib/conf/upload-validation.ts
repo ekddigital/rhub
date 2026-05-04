@@ -41,10 +41,14 @@ export const DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL =
   `${DELEGATE_IMAGE_EXTENSIONS_LABEL}, or PDF`;
 
 export const DELEGATE_TRAVEL_UPLOAD_RULE_TEXT =
-  `Passport, entry stamp, and visa: ${DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}. Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file. HEIC, BMP, TIFF, Word, and other types are not accepted—please export or convert to JPEG, PNG, GIF, WebP, or PDF before uploading.`;
+  `Passport, entry stamp, and visa: ${DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}. Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file. HEIC/HEIF, BMP, TIFF, Word, and anything else must be exported first—we only accept JPEG, PNG, GIF, WebP, or PDF uploads.`;
 
 export const DELEGATE_BOOKLET_UPLOAD_RULE_TEXT =
-  `Conference booklet photo: ${DELEGATE_IMAGE_EXTENSIONS_LABEL} only (no PDF). Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL}. Convert HEIC and other formats to JPEG or PNG before uploading.`;
+  `Conference booklet photo: ${DELEGATE_IMAGE_EXTENSIONS_LABEL} only (no PDF). Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL}. HEIC and other formats must be saved as JPEG or PNG before uploading.`;
+
+/** Shown under credential upload sections — actionable conversion hint. */
+export const DELEGATE_UPLOAD_CONVERSION_TIP =
+  "Need to convert? On iPhone (HEIC): open the photo → Share → Save as JPEG, or set Camera → Formats → Most Compatible for new photos. On any device: open in Preview or Photos and export as JPEG or PNG.";
 
 /**
  * HTML `accept` for `<input type="file">` — filters the system picker (browser-dependent).
@@ -97,8 +101,8 @@ export function validateDelegateDocumentUpload(
         : DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL;
     const convertHint =
       kind === "booklet"
-        ? "Convert HEIC and other formats to JPEG or PNG, then try again."
-        : "Convert other formats to JPEG, PNG, GIF, WebP, or PDF, then try again.";
+        ? "Export a JPEG or PNG copy (Photos / Preview → Share or Export), then upload that file."
+        : "Export a JPEG, PNG, GIF, WebP, or PDF copy (Photos / Preview → Share or Export), then upload that file.";
     return {
       ok: false,
       normalizedMime,
