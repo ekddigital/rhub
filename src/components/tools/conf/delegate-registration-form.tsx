@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +23,12 @@ import {
   normalizeConferenceOptionalAddOnPackageIds,
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
-import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  validateDelegateUploadFile,
+  delegateDocumentAcceptAttribute,
+  DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
+  DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+} from "@/lib/conf/file-upload-client";
 
 export type DelegateRegistrationPayload = {
   name: string;
@@ -355,6 +367,40 @@ export function DelegateRegistrationForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [draftRestored, setDraftRestored] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCredentialFileChange = useCallback(
+    (
+      e: ChangeEvent<HTMLInputElement>,
+      fieldKey:
+        | "passportPhoto"
+        | "lastEntryStampPhoto"
+        | "currentVisaPhoto"
+        | "bookletPhoto",
+      kind: "passport" | "entry-stamp" | "visa" | "booklet",
+      setFile: (f: File | null) => void,
+    ) => {
+      const input = e.target;
+      const next = input.files?.[0] ?? null;
+      if (!next) {
+        setFile(null);
+        setFieldErrors((p) => ({ ...p, [fieldKey]: "" }));
+        onPhotoFileChange?.(fieldKey, null);
+        return;
+      }
+      const validation = validateDelegateUploadFile(next, kind);
+      if (!validation.ok) {
+        setFieldErrors((p) => ({ ...p, [fieldKey]: validation.error }));
+        setFile(null);
+        onPhotoFileChange?.(fieldKey, null);
+        input.value = "";
+        return;
+      }
+      setFieldErrors((p) => ({ ...p, [fieldKey]: "" }));
+      setFile(next);
+      onPhotoFileChange?.(fieldKey, next);
+    },
+    [onPhotoFileChange],
+  );
 
   const registrationSnapshot = useMemo<DelegateRegistrationSnapshot>(
     () => ({
@@ -1701,6 +1747,21 @@ export function DelegateRegistrationForm({
           </p>
         </div>
 
+        <div className="space-y-2 sm:col-span-2 rounded-md border border-amber-200/80 bg-amber-50/90 px-3 py-2.5 dark:border-amber-900/50 dark:bg-amber-950/30">
+          <p className="text-xs font-semibold text-foreground">
+            Credential uploads — accepted formats only
+          </p>
+          <ul className="list-disc space-y-1.5 pl-4 text-xs text-muted-foreground leading-snug">
+            <li>{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</li>
+            <li>{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</li>
+          </ul>
+          <p className="text-xs text-muted-foreground leading-snug">
+            Other formats cannot be uploaded until you convert them. Your device
+            may still show disallowed files in the picker; choosing one will show
+            an error and clear the selection.
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label>
             15. Upload Passport Photo Page{" "}
@@ -1708,13 +1769,10 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
-            onChange={(e) => {
-              const nextFile = e.target.files?.[0] || null;
-              setPassportPhoto(nextFile);
-              setFieldErrors((p) => ({ ...p, passportPhoto: "" }));
-              onPhotoFileChange?.("passportPhoto", nextFile);
-            }}
+            accept={delegateDocumentAcceptAttribute("passport")}
+            onChange={(e) =>
+              handleCredentialFileChange(e, "passportPhoto", "passport", setPassportPhoto)
+            }
             className={resolvePhotoError("passportPhoto") ? "border-red-500" : ""}
           />
           {resolvePhotoError("passportPhoto") && (
@@ -1736,13 +1794,15 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
-            onChange={(e) => {
-              const nextFile = e.target.files?.[0] || null;
-              setLastEntryStampPhoto(nextFile);
-              setFieldErrors((p) => ({ ...p, lastEntryStampPhoto: "" }));
-              onPhotoFileChange?.("lastEntryStampPhoto", nextFile);
-            }}
+            accept={delegateDocumentAcceptAttribute("entry-stamp")}
+            onChange={(e) =>
+              handleCredentialFileChange(
+                e,
+                "lastEntryStampPhoto",
+                "entry-stamp",
+                setLastEntryStampPhoto,
+              )
+            }
             className={
               resolvePhotoError("lastEntryStampPhoto") ? "border-red-500" : ""
             }
@@ -1768,13 +1828,10 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
-            onChange={(e) => {
-              const nextFile = e.target.files?.[0] || null;
-              setCurrentVisaPhoto(nextFile);
-              setFieldErrors((p) => ({ ...p, currentVisaPhoto: "" }));
-              onPhotoFileChange?.("currentVisaPhoto", nextFile);
-            }}
+            accept={delegateDocumentAcceptAttribute("visa")}
+            onChange={(e) =>
+              handleCredentialFileChange(e, "currentVisaPhoto", "visa", setCurrentVisaPhoto)
+            }
             className={resolvePhotoError("currentVisaPhoto") ? "border-red-500" : ""}
           />
           {resolvePhotoError("currentVisaPhoto") && (
@@ -1798,13 +1855,10 @@ export function DelegateRegistrationForm({
           </Label>
           <Input
             type="file"
-            accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
-            onChange={(e) => {
-              const nextFile = e.target.files?.[0] || null;
-              setBookletPhoto(nextFile);
-              setFieldErrors((p) => ({ ...p, bookletPhoto: "" }));
-              onPhotoFileChange?.("bookletPhoto", nextFile);
-            }}
+            accept={delegateDocumentAcceptAttribute("booklet")}
+            onChange={(e) =>
+              handleCredentialFileChange(e, "bookletPhoto", "booklet", setBookletPhoto)
+            }
             className={resolvePhotoError("bookletPhoto") ? "border-red-500" : ""}
           />
           {resolvePhotoError("bookletPhoto") && (

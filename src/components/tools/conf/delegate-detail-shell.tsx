@@ -30,7 +30,12 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
-import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  validateDelegateUploadFile,
+  delegateDocumentAcceptAttribute,
+  DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
+  DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+} from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
   parseUploadErrorPayload,
@@ -215,9 +220,7 @@ export function DelegateDetailShell({
 
     const fileValidation = validateDelegateUploadFile(file, kind);
     if (!fileValidation.ok) {
-      setError(
-        `Cannot upload ${uploadKindLabel(kind)}: ${fileValidation.error} (File: ${file.name})`,
-      );
+      setError(fileValidation.error);
       return;
     }
 
@@ -467,7 +470,7 @@ export function DelegateDetailShell({
                   <input
                     type="file"
                     className="hidden"
-                    accept="image/png,image/jpeg,image/webp"
+                    accept={delegateDocumentAcceptAttribute("booklet")}
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
                       void handleUpload("booklet", file);
@@ -489,7 +492,7 @@ export function DelegateDetailShell({
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      accept={delegateDocumentAcceptAttribute("entry-stamp")}
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         void handleUpload("entry-stamp", file);
@@ -512,7 +515,7 @@ export function DelegateDetailShell({
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      accept={delegateDocumentAcceptAttribute("visa")}
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         void handleUpload("visa", file);
@@ -535,7 +538,7 @@ export function DelegateDetailShell({
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      accept={delegateDocumentAcceptAttribute("passport")}
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         void handleUpload("passport", file);
@@ -544,6 +547,12 @@ export function DelegateDetailShell({
                     />
                   </label>
                 )}
+              </div>
+
+              <div className="space-y-2 rounded-md border border-amber-200/70 bg-amber-50/80 px-3 py-2 text-xs text-muted-foreground dark:border-amber-900/45 dark:bg-amber-950/25">
+                <p className="font-medium text-foreground">Accepted file types</p>
+                <p className="leading-snug">{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</p>
+                <p className="leading-snug">{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
               </div>
 
               <p className="text-xs text-muted-foreground">

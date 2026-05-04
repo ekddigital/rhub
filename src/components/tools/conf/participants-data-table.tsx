@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { fmtRmb } from "@/lib/conf/currency";
 import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
 import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
+import { delegateDocumentAcceptAttribute } from "@/lib/conf/file-upload-client";
 
 export type ParticipantRow = {
   id: string;
@@ -861,7 +862,7 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept="image/png,image/jpeg,image/webp"
+                                accept={delegateDocumentAcceptAttribute("booklet")}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(
@@ -890,7 +891,7 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept="image/png,image/jpeg,image/webp,application/pdf"
+                                accept={delegateDocumentAcceptAttribute("passport")}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(
@@ -919,7 +920,9 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept="image/png,image/jpeg,image/webp,application/pdf"
+                                accept={delegateDocumentAcceptAttribute(
+                                  "entry-stamp",
+                                )}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(
@@ -948,7 +951,7 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept="image/png,image/jpeg,image/webp,application/pdf"
+                                accept={delegateDocumentAcceptAttribute("visa")}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(row.id, "visa", file);

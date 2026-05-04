@@ -30,7 +30,12 @@ import {
   type UploadedPhotoMeta,
   type UploadFeedback,
 } from "@/components/tools/conf/delegate-registration-form";
-import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
+import {
+  validateDelegateUploadFile,
+  delegateDocumentAcceptAttribute,
+  DELEGATE_TRAVEL_UPLOAD_RULE_TEXT,
+  DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
+} from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
   parseUploadErrorPayload,
@@ -588,11 +593,7 @@ export function DelegatePublicRegister() {
 
     const validation = validateDelegateUploadFile(file, kind);
     if (!validation.ok) {
-      setError(
-        kind === "booklet"
-          ? `Booklet photo invalid: ${validation.error}`
-          : `Document upload invalid: ${validation.error}`,
-      );
+      setError(validation.error);
       return;
     }
 
@@ -808,6 +809,14 @@ export function DelegatePublicRegister() {
                     can upload the same image or PDF for both.
                   </p>
 
+                  <div className="rounded-md border border-amber-200/70 bg-amber-50/80 px-2.5 py-2 text-[11px] leading-snug text-muted-foreground dark:border-amber-900/45 dark:bg-amber-950/25">
+                    <p className="mb-1 font-medium text-foreground">
+                      Accepted formats only
+                    </p>
+                    <p className="mb-1">{DELEGATE_TRAVEL_UPLOAD_RULE_TEXT}</p>
+                    <p>{DELEGATE_BOOKLET_UPLOAD_RULE_TEXT}</p>
+                  </div>
+
                   <div className="flex flex-wrap gap-2">
                     <label
                       className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground ${
@@ -821,7 +830,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                        accept={delegateDocumentAcceptAttribute("passport")}
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("passport", file);
@@ -842,7 +851,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                        accept={delegateDocumentAcceptAttribute("entry-stamp")}
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("entry-stamp", file);
@@ -863,7 +872,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept=".png,.jpg,.jpeg,.webp,.gif,.pdf,image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                        accept={delegateDocumentAcceptAttribute("visa")}
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("visa", file);
@@ -884,7 +893,7 @@ export function DelegatePublicRegister() {
                       <input
                         type="file"
                         className="hidden"
-                        accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
+                        accept={delegateDocumentAcceptAttribute("booklet")}
                         onChange={(e) => {
                           const file = e.target.files?.[0] || null;
                           void handleCorrectionUpload("booklet", file);

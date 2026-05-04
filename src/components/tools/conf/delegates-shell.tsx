@@ -435,9 +435,7 @@ export function DelegatesShell() {
     if (!confId || !file || uploadingDocKey) return;
     const validation = validateDelegateUploadFile(file, kind);
     if (!validation.ok) {
-      setError(
-        `Cannot replace ${kind}: ${validation.error} (File: ${file.name})`,
-      );
+      setError(validation.error);
       return;
     }
 
