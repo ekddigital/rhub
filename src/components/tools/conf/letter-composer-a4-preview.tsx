@@ -212,11 +212,6 @@ export function LetterA4Preview({
     (draft.fundraisingEnabled || draft.type === "FUNDRAISING");
   const totalPages = bodySheetCount + (includePromotionalFlyer ? 1 : 0);
 
-  const lineVenueOrCity =
-    (confInfo?.venue ?? "").trim() ||
-    (confInfo?.city ?? "").trim() ||
-    LETTERHEAD_CONFIG.defaultCity;
-
   return (
     <>
       <div
@@ -309,9 +304,6 @@ export function LetterA4Preview({
               )}
             </div>
             <div style={{ fontSize: 8.5, color: "#555", marginTop: 2 }}>
-              {lineVenueOrCity}
-            </div>
-            <div style={{ fontSize: 8.5, color: "#555" }}>
               {buildCityRegionLine(confInfo?.city)}
             </div>
             <div style={{ fontSize: 8.5, color: "#555" }}>{dateRange}</div>
