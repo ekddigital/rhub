@@ -90,6 +90,7 @@ import {
   NGO_SAMPLE_USE_OF_FUNDS,
   NGO_SAMPLE_PARTNERSHIP_TYPE,
   normalizeFundraisingLetterFromField,
+  FUNDRAISING_KEYNOTE_SPEAKER_ROLE,
   type FundraisingCategory,
   type AllLetterBodyFields,
 } from "@/lib/conf/fundraising-letter-template";
@@ -213,6 +214,10 @@ type LetterDraft = {
   fundraisingOfficeName: string;
   fundraisingAlumniGradYear: string;
   fundraisingPartnershipType: string;
+  /** General + Keynote Speaker: angle for Zoom fundraising keynote. */
+  fundraisingKeynoteTopicDirection: string;
+  /** General + Keynote Speaker: e.g. 15–20 minutes. */
+  fundraisingKeynoteApproxDuration: string;
   fundraisingLetterSampleApplied: boolean;
   savedAt: string;
 };
@@ -246,6 +251,8 @@ const FUNDRAISING_BODY_SYNC_FIELDS = new Set<keyof LetterDraft>([
   "fundraisingOfficeName",
   "fundraisingAlumniGradYear",
   "fundraisingPartnershipType",
+  "fundraisingKeynoteTopicDirection",
+  "fundraisingKeynoteApproxDuration",
 ]);
 
 const LS_KEY = "rhub:letter-composer:drafts-v2";
@@ -674,6 +681,10 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       (d as Partial<LetterDraft>).fundraisingAlumniGradYear ?? "",
     fundraisingPartnershipType:
       (d as Partial<LetterDraft>).fundraisingPartnershipType ?? "",
+    fundraisingKeynoteTopicDirection:
+      (d as Partial<LetterDraft>).fundraisingKeynoteTopicDirection ?? "",
+    fundraisingKeynoteApproxDuration:
+      (d as Partial<LetterDraft>).fundraisingKeynoteApproxDuration ?? "",
     fundraisingLetterSampleApplied: d.fundraisingLetterSampleApplied ?? false,
     savedAt: d.savedAt ?? "",
   };
@@ -695,6 +706,9 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
       fundraisingMeetingId: base.fundraisingMeetingId,
       fundraisingMeetingPassword: base.fundraisingMeetingPassword,
       fundraisingMeetingLink: base.fundraisingMeetingLink,
+      fundraisingConferenceTheme: base.fundraisingConferenceTheme,
+      fundraisingKeynoteTopicDirection: base.fundraisingKeynoteTopicDirection,
+      fundraisingKeynoteApproxDuration: base.fundraisingKeynoteApproxDuration,
     });
     return {
       ...base,
@@ -783,6 +797,8 @@ function newDraft(): LetterDraft {
     fundraisingOfficeName: "",
     fundraisingAlumniGradYear: "",
     fundraisingPartnershipType: "",
+    fundraisingKeynoteTopicDirection: "",
+    fundraisingKeynoteApproxDuration: "",
     fundraisingLetterSampleApplied: false,
     savedAt: "",
   };
@@ -834,9 +850,11 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
     fundraisingMeetingId: d.fundraisingMeetingId,
     fundraisingMeetingPassword: d.fundraisingMeetingPassword,
     fundraisingMeetingLink: d.fundraisingMeetingLink,
+    fundraisingConferenceTheme: d.fundraisingConferenceTheme,
+    fundraisingKeynoteTopicDirection: d.fundraisingKeynoteTopicDirection,
+    fundraisingKeynoteApproxDuration: d.fundraisingKeynoteApproxDuration,
     // Corporate
     fundraisingOrgName: d.fundraisingOrgName,
-    fundraisingConferenceTheme: d.fundraisingConferenceTheme,
     // Government
     fundraisingOfficeName: d.fundraisingOfficeName,
     // Alumni
@@ -903,6 +921,9 @@ function applyLetterSample(
       fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
       fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
       fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
+      fundraisingConferenceTheme: "",
+      fundraisingKeynoteTopicDirection: "",
+      fundraisingKeynoteApproxDuration: "",
     },
     corporate: {
       title: "Corporate Sponsorship Request — LSUIC 2026 Conference",
@@ -4360,7 +4381,83 @@ export function LetterComposerShell() {
                                 </option>
                               ))}
                             </select>
+                            <p className="text-[10px] text-muted-foreground leading-snug mt-1.5">
+                              <strong>Keynote Speaker</strong> applies only to
+                              the Zoom fundraising session in this letter. For
+                              sponsor/donor asks without a speaking role, choose
+                              Sponsor, Donor, Patron, etc. Invitations centred on
+                              the main conference in Jinan use{" "}
+                              <strong>Corporate</strong>,{" "}
+                              <strong>Government</strong>,{" "}
+                              <strong>Alumni</strong>, or{" "}
+                              <strong>NGO</strong>.
+                            </p>
                           </div>
+                          {activeDraft.fundraisingInviteRole ===
+                            FUNDRAISING_KEYNOTE_SPEAKER_ROLE && (
+                            <>
+                              <div className="rounded-md border border-border/70 bg-muted/30 p-2.5 space-y-2">
+                                <p className="text-[11px] text-foreground/90 leading-snug">
+                                  Keynote wording in the letter will state the Zoom
+                                  date/time from below, clarify it is{' '}
+                                  <em>not</em> an in-person conference slot, include
+                                  the theme line, and your topic/duration hints.
+                                </p>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">
+                                    Conference theme (optional)
+                                  </Label>
+                                  <Input
+                                    className="h-8 text-sm"
+                                    placeholder={`Leave blank for “${CONF_THEME}”`}
+                                    value={
+                                      activeDraft.fundraisingConferenceTheme
+                                    }
+                                    onChange={(e) =>
+                                      set("fundraisingConferenceTheme")(
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">
+                                    Suggested keynote direction / angle
+                                  </Label>
+                                  <Textarea
+                                    className="text-sm resize-none min-h-[72px]"
+                                    rows={3}
+                                    placeholder="e.g. leadership and diaspora solidarity; aligning personal story with the anniversary theme…"
+                                    value={
+                                      activeDraft.fundraisingKeynoteTopicDirection
+                                    }
+                                    onChange={(e) =>
+                                      set("fundraisingKeynoteTopicDirection")(
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">
+                                    Indicative speaking duration (optional)
+                                  </Label>
+                                  <Input
+                                    className="h-8 text-sm"
+                                    placeholder='e.g. 15–20 minutes'
+                                    value={
+                                      activeDraft.fundraisingKeynoteApproxDuration
+                                    }
+                                    onChange={(e) =>
+                                      set("fundraisingKeynoteApproxDuration")(
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </div>
+                            </>
+                          )}
                           {activeDraft.fundraisingInviteRole === "Other" && (
                             <div className="space-y-1.5">
                               <Label className="text-xs">

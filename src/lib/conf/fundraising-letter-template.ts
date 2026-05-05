@@ -3,6 +3,9 @@
  * The runtime letter body is built here from draft fields (see `buildFundraisingLetterBodyRichHtml`)
  * so sidebar values (recipient, category, dates, Zoom, target, use of funds) match the narrative.
  *
+ * Keynote Speaker (general letters only): copy describes a Zoom fundraising keynote slot only,
+ * not Jinan conference-day programme roles; optional theme / topic / duration fields tailor the invite.
+ *
  * `src/docs/FUNDRAISING_LETTER_SAMPLE.md` is an optional human reference only; the app does not load it.
  */
 
@@ -135,6 +138,14 @@ export type FundraisingLetterBodyFields = {
   fundraisingMeetingId: string;
   fundraisingMeetingPassword: string;
   fundraisingMeetingLink: string;
+  /**
+   * Optional theme line for copy (e.g. general letter + keynote). Empty → {@link CONF_THEME}.
+   */
+  fundraisingConferenceTheme: string;
+  /** Focus / angle for Zoom fundraising keynote; shown when role is Keynote Speaker. */
+  fundraisingKeynoteTopicDirection: string;
+  /** E.g. "15–20 minutes"; optional, keynote only. */
+  fundraisingKeynoteApproxDuration: string;
 };
 
 /**
@@ -164,6 +175,9 @@ export function parseUseOfFundsLines(raw: string): string[] {
     .map((line) => line.replace(/^\s*[-•*]\s*/, "").trim())
     .filter(Boolean);
 }
+
+/** Must match Invitation Category → Keynote Speaker in the Letter Composer. */
+export const FUNDRAISING_KEYNOTE_SPEAKER_ROLE = "Keynote Speaker";
 
 function inviteCategoryLabel(
   role: string,
@@ -222,9 +236,42 @@ export function buildFundraisingLetterBodyRichHtml(
     )
     .join("\n");
 
+  const isKeynoteSpeaker =
+    fields.fundraisingInviteRole.trim() === FUNDRAISING_KEYNOTE_SPEAKER_ROLE;
+
+  const themeLine =
+    (fields.fundraisingConferenceTheme ?? "").trim() || CONF_THEME;
+
+  const topicDir = (fields.fundraisingKeynoteTopicDirection ?? "").trim();
+  const durationRaw = (fields.fundraisingKeynoteApproxDuration ?? "").trim();
+
+  const durationSlotFragment = durationRaw
+    ? `, with an indicative speaking window of <strong>${escapeLetterHtml(durationRaw)}</strong>`
+    : "";
+
+  const keynoteSnapshotRow = isKeynoteSpeaker
+    ? `<tr><td>Keynote (Zoom fundraiser)</td><td>Remarks delivered live during the fundraising session dated above${
+        durationRaw
+          ? `; indicative duration <strong>${escapeLetterHtml(durationRaw)}</strong>`
+          : "; duration to coordinate with you"
+      }. Not applicable to conference-day programme slots.</td></tr>`
+    : "";
+
+  const keynoteTopicHtml = topicDir
+    ? `<p><strong>Suggested direction for your remarks:</strong><br />${escapeLetterHtml(topicDir).replaceAll("\n", "<br />")}</p>`
+    : "";
+
+  const openingBlock = isKeynoteSpeaker
+    ? `<p>We are writing to invite you to deliver the <strong>keynote address</strong> during our online <strong>${escapeLetterHtml(medium)} fundraising session</strong> for the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>${durationSlotFragment}.</p>
+<p>Please note: this invitation is <strong>only</strong> for the online fundraiser — it does <strong>not</strong> extend to speaking roles during the main in-person LSUIC Annual Conference (<strong>${escapeLetterHtml(CONF_DATES)}</strong>, <strong>${escapeLetterHtml(CONF_VENUE)}</strong>). If a conference-day role is envisaged separately, our team will approach you through a distinct letter or agreement.</p>
+<p>Our organising theme for this cycle is <em>"${escapeLetterHtml(themeLine)}"</em>. We hope your remarks can reflect that vision and resonate with Liberian students and allies.</p>
+${keynoteTopicHtml}
+<p>Alongside delivering the keynote, we would warmly welcome any moral or financial support you feel able to offer toward the goals below.</p>`
+    : `<p>We are writing to respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>`;
+
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>Warm greetings from the Liberian Student Union in China (LSUIC).</p>
-<p>We are writing to respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>
+${openingBlock}
 <p>Each year, LSUIC organizes this conference to unite Liberian students across China for leadership development, mentorship, professional networking, and national service planning. It is one of the few spaces where students from different cities can gather, learn, and build practical support systems together.</p>
 <p>As a student organization, we face a real challenge: many students are not fully funded. Some are on partial scholarships, while others carry significant financial disadvantages. Most students are not working, and conference-related costs can easily prevent participation.</p>
 <p>Our goal is simple and urgent: <strong>raise support to reduce conference fees so more Liberian students can attend.</strong></p>
@@ -236,6 +283,7 @@ export function buildFundraisingLetterBodyRichHtml(
 </thead>
 <tbody>
 <tr><td>Invitation category</td><td>${inviteClauseEscaped}</td></tr>
+${keynoteSnapshotRow}
 <tr><td>Public target communicated</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
 <tr><td>Scale / planning premise</td><td>This target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-production costs.</td></tr>
 </tbody>
@@ -464,7 +512,6 @@ ${supportRows}
 export type AllLetterBodyFields = FundraisingLetterBodyFields & {
   fundraisingCategory: FundraisingCategory;
   fundraisingOrgName: string;
-  fundraisingConferenceTheme: string;
   fundraisingOfficeName: string;
   fundraisingAlumniGradYear: string;
   fundraisingPartnershipType: string;

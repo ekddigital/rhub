@@ -88,6 +88,8 @@ export type LetterDraft = {
   fundraisingOfficeName: string;
   fundraisingAlumniGradYear: string;
   fundraisingPartnershipType: string;
+  fundraisingKeynoteTopicDirection: string;
+  fundraisingKeynoteApproxDuration: string;
   fundraisingLetterSampleApplied: boolean;
   savedAt: string;
 };
