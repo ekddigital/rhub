@@ -3,8 +3,8 @@
  * The runtime letter body is built here from draft fields (see `buildFundraisingLetterBodyRichHtml`)
  * so sidebar values (recipient, category, dates, Zoom, target, use of funds) match the narrative.
  *
- * Keynote Speaker (general letters only): copy describes a Zoom fundraising keynote slot only,
- * not Jinan conference-day programme roles; optional theme / topic / duration fields tailor the invite.
+ * Keynote Speaker (general letters only): copy describes the Zoom fundraising keynote slot;
+ * optional theme / topic / duration fields tailor the invite.
  *
  * `src/docs/FUNDRAISING_LETTER_SAMPLE.md` is an optional human reference only; the app does not load it.
  */
@@ -254,7 +254,7 @@ export function buildFundraisingLetterBodyRichHtml(
         durationRaw
           ? `; indicative duration <strong>${escapeLetterHtml(durationRaw)}</strong>`
           : "; duration to coordinate with you"
-      }. Not applicable to conference-day programme slots.</td></tr>`
+      }.</td></tr>`
     : "";
 
   const keynoteTopicHtml = topicDir
@@ -263,7 +263,6 @@ export function buildFundraisingLetterBodyRichHtml(
 
   const openingBlock = isKeynoteSpeaker
     ? `<p>We are writing to invite you to deliver the <strong>keynote address</strong> during our online <strong>${escapeLetterHtml(medium)} fundraising session</strong> for the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>${durationSlotFragment}.</p>
-<p>Please note: this invitation is <strong>only</strong> for the online fundraiser — it does <strong>not</strong> extend to speaking roles during the main in-person LSUIC Annual Conference (<strong>${escapeLetterHtml(CONF_DATES)}</strong>, <strong>${escapeLetterHtml(CONF_VENUE)}</strong>). If a conference-day role is envisaged separately, our team will approach you through a distinct letter or agreement.</p>
 <p>Our organising theme for this cycle is <em>"${escapeLetterHtml(themeLine)}"</em>. We hope your remarks can reflect that vision and resonate with Liberian students and allies.</p>
 ${keynoteTopicHtml}
 <p>Alongside delivering the keynote, we would warmly welcome any moral or financial support you feel able to offer toward the goals below.</p>`

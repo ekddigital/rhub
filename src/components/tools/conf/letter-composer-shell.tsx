@@ -4398,10 +4398,9 @@ export function LetterComposerShell() {
                             <>
                               <div className="rounded-md border border-border/70 bg-muted/30 p-2.5 space-y-2">
                                 <p className="text-[11px] text-foreground/90 leading-snug">
-                                  Keynote wording in the letter will state the Zoom
-                                  date/time from below, clarify it is{' '}
-                                  <em>not</em> an in-person conference slot, include
-                                  the theme line, and your topic/duration hints.
+                                  Keynote wording in the letter will use the Zoom
+                                  session date/time from below, include the theme
+                                  line, and your topic/duration hints when filled.
                                 </p>
                                 <div className="space-y-1.5">
                                   <Label className="text-xs">
