@@ -3,8 +3,7 @@
  * The runtime letter body is built here from draft fields (see `buildFundraisingLetterBodyRichHtml`)
  * so sidebar values (recipient, category, dates, Zoom, target, use of funds) match the narrative.
  *
- * Keynote Speaker (general letters only): copy describes the Zoom fundraising keynote slot;
- * optional theme / topic / duration fields tailor the invite.
+ * Keynote Speaker (general letters only): respectful invitation to deliver remarks at the virtual fundraiser; optional thematic emphasis / duration sidebar fields populate the narrative.
  *
  * `src/docs/FUNDRAISING_LETTER_SAMPLE.md` is an optional human reference only; the app does not load it.
  */
@@ -246,36 +245,36 @@ export function buildFundraisingLetterBodyRichHtml(
   const durationRaw = (fields.fundraisingKeynoteApproxDuration ?? "").trim();
 
   const durationSlotFragment = durationRaw
-    ? `, with an indicative speaking window of <strong>${escapeLetterHtml(durationRaw)}</strong>`
+    ? `; we propose an approximate duration of <strong>${escapeLetterHtml(durationRaw)}</strong>, subject to your availability`
     : "";
 
   const keynoteSnapshotRow = isKeynoteSpeaker
-    ? `<tr><td>Keynote (Zoom fundraiser)</td><td>Remarks delivered live during the fundraising session dated above${
+    ? `<tr><td>Keynote address (virtual session)</td><td>To be delivered during the fundraising session noted above${
         durationRaw
-          ? `; indicative duration <strong>${escapeLetterHtml(durationRaw)}</strong>`
-          : "; duration to coordinate with you"
+          ? `; proposed duration <strong>${escapeLetterHtml(durationRaw)}</strong> (to be confirmed)`
+          : "; duration to be confirmed with you"
       }.</td></tr>`
     : "";
 
   const keynoteTopicHtml = topicDir
-    ? `<p><strong>Suggested direction for your remarks:</strong><br />${escapeLetterHtml(topicDir).replaceAll("\n", "<br />")}</p>`
+    ? `<p><strong>Proposed thematic emphasis (for your consideration):</strong><br />${escapeLetterHtml(topicDir).replaceAll("\n", "<br />")}</p>`
     : "";
 
   const openingBlock = isKeynoteSpeaker
-    ? `<p>We are writing to invite you to deliver the <strong>keynote address</strong> during our online <strong>${escapeLetterHtml(medium)} fundraising session</strong> for the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>${durationSlotFragment}.</p>
-<p>Our organising theme for this cycle is <em>"${escapeLetterHtml(themeLine)}"</em>. We hope your remarks can reflect that vision and resonate with Liberian students and allies.</p>
+    ? `<p>We respectfully invite you to deliver the <strong>keynote address</strong> at a virtual fundraising session in support of the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>, via <strong>${escapeLetterHtml(medium)}</strong>${durationSlotFragment}.</p>
+<p>The thematic focus for this milestone is <em>"${escapeLetterHtml(themeLine)}"</em>. We would welcome remarks that align with this vision and speak constructively to Liberian students and partners.</p>
 ${keynoteTopicHtml}
-<p>Alongside delivering the keynote, we would warmly welcome any moral or financial support you feel able to offer toward the goals below.</p>`
-    : `<p>We are writing to respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>`;
+<p>Should you also wish to support the campaign financially or in other appropriate ways, the objectives below outline how contributions will be applied. Such support is voluntary and distinct from your role as keynote speaker.</p>`
+    : `<p>We respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>`;
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
-<p>Warm greetings from the Liberian Student Union in China (LSUIC).</p>
+<p>On behalf of the Liberian Student Union in China (LSUIC), we write with respect.</p>
 ${openingBlock}
-<p>Each year, LSUIC organizes this conference to unite Liberian students across China for leadership development, mentorship, professional networking, and national service planning. It is one of the few spaces where students from different cities can gather, learn, and build practical support systems together.</p>
-<p>As a student organization, we face a real challenge: many students are not fully funded. Some are on partial scholarships, while others carry significant financial disadvantages. Most students are not working, and conference-related costs can easily prevent participation.</p>
-<p>Our goal is simple and urgent: <strong>raise support to reduce conference fees so more Liberian students can attend.</strong></p>
+<p>Each year, LSUIC convenes this conference to bring together Liberian students across China for leadership development, mentorship, professional networking, and national service planning. It offers a structured forum where students from many cities can meet, learn, and strengthen practical support networks.</p>
+<p>As a student-led organization, we operate under significant resource constraints. Many members are not fully funded; some rely on partial scholarships, while others face considerable financial pressures. With limited paid employment during study, conference-related costs can prevent participation.</p>
+<p>Our present objective is to <strong>secure support that will help reduce conference fees and enable more Liberian students to attend.</strong></p>
 
-<h3>Fundraising snapshot</h3>
+<h3>Campaign overview</h3>
 <table>
 <thead>
 <tr><th scope="col">Item</th><th scope="col">Detail</th></tr>
@@ -283,8 +282,8 @@ ${openingBlock}
 <tbody>
 <tr><td>Invitation category</td><td>${inviteClauseEscaped}</td></tr>
 ${keynoteSnapshotRow}
-<tr><td>Public target communicated</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
-<tr><td>Scale / planning premise</td><td>This target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-production costs.</td></tr>
+<tr><td>Stated fundraising target</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
+<tr><td>Planning basis</td><td>The target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-related costs.</td></tr>
 </tbody>
 </table>
 
@@ -297,7 +296,7 @@ ${keynoteSnapshotRow}
 ${useOfFundsRows}
 </tbody>
 </table>
-<p>Every contribution, regardless of size, helps a student remain meaningfully involved in this national student platform.</p>
+<p>Contributions at every level help sustain meaningful participation on this national student platform.</p>
 
 <h3>Logistics — session and deadlines</h3>
 <table>
@@ -313,10 +312,10 @@ ${useOfFundsRows}
 </tbody>
 </table>
 
-<p>Detailed QR codes and account titles appear on our official flyer included within this letter.</p>
-<p>If needed, we can share confirmation steps immediately after payment for accountability and record keeping.</p>
-<p>We would be honored to have your support. Your contribution is an investment in the leadership capacity of Liberian students in China.</p>
-<p>Thank you for your time, trust, and partnership.</p>`;
+<p>Payment details, including QR codes and account titles, appear on our official flyer accompanying this letter.</p>
+<p>Upon request, we can provide acknowledgement procedures following remittance.</p>
+<p>We would be honored to receive your support. Your contribution supports the leadership development of Liberian students in China.</p>
+<p>Thank you for your consideration. Should you require further information, we remain at your disposal.</p>`;
 }
 
 // ── Corporate Sponsor letter ──────────────────────────────────────────────────

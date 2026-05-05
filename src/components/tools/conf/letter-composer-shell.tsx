@@ -214,9 +214,9 @@ type LetterDraft = {
   fundraisingOfficeName: string;
   fundraisingAlumniGradYear: string;
   fundraisingPartnershipType: string;
-  /** General + Keynote Speaker: angle for Zoom fundraising keynote. */
+  /** General / Keynote Speaker: proposed thematic emphasis for remarks. */
   fundraisingKeynoteTopicDirection: string;
-  /** General + Keynote Speaker: e.g. 15–20 minutes. */
+  /** General / Keynote Speaker: e.g. 15–20 minutes. */
   fundraisingKeynoteApproxDuration: string;
   fundraisingLetterSampleApplied: boolean;
   savedAt: string;
@@ -4421,12 +4421,12 @@ export function LetterComposerShell() {
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label className="text-xs">
-                                    Suggested keynote direction / angle
+                                    Proposed thematic emphasis
                                   </Label>
                                   <Textarea
                                     className="text-sm resize-none min-h-[72px]"
                                     rows={3}
-                                    placeholder="e.g. leadership and diaspora solidarity; aligning personal story with the anniversary theme…"
+                                    placeholder="e.g. leadership and diaspora engagement in line with the milestone theme"
                                     value={
                                       activeDraft.fundraisingKeynoteTopicDirection
                                     }
@@ -4439,7 +4439,7 @@ export function LetterComposerShell() {
                                 </div>
                                 <div className="space-y-1.5">
                                   <Label className="text-xs">
-                                    Indicative speaking duration (optional)
+                                    Proposed speaking duration (optional)
                                   </Label>
                                   <Input
                                     className="h-8 text-sm"
