@@ -5,7 +5,9 @@
  *
  * Keynote Speaker (general letters only): respectful invitation to deliver remarks at the virtual fundraiser; optional thematic emphasis / duration sidebar fields populate the narrative.
  *
- * `src/docs/FUNDRAISING_LETTER_SAMPLE.md` is an optional human reference only; the app does not load it.
+ * Docs (not loaded by the app):
+ * - `src/docs/LSUIC-2026-positioning-and-keynote-fundraising-letter-sample.md` — LSUIC 2026 planning identity + keynote fundraising letter sample aligned with this module.
+ * - `src/docs/FUNDRAISING_LETTER_SAMPLE.md` — optional older reference.
  */
 
 export const FUNDRAISING_SAMPLE_DOC_TITLE =
@@ -72,7 +74,7 @@ export function normalizeFundraisingLetterFromField(
 }
 
 export const CONF_THEME =
-  "Honoring Our Past, Engaging Our Present, Inspiring Our Future";
+  "Honoring Our Past, Engaging Our Present, and Inspiring Our Future";
 export const CONF_DATES = "July 24\u201327, 2026";
 export const CONF_VENUE = "Jinan City, Shandong Province, China";
 
