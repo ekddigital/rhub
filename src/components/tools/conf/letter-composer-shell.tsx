@@ -743,20 +743,33 @@ function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+/** Default sender block shown for a freshly created letter. */
+const NEW_LETTER_DEFAULT_FROM =
+  "Enoch Kwateh Dongbo\nConference Chair, LSUIC 2026";
+
+function formatTodayLetterDate() {
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+/**
+ * Brand-new composer draft — always runs through {@link migrateDraft} so sidebar
+ * defaults (fundraising Zoom fields, keynote slots, etc.) stay in sync with
+ * migrated localStorage drafts and any schema additions.
+ */
 function newDraft(): LetterDraft {
-  return {
+  return migrateDraft({
     id: newId(),
     dbId: "",
-    type: "GENERAL" as LetterType,
+    type: "GENERAL",
     title: "",
     to: "",
-    from: "Enoch Kwateh Dongbo\nConference Chair, LSUIC 2026",
+    from: NEW_LETTER_DEFAULT_FROM,
     re: "",
-    date: new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
+    date: formatTodayLetterDate(),
     body: "",
     bodyRich: "<p></p>",
     issuingRoleKey: "",
@@ -778,20 +791,13 @@ function newDraft(): LetterDraft {
     signatory3Sig: "",
     signatory3SigScale: 1,
     fundraisingEnabled: false,
-    fundraisingCategory: "general" as FundraisingCategory,
+    fundraisingCategory: "general",
     fundraisingInviteRole: "Sponsor",
     fundraisingInviteRoleOther: "",
     fundraisingRecipientName: "",
     fundraisingRecipientAddress: "",
     fundraisingTargetAmount: "",
     fundraisingUseOfFunds: "",
-    fundraisingPaymentDeadline: DEFAULT_FUNDRAISING_PAYMENT_DEADLINE,
-    fundraisingEventDate: DEFAULT_FUNDRAISING_EVENT_DATE,
-    fundraisingEventTime: DEFAULT_FUNDRAISING_EVENT_TIME,
-    fundraisingMeetingMedium: DEFAULT_FUNDRAISING_MEETING_MEDIUM,
-    fundraisingMeetingLink: DEFAULT_FUNDRAISING_MEETING_LINK,
-    fundraisingMeetingId: DEFAULT_FUNDRAISING_MEETING_ID,
-    fundraisingMeetingPassword: DEFAULT_FUNDRAISING_MEETING_PASSWORD,
     fundraisingOrgName: "",
     fundraisingConferenceTheme: "",
     fundraisingOfficeName: "",
@@ -801,7 +807,7 @@ function newDraft(): LetterDraft {
     fundraisingKeynoteApproxDuration: "",
     fundraisingLetterSampleApplied: false,
     savedAt: "",
-  };
+  });
 }
 
 function richTextIsEssentiallyEmpty(rich: string): boolean {
@@ -3025,9 +3031,9 @@ export function LetterComposerShell() {
   }, [activeDraft, persistDraft]);
 
   const handleNew = useCallback(() => {
-    setActiveDraft(newDraft());
+    setActiveDraft(hydrateDraftSignatures(newDraft()));
     setShowList(false);
-  }, []);
+  }, [hydrateDraftSignatures]);
 
   const handleLoad = useCallback(
     (d: LetterDraft) => {
@@ -3046,10 +3052,12 @@ export function LetterComposerShell() {
       });
       if (activeDraft.id === id) {
         const remaining = drafts.filter((d) => d.id !== id);
-        setActiveDraft(remaining.length > 0 ? remaining[0] : newDraft());
+        setActiveDraft(
+          remaining.length > 0 ? remaining[0] : hydrateDraftSignatures(newDraft()),
+        );
       }
     },
-    [activeDraft.id, drafts],
+    [activeDraft.id, drafts, hydrateDraftSignatures],
   );
 
   // ── Library (DB) helpers ─────────────────────────────────────────────────
