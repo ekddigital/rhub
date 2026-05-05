@@ -1,0 +1,244 @@
+/**
+ * Document model — public contract for rhub (`lib/creative/document-model.ts`).
+ * Vendor editor under `vendors/ekddigital` re-exports from here; keep in sync when editing that tree.
+ */
+
+/* ─── Inline Content ───────────────────────────────────────────── */
+export interface InlineText {
+  type: "text";
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strikethrough?: boolean;
+  code?: boolean;
+  link?: string;
+  /** Font size in px (from editor font-size control) */
+  fontSize?: number;
+}
+
+export type InlineContent = InlineText;
+
+/* ─── Block Nodes ──────────────────────────────────────────────── */
+export interface HeadingNode {
+  type: "heading";
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+  text: string;
+  /** Auto-generated section number, e.g. "1.2.3" */
+  number?: string;
+  /** Anchor ID for TOC linking */
+  id?: string;
+}
+
+export interface ParagraphNode {
+  type: "paragraph";
+  content: InlineContent[];
+  /** Raw text string shorthand (used instead of content array) */
+  text?: string;
+  /** Text alignment from the editor */
+  textAlign?: "left" | "center" | "right" | "justify";
+}
+
+export interface ListNode {
+  type: "list";
+  ordered: boolean;
+  items: ListItemNode[];
+  start?: number;
+}
+
+export interface ListItemNode {
+  type: "list-item";
+  content: InlineContent[];
+  text?: string;
+  children?: ListNode;
+}
+
+export interface TableNode {
+  type: "table";
+  /** Auto-generated caption, e.g. "Table 1: Financial Summary" */
+  caption?: string;
+  /** User-provided label */
+  label?: string;
+  /** Auto-generated number */
+  number?: number;
+  headers: string[];
+  rows: string[][];
+  /** Marks this table as a continuation fragment from a page-break split */
+  continued?: boolean;
+}
+
+export interface FigureNode {
+  type: "figure";
+  src: string;
+  alt?: string;
+  /** User-provided caption text */
+  caption?: string;
+  /** Auto-generated number */
+  number?: number;
+  width?: string;
+  alignment?: "left" | "center" | "right";
+  /** Absolute X position (px) for inline positioning */
+  posX?: number;
+  /** Absolute Y position (px) for inline positioning */
+  posY?: number;
+}
+
+export interface BlockquoteNode {
+  type: "blockquote";
+  content: InlineContent[];
+  text?: string;
+}
+
+export interface CodeBlockNode {
+  type: "code-block";
+  language?: string;
+  code: string;
+}
+
+export interface HorizontalRuleNode {
+  type: "horizontal-rule";
+}
+
+export interface PageBreakNode {
+  type: "page-break";
+}
+
+export interface SignatureBlockNode {
+  type: "signature-block";
+  name: string;
+  title: string;
+  company: string;
+  date?: string;
+  /** URL of uploaded signature image */
+  signatureImage?: string;
+}
+
+/* ─── Union of All Block Nodes ─────────────────────────────────── */
+export type DocumentNode =
+  | HeadingNode
+  | ParagraphNode
+  | ListNode
+  | TableNode
+  | FigureNode
+  | BlockquoteNode
+  | CodeBlockNode
+  | HorizontalRuleNode
+  | PageBreakNode
+  | SignatureBlockNode;
+
+/* ─── Cover Page Styles ────────────────────────────────────────── */
+export type CoverStyle =
+  | "executive"
+  | "legal"
+  | "policy"
+  | "proposal"
+  | "onboarding";
+
+export const COVER_STYLES: {
+  value: CoverStyle;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "executive",
+    label: "Executive",
+    description: "Gold accent, formal branding — general documents",
+  },
+  {
+    value: "legal",
+    label: "Legal",
+    description: "Navy & silver — contracts, agreements, NDAs",
+  },
+  {
+    value: "policy",
+    label: "Policy",
+    description: "Dark teal header — internal policies & guidelines",
+  },
+  {
+    value: "proposal",
+    label: "Proposal",
+    description: "Bold gold hero — client-facing proposals",
+  },
+  {
+    value: "onboarding",
+    label: "Onboarding",
+    description: "Warm indigo — employee handbooks & welcome docs",
+  },
+];
+
+/* ─── Document Metadata ────────────────────────────────────────── */
+export interface DocumentMeta {
+  title: string;
+  subtitle?: string;
+  author?: string;
+  date?: string;
+  version?: string;
+  reference?: string;
+  confidential?: boolean;
+  /** Show table of contents */
+  showTOC?: boolean;
+  /** Maximum heading depth for TOC (1-6, default 3) */
+  tocMaxLevel?: number;
+  /** Show cover page */
+  showCover?: boolean;
+  /** Cover page visual style */
+  coverStyle?: CoverStyle;
+  /** Show separate List of Tables page */
+  showListOfTables?: boolean;
+  /** Show separate List of Figures page */
+  showListOfFigures?: boolean;
+}
+
+/* ─── Table of Contents ────────────────────────────────────────── */
+export interface TOCEntry {
+  id: string;
+  text: string;
+  level: number;
+  number: string;
+  page?: number;
+}
+
+/* ─── Complete Document Model ──────────────────────────────────── */
+export interface DocumentModel {
+  meta: DocumentMeta;
+  children: DocumentNode[];
+  /** Auto-generated by TOC builder */
+  toc?: TOCEntry[];
+  /** Auto-generated list of tables */
+  listOfTables?: TOCEntry[];
+  /** Auto-generated list of figures */
+  listOfFigures?: TOCEntry[];
+}
+
+/* ─── Template Configuration ───────────────────────────────────── */
+export interface TemplateConfig {
+  id: string;
+  name: string;
+  description: string;
+  /** Show letterhead header */
+  showHeader: boolean;
+  /** Show footer with page numbers */
+  showFooter: boolean;
+  /** First page different from rest */
+  firstPageDifferent: boolean;
+  /** Show table of contents */
+  showTOC: boolean;
+  /** Show cover page */
+  showCover: boolean;
+  /** Show separate List of Tables page */
+  showListOfTables?: boolean;
+  /** Show separate List of Figures page */
+  showListOfFigures?: boolean;
+  /** Margin preset */
+  margins: "standard" | "narrow" | "wide";
+}
+
+/* ─── Export Options ───────────────────────────────────────────── */
+export interface ExportOptions {
+  format: "pdf" | "docx";
+  filename: string;
+  template: string;
+  includeBookmarks: boolean;
+  includeTOC: boolean;
+  quality: "draft" | "standard" | "high";
+}

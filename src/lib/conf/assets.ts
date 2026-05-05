@@ -285,6 +285,93 @@ export async function uploadFileToEKDDigitalAssets(
   throw new Error(lastAuthError);
 }
 
+export type EKDAssetListParams = {
+  clientId?: string;
+  projectName?: string;
+  assetType?: string;
+  page?: number;
+  size?: number;
+  search?: string;
+  tags?: string;
+};
+
+/**
+ * List assets from EKD Digital Assets API (GET /api/v1/assets).
+ */
+export async function listAssetsFromEKDDigital(
+  params: EKDAssetListParams = {},
+): Promise<unknown> {
+  const apiUrl = process.env.EKD_DIGITAL_ASSETS_API_URL;
+  const apiKey = process.env.EKD_DIGITAL_ASSETS_API_KEY || "";
+  const apiSecret = process.env.EKD_DIGITAL_ASSETS_API_SECRET || "";
+
+  if (!apiUrl) {
+    throw new Error("EKD_DIGITAL_ASSETS_API_URL is not configured");
+  }
+
+  const authCandidates = getAuthCandidates(apiKey, apiSecret);
+  if (authCandidates.length === 0) {
+    throw new Error(
+      "Missing EKD assets API credentials. Configure EKD_DIGITAL_ASSETS_API_KEY and/or EKD_DIGITAL_ASSETS_API_SECRET.",
+    );
+  }
+
+  const baseUrl = normalizeAssetsApiBaseUrl(apiUrl);
+  const searchParams = new URLSearchParams();
+  searchParams.set("page", String(params.page ?? 1));
+  searchParams.set("size", String(params.size ?? 30));
+  const clientId =
+    params.clientId ||
+    process.env.EKD_DIGITAL_ASSETS_CLIENT_ID ||
+    "andgroupco";
+  const projectName =
+    params.projectName ||
+    process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME ||
+    "rhub";
+  searchParams.set("client_id", clientId);
+  searchParams.set("project_name", projectName);
+  if (params.assetType) searchParams.set("asset_type", params.assetType);
+  if (params.search) searchParams.set("search", params.search);
+  if (params.tags) searchParams.set("tags", params.tags);
+
+  const listUrl = `${baseUrl}?${searchParams.toString()}`;
+  let lastAuthError = "Authentication failed for EKD assets API";
+
+  for (const candidate of authCandidates) {
+    const response = await fetch(listUrl, {
+      method: "GET",
+      headers: { ...candidate.headers, Accept: "application/json" },
+      cache: "no-store",
+    });
+
+    const rawBody = await response.text();
+    let payload: unknown = null;
+    if (rawBody) {
+      try {
+        payload = JSON.parse(rawBody);
+      } catch {
+        payload = rawBody;
+      }
+    }
+
+    if (response.ok) {
+      return payload;
+    }
+
+    const errorMessage = payloadErrorMessage(payload);
+    if (response.status === 401 || response.status === 403) {
+      lastAuthError = `Assets API auth failed (${response.status}): ${errorMessage}`;
+      continue;
+    }
+
+    throw new Error(
+      `Assets API list failed (${response.status}): ${errorMessage}`,
+    );
+  }
+
+  throw new Error(lastAuthError);
+}
+
 export function resolveStoredAssetUrl(pathOrUrl: string, origin: string) {
   const assetsOrigin = resolveAssetsOrigin(origin);
 

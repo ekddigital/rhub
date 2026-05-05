@@ -139,7 +139,7 @@ const NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
-    href: "/tools/conf/flyers",
+    href: "/tools/kit?surface=fly",
     icon: Megaphone,
     title: "Flyer Studio",
     desc: "Edit promo and signup flyers in-system with live preview",

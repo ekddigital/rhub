@@ -1,0 +1,106 @@
+// -----------------------------------------------------------------------------
+// DRAFT ONLY — not rhub’s active schema (see rhub/prisma/schema.prisma).
+// Purpose: NextAuth + unified profile sketch (WorkRole, OAuth Account, JWT Session rows).
+// Read: rhub/docs/drafts/README.md | Rhub sessions today: src/lib/auth.ts (cookie + prisma.session token)
+// Do not point the production app at this file unless you intentionally merge identity models.
+// -----------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Merged role enum — expand as domains are imported from rhub / ekddigital / fom.
+enum WorkRole {
+  SUPER_ADMIN
+  ADMIN
+  JUDGE_ADMIN
+  HEAD_JUDGE
+  JUDGE
+  STAFF
+  USER
+  MEMBER
+  MINISTRY_LEADER
+  VISITOR
+}
+
+enum HubAccessStatus {
+  PENDING
+  APPROVED
+  RESTRICTED
+  REJECTED
+}
+
+/// NextAuth + unified profile. Extra fields support hub / brand / ministry RBAC.
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  password String? @db.Text
+
+  role WorkRole @default(USER)
+
+  firstName String?
+  lastName  String?
+  username  String? @unique
+
+  canAccessHub        Boolean @default(false)
+  canAccessConference Boolean @default(false)
+  canAccessAdmin      Boolean @default(false)
+  canImpersonate      Boolean @default(false)
+
+  accessStatus HubAccessStatus @default(APPROVED)
+  isActive     Boolean        @default(true)
+
+  permissionChangedAt DateTime?
+
+  accounts Account[]
+  sessions Session[]
+
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

@@ -4,6 +4,9 @@ import {
   ConfSidebar,
 } from "@/components/tools/conf/conf-sidebar";
 
+/** Ops surfaces pull live DB/session context; skip static prerender (faster, reliable `next build`). */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Conference Hub | EKD Digital Resource Hub",
   description:

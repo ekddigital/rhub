@@ -251,6 +251,7 @@ model User {
     createdEvents DebateEvent[]      @relation("EventCreator")
     judgeProfiles DebateJudge[]
     teamMembers   DebateTeamMember[]
+    creativeTemplates CreativeTemplate[]
 
     @@index([email])
     @@index([role])
@@ -1247,4 +1248,58 @@ model ConfQAComment {
 
     @@index([questionId, parentId])
     @@index([questionId, createdAt(sort: Asc)])
+}
+
+// ==========================================
+// CREATIVE STUDIO — DB-BACKED TEMPLATES (CRUD)
+// ==========================================
+// tenantKey: "system" | "org:{slug}" | "user:{userId}" — see docs/CREATIVE_STUDIO_ARCHITECTURE.md
+
+enum CreativeTemplateCategory {
+    CERTIFICATE
+    FLYER
+    DOCUMENT
+    BROCHURE
+    BOOKLET
+    LETTER
+    BRAND_PRESET
+    OTHER
+}
+
+enum CreativeTemplateStatus {
+    DRAFT
+    PUBLISHED
+    ARCHIVED
+}
+
+model CreativeTemplate {
+    id     String @id @default(cuid())
+    /** "system" | "org:acme" | "user:cuid" */
+    tenantKey String @default("system")
+    slug      String
+    name      String
+    description String? @db.Text
+    category  CreativeTemplateCategory
+    status    CreativeTemplateStatus @default(DRAFT)
+    /** Optional link to code catalog id (lib/kit/templates-registry) for hybrid seeded rows */
+    registrySourceId String?
+    /** Surface-specific JSON: flyer layers, certificate TemplateData, DocumentModel snapshot, etc. */
+    definition Json
+    /** Tags, output formats, brand merge hints */
+    meta       Json?
+    forkedFromId String?
+    forkedFrom   CreativeTemplate?  @relation("CreativeTemplateFork", fields: [forkedFromId], references: [id], onDelete: SetNull)
+    forks        CreativeTemplate[] @relation("CreativeTemplateFork")
+    createdByUserId String?
+    createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    updatedByUserId String?
+    publishedAt     DateTime?
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    @@unique([tenantKey, slug])
+    @@index([category, status])
+    @@index([tenantKey, category])
+    @@index([forkedFromId])
+    @@index([registrySourceId])
 }

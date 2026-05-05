@@ -8,6 +8,7 @@ import {
   FileOutput,
   Gavel,
   CalendarRange,
+  Palette,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -28,7 +29,8 @@ export interface ToolConfig {
     | "word"
     | "doc"
     | "dbt"
-    | "conf";
+    | "conf"
+    | "kit";
   subcategory?:
     | "reference"
     | "latex"
@@ -37,7 +39,8 @@ export interface ToolConfig {
     | "video"
     | "document"
     | "debate"
-    | "conference";
+    | "conference"
+    | "creative";
   status: "live" | "beta" | "coming-soon";
   featured: boolean;
   icon: LucideIcon;
@@ -287,6 +290,31 @@ export const TOOLS: ToolConfig[] = [
         "Weekly meeting scheduler",
         "Timeline & milestone tracking",
         "CSV/PDF export",
+      ],
+    },
+  },
+
+  // Creative Kit (org-aware design — flyers, docs, certs)
+  {
+    slug: "kit",
+    title: "Creative Kit",
+    tagline: "Org brand kits, flyers, documents & certificates",
+    summary:
+      "Multi-tenant creative surface: brand colors and assets per organization, with modular routes for flyers, authoring, certificates, and exports. Evolving beyond single-purpose tools toward a cohesive studio.",
+    category: "utility",
+    group: "kit",
+    subcategory: "creative",
+    status: "beta",
+    featured: true,
+    icon: Palette,
+    path: "/tools/kit",
+    hasSubTools: true,
+    metadata: {
+      features: [
+        "OrganizationBrandKit tokens",
+        "Flyers + conference studio integration",
+        "Document & conversion stack",
+        "Certificate pipelines (lib/creative)",
       ],
     },
   },

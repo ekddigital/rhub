@@ -103,7 +103,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
-    href: "/tools/conf/flyers",
+    href: "/tools/kit?surface=fly",
     label: "Flyers",
     icon: Megaphone,
     minAccess: "manager",

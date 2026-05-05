@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { getToolsByGroup } from "@/lib/tools-config";
 import { getFeaturedConversions } from "@/lib/img/conversions-config";
 import { getFeaturedDocumentTools } from "@/lib/doc/tools-config";
+import { kitSurfaces } from "@/lib/kit/tools-config";
 
 export function ToolsDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,6 +43,7 @@ export function ToolsDropdown() {
   const urlTools = getToolsByGroup("url");
   const docTools = getToolsByGroup("doc");
   const confTools = getToolsByGroup("conf");
+  const kitTools = getToolsByGroup("kit");
 
   // Get featured image conversions
   const featuredImgConversions = getFeaturedConversions().slice(0, 5);
@@ -255,6 +257,29 @@ export function ToolsDropdown() {
                 </div>
               )}
 
+              {/* Creative Kit */}
+              {kitTools.length > 0 && (
+                <div
+                  className="relative"
+                  onMouseEnter={() => setHoveredGroup("kit")}
+                >
+                  <Link
+                    href="/tools/kit"
+                    className="flex items-center justify-between rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                  >
+                    <div>
+                      <div className="text-sm font-medium text-foreground">
+                        Creative Kit
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Org brands, flyers, docs &amp; certificates
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
+
               {/* Debate Hub */}
               <div
                 className="relative"
@@ -387,6 +412,43 @@ export function ToolsDropdown() {
                     className="block rounded-md px-3 py-2 text-sm font-medium text-gold hover:bg-accent border-2 border-transparent hover:border-gold/20"
                   >
                     Open conference documentation →
+                  </Link>
+                </div>
+              )}
+
+              {hoveredGroup === "kit" && (
+                <div className="space-y-1 animate-in fade-in-0 slide-in-from-left-2">
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                    Creative Kit
+                  </div>
+                  <Link
+                    href="/tools/kit"
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-gold transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                  >
+                    Design workspace →
+                  </Link>
+                  {kitSurfaces.map((s) => (
+                    <Link
+                      key={s.slug}
+                      href={s.navHref ?? s.href}
+                      className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                    >
+                      <div className="font-mono text-[10px] text-muted-foreground">
+                        {s.slug}
+                      </div>
+                      <div className="font-medium text-foreground">
+                        {s.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {s.description}
+                      </div>
+                    </Link>
+                  ))}
+                  <Link
+                    href="/tools/kit"
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-gold hover:bg-accent border-2 border-transparent hover:border-gold/20"
+                  >
+                    Open Creative Kit hub →
                   </Link>
                 </div>
               )}

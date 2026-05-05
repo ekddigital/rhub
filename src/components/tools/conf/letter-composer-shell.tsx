@@ -903,7 +903,10 @@ function normalizeRoleOrTitle(value: string | null | undefined): string {
   return (value ?? "").toUpperCase().replace(/[^A-Z]/g, "");
 }
 
-function findOfficerByKeywords(members: Member[], keywords: string[]): Member | null {
+function findOfficerByKeywords(
+  members: Member[],
+  keywords: string[],
+): Member | null {
   for (const m of members) {
     const role = normalizeRoleOrTitle(m.role);
     const title = normalizeRoleOrTitle(m.title);
@@ -927,11 +930,14 @@ function buildOfficerPhoneEntries(
     members.find((m) => m.role === "SECRETARY") ||
     findOfficerByKeywords(members, ["SECRETARY"]);
 
-  const chairPhone = formatChinaPhone(chair?.phone) || LETTERHEAD_CONFIG.officerPhones.chair;
+  const chairPhone =
+    formatChinaPhone(chair?.phone) || LETTERHEAD_CONFIG.officerPhones.chair;
   const viceChairPhone =
-    formatChinaPhone(viceChair?.phone) || LETTERHEAD_CONFIG.officerPhones.coChair;
+    formatChinaPhone(viceChair?.phone) ||
+    LETTERHEAD_CONFIG.officerPhones.coChair;
   const secretaryPhone =
-    formatChinaPhone(secretary?.phone) || LETTERHEAD_CONFIG.officerPhones.secretary;
+    formatChinaPhone(secretary?.phone) ||
+    LETTERHEAD_CONFIG.officerPhones.secretary;
 
   return [
     { label: "Chair", phone: chairPhone },
@@ -1655,7 +1661,8 @@ function LetterA4Preview({
     Boolean(draft.fundraisingEnabled) ||
     draft.signatoryMode === "FUNDRAISING" ||
     hasFundraisingContent;
-  const totalPages = 1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
+  const totalPages =
+    1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
     (draft.officeLabel ?? "").trim() || LETTERHEAD_CONFIG.defaultOfficeLabel;
 
@@ -2028,21 +2035,55 @@ function LetterA4Preview({
               }}
             >
               {draft.to && (
-                <div>
-                  <strong style={{ color: C.navy }}>To:</strong>{" "}
-                  <span style={{ whiteSpace: "pre-line" }}>{draft.to}</span>
+                <div style={{ display: "flex", alignItems: "flex-start" }}>
+                  <strong
+                    style={{
+                      color: C.navy,
+                      flexShrink: 0,
+                      marginRight: "0.4em",
+                    }}
+                  >
+                    To:
+                  </strong>
+                  <span style={{ whiteSpace: "pre-line" }}>
+                    {[draft.to, draft.fundraisingRecipientAddress]
+                      .filter((s) => s?.trim())
+                      .join("\n")}
+                  </span>
                 </div>
               )}
               {draft.from && (
-                <div>
-                  <strong style={{ color: C.navy }}>From:</strong>{" "}
+                <div style={{ display: "flex", alignItems: "flex-start" }}>
+                  <strong
+                    style={{
+                      color: C.navy,
+                      flexShrink: 0,
+                      marginRight: "0.4em",
+                    }}
+                  >
+                    From:
+                  </strong>
                   <span style={{ whiteSpace: "pre-line" }}>{draft.from}</span>
                 </div>
               )}
               {draft.re && (
-                <div style={{ marginTop: 4 }}>
-                  <strong style={{ color: C.navy }}>Re:</strong>{" "}
-                  <strong>{draft.re}</strong>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    marginTop: 4,
+                  }}
+                >
+                  <strong
+                    style={{
+                      color: C.navy,
+                      flexShrink: 0,
+                      marginRight: "0.4em",
+                    }}
+                  >
+                    Re:
+                  </strong>
+                  <strong style={{ whiteSpace: "pre-line" }}>{draft.re}</strong>
                 </div>
               )}
             </div>
@@ -2416,7 +2457,13 @@ function LetterA4Preview({
           }}
         >
           {/* Flag stripes */}
-          <div style={{ display: "flex", height: CONTINUATION_STRIPES_H, flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              height: CONTINUATION_STRIPES_H,
+              flexShrink: 0,
+            }}
+          >
             {FLAG_STRIPES_11.map((color, i) => (
               <div key={i} style={{ flex: 1, background: color }} />
             ))}
@@ -2468,11 +2515,9 @@ function LetterA4Preview({
             </div>
             <div style={{ fontSize: 9, color: "#333", lineHeight: 1.6 }}>
               Detailed <strong>payment mediums</strong> are shown on{" "}
-              <strong>the flyer directly below</strong>. Please pay only
-              through those channels —{" "}
-              <strong>Mobile Money</strong>,{" "}
-              <strong>UBA (bank)</strong>,{" "}
-              <strong>WeChat Pay</strong>, or{" "}
+              <strong>the flyer directly below</strong>. Please pay only through
+              those channels — <strong>Mobile Money</strong>,{" "}
+              <strong>UBA (bank)</strong>, <strong>WeChat Pay</strong>, or{" "}
               <strong>Alipay</strong> — using the QR codes and account titles on
               that flyer.
             </div>
@@ -2590,7 +2635,6 @@ function LetterA4Preview({
           </div>
         </div>
       )}
-
     </>
   );
 }
@@ -2896,7 +2940,9 @@ export function LetterComposerShell() {
       if (activeDraft.id === id) {
         const remaining = drafts.filter((d) => d.id !== id);
         setActiveDraft(
-          remaining.length > 0 ? remaining[0] : hydrateDraftSignatures(newDraft()),
+          remaining.length > 0
+            ? remaining[0]
+            : hydrateDraftSignatures(newDraft()),
         );
       }
     },
@@ -3902,9 +3948,9 @@ export function LetterComposerShell() {
                         </select>
                         <p className="text-[10px] text-muted-foreground leading-snug">
                           <span className="block mb-1">
-                            Every letter category includes campaign overview, use of
-                            proceeds, session logistics, and the flyer payment note in
-                            the generated body.
+                            Every letter category includes campaign overview,
+                            use of proceeds, session logistics, and the flyer
+                            payment note in the generated body.
                             {activeDraft.fundraisingCategory === "general"
                               ? " Keynote Speaker (General only): both speaking and substantive support."
                               : " This version stays support-focused."}
@@ -4244,12 +4290,11 @@ export function LetterComposerShell() {
                               <strong>Keynote Speaker</strong> applies only to
                               the Zoom fundraising session in this letter. For
                               sponsor/donor asks without a speaking role, choose
-                              Sponsor, Donor, Patron, etc. Invitations centred on
-                              the main conference in Jinan use{" "}
+                              Sponsor, Donor, Patron, etc. Invitations centred
+                              on the main conference in Jinan use{" "}
                               <strong>Corporate</strong>,{" "}
                               <strong>Government</strong>,{" "}
-                              <strong>Alumni</strong>, or{" "}
-                              <strong>NGO</strong>.
+                              <strong>Alumni</strong>, or <strong>NGO</strong>.
                             </p>
                           </div>
                           {activeDraft.fundraisingInviteRole ===
@@ -4258,9 +4303,9 @@ export function LetterComposerShell() {
                               <div className="rounded-md border border-border/70 bg-muted/30 p-2.5 space-y-2">
                                 <p className="text-[11px] text-foreground/90 leading-snug">
                                   The letter asks for the Zoom keynote and also
-                                  expressly invites a substantive contribution to
-                                  Liberian students—plus theme, topic, and duration
-                                  fields when you fill them.
+                                  expressly invites a substantive contribution
+                                  to Liberian students—plus theme, topic, and
+                                  duration fields when you fill them.
                                 </p>
                                 <div className="space-y-1.5">
                                   <Label className="text-xs">
@@ -4303,7 +4348,7 @@ export function LetterComposerShell() {
                                   </Label>
                                   <Input
                                     className="h-8 text-sm"
-                                    placeholder='e.g. 15–20 minutes'
+                                    placeholder="e.g. 15–20 minutes"
                                     value={
                                       activeDraft.fundraisingKeynoteApproxDuration
                                     }
@@ -4356,9 +4401,7 @@ export function LetterComposerShell() {
                         )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="space-y-1.5">
-                            <Label className="text-xs">
-                              Fundraising Date
-                            </Label>
+                            <Label className="text-xs">Fundraising Date</Label>
                             <Input
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingEventDate}
@@ -4368,9 +4411,7 @@ export function LetterComposerShell() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">
-                              Fundraising Time
-                            </Label>
+                            <Label className="text-xs">Fundraising Time</Label>
                             <Input
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingEventTime}
@@ -4386,9 +4427,7 @@ export function LetterComposerShell() {
                             className="h-8 text-sm"
                             value={activeDraft.fundraisingPaymentDeadline}
                             onChange={(e) =>
-                              set("fundraisingPaymentDeadline")(
-                                e.target.value,
-                              )
+                              set("fundraisingPaymentDeadline")(e.target.value)
                             }
                           />
                         </div>
@@ -4424,9 +4463,7 @@ export function LetterComposerShell() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">
-                              Meeting Password
-                            </Label>
+                            <Label className="text-xs">Meeting Password</Label>
                             <Input
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingMeetingPassword}
@@ -4780,7 +4817,8 @@ export function LetterComposerShell() {
                   </p>
                   {activeDraft.fundraisingEnabled && (
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Fundraising flyer is attached on the last page. Scroll down to view it.
+                      Fundraising flyer is attached on the last page. Scroll
+                      down to view it.
                     </p>
                   )}
                 </div>

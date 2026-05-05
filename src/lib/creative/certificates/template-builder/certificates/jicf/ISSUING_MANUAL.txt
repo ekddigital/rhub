@@ -1,0 +1,85 @@
+====================================================================
+  JICF EASTER VIDEO CONTEST WINNER CERTIFICATE — ISSUING MANUAL
+  Easter Celebration · April 5, 2026
+====================================================================
+
+CERTIFICATE ID FORMAT EXPLAINED
+---------------------------------
+Example ID:  JICF-2026-EAS-0001-LM
+
+  JICF  → Organization prefix  (Jinan International Christian Fellowship)
+  2026  → Year the certificate was issued
+  EAS   → Type code — "EAS" for Easter (matched from template name)
+  0001  → Sequence number (auto-incremented, 4 digits, zero-padded)
+  LM    → Random 2-character suffix for uniqueness (changes every issue)
+
+
+HOW TO ISSUE THE 2 WINNER CERTIFICATES
+----------------------------------------
+
+Go to:  Admin Panel → Certificates → Use Template
+Select: "JICF Easter Winner Certificate 2026"
+
+-------- 1st PLACE WINNER --------
+
+  Recipient Name (Cell Group):
+    UJN Cell Group
+       (Full: UJN Cell Group — University of Jinan)
+
+  Custom Fields:
+    - Placement:         1st Place Winner
+
+  Description note (for your records):
+    1st Place · 20 reactions · University of Jinan
+
+  Additional fields:
+    - Recipient Email:   (leave blank or use a generic church email if required)
+    - Issue Date:        April 5, 2026  (or today's date)
+    - Authorizing Official:  Pst. Joseph G. Summers
+
+-------- 2nd PLACE WINNER --------
+
+  Recipient Name (Cell Group):
+    SDUFE Cell Group
+       (Full: SDUFE Cell Group — Shandong University of Finance & Economics)
+
+  Custom Fields:
+    - Placement:         2nd Place Winner
+
+  Description note (for your records):
+    2nd Place · 13 reactions · Shandong University of Finance & Economics
+
+  Additional fields:
+    - Recipient Email:   (leave blank or use a generic church email if required)
+    - Issue Date:        April 5, 2026  (or today's date)
+    - Authorizing Official:  Pst. Joseph G. Summers
+
+
+DOWNLOADING FOR MANUAL SIGNING
+---------------------------------
+When Pastor Joseph needs to sign the certificate by hand:
+
+  1. Go to Admin Panel → Certificates → Issued Certificates
+  2. Find the certificate and click the Download button
+  3. In the Download dialog, tick: "For manual signing"
+     → This hides ONLY the electronic signature image, leaving
+       the signature line, pastor name, and title visible —
+       so the pastor knows where and as whom to sign.
+  4. Select PDF (recommended for printing) and click Download.
+  5. Print and hand to the pastor for signing.
+
+When you want the fully digital version (with electronic signature):
+  → Do NOT tick "For manual signing" — the signature image appears.
+
+
+NOTES
+------
+- The Certificate ID is printed on every certificate (bottom centre).
+  Keep a record of which ID was issued to which group.
+- To verify a certificate, visit:
+    https://fomjesus.org/verify-certificate?id=<CERTIFICATE_ID>
+- The DB must be re-initialized after any template layout changes
+  so that stored templateData reflects the latest design.
+  (Admin → Initialize Database, or POST /api/admin/initialize-database)
+
+====================================================================

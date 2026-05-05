@@ -87,7 +87,7 @@ const DOC_LINKS = [
     icon: Clock,
   },
   {
-    href: "/tools/conf/flyers",
+    href: "/tools/kit?surface=fly",
     title: "Flyer Studio",
     description:
       "System-native editor for promotional and signup flyers with reusable templates.",

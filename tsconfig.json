@@ -30,5 +30,28 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "scripts/migrations/**",
+    "src/lib/creative/certificates/template-builder/cards/**",
+    "src/lib/creative/certificates/template-builder/services-legacy/**",
+    "src/lib/creative/certificates/template-builder/hybrid-certificate-renderer.ts",
+    "src/lib/creative/certificates/template-builder/enhanced-certificate-renderer.ts",
+    "src/lib/creative/certificates/template-builder/website-certificate-renderer.ts",
+    "src/lib/creative/certificates/template-builder/certificate-renderer.ts",
+    "src/lib/creative/certificates/template-builder/canvas-certificate-renderer.ts",
+    "src/lib/creative/certificates/template-builder/certificate-debugger.ts",
+    "src/lib/creative/certificates/template-builder/index.ts",
+    "src/lib/creative/certificates/template-builder/pdf-generator/**",
+    "src/lib/creative/certificates/html-export/pdf-generator.ts",
+    "src/lib/creative/certificates/html-export/seeder.ts",
+    "src/lib/creative/certificates/html-export/seeder-clean.ts",
+    "src/lib/creative/certificates/services/**",
+    "src/lib/creative/hooks/use-document-history.ts",
+    "src/lib/creative/documents/docx/index.ts",
+    "src/components/creative/ui/markdown-editor.tsx",
+    "src/components/creative/ui/globe-impl.tsx",
+    "src/components/creative/ui/globe-vanilla.ts",
+    "src/components/creative/ui/globe.tsx"
+  ]
 }
