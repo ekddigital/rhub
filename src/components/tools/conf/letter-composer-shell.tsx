@@ -4058,8 +4058,16 @@ export function LetterComposerShell() {
                           ))}
                         </select>
                         <p className="text-[10px] text-muted-foreground leading-snug">
+                          <span className="block mb-1">
+                            Every letter category includes campaign overview, use of
+                            proceeds, session logistics, and the flyer payment note in
+                            the generated body.
+                            {activeDraft.fundraisingCategory === "general"
+                              ? " Keynote Speaker (General only): both speaking and substantive support."
+                              : " This version stays support-focused."}
+                          </span>
                           {activeDraft.fundraisingCategory === "general" &&
-                            "Classic fundraising invite — payment methods, Zoom session, target amount."}
+                            "Set invitation category, target, Zoom details, payment deadline."}
                           {activeDraft.fundraisingCategory === "corporate" &&
                             "Sponsor invite — brand benefits, partnership package, conference theme."}
                           {activeDraft.fundraisingCategory === "government" &&
@@ -4361,7 +4369,7 @@ export function LetterComposerShell() {
                         </p>
                       </div>
 
-                      {/* ── General only: invite role + payment / Zoom logistics ── */}
+                      {/* ── General only: invitation category + keynote fields ── */}
                       {activeDraft.fundraisingCategory === "general" && (
                         <>
                           <div className="space-y-1.5">
@@ -4483,6 +4491,12 @@ export function LetterComposerShell() {
                               />
                             </div>
                           )}
+                        </>
+                      )}
+
+                      {/* ── Target & virtual session (all categories — fills appendix tables) ── */}
+                      <>
+                        {activeDraft.fundraisingCategory !== "corporate" && (
                           <div className="space-y-1.5">
                             <Label className="text-xs">
                               Target Fundraising Amount
@@ -4496,92 +4510,92 @@ export function LetterComposerShell() {
                               }
                             />
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">
-                                Fundraising Date
-                              </Label>
-                              <Input
-                                className="h-8 text-sm"
-                                value={activeDraft.fundraisingEventDate}
-                                onChange={(e) =>
-                                  set("fundraisingEventDate")(e.target.value)
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">
-                                Fundraising Time
-                              </Label>
-                              <Input
-                                className="h-8 text-sm"
-                                value={activeDraft.fundraisingEventTime}
-                                onChange={(e) =>
-                                  set("fundraisingEventTime")(e.target.value)
-                                }
-                              />
-                            </div>
-                          </div>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Payment Deadline</Label>
+                            <Label className="text-xs">
+                              Fundraising Date
+                            </Label>
                             <Input
                               className="h-8 text-sm"
-                              value={activeDraft.fundraisingPaymentDeadline}
+                              value={activeDraft.fundraisingEventDate}
                               onChange={(e) =>
-                                set("fundraisingPaymentDeadline")(
+                                set("fundraisingEventDate")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">
+                              Fundraising Time
+                            </Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingEventTime}
+                              onChange={(e) =>
+                                set("fundraisingEventTime")(e.target.value)
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Payment Deadline</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingPaymentDeadline}
+                            onChange={(e) =>
+                              set("fundraisingPaymentDeadline")(
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Meeting Medium</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingMeetingMedium}
+                            onChange={(e) =>
+                              set("fundraisingMeetingMedium")(e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Meeting Link</Label>
+                          <Input
+                            className="h-8 text-sm"
+                            value={activeDraft.fundraisingMeetingLink}
+                            onChange={(e) =>
+                              set("fundraisingMeetingLink")(e.target.value)
+                            }
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">Meeting ID</Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingMeetingId}
+                              onChange={(e) =>
+                                set("fundraisingMeetingId")(e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs">
+                              Meeting Password
+                            </Label>
+                            <Input
+                              className="h-8 text-sm"
+                              value={activeDraft.fundraisingMeetingPassword}
+                              onChange={(e) =>
+                                set("fundraisingMeetingPassword")(
                                   e.target.value,
                                 )
                               }
                             />
                           </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Meeting Medium</Label>
-                            <Input
-                              className="h-8 text-sm"
-                              value={activeDraft.fundraisingMeetingMedium}
-                              onChange={(e) =>
-                                set("fundraisingMeetingMedium")(e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Meeting Link</Label>
-                            <Input
-                              className="h-8 text-sm"
-                              value={activeDraft.fundraisingMeetingLink}
-                              onChange={(e) =>
-                                set("fundraisingMeetingLink")(e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">Meeting ID</Label>
-                              <Input
-                                className="h-8 text-sm"
-                                value={activeDraft.fundraisingMeetingId}
-                                onChange={(e) =>
-                                  set("fundraisingMeetingId")(e.target.value)
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label className="text-xs">
-                                Meeting Password
-                              </Label>
-                              <Input
-                                className="h-8 text-sm"
-                                value={activeDraft.fundraisingMeetingPassword}
-                                onChange={(e) =>
-                                  set("fundraisingMeetingPassword")(
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-                          </div>
-                        </>
-                      )}
+                        </div>
+                      </>
                     </>
                   )}
                 </CardContent>

@@ -149,6 +149,15 @@ export type FundraisingLetterBodyFields = {
   fundraisingKeynoteApproxDuration: string;
 };
 
+/** All possible fundraising/outreach letter fields combined (Letter Composer draft). */
+export type AllLetterBodyFields = FundraisingLetterBodyFields & {
+  fundraisingCategory: FundraisingCategory;
+  fundraisingOrgName: string;
+  fundraisingOfficeName: string;
+  fundraisingAlumniGradYear: string;
+  fundraisingPartnershipType: string;
+};
+
 /**
  * Removes legacy “Progress secured toward goal” snapshot rows from rich HTML drafts.
  * Older composer builds inserted this table row when a “raised to date” sidebar value was set.
@@ -192,27 +201,49 @@ function inviteCategoryLabel(
   return { article, label };
 }
 
-/**
- * Rich HTML letter body wired to fundraising sidebar fields — fully editable afterward in Composer.
- */
-export function buildFundraisingLetterBodyRichHtml(
-  fields: FundraisingLetterBodyFields,
-): string {
-  const dear =
-    fields.fundraisingRecipientName.trim() || FUNDRAISING_SAMPLE_RECIPIENT_NAME;
+const STANDARD_FUNDRAISING_OUTREACH_CLOSER = `<p>We would be honored to receive your support. Your contribution supports the leadership development of Liberian students in China.</p>
+<p>Thank you for your consideration. Should you require further information, we remain at your disposal.</p>`;
 
-  const { article, label } = inviteCategoryLabel(
-    fields.fundraisingInviteRole,
-    fields.fundraisingInviteRoleOther,
-  );
-  const inviteClause = `${article} ${label}`;
+/**
+ * Campaign overview, use of proceeds, logistics, and flyer reference — appended to every
+ * fundraising outreach category (general, corporate, government, alumni, NGO). General / Keynote only
+ * differs in the opening paragraphs (speaking + support vs. support-only).
+ */
+function buildFundraisingCampaignAppendixHtml(
+  fields: FundraisingLetterBodyFields,
+  opts: {
+    invitationCategoryDetailEscaped: string;
+    /** Optional extra {@code <tr>} rows after the invitation category row (e.g. keynote snapshot). */
+    extraOverviewRowsHtml: string;
+    useOfFundsFallbackMultiline: string;
+    /**
+     * When false, the appendix ignores {@link FundraisingLetterBodyFields.fundraisingUseOfFunds}
+     * (already shown in a category-specific table) and uses only the fallback, then defaults.
+     */
+    useDraftFieldForAppendixProceeds?: boolean;
+  },
+): string {
+  const useDraft = opts.useDraftFieldForAppendixProceeds !== false;
+  const fromDraft = useDraft
+    ? parseUseOfFundsLines(fields.fundraisingUseOfFunds)
+    : [];
+  const fromFallback = parseUseOfFundsLines(opts.useOfFundsFallbackMultiline);
+  const fundItems =
+    fromDraft.length > 0
+      ? fromDraft
+      : fromFallback.length > 0
+        ? fromFallback
+        : [...DEFAULT_USE_OF_FUND_ITEMS];
 
   const targetSummary =
     fields.fundraisingTargetAmount.trim() || FUNDRAISING_SAMPLE_TARGET_AMOUNT;
 
-  const bullets = parseUseOfFundsLines(fields.fundraisingUseOfFunds);
-  const fundItems =
-    bullets.length > 0 ? bullets : [...DEFAULT_USE_OF_FUND_ITEMS];
+  const useOfFundsRows = fundItems
+    .map(
+      (item, i) =>
+        `<tr><td>${i + 1}.</td><td>${escapeLetterHtml(item)}</td></tr>`,
+    )
+    .join("\n");
 
   const evDate =
     fields.fundraisingEventDate.trim() || FUNDRAISING_SAMPLE_EVENT_DATE;
@@ -228,14 +259,70 @@ export function buildFundraisingLetterBodyRichHtml(
     fields.fundraisingMeetingLink.trim() ||
     "https://us02web.zoom.us/j/2312312006?pwd=ZHh3V2dXZGJ6Y2NCa0IxczdOaWJVQT09";
 
-  const inviteClauseEscaped = escapeLetterHtml(inviteClause);
+  return `<h3>Campaign overview</h3>
+<table>
+<thead>
+<tr><th scope="col">Item</th><th scope="col">Detail</th></tr>
+</thead>
+<tbody>
+<tr><td>Invitation category</td><td>${opts.invitationCategoryDetailEscaped}</td></tr>
+${opts.extraOverviewRowsHtml}
+<tr><td>Stated fundraising target</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
+<tr><td>Planning basis</td><td>The target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-related costs.</td></tr>
+</tbody>
+</table>
 
-  const useOfFundsRows = fundItems
-    .map(
-      (item, i) =>
-        `<tr><td>${i + 1}.</td><td>${escapeLetterHtml(item)}</td></tr>`,
-    )
-    .join("\n");
+<h3>Use of proceeds</h3>
+<table>
+<thead>
+<tr><th scope="col">#</th><th scope="col">Supporting area</th></tr>
+</thead>
+<tbody>
+${useOfFundsRows}
+</tbody>
+</table>
+<p>Contributions at every level help sustain meaningful participation on this national student platform.</p>
+
+<h3>Logistics — session and deadlines</h3>
+<table>
+<thead>
+<tr><th scope="col">Topic</th><th scope="col">Information</th></tr>
+</thead>
+<tbody>
+<tr><td>Fundraising session</td><td>${escapeLetterHtml(evDate)} (${escapeLetterHtml(evTime)})</td></tr>
+<tr><td>Payment deadline</td><td>${escapeLetterHtml(payDl)}</td></tr>
+<tr><td>Meeting medium</td><td>${escapeLetterHtml(medium)}</td></tr>
+<tr><td>Meeting ID / password</td><td>${escapeLetterHtml(mtgId)} / ${escapeLetterHtml(mtgPass)}</td></tr>
+<tr><td>Meeting link</td><td>${escapeLetterHtml(mtgLink)}</td></tr>
+</tbody>
+</table>
+
+<p>Payment details, including QR codes and account titles, appear on our official flyer accompanying this letter.</p>
+<p>Upon request, we can provide acknowledgement procedures following remittance.</p>`;
+}
+
+/**
+ * Rich HTML letter body wired to fundraising sidebar fields — fully editable afterward in Composer.
+ */
+export function buildFundraisingLetterBodyRichHtml(
+  fields: FundraisingLetterBodyFields,
+): string {
+  const dear =
+    fields.fundraisingRecipientName.trim() || FUNDRAISING_SAMPLE_RECIPIENT_NAME;
+
+  const { article, label } = inviteCategoryLabel(
+    fields.fundraisingInviteRole,
+    fields.fundraisingInviteRoleOther,
+  );
+  const inviteClause = `${article} ${label}`;
+
+  const evDate =
+    fields.fundraisingEventDate.trim() || FUNDRAISING_SAMPLE_EVENT_DATE;
+  const evTime =
+    fields.fundraisingEventTime.trim() || FUNDRAISING_SAMPLE_EVENT_TIME;
+  const medium = fields.fundraisingMeetingMedium.trim() || "Zoom";
+
+  const inviteClauseEscaped = escapeLetterHtml(inviteClause);
 
   const isKeynoteSpeaker =
     fields.fundraisingInviteRole.trim() === FUNDRAISING_KEYNOTE_SPEAKER_ROLE;
@@ -269,6 +356,12 @@ ${keynoteTopicHtml}
 <p>We are asking for <strong>both</strong> your voice on this programme and your <strong>meaningful backing of our community</strong>. Alongside delivering the keynote, we earnestly invite a <strong>financial or comparable contribution</strong> aligned with what you can offer; the overview and payment channels below show how donations directly ease fees and sustain the conference for Liberian students in China.</p>`
     : `<p>We respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>`;
 
+  const appendix = buildFundraisingCampaignAppendixHtml(fields, {
+    invitationCategoryDetailEscaped: inviteClauseEscaped,
+    extraOverviewRowsHtml: keynoteSnapshotRow,
+    useOfFundsFallbackMultiline: FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+  });
+
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>On behalf of the Liberian Student Union in China (LSUIC), we write with respect.</p>
 ${openingBlock}
@@ -276,62 +369,14 @@ ${openingBlock}
 <p>As a student-led organization, we operate under significant resource constraints. Many members are not fully funded; some rely on partial scholarships, while others face considerable financial pressures. With limited paid employment during study, conference-related costs can prevent participation.</p>
 <p>Our present objective is to <strong>secure support that will help reduce conference fees and enable more Liberian students to attend.</strong></p>
 
-<h3>Campaign overview</h3>
-<table>
-<thead>
-<tr><th scope="col">Item</th><th scope="col">Detail</th></tr>
-</thead>
-<tbody>
-<tr><td>Invitation category</td><td>${inviteClauseEscaped}</td></tr>
-${keynoteSnapshotRow}
-<tr><td>Stated fundraising target</td><td>${escapeLetterHtml(targetSummary)}</td></tr>
-<tr><td>Planning basis</td><td>The target is framed around approximately <strong>170 participants</strong>, reflecting accommodation, catering, logistics, souvenirs, printing, and comparable conference-related costs.</td></tr>
-</tbody>
-</table>
-
-<h3>Use of proceeds</h3>
-<table>
-<thead>
-<tr><th scope="col">#</th><th scope="col">Supporting area</th></tr>
-</thead>
-<tbody>
-${useOfFundsRows}
-</tbody>
-</table>
-<p>Contributions at every level help sustain meaningful participation on this national student platform.</p>
-
-<h3>Logistics — session and deadlines</h3>
-<table>
-<thead>
-<tr><th scope="col">Topic</th><th scope="col">Information</th></tr>
-</thead>
-<tbody>
-<tr><td>Fundraising session</td><td>${escapeLetterHtml(evDate)} (${escapeLetterHtml(evTime)})</td></tr>
-<tr><td>Payment deadline</td><td>${escapeLetterHtml(payDl)}</td></tr>
-<tr><td>Meeting medium</td><td>${escapeLetterHtml(medium)}</td></tr>
-<tr><td>Meeting ID / password</td><td>${escapeLetterHtml(mtgId)} / ${escapeLetterHtml(mtgPass)}</td></tr>
-<tr><td>Meeting link</td><td>${escapeLetterHtml(mtgLink)}</td></tr>
-</tbody>
-</table>
-
-<p>Payment details, including QR codes and account titles, appear on our official flyer accompanying this letter.</p>
-<p>Upon request, we can provide acknowledgement procedures following remittance.</p>
-<p>We would be honored to receive your support. Your contribution supports the leadership development of Liberian students in China.</p>
-<p>Thank you for your consideration. Should you require further information, we remain at your disposal.</p>`;
+${appendix}
+${STANDARD_FUNDRAISING_OUTREACH_CLOSER}`;
 }
 
 // ── Corporate Sponsor letter ──────────────────────────────────────────────────
 
-export type CorporateSponsorLetterFields = {
-  fundraisingOrgName: string;
-  fundraisingRecipientName: string;
-  fundraisingTargetAmount: string;
-  fundraisingUseOfFunds: string;
-  fundraisingConferenceTheme: string;
-};
-
 export function buildCorporateSponsorLetterBodyRichHtml(
-  fields: CorporateSponsorLetterFields,
+  fields: AllLetterBodyFields,
 ): string {
   const dear =
     fields.fundraisingRecipientName.trim() || CORPORATE_SAMPLE_RECIPIENT;
@@ -342,9 +387,6 @@ export function buildCorporateSponsorLetterBodyRichHtml(
     bullets.length > 0
       ? bullets
       : parseUseOfFundsLines(CORPORATE_SAMPLE_USE_OF_FUNDS);
-  const targetNote = fields.fundraisingTargetAmount.trim()
-    ? `<p>Our target for this campaign is <strong>${escapeLetterHtml(fields.fundraisingTargetAmount.trim())}</strong>. We welcome any level of support and would be pleased to discuss a customized sponsorship package aligned with your strategic objectives.</p>`
-    : `<p>We welcome any level of support and would be pleased to discuss a customized sponsorship package aligned with your strategic objectives.</p>`;
 
   const benefitRows = benefitItems
     .map(
@@ -352,6 +394,15 @@ export function buildCorporateSponsorLetterBodyRichHtml(
         `<tr><td>${i + 1}.</td><td>${escapeLetterHtml(item)}</td></tr>`,
     )
     .join("\n");
+
+  const appendix = buildFundraisingCampaignAppendixHtml(fields, {
+    invitationCategoryDetailEscaped: escapeLetterHtml(
+      FUNDRAISING_CATEGORY_LABELS.corporate,
+    ),
+    extraOverviewRowsHtml: "",
+    useOfFundsFallbackMultiline: FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+    useDraftFieldForAppendixProceeds: false,
+  });
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>Greetings from the Liberian Student Union in China (LSUIC). We are pleased to invite <strong>${escapeLetterHtml(orgName)}</strong> to partner with us as a sponsor for our <strong>20th Anniversary and Annual Conference</strong>, taking place from <strong>${CONF_DATES}</strong>, in <strong>${CONF_VENUE}</strong>.</p>
@@ -365,22 +416,16 @@ export function buildCorporateSponsorLetterBodyRichHtml(
 ${benefitRows}
 </tbody>
 </table>
-${targetNote}
 <p>We are committed to delivering a high-impact event and would welcome your organization's name, logo, and message across our conference materials, media platforms, and digital communication channels.</p>
+${appendix}
+${STANDARD_FUNDRAISING_OUTREACH_CLOSER}
 <p>Thank you for considering this partnership opportunity. We look forward to the possibility of working with you.</p>`;
 }
 
 // ── Government / Embassy letter ───────────────────────────────────────────────
 
-export type GovernmentLetterFields = {
-  fundraisingRecipientName: string;
-  fundraisingOfficeName: string;
-  fundraisingUseOfFunds: string;
-  fundraisingConferenceTheme: string;
-};
-
 export function buildGovernmentLetterBodyRichHtml(
-  fields: GovernmentLetterFields,
+  fields: AllLetterBodyFields,
 ): string {
   const dear =
     fields.fundraisingRecipientName.trim() || GOVERNMENT_SAMPLE_RECIPIENT;
@@ -400,6 +445,15 @@ export function buildGovernmentLetterBodyRichHtml(
     )
     .join("\n");
 
+  const appendix = buildFundraisingCampaignAppendixHtml(fields, {
+    invitationCategoryDetailEscaped: escapeLetterHtml(
+      FUNDRAISING_CATEGORY_LABELS.government,
+    ),
+    extraOverviewRowsHtml: "",
+    useOfFundsFallbackMultiline: FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+    useDraftFieldForAppendixProceeds: false,
+  });
+
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>Warm greetings from the Liberian Student Union in China (LSUIC). As we mark our <strong>20th Anniversary</strong>, we are organizing our Annual Conference from <strong>${CONF_DATES}</strong>, in <strong>${CONF_VENUE}</strong>. This event represents a critical platform for fostering leadership, academic excellence, and national development among Liberian students abroad.</p>
 <p>The conference is themed: <em>"${escapeLetterHtml(theme)}"</em> — a reflection of our commitment to honoring what has been built while charting a path for the next generation.</p>
@@ -414,19 +468,15 @@ ${supportRows}
 </table>
 <p>Your presence and / or financial support would significantly elevate the impact of this milestone celebration. We remain committed to representing Liberia with excellence and would be honored to collaborate with your office.</p>
 <p>We would welcome the opportunity to discuss how best your office can participate in or support this important gathering of Liberians in China.</p>
+${appendix}
+${STANDARD_FUNDRAISING_OUTREACH_CLOSER}
 <p>Respectfully submitted on behalf of the LSUIC 2026 Conference Committee.</p>`;
 }
 
 // ── Alumni letter ─────────────────────────────────────────────────────────────
 
-export type AlumniLetterFields = {
-  fundraisingRecipientName: string;
-  fundraisingAlumniGradYear: string;
-  fundraisingUseOfFunds: string;
-};
-
 export function buildAlumniLetterBodyRichHtml(
-  fields: AlumniLetterFields,
+  fields: AllLetterBodyFields,
 ): string {
   const dear =
     fields.fundraisingRecipientName.trim() || ALUMNI_SAMPLE_RECIPIENT;
@@ -446,6 +496,15 @@ export function buildAlumniLetterBodyRichHtml(
     )
     .join("\n");
 
+  const appendix = buildFundraisingCampaignAppendixHtml(fields, {
+    invitationCategoryDetailEscaped: escapeLetterHtml(
+      FUNDRAISING_CATEGORY_LABELS.alumni,
+    ),
+    extraOverviewRowsHtml: "",
+    useOfFundsFallbackMultiline: FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+    useDraftFieldForAppendixProceeds: false,
+  });
+
   return `<p>Dear <strong>${escapeLetterHtml(dear)}${gradNote}</strong>,</p>
 <p>Greetings from LSUIC. This year marks a proud milestone — <strong>20 years of LSUIC's impact</strong> in shaping Liberian students in China. To celebrate, we will host our Annual Conference from <strong>${CONF_DATES}</strong>, in <strong>${CONF_VENUE}</strong>.</p>
 <p>As an integral part of our legacy, we invite you to <strong>give back and support the next generation</strong>. Your contribution will help:</p>
@@ -459,19 +518,14 @@ ${contributionRows}
 </table>
 <p>Your support is not just a donation — it is an investment in continuity, mentorship, and national progress. The students who will gather in Jinan this July are walking a path that you helped define.</p>
 <p>We deeply appreciate your continued commitment to LSUIC and look forward to celebrating this milestone together. We hope to count on your support as we carry the torch forward.</p>
+${appendix}
+${STANDARD_FUNDRAISING_OUTREACH_CLOSER}
 <p>With warm regards and gratitude.</p>`;
 }
 
 // ── NGO / Development Partner letter ─────────────────────────────────────────
 
-export type NgoLetterFields = {
-  fundraisingRecipientName: string;
-  fundraisingPartnershipType: string;
-  fundraisingUseOfFunds: string;
-  fundraisingConferenceTheme: string;
-};
-
-export function buildNgoLetterBodyRichHtml(fields: NgoLetterFields): string {
+export function buildNgoLetterBodyRichHtml(fields: AllLetterBodyFields): string {
   const dear = fields.fundraisingRecipientName.trim() || NGO_SAMPLE_RECIPIENT;
   const partnerType =
     fields.fundraisingPartnershipType.trim() || NGO_SAMPLE_PARTNERSHIP_TYPE;
@@ -489,6 +543,15 @@ export function buildNgoLetterBodyRichHtml(fields: NgoLetterFields): string {
     )
     .join("\n");
 
+  const appendix = buildFundraisingCampaignAppendixHtml(fields, {
+    invitationCategoryDetailEscaped: escapeLetterHtml(
+      FUNDRAISING_CATEGORY_LABELS.ngo,
+    ),
+    extraOverviewRowsHtml: "",
+    useOfFundsFallbackMultiline: FUNDRAISING_SAMPLE_USE_OF_FUNDS,
+    useDraftFieldForAppendixProceeds: false,
+  });
+
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>Greetings from the Liberian Student Union in China (LSUIC). We are organizing our <strong>20th Anniversary and Annual Conference</strong> from <strong>${CONF_DATES}</strong>, in <strong>${CONF_VENUE}</strong>. This event serves as a platform for leadership development, education, and cross-cultural collaboration among Liberian students, themed: <em>"${escapeLetterHtml(theme)}"</em>.</p>
 <p>We believe our mission aligns closely with your organization's commitment to education, youth empowerment, and capacity building. We are therefore seeking partnership support in the form of <strong>${escapeLetterHtml(partnerType)}</strong>.</p>
@@ -502,20 +565,11 @@ ${supportRows}
 </tbody>
 </table>
 <p>We would welcome the opportunity to explore how we can collaborate for mutual impact. A partnership between our organizations would be a meaningful step toward strengthening educational and leadership outcomes for Liberian youth in China.</p>
-<p>Thank you for your consideration. We remain open to any form of engagement and look forward to your response.</p>
+<p>We remain open to any form of engagement and look forward to your response.</p>
+${appendix}
+${STANDARD_FUNDRAISING_OUTREACH_CLOSER}
 <p>Sincerely,</p>`;
 }
-
-// ── Master dispatch type + builder ───────────────────────────────────────────
-
-/** All possible fundraising/outreach letter fields combined. */
-export type AllLetterBodyFields = FundraisingLetterBodyFields & {
-  fundraisingCategory: FundraisingCategory;
-  fundraisingOrgName: string;
-  fundraisingOfficeName: string;
-  fundraisingAlumniGradYear: string;
-  fundraisingPartnershipType: string;
-};
 
 /**
  * Dispatch to the correct body builder based on `fields.fundraisingCategory`.
