@@ -3,7 +3,7 @@
  * The runtime letter body is built here from draft fields (see `buildFundraisingLetterBodyRichHtml`)
  * so sidebar values (recipient, category, dates, Zoom, target, use of funds) match the narrative.
  *
- * Keynote Speaker (general letters only): respectful invitation to deliver remarks at the virtual fundraiser; optional thematic emphasis / duration sidebar fields populate the narrative.
+ * Keynote Speaker (general letters only): respectful invitation pairing remarks at the virtual fundraiser with an earnest appeal for substantive support for the Liberian student community; optional thematic emphasis / duration sidebar fields populate the narrative.
  *
  * Docs (not loaded by the app):
  * - `src/docs/LSUIC-2026-positioning-and-keynote-fundraising-letter-sample.md` — LSUIC 2026 planning identity + keynote fundraising letter sample aligned with this module.
@@ -263,10 +263,10 @@ export function buildFundraisingLetterBodyRichHtml(
     : "";
 
   const openingBlock = isKeynoteSpeaker
-    ? `<p>We respectfully invite you to deliver the <strong>keynote address</strong> at a virtual fundraising session in support of the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>, via <strong>${escapeLetterHtml(medium)}</strong>${durationSlotFragment}.</p>
-<p>The thematic focus for this milestone is <em>"${escapeLetterHtml(themeLine)}"</em>. We would welcome remarks that align with this vision and speak constructively to Liberian students and partners.</p>
+    ? `<p>We respectfully invite you to deliver the <strong>keynote address</strong> at a virtual fundraising session benefiting the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> and the broader <strong>Liberian student community in China</strong>. The session is scheduled for <strong>${escapeLetterHtml(evDate)}</strong> at <strong>${escapeLetterHtml(evTime)}</strong>, via <strong>${escapeLetterHtml(medium)}</strong>${durationSlotFragment}.</p>
+<p>The thematic focus for this milestone is <em>"${escapeLetterHtml(themeLine)}"</em>. We welcome remarks that reinforce this vision, engage students and supporting partners constructively, and help inspire concrete support so that peers who rely on pooled resources can take part.</p>
 ${keynoteTopicHtml}
-<p>Should you also wish to support the campaign financially or in other appropriate ways, the objectives below outline how contributions will be applied. Such support is voluntary and distinct from your role as keynote speaker.</p>`
+<p>We are asking for <strong>both</strong> your voice on this programme and your <strong>meaningful backing of our community</strong>. Alongside delivering the keynote, we earnestly invite a <strong>financial or comparable contribution</strong> aligned with what you can offer; the overview and payment channels below show how donations directly ease fees and sustain the conference for Liberian students in China.</p>`
     : `<p>We respectfully invite you to support the <strong>LSUIC Jinan 2026 Conference Fundraising Campaign</strong> as <strong>${inviteClauseEscaped}</strong>.</p>`;
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
