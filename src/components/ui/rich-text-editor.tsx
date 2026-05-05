@@ -219,11 +219,17 @@ function isLikelyMarkdown(text: string): boolean {
 }
 
 function hasStructuredHtml(html: string): boolean {
-  // Treat only semantically-rich structures as "already formatted".
-  // Plain wrappers like <p>/<div>/<span>/<br> should still allow markdown conversion.
-  return /<(table|thead|tbody|tr|th|td|ul|ol|li|h[1-6]|blockquote|pre|code)\b/i.test(
-    html,
-  );
+  // Block-level structures TipTap / letters use
+  if (
+    /<(table|thead|tbody|tr|th|td|ul|ol|li|h[1-6]|blockquote|pre|code)\b/i.test(
+      html,
+    )
+  ) {
+    return true;
+  }
+  // Inline marks: if present, do not treat as "plain wrapper" HTML that should
+  // be stripped and re-parsed as markdown (would drop bold/italic/links).
+  return /<\s*(strong|b|em|u|a\b|mark|code)\b/i.test(html);
 }
 
 const MarkdownPasteExtension = Extension.create({

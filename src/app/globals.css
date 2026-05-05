@@ -181,7 +181,48 @@
   }
 }
 
-/* Letter composer preview: template/TipTap <strong> must stand out from 12px body copy */
+/* Flyer canvas: hover-only move affordances on `sm+` — avoids Tailwind
+   `sm:group-hover:*` compiling to invalid `@container (width >= media(hover:hover))`
+   in some Turbopack + Tailwind v4 dev builds. */
+@layer components {
+  .flyer-layer-move-affordance {
+    transition:
+      opacity 150ms ease,
+      box-shadow 150ms ease,
+      transform 150ms ease,
+      background-color 150ms ease;
+  }
+  @media (max-width: 639px) {
+    .flyer-layer-move-affordance {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .flyer-layer-move-affordance--subtle {
+      opacity: 0.65;
+    }
+  }
+  @media (min-width: 640px) {
+    .group .flyer-layer-move-affordance {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .group:hover .flyer-layer-move-affordance {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .group:hover .flyer-layer-move-affordance--subtle {
+      opacity: 1;
+    }
+  }
+}
+
+/* Letter composer preview: template/TipTap inline marks vs 12px body copy */
 .letter-composer-rich-p :is(strong, b) {
   font-weight: 700;
+}
+.letter-composer-rich-p em {
+  font-style: italic;
+}
+.letter-composer-rich-p u {
+  text-decoration: underline;
 }
