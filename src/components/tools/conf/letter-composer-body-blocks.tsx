@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import type { LetterBodyBlock } from "./letter-composer-blocks";
 import { letterPreviewPalette } from "./letter-composer-preview-palette";
 
@@ -29,18 +30,26 @@ export function renderLetterBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: str
     }
 
     if (block.type === "paragraph") {
+      const style: CSSProperties = {
+        fontSize: 12,
+        color: "#222",
+        lineHeight: 1.8,
+        margin: "0 0 8px",
+        whiteSpace: "pre-wrap",
+        overflowWrap: "break-word",
+      };
+      if (block.richHtmlInner?.trim()) {
+        return (
+          <p
+            key={key}
+            className="letter-composer-rich-p"
+            style={style}
+            dangerouslySetInnerHTML={{ __html: block.richHtmlInner }}
+          />
+        );
+      }
       return (
-        <p
-          key={key}
-          style={{
-            fontSize: 12,
-            color: "#222",
-            lineHeight: 1.8,
-            margin: "0 0 8px",
-            whiteSpace: "pre-wrap",
-            overflowWrap: "break-word",
-          }}
-        >
+        <p key={key} style={style}>
           {block.text}
         </p>
       );

@@ -180,3 +180,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Letter composer preview: template/TipTap <strong> must stand out from 12px body copy */
+.letter-composer-rich-p :is(strong, b) {
+  font-weight: 700;
+}

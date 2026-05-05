@@ -97,7 +97,13 @@ export function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
 
       if (tag === "p" || tag === "div") {
         const text = readText(el);
-        if (text) blocks.push({ type: "paragraph", text });
+        if (!text) return;
+        const richHtmlInner = el.innerHTML.trim();
+        blocks.push({
+          type: "paragraph",
+          text,
+          ...(richHtmlInner ? { richHtmlInner } : {}),
+        });
         return;
       }
 

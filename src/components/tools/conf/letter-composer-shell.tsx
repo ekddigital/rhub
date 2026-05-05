@@ -5,7 +5,7 @@ import {
   useCallback,
   useEffect,
   useRef,
-  type ReactNode,
+  type CSSProperties,
 } from "react";
 import Link from "next/link";
 import {
@@ -508,7 +508,13 @@ function richHtmlToBodyBlocks(html: string): LetterBodyBlock[] {
 
       if (tag === "p" || tag === "div") {
         const text = readText(el);
-        if (text) blocks.push({ type: "paragraph", text });
+        if (!text) return;
+        const richHtmlInner = el.innerHTML.trim();
+        blocks.push({
+          type: "paragraph",
+          text,
+          ...(richHtmlInner ? { richHtmlInner } : {}),
+        });
         return;
       }
 
@@ -1125,7 +1131,7 @@ type Signatory = {
 
 type LetterBodyBlock =
   | { type: "heading"; level: 1 | 2 | 3 | 4; text: string }
-  | { type: "paragraph"; text: string }
+  | { type: "paragraph"; text: string; richHtmlInner?: string }
   | { type: "list"; ordered: boolean; items: string[] }
   | { type: "table"; headers: string[]; rows: string[][] }
   | { type: "blockquote"; text: string }
@@ -1512,18 +1518,26 @@ function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
     }
 
     if (block.type === "paragraph") {
+      const style: CSSProperties = {
+        fontSize: 12,
+        color: "#222",
+        lineHeight: 1.8,
+        margin: "0 0 8px",
+        whiteSpace: "pre-wrap",
+        overflowWrap: "break-word",
+      };
+      if (block.richHtmlInner?.trim()) {
+        return (
+          <p
+            key={key}
+            className="letter-composer-rich-p"
+            style={style}
+            dangerouslySetInnerHTML={{ __html: block.richHtmlInner }}
+          />
+        );
+      }
       return (
-        <p
-          key={key}
-          style={{
-            fontSize: 12,
-            color: "#222",
-            lineHeight: 1.8,
-            margin: "0 0 8px",
-            whiteSpace: "pre-wrap",
-            overflowWrap: "break-word",
-          }}
-        >
+        <p key={key} style={style}>
           {block.text}
         </p>
       );
