@@ -935,6 +935,31 @@ function memberLabel(m: Member): string {
   return m.title ?? m.committeeScope ?? "Committee Member";
 }
 
+/** Collapse duplicate roster cards (same id or identical displayed contact block). */
+function dedupeSidebarRosterMembers(members: Member[]): Member[] {
+  const byId = new Map<string, Member>();
+  for (const m of members) {
+    if (!byId.has(m.id)) byId.set(m.id, m);
+  }
+  const idUnique = [...byId.values()];
+  const seenSig = new Set<string>();
+  const out: Member[] = [];
+  for (const m of idUnique) {
+    const city = (m.city ?? "").trim().toLowerCase();
+    const phone = (m.phone ?? "").replace(/\D/g, "");
+    const sig = [
+      m.name.trim().toLowerCase(),
+      memberLabel(m).trim().toLowerCase(),
+      city,
+      phone,
+    ].join("\0");
+    if (seenSig.has(sig)) continue;
+    seenSig.add(sig);
+    out.push(m);
+  }
+  return out;
+}
+
 function formatChinaPhone(phone: string | null | undefined): string {
   const raw = (phone ?? "").trim();
   if (!raw) return "";
@@ -1627,9 +1652,12 @@ function LetterA4Preview({
   };
 
   const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+  const rosterMembers = dedupeSidebarRosterMembers(members);
   const sortedMembers = [
-    ...KEY_ORDER.map((r) => members.find((m) => m.role === r)).filter(Boolean),
-    ...members.filter((m) => !KEY_ORDER.includes(m.role)),
+    ...KEY_ORDER.map((r) => rosterMembers.find((m) => m.role === r)).filter(
+      Boolean,
+    ),
+    ...rosterMembers.filter((m) => !KEY_ORDER.includes(m.role)),
   ] as Member[];
 
   // Officers whose phones go in the header
@@ -3574,6 +3602,11 @@ export function LetterComposerShell() {
                 pageSelector: ".letter-page",
                 pageWrapperSelector: null,
                 mode: "blob",
+                // Bulk ZIP: raster export — tune for smaller files (print-to-PDF stays vector).
+                canvasScale: 1.25,
+                jpegQuality: 0.72,
+                svgRasterScale: 1.5,
+                maxInlineImagePixels: 1400,
               },
             );
             if (blob && blob.size > 0) {

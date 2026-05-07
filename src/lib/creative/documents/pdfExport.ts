@@ -244,9 +244,56 @@ async function urlToDataUrl(
  * This prevents html2canvas CORS / tainted-canvas issues that cause
  * images (signatures, uploaded assets, logos) to be missing from the PDF.
  */
-async function inlineAllImages(container: HTMLElement): Promise<() => void> {
+async function inlineAllImages(
+  container: HTMLElement,
+  maxInlineImageLongEdge?: number,
+): Promise<() => void> {
   const images = container.querySelectorAll<HTMLImageElement>("img");
   const originals: { img: HTMLImageElement; src: string }[] = [];
+
+  function ensureOriginalRecorded(img: HTMLImageElement) {
+    if (!originals.some((o) => o.img === img)) {
+      originals.push({ img, src: img.src });
+    }
+  }
+
+  async function decodeImg(img: HTMLImageElement): Promise<void> {
+    if (img.complete && img.naturalWidth > 0) return;
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  }
+
+  /** Shrink huge photos/flyers before html2canvas so page JPEGs stay small. */
+  async function downscaleIfNeeded(img: HTMLImageElement): Promise<void> {
+    const cap = maxInlineImageLongEdge;
+    if (!cap || cap < 256) return;
+    await decodeImg(img);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    if (!w || !h || Math.max(w, h) <= cap) return;
+    ensureOriginalRecorded(img);
+    const scale = cap / Math.max(w, h);
+    const tw = Math.max(1, Math.round(w * scale));
+    const th = Math.max(1, Math.round(h * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = tw;
+    canvas.height = th;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(img, 0, 0, tw, th);
+    const usePng =
+      img.src.includes("image/png") || img.src.includes("image/gif");
+    const out = usePng
+      ? canvas.toDataURL("image/png")
+      : canvas.toDataURL("image/jpeg", 0.88);
+    await new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = out;
+    });
+  }
 
   // Also handle CSS background-image elements
   const bgElements: { el: HTMLElement; bg: string }[] = [];
@@ -293,6 +340,7 @@ async function inlineAllImages(container: HTMLElement): Promise<() => void> {
             }
           });
           successCount++;
+          await downscaleIfNeeded(img);
         } else {
           failCount++;
         }
@@ -302,6 +350,10 @@ async function inlineAllImages(container: HTMLElement): Promise<() => void> {
       }
     }),
   );
+
+  if (maxInlineImageLongEdge) {
+    await Promise.all(Array.from(images).map((img) => downscaleIfNeeded(img)));
+  }
 
   // Convert CSS background images
   await Promise.all(
@@ -353,7 +405,10 @@ async function inlineAllImages(container: HTMLElement): Promise<() => void> {
  *
  * This "hybrid" approach gives JPEG-sized pages + vector-quality SVGs.
  */
-async function rasterizeSVGs(container: HTMLElement): Promise<{
+async function rasterizeSVGs(
+  container: HTMLElement,
+  svgRasterScale: number = 4,
+): Promise<{
   rasterMap: Map<HTMLImageElement, string>;
   restore: () => void;
 }> {
@@ -373,8 +428,8 @@ async function rasterizeSVGs(container: HTMLElement): Promise<{
 
   console.log(`[PDF Export] Found ${svgImages.length} SVG images to rasterize`);
 
-  // 4× gives crisp results when the PNG is placed at the element's display size in the PDF
-  const SCALE = 4;
+  // Higher = sharper overlays but much larger PDFs (each PNG is embedded).
+  const SCALE = Math.max(1, Math.min(8, svgRasterScale));
 
   for (const img of svgImages) {
     const originalSrc = img.src;
@@ -468,6 +523,20 @@ export type ExportToPdfOptions = {
   pageWrapperSelector?: string | null;
   /** `download` saves a file (default). `blob` returns a `Blob` for ZIP/API use. */
   mode?: "download" | "blob";
+  /**
+   * html2canvas `scale`. Default 3 (sharp). Use 2 or lower for smaller files (~print-to-PDF
+   * uses vectors; raster export cannot match that size at scale 3).
+   */
+  canvasScale?: number;
+  /** JPEG quality for full-page background (0–1). Default 0.92 */
+  jpegQuality?: number;
+  /** Multiplier when rasterizing SVGs for overlay PNGs. Default 4 */
+  svgRasterScale?: number;
+  /**
+   * If set, raster `<img>` sources wider/taller than this are scaled down before capture
+   * (helps flyer / photo attachments dominate file size).
+   */
+  maxInlineImagePixels?: number;
 };
 
 /**
@@ -497,6 +566,10 @@ export async function exportToPDF(
       ? ".a4-page-wrapper"
       : opts.pageWrapperSelector;
   const mode = opts?.mode ?? "download";
+  const canvasScale = opts?.canvasScale ?? 3;
+  const jpegQuality = opts?.jpegQuality ?? 0.92;
+  const svgRasterScale = opts?.svgRasterScale ?? 4;
+  const maxInlineImagePixels = opts?.maxInlineImagePixels;
 
   const nearestPageWrapper = (page: HTMLElement) =>
     wrapSel ? page.closest<HTMLElement>(wrapSel) : null;
@@ -533,7 +606,10 @@ export async function exportToPDF(
   // (signatures, uploaded assets, external images) disappear from PDF.
   console.log("[PDF Export] Starting image inlining…");
   onProgress?.(20, "Processing images…");
-  const restoreImages = await inlineAllImages(container);
+  const restoreImages = await inlineAllImages(
+    container,
+    maxInlineImagePixels,
+  );
 
   // --- Pre-rasterize SVG images to high-res PNG ---
   // We do NOT let html2canvas touch SVGs (poor gradient/text support).
@@ -541,7 +617,10 @@ export async function exportToPDF(
   // PNG directly on the PDF page after the JPEG background is written.
   console.log("[PDF Export] Starting SVG rasterization…");
   onProgress?.(38, "Rendering SVGs…");
-  const { rasterMap, restore: restoreSVGs } = await rasterizeSVGs(container);
+  const { rasterMap, restore: restoreSVGs } = await rasterizeSVGs(
+    container,
+    svgRasterScale,
+  );
 
   // Brief delay for layout to settle
   onProgress?.(48, "Laying out pages…");
@@ -641,11 +720,9 @@ export async function exportToPDF(
       // Hide SVGs so the JPEG capture doesn't compress them
       for (const { img } of svgsOnPage) img.style.visibility = "hidden";
 
-      // Capture page as JPEG at 3× resolution
-      // JPEG is ~20× smaller than PNG and looks excellent for text/colour
-      // SVGs are excluded and will be overlaid as crisp PNGs below
+      // Capture page as JPEG (scale & quality tunable — bulk ZIP uses lower values)
       const canvas = await html2canvas(page, {
-        scale: 3,
+        scale: canvasScale,
         useCORS: true,
         allowTaint: false,
         backgroundColor: "#FFFFFF",
@@ -665,8 +742,7 @@ export async function exportToPDF(
         wrapper.style.marginBottom = originalMarginBottom || "";
       }
 
-      // JPEG for the page background — quality 0.92 keeps text sharp & file small
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const imgData = canvas.toDataURL("image/jpeg", jpegQuality);
 
       if (i > 0) pdf.addPage();
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
