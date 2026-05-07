@@ -1482,9 +1482,13 @@ export function DelegateRegistrationForm({
           <select
             className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
             value={bringingForeignGuest}
-            onChange={(e) =>
-              setBringingForeignGuest(e.target.value as "YES" | "NO" | "OTHER")
-            }
+            onChange={(e) => {
+              const v = e.target.value as "YES" | "NO" | "OTHER";
+              setBringingForeignGuest(v);
+              if (v === "NO") {
+                setGuestNationality("");
+              }
+            }}
           >
             <option value="YES">Yes</option>
             <option value="NO">No</option>
@@ -1573,8 +1577,16 @@ export function DelegateRegistrationForm({
           )}
         </div>
 
+        {bringingForeignGuest !== "NO" && (
         <div className="space-y-2">
-          <Label>Guest Nationality (required if question 11 is Yes)</Label>
+          <Label>
+            Guest nationality
+            {bringingForeignGuest === "YES" ? " (required)" : " (optional)"}
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Only if you answered &quot;Yes&quot; or &quot;Other&quot; to bringing someone from
+            another country (question 12).
+          </p>
           <Input
             placeholder="e.g. Ghanaian, Chinese, etc."
             value={guestNationality}
@@ -1590,6 +1602,7 @@ export function DelegateRegistrationForm({
             </p>
           )}
         </div>
+        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Conference Registration Package (Required) *</Label>

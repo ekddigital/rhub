@@ -29,6 +29,8 @@ const STUDY_YEARS = [
   "OTHER",
 ] as const;
 
+const MAX_CONFERENCE_POSITION_LEN = 240;
+
 function isResponseChoice(
   value: unknown,
 ): value is (typeof RESPONSE_CHOICES)[number] {
@@ -213,10 +215,37 @@ export async function PATCH(
         );
       }
       updates.bringingForeignGuest = body.bringingForeignGuest;
+      if (body.bringingForeignGuest === "NO") {
+        updates.guestNationality = null;
+      }
     }
 
     if (typeof body.guestNationality === "string") {
-      updates.guestNationality = body.guestNationality || null;
+      if (body.bringingForeignGuest !== "NO") {
+        updates.guestNationality = body.guestNationality.trim() || null;
+      }
+    }
+
+    if (typeof body.conferencePosition !== "undefined") {
+      if (body.conferencePosition !== null && typeof body.conferencePosition !== "string") {
+        return NextResponse.json(
+          { error: "conferencePosition must be a string or null" },
+          { status: 400 },
+        );
+      }
+      const raw =
+        body.conferencePosition === null
+          ? ""
+          : String(body.conferencePosition).trim();
+      if (raw.length > MAX_CONFERENCE_POSITION_LEN) {
+        return NextResponse.json(
+          {
+            error: `conferencePosition must be at most ${MAX_CONFERENCE_POSITION_LEN} characters`,
+          },
+          { status: 400 },
+        );
+      }
+      updates.conferencePosition = raw.length > 0 ? raw : null;
     }
 
     if (typeof body.accommodationNeeded !== "undefined") {
