@@ -16,7 +16,8 @@ export default async function FinanceSecretaryPage() {
   const canAccessSecretaryView =
     access.isSuperAdmin ||
     access.isChair ||
-    access.memberRole === "TREASURER";
+    access.memberRole === "TREASURER" ||
+    access.canApprovePayments;
 
   if (!canAccessSecretaryView) {
     redirect("/tools/conf?forbidden=1");

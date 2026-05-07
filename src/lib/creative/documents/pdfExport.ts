@@ -458,33 +458,60 @@ async function rasterizeSVGs(container: HTMLElement): Promise<{
    PDF Export
    ================================================================ */
 
+export type ExportToPdfOptions = {
+  /** Elements to capture (default `.a4-page`) */
+  pageSelector?: string;
+  /**
+   * Wrapper queried via `closest()` for temporary transform reset.
+   * Default `.a4-page-wrapper`. Pass `null` for layouts without that wrapper (e.g. letter composer).
+   */
+  pageWrapperSelector?: string | null;
+  /** `download` saves a file (default). `blob` returns a `Blob` for ZIP/API use. */
+  mode?: "download" | "blob";
+};
+
 /**
  * Export the letterhead document to PDF.
- * Targets all .a4-page elements inside the container.
+ * Targets page elements inside the container (default: `.a4-page`).
  *
- * @param containerId - ID of the letterhead-document container
- * @param filename - Output filename (without .pdf extension)
+ * @param containerId - ID of the root container
+ * @param filename - Output filename stem without extension (used when `mode` is `download`)
  * @param onProgress - Optional callback receiving (percent 0-100, stage label)
+ * @param opts - Page selectors and output mode
+ * @returns When `mode` is `blob`, the PDF `Blob`; otherwise `undefined` after download.
  */
 export async function exportToPDF(
   containerId: string = "letterhead-document",
   filename: string = "document",
   onProgress?: (pct: number, stage: string) => void,
-): Promise<void> {
+  opts?: ExportToPdfOptions,
+): Promise<Blob | undefined> {
   // Dynamic imports to keep initial bundle small
   onProgress?.(5, "Loading modules…");
   const html2canvas = (await import("html2canvas")).default;
   const { jsPDF } = await import("jspdf");
+
+  const pageSelector = opts?.pageSelector ?? ".a4-page";
+  const wrapSel: string | null =
+    opts?.pageWrapperSelector === undefined
+      ? ".a4-page-wrapper"
+      : opts.pageWrapperSelector;
+  const mode = opts?.mode ?? "download";
+
+  const nearestPageWrapper = (page: HTMLElement) =>
+    wrapSel ? page.closest<HTMLElement>(wrapSel) : null;
 
   const container = document.getElementById(containerId);
   if (!container) {
     throw new Error(`Container #${containerId} not found`);
   }
 
-  // Find all A4 page elements
-  const pages = container.querySelectorAll<HTMLElement>(".a4-page");
+  // Find all page elements
+  const pages = container.querySelectorAll<HTMLElement>(pageSelector);
   if (pages.length === 0) {
-    throw new Error("No .a4-page elements found in the container");
+    throw new Error(
+      `No ${pageSelector} elements found in the container #${containerId}`,
+    );
   }
 
   // Create PDF (A4 portrait)
@@ -531,7 +558,7 @@ export async function exportToPDF(
   // getBoundingClientRect() returns unscaled coordinates that map cleanly to mm.
   const idToDestination = new Map<string, DestInfo>();
   pages.forEach((page, idx) => {
-    const wrapper = page.closest<HTMLElement>(".a4-page-wrapper");
+    const wrapper = nearestPageWrapper(page);
     const origTransform = wrapper?.style.transform;
     const origMarginBottom = wrapper?.style.marginBottom;
     if (wrapper) {
@@ -567,7 +594,7 @@ export async function exportToPDF(
       onProgress?.(pagePct, `Capturing page ${i + 1} of ${pages.length}…`);
 
       // Reset the page transform so html2canvas captures at natural CSS size
-      const wrapper = page.closest(".a4-page-wrapper") as HTMLElement | null;
+      const wrapper = nearestPageWrapper(page);
       const originalTransform = wrapper?.style.transform;
       const originalMarginBottom = wrapper?.style.marginBottom;
       if (wrapper) {
@@ -681,8 +708,14 @@ export async function exportToPDF(
     }
 
     onProgress?.(97, "Saving file…");
+    if (mode === "blob") {
+      const blob = pdf.output("blob");
+      onProgress?.(100, "Done");
+      return blob;
+    }
     pdf.save(`${filename}.pdf`);
     onProgress?.(100, "Done");
+    return undefined;
   } finally {
     restoreSVGs();
     restoreImages();

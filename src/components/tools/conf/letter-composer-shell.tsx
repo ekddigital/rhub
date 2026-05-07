@@ -4,9 +4,11 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   type CSSProperties,
 } from "react";
+import { flushSync } from "react-dom";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -30,6 +32,12 @@ import {
   CalendarDays,
   PenLine,
   AlertCircle,
+  Table2,
+  Package,
+  Loader2,
+  Download,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +52,22 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import {
+  parseRecipientCsv,
+  draftsFromCsvTemplate,
+  recipientCsvColumnLabel,
+  type CsvRecipientRow,
+} from "@/lib/conf/letter-composer-csv-batch";
+import {
+  buildLetterPrintDocumentHtml,
+  sanitizeLetterExportBasename,
+} from "@/lib/conf/letter-print-document-html";
+import {
+  settleAfterPrintRootUpdate,
+  waitForLetterPagesInDom,
+  warmupLetterBulkPdfExport,
+  yieldToMain,
+} from "@/lib/conf/letter-pdf-batch-support";
 import {
   LETTERHEAD_CONFIG,
   LETTER_COMPOSER_HEADER_PRIMARY_LINE,
@@ -576,6 +600,29 @@ function saveDrafts(drafts: LetterDraft[]) {
 
 function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** Opens print dialog for pre-rendered letter HTML (one or many letters). */
+function openLetterPrintWindow(fragmentInnerHtml: string) {
+  const popup = window.open(
+    "",
+    "_blank",
+    `width=860,height=1000,scrollbars=no,menubar=no,toolbar=no,status=no`,
+  );
+  if (!popup) {
+    window.print();
+    return;
+  }
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  popup.document.write(
+    buildLetterPrintDocumentHtml(fragmentInnerHtml, {
+      origin,
+      includeAutoPrintScript: true,
+      documentTitle: "LSUIC Letter",
+    }),
+  );
+  popup.document.close();
 }
 
 /** Default sender block shown for a freshly created letter. */
@@ -1500,6 +1547,36 @@ function renderBodyBlocks(blocks: LetterBodyBlock[], keyPrefix: string) {
   });
 }
 
+/**
+ * Single To: block for preview/print — avoids duplicating lines when
+ * `fundraisingRecipientAddress` repeats the tail of `to` (CSV batch sets both).
+ */
+function letterRecipientBlockDisplay(
+  to: string | undefined,
+  fundraisingRecipientAddress: string | undefined,
+): string {
+  const t = (to ?? "").trim();
+  const a = (fundraisingRecipientAddress ?? "").trim();
+  if (!t) return a;
+  if (!a) return t;
+  const toNorm = t.replace(/\r\n/g, "\n").trimEnd();
+  const addrNorm = a.replace(/\r\n/g, "\n").trim();
+  const addrLines = addrNorm
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (addrLines.length === 0) return t;
+  const toLines = toNorm
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (toLines.length >= addrLines.length) {
+    const suffix = toLines.slice(-addrLines.length);
+    if (suffix.every((line, i) => line === addrLines[i])) return toNorm;
+  }
+  return `${toNorm}\n${addrNorm}`;
+}
+
 // ── A4 Letter Preview ─────────────────────────────────────────────────────────
 
 function LetterA4Preview({
@@ -1631,6 +1708,10 @@ function LetterA4Preview({
             .map((text) => ({ type: "paragraph", text }) as LetterBodyBlock)
         : [];
 
+  const recipientDisplay = letterRecipientBlockDisplay(
+    draft.to,
+    draft.fundraisingRecipientAddress,
+  );
   const newlineRows = (s: string) => (s.trim() ? s.split("\n").length : 0);
   // Chrome overhead: date row (~1.2 lines) + divider with margins (~1.2 lines) + spacing (~0.6 lines)
   // = ~3 base lines, then 1 line per wrapped row of To/From, ~2 for Re (includes marginTop).
@@ -1638,7 +1719,7 @@ function LetterA4Preview({
   // single-line letter, artificially dropping page-1 body capacity from ~30 lines to ~22.
   const firstPageLeadReserveLines =
     3 +
-    Math.max(1, newlineRows(draft.to)) +
+    Math.max(1, newlineRows(recipientDisplay)) +
     Math.max(1, newlineRows(draft.from)) +
     (draft.re.trim() ? 2 : 0);
 
@@ -2034,7 +2115,7 @@ function LetterA4Preview({
                 marginBottom: 6,
               }}
             >
-              {draft.to && (
+              {recipientDisplay && (
                 <div style={{ display: "flex", alignItems: "flex-start" }}>
                   <strong
                     style={{
@@ -2046,9 +2127,7 @@ function LetterA4Preview({
                     To:
                   </strong>
                   <span style={{ whiteSpace: "pre-line" }}>
-                    {[draft.to, draft.fundraisingRecipientAddress]
-                      .filter((s) => s?.trim())
-                      .join("\n")}
+                    {recipientDisplay}
                   </span>
                 </div>
               )}
@@ -2665,6 +2744,12 @@ export function LetterComposerShell() {
   const [libraryPages, setLibraryPages] = useState(1);
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [libraryFilter, setLibraryFilter] = useState<LetterType | "">("");
+  const [libraryPageSize, setLibraryPageSize] = useState(20);
+  const [librarySelectedIds, setLibrarySelectedIds] = useState<string[]>([]);
+  const [libraryListMode, setLibraryListMode] = useState(false);
+  const [libraryBulkDeleting, setLibraryBulkDeleting] = useState(false);
+  const [librarySelectAllLoading, setLibrarySelectAllLoading] =
+    useState(false);
   const [savingToDb, setSavingToDb] = useState(false);
   const [saveToDbStatus, setSaveToDbStatus] = useState<
     "idle" | "saved" | "error"
@@ -2673,6 +2758,39 @@ export function LetterComposerShell() {
   const [signatureLibrary, setSignatureLibrary] = useState<
     Record<string, SignatureProfile>
   >({});
+
+  const CSV_PREVIEW_PAGE_SIZE = 10;
+  const [draftsListPage, setDraftsListPage] = useState(1);
+  const [draftsListPageSize, setDraftsListPageSize] = useState(15);
+  const [draftsSelectedIds, setDraftsSelectedIds] = useState<string[]>([]);
+  const [csvImportRows, setCsvImportRows] = useState<CsvRecipientRow[]>([]);
+  const [csvImportHeaders, setCsvImportHeaders] = useState<string[]>([]);
+  const [csvImportError, setCsvImportError] = useState<string | null>(null);
+  const [csvImportPage, setCsvImportPage] = useState(1);
+  const [lastCsvBatchDrafts, setLastCsvBatchDrafts] = useState<LetterDraft[]>(
+    [],
+  );
+  /** When set, `#letter-print-root` renders one preview per draft for bulk PDF. */
+  const [batchPrintDrafts, setBatchPrintDrafts] = useState<
+    LetterDraft[] | null
+  >(null);
+  const [batchLibrarySaving, setBatchLibrarySaving] = useState(false);
+  const [batchLibraryProgress, setBatchLibraryProgress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
+  const [batchLibraryResult, setBatchLibraryResult] = useState<{
+    ok: number;
+    fail: number;
+  } | null>(null);
+  const [zipDownloading, setZipDownloading] = useState(false);
+  const [zipPdfProgress, setZipPdfProgress] = useState<{
+    phase: string;
+    current: number;
+    total: number;
+    detail?: string;
+  } | null>(null);
+  const [zipPdfMessage, setZipPdfMessage] = useState<string | null>(null);
 
   const resolveSignatureForName = useCallback(
     (name: string) => {
@@ -2833,6 +2951,13 @@ export function LetterComposerShell() {
     void init();
   }, []);
 
+  /** Warm PDF pipeline once data is ready so first bulk download is faster and more reliable. */
+  useEffect(() => {
+    if (!loading && !error) {
+      void warmupLetterBulkPdfExport();
+    }
+  }, [loading, error]);
+
   // ── Drafts ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -2956,7 +3081,10 @@ export function LetterComposerShell() {
       if (!confId) return;
       setLibraryLoading(true);
       try {
-        const qs = new URLSearchParams({ page: String(page) });
+        const qs = new URLSearchParams({
+          page: String(page),
+          pageSize: String(libraryPageSize),
+        });
         if (filter) qs.set("type", filter);
         const res = await fetch(`/api/conf/${confId}/letters?${qs.toString()}`);
         if (res.ok) {
@@ -2977,16 +3105,62 @@ export function LetterComposerShell() {
         setLibraryLoading(false);
       }
     },
-    [confId],
+    [confId, libraryPageSize],
   );
 
-  // Fetch when view switches to library or page/filter changes
+  /** Walk every API page so bulk actions can target the whole library, not only the current grid page. */
+  const selectAllLibraryLetterIds = useCallback(async () => {
+    if (!confId || libraryTotal <= 0) return;
+    setLibrarySelectAllLoading(true);
+    try {
+      const allIds: string[] = [];
+      let page = 1;
+      const batch = 100;
+      for (;;) {
+        const qs = new URLSearchParams({
+          page: String(page),
+          pageSize: String(batch),
+        });
+        if (libraryFilter) qs.set("type", libraryFilter);
+        const res = await fetch(`/api/conf/${confId}/letters?${qs.toString()}`);
+        if (!res.ok) break;
+        const data = (await res.json()) as {
+          letters: { id: string }[];
+          total: number;
+        };
+        allIds.push(...data.letters.map((l) => l.id));
+        if (allIds.length >= data.total || data.letters.length === 0) break;
+        page += 1;
+      }
+      setLibrarySelectedIds(allIds);
+    } finally {
+      setLibrarySelectAllLoading(false);
+    }
+  }, [confId, libraryFilter, libraryTotal]);
+
+  // Fetch when view switches to library or page/filter/pageSize changes
   useEffect(() => {
     if (view === "library") {
       void fetchLibrary(libraryPage, libraryFilter);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, libraryPage, libraryFilter, confId]);
+  }, [view, libraryPage, libraryFilter, libraryPageSize, confId, fetchLibrary]);
+
+  useEffect(() => {
+    setLibrarySelectedIds([]);
+  }, [libraryFilter]);
+
+  useEffect(() => {
+    const maxPage = Math.max(
+      1,
+      Math.ceil(drafts.length / draftsListPageSize),
+    );
+    if (draftsListPage > maxPage) setDraftsListPage(maxPage);
+  }, [drafts.length, draftsListPage, draftsListPageSize]);
+
+  useEffect(() => {
+    const ids = new Set(drafts.map((d) => d.id));
+    setDraftsSelectedIds((prev) => prev.filter((id) => ids.has(id)));
+  }, [drafts]);
 
   const handleSaveToLibrary = useCallback(async () => {
     if (!confId) return;
@@ -3076,6 +3250,7 @@ export function LetterComposerShell() {
         if (res.ok) {
           setLibrary((prev) => prev.filter((r) => r.id !== id));
           setLibraryTotal((t) => Math.max(0, t - 1));
+          setLibrarySelectedIds((prev) => prev.filter((x) => x !== id));
           // Unlink from active draft if it pointed to this DB record
           setActiveDraft((d) => (d.dbId === id ? { ...d, dbId: "" } : d));
         }
@@ -3248,70 +3423,395 @@ export function LetterComposerShell() {
     window.print();
   }, []);
 
-  // Open a clean popup window with just the A4 letter, then auto-print
-  // so the user stays on the composer page and only needs one click to save.
   const handleDownloadPdf = useCallback(() => {
     const root = document.getElementById("letter-print-root");
     if (!root) {
       window.print();
       return;
     }
-    const popup = window.open(
-      "",
-      "_blank",
-      `width=860,height=1000,scrollbars=no,menubar=no,toolbar=no,status=no`,
-    );
-    if (!popup) {
-      // Popups blocked — fall back to same-window print
-      window.print();
-      return;
-    }
-    popup.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <base href="${window.location.origin}">
-  <title>LSUIC Letter</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 794px; background: #888; }
-    .letter-page {
-      box-shadow: none !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    @page { size: A4 portrait; margin: 0; }
-    @media print {
-      html, body { background: #fff !important; width: 210mm; overflow: visible; }
-      .letter-page {
-        width: 210mm !important;
-        min-height: 297mm !important;
-        height: 297mm !important;
-        max-height: none !important;
-        display: flex !important;
-        flex-direction: column !important;
-        box-shadow: none !important;
-        break-after: page;
-        page-break-after: always;
-      }
-      .letter-page:last-child {
-        break-after: auto;
-        page-break-after: auto;
-      }
-    }
-  </style>
-</head>
-<body>
-  ${root.innerHTML}
-  <script>
-    window.addEventListener('load', function () {
-      setTimeout(function () { window.print(); }, 400);
-    });
-  <\/script>
-</body>
-</html>`);
-    popup.document.close();
+    openLetterPrintWindow(root.innerHTML);
   }, []);
+
+  const handlePrintBatchDrafts = useCallback((drafts: LetterDraft[]) => {
+    if (drafts.length === 0) return;
+    flushSync(() => {
+      setBatchPrintDrafts(drafts);
+    });
+    const root = document.getElementById("letter-print-root");
+    const html = root?.innerHTML ?? "";
+    flushSync(() => {
+      setBatchPrintDrafts(null);
+    });
+    if (html.trim()) {
+      openLetterPrintWindow(html);
+    }
+  }, []);
+
+  const handleSaveBatchToLibrary = useCallback(
+    async (drafts: LetterDraft[]) => {
+      if (!confId || drafts.length === 0) return;
+      setBatchLibrarySaving(true);
+      setBatchLibraryResult(null);
+      setBatchLibraryProgress({ current: 0, total: drafts.length });
+      const idMap = new Map<string, string>();
+      let ok = 0;
+      let fail = 0;
+      for (let i = 0; i < drafts.length; i++) {
+        const d = drafts[i];
+        setBatchLibraryProgress({ current: i + 1, total: drafts.length });
+        try {
+          const isExisting = !!d.dbId;
+          const url = isExisting
+            ? `/api/conf/${confId}/letters/${d.dbId}`
+            : `/api/conf/${confId}/letters`;
+          const method = isExisting ? "PATCH" : "POST";
+          const res = await fetch(url, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: d.title || d.re || "Untitled Letter",
+              type: d.type,
+              letterDate: d.date,
+              draft: d,
+            }),
+          });
+          if (res.ok) {
+            const saved = (await res.json()) as { id: string };
+            idMap.set(d.id, saved.id);
+            ok++;
+          } else {
+            fail++;
+          }
+        } catch {
+          fail++;
+        }
+        await new Promise((r) => setTimeout(r, 120));
+      }
+
+      setDrafts((prev) => {
+        const next = prev.map((dr) => {
+          const nid = idMap.get(dr.id);
+          return nid ? { ...dr, dbId: nid } : dr;
+        });
+        saveDrafts(next);
+        return next;
+      });
+      setActiveDraft((cur) => {
+        const nid = idMap.get(cur.id);
+        return nid ? { ...cur, dbId: nid } : cur;
+      });
+      setLastCsvBatchDrafts((prev) =>
+        prev.map((dr) => {
+          const nid = idMap.get(dr.id);
+          return nid ? { ...dr, dbId: nid } : dr;
+        }),
+      );
+      setBatchLibraryResult({ ok, fail });
+      setBatchLibrarySaving(false);
+      setBatchLibraryProgress(null);
+      void fetchLibrary(libraryPage, libraryFilter);
+    },
+    [confId, fetchLibrary, libraryPage, libraryFilter],
+  );
+
+  const handleDownloadBatchZipPdf = useCallback(
+    async (drafts: LetterDraft[]) => {
+      if (drafts.length === 0) return;
+      setZipPdfMessage(null);
+      setZipDownloading(true);
+      setZipPdfProgress({
+        phase: "Preparing fonts and letterhead assets…",
+        current: 0,
+        total: drafts.length,
+      });
+      let pdfOk = 0;
+      let pdfFail = 0;
+      try {
+        const JSZip = (await import("jszip")).default;
+        const { saveAs } = await import("file-saver");
+        const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+        await warmupLetterBulkPdfExport();
+
+        const zip = new JSZip();
+        const folder = zip.folder("lsuic-letters");
+        const padW = Math.max(3, String(drafts.length).length);
+
+        for (let i = 0; i < drafts.length; i++) {
+          const d = drafts[i];
+          const label = (d.title || d.re || `Draft ${i + 1}`).slice(0, 56);
+          setZipPdfProgress({
+            phase: "Rendering each letter to PDF…",
+            current: i + 1,
+            total: drafts.length,
+            detail: label,
+          });
+          try {
+            flushSync(() => {
+              setBatchPrintDrafts([d]);
+            });
+            await settleAfterPrintRootUpdate();
+            const domReady = await waitForLetterPagesInDom(
+              "letter-print-root",
+              ".letter-page",
+              1,
+              { timeoutMs: 12_000, intervalMs: 40 },
+            );
+            if (!domReady) {
+              pdfFail++;
+              console.error(
+                `[letters] Print root never showed pages for "${d.title || d.id}"`,
+              );
+              continue;
+            }
+
+            const basename = sanitizeLetterExportBasename(d.title, d.id);
+            const name = `${String(i + 1).padStart(padW, "0")}-${basename}.pdf`;
+            const blob = await exportToPDF(
+              "letter-print-root",
+              basename,
+              undefined,
+              {
+                pageSelector: ".letter-page",
+                pageWrapperSelector: null,
+                mode: "blob",
+              },
+            );
+            if (blob && blob.size > 0) {
+              folder?.file(name, blob);
+              pdfOk++;
+            } else {
+              pdfFail++;
+            }
+          } catch (err) {
+            pdfFail++;
+            console.error(
+              `[letters] PDF export failed for "${d.title || d.id}":`,
+              err,
+            );
+          }
+          await yieldToMain();
+        }
+
+        flushSync(() => {
+          setBatchPrintDrafts(null);
+        });
+
+        if (pdfOk === 0) {
+          setZipPdfMessage(
+            "No PDFs were added to the ZIP — pages did not render in time or export failed. Check the console and try a smaller batch.",
+          );
+          return;
+        }
+
+        setZipPdfProgress({
+          phase: "Building ZIP file…",
+          current: drafts.length,
+          total: drafts.length,
+          detail: `${pdfOk} PDF${pdfOk !== 1 ? "s" : ""}`,
+        });
+
+        const zipBlob = await zip.generateAsync(
+          { type: "blob", compression: "DEFLATE" },
+          (meta) => {
+            setZipPdfProgress((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    phase: "Building ZIP file…",
+                    detail: `${Math.round(meta.percent)}% packed`,
+                  }
+                : null,
+            );
+          },
+        );
+
+        saveAs(
+          zipBlob,
+          `lsuic-letters-${new Date().toISOString().slice(0, 10)}.zip`,
+        );
+
+        const failedPart =
+          pdfFail > 0 ? ` ${pdfFail} letter(s) skipped due to errors.` : "";
+        setZipPdfMessage(
+          `Saved ZIP with ${pdfOk} PDF${pdfOk !== 1 ? "s" : ""}.${failedPart}`,
+        );
+        window.setTimeout(() => setZipPdfMessage(null), 12_000);
+      } finally {
+        setZipPdfProgress(null);
+        setZipDownloading(false);
+      }
+    },
+    [],
+  );
+
+  const loadFullDraftsFromLibraryIds = useCallback(
+    async (ids: string[]): Promise<LetterDraft[]> => {
+      if (!confId || ids.length === 0) return [];
+      const out: LetterDraft[] = [];
+      for (const id of ids) {
+        try {
+          const res = await fetch(`/api/conf/${confId}/letters/${id}`);
+          if (!res.ok) continue;
+          const full = (await res.json()) as { draft: unknown; id: string };
+          const draft = migrateDraft(
+            Object.assign({}, full.draft as Partial<LetterDraft>, {
+              dbId: full.id,
+            }),
+          );
+          out.push(hydrateDraftSignatures(draft));
+        } catch {
+          // skip broken row
+        }
+      }
+      return out;
+    },
+    [confId, hydrateDraftSignatures],
+  );
+
+  const handleLibraryBulkZip = useCallback(
+    async (ids: string[]) => {
+      if (ids.length === 0) return;
+      const [loaded] = await Promise.all([
+        loadFullDraftsFromLibraryIds(ids),
+        warmupLetterBulkPdfExport(),
+      ]);
+      if (loaded.length === 0) return;
+      await handleDownloadBatchZipPdf(loaded);
+    },
+    [loadFullDraftsFromLibraryIds, handleDownloadBatchZipPdf],
+  );
+
+  const handleLibraryBulkDelete = useCallback(
+    async (ids: string[]) => {
+      if (!confId || ids.length === 0) return;
+      if (
+        !window.confirm(
+          `Delete ${ids.length} letter(s) from the library? This cannot be undone.`,
+        )
+      ) {
+        return;
+      }
+      setLibraryBulkDeleting(true);
+      try {
+        for (const id of ids) {
+          try {
+            await fetch(`/api/conf/${confId}/letters/${id}`, {
+              method: "DELETE",
+            });
+          } catch {
+            // continue
+          }
+        }
+        setActiveDraft((d) =>
+          d.dbId && ids.includes(d.dbId) ? { ...d, dbId: "" } : d,
+        );
+        setLibrarySelectedIds([]);
+        setLibraryPage(1);
+        void fetchLibrary(1, libraryFilter);
+      } finally {
+        setLibraryBulkDeleting(false);
+      }
+    },
+    [confId, fetchLibrary, libraryFilter],
+  );
+
+  const handleCsvFile = useCallback((file: File | null) => {
+    setCsvImportError(null);
+    setCsvImportPage(1);
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      const parsed = parseRecipientCsv(text);
+      if (parsed.error) {
+        setCsvImportRows([]);
+        setCsvImportHeaders([]);
+        setCsvImportError(parsed.error);
+        return;
+      }
+      if (parsed.rows.length === 0) {
+        setCsvImportRows([]);
+        setCsvImportHeaders([]);
+        setCsvImportError("No data rows in CSV.");
+        return;
+      }
+      setCsvImportRows(parsed.rows);
+      setCsvImportHeaders(
+        parsed.headers.length > 0
+          ? parsed.headers
+          : Object.keys(parsed.rows[0] ?? {}),
+      );
+    };
+    reader.onerror = () => {
+      setCsvImportError("Could not read file.");
+      setCsvImportRows([]);
+      setCsvImportHeaders([]);
+    };
+    reader.readAsText(file, "UTF-8");
+  }, []);
+
+  const handleCsvGenerateDrafts = useCallback(() => {
+    if (csvImportRows.length === 0) return;
+    setBatchLibraryResult(null);
+    setBatchLibraryProgress(null);
+    const template = hydrateDraftSignatures(
+      JSON.parse(JSON.stringify(activeDraft)) as LetterDraft,
+    );
+    const created = draftsFromCsvTemplate(template, csvImportRows, newId);
+    const migrated = created.map((d) => migrateDraft(d));
+    setDrafts((prev) => {
+      const next = [...migrated, ...prev];
+      saveDrafts(next);
+      return next;
+    });
+    setLastCsvBatchDrafts(migrated);
+    setActiveDraft(migrated[0]);
+    setDraftsListPage(1);
+    setShowList(true);
+  }, [activeDraft, csvImportRows, hydrateDraftSignatures]);
+
+  const handleCsvClear = useCallback(() => {
+    setCsvImportRows([]);
+    setCsvImportHeaders([]);
+    setCsvImportError(null);
+    setCsvImportPage(1);
+    setLastCsvBatchDrafts([]);
+    setBatchLibraryResult(null);
+    setBatchLibraryProgress(null);
+  }, []);
+
+  const draftsTotalPages = Math.max(
+    1,
+    Math.ceil(drafts.length / draftsListPageSize),
+  );
+  const draftsPageSlice = useMemo(() => {
+    const start = (draftsListPage - 1) * draftsListPageSize;
+    return drafts.slice(start, start + draftsListPageSize);
+  }, [drafts, draftsListPage, draftsListPageSize]);
+
+  const libraryPageIds = useMemo(() => library.map((r) => r.id), [library]);
+  const librarySelectedSet = useMemo(
+    () => new Set(librarySelectedIds),
+    [librarySelectedIds],
+  );
+  const allLibraryPageSelected =
+    libraryPageIds.length > 0 &&
+    libraryPageIds.every((id) => librarySelectedSet.has(id));
+
+  const draftsPageIds = useMemo(
+    () => draftsPageSlice.map((d) => d.id),
+    [draftsPageSlice],
+  );
+  const draftsSelectedSet = useMemo(
+    () => new Set(draftsSelectedIds),
+    [draftsSelectedIds],
+  );
+  const allDraftsPageSelected =
+    draftsPageIds.length > 0 &&
+    draftsPageIds.every((id) => draftsSelectedSet.has(id));
+  const allDraftsListSelected =
+    drafts.length > 0 &&
+    drafts.every((d) => draftsSelectedSet.has(d.id));
 
   // ── Loading / error ──────────────────────────────────────────────────────
 
@@ -3395,6 +3895,50 @@ export function LetterComposerShell() {
 
       {/* ── Viewport frame: header + 2-panel body ── */}
       <div className="flex flex-col h-[calc(100vh-8rem)] gap-0">
+        {zipPdfProgress && (
+          <div className="letter-no-print mb-3 flex items-start gap-3 rounded-lg border border-[#002868]/35 bg-[#002868]/[0.08] px-4 py-3 text-sm shadow-sm">
+            <Loader2 className="mt-0.5 size-5 shrink-0 animate-spin text-[#002868]" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="font-semibold leading-tight text-foreground">
+                {zipPdfProgress.phase}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Letter {zipPdfProgress.current} of {zipPdfProgress.total}
+                {zipPdfProgress.detail
+                  ? ` · ${zipPdfProgress.detail}`
+                  : ""}
+                . Leave this tab open until the download starts.
+              </p>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-[#002868] transition-[width] duration-300 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.round((zipPdfProgress.current / zipPdfProgress.total) * 100))}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        {zipPdfMessage && !zipPdfProgress && (
+          <div
+            className={`letter-no-print mb-3 flex items-start justify-between gap-3 rounded-lg border px-4 py-3 text-sm ${
+              zipPdfMessage.startsWith("No PDFs")
+                ? "border-amber-500/40 bg-amber-500/10 text-amber-950"
+                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-950"
+            }`}
+          >
+            <p className="min-w-0 flex-1 leading-snug">{zipPdfMessage}</p>
+            <button
+              type="button"
+              className="shrink-0 rounded p-1 text-current opacity-70 hover:opacity-100"
+              onClick={() => setZipPdfMessage(null)}
+              aria-label="Dismiss"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
         {/* ── Header ── */}
         <div className="letter-no-print flex items-center gap-4 shrink-0 pb-3 mb-3 border-b border-border/30">
           <Link href="/tools/conf">
@@ -3547,6 +4091,7 @@ export function LetterComposerShell() {
                   onClick={() => {
                     setLibraryFilter(t);
                     setLibraryPage(1);
+                    setLibrarySelectedIds([]);
                   }}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                     libraryFilter === t
@@ -3571,12 +4116,166 @@ export function LetterComposerShell() {
               </span>
             </div>
 
-            {/* Card grid */}
+            <div className="flex flex-wrap items-center gap-3 justify-between rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span>
+                  {libraryTotal > 0 ? (
+                    <>
+                      Showing{" "}
+                      <span className="font-medium text-foreground">
+                        {(libraryPage - 1) * libraryPageSize + 1}–
+                        {Math.min(
+                          libraryPage * libraryPageSize,
+                          libraryTotal,
+                        )}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-medium text-foreground">
+                        {libraryTotal}
+                      </span>
+                    </>
+                  ) : (
+                    "0 letters"
+                  )}
+                </span>
+                <label className="inline-flex items-center gap-1.5">
+                  <span className="whitespace-nowrap">Per page</span>
+                  <select
+                    className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                    value={libraryPageSize}
+                    onChange={(e) => {
+                      setLibraryPageSize(Number(e.target.value));
+                      setLibraryPage(1);
+                    }}
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </label>
+                <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="rounded border-input"
+                    checked={allLibraryPageSelected}
+                    onChange={() => {
+                      if (allLibraryPageSelected) {
+                        setLibrarySelectedIds((prev) =>
+                          prev.filter((id) => !libraryPageIds.includes(id)),
+                        );
+                      } else {
+                        setLibrarySelectedIds((prev) => [
+                          ...new Set([...prev, ...libraryPageIds]),
+                        ]);
+                      }
+                    }}
+                  />
+                  <span>Select all on page</span>
+                </label>
+                {libraryTotal > libraryPageIds.length && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={
+                      librarySelectAllLoading ||
+                      libraryLoading ||
+                      libraryTotal === 0
+                    }
+                    onClick={() => void selectAllLibraryLetterIds()}
+                  >
+                    {librarySelectAllLoading ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : null}
+                    Select all {libraryTotal} matching
+                  </Button>
+                )}
+              </div>
+              <div className="flex items-center gap-0.5 rounded-md border border-border bg-background p-0.5">
+                <button
+                  type="button"
+                  className={`inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                    !libraryListMode
+                      ? "bg-[#002868] text-white"
+                      : "text-muted-foreground hover:bg-muted/50"
+                  }`}
+                  onClick={() => setLibraryListMode(false)}
+                >
+                  <LayoutGrid className="size-3.5" />
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  className={`inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                    libraryListMode
+                      ? "bg-[#002868] text-white"
+                      : "text-muted-foreground hover:bg-muted/50"
+                  }`}
+                  onClick={() => setLibraryListMode(true)}
+                >
+                  <List className="size-3.5" />
+                  List
+                </button>
+              </div>
+            </div>
+
+            {librarySelectedIds.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#C8A061]/40 bg-[#C8A061]/10 px-3 py-2.5">
+                <span className="text-xs font-medium text-foreground">
+                  {librarySelectedIds.length} selected
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5"
+                  disabled={zipDownloading || libraryBulkDeleting}
+                  type="button"
+                  onClick={() => void handleLibraryBulkZip(librarySelectedIds)}
+                >
+                  {zipDownloading ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Download className="size-3.5" />
+                  )}
+                  Download ZIP (PDF)
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+                  disabled={libraryBulkDeleting || zipDownloading}
+                  type="button"
+                  onClick={() =>
+                    void handleLibraryBulkDelete(librarySelectedIds)
+                  }
+                >
+                  {libraryBulkDeleting ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-3.5" />
+                  )}
+                  Delete selected
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-xs"
+                  type="button"
+                  onClick={() => setLibrarySelectedIds([])}
+                >
+                  Clear selection
+                </Button>
+              </div>
+            )}
+
+            {/* Card grid / table */}
             {libraryLoading ? (
               <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
                 Loading library…
               </div>
-            ) : library.length === 0 ? (
+            ) : libraryTotal === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 text-muted-foreground">
                 <BookOpen className="size-10 opacity-30" />
                 <p className="text-sm">No saved letters yet.</p>
@@ -3592,64 +4291,211 @@ export function LetterComposerShell() {
                   <PenLine className="size-4" /> Go to Composer
                 </Button>
               </div>
+            ) : library.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-2 text-sm text-muted-foreground">
+                <p>No letters on this page.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  disabled={libraryPage <= 1}
+                  onClick={() => setLibraryPage((p) => Math.max(1, p - 1))}
+                >
+                  Go to previous page
+                </Button>
+              </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {library.map((rec) => (
-                    <div
-                      key={rec.id}
-                      className="group relative rounded-xl border border-border bg-card hover:border-[#C8A061]/50 hover:shadow-md transition-all cursor-pointer flex flex-col"
-                      onClick={() => void handleLoadFromLibrary(rec)}
-                    >
-                      {/* Color stripe by type */}
+                {!libraryListMode ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {library.map((rec) => (
                       <div
-                        className="h-1.5 rounded-t-xl"
-                        style={{ background: LETTER_TYPE_COLORS[rec.type] }}
-                      />
-                      <div className="flex-1 p-4 space-y-2">
-                        {/* Type badge */}
-                        <div className="flex items-center justify-between">
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                            style={{
-                              background: LETTER_TYPE_COLORS[rec.type] + "22",
-                              color: LETTER_TYPE_COLORS[rec.type],
+                        key={rec.id}
+                        className="group relative rounded-xl border border-border bg-card hover:border-[#C8A061]/50 hover:shadow-md transition-all cursor-pointer flex flex-col"
+                        onClick={() => void handleLoadFromLibrary(rec)}
+                      >
+                        <div
+                          className="absolute left-3 top-3 z-10 flex size-8 items-center justify-center rounded-md border border-border bg-background/90 shadow-sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            className="size-3.5 rounded border-input"
+                            checked={librarySelectedSet.has(rec.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setLibrarySelectedIds((prev) => [
+                                  ...new Set([...prev, rec.id]),
+                                ]);
+                              } else {
+                                setLibrarySelectedIds((prev) =>
+                                  prev.filter((x) => x !== rec.id),
+                                );
+                              }
                             }}
-                          >
-                            <Tag className="size-2.5" />
-                            {LETTER_TYPE_LABELS[rec.type]}
-                          </span>
-                          {/* Delete button */}
-                          <button
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
-                            title="Delete letter"
-                            disabled={deletingId === rec.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              void handleDeleteFromLibrary(rec.id);
-                            }}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
+                            aria-label={`Select ${rec.title || "letter"}`}
+                          />
                         </div>
-
-                        {/* Title */}
-                        <h3 className="font-semibold text-sm leading-snug line-clamp-2">
-                          {rec.title || "Untitled Letter"}
-                        </h3>
-
-                        {/* Dates */}
-                        <div className="space-y-1">
-                          {rec.letterDate && (
+                        <div
+                          className="h-1.5 rounded-t-xl"
+                          style={{
+                            background: LETTER_TYPE_COLORS[rec.type],
+                          }}
+                        />
+                        <div className="flex-1 space-y-2 p-4 pl-11">
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background:
+                                  LETTER_TYPE_COLORS[rec.type] + "22",
+                                color: LETTER_TYPE_COLORS[rec.type],
+                              }}
+                            >
+                              <Tag className="size-2.5" />
+                              {LETTER_TYPE_LABELS[rec.type]}
+                            </span>
+                            <button
+                              className="rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                              title="Delete letter"
+                              type="button"
+                              disabled={deletingId === rec.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleDeleteFromLibrary(rec.id);
+                              }}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                          <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
+                            {rec.title || "Untitled Letter"}
+                          </h3>
+                          <div className="space-y-1">
+                            {rec.letterDate && (
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <CalendarDays className="size-3" />
+                                <span>{rec.letterDate}</span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <CalendarDays className="size-3" />
-                              <span>{rec.letterDate}</span>
+                              <Clock className="size-3" />
+                              <span>
+                                Saved{" "}
+                                {new Date(rec.createdAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )}
+                              </span>
                             </div>
-                          )}
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock className="size-3" />
-                            <span>
-                              Saved{" "}
+                            {rec.updatedAt !== rec.createdAt && (
+                              <div className="text-[10px] text-muted-foreground/70">
+                                Updated{" "}
+                                {new Date(rec.updatedAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                  },
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="px-4 pb-3">
+                          <div className="w-full text-center text-xs font-medium text-[#C8A061] opacity-0 transition-opacity group-hover:opacity-100">
+                            Click to open in composer →
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-lg border border-border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b bg-muted/60 text-left text-xs font-medium text-muted-foreground">
+                          <th className="w-10 p-2">
+                            <input
+                              type="checkbox"
+                              className="rounded border-input"
+                              checked={allLibraryPageSelected}
+                              onChange={() => {
+                                if (allLibraryPageSelected) {
+                                  setLibrarySelectedIds((prev) =>
+                                    prev.filter(
+                                      (id) => !libraryPageIds.includes(id),
+                                    ),
+                                  );
+                                } else {
+                                  setLibrarySelectedIds((prev) => [
+                                    ...new Set([...prev, ...libraryPageIds]),
+                                  ]);
+                                }
+                              }}
+                              title="Select all on page"
+                            />
+                          </th>
+                          <th className="p-2">Title</th>
+                          <th className="p-2">Type</th>
+                          <th className="p-2">Letter date</th>
+                          <th className="p-2">Saved</th>
+                          <th className="w-24 p-2 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {library.map((rec) => (
+                          <tr
+                            key={rec.id}
+                            className="border-b border-border/60 transition-colors hover:bg-muted/30"
+                          >
+                            <td className="p-2 align-middle">
+                              <input
+                                type="checkbox"
+                                className="rounded border-input"
+                                checked={librarySelectedSet.has(rec.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setLibrarySelectedIds((prev) => [
+                                      ...new Set([...prev, rec.id]),
+                                    ]);
+                                  } else {
+                                    setLibrarySelectedIds((prev) =>
+                                      prev.filter((x) => x !== rec.id),
+                                    );
+                                  }
+                                }}
+                              />
+                            </td>
+                            <td className="max-w-[240px] p-2 align-middle">
+                              <button
+                                type="button"
+                                className="text-left font-medium text-foreground hover:underline"
+                                onClick={() => void handleLoadFromLibrary(rec)}
+                              >
+                                {rec.title || "Untitled Letter"}
+                              </button>
+                            </td>
+                            <td className="p-2 align-middle">
+                              <span
+                                className="inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                                style={{
+                                  background:
+                                    LETTER_TYPE_COLORS[rec.type] + "22",
+                                  color: LETTER_TYPE_COLORS[rec.type],
+                                }}
+                              >
+                                {LETTER_TYPE_LABELS[rec.type]}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap p-2 align-middle text-muted-foreground text-xs">
+                              {rec.letterDate || "—"}
+                            </td>
+                            <td className="whitespace-nowrap p-2 align-middle text-xs text-muted-foreground">
                               {new Date(rec.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
@@ -3658,39 +4504,35 @@ export function LetterComposerShell() {
                                   year: "numeric",
                                 },
                               )}
-                            </span>
-                          </div>
-                          {rec.updatedAt !== rec.createdAt && (
-                            <div className="text-[10px] text-muted-foreground/60">
-                              Updated{" "}
-                              {new Date(rec.updatedAt).toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                            </td>
+                            <td className="p-2 align-middle text-right">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="size-8 p-0 text-destructive hover:text-destructive"
+                                type="button"
+                                disabled={deletingId === rec.id}
+                                onClick={() =>
+                                  void handleDeleteFromLibrary(rec.id)
+                                }
+                                title="Delete"
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
 
-                      {/* Open button on hover */}
-                      <div className="px-4 pb-3">
-                        <div className="w-full text-center text-xs text-[#C8A061] opacity-0 group-hover:opacity-100 transition-opacity font-medium">
-                          Click to open in composer →
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {libraryPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 pt-2">
+                {libraryTotal > 0 && (
+                  <div className="flex flex-wrap items-center justify-center gap-2 border-t border-border/60 pt-4">
                     <Button
                       variant="outline"
                       size="sm"
+                      type="button"
                       disabled={libraryPage <= 1}
                       onClick={() => setLibraryPage((p) => p - 1)}
                     >
@@ -3702,6 +4544,7 @@ export function LetterComposerShell() {
                     <Button
                       variant="outline"
                       size="sm"
+                      type="button"
                       disabled={libraryPage >= libraryPages}
                       onClick={() => setLibraryPage((p) => p + 1)}
                     >
@@ -3717,12 +4560,137 @@ export function LetterComposerShell() {
         {/* ── Drafts list (local) ── */}
         {view === "composer" && showList && (
           <Card className="letter-no-print border-[#C8A061]/30 shrink-0 mb-3">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Local Drafts</CardTitle>
-              <CardDescription className="text-xs">
-                Auto-saved on this device. Use &quot;Save to Library&quot; to
-                store permanently.
-              </CardDescription>
+            <CardHeader className="space-y-2 pb-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <CardTitle className="text-sm">Local Drafts</CardTitle>
+                  <CardDescription className="text-xs">
+                    Auto-saved on this device. Use &quot;Save to Library&quot; to
+                    store in the cloud library.
+                  </CardDescription>
+                </div>
+                <div className="text-xs text-muted-foreground text-right">
+                  {drafts.length} total
+                  {drafts.length > 0 && (
+                    <>
+                      {" "}
+                      · Page {draftsListPage} / {draftsTotalPages}
+                    </>
+                  )}
+                </div>
+              </div>
+              {drafts.length > 0 && draftsSelectedIds.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 rounded-md border border-[#C8A061]/30 bg-[#C8A061]/8 px-2 py-2">
+                  <span className="text-xs font-medium">
+                    {draftsSelectedIds.length} selected
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    type="button"
+                    disabled={batchLibrarySaving || draftsSelectedIds.length === 0}
+                    title="Save or update selected drafts in the Library"
+                    onClick={() => {
+                      const sel = drafts.filter((d) =>
+                        draftsSelectedIds.includes(d.id),
+                      );
+                      void handleSaveBatchToLibrary(sel);
+                    }}
+                  >
+                    {batchLibrarySaving ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <CloudUpload className="size-3.5" />
+                    )}
+                    Save to Library
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs gap-1"
+                    type="button"
+                    disabled={zipDownloading}
+                    onClick={() => {
+                      const sel = drafts.filter((d) =>
+                        draftsSelectedIds.includes(d.id),
+                      );
+                      void handleDownloadBatchZipPdf(sel);
+                    }}
+                  >
+                    {zipDownloading ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Download className="size-3.5" />
+                    )}
+                    ZIP (PDF)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs"
+                    type="button"
+                    onClick={() => setDraftsSelectedIds([])}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              )}
+              {drafts.length > 0 && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  <label className="inline-flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      className="rounded border-input"
+                      checked={allDraftsPageSelected}
+                      onChange={() => {
+                        if (allDraftsPageSelected) {
+                          setDraftsSelectedIds((prev) =>
+                            prev.filter((id) => !draftsPageIds.includes(id)),
+                          );
+                        } else {
+                          setDraftsSelectedIds((prev) => [
+                            ...new Set([...prev, ...draftsPageIds]),
+                          ]);
+                        }
+                      }}
+                    />
+                    Select all on this page
+                  </label>
+                  <label className="inline-flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      className="rounded border-input"
+                      checked={allDraftsListSelected}
+                      onChange={() => {
+                        if (allDraftsListSelected) {
+                          setDraftsSelectedIds([]);
+                        } else {
+                          setDraftsSelectedIds(drafts.map((d) => d.id));
+                        }
+                      }}
+                    />
+                    Select all {drafts.length} draft
+                    {drafts.length !== 1 ? "s" : ""}
+                  </label>
+                  <label className="inline-flex items-center gap-1.5">
+                    <span className="text-muted-foreground">Per page</span>
+                    <select
+                      className="rounded border border-input bg-background px-1.5 py-0.5 text-xs"
+                      value={draftsListPageSize}
+                      onChange={(e) => {
+                        setDraftsListPageSize(Number(e.target.value));
+                        setDraftsListPage(1);
+                      }}
+                    >
+                      <option value={15}>15</option>
+                      <option value={30}>30</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </label>
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               {drafts.length === 0 ? (
@@ -3731,46 +4699,83 @@ export function LetterComposerShell() {
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {drafts.map((d) => (
+                  {draftsPageSlice.map((d) => (
                     <div
                       key={d.id}
-                      className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors cursor-pointer ${
+                      className={`flex items-center justify-between gap-2 rounded-lg border px-2 py-2.5 transition-colors cursor-pointer ${
                         d.id === activeDraft.id
                           ? "border-[#C8A061]/50 bg-[#C8A061]/5"
                           : "hover:bg-muted/50"
                       }`}
                       onClick={() => handleLoad(d)}
                     >
-                      <div>
-                        <p className="text-sm font-medium flex items-center gap-1.5">
-                          {d.title || d.re || "Untitled Letter"}
-                          {d.dbId && (
-                            <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full">
-                              in library
+                      <div
+                        className="flex min-w-0 flex-1 items-start gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          className="mt-1 size-3.5 shrink-0 rounded border-input"
+                          checked={draftsSelectedSet.has(d.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            if (e.target.checked) {
+                              setDraftsSelectedIds((prev) => [
+                                ...new Set([...prev, d.id]),
+                              ]);
+                            } else {
+                              setDraftsSelectedIds((prev) =>
+                                prev.filter((x) => x !== d.id),
+                              );
+                            }
+                          }}
+                          aria-label={`Select draft ${d.title || d.id}`}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
+                            <span
+                              className="truncate"
+                              onClick={() => handleLoad(d)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  handleLoad(d);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
+                            >
+                              {d.title || d.re || "Untitled Letter"}
                             </span>
-                          )}
-                          {d.id === activeDraft.id && (
-                            <span className="ml-1 text-xs text-[#C8A061]">
-                              current
-                            </span>
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {d.date}
-                          {d.to ? ` · To: ${d.to.split("\n")[0]}` : ""}
-                          {d.savedAt
-                            ? ` · saved ${new Date(d.savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
-                            : ""}
-                        </p>
+                            {d.dbId && (
+                              <span className="shrink-0 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] text-emerald-600">
+                                in library
+                              </span>
+                            )}
+                            {d.id === activeDraft.id && (
+                              <span className="shrink-0 text-xs text-[#C8A061]">
+                                current
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {d.date}
+                            {d.to ? ` · To: ${d.to.split("\n")[0]}` : ""}
+                            {d.savedAt
+                              ? ` · saved ${new Date(d.savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                              : ""}
+                          </p>
+                        </div>
                       </div>
                       <div
-                        className="flex items-center gap-1"
+                        className="flex shrink-0 items-center gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Button
                           variant="ghost"
                           size="icon-sm"
                           className="text-muted-foreground hover:text-destructive"
+                          type="button"
                           onClick={() => handleDelete(d.id)}
                           title="Delete draft"
                         >
@@ -3779,6 +4784,39 @@ export function LetterComposerShell() {
                       </div>
                     </div>
                   ))}
+                  {drafts.length > 0 && (
+                    <div className="flex items-center justify-center gap-2 border-t pt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        className="h-8 text-xs"
+                        disabled={draftsListPage <= 1}
+                        onClick={() =>
+                          setDraftsListPage((p) => Math.max(1, p - 1))
+                        }
+                      >
+                        Prev
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        Page {draftsListPage} / {draftsTotalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        type="button"
+                        className="h-8 text-xs"
+                        disabled={draftsListPage >= draftsTotalPages}
+                        onClick={() =>
+                          setDraftsListPage((p) =>
+                            Math.min(draftsTotalPages, p + 1),
+                          )
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -3790,6 +4828,266 @@ export function LetterComposerShell() {
           <div className="letter-no-print flex gap-6 flex-1 min-h-0">
             {/* ── Left: form fields ── */}
             <div className="w-[380px] shrink-0 overflow-y-auto space-y-4 pr-1 pb-6">
+              <Card className="border-[#002868]/25 bg-[#002868]/[0.04]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Table2 className="size-4 text-[#002868]" />
+                    Batch from CSV
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Set letter type, signatories, and fundraising fields on the
+                    current draft first. Upload a CSV — each row becomes a new
+                    local draft. The preview lists every column in the file
+                    (header names are normalized to snake_case). For merging
+                    into drafts, common keys like{" "}
+                    <code className="rounded bg-muted px-0.5 text-[10px]">
+                      leader_name
+                    </code>
+                    ,{" "}
+                    <code className="rounded bg-muted px-0.5 text-[10px]">
+                      leader_role
+                    </code>
+                    , and{" "}
+                    <code className="rounded bg-muted px-0.5 text-[10px]">
+                      committee_short_name
+                    </code>{" "}
+                    (see LSUIC leaders export) are recognized automatically.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Recipient list (.csv)</Label>
+                    <Input
+                      type="file"
+                      accept=".csv,text/csv"
+                      className="h-9 cursor-pointer text-xs file:mr-2"
+                      onChange={(e) =>
+                        handleCsvFile(e.target.files?.[0] ?? null)
+                      }
+                    />
+                  </div>
+                  {csvImportError && (
+                    <p className="text-xs text-destructive">{csvImportError}</p>
+                  )}
+                  {csvImportRows.length > 0 && (
+                    <>
+                      <p className="text-xs text-muted-foreground">
+                        {csvImportRows.length} row
+                        {csvImportRows.length !== 1 ? "s" : ""} loaded.
+                      </p>
+                      <div className="max-h-[220px] overflow-auto rounded-md border border-border">
+                        <table className="w-full min-w-max text-[10px]">
+                          <thead className="sticky top-0 bg-muted/80 backdrop-blur">
+                            <tr>
+                              {(csvImportHeaders.length > 0
+                                ? csvImportHeaders
+                                : Object.keys(csvImportRows[0] ?? {})
+                              ).map((h) => (
+                                <th
+                                  key={h}
+                                  className="max-w-[200px] p-2 text-left font-medium whitespace-nowrap"
+                                >
+                                  {recipientCsvColumnLabel(h)}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {csvImportRows
+                              .slice(
+                                (csvImportPage - 1) * CSV_PREVIEW_PAGE_SIZE,
+                                csvImportPage * CSV_PREVIEW_PAGE_SIZE,
+                              )
+                              .map((row, i) => {
+                                const keys =
+                                  csvImportHeaders.length > 0
+                                    ? csvImportHeaders
+                                    : Object.keys(row);
+                                return (
+                                  <tr
+                                    key={`${csvImportPage}-${i}`}
+                                    className="border-t border-border/60"
+                                  >
+                                    {keys.map((h) => (
+                                      <td
+                                        key={h}
+                                        className="max-w-[200px] break-words p-2 align-top"
+                                      >
+                                        {row[h] ?? ""}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {csvImportRows.length > CSV_PREVIEW_PAGE_SIZE && (
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            type="button"
+                            disabled={csvImportPage <= 1}
+                            onClick={() =>
+                              setCsvImportPage((p) => Math.max(1, p - 1))
+                            }
+                          >
+                            Prev
+                          </Button>
+                          <span className="text-[10px] text-muted-foreground">
+                            Page {csvImportPage} of{" "}
+                            {Math.max(
+                              1,
+                              Math.ceil(
+                                csvImportRows.length / CSV_PREVIEW_PAGE_SIZE,
+                              ),
+                            )}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            type="button"
+                            disabled={
+                              csvImportPage * CSV_PREVIEW_PAGE_SIZE >=
+                              csvImportRows.length
+                            }
+                            onClick={() => setCsvImportPage((p) => p + 1)}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          type="button"
+                          className="h-8 bg-[#002868] hover:bg-[#001A4E]"
+                          onClick={handleCsvGenerateDrafts}
+                        >
+                          Generate {csvImportRows.length} draft
+                          {csvImportRows.length !== 1 ? "s" : ""}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="h-8"
+                          onClick={handleCsvClear}
+                        >
+                          Clear CSV
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                  {lastCsvBatchDrafts.length > 0 && (
+                    <div className="space-y-2 border-t border-border/60 pt-3">
+                      <p className="text-[10px] text-muted-foreground">
+                        Last batch: {lastCsvBatchDrafts.length} draft
+                        {lastCsvBatchDrafts.length !== 1 ? "s" : ""}. Switch
+                        drafts in the list to edit individually, print one
+                        combined PDF, save all to the Library, or download a ZIP
+                        of PDF files (one per recipient).
+                      </p>
+                      {batchLibraryProgress && (
+                        <p className="text-[10px] font-medium text-[#002868] flex items-center gap-1.5">
+                          <Loader2 className="size-3.5 animate-spin" />
+                          Saving to Library… {batchLibraryProgress.current} /{" "}
+                          {batchLibraryProgress.total}
+                        </p>
+                      )}
+                      {batchLibraryResult && !batchLibrarySaving && (
+                        <p
+                          className={`text-[10px] ${
+                            batchLibraryResult.fail > 0
+                              ? "text-amber-700"
+                              : "text-emerald-700"
+                          }`}
+                        >
+                          Library: {batchLibraryResult.ok} saved
+                          {batchLibraryResult.fail > 0 &&
+                            `, ${batchLibraryResult.fail} failed`}
+                          .
+                        </p>
+                      )}
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        type="button"
+                        className="h-8 w-full"
+                        disabled={
+                          batchLibrarySaving ||
+                          zipDownloading ||
+                          lastCsvBatchDrafts.length === 0
+                        }
+                        onClick={() =>
+                          void handleSaveBatchToLibrary(lastCsvBatchDrafts)
+                        }
+                      >
+                        {batchLibrarySaving ? (
+                          <>
+                            <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                            Saving…
+                          </>
+                        ) : (
+                          <>
+                            <CloudUpload className="mr-1.5 size-3.5" />
+                            Save all to Library ({lastCsvBatchDrafts.length})
+                          </>
+                        )}
+                      </Button>
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          type="button"
+                          className="h-8 w-full"
+                          disabled={
+                            batchLibrarySaving ||
+                            zipDownloading ||
+                            lastCsvBatchDrafts.length === 0
+                          }
+                          onClick={() =>
+                            handlePrintBatchDrafts(lastCsvBatchDrafts)
+                          }
+                        >
+                          <Printer className="mr-1.5 size-3.5" />
+                          Print / PDF all
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          type="button"
+                          className="h-8 w-full"
+                          disabled={
+                            batchLibrarySaving ||
+                            zipDownloading ||
+                            lastCsvBatchDrafts.length === 0
+                          }
+                          onClick={() =>
+                            void handleDownloadBatchZipPdf(lastCsvBatchDrafts)
+                          }
+                        >
+                          {zipDownloading ? (
+                            <>
+                              <Loader2 className="mr-1.5 size-3.5 animate-spin" />
+                              ZIP…
+                            </>
+                          ) : (
+                            <>
+                              <Package className="mr-1.5 size-3.5" />
+                              ZIP (PDF × {lastCsvBatchDrafts.length})
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center gap-2">
@@ -4877,11 +6175,24 @@ export function LetterComposerShell() {
 
       {/* ── Print root — rendered off-screen (not display:none so visibility trick works) ── */}
       <div id="letter-print-root">
-        <LetterA4Preview
-          draft={activeDraft}
-          members={members}
-          confInfo={confInfo}
-        />
+        {batchPrintDrafts && batchPrintDrafts.length > 0 ? (
+          batchPrintDrafts.map((d) => (
+            <LetterA4Preview
+              key={d.id}
+              draft={d}
+              members={members}
+              confInfo={confInfo}
+              forPrint
+            />
+          ))
+        ) : (
+          <LetterA4Preview
+            draft={activeDraft}
+            members={members}
+            confInfo={confInfo}
+            forPrint
+          />
+        )}
       </div>
     </div>
   );

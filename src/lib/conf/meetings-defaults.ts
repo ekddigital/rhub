@@ -103,9 +103,8 @@ All 11 appointed committee members were introduced and stated their role and cit
 • Creating more engaging and memorable experiences for participants
 
 7. Conference Fee Discussion
-• Last year's fee: ¥275 per delegate.
-• Committee to propose a revised fee structure by the next meeting.
-• Considerations: whether to increase, maintain, or offer tiered/discounted options.
+• 2026 fees are by attendance package (see registration), not a single flat-rate figure.
+• Committee to finalize package amounts and publication timing by the next meeting.
 
 8. Delegate Target
 • Target for 2026 Jinan Conference: 170 attendees.
@@ -234,17 +233,11 @@ function buildStandardAgenda(
   const lines: string[] = [
     `Theme: ${theme}`,
     "- Opening Prayer",
-    "- Chair welcome and objective confirmation",
-    "- Scoreboard Review",
-    "  - Registrations vs 170 target",
-    "  - Paid and approved delegates (Financial Secretary verification status)",
-    "  - Package affordability and accessibility check across approved package categories",
+    "- Recap of previous meeting",
     "- Discussion",
     ...focusItems.map((item) => `  - ${item}`),
-    "- Decision Gate",
-    `  - Decision: ${decision}`,
-    "- Action Assignment",
-    "  - Assign responsible lead, due date, and required evidence for each action",
+    `  - ${decision}`,
+    "- Action Points (assign tasks; expected feedback next meeting)",
     aobNote ? `- AOB: ${aobNote}` : "- AOB",
     "- Closing Prayer",
   ];
@@ -279,6 +272,20 @@ const MEETING_3_AGENDA = `Theme: Execution and Fundraising Closeout
 - 22:04-22:08 (4 mins) AOB
 - 22:08-22:10 (2 mins) Closing Prayer`;
 
+/** Meeting #4 — May 7, 2026 — budget working session in the hub. */
+export const MEETING_4_AGENDA = `Theme: Committee Budget Build-Out & Platform Hands-On
+- Opening Prayer
+- Recap of previous meeting
+- Discussion
+  - Souvenirs / branded items — confirm list, quantities, owner
+  - Hub Budget module — hands-on; chairs draft or update lines; fix blockers live
+  - Letters / outreach — follow-up owners and check-ins
+  - Committees — brief win or one blocker each (keep short)
+  - Target: draft committee budgets in hub before next meeting; one person owns roll-up for Chair/Finance
+- Action Points (assign tasks; expected feedback next meeting)
+- AOB
+- Closing Prayer`;
+
 const MEETING_TOPICS = [
   FIRST_MEETING_AGENDA,
   buildStandardAgenda(
@@ -293,16 +300,7 @@ const MEETING_TOPICS = [
     "Each committee submits one fundraising idea and one sponsor lead before Meeting #3",
   ),
   MEETING_3_AGENDA,
-  buildStandardAgenda(
-    "Budget, Fees Publication, and Fundraising Execution",
-    [
-      "Finalize section-by-section budget lines (venue, feeding, decorations, media, logistics, awards, reserves)",
-      "Confirm official fee and payment notice publication with late-payment and close-date terms",
-      "Approve fundraiser channel plan and committee-level outreach targets",
-      "Assign finance evidence standards for approvals, disbursements, and receipts",
-    ],
-    "Approve consolidated budget baseline and fundraising execution matrix",
-  ),
+  MEETING_4_AGENDA,
   buildStandardAgenda(
     "Access Control, Registration Standards, and Payment Verification",
     [

@@ -68,8 +68,8 @@ const NAV_ITEMS: ConfNavItem[] = [
   {
     href: "/tools/conf/finance/secretary",
     icon: HandCoins,
-    title: "Financial Secretary",
-    desc: "Confirm delegate payments and monitor collection status",
+    title: "Finance (FS & Treasurer)",
+    desc: "Verify delegate payments by package; FS and Treasurer reconcile here",
     color: "text-emerald-600",
     minAccess: "manager",
   },

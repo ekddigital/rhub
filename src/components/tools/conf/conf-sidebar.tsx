@@ -68,7 +68,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   },
   {
     href: "/tools/conf/finance/secretary",
-    label: "Financial Secretary",
+    label: "Finance (FS & Treasurer)",
     icon: HandCoins,
     minAccess: "manager",
   },

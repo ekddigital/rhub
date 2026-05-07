@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function HubLayoutShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
-  const hideFooter = pathname.startsWith("/tools/kit");
+  const hideFooter =
+    pathname.startsWith("/tools/kit") || pathname.startsWith("/tools/conf");
 
   return (
     <div className="relative isolate flex min-h-screen flex-col bg-background text-foreground">

@@ -4,9 +4,11 @@ import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { ConfLetterType } from "@prisma/client";
 import { SIGNATURE_PROFILE_TITLE_PREFIX } from "@/lib/conf/signature-profiles";
 
-const PAGE_SIZE = 12;
+const DEFAULT_PAGE_SIZE = 20;
+const MIN_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
 
-// GET /api/conf/[confId]/letters?page=1&type=MEMO
+// GET /api/conf/[confId]/letters?page=1&pageSize=20&type=MEMO
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
@@ -18,6 +20,13 @@ export async function GET(
 
     const url = new URL(req.url);
     const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1"));
+    const parsedSize = parseInt(
+      url.searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE),
+    );
+    const pageSize = Math.min(
+      MAX_PAGE_SIZE,
+      Math.max(MIN_PAGE_SIZE, Number.isFinite(parsedSize) ? parsedSize : DEFAULT_PAGE_SIZE),
+    );
     const type = url.searchParams.get("type") as ConfLetterType | null;
 
     const where = {
@@ -32,8 +41,8 @@ export async function GET(
       prisma.confLetter.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        skip: (page - 1) * PAGE_SIZE,
-        take: PAGE_SIZE,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
         select: {
           id: true,
           title: true,
@@ -50,7 +59,8 @@ export async function GET(
       letters,
       total,
       page,
-      pages: Math.ceil(total / PAGE_SIZE),
+      pageSize,
+      pages: Math.max(1, Math.ceil(total / pageSize)),
     });
   } catch (error) {
     console.error("Failed to fetch letters:", error);

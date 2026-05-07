@@ -444,13 +444,43 @@ export function FinanceSecretaryShell() {
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">
-            Financial Secretary Console
+            Conference finance
           </h1>
           <p className="text-sm text-muted-foreground">
-            Confirm delegate payments and monitor collection progress in real time.
+            Payment verification, package balances, and exports. National Financial
+            Secretary and National Treasurer use this space together: FS records and
+            confirms incoming delegate payments; transfer custody of funds and
+            supporting proof to the Treasurer per union practice; both stay aligned on
+            approvals and receipts.
           </p>
         </div>
       </div>
+
+      <Card className="border-[#002868]/20 bg-[#002868]/[0.06]">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold">
+            FS ↔ Treasurer workflow
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 text-xs text-muted-foreground">
+          <p>
+            <span className="font-medium text-foreground">
+              Financial Secretary:
+            </span>{" "}
+            verify proof against the delegate&apos;s package, update amounts and
+            confirmation in this tool, notify the delegate as needed.
+          </p>
+          <p>
+            <span className="font-medium text-foreground">Treasurer:</span> receive
+            remitted funds and documentation from the FS; maintain official receipts
+            and disbursement records; escalate discrepancies with the Chair.
+          </p>
+          <p>
+            Use CSV / Excel exports here for handoff and reconciliation. Same access
+            policy applies to both officers (plus Chair oversight).
+          </p>
+        </CardContent>
+      </Card>
 
       {notice && (
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700">

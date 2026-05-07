@@ -67,8 +67,9 @@ export function ToolsDropdown() {
     },
     {
       href: "/tools/conf/finance/secretary",
-      title: "Financial Secretary",
-      description: "Confirm delegate payments and monitor collection progress",
+      title: "Finance (FS & Treasurer)",
+      description:
+        "Financial Secretary and Treasurer: verify payments, exports, reconciliation",
     },
     {
       href: "/tools/conf/committee",
