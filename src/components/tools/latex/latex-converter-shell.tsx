@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +22,9 @@ import {
 
 interface ConversionResult {
   success: boolean;
-  file?: string; // base64 encoded file
+  file?: string;
   filename?: string;
+  outputFormat?: string;
   outputSize?: number;
   detectedJournal?: string;
   documentClass?: string;
@@ -37,23 +38,86 @@ interface ConversionResult {
   durationMs?: number;
 }
 
-type ConversionStep = 
-  | 'idle' 
-  | 'uploading' 
-  | 'processing' 
-  | 'converting' 
-  | 'downloading' 
-  | 'complete' 
-  | 'error';
+type ConversionStep =
+  | "idle"
+  | "uploading"
+  | "processing"
+  | "converting"
+  | "downloading"
+  | "complete"
+  | "error";
+
+type ToolMode = "latex-to-word" | "word-to-latex";
+type OutputFormat = "docx" | "odt" | "tex" | "latex";
+type QualityLevel = "basic" | "standard" | "professional" | "publication";
 
 const STEP_CONFIG = {
-  idle: { label: 'Ready', icon: FileText, progress: 0 },
-  uploading: { label: 'Uploading file...', icon: FileUp, progress: 20 },
-  processing: { label: 'Setting up remote server...', icon: Server, progress: 40 },
-  converting: { label: 'Converting LaTeX to Word...', icon: Loader2, progress: 70 },
-  downloading: { label: 'Preparing download...', icon: Download, progress: 90 },
-  complete: { label: 'Complete!', icon: CheckCircle2, progress: 100 },
-  error: { label: 'Error', icon: XCircle, progress: 0 },
+  idle: { label: "Ready", icon: FileText, progress: 0 },
+  uploading: { label: "Preparing upload...", icon: FileUp, progress: 20 },
+  processing: {
+    label: "Setting up remote server...",
+    icon: Server,
+    progress: 40,
+  },
+  converting: { label: "Running conversion...", icon: Loader2, progress: 70 },
+  downloading: { label: "Preparing download...", icon: Download, progress: 90 },
+  complete: { label: "Complete!", icon: CheckCircle2, progress: 100 },
+  error: { label: "Error", icon: XCircle, progress: 0 },
+};
+
+const QUALITY_OPTIONS: {
+  value: QualityLevel;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "basic",
+    label: "Basic",
+    description: "Fastest conversion with minimal post-processing.",
+  },
+  {
+    value: "standard",
+    label: "Standard",
+    description: "Adds section numbering and balanced formatting defaults.",
+  },
+  {
+    value: "professional",
+    label: "Professional",
+    description:
+      "Adds TOC depth, citations, and publication-friendly structure.",
+  },
+  {
+    value: "publication",
+    label: "Publication",
+    description: "Most strict profile with advanced formatting preservation.",
+  },
+];
+
+const MODE_CONFIG: Record<
+  ToolMode,
+  {
+    uploadLabel: string;
+    uploadHint: string;
+    accept: string;
+    convertButton: string;
+    successText: string;
+  }
+> = {
+  "latex-to-word": {
+    uploadLabel: "Upload LaTeX Document",
+    uploadHint:
+      "Upload a .tex/.latex file or a .zip containing your LaTeX project",
+    accept: ".tex,.latex,.zip",
+    convertButton: "Convert to Word",
+    successText: "Your document has been converted to Word-compatible output",
+  },
+  "word-to-latex": {
+    uploadLabel: "Upload Word Document",
+    uploadHint: "Upload a .docx, .doc, or .odt document",
+    accept: ".docx,.doc,.odt",
+    convertButton: "Convert to LaTeX",
+    successText: "Your document has been converted to LaTeX output",
+  },
 };
 
 interface LaTeXConverterShellProps {
@@ -61,11 +125,30 @@ interface LaTeXConverterShellProps {
 }
 
 export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
+  const mode: ToolMode =
+    toolSlug === "word-to-latex" ? "word-to-latex" : "latex-to-word";
+  const modeConfig = MODE_CONFIG[mode];
+
   const [file, setFile] = useState<File | null>(null);
   const [manualJournal, setManualJournal] = useState<string>("");
-  const [step, setStep] = useState<ConversionStep>('idle');
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>(
+    mode === "latex-to-word" ? "docx" : "tex",
+  );
+  const [qualityLevel, setQualityLevel] =
+    useState<QualityLevel>("professional");
+  const [step, setStep] = useState<ConversionStep>("idle");
   const [result, setResult] = useState<ConversionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFile(null);
+    setManualJournal("");
+    setOutputFormat(mode === "latex-to-word" ? "docx" : "tex");
+    setQualityLevel("professional");
+    setStep("idle");
+    setResult(null);
+    setError(null);
+  }, [mode]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -73,7 +156,7 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
       setFile(selectedFile);
       setResult(null);
       setError(null);
-      setStep('idle');
+      setStep("idle");
     }
   };
 
@@ -82,42 +165,40 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
 
     setError(null);
     setResult(null);
-    setStep('uploading');
+    setStep("uploading");
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("toolSlug", toolSlug);
-    if (manualJournal) {
-      formData.append("manualJournal", manualJournal);
+    formData.append("toolSlug", mode);
+    formData.append("outputFormat", outputFormat);
+    formData.append("qualityLevel", qualityLevel);
+
+    if (mode === "latex-to-word" && manualJournal.trim()) {
+      formData.append("manualJournal", manualJournal.trim());
     }
 
     try {
-      // Simulate upload progress
-      await new Promise(r => setTimeout(r, 500));
-      setStep('processing');
-      
-      await new Promise(r => setTimeout(r, 300));
-      setStep('converting');
+      setStep("processing");
 
-      const response = await fetch("/api/tools/latex/convert", {
+      const responsePromise = fetch("/api/tools/latex/convert", {
         method: "POST",
         body: formData,
       });
 
+      setStep("converting");
+      const response = await responsePromise;
       const data: ConversionResult = await response.json();
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || data.errorMessage || "Conversion failed");
       }
 
-      setStep('downloading');
-      await new Promise(r => setTimeout(r, 300));
-
+      setStep("downloading");
       setResult(data);
-      setStep('complete');
+      setStep("complete");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred");
-      setStep('error');
+      setStep("error");
     }
   };
 
@@ -125,31 +206,62 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
     if (!result?.file) return;
 
     try {
-      // Decode base64 to binary
       const binaryString = atob(result.file);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
-      // Create blob and download
+
+      const normalizedFormat = (
+        result.outputFormat || outputFormat
+      ).toLowerCase();
+      const extension = normalizedFormat === "latex" ? "tex" : normalizedFormat;
+
+      const mimeByFormat: Record<string, string> = {
+        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        odt: "application/vnd.oasis.opendocument.text",
+        tex: "text/x-tex;charset=utf-8",
+      };
+
       const blob = new Blob([bytes], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        type: mimeByFormat[extension] || "application/octet-stream",
       });
+
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = result.filename || `ekd_${file?.name.replace(/\.(tex|zip)$/i, "")}.docx`;
+
+      const safeInputBaseName =
+        file?.name.replace(/\.[^.]+$/, "") || "converted";
+      anchor.download =
+        result.filename || `${safeInputBaseName}_converted.${extension}`;
+
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {
       setError("Failed to download converted file");
     }
-  }, [result, file]);
+  }, [result, outputFormat, file]);
 
-  const isProcessing = ['uploading', 'processing', 'converting', 'downloading'].includes(step);
+  const isProcessing = [
+    "uploading",
+    "processing",
+    "converting",
+    "downloading",
+  ].includes(step);
   const currentStepConfig = STEP_CONFIG[step];
   const StepIcon = currentStepConfig.icon;
+
+  const outputFormatOptions =
+    mode === "latex-to-word"
+      ? [
+          { value: "docx", label: "DOCX (.docx)" },
+          { value: "odt", label: "ODT (.odt)" },
+        ]
+      : [
+          { value: "tex", label: "TeX (.tex)" },
+          { value: "latex", label: "LaTeX (.tex)" },
+        ];
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -164,22 +276,19 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="file-upload" className="text-sm font-medium">
-            Upload LaTeX Document
+            {modeConfig.uploadLabel}
           </Label>
-          <p className="text-xs text-foreground/70">
-            Upload a .tex file or .zip containing your LaTeX project
-          </p>
+          <p className="text-xs text-foreground/70">{modeConfig.uploadHint}</p>
         </div>
 
         <div className="flex items-center gap-4">
           <Input
             id="file-upload"
             type="file"
-            accept=".tex,.latex,.zip"
+            accept={modeConfig.accept}
             onChange={handleFileChange}
             disabled={isProcessing}
             className="flex-1"
@@ -193,18 +302,16 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
         </div>
       </Card>
 
-      {/* Progress Bar - Show during processing */}
       {isProcessing && (
         <Card className="p-6 space-y-4 border-primary/30 bg-primary/5">
           <div className="flex items-center gap-3">
             <StepIcon className="h-5 w-5 text-primary animate-pulse" />
             <span className="font-medium">{currentStepConfig.label}</span>
           </div>
-          
-          {/* Progress Bar */}
+
           <div className="space-y-2">
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-primary transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${currentStepConfig.progress}%` }}
               />
@@ -215,25 +322,44 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
             </div>
           </div>
 
-          {/* Step indicators */}
           <div className="flex items-center justify-between text-xs">
-            {(['uploading', 'processing', 'converting', 'downloading'] as ConversionStep[]).map((s, idx) => {
+            {(
+              [
+                "uploading",
+                "processing",
+                "converting",
+                "downloading",
+              ] as ConversionStep[]
+            ).map((s, idx) => {
               const isActive = s === step;
-              const isPast = STEP_CONFIG[s].progress < currentStepConfig.progress;
+              const isPast =
+                STEP_CONFIG[s].progress < currentStepConfig.progress;
               return (
-                <div 
-                  key={s} 
+                <div
+                  key={s}
                   className={`flex items-center gap-1 ${
-                    isActive ? 'text-primary font-medium' : 
-                    isPast ? 'text-green-500' : 'text-foreground/40'
+                    isActive
+                      ? "text-primary font-medium"
+                      : isPast
+                        ? "text-green-500"
+                        : "text-foreground/40"
                   }`}
                 >
-                  <div className={`w-2 h-2 rounded-full ${
-                    isActive ? 'bg-primary animate-pulse' : 
-                    isPast ? 'bg-green-500' : 'bg-foreground/20'
-                  }`} />
-                  <span className="hidden sm:inline">{STEP_CONFIG[s].label.split('...')[0]}</span>
-                  {idx < 3 && <span className="text-foreground/20 mx-2">→</span>}
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      isActive
+                        ? "bg-primary animate-pulse"
+                        : isPast
+                          ? "bg-green-500"
+                          : "bg-foreground/20"
+                    }`}
+                  />
+                  <span className="hidden sm:inline">
+                    {STEP_CONFIG[s].label.split("...")[0]}
+                  </span>
+                  {idx < 3 && (
+                    <span className="text-foreground/20 mx-2">-&gt;</span>
+                  )}
                 </div>
               );
             })}
@@ -241,46 +367,97 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
         </Card>
       )}
 
-      {/* Conversion Info - Show when idle */}
-      {step === 'idle' && (
+      {step === "idle" && (
         <Card className="p-6 border-primary/20 bg-primary/5">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-primary/20">
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-semibold">Publication-Ready Output</h3>
+              <h3 className="font-semibold">Remote Publication Conversion</h3>
               <p className="text-sm text-foreground/70">
-                Optimized for publication: font preservation, metadata retention,
-                high-resolution images, and complete bibliography processing.
+                Select your output format and quality profile. Conversion runs
+                on the remote Pandoc pipeline with enhanced timeout and
+                reliability handling.
               </p>
             </div>
           </div>
         </Card>
       )}
 
-      {/* Manual Journal Override */}
       <Card className="p-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="manual-journal" className="text-sm font-medium">
-            Journal Template (Optional)
+          <Label htmlFor="output-format" className="text-sm font-medium">
+            Output Format
           </Label>
           <p className="text-xs text-foreground/70">
-            Leave empty for auto-detection, or specify: elsevier, ieee, springer, acm
+            Choose the output format for this conversion.
           </p>
         </div>
-
-        <Input
-          id="manual-journal"
-          type="text"
-          placeholder="e.g., elsevier, ieee, springer, acm"
-          value={manualJournal}
-          onChange={(e) => setManualJournal(e.target.value)}
+        <select
+          id="output-format"
+          value={outputFormat}
+          onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
           disabled={isProcessing}
-        />
+          className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+        >
+          {outputFormatOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </Card>
 
-      {/* Convert Button */}
+      <Card className="p-6 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="quality-level" className="text-sm font-medium">
+            Quality Profile
+          </Label>
+          <p className="text-xs text-foreground/70">
+            Select how much structural and citation processing should be
+            applied.
+          </p>
+        </div>
+        <select
+          id="quality-level"
+          value={qualityLevel}
+          onChange={(e) => setQualityLevel(e.target.value as QualityLevel)}
+          disabled={isProcessing}
+          className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+        >
+          {QUALITY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label} - {option.description}
+            </option>
+          ))}
+        </select>
+      </Card>
+
+      {mode === "latex-to-word" && (
+        <Card className="p-6 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="manual-journal" className="text-sm font-medium">
+              Journal Template (Optional)
+            </Label>
+            <p className="text-xs text-foreground/70">
+              Leave empty for auto-detection, or specify: elsevier,
+              elsevier_cmig, ieee, springer, acm, ujn_thesis, zstu_thesis,
+              generic
+            </p>
+          </div>
+
+          <Input
+            id="manual-journal"
+            type="text"
+            placeholder="e.g., elsevier_cmig, ujn_thesis, zstu_thesis"
+            value={manualJournal}
+            onChange={(e) => setManualJournal(e.target.value)}
+            disabled={isProcessing}
+          />
+        </Card>
+      )}
+
       <Button
         onClick={handleConvert}
         disabled={!file || isProcessing}
@@ -295,27 +472,25 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
         ) : (
           <>
             <Upload className="mr-2 h-4 w-4" />
-            Convert to Word
+            {modeConfig.convertButton}
           </>
         )}
       </Button>
 
-      {/* Error Display */}
-      {error && step === 'error' && (
+      {error && step === "error" && (
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
           <AlertTitle>Conversion Failed</AlertTitle>
           <AlertDescription className="mt-2">
             {error}
             <div className="mt-3 text-xs opacity-70">
-              Tip: Make sure your LaTeX file compiles correctly and all assets are included in the ZIP.
+              Tip: Make sure the uploaded document is valid and self-contained.
             </div>
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Success Result */}
-      {result?.success && step === 'complete' && (
+      {result?.success && step === "complete" && (
         <Card className="p-6 space-y-4 border-green-500/50 bg-green-500/5">
           <div className="flex items-start gap-3">
             <FileCheck className="h-6 w-6 text-green-500 mt-0.5" />
@@ -325,40 +500,56 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
                   Conversion Successful!
                 </h3>
                 <p className="text-sm text-foreground/70">
-                  Your document has been converted to Word format
-                  {result.durationMs && ` in ${formatDuration(result.durationMs)}`}
+                  {modeConfig.successText}
+                  {result.durationMs &&
+                    ` in ${formatDuration(result.durationMs)}`}
                 </p>
               </div>
 
-              {/* Conversion Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-border/50">
+                {result.outputFormat && (
+                  <div>
+                    <div className="text-xs text-foreground/60 mb-1">
+                      Format
+                    </div>
+                    <div className="font-medium text-sm uppercase">
+                      {result.outputFormat}
+                    </div>
+                  </div>
+                )}
                 {result.detectedJournal && (
                   <div>
-                    <div className="text-xs text-foreground/60 mb-1">Journal</div>
-                    <div className="font-medium text-sm">{result.detectedJournal}</div>
+                    <div className="text-xs text-foreground/60 mb-1">
+                      Journal
+                    </div>
+                    <div className="font-medium text-sm">
+                      {result.detectedJournal}
+                    </div>
                   </div>
                 )}
                 {result.outputSize && (
                   <div>
-                    <div className="text-xs text-foreground/60 mb-1">File Size</div>
-                    <div className="font-medium text-sm">{formatSize(result.outputSize)}</div>
+                    <div className="text-xs text-foreground/60 mb-1">
+                      File Size
+                    </div>
+                    <div className="font-medium text-sm">
+                      {formatSize(result.outputSize)}
+                    </div>
                   </div>
                 )}
-                {result.bibEntryCount !== undefined && result.bibEntryCount > 0 && (
-                  <div>
-                    <div className="text-xs text-foreground/60 mb-1">Bibliography</div>
-                    <div className="font-medium text-sm">{result.bibEntryCount} entries</div>
-                  </div>
-                )}
-                {result.figureCount !== undefined && result.figureCount > 0 && (
-                  <div>
-                    <div className="text-xs text-foreground/60 mb-1">Figures</div>
-                    <div className="font-medium text-sm">{result.figureCount}</div>
-                  </div>
-                )}
+                {result.bibEntryCount !== undefined &&
+                  result.bibEntryCount > 0 && (
+                    <div>
+                      <div className="text-xs text-foreground/60 mb-1">
+                        Bibliography
+                      </div>
+                      <div className="font-medium text-sm">
+                        {result.bibEntryCount} entries
+                      </div>
+                    </div>
+                  )}
               </div>
 
-              {/* Warnings */}
               {result.warnings && result.warnings.length > 0 && (
                 <Alert className="border-amber-500/30 bg-amber-500/5">
                   <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -380,10 +571,9 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
                 </Alert>
               )}
 
-              {/* Download Button */}
               <Button onClick={handleDownload} className="w-full" size="lg">
                 <Download className="mr-2 h-4 w-4" />
-                Download Word Document
+                Download Converted File
               </Button>
             </div>
           </div>

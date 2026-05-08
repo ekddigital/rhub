@@ -18,27 +18,32 @@ export const latexTools: Record<string, LaTeXTool> = {
     slug: "latex-to-word",
     name: "LaTeX to Word Converter",
     description:
-      "Convert LaTeX documents to Microsoft Word (DOCX) format with automatic journal detection",
+      "Convert LaTeX projects to DOCX or ODT with journal-aware templates and quality profiles",
     category: "conversion",
     inputFormat: ["tex", "latex", "zip"],
     outputFormat: ["docx", "odt"],
     supportedJournals: [
       "Elsevier (elsarticle) - CMIG, KBS, MIA, NeuroC",
+      "Elsevier CMIG profile - Computerized Medical Imaging and Graphics",
       "Springer Nature (sn-jnl) - AIR, Nature, Basic, APA, Chicago",
       "IEEE (IEEEtran, ieeecolor) - Transactions, TMI",
       "ACM (acmart) - Conferences, Journals",
+      "University of Jinan thesis (ujn_thesis)",
+      "Zhejiang Sci-Tech University thesis (zstu_thesis)",
       "Generic article class",
     ],
     features: [
-      "Publication-quality output optimized for submissions",
+      "DOCX and ODT output options",
       "Automatic journal type detection",
       "Manual journal override option",
+      "Thesis template auto-detection (UJN, ZSTU)",
+      "Elsevier CMIG specific profile",
+      "Automatic default cover/logo asset injection for thesis templates",
+      "Quality profile selection (Basic, Standard, Professional, Publication)",
       "ZIP file upload support",
       "Preserves bibliography formatting",
       "High-quality figure conversion",
       "Table formatting preservation",
-      "Font management system",
-      "Multiple quality levels",
       "Metadata preservation",
     ],
     icon: "FileText",
@@ -46,7 +51,7 @@ export const latexTools: Record<string, LaTeXTool> = {
   "word-to-latex": {
     slug: "word-to-latex",
     name: "Word to LaTeX Converter",
-    description: "Convert Microsoft Word documents to LaTeX format",
+    description: "Convert DOCX, DOC, and ODT documents to LaTeX (.tex)",
     category: "conversion",
     inputFormat: ["docx", "doc", "odt"],
     outputFormat: ["tex", "latex"],
@@ -58,12 +63,12 @@ export const latexTools: Record<string, LaTeXTool> = {
       "Generic article template",
     ],
     features: [
-      "Target journal selection",
-      "Automatic formatting conversion",
-      "Table conversion",
-      "Figure extraction",
-      "Bibliography generation",
-      "Equation recognition",
+      "DOCX/ODT direct conversion via Pandoc",
+      "Legacy DOC support with remote pre-conversion",
+      "LaTeX output with media extraction",
+      "Quality profile selection",
+      "Preserves structure and sectioning",
+      "Conversion diagnostics and warning reporting",
     ],
     icon: "FileCode",
   },
@@ -78,14 +83,21 @@ export const getAllLatexTools = (): LaTeXTool[] => {
 };
 
 export const getLatexToolByCategory = (
-  category: "conversion" | "utility"
+  category: "conversion" | "utility",
 ): LaTeXTool[] => {
   return Object.values(latexTools).filter((tool) => tool.category === category);
 };
 
 // Supported file extensions
-export const supportedInputExtensions = [".tex", ".latex", ".zip"] as const;
-export const supportedOutputExtensions = [".docx", ".odt"] as const;
+export const supportedInputExtensions = [
+  ".tex",
+  ".latex",
+  ".zip",
+  ".docx",
+  ".doc",
+  ".odt",
+] as const;
+export const supportedOutputExtensions = [".docx", ".odt", ".tex"] as const;
 
 // Maximum file sizes (in bytes)
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB

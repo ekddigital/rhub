@@ -5,6 +5,8 @@ interface TerminalExecuteOptions {
   command: string;
   timeout?: number;
   workingDirectory?: string;
+  retries?: number;
+  retryDelayMs?: number;
 }
 
 interface TerminalExecuteResult {
@@ -14,24 +16,42 @@ interface TerminalExecuteResult {
   error?: string;
 }
 
-/**
- * Executes a command on the remote VPS server via TTYD terminal API
- * Uses root access provided by TTYD_KEY - no SSH password needed
- *
- * @param commandOrOptions - Either a command string or full options object
- * @param timeout - Optional timeout when using string command (default: 60000)
- */
-export async function executeRemoteCommand(
-  commandOrOptions: string | TerminalExecuteOptions,
-  timeout?: number
-): Promise<TerminalExecuteResult> {
-  // Normalize input to options object
-  const options: TerminalExecuteOptions =
-    typeof commandOrOptions === "string"
-      ? { command: commandOrOptions, timeout: timeout ?? 60000 }
-      : commandOrOptions;
+const DEFAULT_TIMEOUT_MS = 60000;
+const DEFAULT_RETRIES = 0;
+const DEFAULT_RETRY_DELAY_MS = 750;
 
-  const { command, timeout: cmdTimeout = 60000, workingDirectory } = options;
+function isRetryableError(error?: string): boolean {
+  if (!error) {
+    return false;
+  }
+
+  const normalized = error.toLowerCase();
+
+  return (
+    normalized.includes("timeout") ||
+    normalized.includes("aborted") ||
+    normalized.includes("fetch failed") ||
+    normalized.includes("socket") ||
+    normalized.includes("econnreset") ||
+    normalized.includes("etimedout") ||
+    normalized.includes("eai_again") ||
+    normalized.includes(" 429 ") ||
+    normalized.includes(" 502 ") ||
+    normalized.includes(" 503 ") ||
+    normalized.includes(" 504 ")
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function executeRemoteCommandOnce(options: {
+  command: string;
+  timeout: number;
+  workingDirectory?: string;
+}): Promise<TerminalExecuteResult> {
+  const { command, timeout: cmdTimeout, workingDirectory } = options;
 
   const ttydKey = process.env.TTYD_KEY;
   const ttydBaseUrl = process.env.TTYD_BASE_URL;
@@ -137,6 +157,66 @@ export async function executeRemoteCommand(
 }
 
 /**
+ * Executes a command on the remote VPS server via TTYD terminal API
+ * Uses root access provided by TTYD_KEY - no SSH password needed
+ *
+ * @param commandOrOptions - Either a command string or full options object
+ * @param timeout - Optional timeout when using string command (default: 60000)
+ */
+export async function executeRemoteCommand(
+  commandOrOptions: string | TerminalExecuteOptions,
+  timeout?: number,
+): Promise<TerminalExecuteResult> {
+  // Normalize input to options object
+  const options: TerminalExecuteOptions =
+    typeof commandOrOptions === "string"
+      ? { command: commandOrOptions, timeout: timeout ?? DEFAULT_TIMEOUT_MS }
+      : commandOrOptions;
+
+  const {
+    command,
+    timeout: cmdTimeout = DEFAULT_TIMEOUT_MS,
+    workingDirectory,
+    retries = DEFAULT_RETRIES,
+    retryDelayMs = DEFAULT_RETRY_DELAY_MS,
+  } = options;
+
+  let attempt = 0;
+  let lastResult: TerminalExecuteResult | null = null;
+
+  while (attempt <= retries) {
+    const result = await executeRemoteCommandOnce({
+      command,
+      timeout: cmdTimeout,
+      workingDirectory,
+    });
+
+    if (result.success) {
+      return result;
+    }
+
+    lastResult = result;
+    const canRetry = attempt < retries && isRetryableError(result.error);
+
+    if (!canRetry) {
+      return result;
+    }
+
+    await sleep(retryDelayMs * (attempt + 1));
+    attempt += 1;
+  }
+
+  return (
+    lastResult ?? {
+      success: false,
+      output: "",
+      exitCode: 1,
+      error: "Unknown remote execution failure",
+    }
+  );
+}
+
+/**
  * Extract clean output between START_TEST and END_TEST markers
  * Removes ANSI codes, prompts, and terminal artifacts
  */
@@ -158,7 +238,7 @@ function extractOutput(fullOutput: string): string {
 
   // Get content after START_TEST marker
   const contentAfterStart = cleanOutput.substring(
-    startIndex + startPattern.length
+    startIndex + startPattern.length,
   );
 
   // Find END_TEST_ marker
@@ -200,7 +280,8 @@ export async function checkRemotePandocInstalled(): Promise<{
 }> {
   const result = await executeRemoteCommand({
     command: "pandoc --version | head -1",
-    timeout: 10000,
+    timeout: 30000,
+    retries: 2,
   });
 
   if (!result.success) {
@@ -221,7 +302,7 @@ export async function checkRemotePandocInstalled(): Promise<{
  */
 export async function executeRemoteCommandSequence(
   commands: string[],
-  workingDirectory?: string
+  workingDirectory?: string,
 ): Promise<TerminalExecuteResult[]> {
   const results: TerminalExecuteResult[] = [];
 

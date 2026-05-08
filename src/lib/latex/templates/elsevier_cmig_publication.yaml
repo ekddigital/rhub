@@ -1,0 +1,43 @@
+---
+# Elsevier CMIG Publication Template
+# For Computerized Medical Imaging and Graphics submissions
+
+# Document settings
+standalone: true
+toc: false
+number-sections: true
+
+# Font configuration
+mainfont: "Times New Roman"
+sansfont: "Arial"
+monofont: "Courier New"
+fontsize: 12pt
+linestretch: 1.5
+
+# Page margins (Elsevier preprint style)
+geometry:
+  - top=2.5cm
+  - bottom=2.5cm
+  - left=2.5cm
+  - right=2.5cm
+
+# Bibliography style
+bibliography-style: elsarticle-num
+citeproc: true
+link-citations: true
+
+# Structure
+toc-depth: 3
+reference-section-title: "References"
+
+# Rendering
+highlight-style: tango
+linkcolor: blue
+citecolor: blue
+urlcolor: blue
+
+# CMIG context metadata
+journal-title: "Computerized Medical Imaging and Graphics"
+
+# Word-specific settings
+reference-doc: null

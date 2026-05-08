@@ -10,9 +10,12 @@ import {
 
 interface DetectionScore {
   elsevier: number;
+  elsevierCmig: number;
   springerNature: number;
   ieee: number;
   acm: number;
+  ujnThesis: number;
+  zstuThesis: number;
   scores: Record<string, number>;
 }
 
@@ -25,9 +28,12 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
 
   const scores: DetectionScore = {
     elsevier: 0,
+    elsevierCmig: 0,
     springerNature: 0,
     ieee: 0,
     acm: 0,
+    ujnThesis: 0,
+    zstuThesis: 0,
     scores: {},
   };
 
@@ -36,7 +42,9 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
   let classOptions: string[] = [];
 
   // Detect document class
-  const docClassMatch = lines.match(/\\documentclass\[([^\]]*)\]\{([^}]+)\}/);
+  const docClassMatch = lines.match(
+    /\\documentclass(?:\[([^\]]*)\])?\{([^}]+)\}/,
+  );
   if (docClassMatch) {
     const options = docClassMatch[1];
     const className = docClassMatch[2];
@@ -46,7 +54,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
     // Check Elsevier
     if (
       JOURNAL_PATTERNS.ELSEVIER.documentClass.includes(
-        className as (typeof JOURNAL_PATTERNS.ELSEVIER.documentClass)[number]
+        className as (typeof JOURNAL_PATTERNS.ELSEVIER.documentClass)[number],
       )
     ) {
       scores.elsevier += JOURNAL_PATTERNS.ELSEVIER.confidence.documentClass;
@@ -54,10 +62,22 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
       detectedPatterns.push(`Document class: ${className}`);
     }
 
+    // Check Elsevier CMIG (specialized Elsevier profile)
+    if (
+      JOURNAL_PATTERNS.ELSEVIER_CMIG.documentClass.includes(
+        className as (typeof JOURNAL_PATTERNS.ELSEVIER_CMIG.documentClass)[number],
+      )
+    ) {
+      scores.elsevierCmig +=
+        JOURNAL_PATTERNS.ELSEVIER_CMIG.confidence.documentClass;
+      documentClass = "elsarticle";
+      detectedPatterns.push(`Document class (CMIG-capable): ${className}`);
+    }
+
     // Check Springer Nature
     if (
       JOURNAL_PATTERNS.SPRINGER_NATURE.documentClass.includes(
-        className as (typeof JOURNAL_PATTERNS.SPRINGER_NATURE.documentClass)[number]
+        className as (typeof JOURNAL_PATTERNS.SPRINGER_NATURE.documentClass)[number],
       )
     ) {
       scores.springerNature +=
@@ -69,7 +89,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
     // Check IEEE
     if (
       JOURNAL_PATTERNS.IEEE.documentClass.includes(
-        className as (typeof JOURNAL_PATTERNS.IEEE.documentClass)[number]
+        className as (typeof JOURNAL_PATTERNS.IEEE.documentClass)[number],
       )
     ) {
       scores.ieee += JOURNAL_PATTERNS.IEEE.confidence.documentClass;
@@ -82,18 +102,41 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
     // Check ACM
     if (
       JOURNAL_PATTERNS.ACM.documentClass.includes(
-        className as (typeof JOURNAL_PATTERNS.ACM.documentClass)[number]
+        className as (typeof JOURNAL_PATTERNS.ACM.documentClass)[number],
       )
     ) {
       scores.acm += JOURNAL_PATTERNS.ACM.confidence.documentClass;
       documentClass = "acmart";
       detectedPatterns.push(`Document class: ${className}`);
     }
+
+    // Check UJN thesis class
+    if (
+      JOURNAL_PATTERNS.UJN_THESIS.documentClass.includes(
+        className as (typeof JOURNAL_PATTERNS.UJN_THESIS.documentClass)[number],
+      )
+    ) {
+      scores.ujnThesis += JOURNAL_PATTERNS.UJN_THESIS.confidence.documentClass;
+      documentClass = "ujn_thesis";
+      detectedPatterns.push(`Document class: ${className}`);
+    }
+
+    // Check ZSTU thesis class
+    if (
+      JOURNAL_PATTERNS.ZSTU_THESIS.documentClass.includes(
+        className as (typeof JOURNAL_PATTERNS.ZSTU_THESIS.documentClass)[number],
+      )
+    ) {
+      scores.zstuThesis +=
+        JOURNAL_PATTERNS.ZSTU_THESIS.confidence.documentClass;
+      documentClass = "zstu_thesis";
+      detectedPatterns.push(`Document class: ${className}`);
+    }
   }
 
   // Check Elsevier-specific commands
   for (const [command, score] of Object.entries(
-    JOURNAL_PATTERNS.ELSEVIER.confidence.commands
+    JOURNAL_PATTERNS.ELSEVIER.confidence.commands,
   )) {
     if (lines.includes(command)) {
       scores.elsevier += score;
@@ -103,7 +146,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
 
   // Check Springer Nature-specific commands
   for (const [command, score] of Object.entries(
-    JOURNAL_PATTERNS.SPRINGER_NATURE.confidence.commands
+    JOURNAL_PATTERNS.SPRINGER_NATURE.confidence.commands,
   )) {
     if (lines.includes(command)) {
       scores.springerNature += score;
@@ -113,7 +156,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
 
   // Check IEEE-specific commands
   for (const [command, score] of Object.entries(
-    JOURNAL_PATTERNS.IEEE.confidence.commands
+    JOURNAL_PATTERNS.IEEE.confidence.commands,
   )) {
     if (lines.includes(command)) {
       scores.ieee += score;
@@ -123,7 +166,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
 
   // Check ACM-specific commands
   for (const [command, score] of Object.entries(
-    JOURNAL_PATTERNS.ACM.confidence.commands
+    JOURNAL_PATTERNS.ACM.confidence.commands,
   )) {
     if (lines.includes(command)) {
       scores.acm += score;
@@ -131,18 +174,60 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
     }
   }
 
+  // Check Elsevier CMIG-specific commands
+  for (const [command, score] of Object.entries(
+    JOURNAL_PATTERNS.ELSEVIER_CMIG.confidence.commands,
+  )) {
+    if (lines.includes(command)) {
+      scores.elsevierCmig += score;
+      detectedPatterns.push(`Elsevier CMIG: ${command}`);
+    }
+  }
+
+  // Check UJN thesis-specific commands
+  for (const [command, score] of Object.entries(
+    JOURNAL_PATTERNS.UJN_THESIS.confidence.commands,
+  )) {
+    if (lines.includes(command)) {
+      scores.ujnThesis += score;
+      detectedPatterns.push(`UJN Thesis: ${command}`);
+    }
+  }
+
+  // Check ZSTU thesis-specific commands
+  for (const [command, score] of Object.entries(
+    JOURNAL_PATTERNS.ZSTU_THESIS.confidence.commands,
+  )) {
+    if (lines.includes(command)) {
+      scores.zstuThesis += score;
+      detectedPatterns.push(`ZSTU Thesis: ${command}`);
+    }
+  }
+
   // Determine best match
   const maxScore = Math.max(
+    scores.ujnThesis,
+    scores.zstuThesis,
+    scores.elsevierCmig,
     scores.elsevier,
     scores.springerNature,
     scores.ieee,
-    scores.acm
+    scores.acm,
   );
 
   let journalType: JournalType = "GENERIC";
   let confidence = 0;
 
-  if (scores.elsevier === maxScore && maxScore > 0) {
+  if (scores.ujnThesis === maxScore && maxScore > 0) {
+    journalType = "UJN_THESIS";
+    confidence = scores.ujnThesis;
+  } else if (scores.zstuThesis === maxScore && maxScore > 0) {
+    journalType = "ZSTU_THESIS";
+    confidence = scores.zstuThesis;
+  } else if (scores.elsevierCmig === maxScore && maxScore > 0) {
+    journalType = "ELSEVIER_CMIG";
+    confidence = scores.elsevierCmig;
+  } else if (scores.elsevier === maxScore && maxScore > 0) {
     journalType = "ELSEVIER";
     confidence = scores.elsevier;
   } else if (scores.springerNature === maxScore && maxScore > 0) {
@@ -180,7 +265,7 @@ export function detectJournalType(texContent: string): JournalDetectionResult {
  */
 function detectLogoRequirement(
   content: string,
-  journalType: JournalType
+  journalType: JournalType,
 ): boolean {
   // IEEE journals with logos
   if (journalType === "IEEE") {
@@ -206,7 +291,7 @@ function detectLogoRequirement(
  */
 function detectLogoName(content: string): string | undefined {
   const logoMatch = content.match(
-    /\\includegraphics.*?\{([^}]*[Ll][Oo][Gg][Oo][^}]*)\}/
+    /\\includegraphics.*?\{([^}]*[Ll][Oo][Gg][Oo][^}]*)\}/,
   );
   if (logoMatch) {
     return logoMatch[1];
@@ -252,6 +337,10 @@ function detectBibStyle(content: string): string | undefined {
     return "sn-basic";
   }
 
+  if (content.includes("ujn_thesis") || content.includes("zstu_thesis")) {
+    return "gb7714-2015";
+  }
+
   return undefined;
 }
 
@@ -280,7 +369,7 @@ export function extractDocumentMetadata(texContent: string) {
 
 function extractBetweenCommands(
   content: string,
-  startCmd: string
+  startCmd: string,
 ): string | undefined {
   const startIndex = content.indexOf(startCmd);
   if (startIndex === -1) return undefined;
@@ -310,10 +399,10 @@ function extractBetweenCommands(
 
 function extractBetweenEnvironment(
   content: string,
-  envName: string
+  envName: string,
 ): string | undefined {
   const beginPattern = new RegExp(
-    `\\\\begin\\{${envName}\\}([\\s\\S]*?)\\\\end\\{${envName}\\}`
+    `\\\\begin\\{${envName}\\}([\\s\\S]*?)\\\\end\\{${envName}\\}`,
   );
   const match = content.match(beginPattern);
   return match ? match[1].trim() : undefined;

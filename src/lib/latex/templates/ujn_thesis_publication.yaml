@@ -1,0 +1,41 @@
+---
+# UJN Thesis Publication Template
+# For manuscripts using ujn_thesis class
+
+# Document settings
+standalone: true
+toc: true
+number-sections: true
+
+# Font configuration
+mainfont: "Times New Roman"
+sansfont: "Arial"
+monofont: "Courier New"
+fontsize: 12pt
+linestretch: 1.5
+
+# Page margins (thesis defaults)
+geometry:
+  - top=2.54cm
+  - bottom=2.54cm
+  - left=3.18cm
+  - right=3.18cm
+
+# Bibliography style
+bibliography-style: gb7714-2015
+citeproc: true
+link-citations: true
+
+# Structure
+toc-depth: 3
+number-offset: [0]
+
+# Rendering
+highlight-style: tango
+reference-section-title: "References"
+linkcolor: blue
+citecolor: blue
+urlcolor: blue
+
+# Word-specific settings
+reference-doc: null

@@ -3,9 +3,12 @@
 
 export type JournalType =
   | "ELSEVIER"
+  | "ELSEVIER_CMIG"
   | "SPRINGER_NATURE"
   | "ACM"
   | "IEEE"
+  | "UJN_THESIS"
+  | "ZSTU_THESIS"
   | "GENERIC";
 
 export type DocumentClass =
@@ -14,8 +17,22 @@ export type DocumentClass =
   | "acmart" // ACM journals
   | "IEEEtran" // IEEE Transactions
   | "ieeecolor" // IEEE TMI and colorized journals
+  | "ujn_thesis" // University of Jinan thesis template
+  | "zstu_thesis" // Zhejiang Sci-Tech University thesis template
   | "article" // Generic article
   | "unknown";
+
+export type LatexToWordOutputFormat = "docx" | "odt";
+
+export type WordInputFormat = "docx" | "odt" | "doc";
+
+export type WordToLatexOutputFormat = "tex" | "latex";
+
+export type LatexConversionQuality =
+  | "basic"
+  | "standard"
+  | "professional"
+  | "publication";
 
 export interface JournalDetectionResult {
   journalType: JournalType;
@@ -47,12 +64,14 @@ export interface ConversionOptions {
   preserveFonts: boolean;
   preserveFormatting: boolean;
   includeBibliography: boolean;
-  outputFormat: "docx" | "odt";
+  outputFormat: LatexToWordOutputFormat;
+  qualityLevel: LatexConversionQuality;
 }
 
 export interface ConversionResult {
   success: boolean;
   outputFile?: string;
+  outputFormat?: string;
   outputSize?: number;
   detectedJournal?: string;
   documentClass?: string;
@@ -69,7 +88,13 @@ export interface ConversionResult {
 export const JOURNAL_PATTERNS = {
   ELSEVIER: {
     documentClass: ["elsarticle", "cas-sc", "cas-dc"],
-    commands: ["\\journal{", "\\ead{", "\\address[", "\\fntext["],
+    commands: [
+      "\\journal{",
+      "\\ead{",
+      "\\address[",
+      "\\fntext[",
+      "\\begin{frontmatter}",
+    ],
     confidence: {
       documentClass: 50,
       commands: {
@@ -77,6 +102,23 @@ export const JOURNAL_PATTERNS = {
         "\\ead{": 15,
         "\\address[": 15,
         "\\fntext[": 10,
+        "\\begin{frontmatter}": 10,
+      },
+    },
+  },
+  ELSEVIER_CMIG: {
+    documentClass: ["elsarticle"],
+    commands: [
+      "\\journal{Computerized Medical Imaging and Graphics}",
+      "Computerized Medical Imaging and Graphics",
+      "\\begin{frontmatter}",
+    ],
+    confidence: {
+      documentClass: 35,
+      commands: {
+        "\\journal{Computerized Medical Imaging and Graphics}": 45,
+        "Computerized Medical Imaging and Graphics": 30,
+        "\\begin{frontmatter}": 10,
       },
     },
   },
@@ -146,6 +188,54 @@ export const JOURNAL_PATTERNS = {
         "\\acmYear": 15,
         "\\setcopyright": 15,
         "\\ccsdesc": 10,
+      },
+    },
+  },
+  UJN_THESIS: {
+    documentClass: ["ujn_thesis"],
+    commands: [
+      "\\classificationnum{",
+      "\\degreelevel{",
+      "\\makecover",
+      "\\makeenglishtitlepage",
+      "\\makeintegritydeclaration",
+      "\\makereference",
+      "\\makeendpage",
+    ],
+    confidence: {
+      documentClass: 70,
+      commands: {
+        "\\classificationnum{": 20,
+        "\\degreelevel{": 20,
+        "\\makecover": 10,
+        "\\makeenglishtitlepage": 20,
+        "\\makeintegritydeclaration": 10,
+        "\\makereference": 10,
+        "\\makeendpage": 10,
+      },
+    },
+  },
+  ZSTU_THESIS: {
+    documentClass: ["zstu_thesis"],
+    commands: [
+      "\\coverchineselines{",
+      "\\coverenglishlines{",
+      "\\category{",
+      "\\makecover",
+      "\\makeintegritydeclaration",
+      "\\makereference",
+      "\\makeendpage",
+    ],
+    confidence: {
+      documentClass: 70,
+      commands: {
+        "\\coverchineselines{": 20,
+        "\\coverenglishlines{": 20,
+        "\\category{": 15,
+        "\\makecover": 10,
+        "\\makeintegritydeclaration": 10,
+        "\\makereference": 10,
+        "\\makeendpage": 10,
       },
     },
   },
