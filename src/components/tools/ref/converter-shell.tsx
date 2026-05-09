@@ -16,6 +16,10 @@ import {
   Play,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  parseErrorResponse,
+  parseJsonResponse,
+} from "@/lib/http/client-response";
 
 interface ConversionOptions {
   includeAbstract: boolean;
@@ -67,11 +71,14 @@ export function ConverterShell() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Conversion failed");
+        const message = await parseErrorResponse(response, "Conversion failed");
+        throw new Error(message);
       }
 
-      const data = (await response.json()) as ConversionResponse;
+      const data = await parseJsonResponse<ConversionResponse>(
+        response,
+        "Conversion failed",
+      );
       setResult(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");

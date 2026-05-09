@@ -7,6 +7,8 @@ import {
 } from "@/lib/img/engine";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();

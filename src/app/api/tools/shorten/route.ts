@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 
+export const runtime = "nodejs";
+
 const BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "https://rhub.ekddigital.com";
 

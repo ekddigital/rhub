@@ -3,6 +3,8 @@ import { runConversion } from "@/lib/ref/engine";
 import type { ConversionOptions } from "@/lib/ref/types";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

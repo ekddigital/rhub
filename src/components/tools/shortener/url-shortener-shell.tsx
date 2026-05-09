@@ -8,6 +8,10 @@ import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import {
+  parseErrorResponse,
+  parseJsonResponse,
+} from "@/lib/http/client-response";
+import {
   Copy,
   Link,
   Loader2,
@@ -382,12 +386,19 @@ export function UrlShortenerShell() {
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || "Failed to shorten URL");
+        const message = await parseErrorResponse(
+          response,
+          "Failed to shorten URL",
+        );
+        setError(message);
         return;
       }
+
+      const data = await parseJsonResponse<{ data: ShortenedUrl }>(
+        response,
+        "Failed to parse shortener response",
+      );
 
       setResult(data.data);
       setUrl("");
@@ -423,10 +434,19 @@ export function UrlShortenerShell() {
     try {
       const code = result.customSlug || result.shortCode;
       const response = await fetch(`/api/tools/shorten?code=${code}`);
-      const data = await response.json();
 
       if (response.ok) {
+        const data = await parseJsonResponse<{ data: UrlStats }>(
+          response,
+          "Failed to parse stats response",
+        );
         setStats(data.data);
+      } else {
+        const message = await parseErrorResponse(
+          response,
+          "Failed to fetch stats",
+        );
+        console.error(message);
       }
     } catch (err) {
       console.error("Failed to fetch stats:", err);

@@ -10,6 +10,8 @@ import { getConversionBySlug, formats } from "@/lib/doc/conversions-config";
 import { getDocumentTool } from "@/lib/doc/tools-config";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
 

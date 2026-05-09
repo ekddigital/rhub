@@ -4,6 +4,8 @@ import { validateUrl, getPlatformById } from "@/lib/vid/platforms-config";
 import { prisma } from "@/lib/prisma";
 import type { VideoQuality, AudioQuality } from "@/lib/vid/platforms-config";
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

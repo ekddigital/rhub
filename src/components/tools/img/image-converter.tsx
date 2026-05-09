@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
+import { parseErrorResponse } from "@/lib/http/client-response";
 import { Download, Loader2, FileImage, Sparkles, Settings } from "lucide-react";
 import type { ConversionRoute } from "@/lib/img/conversions-config";
 
@@ -68,8 +69,8 @@ export function ImageConverter({ conversion }: ImageConverterProps) {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Conversion failed");
+        const message = await parseErrorResponse(response, "Conversion failed");
+        throw new Error(message);
       }
 
       const blob = await response.blob();

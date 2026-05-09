@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type { DocumentTool } from "@/lib/doc/tools-config";
+import { parseErrorResponse } from "@/lib/http/client-response";
 
 interface ConversionResult {
   success: boolean;
@@ -104,8 +105,8 @@ export function DocumentConverterShell({ tool }: DocumentConverterShellProps) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Conversion failed");
+        const message = await parseErrorResponse(response, "Conversion failed");
+        throw new Error(message);
       }
 
       setStep("downloading");

@@ -19,6 +19,10 @@ import {
 } from "lucide-react";
 import type { Platform, DownloadFormat } from "@/lib/vid/platforms-config";
 import { detectPlatform } from "@/lib/vid/platforms-config";
+import {
+  parseErrorResponse,
+  parseJsonResponse,
+} from "@/lib/http/client-response";
 
 // Utility function
 function formatDuration(seconds: number): string {
@@ -96,11 +100,17 @@ export function VideoDownloader() {
       );
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to fetch video info");
+        const message = await parseErrorResponse(
+          response,
+          "Failed to fetch video info",
+        );
+        throw new Error(message);
       }
 
-      const info = await response.json();
+      const info = await parseJsonResponse<VideoInfo>(
+        response,
+        "Failed to parse video info",
+      );
       setVideoInfo(info);
 
       // Auto-select first format and quality
@@ -142,8 +152,8 @@ export function VideoDownloader() {
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Download failed");
+        const message = await parseErrorResponse(response, "Download failed");
+        throw new Error(message);
       }
 
       const blob = await response.blob();

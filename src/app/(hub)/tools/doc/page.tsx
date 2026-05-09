@@ -46,6 +46,39 @@ export default function DocumentToolsPage() {
 
   return (
     <div className="space-y-8">
+      <Card className="border-primary/25 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Looking for LaTeX to Word?</CardTitle>
+          <CardDescription className="text-sm">
+            Use the dedicated LaTeX converter routes for .tex, .latex, and
+            .zip project uploads.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3 pt-0">
+          <Link
+            href="/tools/latex/latex-to-word"
+            className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-background px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+          >
+            LaTeX to Word
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/tools/latex/word-to-latex"
+            className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-background px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+          >
+            Word to LaTeX
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/tools/latex"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
+          >
+            Open LaTeX Converter Hub
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </CardContent>
+      </Card>
+
       {/* Featured Tools */}
       <section>
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">

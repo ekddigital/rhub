@@ -19,6 +19,10 @@ import {
   Server,
   FileCheck,
 } from "lucide-react";
+import {
+  parseErrorResponse,
+  parseJsonResponse,
+} from "@/lib/http/client-response";
 
 interface ConversionResult {
   success: boolean;
@@ -187,9 +191,18 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
 
       setStep("converting");
       const response = await responsePromise;
-      const data: ConversionResult = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok) {
+        const message = await parseErrorResponse(response, "Conversion failed");
+        throw new Error(message);
+      }
+
+      const data = await parseJsonResponse<ConversionResult>(
+        response,
+        "Conversion failed",
+      );
+
+      if (!data.success) {
         throw new Error(data.error || data.errorMessage || "Conversion failed");
       }
 

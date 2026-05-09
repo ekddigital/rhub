@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export default function LaTeXToolLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="space-y-10">
+    <div className="mx-auto w-full max-w-7xl space-y-10 px-4 sm:px-6 lg:px-8">
       <header className="space-y-2">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
           Tools / LaTeX Converter
