@@ -4,6 +4,38 @@
 
 > **Centralized tools for researchers** — starting with a fast, privacy-first Reference Converter.
 
+## 📚 API Documentation
+
+**Complete Admin API Reference**: [API_COMPLETE_GUIDE.md](./src/docs/API_COMPLETE_GUIDE.md)
+
+### Key Features
+
+- 📄 **Document Conversion** - Convert between document formats (DOCX, PDF, images, etc.)
+- 🖥️ **VPS Management** - Remote VPS system administration
+- 📦 **Package Management** - Install and manage conversion tools
+- 💾 **Storage Management** - Monitor disk usage and cache
+- 📊 **System Monitoring** - Real-time health and resource monitoring
+
+### Quick Start
+
+```bash
+# Check system status
+curl http://localhost:3000/api/v1/admin/status
+
+# Verify conversion is ready
+curl http://localhost:3000/api/v1/admin/conversion/ready
+
+# Convert a document
+curl -X POST http://localhost:3000/api/v1/admin/convert \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input_file": "/path/to/document.docx",
+    "output_format": "pdf"
+  }'
+```
+
+---
+
 ## 🎯 Overview
 
 EKD Digital Resource Hub (rHub) is a comprehensive platform designed to streamline research workflows. Our flagship tool converts EndNote XML, RIS, and enriched exports into validated BibTeX format in seconds, helping researchers build efficient workflows with properly formatted references ready for LaTeX, bibliographies, or research ingestion.
