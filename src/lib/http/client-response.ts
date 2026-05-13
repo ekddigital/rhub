@@ -21,7 +21,9 @@ function normalizeSnippet(raw: string): string {
 
 function isLikelyHtml(payload: string): boolean {
   const normalized = payload.trim().toLowerCase();
-  return normalized.startsWith("<!doctype html") || normalized.startsWith("<html");
+  return (
+    normalized.startsWith("<!doctype html") || normalized.startsWith("<html")
+  );
 }
 
 function extractMessage(payload: ApiErrorPayload | null): string | null {
@@ -58,6 +60,10 @@ export async function parseErrorResponse(
   }
 
   if (isLikelyHtml(bodyText)) {
+    if (response.status === 413) {
+      return "Server returned an HTML error page (HTTP 413). The upload was rejected before reaching the app (likely reverse-proxy body-size limit). Reduce file size or increase proxy limit (for Nginx: client_max_body_size, then reload).";
+    }
+
     return `Server returned an HTML error page (HTTP ${response.status}). Please retry. If this persists, check upstream API/server logs.`;
   }
 

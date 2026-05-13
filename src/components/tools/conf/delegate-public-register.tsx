@@ -57,13 +57,6 @@ type DelegatePhotoSample = {
   imageUrl: string;
 };
 
-type UploadDraftState = {
-  confId: string;
-  delegateId: string;
-  passportNo: string;
-  uploadedPhotoMeta: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>;
-};
-
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
 function getLiberiaIndependenceAnniversary(year: number): number {
@@ -107,9 +100,15 @@ const FEATURED_VIDEOS = [
   },
 ] as const;
 
-const UPLOAD_DRAFT_STORAGE_KEY = "conf-public-register-upload-draft";
 /** sessionStorage: "self" | "other" — persists registering-for-another-person across refresh */
 const REGISTER_TARGET_SESSION_KEY = "rhub-delegate-register-target";
+
+function publicDelegateDraftStorageKeys(confId: string) {
+  return {
+    self: `conf-delegate-draft:${confId}-public-self`,
+    other: `conf-delegate-draft:${confId}-public-other`,
+  } as const;
+}
 
 export function DelegatePublicRegister() {
   const { user: authUser } = useUser();
@@ -131,9 +130,6 @@ export function DelegatePublicRegister() {
   const [samplePhotos, setSamplePhotos] = useState<DelegatePhotoSample[]>([]);
   const [samplesLoading, setSamplesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [latestSnapshot, setLatestSnapshot] =
-    useState<DelegateRegistrationSnapshot | null>(null);
-  const [draftDelegateId, setDraftDelegateId] = useState<string | null>(null);
   const [uploadedPhotoMeta, setUploadedPhotoMeta] = useState<
     Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>
   >({});
@@ -152,14 +148,19 @@ export function DelegatePublicRegister() {
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
   const independenceDateLabel = `July 26, ${confYear}`;
 
-  const clearUploadDraftState = useCallback(() => {
+  const clearSiblingPublicDraft = useCallback(() => {
     if (typeof window === "undefined") return;
     try {
-      localStorage.removeItem(UPLOAD_DRAFT_STORAGE_KEY);
+      if (confId) {
+        const keys = publicDelegateDraftStorageKeys(confId);
+        localStorage.removeItem(keys.self);
+        localStorage.removeItem(keys.other);
+      }
+      localStorage.removeItem("conf-delegate-draft:public-new");
     } catch {
-      // ignore browser storage issues
+      /* ignore */
     }
-  }, []);
+  }, [confId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -213,20 +214,14 @@ export function DelegatePublicRegister() {
       } catch {
         /* ignore */
       }
-      try {
-        localStorage.removeItem("conf-delegate-draft:public-new");
-      } catch {
-        /* ignore */
-      }
+      clearSiblingPublicDraft();
     }
     setRegisteringForOther(true);
     setFormInstanceKey((k) => k + 1);
-    setDraftDelegateId(null);
     setUploadedPhotoMeta({});
     setPhotoFieldErrors({});
     setPhotoUploadFeedback({});
-    clearUploadDraftState();
-  }, [clearUploadDraftState]);
+  }, [clearSiblingPublicDraft]);
 
   const beginRegisterForSelf = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -235,20 +230,14 @@ export function DelegatePublicRegister() {
       } catch {
         /* ignore */
       }
-      try {
-        localStorage.removeItem("conf-delegate-draft:public-new");
-      } catch {
-        /* ignore */
-      }
+      clearSiblingPublicDraft();
     }
     setRegisteringForOther(false);
     setFormInstanceKey((k) => k + 1);
-    setDraftDelegateId(null);
     setUploadedPhotoMeta({});
     setPhotoFieldErrors({});
     setPhotoUploadFeedback({});
-    clearUploadDraftState();
-  }, [clearUploadDraftState]);
+  }, [clearSiblingPublicDraft]);
 
   const FILE_KIND_META = useMemo<
     Record<
@@ -266,28 +255,6 @@ export function DelegatePublicRegister() {
       bookletPhoto: { kind: "booklet", label: "Conference Booklet Photo" },
     }),
     [],
-  );
-
-  const persistUploadDraftState = useCallback(
-    (
-      delegateId: string,
-      passportNo: string,
-      nextUploadedMeta: Partial<Record<DelegatePhotoField, UploadedPhotoMeta>>,
-    ) => {
-      if (typeof window === "undefined" || !confId) return;
-      const payload: UploadDraftState = {
-        confId,
-        delegateId,
-        passportNo,
-        uploadedPhotoMeta: nextUploadedMeta,
-      };
-      try {
-        localStorage.setItem(UPLOAD_DRAFT_STORAGE_KEY, JSON.stringify(payload));
-      } catch {
-        // ignore browser storage issues
-      }
-    },
-    [confId],
   );
 
   const buildRegistrationBody = useCallback(
@@ -323,59 +290,6 @@ export function DelegatePublicRegister() {
       conferencePosition: snapshot.conferencePosition || null,
     }),
     [],
-  );
-
-  const validateSnapshotForAutoUpload = useCallback(
-    (snapshot: DelegateRegistrationSnapshot | null): string | null => {
-      if (!snapshot) return "Please complete registration details before uploading.";
-      if (!snapshot.name.trim()) return "Full name is required before uploading files.";
-      if (!snapshot.passportNo.trim()) {
-        return "Passport number is required before uploading files.";
-      }
-      if (!snapshot.university.trim()) {
-        return "University is required before uploading files.";
-      }
-      if (!snapshot.province.trim()) return "Province is required before uploading files.";
-      if (!snapshot.city.trim()) return "City is required before uploading files.";
-      if (!snapshot.phone.trim()) return "Phone number is required before uploading files.";
-      if (!snapshot.wechat.trim()) return "WeChat ID is required before uploading files.";
-      if (!snapshot.email.trim()) return "Email is required before uploading files.";
-      if (!snapshot.feePackageId.trim()) {
-        return "Please select a conference package before uploading files.";
-      }
-      return null;
-    },
-    [],
-  );
-
-  const ensureDraftDelegate = useCallback(
-    async (snapshot: DelegateRegistrationSnapshot): Promise<string> => {
-      if (draftDelegateId) return draftDelegateId;
-
-      const createRes = await fetch(`/api/conf/${confId}/delegates`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildRegistrationBody(snapshot)),
-      });
-      const createdPayload = (await createRes.json().catch(() => ({}))) as {
-        id?: string;
-        error?: string;
-      };
-      if (!createRes.ok || !createdPayload.id) {
-        throw new Error(createdPayload.error || "Failed to prepare draft for upload");
-      }
-      const nextId = createdPayload.id;
-      setDraftDelegateId(nextId);
-      persistUploadDraftState(nextId, snapshot.passportNo, uploadedPhotoMeta);
-      return nextId;
-    },
-    [
-      buildRegistrationBody,
-      confId,
-      draftDelegateId,
-      persistUploadDraftState,
-      uploadedPhotoMeta,
-    ],
   );
 
   const uploadFieldFile = useCallback(
@@ -462,17 +376,13 @@ export function DelegatePublicRegister() {
           }
           const filePath = payload.filePath || "";
           if (filePath) {
-            setUploadedPhotoMeta((prev) => {
-              const next = {
-                ...prev,
-                [field]: {
-                  fileName: file.name,
-                  filePath,
-                },
-              };
-              persistUploadDraftState(delegateId, snapshot.passportNo, next);
-              return next;
-            });
+            setUploadedPhotoMeta((prev) => ({
+              ...prev,
+              [field]: {
+                fileName: file.name,
+                filePath,
+              },
+            }));
           }
           if (typeof payload.flyerReady === "boolean") {
             onFlyerReady?.(payload.flyerReady);
@@ -490,7 +400,7 @@ export function DelegatePublicRegister() {
         xhr.send(fd);
       });
     },
-    [FILE_KIND_META, confId, persistUploadDraftState],
+    [FILE_KIND_META, confId],
   );
 
   useEffect(() => {
@@ -528,20 +438,6 @@ export function DelegatePublicRegister() {
     void init();
   }, []);
 
-  useEffect(() => {
-    if (!confId || typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem(UPLOAD_DRAFT_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as UploadDraftState;
-      if (parsed.confId !== confId) return;
-      setDraftDelegateId(parsed.delegateId || null);
-      setUploadedPhotoMeta(parsed.uploadedPhotoMeta || {});
-    } catch {
-      // ignore invalid local cache
-    }
-  }, [confId]);
-
   const handleSubmit = async (
     payload: DelegateRegistrationPayload,
   ): Promise<boolean> => {
@@ -569,11 +465,9 @@ export function DelegatePublicRegister() {
       }
 
       const delegateId = createdPayload.id as string;
-      setDraftDelegateId(delegateId);
       let flyerReady = Boolean(createdPayload.flyerReady);
-      persistUploadDraftState(delegateId, payload.passportNo, uploadedPhotoMeta);
 
-      if (!uploadedPhotoMeta.passportPhoto && payload.passportPhoto) {
+      if (payload.passportPhoto) {
         await uploadFieldFile(
           delegateId,
           "passportPhoto",
@@ -584,7 +478,7 @@ export function DelegatePublicRegister() {
           },
         );
       }
-      if (!uploadedPhotoMeta.lastEntryStampPhoto && payload.lastEntryStampPhoto) {
+      if (payload.lastEntryStampPhoto) {
         await uploadFieldFile(
           delegateId,
           "lastEntryStampPhoto",
@@ -595,7 +489,7 @@ export function DelegatePublicRegister() {
           },
         );
       }
-      if (!uploadedPhotoMeta.currentVisaPhoto && payload.currentVisaPhoto) {
+      if (payload.currentVisaPhoto) {
         await uploadFieldFile(
           delegateId,
           "currentVisaPhoto",
@@ -606,7 +500,7 @@ export function DelegatePublicRegister() {
           },
         );
       }
-      if (!uploadedPhotoMeta.bookletPhoto && payload.bookletPhoto) {
+      if (payload.bookletPhoto) {
         await uploadFieldFile(
           delegateId,
           "bookletPhoto",
@@ -633,7 +527,6 @@ export function DelegatePublicRegister() {
         }
       }
       setRegisteringForOther(false);
-      clearUploadDraftState();
       setUploadedPhotoMeta({});
 
       if (typeof window !== "undefined") {
@@ -652,51 +545,6 @@ export function DelegatePublicRegister() {
       setSubmitting(false);
     }
   };
-
-  const handleAutoPhotoFileChange = useCallback(
-    async (field: DelegatePhotoField, file: File | null) => {
-      if (!file || !confId || submitting) return;
-
-      setError(null);
-      setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
-
-      const snapshot = latestSnapshot;
-      const snapshotError = validateSnapshotForAutoUpload(snapshot);
-      if (snapshotError || !snapshot) {
-        const label = FILE_KIND_META[field].label;
-        const message = `${label}: ${snapshotError || "Please complete registration fields first."}`;
-        setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
-        setPhotoUploadFeedback((prev) => ({
-          ...prev,
-          [field]: { status: "error", progress: 0, message },
-        }));
-        return;
-      }
-
-      try {
-        const delegateId = await ensureDraftDelegate(snapshot);
-        await uploadFieldFile(delegateId, field, file, snapshot);
-      } catch (e) {
-        const message =
-          e instanceof Error ? e.message : "Automatic upload failed for this field.";
-        setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
-        setPhotoUploadFeedback((prev) => ({
-          ...prev,
-          [field]: { status: "error", progress: 0, message },
-        }));
-        setError(`${message} Please retry after checking this field.`);
-      }
-    },
-    [
-      FILE_KIND_META,
-      confId,
-      ensureDraftDelegate,
-      latestSnapshot,
-      submitting,
-      uploadFieldFile,
-      validateSnapshotForAutoUpload,
-    ],
-  );
 
   const handleCorrectionUpload = async (
     kind: "passport" | "booklet" | "entry-stamp" | "visa",
@@ -764,21 +612,13 @@ export function DelegatePublicRegister() {
       };
       if (parsedPayload.filePath && success) {
         const mappedField = fieldByKind[kind];
-        setUploadedPhotoMeta((prev) => {
-          const next = {
-            ...prev,
-            [mappedField]: {
-              fileName: file.name,
-              filePath: parsedPayload.filePath as string,
-            },
-          };
-          persistUploadDraftState(
-            success.delegateId,
-            latestSnapshot?.passportNo ?? "",
-            next,
-          );
-          return next;
-        });
+        setUploadedPhotoMeta((prev) => ({
+          ...prev,
+          [mappedField]: {
+            fileName: file.name,
+            filePath: parsedPayload.filePath as string,
+          },
+        }));
       }
 
       setSuccessMessage(
@@ -1096,8 +936,7 @@ export function DelegatePublicRegister() {
                     setPhotoFieldErrors({});
                     setPhotoUploadFeedback({});
                     setUploadedPhotoMeta({});
-                    setDraftDelegateId(null);
-                    clearUploadDraftState();
+                    clearSiblingPublicDraft();
                   }}
                 >
                   Register Another Delegate
@@ -1239,7 +1078,9 @@ export function DelegatePublicRegister() {
             <CardHeader>
               <CardTitle>Registration Form</CardTitle>
               <CardDescription>
-                Please complete all required fields exactly as requested.
+                Please complete all required fields exactly as requested. Your
+                answers are saved only on this device until you submit; files are
+                sent after you complete registration.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1248,23 +1089,16 @@ export function DelegatePublicRegister() {
                 submitting={submitting}
                 defaultFeeAmount={defaultFeeAmount}
                 submitLabel="Complete Registration"
-                draftKey="public-new"
+                draftKey={
+                  confId
+                    ? `${confId}-public-${registeringForOther ? "other" : "self"}`
+                    : "pending-public"
+                }
                 accountPrefill={registeringForOther ? null : accountPrefill}
                 skipAccountPrefill={registeringForOther}
-                onSnapshotChange={setLatestSnapshot}
                 uploadedPhotoMeta={uploadedPhotoMeta}
                 photoFieldErrors={photoFieldErrors}
                 photoUploadFeedback={photoUploadFeedback}
-                onPhotoFileChange={(field, file) => {
-                  setPhotoFieldErrors((prev) => ({ ...prev, [field]: "" }));
-                  setPhotoUploadFeedback((prev) => ({
-                    ...prev,
-                    [field]: { status: "idle", progress: 0, message: "" },
-                  }));
-                  if (file) {
-                    void handleAutoPhotoFileChange(field, file);
-                  }
-                }}
                 onSubmit={handleSubmit}
               />
             </CardContent>

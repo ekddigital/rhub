@@ -235,12 +235,12 @@ Convert a document to a different format.
 
 **Parameters**:
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `input_file` | String | Yes | Path to input file |
-| `output_format` | String | Yes | Target format: `pdf`, `png`, `jpg`, `doc`, `docx`, etc. |
-| `output_path` | String | No | Output directory (default: same as input) |
-| `options` | Object | No | Format-specific options |
+| Parameter       | Type   | Required | Description                                             |
+| --------------- | ------ | -------- | ------------------------------------------------------- |
+| `input_file`    | String | Yes      | Path to input file                                      |
+| `output_format` | String | Yes      | Target format: `pdf`, `png`, `jpg`, `doc`, `docx`, etc. |
+| `output_path`   | String | No       | Output directory (default: same as input)               |
+| `options`       | Object | No       | Format-specific options                                 |
 
 **Response** (200 OK):
 
@@ -332,12 +332,7 @@ curl -X POST http://localhost:3000/api/v1/admin/install/all \
 {
   "data": {
     "status": "installing",
-    "tools": [
-      "libreoffice",
-      "imagemagick",
-      "ffmpeg",
-      "ghostscript"
-    ],
+    "tools": ["libreoffice", "imagemagick", "ffmpeg", "ghostscript"],
     "progress": 0,
     "estimated_time_seconds": 180,
     "log_url": "/api/v1/admin/install/logs?task_id=install_all_12345"
@@ -353,14 +348,14 @@ Install a specific tool.
 
 **Available Tools**:
 
-| Tool | Purpose |
-|------|---------|
-| `libreoffice` | Office document conversion |
-| `imagemagick` | Image processing |
-| `ffmpeg` | Video/audio conversion |
-| `ghostscript` | PDF processing |
-| `pandoc` | Document format conversion |
-| `tesseract` | OCR (Optical Character Recognition) |
+| Tool          | Purpose                             |
+| ------------- | ----------------------------------- |
+| `libreoffice` | Office document conversion          |
+| `imagemagick` | Image processing                    |
+| `ffmpeg`      | Video/audio conversion              |
+| `ghostscript` | PDF processing                      |
+| `pandoc`      | Document format conversion          |
+| `tesseract`   | OCR (Optical Character Recognition) |
 
 **Example**:
 
@@ -526,16 +521,16 @@ Get cache usage information.
 
 ### Common Error Codes
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `FILE_NOT_FOUND` | 404 | Input file not found |
-| `TOOLS_NOT_INSTALLED` | 503 | Required conversion tools not installed |
-| `VPS_DISCONNECTED` | 503 | Unable to connect to VPS |
-| `CONVERSION_FAILED` | 500 | Document conversion failed |
-| `INSUFFICIENT_STORAGE` | 507 | Not enough disk space |
-| `INVALID_FORMAT` | 400 | Unsupported output format |
-| `UNAUTHORIZED` | 401 | API key missing or invalid |
-| `FORBIDDEN` | 403 | Operation not permitted |
+| Code                   | HTTP Status | Description                             |
+| ---------------------- | ----------- | --------------------------------------- |
+| `FILE_NOT_FOUND`       | 404         | Input file not found                    |
+| `TOOLS_NOT_INSTALLED`  | 503         | Required conversion tools not installed |
+| `VPS_DISCONNECTED`     | 503         | Unable to connect to VPS                |
+| `CONVERSION_FAILED`    | 500         | Document conversion failed              |
+| `INSUFFICIENT_STORAGE` | 507         | Not enough disk space                   |
+| `INVALID_FORMAT`       | 400         | Unsupported output format               |
+| `UNAUTHORIZED`         | 401         | API key missing or invalid              |
+| `FORBIDDEN`            | 403         | Operation not permitted                 |
 
 ### Error Examples
 
@@ -570,16 +565,19 @@ Get cache usage information.
 ### Conversion Flow
 
 1. **Check Status**: Verify system is healthy
+
    ```bash
    curl http://localhost:3000/api/v1/admin/status
    ```
 
 2. **Verify Tools**: Ensure required tools are installed
+
    ```bash
    curl http://localhost:3000/api/v1/admin/conversion/ready
    ```
 
 3. **Convert Document**: Submit conversion request
+
    ```bash
    curl -X POST http://localhost:3000/api/v1/admin/convert \
      -H "Content-Type: application/json" \
@@ -598,17 +596,17 @@ Get cache usage information.
 async function convertDocument(inputFile, outputFormat) {
   try {
     // Check status first
-    const status = await fetch('http://localhost:3000/api/v1/admin/status');
-    if (!status.ok) throw new Error('System not ready');
+    const status = await fetch("http://localhost:3000/api/v1/admin/status");
+    if (!status.ok) throw new Error("System not ready");
 
     // Convert document
-    const response = await fetch('http://localhost:3000/api/v1/admin/convert', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("http://localhost:3000/api/v1/admin/convert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         input_file: inputFile,
-        output_format: outputFormat
-      })
+        output_format: outputFormat,
+      }),
     });
 
     if (!response.ok) {
@@ -618,7 +616,7 @@ async function convertDocument(inputFile, outputFormat) {
 
     return await response.json();
   } catch (error) {
-    console.error('Conversion error:', error);
+    console.error("Conversion error:", error);
     // Retry logic or fallback
   }
 }

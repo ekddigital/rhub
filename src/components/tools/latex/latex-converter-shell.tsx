@@ -55,6 +55,10 @@ type ToolMode = "latex-to-word" | "word-to-latex";
 type OutputFormat = "docx" | "odt" | "tex" | "latex";
 type QualityLevel = "basic" | "standard" | "professional" | "publication";
 
+const MAX_WORD_INPUT_BYTES = 50 * 1024 * 1024;
+const MAX_LATEX_SINGLE_FILE_BYTES = 50 * 1024 * 1024;
+const MAX_LATEX_ZIP_BYTES = 100 * 1024 * 1024;
+
 const STEP_CONFIG = {
   idle: { label: "Ready", icon: FileText, progress: 0 },
   uploading: { label: "Preparing upload...", icon: FileUp, progress: 20 },
@@ -144,6 +148,24 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
   const [result, setResult] = useState<ConversionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const getClientSizeLimitBytes = useCallback(
+    (selectedFile: File | null) => {
+      if (!selectedFile) return null;
+
+      if (mode === "word-to-latex") {
+        return MAX_WORD_INPUT_BYTES;
+      }
+
+      const lower = selectedFile.name.toLowerCase();
+      if (lower.endsWith(".zip")) {
+        return MAX_LATEX_ZIP_BYTES;
+      }
+
+      return MAX_LATEX_SINGLE_FILE_BYTES;
+    },
+    [mode],
+  );
+
   useEffect(() => {
     setFile(null);
     setManualJournal("");
@@ -157,6 +179,18 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      const maxBytes = getClientSizeLimitBytes(selectedFile);
+      if (maxBytes !== null && selectedFile.size > maxBytes) {
+        const maxMB = Math.floor(maxBytes / (1024 * 1024));
+        setFile(null);
+        setResult(null);
+        setStep("error");
+        setError(
+          `File too large for this converter (${maxMB} MB max). Choose a smaller file or split/compress the upload before retrying.`,
+        );
+        return;
+      }
+
       setFile(selectedFile);
       setResult(null);
       setError(null);
@@ -497,7 +531,9 @@ export function LaTeXConverterShell({ toolSlug }: LaTeXConverterShellProps) {
           <AlertDescription className="mt-2">
             {error}
             <div className="mt-3 text-xs opacity-70">
-              Tip: Make sure the uploaded document is valid and self-contained.
+              {error.includes("HTTP 413")
+                ? "Tip: This is usually an upstream body-size limit (Nginx/Proxy), not a document syntax issue."
+                : "Tip: Make sure the uploaded document is valid and self-contained."}
             </div>
           </AlertDescription>
         </Alert>

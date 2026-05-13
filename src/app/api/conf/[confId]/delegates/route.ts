@@ -365,8 +365,37 @@ export async function POST(
         wechat: true,
         userId: true,
         bookletPhotoPath: true,
+        passportNo: true,
       },
     });
+
+    const existingEmail = await prisma.confDelegate.findFirst({
+      where: { confId, email: normalizedEmail },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        wechat: true,
+        userId: true,
+        bookletPhotoPath: true,
+        passportNo: true,
+      },
+    });
+
+    if (
+      existingPassport &&
+      existingEmail &&
+      existingPassport.id !== existingEmail.id
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "This email and passport number match different existing registrations for this conference. Please contact conference admin to merge duplicate records.",
+        },
+        { status: 409 },
+      );
+    }
 
     const baseDelegateData = {
       userId: linkedUserId,
@@ -434,6 +463,63 @@ export async function POST(
           flyerReady: canIssueFlyer({
             feePaid: feePaidBool,
             bookletPhotoPath: existingPassport.bookletPhotoPath,
+          }),
+        },
+      });
+
+      return NextResponse.json(
+        {
+          ...updated,
+          ...parseDelegateCommentsWithAddOns(updated.additionalComments),
+          updatedExisting: true,
+        },
+        { status: 200 },
+      );
+    }
+
+    if (existingEmail) {
+      const existingPassportNo = normalizePassportNumber(
+        existingEmail.passportNo,
+      );
+      if (
+        existingPassportNo &&
+        existingPassportNo !== normalizedPassportNo
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "This email is already registered for this conference with a different passport number. Sign in with the account that registered, or contact the conference team if you need help.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const sameAccount =
+        Boolean(linkedUserId) && existingEmail.userId === linkedUserId;
+      const sameNameAndContact =
+        normalizeLoose(existingEmail.name) === normalizeLoose(normalizedName) &&
+        (normalizeLoose(existingEmail.phone) === normalizeLoose(phone) ||
+          normalizeLoose(existingEmail.wechat) === normalizeLoose(wechat));
+      const canUpdateExisting = sameAccount || sameNameAndContact;
+
+      if (!canUpdateExisting) {
+        return NextResponse.json(
+          {
+            error:
+              "This email is already registered for this conference under another profile. Please sign in with that account or use a different email.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const updated = await prisma.confDelegate.update({
+        where: { id: existingEmail.id },
+        data: {
+          ...baseDelegateData,
+          userId: existingEmail.userId || linkedUserId,
+          flyerReady: canIssueFlyer({
+            feePaid: feePaidBool,
+            bookletPhotoPath: existingEmail.bookletPhotoPath,
           }),
         },
       });

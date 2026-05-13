@@ -20,7 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { getConferenceFeePackageById } from "@/lib/conf/fees";
+import { formatConferenceOptionalAddOnsSummary } from "@/lib/conf/fees";
+import { buildConferenceDelegateFeeBreakdown } from "@/lib/conf/delegate-fee-breakdown";
 
 type DelegateFinanceRow = {
   id: string;
@@ -35,6 +36,7 @@ type DelegateFinanceRow = {
   feePaid: boolean;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
+  addOnPackageIds?: string[];
 };
 
 function toMoney(value: unknown): number {
@@ -47,6 +49,7 @@ function normalizeRow(row: DelegateFinanceRow): DelegateFinanceRow {
     ...row,
     feeAmount: toMoney(row.feeAmount),
     amountPaid: toMoney(row.amountPaid),
+    addOnPackageIds: Array.isArray(row.addOnPackageIds) ? row.addOnPackageIds : [],
   };
 }
 
@@ -219,14 +222,22 @@ export function FinanceSecretaryShell() {
       const paid = toMoney(row.amountPaid);
       const remaining = Math.max(due - paid, 0);
       const state = paid <= 0 ? "UNPAID" : remaining > 0 ? "PARTIAL" : "PAID";
+      const breakdown = buildConferenceDelegateFeeBreakdown({
+        feePackageId: row.feePackageId,
+        addOnPackageIds: row.addOnPackageIds,
+        feeAmount: row.feeAmount,
+      });
       return {
         conferenceId: row.delegateCode || "",
         name: row.name,
         city: row.city,
         university: row.university || "",
-        package: row.feePackageId
-          ? (getConferenceFeePackageById(row.feePackageId)?.label ?? "")
-          : "",
+        package:
+          breakdown.requiredPackageLabel ??
+          (row.feePackageId ? row.feePackageId : ""),
+        optionalAddOns: formatConferenceOptionalAddOnsSummary(
+          row.addOnPackageIds ?? [],
+        ),
         due,
         paid,
         remaining,
@@ -244,6 +255,7 @@ export function FinanceSecretaryShell() {
       "City",
       "University",
       "Package",
+      "Optional add-ons",
       "Due (RMB)",
       "Paid (RMB)",
       "Remaining (RMB)",
@@ -260,6 +272,7 @@ export function FinanceSecretaryShell() {
           row.city,
           row.university,
           row.package,
+          row.optionalAddOns,
           row.due,
           row.paid,
           row.remaining,
@@ -284,6 +297,7 @@ export function FinanceSecretaryShell() {
       "City",
       "University",
       "Package",
+      "Optional add-ons",
       "Due (RMB)",
       "Paid (RMB)",
       "Remaining (RMB)",
@@ -300,6 +314,7 @@ export function FinanceSecretaryShell() {
           row.city,
           row.university,
           row.package,
+          row.optionalAddOns,
           row.due,
           row.paid,
           row.remaining,
@@ -324,6 +339,7 @@ export function FinanceSecretaryShell() {
       "City",
       "University",
       "Package",
+      "Optional add-ons",
       "Due (RMB)",
       "Paid (RMB)",
       "Remaining (RMB)",
@@ -345,6 +361,7 @@ export function FinanceSecretaryShell() {
           row.city,
           row.university,
           row.package,
+          row.optionalAddOns,
           String(row.due),
           String(row.paid),
           String(row.remaining),
@@ -385,7 +402,17 @@ export function FinanceSecretaryShell() {
       } & DelegateFinanceRow;
       if (!res.ok) throw new Error(payload.error || "Failed to confirm payment");
       setRows((prev) =>
-        prev.map((item) => (item.id === row.id ? normalizeRow(payload) : item)),
+        prev.map((item) =>
+          item.id === row.id
+            ? normalizeRow({
+                ...item,
+                ...payload,
+                addOnPackageIds: Array.isArray(payload.addOnPackageIds)
+                  ? payload.addOnPackageIds
+                  : item.addOnPackageIds,
+              })
+            : item,
+        ),
       );
       setNotice(`Marked ${row.name} as payment-confirmed.`);
     } catch (e) {
@@ -414,7 +441,17 @@ export function FinanceSecretaryShell() {
       } & DelegateFinanceRow;
       if (!res.ok) throw new Error(payload.error || "Failed to mark as pending");
       setRows((prev) =>
-        prev.map((item) => (item.id === row.id ? normalizeRow(payload) : item)),
+        prev.map((item) =>
+          item.id === row.id
+            ? normalizeRow({
+                ...item,
+                ...payload,
+                addOnPackageIds: Array.isArray(payload.addOnPackageIds)
+                  ? payload.addOnPackageIds
+                  : item.addOnPackageIds,
+              })
+            : item,
+        ),
       );
       setNotice(`Moved ${row.name} back to pending confirmation.`);
     } catch (e) {
@@ -665,38 +702,109 @@ export function FinanceSecretaryShell() {
             const paymentState =
               amountPaid <= 0 ? "UNPAID" : remaining > 0 ? "PARTIAL" : "PAID";
             const isFullyConfirmed = row.feePaid && remaining === 0;
-            const packageLabel = row.feePackageId
-              ? getConferenceFeePackageById(row.feePackageId)?.label
-              : null;
+            const feeBreakdown = buildConferenceDelegateFeeBreakdown({
+              feePackageId: row.feePackageId,
+              addOnPackageIds: row.addOnPackageIds,
+              feeAmount: row.feeAmount,
+            });
+            const packageTitle =
+              feeBreakdown.requiredPackageLabel ?? "No required package recorded";
             return (
               <div
                 key={row.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
                   <input
                     type="checkbox"
                     checked={selectedSet.has(row.id)}
                     onChange={() => toggleSelectRow(row.id)}
-                    className="mt-1"
+                    className="mt-1 shrink-0"
                   />
-                  <div>
-                  <p className="font-medium">{row.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {row.delegateCode || "No ID"} · {row.city}
-                    {row.university ? ` · ${row.university}` : ""}
-                  </p>
-                  {packageLabel && (
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="font-medium">{row.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Package: {packageLabel}
+                      {row.delegateCode || "No ID"} · {row.city}
+                      {row.university ? ` · ${row.university}` : ""}
                     </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Paid {fmtRmb(amountPaid)} / Due {fmtRmb(amountDue)}
-                  </p>
-                  <p className="text-xs font-medium text-amber-700">
-                    Remaining: {fmtRmb(remaining)}
-                  </p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">Package:</span>{" "}
+                      {packageTitle}
+                    </p>
+                    {feeBreakdown.jersey && (
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Jersey:</span>{" "}
+                        {feeBreakdown.jersey.label} × {feeBreakdown.jersey.quantity}{" "}
+                        ({fmtRmb(feeBreakdown.jersey.unitPrice)} per set) —{" "}
+                        {fmtRmb(feeBreakdown.jersey.subtotal)}
+                      </p>
+                    )}
+                    {feeBreakdown.otherOptionalLines.map((line) => (
+                      <p key={line.packageId} className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Add-on:</span>{" "}
+                        {line.label} — {fmtRmb(line.subtotal)}
+                      </p>
+                    ))}
+                    <p className="text-xs text-muted-foreground">
+                      Paid {fmtRmb(amountPaid)} / Due {fmtRmb(amountDue)}
+                    </p>
+                    <p className="text-xs font-medium text-amber-700">
+                      Remaining: {fmtRmb(remaining)}
+                    </p>
+                    <details className="group mt-1 rounded-md border border-border/60 bg-muted/30 px-2 py-1.5 text-xs">
+                      <summary className="cursor-pointer font-medium text-muted-foreground select-none marker:text-muted-foreground">
+                        Payment breakdown
+                      </summary>
+                      <div className="mt-2 space-y-1 border-t border-border/50 pt-2 text-muted-foreground">
+                        <p>
+                          Required package total:{" "}
+                          <span className="font-medium text-foreground">
+                            {fmtRmb(feeBreakdown.corePackageSubtotal)}
+                          </span>
+                        </p>
+                        {feeBreakdown.jersey && (
+                          <p>
+                            {feeBreakdown.jersey.label} ×{" "}
+                            {feeBreakdown.jersey.quantity}:{" "}
+                            <span className="font-medium text-foreground">
+                              {fmtRmb(feeBreakdown.jersey.subtotal)}
+                            </span>
+                          </p>
+                        )}
+                        {feeBreakdown.otherOptionalLines.map((line) => (
+                          <p key={line.packageId}>
+                            {line.label}:{" "}
+                            <span className="font-medium text-foreground">
+                              {fmtRmb(line.subtotal)}
+                            </span>
+                          </p>
+                        ))}
+                        <p>
+                          Optional add-ons total:{" "}
+                          <span className="font-medium text-foreground">
+                            {fmtRmb(feeBreakdown.optionalAddOnsSubtotal)}
+                          </span>
+                        </p>
+                        <p>
+                          Total (package + add-ons):{" "}
+                          <span className="font-medium text-foreground">
+                            {fmtRmb(feeBreakdown.computedDueTotal)}
+                          </span>
+                        </p>
+                        <p>
+                          Recorded due (stored):{" "}
+                          <span className="font-medium text-foreground">
+                            {fmtRmb(amountDue)}
+                          </span>
+                        </p>
+                        {!feeBreakdown.reconcilesWithPackageModel && (
+                          <p className="text-amber-800">
+                            Stored due does not match package + add-ons (manual
+                            adjustment, unknown package id, or legacy data).
+                          </p>
+                        )}
+                      </div>
+                    </details>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -1141,8 +1141,8 @@ export function DelegateRegistrationForm({
       {draftRestored && (
         <div className="flex items-center justify-between rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
           <span>
-            Draft restored from auto-save. Your unsaved changes have been
-            recovered.
+            Draft restored on this device (not on the server). Your in-progress
+            answers have been recovered.
           </span>
           <button
             type="button"

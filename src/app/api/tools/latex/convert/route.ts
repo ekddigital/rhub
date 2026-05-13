@@ -121,6 +121,24 @@ export async function POST(request: NextRequest) {
   let tempDir: string | null = null;
 
   try {
+    const contentLengthHeader = request.headers.get("content-length");
+    if (contentLengthHeader) {
+      const contentLength = Number(contentLengthHeader);
+      if (
+        Number.isFinite(contentLength) &&
+        contentLength > MAX_ZIP_SIZE + 5 * 1024 * 1024
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Upload too large for converter endpoint. Reduce file size or increase reverse-proxy body-size limits.",
+          },
+          { status: 413 },
+        );
+      }
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const toolSlugValue = formData.get("toolSlug");
