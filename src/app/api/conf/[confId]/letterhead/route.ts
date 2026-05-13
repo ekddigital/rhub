@@ -90,7 +90,8 @@ const ROLE_LABELS: Record<string, string> = {
   CHAIR: "General Chairman",
   VICE_CHAIR: "General Co-Chair",
   SECRETARY: "General Secretary",
-  TREASURER: "Treasurer",
+  FINANCIAL_SECRETARY: "National Financial Secretary",
+  TREASURER: "National Treasurer",
   COMMITTEE: "",
 };
 
@@ -211,7 +212,13 @@ function buildFirstPageSvg(opts: {
   const navyY = HEADER_H - 7; // 183
 
   // ── Sidebar members ──────────────────────────────────────────────────────
-  const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+  const KEY_ORDER = [
+    "CHAIR",
+    "VICE_CHAIR",
+    "SECRETARY",
+    "FINANCIAL_SECRETARY",
+    "TREASURER",
+  ];
   const sorted = [
     ...KEY_ORDER.map((r) => opts.members.find((m) => m.role === r)).filter(
       Boolean,

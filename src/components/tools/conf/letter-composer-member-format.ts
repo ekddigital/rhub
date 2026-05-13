@@ -5,7 +5,8 @@ export const LETTER_COMPOSER_ROLE_LABELS: Record<string, string> = {
   CHAIR: "General Chairman",
   VICE_CHAIR: "General Co-Chair",
   SECRETARY: "General Secretary",
-  TREASURER: "Treasurer",
+  FINANCIAL_SECRETARY: "National Financial Secretary",
+  TREASURER: "National Treasurer",
 };
 
 export function letterComposerMemberLabel(m: LetterComposerMember): string {

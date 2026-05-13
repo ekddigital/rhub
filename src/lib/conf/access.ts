@@ -17,7 +17,7 @@ type SessionUser = NonNullable<
   NonNullable<Awaited<ReturnType<typeof validateSessionFull>>>["user"]
 >;
 
-type ConferenceAccess = {
+export type ConferenceAccess = {
   user: SessionUser | null;
   confId: string;
   isParticipant: boolean;

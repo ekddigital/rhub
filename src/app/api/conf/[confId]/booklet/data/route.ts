@@ -42,7 +42,7 @@ const DEFAULT_NEC_BOARD = [
   {
     name: "Noah D. Mason",
     title: "National Financial Secretary General",
-    role: "TREASURER",
+    role: "FINANCIAL_SECRETARY",
     city: "Ningbo",
     province: "Zhejiang",
     phone: "19825661023",
@@ -50,7 +50,7 @@ const DEFAULT_NEC_BOARD = [
   {
     name: "Jenneh Bonah",
     title: "National Treasurer",
-    role: "COMMITTEE",
+    role: "TREASURER",
     city: "Jinan",
     province: "Shandong",
     phone: "18906417225",

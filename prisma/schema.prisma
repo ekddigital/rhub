@@ -649,6 +649,7 @@ enum ConfRole {
     CHAIR
     VICE_CHAIR
     SECRETARY
+    FINANCIAL_SECRETARY
     TREASURER
     COMMITTEE
     DELEGATE
@@ -927,6 +928,12 @@ model ConfDelegate {
     flyerReady   Boolean   @default(false)
     flyerIssuedAt DateTime?
     status       DelStatus @default(REGISTERED)
+    /// FS / Chair / Super Admin released this delegate to the Treasurer queue after verifying full payment.
+    feeFsApprovedAt   DateTime?
+    feeFsApprovedBy   String?
+    /// National Treasurer acknowledged official receipt / custody handoff.
+    feeTreasurerAckAt DateTime?
+    feeTreasurerAckBy String?
     createdAt    DateTime  @default(now())
     updatedAt    DateTime  @updatedAt
 
@@ -942,6 +949,9 @@ model ConfDelegate {
     @@index([gender])
     @@index([feePackageId])
     @@index([feePaid])
+    @@index([confId, feeFsApprovedAt])
+    @@unique([confId, email])
+    @@unique([confId, passportNo])
 }
 
 model ConfPairRequest {

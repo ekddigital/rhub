@@ -1,4 +1,19 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+
+export type DelegateDbClient = typeof prisma | Prisma.TransactionClient;
+
+export function normalizeDelegateEmail(value: unknown): string {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+}
+
+export function normalizeDelegatePassport(value: unknown): string {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
 
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
@@ -16,9 +31,13 @@ export function delegateCodePrefix(year: number): string {
   return `LSUICNC${yearShort}`;
 }
 
-export async function getNextDelegateCode(confId: string, year: number) {
+export async function getNextDelegateCode(
+  confId: string,
+  year: number,
+  db: DelegateDbClient = prisma,
+) {
   const prefix = delegateCodePrefix(year);
-  const delegates = await prisma.confDelegate.findMany({
+  const delegates = await db.confDelegate.findMany({
     where: {
       confId,
       delegateCode: {

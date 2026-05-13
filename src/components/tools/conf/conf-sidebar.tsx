@@ -67,8 +67,8 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
-    href: "/tools/conf/finance/secretary",
-    label: "Finance (FS & Treasurer)",
+    href: "/tools/conf/finance",
+    label: "Conference finance",
     icon: HandCoins,
     minAccess: "manager",
   },

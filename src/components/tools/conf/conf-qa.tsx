@@ -297,7 +297,7 @@ const STATIC_FAQ: FAQCategory[] = [
             </ul>
             <span className="block mt-2">
               Contact the{" "}
-              <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
+              <L href="/tools/conf/finance/fs">Financial Secretary</L>{" "}
               for payment schedule details.
             </span>
           </>,
@@ -413,7 +413,7 @@ const STATIC_FAQ: FAQCategory[] = [
         ...a(
           <>
             After your registration is approved, pay the{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L>{" "}
+            <L href="/tools/conf/finance/fs">Financial Secretary</L>{" "}
             according to the package you registered for. The amount and options
             match what you selected — you can review the full structure on the{" "}
             <L href="/tools/conf/delegates/register">registration form</L> and
@@ -431,7 +431,7 @@ const STATIC_FAQ: FAQCategory[] = [
         ...a(
           <>
             Once the{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L> has
+            <L href="/tools/conf/finance/fs">Financial Secretary</L> has
             received and recorded your payment, your status is usually updated
             within <strong>2–3 business days</strong>. During peak registration
             periods it may take a little longer. If you are unsure whether your
@@ -448,7 +448,7 @@ const STATIC_FAQ: FAQCategory[] = [
         ...a(
           <>
             Ask the{" "}
-            <L href="/tools/conf/finance/secretary">Financial Secretary</L> if
+            <L href="/tools/conf/finance/fs">Financial Secretary</L> if
             you need written confirmation of your payment (for example for
             records, reimbursement, or visa paperwork). What they can provide
             depends on how your payment was made; the conference secretariat can

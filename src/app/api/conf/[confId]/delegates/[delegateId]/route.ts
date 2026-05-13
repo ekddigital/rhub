@@ -1,7 +1,13 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { canIssueFlyer } from "@/lib/conf/delegate-utils";
+import {
+  canIssueFlyer,
+  normalizeDelegateEmail,
+  normalizeDelegatePassport,
+} from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   getConferenceFeeAccommodationMode,
@@ -119,6 +125,30 @@ export async function PATCH(
 
     const body = await req.json();
 
+    const treasurerBlockedFinanceKeys = [
+      "feePaid",
+      "amountPaid",
+      "feeAmount",
+      "status",
+      "feePackageId",
+      "addOnPackageIds",
+    ] as const;
+    const touchesTreasurerBlockedFinance = treasurerBlockedFinanceKeys.some(
+      (key) => typeof body[key] !== "undefined",
+    );
+    if (
+      isConferenceTreasurerOnlyManager(auth.access) &&
+      touchesTreasurerBlockedFinance
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Treasurer accounts cannot change delegate fees or registration status here. Use the Treasurer finance view for receipt acknowledgement.",
+        },
+        { status: 403 },
+      );
+    }
+
     const current = (await prisma.confDelegate.findUnique({
       where: { id: delegateId },
     })) as unknown as {
@@ -145,7 +175,10 @@ export async function PATCH(
     if (typeof body.name === "string") {
       updates.name = formatPersonName(body.name);
     }
-    if (typeof body.email === "string") updates.email = body.email || null;
+    if (typeof body.email === "string") {
+      const e = normalizeDelegateEmail(body.email);
+      updates.email = e.length > 0 ? e : null;
+    }
     if (typeof body.university === "string")
       updates.university = body.university || null;
     if (typeof body.province === "string")
@@ -153,8 +186,10 @@ export async function PATCH(
     if (typeof body.city === "string") updates.city = body.city;
     if (typeof body.phone === "string") updates.phone = body.phone || null;
     if (typeof body.wechat === "string") updates.wechat = body.wechat || null;
-    if (typeof body.passportNo === "string")
-      updates.passportNo = body.passportNo || null;
+    if (typeof body.passportNo === "string") {
+      const p = normalizeDelegatePassport(body.passportNo);
+      updates.passportNo = p.length > 0 ? p : null;
+    }
     if (
       typeof body.gender === "string" &&
       ["MALE", "FEMALE"].includes(body.gender)
@@ -426,6 +461,11 @@ export async function PATCH(
       updates.partnerClaimNote = body.partnerClaimNote || null;
     }
 
+    if (updates.status === "CANCELLED") {
+      updates.email = null;
+      updates.passportNo = null;
+    }
+
     const updated = (await prisma.confDelegate.update({
       where: { id: delegateId },
       data: updates as never,
@@ -471,6 +511,19 @@ export async function PATCH(
         : null,
     });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Another delegate in this conference already uses this email or passport number.",
+          code: "DUPLICATE_DELEGATE",
+        },
+        { status: 409 },
+      );
+    }
     console.error("Failed to update delegate:", error);
     return NextResponse.json(
       { error: "Failed to update delegate" },
@@ -498,23 +551,49 @@ export async function DELETE(
       return NextResponse.json({ error: "Delegate not found" }, { status: 404 });
     }
 
-    await prisma.$transaction([
-      prisma.confPairRequest.deleteMany({
+    await prisma.$transaction(async (tx) => {
+      await tx.confPairRequest.deleteMany({
         where: {
           confId,
           OR: [{ requesterId: delegateId }, { targetId: delegateId }],
         },
-      }),
-      prisma.confRoomAssignment.deleteMany({
-        where: {
-          confId,
-          OR: [{ occupantAId: delegateId }, { occupantBId: delegateId }],
-        },
-      }),
-      prisma.confDelegate.delete({
+      });
+
+      const asOccupantB = await tx.confRoomAssignment.findMany({
+        where: { confId, occupantBId: delegateId },
+        select: { id: true },
+      });
+      for (const row of asOccupantB) {
+        await tx.confRoomAssignment.update({
+          where: { id: row.id },
+          data: { occupantBId: null },
+        });
+      }
+
+      const asOccupantA = await tx.confRoomAssignment.findMany({
+        where: { confId, occupantAId: delegateId },
+        select: { id: true, occupantBId: true },
+      });
+      for (const row of asOccupantA) {
+        if (row.occupantBId) {
+          await tx.confRoomAssignment.update({
+            where: { id: row.id },
+            data: {
+              occupantAId: row.occupantBId,
+              occupantBId: null,
+            },
+          });
+        } else {
+          await tx.confRoomAssignment.delete({
+            where: { id: row.id },
+          });
+        }
+      }
+
+      await tx.confDelegate.delete({
         where: { id: delegateId },
-      }),
-    ]);
+      });
+    });
 
     return NextResponse.json({
       success: true,

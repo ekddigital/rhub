@@ -134,7 +134,13 @@ export async function PATCH(
 
     // Only Super Admin or Conference Chair can assign leadership roles.
     if (requestedRole !== undefined) {
-      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+      const leadershipRoles = [
+        "CHAIR",
+        "VICE_CHAIR",
+        "SECRETARY",
+        "FINANCIAL_SECRETARY",
+        "TREASURER",
+      ];
       const wantsLeadershipRole = leadershipRoles.includes(requestedRole);
       const canAssignLeadership =
         auth.access.isSuperAdmin || auth.access.memberRole === "CHAIR";
@@ -154,6 +160,7 @@ export async function PATCH(
       "CHAIR",
       "VICE_CHAIR",
       "SECRETARY",
+      "FINANCIAL_SECRETARY",
       "TREASURER",
       "COMMITTEE",
       "DELEGATE",
@@ -163,7 +170,13 @@ export async function PATCH(
     }
 
     if (effectiveCanApprovePayments && effectiveIsActive) {
-      const leadershipRoles = ["CHAIR", "VICE_CHAIR", "SECRETARY"];
+      const leadershipRoles = [
+        "CHAIR",
+        "VICE_CHAIR",
+        "SECRETARY",
+        "FINANCIAL_SECRETARY",
+        "TREASURER",
+      ];
       const isLeadership = leadershipRoles.includes(String(effectiveRole));
 
       // Leadership roles (CHAIR, VICE_CHAIR, SECRETARY) have conference-wide approval authority

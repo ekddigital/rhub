@@ -90,6 +90,7 @@ type RoleTemplate = {
     | "CHAIR"
     | "VICE_CHAIR"
     | "SECRETARY"
+    | "FINANCIAL_SECRETARY"
     | "TREASURER"
     | "COMMITTEE"
     | "DELEGATE";
@@ -105,6 +106,7 @@ const BASE_ROLE_OPTIONS = [
   "CHAIR",
   "VICE_CHAIR",
   "SECRETARY",
+  "FINANCIAL_SECRETARY",
   "TREASURER",
   "COMMITTEE",
   "DELEGATE",
@@ -129,10 +131,15 @@ const ROLE_CONFIG: Record<
     icon: Shield,
     color: "text-blue-500",
   },
-  TREASURER: {
+  FINANCIAL_SECRETARY: {
     label: "National Financial Secretary",
     icon: Shield,
     color: "text-emerald-500",
+  },
+  TREASURER: {
+    label: "National Treasurer",
+    icon: Shield,
+    color: "text-teal-600",
   },
   COMMITTEE: {
     label: "Committee Member",
@@ -168,6 +175,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     | "CHAIR"
     | "VICE_CHAIR"
     | "SECRETARY"
+    | "FINANCIAL_SECRETARY"
     | "TREASURER"
     | "COMMITTEE"
     | "DELEGATE"
@@ -360,9 +368,10 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       CHAIR: 1,
       VICE_CHAIR: 2,
       SECRETARY: 3,
-      TREASURER: 4,
-      COMMITTEE: 5,
-      DELEGATE: 6,
+      FINANCIAL_SECRETARY: 4,
+      TREASURER: 5,
+      COMMITTEE: 6,
+      DELEGATE: 7,
     };
     return [...activeRoles].sort((a, b) => {
       const priorityDiff = rolePriority[a.baseRole] - rolePriority[b.baseRole];
@@ -426,9 +435,17 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const getDisplayTitle = (member: Member, fallbackLabel: string) => {
+    if (member.role === "FINANCIAL_SECRETARY") {
+      if (
+        !member.title ||
+        member.title.trim().toLowerCase() === "financial secretary"
+      ) {
+        return "National Financial Secretary";
+      }
+    }
     if (member.role === "TREASURER") {
       if (!member.title || member.title.trim().toLowerCase() === "treasurer") {
-        return "National Financial Secretary";
+        return "National Treasurer";
       }
     }
     return member.title || fallbackLabel;
@@ -904,6 +921,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         | "CHAIR"
                         | "VICE_CHAIR"
                         | "SECRETARY"
+                        | "FINANCIAL_SECRETARY"
                         | "TREASURER"
                         | "COMMITTEE"
                         | "DELEGATE",
@@ -1729,6 +1747,7 @@ function MemberPermissionsPanel({
               "CHAIR",
               "VICE_CHAIR",
               "SECRETARY",
+              "FINANCIAL_SECRETARY",
               "TREASURER",
               "COMMITTEE",
               "DELEGATE",

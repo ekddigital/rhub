@@ -87,7 +87,13 @@ export function LetterA4Preview({
   const CONTINUATION_TEXT_PADDING_BOTTOM = 28;
   const CONTINUATION_TEXT_PADDING_LEFT = 96;
 
-  const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+  const KEY_ORDER = [
+    "CHAIR",
+    "VICE_CHAIR",
+    "SECRETARY",
+    "FINANCIAL_SECRETARY",
+    "TREASURER",
+  ];
   const sortedMembers = [
     ...KEY_ORDER.map((r) => members.find((m) => m.role === r)).filter(Boolean),
     ...members.filter((m) => !KEY_ORDER.includes(m.role)),

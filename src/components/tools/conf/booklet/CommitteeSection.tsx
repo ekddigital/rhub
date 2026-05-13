@@ -4,7 +4,7 @@ import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
 import type { BookletSection, NecMember } from "./types";
 
-const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
 
 function chairBadgeLabel(chair: NecMember, isNec?: boolean): string {
   if (isNec) return "National President";
@@ -622,6 +622,7 @@ export function CommitteeSection({
   const officerColors: Record<string, { bg: string; text: string }> = {
     VICE_CHAIR: { bg: `${C.red}12`, text: C.red },
     SECRETARY: { bg: `${C.blue}0E`, text: C.blue },
+    FINANCIAL_SECRETARY: { bg: `${C.gold}18`, text: C.blue },
     TREASURER: { bg: `${C.blue}0E`, text: C.blue },
   };
 

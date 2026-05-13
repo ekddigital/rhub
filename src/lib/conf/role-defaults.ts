@@ -47,11 +47,21 @@ export const DEFAULT_COMMITTEE_ROLE_TEMPLATES: readonly CommitteeRoleTemplateSee
     {
       key: "CONFERENCE_TREASURER",
       label: "National Financial Secretary",
-      baseRole: "TREASURER",
+      baseRole: "FINANCIAL_SECRETARY",
       title: "National Financial Secretary",
       committeeScope: null,
       officeLabel: "Office of the National Financial Secretary",
       sortOrder: 4,
+      isSystem: true,
+    },
+    {
+      key: "NATIONAL_TREASURER",
+      label: "National Treasurer",
+      baseRole: "TREASURER",
+      title: "National Treasurer",
+      committeeScope: null,
+      officeLabel: "Office of the National Treasurer",
+      sortOrder: 5,
       isSystem: true,
     },
     {

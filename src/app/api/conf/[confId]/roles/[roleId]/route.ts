@@ -8,6 +8,7 @@ const ALLOWED_BASE_ROLES = new Set([
   "CHAIR",
   "VICE_CHAIR",
   "SECRETARY",
+  "FINANCIAL_SECRETARY",
   "TREASURER",
   "COMMITTEE",
   "DELEGATE",
@@ -55,6 +56,7 @@ export async function PATCH(
         | "CHAIR"
         | "VICE_CHAIR"
         | "SECRETARY"
+        | "FINANCIAL_SECRETARY"
         | "TREASURER"
         | "COMMITTEE"
         | "DELEGATE";
@@ -103,6 +105,7 @@ export async function PATCH(
         | "CHAIR"
         | "VICE_CHAIR"
         | "SECRETARY"
+        | "FINANCIAL_SECRETARY"
         | "TREASURER"
         | "COMMITTEE"
         | "DELEGATE";

@@ -66,10 +66,10 @@ const NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
-    href: "/tools/conf/finance/secretary",
+    href: "/tools/conf/finance",
     icon: HandCoins,
-    title: "Finance (FS & Treasurer)",
-    desc: "Verify delegate payments by package; FS and Treasurer reconcile here",
+    title: "Conference finance",
+    desc: "Financial Secretary verification vs. Treasurer receipts — separate dashboards",
     color: "text-emerald-600",
     minAccess: "manager",
   },

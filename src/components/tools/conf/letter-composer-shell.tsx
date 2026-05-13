@@ -172,6 +172,7 @@ type RoleTemplate = {
     | "CHAIR"
     | "VICE_CHAIR"
     | "SECRETARY"
+    | "FINANCIAL_SECRETARY"
     | "TREASURER"
     | "COMMITTEE"
     | "DELEGATE";
@@ -926,7 +927,8 @@ const ROLE_LABELS: Record<string, string> = {
   CHAIR: "General Chairman",
   VICE_CHAIR: "General Co-Chair",
   SECRETARY: "General Secretary",
-  TREASURER: "Treasurer",
+  FINANCIAL_SECRETARY: "National Financial Secretary",
+  TREASURER: "National Treasurer",
 };
 
 function memberLabel(m: Member): string {
@@ -1651,7 +1653,13 @@ function LetterA4Preview({
     flexShrink: 0 as const,
   };
 
-  const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+  const KEY_ORDER = [
+    "CHAIR",
+    "VICE_CHAIR",
+    "SECRETARY",
+    "FINANCIAL_SECRETARY",
+    "TREASURER",
+  ];
   const rosterMembers = dedupeSidebarRosterMembers(members);
   const sortedMembers = [
     ...KEY_ORDER.map((r) => rosterMembers.find((m) => m.role === r)).filter(

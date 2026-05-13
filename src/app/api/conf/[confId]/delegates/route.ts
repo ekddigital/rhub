@@ -1,8 +1,13 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { canIssueFlyer, getNextDelegateCode } from "@/lib/conf/delegate-utils";
+import {
+  canIssueFlyer,
+  getNextDelegateCode,
+  normalizeDelegateEmail,
+  normalizeDelegatePassport,
+} from "@/lib/conf/delegate-utils";
 import { getConferenceAccess } from "@/lib/conf/access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   formatConferenceOptionalAddOnsSummary,
   getConferenceFeeAccommodationMode,
@@ -12,9 +17,9 @@ import {
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
 import {
-  buildDelegateViewerContext,
-  canViewDelegateSensitiveData,
-} from "@/lib/conf/delegate-privacy";
+  buildDelegateListViewerContext,
+  mapDelegatesForApiResponse,
+} from "@/lib/conf/map-delegates-for-api-response";
 import { sendEmail } from "@/lib/mail";
 import { formatPersonName } from "@/lib/conf/name-format";
 import {
@@ -45,12 +50,6 @@ function isStudyYear(value: unknown): value is (typeof STUDY_YEARS)[number] {
   return typeof value === "string" && STUDY_YEARS.includes(value as never);
 }
 
-function normalizePassportNumber(value: unknown): string {
-  return String(value || "")
-    .trim()
-    .toUpperCase();
-}
-
 function normalizeLoose(value: unknown): string {
   return String(value || "")
     .trim()
@@ -65,7 +64,7 @@ export async function GET(
   try {
     const { confId } = await params;
     const access = await getConferenceAccess(confId);
-    const viewer = buildDelegateViewerContext({
+    const viewer = buildDelegateListViewerContext({
       isManager: access.isManager,
       delegateId: access.delegateId,
       user: access.user
@@ -79,45 +78,7 @@ export async function GET(
     });
 
     const origin = new URL(req.url).origin;
-    const normalized = delegates.map((delegate) => {
-      const delegateWithDocs = delegate as typeof delegate & {
-        lastEntryStampPath?: string | null;
-        currentVisaPath?: string | null;
-      };
-      const canViewSensitive = canViewDelegateSensitiveData(
-        delegateWithDocs,
-        viewer,
-      );
-
-      const parsedComments = parseDelegateCommentsWithAddOns(
-        delegateWithDocs.additionalComments,
-      );
-      return {
-        ...delegateWithDocs,
-        userId: canViewSensitive ? delegate.userId : null,
-        passportNo: canViewSensitive ? delegate.passportNo : null,
-        email: canViewSensitive ? delegate.email : null,
-        phone: canViewSensitive ? delegate.phone : null,
-        additionalComments: parsedComments.additionalComments,
-        addOnPackageIds: parsedComments.addOnPackageIds,
-        passportPhotoPath:
-          canViewSensitive && delegateWithDocs.passportPhotoPath
-            ? resolveStoredAssetUrl(delegateWithDocs.passportPhotoPath, origin)
-            : null,
-        lastEntryStampPath:
-          canViewSensitive && delegateWithDocs.lastEntryStampPath
-            ? resolveStoredAssetUrl(delegateWithDocs.lastEntryStampPath, origin)
-            : null,
-        currentVisaPath:
-          canViewSensitive && delegateWithDocs.currentVisaPath
-            ? resolveStoredAssetUrl(delegateWithDocs.currentVisaPath, origin)
-            : null,
-        bookletPhotoPath:
-          canViewSensitive && delegateWithDocs.bookletPhotoPath
-            ? resolveStoredAssetUrl(delegateWithDocs.bookletPhotoPath, origin)
-            : null,
-      };
-    });
+    const normalized = mapDelegatesForApiResponse(delegates, viewer, origin);
 
     return NextResponse.json(normalized);
   } catch (error) {
@@ -168,11 +129,9 @@ export async function POST(
       conferencePosition,
     } = body;
 
-    const normalizedEmail = String(email || "")
-      .trim()
-      .toLowerCase();
+    const normalizedEmail = normalizeDelegateEmail(email);
     const normalizedName = formatPersonName(String(name || ""));
-    const normalizedPassportNo = normalizePassportNumber(passportNo);
+    const normalizedPassportNo = normalizeDelegatePassport(passportNo);
 
     if (
       !normalizedName ||
@@ -355,48 +314,6 @@ export async function POST(
         ? true
         : Boolean(wantsSingleRoom) || resolvedRoomPref === "SINGLE";
 
-    const existingPassport = await prisma.confDelegate.findFirst({
-      where: { confId, passportNo: normalizedPassportNo },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        wechat: true,
-        userId: true,
-        bookletPhotoPath: true,
-        passportNo: true,
-      },
-    });
-
-    const existingEmail = await prisma.confDelegate.findFirst({
-      where: { confId, email: normalizedEmail },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        wechat: true,
-        userId: true,
-        bookletPhotoPath: true,
-        passportNo: true,
-      },
-    });
-
-    if (
-      existingPassport &&
-      existingEmail &&
-      existingPassport.id !== existingEmail.id
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "This email and passport number match different existing registrations for this conference. Please contact conference admin to merge duplicate records.",
-        },
-        { status: 409 },
-      );
-    }
-
     const baseDelegateData = {
       userId: linkedUserId,
       name: normalizedName,
@@ -433,120 +350,220 @@ export async function POST(
       status: feePaidBool ? "CONFIRMED" : "REGISTERED",
     } as const;
 
-    if (existingPassport) {
-      const sameAccount =
-        Boolean(linkedUserId) && existingPassport.userId === linkedUserId;
-      const sameEmail =
-        normalizeLoose(existingPassport.email) === normalizedEmail &&
-        normalizedEmail.length > 0;
-      const sameNameAndContact =
-        normalizeLoose(existingPassport.name) === normalizeLoose(normalizedName) &&
-        (normalizeLoose(existingPassport.phone) === normalizeLoose(phone) ||
-          normalizeLoose(existingPassport.wechat) === normalizeLoose(wechat));
-      const canUpdateExisting = sameAccount || sameEmail || sameNameAndContact;
-
-      if (!canUpdateExisting) {
-        return NextResponse.json(
-          {
-            error:
-              "A delegate with this passport number already exists under another profile. Please contact conference admin to resolve this passport record.",
-          },
-          { status: 409 },
-        );
-      }
-
-      const updated = await prisma.confDelegate.update({
-        where: { id: existingPassport.id },
-        data: {
-          ...baseDelegateData,
-          userId: existingPassport.userId || linkedUserId,
-          flyerReady: canIssueFlyer({
-            feePaid: feePaidBool,
-            bookletPhotoPath: existingPassport.bookletPhotoPath,
-          }),
-        },
-      });
-
-      return NextResponse.json(
-        {
-          ...updated,
-          ...parseDelegateCommentsWithAddOns(updated.additionalComments),
-          updatedExisting: true,
-        },
-        { status: 200 },
-      );
-    }
-
-    if (existingEmail) {
-      const existingPassportNo = normalizePassportNumber(
-        existingEmail.passportNo,
-      );
+    function isDelegateCodeCollision(err: unknown): boolean {
       if (
-        existingPassportNo &&
-        existingPassportNo !== normalizedPassportNo
+        !(err instanceof Prisma.PrismaClientKnownRequestError) ||
+        err.code !== "P2002"
       ) {
-        return NextResponse.json(
-          {
-            error:
-              "This email is already registered for this conference with a different passport number. Sign in with the account that registered, or contact the conference team if you need help.",
-          },
-          { status: 409 },
-        );
+        return false;
       }
-
-      const sameAccount =
-        Boolean(linkedUserId) && existingEmail.userId === linkedUserId;
-      const sameNameAndContact =
-        normalizeLoose(existingEmail.name) === normalizeLoose(normalizedName) &&
-        (normalizeLoose(existingEmail.phone) === normalizeLoose(phone) ||
-          normalizeLoose(existingEmail.wechat) === normalizeLoose(wechat));
-      const canUpdateExisting = sameAccount || sameNameAndContact;
-
-      if (!canUpdateExisting) {
-        return NextResponse.json(
-          {
-            error:
-              "This email is already registered for this conference under another profile. Please sign in with that account or use a different email.",
-          },
-          { status: 409 },
-        );
+      const target = err.meta?.target;
+      if (Array.isArray(target)) {
+        return target.includes("delegateCode");
       }
+      return target === "delegateCode";
+    }
 
-      const updated = await prisma.confDelegate.update({
-        where: { id: existingEmail.id },
-        data: {
-          ...baseDelegateData,
-          userId: existingEmail.userId || linkedUserId,
-          flyerReady: canIssueFlyer({
-            feePaid: feePaidBool,
-            bookletPhotoPath: existingEmail.bookletPhotoPath,
-          }),
-        },
-      });
+    const txResult = await prisma.$transaction(
+      async (tx) => {
+        const existingPassport = await tx.confDelegate.findFirst({
+          where: { confId, passportNo: normalizedPassportNo },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            wechat: true,
+            userId: true,
+            bookletPhotoPath: true,
+            passportNo: true,
+          },
+        });
 
+        const existingEmail = await tx.confDelegate.findFirst({
+          where: { confId, email: normalizedEmail },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            wechat: true,
+            userId: true,
+            bookletPhotoPath: true,
+            passportNo: true,
+          },
+        });
+
+        if (
+          existingPassport &&
+          existingEmail &&
+          existingPassport.id !== existingEmail.id
+        ) {
+          return {
+            ok: false as const,
+            status: 409,
+            body: {
+              error:
+                "This email and passport number match different existing registrations for this conference. Contact the conference team so one duplicate profile can be removed.",
+            },
+          };
+        }
+
+        if (existingPassport) {
+          const sameAccount =
+            Boolean(linkedUserId) && existingPassport.userId === linkedUserId;
+          const sameEmail =
+            normalizeLoose(existingPassport.email) === normalizedEmail &&
+            normalizedEmail.length > 0;
+          const sameNameAndContact =
+            normalizeLoose(existingPassport.name) ===
+              normalizeLoose(normalizedName) &&
+            (normalizeLoose(existingPassport.phone) ===
+              normalizeLoose(phone) ||
+              normalizeLoose(existingPassport.wechat) ===
+                normalizeLoose(wechat));
+          const canUpdateExisting =
+            sameAccount || sameEmail || sameNameAndContact;
+
+          if (!canUpdateExisting) {
+            return {
+              ok: false as const,
+              status: 409,
+              body: {
+                error:
+                  "A delegate with this passport number already exists under another profile. Contact the conference team if this should be one person.",
+              },
+            };
+          }
+
+          const updated = await tx.confDelegate.update({
+            where: { id: existingPassport.id },
+            data: {
+              ...baseDelegateData,
+              userId: existingPassport.userId || linkedUserId,
+              flyerReady: canIssueFlyer({
+                feePaid: feePaidBool,
+                bookletPhotoPath: existingPassport.bookletPhotoPath,
+              }),
+            },
+          });
+
+          return { ok: true as const, kind: "update" as const, delegate: updated };
+        }
+
+        if (existingEmail) {
+          const existingPassportNo = normalizeDelegatePassport(
+            existingEmail.passportNo,
+          );
+          if (
+            existingPassportNo &&
+            existingPassportNo !== normalizedPassportNo
+          ) {
+            return {
+              ok: false as const,
+              status: 409,
+              body: {
+                error:
+                  "This email is already registered for this conference with a different passport number. Sign in with the account that registered, or contact the conference team if you need help.",
+              },
+            };
+          }
+
+          const sameAccount =
+            Boolean(linkedUserId) && existingEmail.userId === linkedUserId;
+          const sameNameAndContact =
+            normalizeLoose(existingEmail.name) ===
+              normalizeLoose(normalizedName) &&
+            (normalizeLoose(existingEmail.phone) ===
+              normalizeLoose(phone) ||
+              normalizeLoose(existingEmail.wechat) ===
+                normalizeLoose(wechat));
+          const canUpdateExisting = sameAccount || sameNameAndContact;
+
+          if (!canUpdateExisting) {
+            return {
+              ok: false as const,
+              status: 409,
+              body: {
+                error:
+                  "This email is already registered for this conference under another profile. Sign in with that account or use a different email.",
+              },
+            };
+          }
+
+          const updated = await tx.confDelegate.update({
+            where: { id: existingEmail.id },
+            data: {
+              ...baseDelegateData,
+              userId: existingEmail.userId || linkedUserId,
+              flyerReady: canIssueFlyer({
+                feePaid: feePaidBool,
+                bookletPhotoPath: existingEmail.bookletPhotoPath,
+              }),
+            },
+          });
+
+          return { ok: true as const, kind: "update" as const, delegate: updated };
+        }
+
+        let delegate: Awaited<ReturnType<typeof prisma.confDelegate.create>> | null =
+          null;
+        for (let attempt = 0; attempt < 6; attempt++) {
+          const delegateCode = await getNextDelegateCode(
+            confId,
+            event.year,
+            tx,
+          );
+          try {
+            delegate = await tx.confDelegate.create({
+              data: {
+                confId,
+                delegateCode,
+                ...baseDelegateData,
+                flyerReady: canIssueFlyer({
+                  feePaid: feePaidBool,
+                  bookletPhotoPath: null,
+                }),
+              },
+            });
+            break;
+          } catch (err) {
+            if (isDelegateCodeCollision(err)) {
+              continue;
+            }
+            throw err;
+          }
+        }
+
+        if (!delegate) {
+          throw new Error("Could not assign a delegate conference ID");
+        }
+
+        return { ok: true as const, kind: "create" as const, delegate };
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
+        maxWait: 5_000,
+        timeout: 20_000,
+      },
+    );
+
+    if (!txResult.ok) {
+      return NextResponse.json(txResult.body, { status: txResult.status });
+    }
+
+    const { delegate, kind } = txResult;
+
+    if (kind === "update") {
       return NextResponse.json(
         {
-          ...updated,
-          ...parseDelegateCommentsWithAddOns(updated.additionalComments),
+          ...delegate,
+          ...parseDelegateCommentsWithAddOns(delegate.additionalComments),
           updatedExisting: true,
         },
         { status: 200 },
       );
     }
-
-    const delegateCode = await getNextDelegateCode(confId, event.year);
-
-    const delegate = await prisma.confDelegate.create({
-      data: {
-        confId,
-        delegateCode,
-        ...baseDelegateData,
-        flyerReady: canIssueFlyer({
-          feePaid: feePaidBool,
-          bookletPhotoPath: null,
-        }),
-      },
-    });
 
     const approvers = await prisma.confMember.findMany({
       where: {
@@ -603,6 +620,19 @@ export async function POST(
       { status: 201 },
     );
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "This email or passport is already registered for this conference. Sign in to continue your registration, or contact the conference team if you need help.",
+          code: "DUPLICATE_DELEGATE",
+        },
+        { status: 409 },
+      );
+    }
     console.error("Failed to register delegate:", error);
     return NextResponse.json(
       { error: "Failed to register delegate" },

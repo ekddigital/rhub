@@ -66,6 +66,7 @@ export async function POST(
         | "CHAIR"
         | "VICE_CHAIR"
         | "SECRETARY"
+        | "FINANCIAL_SECRETARY"
         | "TREASURER"
         | "COMMITTEE"
         | "DELEGATE";
@@ -92,6 +93,7 @@ export async function POST(
       "CHAIR",
       "VICE_CHAIR",
       "SECRETARY",
+      "FINANCIAL_SECRETARY",
       "TREASURER",
       "COMMITTEE",
       "DELEGATE",
@@ -111,6 +113,7 @@ export async function POST(
           | "CHAIR"
           | "VICE_CHAIR"
           | "SECRETARY"
+          | "FINANCIAL_SECRETARY"
           | "TREASURER"
           | "COMMITTEE"
           | "DELEGATE",

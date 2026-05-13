@@ -97,7 +97,8 @@ const COMMITTEE_ROLE_LABELS: Record<string, string> = {
   CHAIR: "Conference Chair",
   VICE_CHAIR: "Conference Vice-Chair",
   SECRETARY: "Conference Secretary",
-  TREASURER: "Treasurer",
+  FINANCIAL_SECRETARY: "National Financial Secretary",
+  TREASURER: "National Treasurer",
   COMMITTEE: "",
 };
 

@@ -2,7 +2,7 @@ import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-prof
 import { DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 import type { BookletData, BookletSection } from "./types";
 
-const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "TREASURER"];
+const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
 
 function bookletLeadersDeduped(data: BookletData) {
   return dedupeLeaderProfilesForConference(data.leaders, data.event.id);

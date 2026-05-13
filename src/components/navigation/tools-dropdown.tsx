@@ -66,10 +66,10 @@ export function ToolsDropdown() {
       description: "Record and verify conference payments",
     },
     {
-      href: "/tools/conf/finance/secretary",
-      title: "Finance (FS & Treasurer)",
+      href: "/tools/conf/finance",
+      title: "Conference finance",
       description:
-        "Financial Secretary and Treasurer: verify payments, exports, reconciliation",
+        "Financial Secretary queue and Treasurer register with role-based access",
     },
     {
       href: "/tools/conf/committee",
