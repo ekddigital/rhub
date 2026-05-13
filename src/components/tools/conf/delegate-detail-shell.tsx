@@ -910,9 +910,9 @@ export function DelegateDetailShell({
                     meta.passportPhoto = {
                       fileName: "Passport (on file)",
                       filePath: `${base}?kind=passport`,
+                      previewSrc: delegate.passportPhotoPath,
                     };
                   } else {
-                    // Use a fake .pdf path so the renderer shows text not a broken image
                     meta.passportPhoto = {
                       fileName: "Passport (on file)",
                       filePath: "existing.pdf",
@@ -923,13 +923,14 @@ export function DelegateDetailShell({
                   meta.lastEntryStampPhoto = {
                     fileName: "Entry stamp (on file)",
                     filePath: `${base}?kind=entry-stamp`,
+                    previewSrc: delegate.lastEntryStampPath,
                   };
                 if (delegate.currentVisaPath)
                   meta.currentVisaPhoto = {
                     fileName: "Visa (on file)",
                     filePath: `${base}?kind=visa`,
+                    previewSrc: delegate.currentVisaPath,
                   };
-                // Booklet photo is a direct CDN URL
                 if (delegate.bookletPhotoPath)
                   meta.bookletPhoto = {
                     fileName: "Conference photo (on file)",

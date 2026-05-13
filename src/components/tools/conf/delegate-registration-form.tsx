@@ -8,8 +8,7 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
-import { Minus, Plus } from "lucide-react";
-import Image from "next/image";
+import { Check, FileText, ImageOff, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,8 +92,118 @@ export type UploadFeedback = {
 
 export type UploadedPhotoMeta = {
   fileName: string;
+  /**
+   * Preferred URL for opening the current file (e.g. authenticated
+   * `/api/.../secure-document` route).
+   */
   filePath: string;
+  /**
+   * Optional URL used only to infer raster vs PDF and to render a thumbnail
+   * (typically the resolved CDN/asset URL returned by the delegate API).
+   */
+  previewSrc?: string | null;
 };
+
+function stripUrlHashQuery(url: string) {
+  return url.split(/[#?]/)[0].toLowerCase();
+}
+
+function pathLooksPdf(url: string) {
+  return stripUrlHashQuery(url).endsWith(".pdf");
+}
+
+function pathLooksRasterImage(url: string) {
+  return /\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(stripUrlHashQuery(url));
+}
+
+function isNavigableFileHref(href: string) {
+  return href.startsWith("/") || /^https?:\/\//i.test(href);
+}
+
+function ExistingUploadedFileCallout({ meta }: { meta: UploadedPhotoMeta }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  const isPdf =
+    Boolean(meta.previewSrc && pathLooksPdf(meta.previewSrc)) ||
+    pathLooksPdf(meta.filePath);
+
+  const rasterUrl = (() => {
+    if (isPdf) return undefined;
+    for (const u of [meta.previewSrc, meta.filePath]) {
+      if (typeof u === "string" && u.length > 0 && pathLooksRasterImage(u)) {
+        return u;
+      }
+    }
+    return undefined;
+  })();
+
+  const showRaster = Boolean(rasterUrl && !imgFailed);
+  const showViewLink = isNavigableFileHref(meta.filePath);
+  const placeholderIcon =
+    imgFailed && rasterUrl ? (
+      <ImageOff
+        className="size-8 text-muted-foreground"
+        aria-hidden
+        strokeWidth={1.75}
+      />
+    ) : (
+      <FileText
+        className="size-8 text-muted-foreground"
+        aria-hidden
+        strokeWidth={1.75}
+      />
+    );
+
+  return (
+    <div
+      className="mt-2 flex gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 dark:border-emerald-800 dark:bg-emerald-950/30"
+      role="status"
+    >
+      <div className="flex h-20 w-22 shrink-0 items-center justify-center overflow-hidden rounded-md border border-emerald-200/80 bg-background/70 dark:border-emerald-800/80 dark:bg-background/40">
+        {showRaster ? (
+          // eslint-disable-next-line @next/next/no-img-element -- dynamic CDN / asset URLs; onError fallback below
+          <img
+            src={rasterUrl}
+            alt=""
+            width={112}
+            height={80}
+            className="max-h-20 w-auto max-w-22 object-contain"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          placeholderIcon
+        )}
+      </div>
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className="flex items-center gap-1.5 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+          <Check className="size-3.5 shrink-0" aria-hidden strokeWidth={2.5} />
+          File already on file
+        </p>
+        <p className="truncate text-xs text-foreground" title={meta.fileName}>
+          {meta.fileName}
+        </p>
+        {showViewLink ? (
+          <p>
+            <a
+              href={meta.filePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-primary underline-offset-2 hover:underline"
+            >
+              View current file
+            </a>
+            <span className="sr-only"> (opens in a new tab)</span>
+          </p>
+        ) : null}
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          Uploading a new file replaces this one.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export type DelegateRegistrationSnapshot = Omit<
   DelegateRegistrationPayload,
@@ -494,55 +603,11 @@ export function DelegateRegistrationForm({
   const renderUploadedPreview = (field: DelegatePhotoField) => {
     const meta = uploadedPhotoMeta?.[field];
     if (!meta) return null;
-    const lower = meta.filePath.toLowerCase();
-    const isPdf = lower.endsWith(".pdf") || meta.filePath === "existing.pdf";
-
-    if (isPdf) {
-      return (
-        <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 dark:border-emerald-800 dark:bg-emerald-950/30">
-          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold">
-            ✓
-          </span>
-          <div>
-            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-              File already on file
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              {meta.fileName} — uploading a new file will replace it
-            </p>
-          </div>
-        </div>
-      );
-    }
-
     return (
-      <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2.5 dark:border-emerald-800 dark:bg-emerald-950/30">
-        <div className="flex items-start gap-3">
-          <Image
-            src={meta.filePath}
-            alt={meta.fileName}
-            width={80}
-            height={80}
-            className="h-20 w-20 shrink-0 rounded border border-border object-cover"
-          />
-          <div className="min-w-0 space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="inline-flex size-4 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white text-[9px] font-bold">
-                ✓
-              </span>
-              <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                File already on file
-              </p>
-            </div>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {meta.fileName}
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              Uploading a new file will replace it.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ExistingUploadedFileCallout
+        key={`${meta.filePath}\u0000${meta.previewSrc ?? ""}`}
+        meta={meta}
+      />
     );
   };
 
