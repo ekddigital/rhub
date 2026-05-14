@@ -302,14 +302,13 @@ const MEETING_TOPICS = [
   MEETING_3_AGENDA,
   MEETING_4_AGENDA,
   buildStandardAgenda(
-    "Access Control, Registration Standards, and Payment Verification",
+    "Committee Budget Presentation Review and Funding Follow-Through",
     [
-      "Confirm role access boundaries for management modules and delegate-facing pages",
-      "Review registration flow completeness: passport page, visa, last-entry stamp, and photo requirements",
-      "Enforce Financial Secretary/Treasurer verification SLA and queue handling",
-      "Review disputed, missing-proof, and rejected payment handling workflow",
+      "Committee-by-committee budget presentations and line-item review (primary focus)",
+      "Finalize souvenir package proposal and budget",
+      "Design conference talk-show structure together: format, segments, hosts, guests, and support roles",
     ],
-    "Approve registration quality controls and payment verification operating rhythm",
+    "Approve revised committee budgets, freeze immediate spending priorities, and confirm final submission deadlines",
   ),
   buildStandardAgenda(
     "Program Design and Speaker Coordination",
