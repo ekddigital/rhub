@@ -40,7 +40,7 @@ export async function GET(
       prisma.confLetter.count({ where }),
       prisma.confLetter.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy: { updatedAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
         select: {

@@ -248,6 +248,8 @@ type LetterDraft = {
   /** General / Keynote Speaker: e.g. 15–20 minutes. */
   fundraisingKeynoteApproxDuration: string;
   fundraisingLetterSampleApplied: boolean;
+  /** ISO timestamp for the last successful Library (DB) sync. */
+  lastDbSyncedAt: string;
   savedAt: string;
 };
 
@@ -546,6 +548,7 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     fundraisingKeynoteApproxDuration:
       (d as Partial<LetterDraft>).fundraisingKeynoteApproxDuration ?? "",
     fundraisingLetterSampleApplied: d.fundraisingLetterSampleApplied ?? false,
+    lastDbSyncedAt: (d as Partial<LetterDraft>).lastDbSyncedAt ?? "",
     savedAt: d.savedAt ?? "",
   };
 
@@ -601,6 +604,22 @@ function saveDrafts(drafts: LetterDraft[]) {
 
 function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+async function parseApiErrorMessage(
+  res: Response,
+  fallback: string,
+): Promise<string> {
+  const payload = (await res.json().catch(() => null)) as
+    | { error?: string; message?: string }
+    | null;
+  if (typeof payload?.error === "string" && payload.error.trim()) {
+    return payload.error.trim();
+  }
+  if (typeof payload?.message === "string" && payload.message.trim()) {
+    return payload.message.trim();
+  }
+  return `${fallback} (${res.status})`;
 }
 
 /** Opens print dialog for pre-rendered letter HTML (one or many letters). */
@@ -689,6 +708,7 @@ function newDraft(): LetterDraft {
     fundraisingKeynoteTopicDirection: "",
     fundraisingKeynoteApproxDuration: "",
     fundraisingLetterSampleApplied: false,
+    lastDbSyncedAt: "",
     savedAt: "",
   });
 }
@@ -2790,6 +2810,7 @@ export function LetterComposerShell() {
   const [saveToDbStatus, setSaveToDbStatus] = useState<
     "idle" | "saved" | "error"
   >("idle");
+  const [saveToDbMessage, setSaveToDbMessage] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [signatureLibrary, setSignatureLibrary] = useState<
     Record<string, SignatureProfile>
@@ -3198,50 +3219,131 @@ export function LetterComposerShell() {
     setDraftsSelectedIds((prev) => prev.filter((id) => ids.has(id)));
   }, [drafts]);
 
-  const handleSaveToLibrary = useCallback(async () => {
-    if (!confId) return;
-    setSavingToDb(true);
-    setSaveToDbStatus("idle");
-    try {
-      const isExisting = !!activeDraft.dbId;
-      const url = isExisting
-        ? `/api/conf/${confId}/letters/${activeDraft.dbId}`
-        : `/api/conf/${confId}/letters`;
-      const method = isExisting ? "PATCH" : "POST";
+  const upsertDraftToLibrary = useCallback(
+    async (draft: LetterDraft) => {
+      if (!confId) {
+        throw new Error("Conference context is still loading. Try again in a moment.");
+      }
 
-      const res = await fetch(url, {
-        method,
+      const payload = {
+        title: draft.title || draft.re || "Untitled Letter",
+        type: draft.type,
+        letterDate: draft.date,
+        draft,
+      };
+
+      const createLetter = async () => {
+        const res = await fetch(`/api/conf/${confId}/letters`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          throw new Error(
+            await parseApiErrorMessage(res, "Failed to save letter to Library"),
+          );
+        }
+
+        const saved = (await res.json()) as { id: string };
+        return { id: saved.id, recoveredFromMissingRecord: false };
+      };
+
+      if (!draft.dbId) {
+        return createLetter();
+      }
+
+      const patchRes = await fetch(`/api/conf/${confId}/letters/${draft.dbId}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: activeDraft.title || activeDraft.re || "Untitled Letter",
-          type: activeDraft.type,
-          letterDate: activeDraft.date,
-          draft: activeDraft,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        const saved = (await res.json()) as { id: string };
-        // Link this draft to the DB record
-        setActiveDraft((d) => ({ ...d, dbId: saved.id }));
-        setDrafts((prev) =>
-          prev.map((d) =>
-            d.id === activeDraft.id ? { ...d, dbId: saved.id } : d,
-          ),
-        );
-        setSaveToDbStatus("saved");
-        setTimeout(() => setSaveToDbStatus("idle"), 3000);
-      } else {
-        setSaveToDbStatus("error");
-        setTimeout(() => setSaveToDbStatus("idle"), 4000);
+      if (patchRes.ok) {
+        const saved = (await patchRes.json()) as { id: string };
+        return { id: saved.id, recoveredFromMissingRecord: false };
       }
-    } catch {
+
+      if (patchRes.status === 404) {
+        const recreated = await createLetter();
+        return { id: recreated.id, recoveredFromMissingRecord: true };
+      }
+
+      throw new Error(
+        await parseApiErrorMessage(
+          patchRes,
+          "Failed to update existing Library letter",
+        ),
+      );
+    },
+    [confId],
+  );
+
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!confId) {
       setSaveToDbStatus("error");
+      setSaveToDbMessage(
+        "Conference data is still loading, so Library save is not available yet.",
+      );
+      setTimeout(() => setSaveToDbStatus("idle"), 4000);
+      return;
+    }
+
+    setSavingToDb(true);
+    setSaveToDbStatus("idle");
+    setSaveToDbMessage("");
+
+    try {
+      const syncedAt = new Date().toISOString();
+      const result = await upsertDraftToLibrary(activeDraft);
+      const syncedDraft: LetterDraft = {
+        ...activeDraft,
+        dbId: result.id,
+        lastDbSyncedAt: syncedAt,
+      };
+
+      // Keep active state and local-storage draft list in sync immediately.
+      setActiveDraft(syncedDraft);
+      setDrafts((prev) => {
+        const exists = prev.some((d) => d.id === syncedDraft.id);
+        const next = exists
+          ? prev.map((d) => (d.id === syncedDraft.id ? syncedDraft : d))
+          : [syncedDraft, ...prev];
+        saveDrafts(next);
+        return next;
+      });
+
+      setSaveToDbStatus("saved");
+      if (result.recoveredFromMissingRecord) {
+        setSaveToDbMessage(
+          "The previous Library record no longer existed, so a new one was created and linked.",
+        );
+      } else if (activeDraft.dbId) {
+        setSaveToDbMessage("Library update saved.");
+      } else {
+        setSaveToDbMessage("Saved to Library (database).");
+      }
+      setTimeout(() => setSaveToDbStatus("idle"), 3000);
+      void fetchLibrary(libraryPage, libraryFilter);
+    } catch (error) {
+      setSaveToDbStatus("error");
+      setSaveToDbMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to save this letter to Library",
+      );
       setTimeout(() => setSaveToDbStatus("idle"), 4000);
     } finally {
       setSavingToDb(false);
     }
-  }, [confId, activeDraft]);
+  }, [
+    confId,
+    activeDraft,
+    fetchLibrary,
+    libraryPage,
+    libraryFilter,
+    upsertDraftToLibrary,
+  ]);
 
   const handleLoadFromLibrary = useCallback(
     async (rec: LetterRecord) => {
@@ -3489,35 +3591,19 @@ export function LetterComposerShell() {
       setBatchLibrarySaving(true);
       setBatchLibraryResult(null);
       setBatchLibraryProgress({ current: 0, total: drafts.length });
-      const idMap = new Map<string, string>();
+      const idMap = new Map<string, { dbId: string; syncedAt: string }>();
       let ok = 0;
       let fail = 0;
       for (let i = 0; i < drafts.length; i++) {
         const d = drafts[i];
         setBatchLibraryProgress({ current: i + 1, total: drafts.length });
         try {
-          const isExisting = !!d.dbId;
-          const url = isExisting
-            ? `/api/conf/${confId}/letters/${d.dbId}`
-            : `/api/conf/${confId}/letters`;
-          const method = isExisting ? "PATCH" : "POST";
-          const res = await fetch(url, {
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: d.title || d.re || "Untitled Letter",
-              type: d.type,
-              letterDate: d.date,
-              draft: d,
-            }),
+          const result = await upsertDraftToLibrary(d);
+          idMap.set(d.id, {
+            dbId: result.id,
+            syncedAt: new Date().toISOString(),
           });
-          if (res.ok) {
-            const saved = (await res.json()) as { id: string };
-            idMap.set(d.id, saved.id);
-            ok++;
-          } else {
-            fail++;
-          }
+          ok++;
         } catch {
           fail++;
         }
@@ -3526,20 +3612,26 @@ export function LetterComposerShell() {
 
       setDrafts((prev) => {
         const next = prev.map((dr) => {
-          const nid = idMap.get(dr.id);
-          return nid ? { ...dr, dbId: nid } : dr;
+          const sync = idMap.get(dr.id);
+          return sync
+            ? { ...dr, dbId: sync.dbId, lastDbSyncedAt: sync.syncedAt }
+            : dr;
         });
         saveDrafts(next);
         return next;
       });
       setActiveDraft((cur) => {
-        const nid = idMap.get(cur.id);
-        return nid ? { ...cur, dbId: nid } : cur;
+        const sync = idMap.get(cur.id);
+        return sync
+          ? { ...cur, dbId: sync.dbId, lastDbSyncedAt: sync.syncedAt }
+          : cur;
       });
       setLastCsvBatchDrafts((prev) =>
         prev.map((dr) => {
-          const nid = idMap.get(dr.id);
-          return nid ? { ...dr, dbId: nid } : dr;
+          const sync = idMap.get(dr.id);
+          return sync
+            ? { ...dr, dbId: sync.dbId, lastDbSyncedAt: sync.syncedAt }
+            : dr;
         }),
       );
       setBatchLibraryResult({ ok, fail });
@@ -3547,7 +3639,7 @@ export function LetterComposerShell() {
       setBatchLibraryProgress(null);
       void fetchLibrary(libraryPage, libraryFilter);
     },
-    [confId, fetchLibrary, libraryPage, libraryFilter],
+    [confId, fetchLibrary, libraryPage, libraryFilter, upsertDraftToLibrary],
   );
 
   const handleDownloadBatchZipPdf = useCallback(
@@ -4023,24 +4115,24 @@ export function LetterComposerShell() {
                 <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   {saveStatus === "saved" ? (
                     <>
-                      <CheckCircle2 className="size-3.5 text-emerald-500" />{" "}
-                      Saved
+                      <CheckCircle2 className="size-3.5 text-emerald-500" />
+                      Local draft saved
                     </>
                   ) : (
                     <>
-                      <Clock className="size-3.5" /> Auto-saving
+                      <Clock className="size-3.5" /> Auto-saving local draft
                     </>
                   )}
                 </span>
                 <Button variant="outline" size="sm" onClick={handleManualSave}>
-                  <Save className="size-4" /> Save Draft
+                  <Save className="size-4" /> Save Local Draft
                 </Button>
                 {/* Save to Library (DB) */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => void handleSaveToLibrary()}
-                  disabled={savingToDb}
+                  disabled={savingToDb || loading || !confId || !!error}
                   className={
                     saveToDbStatus === "saved"
                       ? "border-emerald-500 text-emerald-600"
@@ -4051,7 +4143,9 @@ export function LetterComposerShell() {
                           : ""
                   }
                   title={
-                    activeDraft.dbId
+                    !confId
+                      ? "Conference context is still loading"
+                      : activeDraft.dbId
                       ? "Update saved letter in Library"
                       : "Save letter to Library (database)"
                   }
@@ -4106,6 +4200,18 @@ export function LetterComposerShell() {
             )}
           </div>
         </div>
+
+        {view === "composer" && saveToDbMessage && (
+          <div
+            className={`letter-no-print mb-3 rounded-md border px-3 py-2 text-xs ${
+              saveToDbStatus === "error"
+                ? "border-destructive/30 bg-destructive/10 text-destructive"
+                : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
+            }`}
+          >
+            {saveToDbMessage}
+          </div>
+        )}
 
         {/* ── Library view ── */}
         {view === "library" && (
@@ -4804,6 +4910,9 @@ export function LetterComposerShell() {
                             {d.to ? ` · To: ${d.to.split("\n")[0]}` : ""}
                             {d.savedAt
                               ? ` · saved ${new Date(d.savedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+                              : ""}
+                            {d.lastDbSyncedAt
+                              ? ` · Library sync ${new Date(d.lastDbSyncedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
                               : ""}
                           </p>
                         </div>
