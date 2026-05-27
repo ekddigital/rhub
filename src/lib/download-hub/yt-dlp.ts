@@ -841,11 +841,40 @@ async function dumpYtDlpJson(
     },
   );
 
-  try {
-    return JSON.parse(stdout.toString("utf8")) as YtDlpInfo;
-  } catch {
-    throw new Error("yt-dlp returned invalid metadata");
+  const raw = stdout.toString("utf8");
+
+  const parseCandidate = (candidate: string): YtDlpInfo | null => {
+    try {
+      return JSON.parse(candidate) as YtDlpInfo;
+    } catch {
+      return null;
+    }
+  };
+
+  const direct = parseCandidate(raw.trim());
+  if (direct) return direct;
+
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    const line = lines[index];
+    if (!line.startsWith("{")) continue;
+    const parsed = parseCandidate(line);
+    if (parsed) return parsed;
   }
+
+  const firstBrace = raw.indexOf("{");
+  const lastBrace = raw.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const middle = raw.slice(firstBrace, lastBrace + 1);
+    const parsed = parseCandidate(middle);
+    if (parsed) return parsed;
+  }
+
+  throw new Error("yt-dlp returned invalid metadata");
 }
 
 export interface YtDlpFullMetadata extends YtDlpVideoInfo {
