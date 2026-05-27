@@ -36,9 +36,15 @@ export async function POST(req: NextRequest) {
     const message =
       error instanceof Error ? error.message : "Failed to fetch media info";
     const mapped = mapYtDlpError(message, { phase: "info", url: url?.trim() });
+    const safeError =
+      typeof mapped === "string" &&
+      mapped.trim().length > 0 &&
+      !/^(null|undefined|nan)$/i.test(mapped.trim())
+        ? mapped
+        : "Failed to fetch media metadata from source. Try again.";
     return NextResponse.json(
       {
-        error: mapped,
+        error: safeError,
         ...(isYtDlpUnavailableMessage(message)
           ? {
               code: YT_DLP_MISSING_CODE,
