@@ -6,9 +6,14 @@ import { Clock, ExternalLink, Eye, User } from "lucide-react";
 import type { VideoEntryPreview, VideoSessionResponse } from "@/lib/download-hub/client";
 
 function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return "0:00";
+  }
+
+  const wholeSeconds = Math.floor(seconds);
+  const hours = Math.floor(wholeSeconds / 3600);
+  const minutes = Math.floor((wholeSeconds % 3600) / 60);
+  const secs = wholeSeconds % 60;
 
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
