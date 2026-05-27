@@ -123,13 +123,13 @@ export const NGO_SAMPLE_PARTNERSHIP_TYPE =
 // ── Miss LSUIC Pageant / Achievers Night sponsorship ─────────────────────────
 
 export const MISS_LSUIC_SAMPLE_RECIPIENT =
-  "[Patron / Sponsor Name or Organization]";
+  "[Programme Sponsor Name or Organization]";
 export const MISS_LSUIC_SAMPLE_SUBJECT =
-  "Patron & Sponsorship Invitation — Achievers Award Dinner & Miss LSUIC Pageant";
+  "Programme Sponsorship Invitation — Achievers Award Dinner & Miss LSUIC Pageant";
 /** Editable sidebar lines — rendered as sponsor visibility / recognition bullets in the Miss LSUIC letter. */
 export const MISS_LSUIC_SAMPLE_USE_OF_FUNDS = `- Placement of your business logo on the official Miss LSUIC event banner
 - Inclusion of your promotional video or clip in the event marketing/programme replay reel
-- On-stage / printed acknowledgement aligned to Platinum, Gold, and VIP patron table tiers`;
+- On-stage / printed acknowledgement aligned to Platinum, Gold, and VIP programme sponsor table tiers`;
 
 /** Consolidated programme-support table (single table to avoid repeated sections). */
 export const MISS_LSUIC_PROGRAMME_SNAPSHOT_ROWS: readonly {
@@ -162,10 +162,14 @@ export const MISS_LSUIC_PROGRAMME_SNAPSHOT_ROWS: readonly {
     basis: "Committee planning and rehearsal operations",
   },
   {
-    area: "Achievers Award Dinner hospitality, table patronage tiers, and professional programme delivery",
+    area: "Achievers Award Dinner hospitality, programme sponsor table tiers, and professional programme delivery",
     basis: "Banquet-night execution and guest hosting requirements",
   },
 ];
+
+const MISS_LSUIC_SPONSORSHIP_CLOSER = `<p>Your generosity helps us honour student achievement, celebrate leadership, and invest in the next generation of Liberian women in our community. We are sincerely grateful for any support you can offer toward this milestone evening.</p>
+<p>Thank you for considering this invitation and for standing with LSUIC in building a meaningful, dignified programme for our students. We would be honoured to welcome you and your guests, and to acknowledge your contribution before our community.</p>
+<p>Please accept our heartfelt appreciation for your time, goodwill, and continued support. Should you require further information, the Conference Committee remains at your disposal.</p>`;
 export const MISS_LSUIC_ESTIMATED_TOTAL_BUDGET = "¥36,000";
 
 export const MISS_LSUIC_SAMPLE_EVENT_DATE = "July 26, 2026";
@@ -589,12 +593,12 @@ export function buildMissLsuicSponsorshipLetterBodyRichHtml(
     fields.fundraisingRecipientName.trim() || MISS_LSUIC_SAMPLE_RECIPIENT;
   const theme = fields.fundraisingConferenceTheme.trim() || CONF_THEME;
   const bullets = parseUseOfFundsLines(fields.fundraisingUseOfFunds);
-  const patronBenefits =
+  const sponsorBenefits =
     bullets.length > 0
       ? bullets
       : parseUseOfFundsLines(MISS_LSUIC_SAMPLE_USE_OF_FUNDS);
 
-  const benefitRows = patronBenefits
+  const benefitRows = sponsorBenefits
     .map(
       (item, i) =>
         `<tr><td>${i + 1}.</td><td>${escapeLetterHtml(item)}</td></tr>`,
@@ -626,24 +630,24 @@ export function buildMissLsuicSponsorshipLetterBodyRichHtml(
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
 <p>Greetings from the <strong>Liberian Student Union in China (LSUIC)</strong>. As we celebrate our <strong>20th Anniversary</strong> and convene our Annual Conference from <strong>${CONF_DATES}</strong> in <strong>${CONF_VENUE}</strong>, we are preparing a signature evening programme: the <strong>Achievers Award Dinner &amp; Miss LSUIC Pageant</strong>.</p>
-<p>This celebration honours student excellence, leadership, and service while showcasing the talent and dignity of Liberian young women in our community. The evening sits within our broader conference vision: <em>&ldquo;${escapeLetterHtml(theme)}&rdquo;</em>. Rather than quoting a conference-wide lump-sum goal, we are asking patrons to help offset the tangible costs below so the committee can pay vendors, procure awards, and present the programme responsibly.</p>
+<p>This celebration honours student excellence, leadership, and service while showcasing the talent and dignity of Liberian young women in our community. The evening sits within our broader conference vision: <em>&ldquo;${escapeLetterHtml(theme)}&rdquo;</em>. Rather than quoting a conference-wide lump-sum goal, we are asking programme sponsors to help offset the tangible costs below so the committee can pay vendors, procure awards, and present the programme responsibly.</p>
 <p>We respectfully invite you to join us as a <strong>Programme Sponsor</strong>.</p>
 
 <h3>Programme support snapshot</h3>
-<p>The table below summarizes where programme sponsor support is applied. The committee&rsquo;s current working total for pageant-visible production is <strong>${escapeLetterHtml(MISS_LSUIC_ESTIMATED_TOTAL_BUDGET)}</strong> (subject to final vendor quotes and headcount). Individual line-item figures are not quoted in this letter.</p>
+<p>The table below summarizes where programme sponsor support is applied. Individual line-item figures are not quoted in this letter; only the committee&rsquo;s current working total is shown (subject to final vendor quotes and headcount).</p>
 <table>
 <thead>
 <tr><th scope="col">Supporting area</th><th scope="col">Basis</th></tr>
 </thead>
 <tbody>
 ${programmeSnapshotRows}
-<tr><td colspan="2"><strong>Illustrative programme total: ${escapeLetterHtml(MISS_LSUIC_ESTIMATED_TOTAL_BUDGET)}</strong></td></tr>
+<tr><td colspan="2"><strong>Programme total: ${escapeLetterHtml(MISS_LSUIC_ESTIMATED_TOTAL_BUDGET)}</strong></td></tr>
 </tbody>
 </table>
-<p>This total excludes wider Achievers dinner catering and unrelated conference pillars; patron tables exist precisely to crowd-in support where student contributions and union reserves cannot comfortably carry production alone.</p>
+<p>This total excludes wider Achievers dinner catering and unrelated conference pillars; programme sponsor tables exist precisely to crowd-in support where student contributions and union reserves cannot comfortably carry production alone.</p>
 
 <h3>Sponsor visibility and recognition</h3>
-<p>In return we offer clear acknowledgement opportunities (final artwork subject to patron tier).</p>
+<p>In return we offer clear acknowledgement opportunities (final artwork subject to sponsor tier).</p>
 <table>
 <thead>
 <tr><th scope="col">#</th><th scope="col">Recognition</th></tr>
@@ -652,7 +656,7 @@ ${programmeSnapshotRows}
 ${benefitRows}
 </tbody>
 </table>
-<p>Published patron tiers for reserved tables reference <strong>Platinum (table of 8)</strong>, <strong>Gold (table of 5)</strong>, and <strong>VIP (table of 4)</strong>, with hospitality and programme recognition scaled accordingly. Contributions may alternatively be customised as directed programme sponsorship or in-kind support toward any of the expenditure lines above.</p>
+<p>Published programme sponsor table tiers reference <strong>Platinum (table of 8)</strong>, <strong>Gold (table of 5)</strong>, and <strong>VIP (table of 4)</strong>, with hospitality and programme recognition scaled accordingly. Contributions may alternatively be customised as directed programme sponsorship or in-kind support toward any of the expenditure lines above.</p>
 
 <h3>Programme schedule</h3>
 <table>
@@ -663,13 +667,12 @@ ${benefitRows}
 <tr><td>Achievers &amp; pageant evening</td><td>${escapeLetterHtml(evDate)} (${escapeLetterHtml(evTime)}) — during LSUIC 2026 in Jinan.</td></tr>
 <tr><td>Conference dates</td><td>${CONF_DATES}</td></tr>
 <tr><td>Venue</td><td>${CONF_VENUE}</td></tr>
-<tr><td>Patron confirmation (suggested)</td><td>Please revert by ${escapeLetterHtml(payDl)} so we can lock placements, banners, and table counts.</td></tr>
+<tr><td>Programme sponsor confirmation (suggested)</td><td>Please revert by ${escapeLetterHtml(payDl)} so we can lock placements, banners, and table counts.</td></tr>
 </tbody>
 </table>
 
-<p>Payment details and formal patron confirmation packets are supplied by the Conference Committee on request.</p>
-${STANDARD_FUNDRAISING_OUTREACH_CLOSER}
-<p>We would be honoured to welcome you and your guests to this milestone evening and to acknowledge your support before our community.</p>`;
+<p>Payment details and formal sponsorship confirmation packets are supplied by the Conference Committee on request.</p>
+${MISS_LSUIC_SPONSORSHIP_CLOSER}`;
 }
 
 export function buildNgoLetterBodyRichHtml(

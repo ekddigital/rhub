@@ -68,6 +68,23 @@ export type LetterDraft = {
   signatory3Label: string;
   signatory3Sig: string;
   signatory3SigScale: number;
+  signatory4Name: string;
+  signatory4Title: string;
+  signatory4Label: string;
+  signatory4Sig: string;
+  signatory4SigScale: number;
+  signatory5Name: string;
+  signatory5Title: string;
+  signatory5Label: string;
+  signatory5Sig: string;
+  signatory5SigScale: number;
+  signatory6Name: string;
+  signatory6Title: string;
+  signatory6Label: string;
+  signatory6Sig: string;
+  signatory6SigScale: number;
+  /** Visible signatory slots in sidebar (3–6). */
+  signatorySlotCount: number;
   fundraisingEnabled: boolean;
   fundraisingCategory: FundraisingCategory;
   fundraisingInviteRole: string;

@@ -18,6 +18,7 @@ import {
 } from "docx";
 import { CONF_FROM_COMMITTEE } from "@/lib/conf/fundraising-letter-template";
 import type { FundraisingCategory } from "@/lib/conf/fundraising-letter-template";
+import { collectLetterSignatories } from "@/lib/conf/letter-signatories";
 
 const BODY_FONT = "Calibri";
 const BODY_SIZE = 22; // 11pt
@@ -52,6 +53,18 @@ export type LetterDocxDraft = {
   signatory3Title: string;
   signatory3Label: string;
   signatory3Sig: string;
+  signatory4Name?: string;
+  signatory4Title?: string;
+  signatory4Label?: string;
+  signatory4Sig?: string;
+  signatory5Name?: string;
+  signatory5Title?: string;
+  signatory5Label?: string;
+  signatory5Sig?: string;
+  signatory6Name?: string;
+  signatory6Title?: string;
+  signatory6Label?: string;
+  signatory6Sig?: string;
 };
 
 type InlineStyle = {
@@ -496,27 +509,74 @@ type SignatorySlot = {
   sig: string;
 };
 
+function buildSignatoryCellParagraphs(sig: SignatorySlot): Paragraph[] {
+  const paras: Paragraph[] = [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 120, after: 40 },
+      children: [
+        new TextRun({
+          text: "_________________________",
+          font: BODY_FONT,
+          size: BODY_SIZE,
+        }),
+      ],
+    }),
+  ];
+  if (sig.label.trim()) {
+    paras.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 40 },
+        children: [
+          new TextRun({
+            text: sig.label,
+            italics: true,
+            color: MUTED_COLOR,
+            font: BODY_FONT,
+            size: 18,
+          }),
+        ],
+      }),
+    );
+  }
+  if (sig.name.trim()) {
+    paras.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 40 },
+        children: [
+          new TextRun({
+            text: sig.name,
+            bold: true,
+            font: BODY_FONT,
+            size: BODY_SIZE,
+          }),
+        ],
+      }),
+    );
+  }
+  if (sig.title.trim()) {
+    paras.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 80 },
+        children: [
+          new TextRun({
+            text: sig.title,
+            color: MUTED_COLOR,
+            font: BODY_FONT,
+            size: 20,
+          }),
+        ],
+      }),
+    );
+  }
+  return paras;
+}
+
 function buildSignatoryBlock(draft: LetterDocxDraft): FileChild[] {
-  const signatories: SignatorySlot[] = [
-    {
-      name: draft.signatory1Name ?? "",
-      title: draft.signatory1Title ?? "",
-      label: draft.signatory1Label ?? "Signed",
-      sig: draft.signatory1Sig ?? "",
-    },
-    {
-      name: draft.signatory2Name ?? "",
-      title: draft.signatory2Title ?? "",
-      label: draft.signatory2Label ?? "Approved",
-      sig: draft.signatory2Sig ?? "",
-    },
-    {
-      name: draft.signatory3Name ?? "",
-      title: draft.signatory3Title ?? "",
-      label: draft.signatory3Label ?? "Attested",
-      sig: draft.signatory3Sig ?? "",
-    },
-  ].filter((s) => s.name.trim() || s.title.trim());
+  const signatories: SignatorySlot[] = collectLetterSignatories(draft);
 
   if (signatories.length === 0) return [];
 
@@ -548,68 +608,40 @@ function buildSignatoryBlock(draft: LetterDocxDraft): FileChild[] {
     );
   }
 
-  for (const sig of signatories) {
+  const ROW_SIZE = 3;
+  for (let i = 0; i < signatories.length; i += ROW_SIZE) {
+    const chunk = signatories.slice(i, i + ROW_SIZE);
+    const colWidth = Math.floor(100 / chunk.length);
     out.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 200, after: 40 },
-        children: [
-          new TextRun({
-            text: "_________________________",
-            font: BODY_FONT,
-            size: BODY_SIZE,
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: chunk.map(
+              (sig) =>
+                new TableCell({
+                  width: { size: colWidth, type: WidthType.PERCENTAGE },
+                  borders: {
+                    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    bottom: {
+                      style: BorderStyle.NONE,
+                      size: 0,
+                      color: "FFFFFF",
+                    },
+                    left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+                    right: {
+                      style: BorderStyle.NONE,
+                      size: 0,
+                      color: "FFFFFF",
+                    },
+                  },
+                  children: buildSignatoryCellParagraphs(sig),
+                }),
+            ),
           }),
         ],
       }),
     );
-    if (sig.label.trim()) {
-      out.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 40 },
-          children: [
-            new TextRun({
-              text: sig.label,
-              italics: true,
-              color: MUTED_COLOR,
-              font: BODY_FONT,
-              size: 18,
-            }),
-          ],
-        }),
-      );
-    }
-    if (sig.name.trim()) {
-      out.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [
-            new TextRun({
-              text: sig.name,
-              bold: true,
-              font: BODY_FONT,
-              size: BODY_SIZE,
-            }),
-          ],
-        }),
-      );
-    }
-    if (sig.title.trim()) {
-      out.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 160 },
-          children: [
-            new TextRun({
-              text: sig.title,
-              color: MUTED_COLOR,
-              font: BODY_FONT,
-              size: 20,
-            }),
-          ],
-        }),
-      );
-    }
   }
 
   return out;

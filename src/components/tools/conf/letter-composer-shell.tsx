@@ -133,6 +133,15 @@ import {
   type AllLetterBodyFields,
 } from "@/lib/conf/fundraising-letter-template";
 import {
+  collectLetterSignatories,
+  MAX_LETTER_SIGNATORY_SLOTS,
+  LETTER_SIGNATORY_SLOT_UI,
+  resolveSignatorySlotCount,
+  signatureBlockContainerStyle,
+  signatureBlockItemStyle,
+  emptyExtraSignatoryFields,
+} from "@/lib/conf/letter-signatories";
+import {
   normalizeMarkdownToReadableText,
   richHtmlToBodyBlocks,
 } from "./letter-composer-html-blocks";
@@ -237,6 +246,23 @@ type LetterDraft = {
   signatory3Label: string;
   signatory3Sig: string;
   signatory3SigScale: number;
+  signatory4Name: string;
+  signatory4Title: string;
+  signatory4Label: string;
+  signatory4Sig: string;
+  signatory4SigScale: number;
+  signatory5Name: string;
+  signatory5Title: string;
+  signatory5Label: string;
+  signatory5Sig: string;
+  signatory5SigScale: number;
+  signatory6Name: string;
+  signatory6Title: string;
+  signatory6Label: string;
+  signatory6Sig: string;
+  signatory6SigScale: number;
+  /** Visible signatory slots in sidebar (3–6). */
+  signatorySlotCount: number;
   fundraisingEnabled: boolean;
   fundraisingCategory: FundraisingCategory;
   fundraisingInviteRole: string;
@@ -469,10 +495,23 @@ function legacyMissGenericTargetLine(html: string): boolean {
     .trim()
     .toLowerCase();
   if (!plain) return false;
+
+  const looksLikeMissContext =
+    plain.includes("miss lsuic") || plain.includes("achievers award dinner");
+  if (!looksLikeMissContext) return false;
+
+  const hasLegacyAmountRanges =
+    /¥\d{1,3}(?:,\d{3})\s*[–-]\s*¥\d{1,3}(?:,\d{3})/.test(plain) ||
+    /approximately\s*¥\d/.test(plain);
+
   return (
     plain.includes("your stated sponsorship target for this invitation") ||
     plain.includes("rmb 180,000") ||
-    (plain.includes("payment deadline for confirmed patronage") &&
+    plain.includes("illustrative cost snapshot") ||
+    plain.includes("working estimate") ||
+    plain.includes("support is applied") ||
+    hasLegacyAmountRanges ||
+    (plain.includes("payment deadline for confirmed") &&
       plain.includes("june 6, 2026"))
   );
 }
@@ -538,6 +577,22 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     signatory3Label: d.signatory3Label ?? "Attested",
     signatory3Sig: d.signatory3Sig ?? "",
     signatory3SigScale: d.signatory3SigScale ?? 1,
+    signatory4Name: d.signatory4Name ?? "",
+    signatory4Title: d.signatory4Title ?? "",
+    signatory4Label: d.signatory4Label ?? "Signed",
+    signatory4Sig: d.signatory4Sig ?? "",
+    signatory4SigScale: d.signatory4SigScale ?? 1,
+    signatory5Name: d.signatory5Name ?? "",
+    signatory5Title: d.signatory5Title ?? "",
+    signatory5Label: d.signatory5Label ?? "Approved",
+    signatory5Sig: d.signatory5Sig ?? "",
+    signatory5SigScale: d.signatory5SigScale ?? 1,
+    signatory6Name: d.signatory6Name ?? "",
+    signatory6Title: d.signatory6Title ?? "",
+    signatory6Label: d.signatory6Label ?? "Attested",
+    signatory6Sig: d.signatory6Sig ?? "",
+    signatory6SigScale: d.signatory6SigScale ?? 1,
+    signatorySlotCount: resolveSignatorySlotCount(d),
     fundraisingEnabled:
       d.fundraisingEnabled ?? d.signatoryMode === "FUNDRAISING",
     fundraisingCategory:
@@ -608,16 +663,23 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     };
   }
 
-  if (
-    base.fundraisingEnabled &&
-    base.fundraisingCategory === "miss_lsuic" &&
-    legacyMissGenericTargetLine(base.bodyRich ?? "")
-  ) {
+  const hasLegacyMissBody = legacyMissGenericTargetLine(base.bodyRich ?? "");
+  if (hasLegacyMissBody) {
+    const missSeed: LetterDraft =
+      base.fundraisingCategory === "miss_lsuic"
+        ? base
+        : {
+            ...base,
+            type: "FUNDRAISING",
+            fundraisingEnabled: true,
+            fundraisingCategory: "miss_lsuic",
+          };
+
     const rebuiltHtml = buildLetterBodyRichHtml(
-      allLetterBodyFieldsFromDraft(base),
+      allLetterBodyFieldsFromDraft(missSeed),
     );
     return {
-      ...base,
+      ...missSeed,
       bodyRich: rebuiltHtml,
       body: richHtmlToPlainText(rebuiltHtml),
       fundraisingLetterSampleApplied: true,
@@ -736,6 +798,22 @@ function newDraft(): LetterDraft {
     signatory3Label: "Attested",
     signatory3Sig: "",
     signatory3SigScale: 1,
+    signatory4Name: "",
+    signatory4Title: "",
+    signatory4Label: "Signed",
+    signatory4Sig: "",
+    signatory4SigScale: 1,
+    signatory5Name: "",
+    signatory5Title: "",
+    signatory5Label: "Approved",
+    signatory5Sig: "",
+    signatory5SigScale: 1,
+    signatory6Name: "",
+    signatory6Title: "",
+    signatory6Label: "Attested",
+    signatory6Sig: "",
+    signatory6SigScale: 1,
+    signatorySlotCount: 3,
     fundraisingEnabled: false,
     fundraisingCategory: "general",
     fundraisingInviteRole: "Sponsor",
@@ -833,14 +911,14 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
 }
 
 function shouldAutoSyncFundraisingBody(draft: LetterDraft): boolean {
-  if (!draft.fundraisingEnabled) return false;
-  if (isLetterDraftBodyEmpty(draft)) return true;
   if (
     draft.fundraisingCategory === "miss_lsuic" &&
     legacyMissGenericTargetLine(draft.bodyRich ?? "")
   ) {
     return true;
   }
+  if (!draft.fundraisingEnabled) return false;
+  if (isLetterDraftBodyEmpty(draft)) return true;
 
   const generatedRich = buildLetterBodyRichHtml(
     allLetterBodyFieldsFromDraft(draft),
@@ -944,7 +1022,8 @@ function applyLetterSample(
       fundraisingUseOfFunds: NGO_SAMPLE_USE_OF_FUNDS.trim(),
     },
     miss_lsuic: {
-      title: "Miss LSUIC Pageant & Achievers Night — Patron Invitation",
+      title:
+        "Miss LSUIC Pageant & Achievers Night — Programme Sponsor Invitation",
       to: MISS_LSUIC_SAMPLE_RECIPIENT,
       from: CONF_FROM_COMMITTEE,
       re: MISS_LSUIC_SAMPLE_SUBJECT,
@@ -1197,20 +1276,29 @@ function estimateLinesPerPage(metrics: PageMetrics): number {
  * Wrap a single paragraph into lines, respecting max character width.
  */
 function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
-  const words = paragraph.split(/\s+/).filter(Boolean);
+  return wrapTextToWidth(paragraph, metrics, getUsableTextWidth(metrics));
+}
+
+/** Wrap text into lines for a specific max width using page metrics for measurement. */
+function wrapTextToWidth(
+  text: string,
+  metrics: PageMetrics,
+  maxWidth: number,
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [""];
 
+  const clampedMaxWidth = Math.max(36, maxWidth);
   const lines: string[] = [];
   let current = "";
-  const maxWidth = getUsableTextWidth(metrics);
 
   for (const word of words) {
     const candidate = current ? `${current} ${word}` : word;
-    if (measureTextWidth(candidate, metrics) <= maxWidth) {
+    if (measureTextWidth(candidate, metrics) <= clampedMaxWidth) {
       current = candidate;
     } else {
       if (current) lines.push(current);
-      if (measureTextWidth(word, metrics) <= maxWidth) {
+      if (measureTextWidth(word, metrics) <= clampedMaxWidth) {
         current = word;
         continue;
       }
@@ -1218,7 +1306,7 @@ function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
       let segment = "";
       for (const ch of word) {
         const next = segment + ch;
-        if (measureTextWidth(next, metrics) <= maxWidth) {
+        if (measureTextWidth(next, metrics) <= clampedMaxWidth) {
           segment = next;
         } else {
           if (segment) lines.push(segment);
@@ -1231,6 +1319,81 @@ function wrapParagraph(paragraph: string, metrics: PageMetrics): string[] {
 
   if (current) lines.push(current);
   return lines.length > 0 ? lines : [""];
+}
+
+function estimateTableBlockLines(
+  block: Extract<LetterBodyBlock, { type: "table" }>,
+  metrics: PageMetrics,
+): number {
+  const baseLinePx = Math.max(1, metrics.fontSize * metrics.lineHeight);
+  const tableMetrics: PageMetrics = {
+    ...metrics,
+    fontSize: Math.max(10, metrics.fontSize * 0.875),
+    lineHeight: 1.28,
+  };
+  const tableLinePx = Math.max(
+    1,
+    tableMetrics.fontSize * tableMetrics.lineHeight,
+  );
+
+  const totalColumns = Math.max(
+    1,
+    block.headers.length,
+    ...block.rows.map((row) => row.length),
+  );
+  const usableWidth = getUsableTextWidth(metrics);
+  const horizontalPaddingPx = 12; // 6px left + 6px right
+  const borderAllowancePx = 2;
+  const minCellInnerWidthPx = 46;
+
+  const toCellInnerWidth = (columnCount: number) =>
+    Math.max(
+      minCellInnerWidthPx,
+      (usableWidth - columnCount * borderAllowancePx) / columnCount -
+        horizontalPaddingPx,
+    );
+
+  const rowHeightToBodyLines = (textLines: number) => {
+    const rowVerticalPaddingPx = 8; // 4px top + 4px bottom
+    return (rowVerticalPaddingPx + textLines * tableLinePx) / baseLinePx;
+  };
+
+  let consumedBodyLines = 0;
+
+  if (block.headers.length > 0) {
+    const headerCellWidth = toCellInnerWidth(totalColumns);
+    const headerTextLines = block.headers.reduce(
+      (maxLines, cell) =>
+        Math.max(
+          maxLines,
+          wrapTextToWidth(cell, tableMetrics, headerCellWidth).length,
+        ),
+      1,
+    );
+    consumedBodyLines += rowHeightToBodyLines(headerTextLines);
+  }
+
+  for (const row of block.rows) {
+    const rowColumnCount = Math.max(1, row.length);
+    const rowCellWidth = toCellInnerWidth(rowColumnCount);
+    const rowTextLines = row.reduce(
+      (maxLines, cell) =>
+        Math.max(
+          maxLines,
+          wrapTextToWidth(cell, tableMetrics, rowCellWidth).length,
+        ),
+      1,
+    );
+    consumedBodyLines += rowHeightToBodyLines(rowTextLines);
+  }
+
+  const tableMarginLines = (8 + 12) / baseLinePx;
+  const safetyBufferLines = 0.9;
+
+  return Math.max(
+    3,
+    Math.ceil(consumedBodyLines + tableMarginLines + safetyBufferLines),
+  );
 }
 
 /**
@@ -1276,10 +1439,7 @@ function estimateBlockLines(
     );
   }
   if (block.type === "table") {
-    const hasHeaderRow = block.headers.length > 0 ? 1 : 0;
-    const rowCount = hasHeaderRow + block.rows.length;
-    // Render uses 10.5px type and ~4px padding; ~1.15–1.25 "line units" per row is closer than 1.65.
-    return Math.max(3, Math.ceil(rowCount * 1.22) + 1);
+    return estimateTableBlockLines(block, metrics);
   }
   return 2;
 }
@@ -1778,29 +1938,7 @@ function LetterA4Preview({
     ? fmtDateRange(confInfo.startsAt, confInfo.endsAt)
     : "July 24 – 27, 2026";
 
-  const signatories: Signatory[] = [
-    {
-      name: draft.signatory1Name ?? "",
-      title: draft.signatory1Title ?? "",
-      label: draft.signatory1Label ?? "Signed",
-      sig: draft.signatory1Sig ?? "",
-      sigScale: draft.signatory1SigScale ?? 1,
-    },
-    {
-      name: draft.signatory2Name ?? "",
-      title: draft.signatory2Title ?? "",
-      label: draft.signatory2Label ?? "Approved",
-      sig: draft.signatory2Sig ?? "",
-      sigScale: draft.signatory2SigScale ?? 1,
-    },
-    {
-      name: draft.signatory3Name ?? "",
-      title: draft.signatory3Title ?? "",
-      label: draft.signatory3Label ?? "Attested",
-      sig: draft.signatory3Sig ?? "",
-      sigScale: draft.signatory3SigScale ?? 1,
-    },
-  ].filter((s) => s.name.trim() || s.title.trim());
+  const signatories: Signatory[] = collectLetterSignatories(draft);
 
   // Geometry for pagination capacity (reserve must use these first)
   const firstPageMetrics: PageMetrics = {
@@ -2320,20 +2458,13 @@ function LetterA4Preview({
                   marginTop: 28,
                   paddingTop: 14,
                   borderTop: `1px solid ${C.gold}`,
-                  display: "grid",
-                  gridTemplateColumns:
-                    signatories.length === 1
-                      ? "1fr"
-                      : signatories.length === 2
-                        ? "repeat(2, 1fr)"
-                        : "repeat(3, 1fr)",
-                  gap: 16,
+                  ...signatureBlockContainerStyle(),
                 }}
               >
                 {signatories.map((sig, idx) => (
                   <div
                     key={`${sig.name}-${idx}`}
-                    style={{ minHeight: 80, textAlign: "center" }}
+                    style={signatureBlockItemStyle()}
                   >
                     {(sig.name || sig.title) && (
                       <>
@@ -2520,20 +2651,13 @@ function LetterA4Preview({
                     marginTop: 28,
                     paddingTop: 14,
                     borderTop: `1px solid ${C.gold}`,
-                    display: "grid",
-                    gridTemplateColumns:
-                      signatories.length === 1
-                        ? "1fr"
-                        : signatories.length === 2
-                          ? "repeat(2, 1fr)"
-                          : "repeat(3, 1fr)",
-                    gap: 16,
+                    ...signatureBlockContainerStyle(),
                   }}
                 >
                   {signatories.map((sig, sigIdx) => (
                     <div
                       key={`${sig.name}-${sigIdx}`}
-                      style={{ minHeight: 80, textAlign: "center" }}
+                      style={signatureBlockItemStyle()}
                     >
                       {(sig.name || sig.title) && (
                         <>
@@ -2937,18 +3061,16 @@ export function LetterComposerShell() {
 
   const hydrateDraftSignatures = useCallback(
     (draft: LetterDraft): LetterDraft => {
-      const sig1 =
-        draft.signatory1Sig || resolveSignatureForName(draft.signatory1Name);
-      const sig2 =
-        draft.signatory2Sig || resolveSignatureForName(draft.signatory2Name);
-      const sig3 =
-        draft.signatory3Sig || resolveSignatureForName(draft.signatory3Name);
-      return {
-        ...draft,
-        signatory1Sig: sig1,
-        signatory2Sig: sig2,
-        signatory3Sig: sig3,
-      };
+      const next = { ...draft };
+      for (let i = 1; i <= MAX_LETTER_SIGNATORY_SLOTS; i++) {
+        const nameKey = `signatory${i}Name` as keyof LetterDraft;
+        const sigKey = `signatory${i}Sig` as keyof LetterDraft;
+        const name = String(next[nameKey] ?? "");
+        const existingSig = String(next[sigKey] ?? "");
+        (next as Record<string, unknown>)[sigKey] =
+          existingSig || resolveSignatureForName(name);
+      }
+      return next;
     },
     [resolveSignatureForName],
   );
@@ -2967,21 +3089,19 @@ export function LetterComposerShell() {
       };
 
       setSignatureLibrary((prev) => ({ ...prev, [key]: profile }));
-      setActiveDraft((draft) => ({
-        ...draft,
-        signatory1Sig:
-          normalizeSignatureProfileKey(draft.signatory1Name) === key
-            ? signatureDataUrl
-            : draft.signatory1Sig,
-        signatory2Sig:
-          normalizeSignatureProfileKey(draft.signatory2Name) === key
-            ? signatureDataUrl
-            : draft.signatory2Sig,
-        signatory3Sig:
-          normalizeSignatureProfileKey(draft.signatory3Name) === key
-            ? signatureDataUrl
-            : draft.signatory3Sig,
-      }));
+      setActiveDraft((draft) => {
+        const next = { ...draft };
+        for (let i = 1; i <= MAX_LETTER_SIGNATORY_SLOTS; i++) {
+          const nameKey = `signatory${i}Name` as keyof LetterDraft;
+          const sigKey = `signatory${i}Sig` as keyof LetterDraft;
+          if (
+            normalizeSignatureProfileKey(String(next[nameKey] ?? "")) === key
+          ) {
+            (next as Record<string, unknown>)[sigKey] = signatureDataUrl;
+          }
+        }
+        return next;
+      });
 
       try {
         await fetch(`/api/conf/${confId}/letters/signatures`, {
@@ -3562,6 +3682,7 @@ export function LetterComposerShell() {
             signatory3Title: "",
             signatory3Label: "Attested",
             signatory3Sig: "",
+            ...emptyExtraSignatoryFields(),
           };
         }
 
@@ -3594,6 +3715,7 @@ export function LetterComposerShell() {
               "Conference Chair",
             signatory3Label: "Attested",
             signatory3Sig: resolveSignatureForName(s3Name),
+            ...emptyExtraSignatoryFields(),
           };
         }
 
@@ -3627,11 +3749,16 @@ export function LetterComposerShell() {
               : "",
             signatory3Label: "Attested",
             signatory3Sig: resolveSignatureForName(s3Name),
+            ...emptyExtraSignatoryFields(),
           };
           return mergeFundraisingTemplateIfEligible(next);
         }
 
-        return { ...d, signatoryMode: mode };
+        return {
+          ...d,
+          signatoryMode: mode,
+          signatorySlotCount: Math.max(3, resolveSignatorySlotCount(d)),
+        };
       });
     },
     [members, necPresidentName, resolveSignatureForName],
@@ -5509,7 +5636,7 @@ export function LetterComposerShell() {
                         <p className="text-[10px] text-muted-foreground leading-snug">
                           <span className="block mb-1">
                             {activeDraft.fundraisingCategory === "miss_lsuic"
-                              ? "Patron invitation — itemised production costs in the letter body; edit sponsor visibility lines below. No virtual fundraiser block and no flyer/payment attachment page."
+                              ? "Programme sponsor invitation — itemised production costs in the letter body; edit sponsor visibility lines below. No virtual fundraiser block and no flyer/payment attachment page."
                               : "Every letter category includes campaign overview, use of proceeds, session logistics, and the flyer payment note in the generated body."}
                             {activeDraft.fundraisingCategory === "general"
                               ? " Keynote Speaker (General only): both speaking and substantive support."
@@ -5528,7 +5655,7 @@ export function LetterComposerShell() {
                           {activeDraft.fundraisingCategory === "ngo" &&
                             "Development partner — capacity building, mutual impact, program collaboration."}
                           {activeDraft.fundraisingCategory === "miss_lsuic" &&
-                            "Achievers Award Dinner & Miss LSUIC Pageant — patron tables, programme sponsorship, and visibility."}
+                            "Achievers Award Dinner & Miss LSUIC Pageant — programme sponsor tables, sponsorship, and visibility."}
                         </p>
                       </div>
 
@@ -6003,7 +6130,7 @@ export function LetterComposerShell() {
                         <div className="space-y-1.5">
                           <Label className="text-xs">
                             {activeDraft.fundraisingCategory === "miss_lsuic"
-                              ? "Patron Confirmation / Payment Deadline"
+                              ? "Programme Sponsor Confirmation Deadline"
                               : "Payment Deadline"}
                           </Label>
                           <Input
@@ -6108,7 +6235,7 @@ export function LetterComposerShell() {
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Select a committee role to auto-fill the office label, or
-                    type a custom label. Add up to three signatories.
+                    type a custom label. Add up to six signatories.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -6178,33 +6305,9 @@ export function LetterComposerShell() {
                   {/* Signatory fields */}
                   {activeDraft.signatoryMode !== "NONE" && (
                     <div className="space-y-3 pt-1">
-                      {(
-                        [
-                          {
-                            nameKey: "signatory1Name",
-                            titleKey: "signatory1Title",
-                            labelKey: "signatory1Label",
-                            sigKey: "signatory1Sig",
-                            scaleKey: "signatory1SigScale",
-                            badge: "1",
-                          },
-                          {
-                            nameKey: "signatory2Name",
-                            titleKey: "signatory2Title",
-                            labelKey: "signatory2Label",
-                            sigKey: "signatory2Sig",
-                            scaleKey: "signatory2SigScale",
-                            badge: "2",
-                          },
-                          {
-                            nameKey: "signatory3Name",
-                            titleKey: "signatory3Title",
-                            labelKey: "signatory3Label",
-                            sigKey: "signatory3Sig",
-                            scaleKey: "signatory3SigScale",
-                            badge: "3",
-                          },
-                        ] as const
+                      {LETTER_SIGNATORY_SLOT_UI.slice(
+                        0,
+                        activeDraft.signatorySlotCount,
                       ).map(
                         ({
                           nameKey,
@@ -6376,6 +6479,28 @@ export function LetterComposerShell() {
                             </div>
                           </div>
                         ),
+                      )}
+                      {activeDraft.signatorySlotCount <
+                        MAX_LETTER_SIGNATORY_SLOTS && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-full text-xs"
+                          onClick={() =>
+                            setActiveDraft((d) => ({
+                              ...d,
+                              signatorySlotCount: Math.min(
+                                MAX_LETTER_SIGNATORY_SLOTS,
+                                d.signatorySlotCount + 1,
+                              ),
+                            }))
+                          }
+                        >
+                          <Plus className="size-3.5 mr-1.5" />
+                          Add signatory ({activeDraft.signatorySlotCount +
+                            1} of {MAX_LETTER_SIGNATORY_SLOTS})
+                        </Button>
                       )}
                     </div>
                   )}

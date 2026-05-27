@@ -1,4 +1,8 @@
 import { SignatoryDraft } from "@/components/tools/conf/document-signatory-controls";
+import {
+  signatureBlockContainerStyle,
+  signatureBlockItemStyle,
+} from "@/lib/conf/letter-signatories";
 
 type Props = {
   draft: SignatoryDraft;
@@ -20,18 +24,11 @@ export function DocumentSignatureBlock({ draft, compact = false }: Props) {
         marginTop: compact ? 20 : 28,
         paddingTop: 14,
         borderTop: "1px solid #C8A061",
-        display: "grid",
-        gridTemplateColumns:
-          signatories.length === 1
-            ? "1fr"
-            : signatories.length === 2
-              ? "repeat(2, 1fr)"
-              : "repeat(3, 1fr)",
-        gap: 16,
+        ...signatureBlockContainerStyle(),
       }}
     >
       {signatories.map((slot, idx) => (
-        <div key={`${slot.name}-${idx}`} style={{ minHeight: 80, textAlign: "center" }}>
+        <div key={`${slot.name}-${idx}`} style={signatureBlockItemStyle()}>
           {slot.sig && (
             <div
               style={{

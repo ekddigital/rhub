@@ -37,6 +37,11 @@ import {
   type PageMetrics,
 } from "./letter-composer-pagination";
 import { renderLetterBodyBlocks } from "./letter-composer-body-blocks";
+import {
+  collectLetterSignatories,
+  signatureBlockContainerStyle,
+  signatureBlockItemStyle,
+} from "@/lib/conf/letter-signatories";
 
 type Signatory = {
   name: string;
@@ -122,29 +127,7 @@ export function LetterA4Preview({
     ? fmtLetterDateRange(confInfo.startsAt, confInfo.endsAt)
     : "July 24 – 27, 2026";
 
-  const signatories: Signatory[] = [
-    {
-      name: draft.signatory1Name ?? "",
-      title: draft.signatory1Title ?? "",
-      label: draft.signatory1Label ?? "Signed",
-      sig: draft.signatory1Sig ?? "",
-      sigScale: draft.signatory1SigScale ?? 1,
-    },
-    {
-      name: draft.signatory2Name ?? "",
-      title: draft.signatory2Title ?? "",
-      label: draft.signatory2Label ?? "Approved",
-      sig: draft.signatory2Sig ?? "",
-      sigScale: draft.signatory2SigScale ?? 1,
-    },
-    {
-      name: draft.signatory3Name ?? "",
-      title: draft.signatory3Title ?? "",
-      label: draft.signatory3Label ?? "Attested",
-      sig: draft.signatory3Sig ?? "",
-      sigScale: draft.signatory3SigScale ?? 1,
-    },
-  ].filter((s) => s.name.trim() || s.title.trim());
+  const signatories: Signatory[] = collectLetterSignatories(draft);
 
   // Geometry for pagination capacity (reserve must use these first)
   const firstPageMetrics: PageMetrics = {
@@ -609,20 +592,13 @@ export function LetterA4Preview({
                   marginTop: 28,
                   paddingTop: 14,
                   borderTop: `1px solid ${C.gold}`,
-                  display: "grid",
-                  gridTemplateColumns:
-                    signatories.length === 1
-                      ? "1fr"
-                      : signatories.length === 2
-                        ? "repeat(2, 1fr)"
-                        : "repeat(3, 1fr)",
-                  gap: 16,
+                  ...signatureBlockContainerStyle(),
                 }}
               >
                 {signatories.map((sig, idx) => (
                   <div
                     key={`${sig.name}-${idx}`}
-                    style={{ minHeight: 80, textAlign: "center" }}
+                    style={signatureBlockItemStyle()}
                   >
                     {(sig.name || sig.title) && (
                       <>
@@ -761,20 +737,13 @@ export function LetterA4Preview({
                     marginTop: 28,
                     paddingTop: 14,
                     borderTop: `1px solid ${C.gold}`,
-                    display: "grid",
-                    gridTemplateColumns:
-                      signatories.length === 1
-                        ? "1fr"
-                        : signatories.length === 2
-                          ? "repeat(2, 1fr)"
-                          : "repeat(3, 1fr)",
-                    gap: 16,
+                    ...signatureBlockContainerStyle(),
                   }}
                 >
                   {signatories.map((sig, sigIdx) => (
                     <div
                       key={`${sig.name}-${sigIdx}`}
-                      style={{ minHeight: 80, textAlign: "center" }}
+                      style={signatureBlockItemStyle()}
                     >
                       {(sig.name || sig.title) && (
                         <>
