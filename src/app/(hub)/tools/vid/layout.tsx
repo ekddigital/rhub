@@ -14,7 +14,10 @@ export default function VideoDownloadHubLayout({
             aria-label="Breadcrumb"
             className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2"
           >
-            <Link href="/#resources" className="hover:text-gold transition-colors">
+            <Link
+              href="/#resources"
+              className="hover:text-gold transition-colors"
+            >
               Tools
             </Link>
             <ArrowRight className="w-4 h-4 shrink-0" aria-hidden />
@@ -24,8 +27,8 @@ export default function VideoDownloadHubLayout({
             Download Hub
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Download videos and audio from YouTube, Facebook, Instagram, and
-            more — one place for all supported platforms.
+            Download videos and audio from YouTube, Facebook, Instagram, TikTok,
+            X, and Vimeo in one place.
           </p>
         </div>
         {children}

@@ -7,12 +7,12 @@ export const twitterPlatform = createPlatform({
   name: "twitter",
   displayName: "Twitter/X",
   icon: "🐦",
-  status: "coming-soon",
+  status: "live",
   urlPattern:
-    /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/.*\/status\/\d+/,
-  urlPlaceholder: "https://x.com/user/status/...",
+    /^(https?:\/\/)?((www\.|mobile\.)?(twitter\.com|x\.com)\/([\w.]+\/status\/\d+|i\/(web\/)?status\/\d+)|t\.co\/[A-Za-z0-9]+)/i,
+  urlPlaceholder: "https://x.com/user/status/... or t.co/...",
   videoQualities: pickVideoQualities(["1080p", "720p", "480p"]),
   audioQualities: pickAudioQualities(["128k"]),
-  supportedFormats: [formats.mp4, formats.mp3],
+  supportedFormats: [formats.mp4, formats.m4a],
   features: ["HD quality", "Audio extraction", "Quick processing"],
 });

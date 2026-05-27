@@ -7,7 +7,7 @@ export const downloadHubNav = {
   label: "Download Hub",
   href: DOWNLOAD_HUB_PATH,
   icon: Video as LucideIcon,
-  description: "YouTube, Facebook, Instagram & more",
+  description: "YouTube, Facebook, Instagram, TikTok, X, Vimeo",
   tagline: "Save videos and audio from social platforms",
 } as const;
 

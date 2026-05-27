@@ -7,13 +7,14 @@ export const tiktokPlatform = createPlatform({
   name: "tiktok",
   displayName: "TikTok",
   icon: "🎵",
-  status: "coming-soon",
+  status: "live",
   urlPattern:
-    /^(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com)/,
-  urlPlaceholder: "https://www.tiktok.com/@user/video/...",
+    /^(https?:\/\/)?((www\.|m\.)?tiktok\.com\/(@[\w.-]+\/video\/\d+|t\/[\w-]+|[\w@./-]+)|(vm|vt)\.tiktok\.com\/[\w-]+\/?)/i,
+  urlPlaceholder:
+    "https://www.tiktok.com/@user/video/... or /t/... or vm.tiktok.com/...",
   videoQualities: pickVideoQualities(["1080p", "720p"]),
   audioQualities: pickAudioQualities(["192k", "128k"]),
-  supportedFormats: [formats.mp4, formats.mp3],
+  supportedFormats: [formats.mp4, formats.m4a],
   features: [
     "No watermark option",
     "Audio extraction",

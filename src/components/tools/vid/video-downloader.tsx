@@ -2,25 +2,17 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Download,
-  Loader2,
-  Video,
-  Music,
-  CheckCircle,
-  ExternalLink,
-  Eye,
-  Clock,
-  User,
-  Sparkles,
-} from "lucide-react";
-import type { DownloadFormat, DownloadPlatform } from "@/lib/download-hub";
+import { Sparkles, Video } from "lucide-react";
+import type {
+  DownloadHubToolHealth,
+  DownloadPlatform,
+} from "@/lib/download-hub/client";
 import {
   detectPlatform,
   getAllPlatforms,
@@ -28,39 +20,17 @@ import {
   getPlatformByRouteSlug,
   isPlatformReady,
   parsePlatformRouteSlug,
-} from "@/lib/download-hub";
-import { DOWNLOAD_HUB_PATH } from "@/lib/download-hub/nav";
-import {
-  parseErrorResponse,
-  parseJsonResponse,
-} from "@/lib/http/client-response";
-
-function formatDuration(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  }
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
-
-interface VideoInfo {
-  title: string;
-  author: string;
-  duration: number;
-  thumbnail: string;
-  description: string;
-  views: number;
-  uploadDate: string;
-  availableQualities: string[];
-}
+  validateMediaUrlInput,
+  watchSessionPath,
+} from "@/lib/download-hub/client";
+import { AnalyzeStatusTicker } from "./analyze-status-ticker";
+import { useAnalyzeProgress } from "./use-analyze-progress";
+import { VideoPreviewSkeleton } from "./video-preview-skeleton";
+import { VidDepsHealthBanner } from "./vid-deps-health-banner";
 
 export function DownloadHub() {
   const pathname = usePathname();
+  const router = useRouter();
   const allPlatforms = useMemo(() => getAllPlatforms(), []);
   const livePlatformNames = useMemo(
     () =>
@@ -76,31 +46,58 @@ export function DownloadHub() {
     return getPlatformByRouteSlug(routeSlug)?.id ?? null;
   }, [pathname]);
 
-  const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(
-    null,
-  );
+  const [manualPlatformId, setManualPlatformId] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [detectedPlatform, setDetectedPlatform] =
     useState<DownloadPlatform | null>(null);
-  const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
-  const [selectedFormat, setSelectedFormat] = useState<DownloadFormat | null>(
+  const [toolHealth, setToolHealth] = useState<DownloadHubToolHealth | null>(
     null,
   );
-  const [selectedQuality, setSelectedQuality] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const [healthFetchFailed, setHealthFetchFailed] = useState(false);
+
+  const loadToolHealth = useCallback(() => {
+    setHealthLoading(true);
+    setHealthFetchFailed(false);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120_000);
+
+    return fetch("/api/tools/vid/health", { signal: controller.signal })
+      .then(async (res) => {
+        const data = (await res.json()) as DownloadHubToolHealth;
+        setToolHealth(data);
+      })
+      .catch(() => {
+        setToolHealth(null);
+        setHealthFetchFailed(true);
+      })
+      .finally(() => {
+        clearTimeout(timeout);
+        setHealthLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
-    if (platformFromPath) {
-      setSelectedPlatformId(platformFromPath);
-      return;
-    }
-    if (pathname === DOWNLOAD_HUB_PATH) {
-      setSelectedPlatformId(null);
-    }
-  }, [platformFromPath, pathname]);
+    void loadToolHealth();
+  }, [loadToolHealth]);
+
+  const ytDlpReady =
+    !healthLoading &&
+    !healthFetchFailed &&
+    toolHealth?.readyForDownloads === true;
+
+  const {
+    loading,
+    error,
+    setError,
+    statusMessage,
+    elapsedMs,
+    analyze,
+    cancel,
+  } = useAnalyzeProgress({ livePlatformNames });
+
+  const selectedPlatformId = platformFromPath ?? manualPlatformId;
 
   const activePlatform =
     detectedPlatform ??
@@ -112,138 +109,40 @@ export function DownloadHub() {
     activePlatform?.urlPlaceholder ??
     "Paste a video URL from YouTube, Facebook, Instagram, and more...";
 
-  const handleUrlChange = useCallback((value: string) => {
-    setUrl(value);
-    setError("");
-    setSuccess(false);
-    setVideoInfo(null);
-    setSelectedFormat(null);
-    setSelectedQuality("");
+  const instantValidation = useMemo(() => {
+    if (!url.trim() || loading) return null;
+    const result = validateMediaUrlInput(url, { livePlatformNames });
+    return result.ok ? null : result.error;
+  }, [url, livePlatformNames, loading]);
 
-    if (value.trim()) {
-      const detected = detectPlatform(value);
-      setDetectedPlatform(detected);
-      if (detected) {
-        setSelectedPlatformId(detected.id);
+  const handleUrlChange = useCallback(
+    (value: string) => {
+      setUrl(value);
+      setError("");
+
+      if (value.trim()) {
+        const detected = detectPlatform(value);
+        setDetectedPlatform(detected);
+        if (detected) {
+          setManualPlatformId(detected.id);
+        }
+      } else {
+        setDetectedPlatform(null);
       }
-    } else {
-      setDetectedPlatform(null);
-    }
-  }, []);
+    },
+    [setError],
+  );
 
-  const handleGetInfo = async () => {
-    if (!url.trim()) {
-      setError("Please enter a media URL");
-      return;
-    }
-
-    const platform = detectPlatform(url);
-    if (!platform) {
-      setError("Unsupported platform or invalid URL");
-      return;
-    }
-
-    if (!isPlatformReady(platform)) {
-      setError(
-        `${platform.displayName} is coming soon. Currently live: ${livePlatformNames}.`,
+  const handleAnalyze = async () => {
+    const result = await analyze(url);
+    if (result.ok) {
+      router.push(
+        watchSessionPath(result.session.platformRouteSlug, result.session.id),
       );
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    setVideoInfo(null);
-
-    try {
-      const response = await fetch(
-        `/api/tools/vid/download?url=${encodeURIComponent(url)}&platform=${platform.id}`,
-      );
-
-      if (!response.ok) {
-        const message = await parseErrorResponse(
-          response,
-          "Failed to fetch media info",
-        );
-        throw new Error(message);
-      }
-
-      const info = await parseJsonResponse<VideoInfo>(
-        response,
-        "Failed to parse media info",
-      );
-      setVideoInfo(info);
-
-      if (platform.supportedFormats.length > 0) {
-        setSelectedFormat(platform.supportedFormats[0]);
-        const defaultQuality =
-          platform.supportedFormats[0].type === "video"
-            ? platform.videoQualities[0]?.id
-            : platform.audioQualities[0]?.id;
-        setSelectedQuality(defaultQuality || "");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get media info");
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleDownload = async () => {
-    const platform = detectPlatform(url);
-    if (!platform || !selectedFormat || !selectedQuality) {
-      setError("Please select format and quality");
-      return;
-    }
-
-    if (!isPlatformReady(platform)) {
-      setError(
-        `${platform.displayName} is coming soon. Currently live: ${livePlatformNames}.`,
-      );
-      return;
-    }
-
-    setDownloading(true);
-    setError("");
-    setSuccess(false);
-
-    try {
-      const response = await fetch("/api/tools/vid/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url,
-          formatId: selectedFormat.id,
-          qualityId: selectedQuality,
-          action: "download",
-        }),
-      });
-
-      if (!response.ok) {
-        const message = await parseErrorResponse(response, "Download failed");
-        throw new Error(message);
-      }
-
-      const blob = await response.blob();
-      const downloadUrl = URL.createObjectURL(blob);
-      const fileName =
-        response.headers.get("Content-Disposition")?.split("filename=")[1] ||
-        `media${selectedFormat.ext}`;
-
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = fileName.replace(/"/g, "");
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(downloadUrl);
-
-      setSuccess(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Download failed");
-    } finally {
-      setDownloading(false);
-    }
-  };
+  const showInstantError = Boolean(instantValidation && url.trim().length > 8);
 
   return (
     <div className="space-y-6">
@@ -252,9 +151,19 @@ export function DownloadHub() {
           Paste a link
         </h2>
         <p className="text-base text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          We detect the platform automatically. Choose a source below or paste
-          any supported URL.
+          We detect the platform and open a download page with format options —
+          MP4, WebM, audio, and more.
         </p>
+      </div>
+
+      <div className="w-full min-w-0">
+        <VidDepsHealthBanner
+          health={toolHealth}
+          loading={healthLoading}
+          healthFetchFailed={healthFetchFailed}
+          onHealthChange={setToolHealth}
+          onRetryHealth={() => void loadToolHealth()}
+        />
       </div>
 
       <div
@@ -312,26 +221,40 @@ export function DownloadHub() {
             placeholder={urlPlaceholder}
             value={url}
             onChange={(e) => handleUrlChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !loading) {
+                void handleAnalyze();
+              }
+            }}
+            disabled={loading}
             className="flex-1"
+            aria-busy={loading}
+            aria-invalid={Boolean(showInstantError || error)}
           />
-          <Button
-            onClick={handleGetInfo}
-            disabled={
-              loading ||
-              !url.trim() ||
-              (detectedPlatform !== null && !isPlatformReady(detectedPlatform))
-            }
-            className="bg-gold hover:bg-gold/90 text-dark-brown font-semibold shrink-0"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Get info"
-            )}
-          </Button>
+          {loading ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={cancel}
+              className="shrink-0 min-w-35"
+            >
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              onClick={handleAnalyze}
+              disabled={
+                !url.trim() ||
+                !ytDlpReady ||
+                Boolean(instantValidation) ||
+                (detectedPlatform !== null &&
+                  !isPlatformReady(detectedPlatform))
+              }
+              className="bg-gold hover:bg-gold/90 text-dark-brown font-semibold shrink-0 min-w-35"
+            >
+              Analyze
+            </Button>
+          )}
         </div>
 
         {detectedPlatform && (
@@ -352,6 +275,15 @@ export function DownloadHub() {
           </div>
         )}
 
+        {showInstantError && (
+          <p
+            className="text-sm text-amber-700 dark:text-amber-400"
+            role="alert"
+          >
+            {instantValidation}
+          </p>
+        )}
+
         {activePlatform && !detectedPlatform && selectedPlatformId && (
           <p className="text-xs text-muted-foreground">
             Tip: paste a {activePlatform.displayName} link and we&apos;ll detect
@@ -360,149 +292,32 @@ export function DownloadHub() {
         )}
       </Card>
 
-      {videoInfo && detectedPlatform && isPlatformReady(detectedPlatform) && (
-        <>
-          <Card className="p-6 space-y-4 border-2 border-green-500/30 bg-green-500/5">
-            <div className="flex gap-4">
-              <div className="shrink-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={videoInfo.thumbnail}
-                  alt={videoInfo.title}
-                  className="w-40 h-24 object-cover rounded-lg border-2 border-gold/20"
-                />
-              </div>
-              <div className="flex-1 space-y-2">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-2">
-                  {videoInfo.title}
-                </h3>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    <span>{videoInfo.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{formatDuration(videoInfo.duration)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{videoInfo.views.toLocaleString()} views</span>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  asChild
-                  className="text-gold hover:text-gold/80"
-                >
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open original
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 space-y-4 border-2 border-gold/20">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Download options
-            </h3>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Format
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {detectedPlatform.supportedFormats.map((format) => (
-                  <button
-                    key={format.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedFormat(format);
-                      const defaultQuality =
-                        format.type === "video"
-                          ? detectedPlatform.videoQualities[0]?.id
-                          : detectedPlatform.audioQualities[0]?.id;
-                      setSelectedQuality(defaultQuality || "");
-                    }}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      selectedFormat?.id === format.id
-                        ? "border-gold bg-gold/10 text-gold"
-                        : "border-gray-300 dark:border-gray-700 hover:border-gold/50"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      {format.type === "video" ? (
-                        <Video className="w-6 h-6" />
-                      ) : (
-                        <Music className="w-6 h-6" />
-                      )}
-                      <span className="font-semibold">{format.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {format.type}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            {selectedFormat && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Quality
-                </label>
-                <select
-                  value={selectedQuality}
-                  onChange={(e) => setSelectedQuality(e.target.value)}
-                  className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-gold focus:ring-2 focus:ring-gold/20"
-                >
-                  {selectedFormat.type === "video"
-                    ? detectedPlatform.videoQualities.map((quality) => (
-                        <option key={quality.id} value={quality.id}>
-                          {quality.label} - {quality.resolution}
-                        </option>
-                      ))
-                    : detectedPlatform.audioQualities.map((quality) => (
-                        <option key={quality.id} value={quality.id}>
-                          {quality.label}
-                        </option>
-                      ))}
-                </select>
-              </div>
-            )}
-            <Button
-              onClick={handleDownload}
-              disabled={downloading || !selectedFormat || !selectedQuality}
-              className="w-full h-12 bg-gold hover:bg-gold/90 text-dark-brown font-bold text-base"
-            >
-              {downloading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <Download className="w-5 h-5 mr-2" />
-                  Download {selectedFormat?.name}
-                </>
-              )}
-            </Button>
-          </Card>
-        </>
+      {loading && (
+        <div className="space-y-4 animate-in fade-in duration-300">
+          <AnalyzeStatusTicker message={statusMessage} elapsedMs={elapsedMs} />
+          <VideoPreviewSkeleton />
+        </div>
       )}
 
       {error && (
-        <Alert className="border-red-500/50 bg-red-500/10 text-red-600 dark:text-red-400">
-          {error}
-        </Alert>
-      )}
-
-      {success && (
-        <Alert className="border-green-500/50 bg-green-500/10 text-green-600 dark:text-green-400 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" />
-          Download started. Check your downloads folder.
-        </Alert>
+        <div className="space-y-3">
+          <Alert className="border-red-500/50 bg-red-500/10 text-red-600 dark:text-red-400">
+            <AlertDescription className="whitespace-normal wrap-break-word leading-relaxed">
+              {error}
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setError("");
+                void handleAnalyze();
+              }}
+            >
+              Try again
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

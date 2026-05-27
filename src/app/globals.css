@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant motion-reduce (@media (prefers-reduced-motion: reduce));
+@custom-variant motion-safe (@media (prefers-reduced-motion: no-preference));
 
 @theme inline {
   --color-background: var(--background);
@@ -172,6 +174,15 @@
   border-color: var(--input);
 }
 
+@keyframes analyze-indeterminate {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -185,6 +196,17 @@
    `sm:group-hover:*` compiling to invalid `@container (width >= media(hover:hover))`
    in some Turbopack + Tailwind v4 dev builds. */
 @layer components {
+  .analyze-progress-indeterminate {
+    animation: analyze-indeterminate 1.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .analyze-progress-indeterminate {
+      animation: none;
+      width: 50%;
+      margin-inline: auto;
+    }
+  }
+
   .flyer-layer-move-affordance {
     transition:
       opacity 150ms ease,

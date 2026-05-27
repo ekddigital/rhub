@@ -1,4 +1,5 @@
 import type { DownloadFormat, DownloadPlatform } from "./types";
+import { validateMediaUrlInput } from "./url-validation";
 import {
   facebookPlatform,
   instagramPlatform,
@@ -52,27 +53,21 @@ export function validateUrl(url: string): {
   videoId?: string;
   error?: string;
 } {
-  try {
-    new URL(url.trim());
-  } catch {
-    return { valid: false, error: "Invalid URL format" };
+  const result = validateMediaUrlInput(url);
+  if (!result.ok) {
+    return { valid: false, error: result.error };
   }
 
-  const platform = detectPlatform(url);
-  if (!platform) {
-    return {
-      valid: false,
-      error:
-        "Unsupported platform. Paste a link from YouTube, Facebook, Instagram, TikTok, X, or Vimeo.",
-    };
-  }
-
-  const videoId = platform.extract(url);
+  const videoId = result.platform.extract(result.normalizedUrl);
   if (!videoId) {
     return { valid: false, error: "Could not extract media ID from URL" };
   }
 
-  return { valid: true, platform, videoId };
+  return {
+    valid: true,
+    platform: result.platform,
+    videoId,
+  };
 }
 
 export function getAvailableFormats(

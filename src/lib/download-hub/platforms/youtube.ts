@@ -9,16 +9,17 @@ export const youtubePlatform = createPlatform({
   icon: "🎥",
   status: "live",
   urlPattern:
-    /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|shorts\/)?([a-zA-Z0-9_-]{11})/,
-  urlPlaceholder: "https://www.youtube.com/watch?v=...",
+    /^(https?:\/\/)?((?:www\.)?youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+  urlPlaceholder:
+    "https://www.youtube.com/watch?v=... or youtu.be/... or /shorts/...",
   videoQualities,
   audioQualities,
   supportedFormats: [formats.mp4, formats.webm, formats.mp3, formats.m4a],
   features: [
     "Multiple quality options",
     "Audio extraction",
-    "Subtitles support",
-    "Fast processing",
+    "Shorts and live URLs",
+    "yt-dlp extraction",
   ],
-  extractGroupIndex: 5,
+  extractGroupIndex: 3,
 });

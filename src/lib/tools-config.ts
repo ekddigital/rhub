@@ -177,9 +177,9 @@ export const TOOLS: ToolConfig[] = [
   {
     slug: "vid",
     title: "Download Hub",
-    tagline: "YouTube, Facebook, Instagram & more",
+    tagline: "YouTube, Facebook, Instagram, TikTok, X, Vimeo",
     summary:
-      "Download videos and audio from multiple platforms in one place. YouTube, Facebook, and Instagram are live, with more platforms rolling out on a shared pipeline.",
+      "Download videos and audio from multiple platforms in one place, including YouTube, Facebook, Instagram, TikTok, X, and Vimeo.",
     category: "media",
     group: "download",
     subcategory: "video",
@@ -196,7 +196,14 @@ export const TOOLS: ToolConfig[] = [
         "Twitter/X",
         "Vimeo",
       ],
-      liveSites: ["YouTube", "Facebook", "Instagram"],
+      liveSites: [
+        "YouTube",
+        "Facebook",
+        "Instagram",
+        "TikTok",
+        "Twitter/X",
+        "Vimeo",
+      ],
       formats: ["MP4", "WebM", "MP3", "M4A"],
       qualities: ["4K", "1080p", "720p", "480p", "360p"],
     },
