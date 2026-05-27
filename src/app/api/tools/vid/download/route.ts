@@ -7,6 +7,7 @@ import {
 } from "@/lib/vid/platforms-config";
 import { getLivePlatforms } from "@/lib/download-hub/client";
 import {
+  downloadWithSelector,
   getVideoSession,
   httpStatusForYtDlpError,
   isYtDlpUnavailableMessage,
@@ -18,6 +19,21 @@ import type { VideoQuality, AudioQuality } from "@/lib/vid/platforms-config";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+type SessionDownloadFallback = {
+  url: string;
+  title: string;
+  platformId: string;
+  platformDisplayName: string;
+  formatOption: {
+    id: string;
+    kind: "video" | "audio";
+    ext: string;
+    mime: string;
+    ytdlpSelector: string;
+    requiresFfmpeg?: boolean;
+  };
+};
 
 function buildComingSoonError(platformName: string): string {
   const liveList = getLivePlatforms()
@@ -78,8 +94,52 @@ async function logDownloadJob(
 async function handleSessionDownload(
   sessionId: string,
   formatOptionId: string,
+  fallback?: SessionDownloadFallback,
 ): Promise<NextResponse> {
   const session = getVideoSession(sessionId);
+
+  if (!session && fallback) {
+    const safeUrl = sanitizeMediaUrl(fallback.url);
+    const option = fallback.formatOption;
+
+    if (option.id !== formatOptionId) {
+      return jsonError("Invalid download option for this session.", safeUrl);
+    }
+
+    const result = await downloadWithSelector(
+      safeUrl,
+      option.ytdlpSelector,
+      option.ext,
+      fallback.title,
+    );
+
+    await logDownloadJob(
+      fallback.platformId,
+      fallback.platformDisplayName,
+      option.id,
+      option.kind,
+      option.id,
+      {
+        ...result,
+        processingTime: 0,
+      },
+    );
+
+    const fileName = result.fileName.endsWith(option.ext)
+      ? result.fileName
+      : `${result.fileName.replace(/\.[^.]+$/, "")}${option.ext}`;
+
+    return new NextResponse(new Uint8Array(result.buffer), {
+      headers: {
+        "Content-Type": option.mime || "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+        "X-File-Size": result.size.toString(),
+        "X-Duration": result.duration?.toString() || "0",
+        "X-Platform": fallback.platformDisplayName,
+      },
+    });
+  }
+
   if (!session) {
     return jsonError("Session expired or not found. Paste the URL again.");
   }
@@ -112,19 +172,32 @@ export async function POST(req: NextRequest) {
   let requestUrl: string | undefined;
   try {
     const body = await req.json();
-    const { url, formatId, qualityId, action, platformId, sessionId, formatOptionId } =
-      body as {
-        url?: string;
-        formatId?: string;
-        qualityId?: string;
-        action?: "info" | "download";
-        platformId?: string;
-        sessionId?: string;
-        formatOptionId?: string;
-      };
+    const {
+      url,
+      formatId,
+      qualityId,
+      action,
+      platformId,
+      sessionId,
+      formatOptionId,
+      fallbackSession,
+    } = body as {
+      url?: string;
+      formatId?: string;
+      qualityId?: string;
+      action?: "info" | "download";
+      platformId?: string;
+      sessionId?: string;
+      formatOptionId?: string;
+      fallbackSession?: SessionDownloadFallback;
+    };
 
     if (sessionId && formatOptionId) {
-      return await handleSessionDownload(sessionId, formatOptionId);
+      return await handleSessionDownload(
+        sessionId,
+        formatOptionId,
+        fallbackSession,
+      );
     }
 
     if (!url) {

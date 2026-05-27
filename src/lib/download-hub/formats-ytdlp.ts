@@ -17,10 +17,16 @@ type RawYtDlpFormat = {
   resolution?: string;
 };
 
-function formatBytes(bytes?: number): string | undefined {
+type SizeEstimate = {
+  bytes?: number;
+  approximate: boolean;
+};
+
+function formatBytes(bytes?: number, approximate = true): string | undefined {
   if (!bytes || bytes <= 0) return undefined;
-  if (bytes < 1024 * 1024) return `~${(bytes / 1024).toFixed(0)} KB`;
-  return `~${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const prefix = approximate ? "~" : "";
+  if (bytes < 1024 * 1024) return `${prefix}${(bytes / 1024).toFixed(0)} KB`;
+  return `${prefix}${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function mimeForExt(ext: string, kind: "video" | "audio"): string {
@@ -49,8 +55,57 @@ function isUsableFormat(format: RawYtDlpFormat): boolean {
   return true;
 }
 
-function pickFilesize(format: RawYtDlpFormat): number | undefined {
-  return format.filesize ?? format.filesize_approx;
+function bitrateEstimate(
+  format: RawYtDlpFormat | undefined,
+  durationSec: number,
+): SizeEstimate {
+  if (!format?.tbr || !durationSec) {
+    return { bytes: undefined, approximate: true };
+  }
+
+  return {
+    bytes: Math.round((format.tbr * 1000 * durationSec) / 8),
+    approximate: true,
+  };
+}
+
+function pickFilesize(
+  format: RawYtDlpFormat | undefined,
+  durationSec: number,
+): SizeEstimate {
+  if (format?.filesize && format.filesize > 0) {
+    return { bytes: format.filesize, approximate: false };
+  }
+
+  if (format?.filesize_approx && format.filesize_approx > 0) {
+    return { bytes: format.filesize_approx, approximate: true };
+  }
+
+  return bitrateEstimate(format, durationSec);
+}
+
+function estimatePresetSize(
+  mergedFormats: RawYtDlpFormat[],
+  ext: string,
+  maxHeight?: number,
+  durationSec = 0,
+): SizeEstimate {
+  const candidates = mergedFormats.filter((format) => {
+    const matchesExt = (format.ext === "webm" ? "webm" : "mp4") === ext;
+    const withinHeight =
+      maxHeight === undefined ||
+      (typeof format.height === "number" && format.height <= maxHeight);
+    return matchesExt && withinHeight;
+  });
+
+  const candidate = candidates.sort((a, b) => {
+    const ah = a.height ?? 0;
+    const bh = b.height ?? 0;
+    if (ah !== bh) return bh - ah;
+    return (b.tbr ?? 0) - (a.tbr ?? 0);
+  })[0];
+
+  return pickFilesize(candidate, durationSec);
 }
 
 export function buildFormatOptions(
@@ -86,11 +141,8 @@ export function buildFormatOptions(
     heightsSeen.add(height);
 
     const ext = format.ext === "webm" ? "webm" : "mp4";
-    const filesize =
-      pickFilesize(format) ??
-      (format.tbr && durationSec
-        ? Math.round((format.tbr * 1000 * durationSec) / 8)
-        : undefined);
+    const filesizeMeta = pickFilesize(format, durationSec);
+    const filesize = filesizeMeta.bytes;
 
     addOption({
       id: `video-${ext}-${height}p`,
@@ -103,14 +155,20 @@ export function buildFormatOptions(
       fps: format.fps,
       codec: format.vcodec,
       filesize,
-      filesizeLabel: formatBytes(filesize),
+      filesizeLabel: formatBytes(filesize, filesizeMeta.approximate),
       ytdlpSelector: `best[height<=${height}][ext=${ext}]/best[height<=${height}]/best[ext=${ext}]/best`,
       recommended: height === merged[0]?.height,
     });
   }
 
   // Preset quality tiers (works even when merged streams aren't listed)
-  const presets: Array<{ id: string; label: string; ext: string; selector: string }> =
+  const presets: Array<{
+    id: string;
+    label: string;
+    ext: string;
+    selector: string;
+    maxHeight?: number;
+  }> =
     [
       {
         id: "video-mp4-best",
@@ -128,6 +186,7 @@ export function buildFormatOptions(
         id: "video-1080p",
         label: "1080p MP4",
         ext: "mp4",
+        maxHeight: 1080,
         selector:
           "best[height<=1080][ext=mp4]/best[height<=1080]/best[ext=mp4]/best",
       },
@@ -135,6 +194,7 @@ export function buildFormatOptions(
         id: "video-720p",
         label: "720p MP4",
         ext: "mp4",
+        maxHeight: 720,
         selector:
           "best[height<=720][ext=mp4]/best[height<=720]/best[ext=mp4]/best",
       },
@@ -142,18 +202,28 @@ export function buildFormatOptions(
         id: "video-480p",
         label: "480p MP4",
         ext: "mp4",
+        maxHeight: 480,
         selector:
           "best[height<=480][ext=mp4]/best[height<=480]/best[ext=mp4]/best",
       },
     ];
 
   for (const preset of presets) {
+    const sizeMeta = estimatePresetSize(
+      merged,
+      preset.ext,
+      preset.maxHeight,
+      durationSec,
+    );
+
     addOption({
       id: preset.id,
       label: preset.label,
       kind: "video",
       ext: `.${preset.ext}`,
       mime: mimeForExt(preset.ext, "video"),
+      filesize: sizeMeta.bytes,
+      filesizeLabel: formatBytes(sizeMeta.bytes, sizeMeta.approximate),
       ytdlpSelector: preset.selector,
       recommended: preset.id === "video-mp4-best",
     });
@@ -164,11 +234,8 @@ export function buildFormatOptions(
     .filter((f) => f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"))
     .sort((a, b) => (b.tbr ?? 0) - (a.tbr ?? 0))[0];
 
-  const audioSize =
-    pickFilesize(bestAudio) ??
-    (bestAudio?.tbr && durationSec
-      ? Math.round((bestAudio.tbr * 1000 * durationSec) / 8)
-      : undefined);
+  const audioSizeMeta = pickFilesize(bestAudio, durationSec);
+  const audioSize = audioSizeMeta.bytes;
 
   addOption({
     id: "audio-m4a",
@@ -178,7 +245,7 @@ export function buildFormatOptions(
     mime: mimeForExt("m4a", "audio"),
     codec: bestAudio?.acodec,
     filesize: audioSize,
-    filesizeLabel: formatBytes(audioSize),
+    filesizeLabel: formatBytes(audioSize, audioSizeMeta.approximate),
     ytdlpSelector: "bestaudio[ext=m4a]/bestaudio/best",
     recommended: true,
   });
@@ -191,7 +258,7 @@ export function buildFormatOptions(
     mime: mimeForExt("mp3", "audio"),
     codec: bestAudio?.acodec,
     filesize: audioSize,
-    filesizeLabel: formatBytes(audioSize),
+    filesizeLabel: formatBytes(audioSize, audioSizeMeta.approximate),
     ytdlpSelector: "bestaudio/best",
     requiresFfmpeg: true,
   });

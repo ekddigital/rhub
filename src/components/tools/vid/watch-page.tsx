@@ -74,6 +74,8 @@ export function WatchPage({ platformRouteSlug, sessionId }: WatchPageProps) {
   }, [loadSession]);
 
   const handleDownload = async (formatOptionId: string) => {
+    const selectedFormat = session?.formats.find((f) => f.id === formatOptionId);
+
     setDownloadingId(formatOptionId);
     setDownloadSuccess(false);
     setDownloadError("");
@@ -82,7 +84,28 @@ export function WatchPage({ platformRouteSlug, sessionId }: WatchPageProps) {
       const response = await fetch("/api/tools/vid/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, formatOptionId }),
+        body: JSON.stringify({
+          sessionId,
+          formatOptionId,
+          ...(session && selectedFormat
+            ? {
+                fallbackSession: {
+                  url: session.url,
+                  title: session.title,
+                  platformId: session.platformId,
+                  platformDisplayName: session.platformDisplayName,
+                  formatOption: {
+                    id: selectedFormat.id,
+                    kind: selectedFormat.kind,
+                    ext: selectedFormat.ext,
+                    mime: selectedFormat.mime,
+                    ytdlpSelector: selectedFormat.ytdlpSelector,
+                    requiresFfmpeg: selectedFormat.requiresFfmpeg,
+                  },
+                },
+              }
+            : {}),
+        }),
       });
 
       if (!response.ok) {

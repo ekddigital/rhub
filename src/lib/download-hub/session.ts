@@ -4,6 +4,8 @@ import { buildFormatOptions } from "./formats-ytdlp";
 import { isPlatformReady, validateUrl } from "./registry";
 import { extractFullWithYtDlp, sanitizeMediaUrl } from "./yt-dlp";
 import { isFfmpegAvailable } from "./ffmpeg";
+import { checkRemoteDownloadHubDeps } from "./install-via-terminal";
+import { isTtydConfigured } from "./ttyd-config";
 import { putVideoSession, toSessionResponse } from "./video-cache";
 import type { VideoSession, VideoSessionResponse } from "./types";
 
@@ -42,7 +44,19 @@ export async function createVideoSession(
     throw error;
   }
 
-  const ffmpegAvailable = await isFfmpegAvailable();
+  const localFfmpegAvailable = await isFfmpegAvailable();
+  let remoteFfmpegAvailable = false;
+
+  if (!localFfmpegAvailable && isTtydConfigured()) {
+    try {
+      const remote = await checkRemoteDownloadHubDeps();
+      remoteFfmpegAvailable = remote.ffmpeg;
+    } catch {
+      remoteFfmpegAvailable = false;
+    }
+  }
+
+  const ffmpegAvailable = localFfmpegAvailable || remoteFfmpegAvailable;
 
   const formats = metadata.isPlaylist
     ? []

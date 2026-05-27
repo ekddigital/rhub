@@ -389,19 +389,37 @@ async function runYtDlpViaTtyd(
 ): Promise<{ stdout: Buffer; stderr: string }> {
   const commandArgs = args.map((arg) => quoteForShell(arg)).join(" ");
 
-  const script = [
+  const baseSetup = [
     "set -e",
     'export PATH="$HOME/bin:/usr/local/bin:/usr/bin:$PATH"',
     'YTDLP_BIN="${YT_DLP_BIN:-${YTDLP_BIN:-}}"',
     'if [ -z "$YTDLP_BIN" ]; then YTDLP_BIN="$(command -v yt-dlp || true)"; fi',
     'if [ -z "$YTDLP_BIN" ] && [ -x "$HOME/bin/yt-dlp" ]; then YTDLP_BIN="$HOME/bin/yt-dlp"; fi',
     'if [ -z "$YTDLP_BIN" ]; then echo "yt-dlp is not installed or not available on the server."; exit 127; fi',
-    'TMP_ERR="$(mktemp)"',
-    `"$YTDLP_BIN" ${commandArgs} 2>"$TMP_ERR"`,
-    'RC=$?',
-    'if [ $RC -ne 0 ]; then cat "$TMP_ERR"; rm -f "$TMP_ERR"; exit $RC; fi',
-    'rm -f "$TMP_ERR"',
-  ].join("; ");
+  ];
+
+  const script =
+    options.phase === "download"
+      ? [
+          ...baseSetup,
+          'TMP_ERR="$(mktemp)"',
+          'TMP_OUT="$(mktemp)"',
+          `"$YTDLP_BIN" ${commandArgs} 1>"$TMP_OUT" 2>"$TMP_ERR"`,
+          "RC=$?",
+          'if [ $RC -ne 0 ]; then cat "$TMP_ERR"; rm -f "$TMP_ERR" "$TMP_OUT"; exit $RC; fi',
+          `SIZE="$(wc -c < \"$TMP_OUT\" | tr -d ' ')"`,
+          `if [ \"$SIZE\" -gt ${String(options.maxBytes ?? maxBytes())} ]; then echo \"__SIZE_EXCEEDED__:$SIZE\"; rm -f \"$TMP_ERR\" \"$TMP_OUT\"; exit 122; fi`,
+          'base64 "$TMP_OUT" | tr -d "\\n"',
+          'rm -f "$TMP_ERR" "$TMP_OUT"',
+        ].join("; ")
+      : [
+          ...baseSetup,
+          'TMP_ERR="$(mktemp)"',
+          `"$YTDLP_BIN" ${commandArgs} 2>"$TMP_ERR"`,
+          "RC=$?",
+          'if [ $RC -ne 0 ]; then cat "$TMP_ERR"; rm -f "$TMP_ERR"; exit $RC; fi',
+          'rm -f "$TMP_ERR"',
+        ].join("; ");
 
   const result = await executeRemoteCommand({
     command: `bash -lc ${quoteForShell(script)}`,
@@ -410,15 +428,34 @@ async function runYtDlpViaTtyd(
   });
 
   if (!result.success) {
+    const remoteOutput = result.output ?? "";
+    const sizeMatch = remoteOutput.match(/__SIZE_EXCEEDED__:(\d+)/);
+    if (sizeMatch?.[1]) {
+      const limit = options.maxBytes ?? maxBytes();
+      throw new Error(
+        `File exceeds maximum size (${Math.round(limit / (1024 * 1024))} MB)`,
+      );
+    }
+
     throw new Error(
-      result.output ||
+      remoteOutput ||
         result.error ||
         options.timeoutMessage ||
-        (options.phase === "info" ? "Metadata fetch timed out" : "Download timed out"),
+        (options.phase === "info"
+          ? "Metadata fetch timed out"
+          : "Download timed out"),
     );
   }
 
-  const stdout = Buffer.from(result.output ?? "", "utf8");
+  const stdout =
+    options.phase === "download"
+      ? Buffer.from((result.output ?? "").trim(), "base64")
+      : Buffer.from(result.output ?? "", "utf8");
+
+  if (options.phase === "download" && stdout.length === 0) {
+    throw new Error("yt-dlp returned an empty download stream");
+  }
+
   if (options.maxBytes && stdout.length > options.maxBytes) {
     throw new Error(
       `File exceeds maximum size (${Math.round(options.maxBytes / (1024 * 1024))} MB)`,
@@ -443,7 +480,10 @@ function runYtDlp(
     try {
       binaryPath = await resolveYtDlpPath();
     } catch (error) {
-      if (options.phase === "info" && isTtydConfigured()) {
+      if (
+        isTtydConfigured() &&
+        (options.phase === "info" || options.phase === "download")
+      ) {
         try {
           const remoteResult = await runYtDlpViaTtyd(args, options);
           resolve(remoteResult);
@@ -639,7 +679,51 @@ async function downloadMp3ToBuffer(
 ): Promise<YtDlpDownloadResult> {
   const ffmpegPath = await resolveFfmpegPath();
   if (!ffmpegPath) {
-    throw new Error(FFMPEG_REQUIRED_MESSAGE);
+    if (!isTtydConfigured()) {
+      throw new Error(FFMPEG_REQUIRED_MESSAGE);
+    }
+
+    const remoteArgs = [
+      "--no-part",
+      "-f",
+      ytdlpSelector,
+      "-x",
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "0",
+      "-o",
+      "-",
+      ...baseYtDlpArgs(url),
+    ];
+
+    const { stdout } = await runYtDlp(remoteArgs, {
+      timeoutMs: downloadTimeoutMs(),
+      maxBytes: maxBytes(),
+      phase: "download",
+    });
+
+    if (!isMp3Buffer(stdout)) {
+      throw new Error(
+        "MP3 conversion failed — output is not a valid MP3 file. Ensure ffmpeg is installed.",
+      );
+    }
+
+    return {
+      buffer: stdout,
+      fileName: `${sanitizeFileName(title)}.mp3`,
+      format: "mp3",
+      size: stdout.length,
+      duration: meta?.duration,
+      metadata: {
+        title,
+        author: meta?.author,
+        thumbnail: meta?.thumbnail,
+        description: meta?.description || undefined,
+        views: meta?.views,
+        uploadDate: meta?.uploadDate,
+      },
+    };
   }
 
   const jobDir = path.join(os.tmpdir(), "rhub-download-hub", "jobs", nanoid());
