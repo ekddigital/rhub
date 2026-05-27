@@ -70,7 +70,7 @@ This installs yt-dlp to `~/bin/yt-dlp` and ffmpeg via `apt-get`.
 | Setup | Result |
 |-------|--------|
 | rhub on **production VPS**, TTYD → same VPS | Install + health both work |
-| rhub on **Mac (dev)**, TTYD → production VPS | Remote install succeeds; local health still fails — **expected**. Run setup from production rhub, or unset TTYD vars locally and use Homebrew |
+| rhub on **Mac (dev)**, TTYD → production VPS | Remote install can succeed, but downloads still run from the local Next.js host. Use production rhub on the VPS for real download execution. |
 | TTYD → wrong VPS | Point TTYD at the host where rhub/Node runs |
 
 Set `YT_DLP_BIN` / `FFMPEG_BIN` after install if binaries are not on default PATH.
@@ -81,15 +81,8 @@ The server resolves, in order:
 
 1. `YT_DLP_BIN` / `YTDLP_BIN` env var
 2. `~/bin/yt-dlp`, `/opt/homebrew/bin/yt-dlp`, `/usr/local/bin/yt-dlp`, `/usr/bin/yt-dlp`
-3. **Local dev only** (when `TTYD_BASE_URL` + `TTYD_KEY` are unset): auto-download to temp `rhub-download-hub/yt-dlp`
 
-When TTYD is configured, **no** GitHub download into local temp — install via TTYD API or set `YT_DLP_BIN`.
-
-On macOS dev **without** TTYD:
-
-```bash
-brew install yt-dlp ffmpeg
-```
+Install via TTYD API or set `YT_DLP_BIN` to a server path.
 
 Check dependencies: `GET /api/tools/vid/health` → `{ ytDlp, ffmpeg, paths, hints, ttydConfigured, terminalUrl }`.
 

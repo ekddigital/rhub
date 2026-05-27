@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 /**
- * GET: Check yt-dlp/ffmpeg on the TTYD host and locally (same pattern as admin/setup GET).
+ * GET: Check yt-dlp/ffmpeg on the TTYD host and on the current Next.js runtime host.
  */
 export async function GET() {
   try {

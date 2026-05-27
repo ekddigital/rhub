@@ -1,9 +1,9 @@
 import {
-  YT_DLP_INSTALL_HINT_DEV,
   YT_DLP_NOT_INSTALLED_MESSAGE,
   YT_DLP_README_PATH,
 } from "./constants";
 import { FFMPEG_REQUIRED_MESSAGE, mapFfmpegError } from "./ffmpeg";
+import { isTtydConfigured } from "./ttyd-config";
 import { isYtDlpUnavailableMessage } from "./yt-dlp-binary";
 
 export type YtDlpErrorKind =
@@ -177,8 +177,12 @@ export function mapYtDlpError(
 
   switch (kind) {
     case "missing":
-      if (process.env.NODE_ENV === "development") {
-        return `${YT_DLP_NOT_INSTALLED_MESSAGE} Install locally: \`${YT_DLP_INSTALL_HINT_DEV}\`. See ${YT_DLP_README_PATH}.`;
+      if (isTtydConfigured()) {
+        return (
+          `${YT_DLP_NOT_INSTALLED_MESSAGE} ` +
+          "Install on the VPS via \"Install on server\" or POST /api/tools/vid/setup. " +
+          `See ${YT_DLP_README_PATH}.`
+        );
       }
       return `${YT_DLP_NOT_INSTALLED_MESSAGE} Contact an administrator or install yt-dlp on the server.`;
 

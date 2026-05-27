@@ -4,7 +4,6 @@ import {
   httpStatusForYtDlpError,
   isYtDlpUnavailableMessage,
   mapYtDlpError,
-  YT_DLP_INSTALL_HINT_DEV,
   YT_DLP_MISSING_CODE,
 } from "@/lib/download-hub/server";
 
@@ -43,7 +42,8 @@ export async function POST(req: NextRequest) {
         ...(isYtDlpUnavailableMessage(message)
           ? {
               code: YT_DLP_MISSING_CODE,
-              installHint: YT_DLP_INSTALL_HINT_DEV,
+              installHint:
+                'Install on the VPS via "Install on server" or POST /api/tools/vid/setup.',
             }
           : {}),
       },

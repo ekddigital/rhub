@@ -188,8 +188,7 @@ export function getHostMismatchWarning(
       "but this Next.js process runs elsewhere and cannot spawn those binaries locally. " +
       "Production: run Download Hub on that host (call POST /api/tools/vid/setup from production rhub) " +
       "and set YT_DLP_BIN / FFMPEG_BIN if needed. " +
-      "Local dev: unset TTYD_BASE_URL and TTYD_KEY in your local .env and use Homebrew — " +
-      "a remote install will not make yt-dlp available on your Mac."
+      "If this page is running on localhost while TTYD targets the VPS, remote install status can be healthy but downloads will remain unavailable in this local runtime."
     );
   }
 

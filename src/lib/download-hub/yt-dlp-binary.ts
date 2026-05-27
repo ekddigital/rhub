@@ -1,7 +1,7 @@
 import "server-only";
 
 import { spawn } from "node:child_process";
-import { access, chmod, mkdir, rm, writeFile } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -106,12 +106,6 @@ function ytDlpBinFromEnv(): string | undefined {
   );
 }
 
-function bundledYtDlpAssetName(): string {
-  if (process.platform === "win32") return "yt-dlp.exe";
-  if (process.platform === "darwin") return "yt-dlp_macos";
-  return "yt-dlp";
-}
-
 /** PATH used when spawning yt-dlp (helps python-script builds find python3). */
 export function buildYtDlpSpawnEnv(): NodeJS.ProcessEnv {
   const defaults =
@@ -189,30 +183,6 @@ async function pathIsUsable(candidate: string): Promise<boolean> {
   }
 }
 
-async function downloadBundledYtDlp(destPath: string): Promise<void> {
-  const asset = bundledYtDlpAssetName();
-  const url = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${asset}`;
-  const response = await fetch(url, { redirect: "follow" });
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to download yt-dlp from GitHub (${response.status}). Install manually: ${YT_DLP_INSTALL_HINT_DEV}`,
-    );
-  }
-
-  await mkdir(path.dirname(destPath), { recursive: true });
-  const buffer = Buffer.from(await response.arrayBuffer());
-  await writeFile(destPath, buffer, { mode: 0o755 });
-  await chmod(destPath, 0o755);
-
-  if (!(await verifyYtDlpBinary(destPath))) {
-    await rm(destPath, { force: true }).catch(() => undefined);
-    throw new Error(
-      `Downloaded yt-dlp at ${destPath} is not runnable. Install manually: ${YT_DLP_INSTALL_HINT_DEV}`,
-    );
-  }
-}
-
 async function resolveYtDlpPathInternal(): Promise<string> {
   const candidates: string[] = [];
 
@@ -223,10 +193,6 @@ async function resolveYtDlpPathInternal(): Promise<string> {
 
   candidates.push(...SYSTEM_CANDIDATE_PATHS);
 
-  if (!isTtydConfigured()) {
-    candidates.push(LOCAL_YT_DLP_PATH);
-  }
-
   const seen = new Set<string>();
   for (const candidate of candidates) {
     const normalized = path.resolve(candidate);
@@ -235,17 +201,6 @@ async function resolveYtDlpPathInternal(): Promise<string> {
 
     if (await pathIsUsable(normalized)) {
       return normalized;
-    }
-
-    if (
-      !isTtydConfigured() &&
-      normalized === path.resolve(LOCAL_YT_DLP_PATH)
-    ) {
-      await rm(normalized, { force: true }).catch(() => undefined);
-      await downloadBundledYtDlp(normalized);
-      if (await pathIsUsable(normalized)) {
-        return normalized;
-      }
     }
   }
 

@@ -62,9 +62,8 @@ export function buildDownloadHubStatusMessage(
   if (ttydConfigured && remoteOk) {
     return (
       "Tools are installed on the server (TTYD host). " +
-      "This dev app runs on your Mac — downloads need yt-dlp and ffmpeg locally, " +
-      "or deploy rhub on the VPS and set YT_DLP_BIN / FFMPEG_BIN to the paths below. " +
-      "Remote paths are not usable from a different machine."
+      "Downloads only work when this Next.js process runs on that same host. " +
+      "Run rhub on the VPS and set YT_DLP_BIN / FFMPEG_BIN to the paths below if needed."
     );
   }
 
@@ -76,9 +75,7 @@ export function buildDownloadHubStatusMessage(
   }
 
   if (ttydConfigured) {
-    return (
-      "Install yt-dlp and ffmpeg on the TTYD host, or locally for this machine."
-    );
+    return "Install yt-dlp and ffmpeg on the TTYD host.";
   }
 
   return "Install yt-dlp and ffmpeg on this machine to enable downloads.";

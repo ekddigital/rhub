@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { VideoFormatOption } from "@/lib/download-hub/client";
-import { FFMPEG_INSTALL_HINT_DEV } from "@/lib/download-hub/constants";
 
 type FormatPickerProps = {
   formats: VideoFormatOption[];
@@ -32,10 +31,7 @@ export function FormatPicker({
           className="text-sm text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2"
           role="note"
         >
-          MP3 requires ffmpeg on the server.{" "}
-          {process.env.NODE_ENV === "development" && (
-            <>Install locally: <code className="text-xs">{FFMPEG_INSTALL_HINT_DEV}</code>. </>
-          )}
+          MP3 requires ffmpeg on the runtime server.
           Use Audio M4A if MP3 is unavailable.
         </p>
       )}
