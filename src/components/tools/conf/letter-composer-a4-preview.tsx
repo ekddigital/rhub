@@ -214,6 +214,7 @@ export function LetterA4Preview({
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
   const bodySheetCount = 1 + continuationBodies.length;
   const includePromotionalFlyer =
+    draft.fundraisingCategory !== "miss_lsuic" &&
     Boolean(confId.trim()) &&
     (draft.fundraisingEnabled || draft.type === "FUNDRAISING");
   const totalPages = bodySheetCount + (includePromotionalFlyer ? 1 : 0);

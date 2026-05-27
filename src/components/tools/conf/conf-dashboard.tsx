@@ -139,6 +139,22 @@ const NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
+    href: "/tools/conf/letterhead",
+    icon: Download,
+    title: "Letterhead Downloads",
+    desc: "Header, sidebar, and footer PNG/SVG pieces for Word & Google Docs",
+    color: "text-[#C8A061]",
+    minAccess: "manager",
+  },
+  {
+    href: "/tools/conf/letters",
+    icon: FileText,
+    title: "Letter Composer",
+    desc: "Official LSUIC letters, fundraising templates, and PDF export",
+    color: "text-[#002868]",
+    minAccess: "manager",
+  },
+  {
     href: "/tools/kit?surface=fly",
     icon: Megaphone,
     title: "Flyer Studio",

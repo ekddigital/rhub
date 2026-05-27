@@ -798,6 +798,232 @@ export async function exportToPDF(
   }
 }
 
+export type ExportToDocxOptions = Omit<ExportToPdfOptions, "mode">;
+
+function dataUrlToUint8Array(dataUrl: string): Uint8Array {
+  const base64 = dataUrl.split(",")[1] ?? "";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function loadImageElement(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+/** Composite SVG PNG overlays onto a page canvas (same positions as PDF export). */
+async function compositePageWithSvgOverlays(
+  baseCanvas: HTMLCanvasElement,
+  svgsOnPage: {
+    png: string;
+    xMm: number;
+    yMm: number;
+    wMm: number;
+    hMm: number;
+  }[],
+  pageWidthMm: number,
+  pageHeightMm: number,
+): Promise<HTMLCanvasElement> {
+  if (svgsOnPage.length === 0) return baseCanvas;
+  const out = document.createElement("canvas");
+  out.width = baseCanvas.width;
+  out.height = baseCanvas.height;
+  const ctx = out.getContext("2d");
+  if (!ctx) return baseCanvas;
+  ctx.drawImage(baseCanvas, 0, 0);
+  for (const { png, xMm, yMm, wMm, hMm } of svgsOnPage) {
+    if (wMm <= 0 || hMm <= 0) continue;
+    try {
+      const img = await loadImageElement(png);
+      const x = (xMm / pageWidthMm) * out.width;
+      const y = (yMm / pageHeightMm) * out.height;
+      const w = (wMm / pageWidthMm) * out.width;
+      const h = (hMm / pageHeightMm) * out.height;
+      ctx.drawImage(img, x, y, w, h);
+    } catch {
+      // Skip overlay if image fails to load
+    }
+  }
+  return out;
+}
+
+/**
+ * Export paginated letter pages to Word (.docx).
+ * Each page is captured via html2canvas (same pipeline as PDF) and embedded as a full-page image.
+ */
+export async function exportToDocx(
+  containerId: string = "letter-print-root",
+  filename: string = "letter",
+  onProgress?: (pct: number, stage: string) => void,
+  opts?: ExportToDocxOptions,
+): Promise<void> {
+  onProgress?.(5, "Loading modules…");
+  const html2canvas = (await import("html2canvas")).default;
+  const { Document, ImageRun, Packer, Paragraph } = await import("docx");
+  const { saveAs } = await import("file-saver");
+
+  const pageSelector = opts?.pageSelector ?? ".letter-page";
+  const wrapSel: string | null =
+    opts?.pageWrapperSelector === undefined
+      ? ".a4-page-wrapper"
+      : opts.pageWrapperSelector;
+  const canvasScale = opts?.canvasScale ?? 2;
+  const jpegQuality = opts?.jpegQuality ?? 0.92;
+  const svgRasterScale = opts?.svgRasterScale ?? 4;
+  const maxInlineImagePixels = opts?.maxInlineImagePixels;
+
+  const nearestPageWrapper = (page: HTMLElement) =>
+    wrapSel ? page.closest<HTMLElement>(wrapSel) : null;
+
+  const container = document.getElementById(containerId);
+  if (!container) {
+    throw new Error(`Container #${containerId} not found`);
+  }
+
+  const pages = container.querySelectorAll<HTMLElement>(pageSelector);
+  if (pages.length === 0) {
+    throw new Error(
+      `No ${pageSelector} elements found in the container #${containerId}`,
+    );
+  }
+
+  const pdfWidth = A4.mm.width;
+  const pdfHeight = A4.mm.height;
+
+  onProgress?.(12, "Loading fonts…");
+  await document.fonts.ready;
+
+  onProgress?.(20, "Processing images…");
+  const restoreImages = await inlineAllImages(
+    container,
+    maxInlineImagePixels,
+  );
+
+  onProgress?.(38, "Rendering SVGs…");
+  const { rasterMap, restore: restoreSVGs } = await rasterizeSVGs(
+    container,
+    svgRasterScale,
+  );
+
+  onProgress?.(48, "Laying out pages…");
+  await new Promise((r) => setTimeout(r, 300));
+
+  const pageParagraphs: InstanceType<typeof Paragraph>[] = [];
+
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      const pagePct = 50 + Math.round(((i + 0.5) / pages.length) * 38);
+      onProgress?.(pagePct, `Capturing page ${i + 1} of ${pages.length}…`);
+
+      const wrapper = nearestPageWrapper(page);
+      const originalTransform = wrapper?.style.transform;
+      const originalMarginBottom = wrapper?.style.marginBottom;
+      if (wrapper) {
+        wrapper.style.transform = "none";
+        wrapper.style.marginBottom = "0";
+      }
+
+      const pageRect = page.getBoundingClientRect();
+
+      const svgsOnPage = Array.from(
+        page.querySelectorAll<HTMLImageElement>("img"),
+      )
+        .filter((img) => rasterMap.has(img))
+        .map((img) => {
+          const r = img.getBoundingClientRect();
+          const xMm = ((r.left - pageRect.left) / pageRect.width) * pdfWidth;
+          const yMm = ((r.top - pageRect.top) / pageRect.height) * pdfHeight;
+          const wMm = (r.width / pageRect.width) * pdfWidth;
+          const hMm = (r.height / pageRect.height) * pdfHeight;
+          return { img, png: rasterMap.get(img)!, xMm, yMm, wMm, hMm };
+        });
+
+      for (const { img } of svgsOnPage) img.style.visibility = "hidden";
+
+      const canvas = await html2canvas(page, {
+        scale: canvasScale,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#FFFFFF",
+        width: A4.px96.width,
+        height: A4.px96.height,
+        logging: false,
+        imageTimeout: 30000,
+        removeContainer: true,
+      });
+
+      for (const { img } of svgsOnPage) img.style.visibility = "";
+
+      if (wrapper) {
+        wrapper.style.transform = originalTransform || "";
+        wrapper.style.marginBottom = originalMarginBottom || "";
+      }
+
+      const composite = await compositePageWithSvgOverlays(
+        canvas,
+        svgsOnPage.map(({ png, xMm, yMm, wMm, hMm }) => ({
+          png,
+          xMm,
+          yMm,
+          wMm,
+          hMm,
+        })),
+        pdfWidth,
+        pdfHeight,
+      );
+
+      const imgData = composite.toDataURL("image/jpeg", jpegQuality);
+      const imageBytes = dataUrlToUint8Array(imgData);
+
+      pageParagraphs.push(
+        new Paragraph({
+          pageBreakBefore: i > 0,
+          children: [
+            new ImageRun({
+              data: imageBytes,
+              transformation: {
+                width: A4.px96.width,
+                height: A4.px96.height,
+              },
+              type: "jpg",
+            }),
+          ],
+        }),
+      );
+    }
+
+    onProgress?.(92, "Building Word document…");
+    const doc = new Document({
+      sections: [
+        {
+          properties: {
+            page: {
+              size: { width: 11906, height: 16838 },
+              margin: { top: 0, right: 0, bottom: 0, left: 0 },
+            },
+          },
+          children: pageParagraphs,
+        },
+      ],
+    });
+
+    onProgress?.(97, "Saving file…");
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${filename}.docx`);
+    onProgress?.(100, "Done");
+  } finally {
+    restoreSVGs();
+    restoreImages();
+  }
+}
+
 /**
  * Export as high-quality PNG (single page only, for previews).
  */

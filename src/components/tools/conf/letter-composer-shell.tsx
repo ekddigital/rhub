@@ -51,6 +51,14 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/creative/ui/dropdown-menu";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   parseRecipientCsv,
@@ -113,6 +121,12 @@ import {
   NGO_SAMPLE_SUBJECT,
   NGO_SAMPLE_USE_OF_FUNDS,
   NGO_SAMPLE_PARTNERSHIP_TYPE,
+  MISS_LSUIC_SAMPLE_RECIPIENT,
+  MISS_LSUIC_SAMPLE_SUBJECT,
+  MISS_LSUIC_SAMPLE_USE_OF_FUNDS,
+  MISS_LSUIC_SAMPLE_EVENT_DATE,
+  MISS_LSUIC_SAMPLE_EVENT_TIME,
+  MISS_LSUIC_SAMPLE_PAYMENT_DEADLINE,
   normalizeFundraisingLetterFromField,
   FUNDRAISING_KEYNOTE_SPEAKER_ROLE,
   type FundraisingCategory,
@@ -449,6 +463,20 @@ function legacyBulletedFundraisingBody(html: string): boolean {
   );
 }
 
+function legacyMissGenericTargetLine(html: string): boolean {
+  const plain = richHtmlToPlainText(html)
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (!plain) return false;
+  return (
+    plain.includes("your stated sponsorship target for this invitation") ||
+    plain.includes("rmb 180,000") ||
+    (plain.includes("payment deadline for confirmed patronage") &&
+      plain.includes("june 6, 2026"))
+  );
+}
+
 /** Ensure any draft loaded from localStorage has all current fields with defaults. */
 function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
   // Detect drafts saved before the label fields existed (d.signatory1Label === undefined).
@@ -580,6 +608,22 @@ function migrateDraft(d: Partial<LetterDraft>): LetterDraft {
     };
   }
 
+  if (
+    base.fundraisingEnabled &&
+    base.fundraisingCategory === "miss_lsuic" &&
+    legacyMissGenericTargetLine(base.bodyRich ?? "")
+  ) {
+    const rebuiltHtml = buildLetterBodyRichHtml(
+      allLetterBodyFieldsFromDraft(base),
+    );
+    return {
+      ...base,
+      bodyRich: rebuiltHtml,
+      body: richHtmlToPlainText(rebuiltHtml),
+      fundraisingLetterSampleApplied: true,
+    };
+  }
+
   return base;
 }
 
@@ -610,9 +654,10 @@ async function parseApiErrorMessage(
   res: Response,
   fallback: string,
 ): Promise<string> {
-  const payload = (await res.json().catch(() => null)) as
-    | { error?: string; message?: string }
-    | null;
+  const payload = (await res.json().catch(() => null)) as {
+    error?: string;
+    message?: string;
+  } | null;
   if (typeof payload?.error === "string" && payload.error.trim()) {
     return payload.error.trim();
   }
@@ -633,8 +678,7 @@ function openLetterPrintWindow(fragmentInnerHtml: string) {
     window.print();
     return;
   }
-  const origin =
-    typeof window !== "undefined" ? window.location.origin : "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   popup.document.write(
     buildLetterPrintDocumentHtml(fragmentInnerHtml, {
       origin,
@@ -732,6 +776,21 @@ function isLetterDraftBodyEmpty(d: LetterDraft): boolean {
   return richTextIsEssentiallyEmpty(d.bodyRich ?? "");
 }
 
+/** Payment flyer attachment page (preview, print, PDF, Word). Miss LSUIC omits it. */
+function draftShowsFundraisingFlyer(draft: LetterDraft): boolean {
+  if (draft.fundraisingCategory === "miss_lsuic") return false;
+  const hasFundraisingContent =
+    (draft.fundraisingTargetAmount ?? "").trim().length > 0 ||
+    (draft.fundraisingUseOfFunds ?? "").trim().length > 0 ||
+    draft.fundraisingCategory !== "general";
+  return (
+    draft.type === "FUNDRAISING" ||
+    Boolean(draft.fundraisingEnabled) ||
+    draft.signatoryMode === "FUNDRAISING" ||
+    hasFundraisingContent
+  );
+}
+
 function mergeFundraisingTemplateIfEligible(draft: LetterDraft): LetterDraft {
   if (!draft.fundraisingEnabled || !isLetterDraftBodyEmpty(draft)) {
     return draft;
@@ -776,6 +835,12 @@ function allLetterBodyFieldsFromDraft(d: LetterDraft): AllLetterBodyFields {
 function shouldAutoSyncFundraisingBody(draft: LetterDraft): boolean {
   if (!draft.fundraisingEnabled) return false;
   if (isLetterDraftBodyEmpty(draft)) return true;
+  if (
+    draft.fundraisingCategory === "miss_lsuic" &&
+    legacyMissGenericTargetLine(draft.bodyRich ?? "")
+  ) {
+    return true;
+  }
 
   const generatedRich = buildLetterBodyRichHtml(
     allLetterBodyFieldsFromDraft(draft),
@@ -877,6 +942,24 @@ function applyLetterSample(
       fundraisingConferenceTheme: CONF_THEME,
       fundraisingPartnershipType: NGO_SAMPLE_PARTNERSHIP_TYPE,
       fundraisingUseOfFunds: NGO_SAMPLE_USE_OF_FUNDS.trim(),
+    },
+    miss_lsuic: {
+      title: "Miss LSUIC Pageant & Achievers Night — Patron Invitation",
+      to: MISS_LSUIC_SAMPLE_RECIPIENT,
+      from: CONF_FROM_COMMITTEE,
+      re: MISS_LSUIC_SAMPLE_SUBJECT,
+      fundraisingRecipientName: MISS_LSUIC_SAMPLE_RECIPIENT,
+      fundraisingRecipientAddress: "",
+      fundraisingConferenceTheme: CONF_THEME,
+      fundraisingTargetAmount: "",
+      fundraisingUseOfFunds: MISS_LSUIC_SAMPLE_USE_OF_FUNDS.trim(),
+      fundraisingEventDate: MISS_LSUIC_SAMPLE_EVENT_DATE,
+      fundraisingEventTime: MISS_LSUIC_SAMPLE_EVENT_TIME,
+      fundraisingPaymentDeadline: MISS_LSUIC_SAMPLE_PAYMENT_DEADLINE,
+      fundraisingMeetingMedium: "",
+      fundraisingMeetingLink: "",
+      fundraisingMeetingId: "",
+      fundraisingMeetingPassword: "",
     },
   };
 
@@ -1745,7 +1828,7 @@ function LetterA4Preview({
     lineHeight: 1.8,
   };
 
-  /** Trailing slab: signatures + payment note + embedded flyer (same page as body tail) */
+  /** Trailing slab reserve for final-page signatures. */
   const signaturesBlockLines = signatories.length > 0 ? 11 : 0;
   // Flyer and payment note now go on a dedicated attachment page — only reserve
   // space for the signature block itself on the final body content page.
@@ -1789,15 +1872,7 @@ function LetterA4Preview({
   const firstPageBlocks = blockPages[0] ?? [];
   const continuationBodies = blockPages.slice(1);
   const showSignaturesOnFirstPage = continuationBodies.length === 0;
-  const hasFundraisingContent =
-    (draft.fundraisingTargetAmount ?? "").trim().length > 0 ||
-    (draft.fundraisingUseOfFunds ?? "").trim().length > 0 ||
-    draft.fundraisingCategory !== "general";
-  const showFundraisingFlyer =
-    draft.type === "FUNDRAISING" ||
-    Boolean(draft.fundraisingEnabled) ||
-    draft.signatoryMode === "FUNDRAISING" ||
-    hasFundraisingContent;
+  const showFundraisingFlyer = draftShowsFundraisingFlyer(draft);
   const totalPages =
     1 + continuationBodies.length + (showFundraisingFlyer ? 1 : 0);
   const officeLabel =
@@ -2804,8 +2879,7 @@ export function LetterComposerShell() {
   const [librarySelectedIds, setLibrarySelectedIds] = useState<string[]>([]);
   const [libraryListMode, setLibraryListMode] = useState(false);
   const [libraryBulkDeleting, setLibraryBulkDeleting] = useState(false);
-  const [librarySelectAllLoading, setLibrarySelectAllLoading] =
-    useState(false);
+  const [librarySelectAllLoading, setLibrarySelectAllLoading] = useState(false);
   const [savingToDb, setSavingToDb] = useState(false);
   const [saveToDbStatus, setSaveToDbStatus] = useState<
     "idle" | "saved" | "error"
@@ -2848,6 +2922,10 @@ export function LetterComposerShell() {
     detail?: string;
   } | null>(null);
   const [zipPdfMessage, setZipPdfMessage] = useState<string | null>(null);
+  const [docxExporting, setDocxExporting] = useState(false);
+  const [docxExportMessage, setDocxExportMessage] = useState<string | null>(
+    null,
+  );
 
   const resolveSignatureForName = useCallback(
     (name: string) => {
@@ -3207,10 +3285,7 @@ export function LetterComposerShell() {
   }, [libraryFilter]);
 
   useEffect(() => {
-    const maxPage = Math.max(
-      1,
-      Math.ceil(drafts.length / draftsListPageSize),
-    );
+    const maxPage = Math.max(1, Math.ceil(drafts.length / draftsListPageSize));
     if (draftsListPage > maxPage) setDraftsListPage(maxPage);
   }, [drafts.length, draftsListPage, draftsListPageSize]);
 
@@ -3222,7 +3297,9 @@ export function LetterComposerShell() {
   const upsertDraftToLibrary = useCallback(
     async (draft: LetterDraft) => {
       if (!confId) {
-        throw new Error("Conference context is still loading. Try again in a moment.");
+        throw new Error(
+          "Conference context is still loading. Try again in a moment.",
+        );
       }
 
       const payload = {
@@ -3253,11 +3330,14 @@ export function LetterComposerShell() {
         return createLetter();
       }
 
-      const patchRes = await fetch(`/api/conf/${confId}/letters/${draft.dbId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const patchRes = await fetch(
+        `/api/conf/${confId}/letters/${draft.dbId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (patchRes.ok) {
         const saved = (await patchRes.json()) as { id: string };
@@ -3570,6 +3650,28 @@ export function LetterComposerShell() {
     openLetterPrintWindow(root.innerHTML);
   }, []);
 
+  const handleDownloadWord = useCallback(async () => {
+    const basename = sanitizeLetterExportBasename(
+      activeDraft.title || activeDraft.re,
+      activeDraft.id,
+    );
+
+    setDocxExporting(true);
+    setDocxExportMessage(null);
+    try {
+      const { exportLetterDraftToDocx } =
+        await import("@/lib/conf/letter-docx-export");
+      await exportLetterDraftToDocx(activeDraft, basename);
+    } catch (err) {
+      console.error("[letters] DOCX export failed:", err);
+      setDocxExportMessage(
+        err instanceof Error ? err.message : "Word export failed.",
+      );
+    } finally {
+      setDocxExporting(false);
+    }
+  }, [activeDraft]);
+
   const handlePrintBatchDrafts = useCallback((drafts: LetterDraft[]) => {
     if (drafts.length === 0) return;
     flushSync(() => {
@@ -3657,7 +3759,8 @@ export function LetterComposerShell() {
       try {
         const JSZip = (await import("jszip")).default;
         const { saveAs } = await import("file-saver");
-        const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+        const { exportToPDF } =
+          await import("@/lib/creative/documents/pdfExport");
         await warmupLetterBulkPdfExport();
 
         const zip = new JSZip();
@@ -3943,8 +4046,7 @@ export function LetterComposerShell() {
     draftsPageIds.length > 0 &&
     draftsPageIds.every((id) => draftsSelectedSet.has(id));
   const allDraftsListSelected =
-    drafts.length > 0 &&
-    drafts.every((d) => draftsSelectedSet.has(d.id));
+    drafts.length > 0 && drafts.every((d) => draftsSelectedSet.has(d.id));
 
   // ── Loading / error ──────────────────────────────────────────────────────
 
@@ -4037,10 +4139,8 @@ export function LetterComposerShell() {
               </p>
               <p className="text-xs text-muted-foreground">
                 Letter {zipPdfProgress.current} of {zipPdfProgress.total}
-                {zipPdfProgress.detail
-                  ? ` · ${zipPdfProgress.detail}`
-                  : ""}
-                . Leave this tab open until the download starts.
+                {zipPdfProgress.detail ? ` · ${zipPdfProgress.detail}` : ""}.
+                Leave this tab open until the download starts.
               </p>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
@@ -4085,10 +4185,16 @@ export function LetterComposerShell() {
             </h1>
             <p className="text-sm text-muted-foreground">
               Write official correspondence with the LSUIC letterhead — download
-              as PDF
+              as PDF or Word
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/tools/conf/letterhead">
+                <Download className="size-4" />
+                Letterhead parts
+              </Link>
+            </Button>
             {/* View toggle */}
             <div className="flex items-center rounded-md border border-border overflow-hidden">
               <button
@@ -4146,8 +4252,8 @@ export function LetterComposerShell() {
                     !confId
                       ? "Conference context is still loading"
                       : activeDraft.dbId
-                      ? "Update saved letter in Library"
-                      : "Save letter to Library (database)"
+                        ? "Update saved letter in Library"
+                        : "Save letter to Library (database)"
                   }
                 >
                   {saveToDbStatus === "saved" ? (
@@ -4271,10 +4377,7 @@ export function LetterComposerShell() {
                       Showing{" "}
                       <span className="font-medium text-foreground">
                         {(libraryPage - 1) * libraryPageSize + 1}–
-                        {Math.min(
-                          libraryPage * libraryPageSize,
-                          libraryTotal,
-                        )}
+                        {Math.min(libraryPage * libraryPageSize, libraryTotal)}
                       </span>{" "}
                       of{" "}
                       <span className="font-medium text-foreground">
@@ -4494,8 +4597,7 @@ export function LetterComposerShell() {
                             <span
                               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
                               style={{
-                                background:
-                                  LETTER_TYPE_COLORS[rec.type] + "22",
+                                background: LETTER_TYPE_COLORS[rec.type] + "22",
                                 color: LETTER_TYPE_COLORS[rec.type],
                               }}
                             >
@@ -4712,8 +4814,8 @@ export function LetterComposerShell() {
                 <div>
                   <CardTitle className="text-sm">Local Drafts</CardTitle>
                   <CardDescription className="text-xs">
-                    Auto-saved on this device. Use &quot;Save to Library&quot; to
-                    store in the cloud library.
+                    Auto-saved on this device. Use &quot;Save to Library&quot;
+                    to store in the cloud library.
                   </CardDescription>
                 </div>
                 <div className="text-xs text-muted-foreground text-right">
@@ -4736,7 +4838,9 @@ export function LetterComposerShell() {
                     variant="outline"
                     className="h-7 text-xs gap-1"
                     type="button"
-                    disabled={batchLibrarySaving || draftsSelectedIds.length === 0}
+                    disabled={
+                      batchLibrarySaving || draftsSelectedIds.length === 0
+                    }
                     title="Save or update selected drafts in the Library"
                     onClick={() => {
                       const sel = drafts.filter((d) =>
@@ -5144,8 +5248,9 @@ export function LetterComposerShell() {
                       {batchLibraryProgress && (
                         <p className="text-[10px] font-medium text-[#002868] flex items-center gap-1.5">
                           <Loader2 className="size-3.5 animate-spin" />
-                          Saving to Library… {batchLibraryProgress.current} /{" "}
-                          {batchLibraryProgress.total}
+                          Saving to Library… {
+                            batchLibraryProgress.current
+                          } / {batchLibraryProgress.total}
                         </p>
                       )}
                       {batchLibraryResult && !batchLibrarySaving && (
@@ -5321,8 +5426,9 @@ export function LetterComposerShell() {
                   </CardTitle>
                   <CardDescription className="text-xs">
                     Choose the audience for this letter. Each version generates
-                    tailored copy. The fundraising flyer is appended on the last
-                    page when enabled. Edit any field freely after generating.
+                    tailored copy. General/corporate/government/alumni/NGO
+                    versions append the fundraising flyer page; Miss LSUIC does
+                    not. Edit any field freely after generating.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -5371,16 +5477,22 @@ export function LetterComposerShell() {
                           value={activeDraft.fundraisingCategory}
                           onChange={(e) => {
                             const cat = e.target.value as FundraisingCategory;
-                            setActiveDraft((d) =>
-                              mergeFundraisingTemplateIfEligible({
-                                ...d,
-                                type: "FUNDRAISING",
-                                fundraisingCategory: cat,
-                                bodyRich: "<p></p>",
-                                body: "",
-                                fundraisingLetterSampleApplied: false,
-                              }),
-                            );
+                            setActiveDraft((d) => {
+                              const seeded = applyLetterSample(
+                                {
+                                  ...d,
+                                  type: "FUNDRAISING",
+                                  fundraisingCategory: cat,
+                                  fundraisingEnabled: true,
+                                  fundraisingLetterSampleApplied: false,
+                                },
+                                "replace-all",
+                              );
+                              return {
+                                ...seeded,
+                                fundraisingLetterSampleApplied: true,
+                              };
+                            });
                           }}
                         >
                           {(
@@ -5396,12 +5508,14 @@ export function LetterComposerShell() {
                         </select>
                         <p className="text-[10px] text-muted-foreground leading-snug">
                           <span className="block mb-1">
-                            Every letter category includes campaign overview,
-                            use of proceeds, session logistics, and the flyer
-                            payment note in the generated body.
+                            {activeDraft.fundraisingCategory === "miss_lsuic"
+                              ? "Patron invitation — itemised production costs in the letter body; edit sponsor visibility lines below. No virtual fundraiser block and no flyer/payment attachment page."
+                              : "Every letter category includes campaign overview, use of proceeds, session logistics, and the flyer payment note in the generated body."}
                             {activeDraft.fundraisingCategory === "general"
                               ? " Keynote Speaker (General only): both speaking and substantive support."
-                              : " This version stays support-focused."}
+                              : activeDraft.fundraisingCategory !== "miss_lsuic"
+                                ? " This version stays support-focused."
+                                : ""}
                           </span>
                           {activeDraft.fundraisingCategory === "general" &&
                             "Set invitation category, target, Zoom details, payment deadline."}
@@ -5413,6 +5527,8 @@ export function LetterComposerShell() {
                             "Alumni giving appeal — legacy, mentorship, student support."}
                           {activeDraft.fundraisingCategory === "ngo" &&
                             "Development partner — capacity building, mutual impact, program collaboration."}
+                          {activeDraft.fundraisingCategory === "miss_lsuic" &&
+                            "Achievers Award Dinner & Miss LSUIC Pageant — patron tables, programme sponsorship, and visibility."}
                         </p>
                       </div>
 
@@ -5675,7 +5791,10 @@ export function LetterComposerShell() {
                                 ? "Contribution Areas"
                                 : activeDraft.fundraisingCategory === "ngo"
                                   ? "Impact Areas"
-                                  : "Intended Use of Funds"}
+                                  : activeDraft.fundraisingCategory ===
+                                      "miss_lsuic"
+                                    ? "Sponsor visibility & recognition"
+                                    : "Intended Use of Funds"}
                           <span className="text-muted-foreground">
                             {" "}
                             (one per line)
@@ -5693,7 +5812,10 @@ export function LetterComposerShell() {
                                   ? ALUMNI_SAMPLE_USE_OF_FUNDS
                                   : activeDraft.fundraisingCategory === "ngo"
                                     ? NGO_SAMPLE_USE_OF_FUNDS
-                                    : "- Fee reduction support for financially constrained students\n- Venue and accommodation costs"
+                                    : activeDraft.fundraisingCategory ===
+                                        "miss_lsuic"
+                                      ? MISS_LSUIC_SAMPLE_USE_OF_FUNDS
+                                      : "- Fee reduction support for financially constrained students\n- Venue and accommodation costs"
                           }
                           value={activeDraft.fundraisingUseOfFunds}
                           onChange={(e) =>
@@ -5832,24 +5954,29 @@ export function LetterComposerShell() {
 
                       {/* ── Target & virtual session (all categories — fills appendix tables) ── */}
                       <>
-                        {activeDraft.fundraisingCategory !== "corporate" && (
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">
-                              Target Fundraising Amount
-                            </Label>
-                            <Input
-                              className="h-8 text-sm"
-                              placeholder="e.g. RMB 180,000"
-                              value={activeDraft.fundraisingTargetAmount}
-                              onChange={(e) =>
-                                set("fundraisingTargetAmount")(e.target.value)
-                              }
-                            />
-                          </div>
-                        )}
+                        {activeDraft.fundraisingCategory !== "corporate" &&
+                          activeDraft.fundraisingCategory !== "miss_lsuic" && (
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">
+                                Target Fundraising Amount
+                              </Label>
+                              <Input
+                                className="h-8 text-sm"
+                                placeholder="e.g. RMB 180,000"
+                                value={activeDraft.fundraisingTargetAmount}
+                                onChange={(e) =>
+                                  set("fundraisingTargetAmount")(e.target.value)
+                                }
+                              />
+                            </div>
+                          )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Fundraising Date</Label>
+                            <Label className="text-xs">
+                              {activeDraft.fundraisingCategory === "miss_lsuic"
+                                ? "Programme Date"
+                                : "Fundraising Date"}
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingEventDate}
@@ -5859,7 +5986,11 @@ export function LetterComposerShell() {
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-xs">Fundraising Time</Label>
+                            <Label className="text-xs">
+                              {activeDraft.fundraisingCategory === "miss_lsuic"
+                                ? "Programme Time"
+                                : "Fundraising Time"}
+                            </Label>
                             <Input
                               className="h-8 text-sm"
                               value={activeDraft.fundraisingEventTime}
@@ -5870,7 +6001,11 @@ export function LetterComposerShell() {
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs">Payment Deadline</Label>
+                          <Label className="text-xs">
+                            {activeDraft.fundraisingCategory === "miss_lsuic"
+                              ? "Patron Confirmation / Payment Deadline"
+                              : "Payment Deadline"}
+                          </Label>
                           <Input
                             className="h-8 text-sm"
                             value={activeDraft.fundraisingPaymentDeadline}
@@ -5879,50 +6014,58 @@ export function LetterComposerShell() {
                             }
                           />
                         </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Meeting Medium</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingMeetingMedium}
-                            onChange={(e) =>
-                              set("fundraisingMeetingMedium")(e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">Meeting Link</Label>
-                          <Input
-                            className="h-8 text-sm"
-                            value={activeDraft.fundraisingMeetingLink}
-                            onChange={(e) =>
-                              set("fundraisingMeetingLink")(e.target.value)
-                            }
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Meeting ID</Label>
-                            <Input
-                              className="h-8 text-sm"
-                              value={activeDraft.fundraisingMeetingId}
-                              onChange={(e) =>
-                                set("fundraisingMeetingId")(e.target.value)
-                              }
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <Label className="text-xs">Meeting Password</Label>
-                            <Input
-                              className="h-8 text-sm"
-                              value={activeDraft.fundraisingMeetingPassword}
-                              onChange={(e) =>
-                                set("fundraisingMeetingPassword")(
-                                  e.target.value,
-                                )
-                              }
-                            />
-                          </div>
-                        </div>
+                        {activeDraft.fundraisingCategory !== "miss_lsuic" && (
+                          <>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Meeting Medium</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingMeetingMedium}
+                                onChange={(e) =>
+                                  set("fundraisingMeetingMedium")(
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">Meeting Link</Label>
+                              <Input
+                                className="h-8 text-sm"
+                                value={activeDraft.fundraisingMeetingLink}
+                                onChange={(e) =>
+                                  set("fundraisingMeetingLink")(e.target.value)
+                                }
+                              />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs">Meeting ID</Label>
+                                <Input
+                                  className="h-8 text-sm"
+                                  value={activeDraft.fundraisingMeetingId}
+                                  onChange={(e) =>
+                                    set("fundraisingMeetingId")(e.target.value)
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-xs">
+                                  Meeting Password
+                                </Label>
+                                <Input
+                                  className="h-8 text-sm"
+                                  value={activeDraft.fundraisingMeetingPassword}
+                                  onChange={(e) =>
+                                    set("fundraisingMeetingPassword")(
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </>
                     </>
                   )}
@@ -6240,19 +6383,51 @@ export function LetterComposerShell() {
               </Card>
 
               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
-                  onClick={handleDownloadPdf}
-                >
-                  <Printer className="size-4" />
-                  Download PDF
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="flex-1 bg-[#002868] hover:bg-[#001A4E]"
+                      disabled={docxExporting}
+                    >
+                      {docxExporting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Download className="size-4" />
+                      )}
+                      Download
+                      <ChevronDown className="size-4 opacity-90" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuLabel>Export format</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={docxExporting}
+                      onClick={handleDownloadPdf}
+                    >
+                      <Printer className="mr-2 size-4" />
+                      PDF (print dialog)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={docxExporting}
+                      onClick={() => void handleDownloadWord()}
+                    >
+                      <FileText className="mr-2 size-4" />
+                      Word (.docx)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
-                Opens in a new window — choose &quot;Save as PDF&quot; in the
-                print dialog.
+                PDF opens the print dialog; Word saves an editable .docx from
+                letter fields and body (not a screenshot).
               </p>
+              {docxExportMessage && (
+                <p className="text-[10px] text-destructive text-center">
+                  {docxExportMessage}
+                </p>
+              )}
             </div>
 
             {/* ── Right: A4 preview ── */}
@@ -6263,7 +6438,7 @@ export function LetterComposerShell() {
                   <p className="text-xs font-semibold text-[#002868]">
                     Live A4 Preview
                   </p>
-                  {activeDraft.fundraisingEnabled && (
+                  {draftShowsFundraisingFlyer(activeDraft) && (
                     <p className="text-[10px] text-muted-foreground mt-0.5">
                       Fundraising flyer is attached on the last page. Scroll
                       down to view it.
