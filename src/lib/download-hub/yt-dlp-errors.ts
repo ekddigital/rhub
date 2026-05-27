@@ -84,11 +84,20 @@ function matchesAny(text: string, patterns: RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(text));
 }
 
+function normalizeRawError(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed || /^(null|undefined|nan)$/i.test(trimmed)) {
+    return "Failed to fetch media metadata from source. Try again.";
+  }
+  return trimmed;
+}
+
 /** Classify raw yt-dlp stderr (or timeout message) before user-facing mapping. */
 export function classifyYtDlpError(raw: string): YtDlpErrorKind {
-  const lower = raw.toLowerCase();
+  const normalized = normalizeRawError(raw);
+  const lower = normalized.toLowerCase();
 
-  if (isYtDlpUnavailableMessage(raw)) {
+  if (isYtDlpUnavailableMessage(normalized)) {
     return "missing";
   }
 
@@ -107,19 +116,19 @@ export function classifyYtDlpError(raw: string): YtDlpErrorKind {
     return "timeout";
   }
 
-  if (matchesAny(raw, BOT_CHECK_PATTERNS)) {
+  if (matchesAny(normalized, BOT_CHECK_PATTERNS)) {
     return "bot_check";
   }
 
-  if (matchesAny(raw, PRIVATE_PATTERNS)) {
+  if (matchesAny(normalized, PRIVATE_PATTERNS)) {
     return "private";
   }
 
-  if (matchesAny(raw, AUTH_PATTERNS)) {
+  if (matchesAny(normalized, AUTH_PATTERNS)) {
     return "auth_required";
   }
 
-  if (matchesAny(raw, GEO_PATTERNS) || lower.includes("geo")) {
+  if (matchesAny(normalized, GEO_PATTERNS) || lower.includes("geo")) {
     return "geo";
   }
 
@@ -131,7 +140,7 @@ export function classifyYtDlpError(raw: string): YtDlpErrorKind {
     return "not_found";
   }
 
-  const ffmpegMapped = mapFfmpegError(raw);
+  const ffmpegMapped = mapFfmpegError(normalized);
   if (ffmpegMapped === FFMPEG_REQUIRED_MESSAGE) {
     return "ffmpeg";
   }
@@ -167,8 +176,9 @@ export function mapYtDlpError(
   raw: string,
   context?: YtDlpErrorContext,
 ): string {
-  const kind = classifyYtDlpError(raw);
-  const lower = raw.toLowerCase();
+  const normalized = normalizeRawError(raw);
+  const kind = classifyYtDlpError(normalized);
+  const lower = normalized.toLowerCase();
   const phase = context?.phase;
   const url = context?.url;
 
@@ -226,12 +236,12 @@ export function mapYtDlpError(
       return mapDownloadTimeoutMessage();
 
     case "size_exceeded":
-      return raw.trim() || "File exceeds maximum size";
+      return normalized.trim() || "File exceeds maximum size";
 
     case "ffmpeg":
       return FFMPEG_REQUIRED_MESSAGE;
 
     default:
-      return mapFfmpegError(raw.trim() || "yt-dlp failed");
+      return mapFfmpegError(normalized.trim() || "yt-dlp failed");
   }
 }

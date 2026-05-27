@@ -37,6 +37,9 @@ function extractMessage(payload: ApiErrorPayload | null): string | null {
   }
 
   const trimmed = message.trim();
+  if (/^(null|undefined|nan)$/i.test(trimmed)) {
+    return null;
+  }
   return trimmed.length > 0 ? trimmed : null;
 }
 
