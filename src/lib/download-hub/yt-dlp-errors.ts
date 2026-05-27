@@ -1,7 +1,4 @@
-import {
-  YT_DLP_NOT_INSTALLED_MESSAGE,
-  YT_DLP_README_PATH,
-} from "./constants";
+import { YT_DLP_NOT_INSTALLED_MESSAGE, YT_DLP_README_PATH } from "./constants";
 import { FFMPEG_REQUIRED_MESSAGE, mapFfmpegError } from "./ffmpeg";
 import { isTtydConfigured } from "./ttyd-config";
 import { isYtDlpUnavailableMessage } from "./yt-dlp-binary";
@@ -180,7 +177,7 @@ export function mapYtDlpError(
       if (isTtydConfigured()) {
         return (
           `${YT_DLP_NOT_INSTALLED_MESSAGE} ` +
-          "Install on the VPS via \"Install on server\" or POST /api/tools/vid/setup. " +
+          'Install on the VPS via "Install on server" or POST /api/tools/vid/setup. ' +
           `See ${YT_DLP_README_PATH}.`
         );
       }

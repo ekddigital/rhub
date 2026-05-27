@@ -67,11 +67,11 @@ This installs yt-dlp to `~/bin/yt-dlp` and ffmpeg via `apt-get`.
 
 `executeRemoteCommand` installs on whatever machine `TTYD_BASE_URL` points at. `yt-dlp`/`ffmpeg` are **spawned locally** by the Next.js process.
 
-| Setup | Result |
-|-------|--------|
-| rhub on **production VPS**, TTYD → same VPS | Install + health both work |
+| Setup                                        | Result                                                                                                                                       |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| rhub on **production VPS**, TTYD → same VPS  | Install + health both work                                                                                                                   |
 | rhub on **Mac (dev)**, TTYD → production VPS | Remote install can succeed, but downloads still run from the local Next.js host. Use production rhub on the VPS for real download execution. |
-| TTYD → wrong VPS | Point TTYD at the host where rhub/Node runs |
+| TTYD → wrong VPS                             | Point TTYD at the host where rhub/Node runs                                                                                                  |
 
 Set `YT_DLP_BIN` / `FFMPEG_BIN` after install if binaries are not on default PATH.
 
@@ -90,24 +90,24 @@ Install via API: `POST /api/tools/vid/setup` (localhost or `ADMIN_API_KEY`).
 
 ## Dependencies
 
-| Tool | Required? | Role |
-|------|-----------|------|
-| **yt-dlp** | Yes | Metadata + all downloads |
-| **ffmpeg** | For MP3 | Converts best audio to `.mp3` via `--extract-audio --audio-format mp3` |
+| Tool       | Required? | Role                                                                   |
+| ---------- | --------- | ---------------------------------------------------------------------- |
+| **yt-dlp** | Yes       | Metadata + all downloads                                               |
+| **ffmpeg** | For MP3   | Converts best audio to `.mp3` via `--extract-audio --audio-format mp3` |
 
 MP3 downloads **fail with a clear error** when ffmpeg is missing — they do not silently serve M4A/WebM labeled as MP3.
 
 ## Session API (watch pages)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/tools/vid/health` | Dependency check; optional auto-install if `DOWNLOAD_HUB_AUTO_INSTALL_VIA_TTYD=true` |
-| `GET` | `/api/tools/vid/setup` | Remote + local dependency status |
-| `POST` | `/api/tools/vid/setup` | Install yt-dlp + ffmpeg on TTYD host (admin/localhost auth) |
-| `POST` | `/api/tools/vid/info` | Body `{ url }` → creates session, returns `{ id, formats[], ... }` |
-| `GET` | `/api/tools/vid/info/[id]` | Load cached session metadata |
-| `POST` | `/api/tools/vid/download` | Body `{ sessionId, formatOptionId }` → file stream |
-| `GET` | `/api/tools/vid/download?sessionId=&formatOptionId=` | Same as POST download |
+| Method | Path                                                 | Description                                                                          |
+| ------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `GET`  | `/api/tools/vid/health`                              | Dependency check; optional auto-install if `DOWNLOAD_HUB_AUTO_INSTALL_VIA_TTYD=true` |
+| `GET`  | `/api/tools/vid/setup`                               | Remote + local dependency status                                                     |
+| `POST` | `/api/tools/vid/setup`                               | Install yt-dlp + ffmpeg on TTYD host (admin/localhost auth)                          |
+| `POST` | `/api/tools/vid/info`                                | Body `{ url }` → creates session, returns `{ id, formats[], ... }`                   |
+| `GET`  | `/api/tools/vid/info/[id]`                           | Load cached session metadata                                                         |
+| `POST` | `/api/tools/vid/download`                            | Body `{ sessionId, formatOptionId }` → file stream                                   |
+| `GET`  | `/api/tools/vid/download?sessionId=&formatOptionId=` | Same as POST download                                                                |
 
 Watch page route: `/tools/vid/{platform}/v/{sessionId}` (e.g. `/tools/vid/yt/v/abc123xyz`).
 
@@ -115,32 +115,32 @@ Sessions are stored in memory with a **45-minute TTL** (`VID_SESSION_TTL_MS` to 
 
 ## Environment variables
 
-| Variable | Description |
-|----------|-------------|
-| `TTYD_BASE_URL` / `TTYD_KEY` | Remote terminal API (required for programmatic server install; same as doc conversion) |
-| `DOWNLOAD_HUB_AUTO_INSTALL_VIA_TTYD` | If `true`, `GET /api/tools/vid/health` runs install when deps missing (default: off) |
-| `NEXT_PUBLIC_SERVER_TERMINAL_URL` | Optional browser ttyd link in the health banner |
-| `VID_SESSION_TTL_MS` | Session cache TTL in ms (default: 2700000) |
-| `YT_DLP_BIN` / `YTDLP_BIN` | Path to `yt-dlp` executable (preferred over auto-download) |
-| `FFMPEG_BIN` | Path to ffmpeg if not on PATH |
-| `ADMIN_API_KEY` | Protects `POST /api/tools/vid/setup` in production |
-| `YT_DLP_COOKIES_FILE` / `YTDLP_COOKIES` / `YT_DLP_COOKIES` | Netscape cookies file for login-only content |
-| `YT_DLP_MAX_BYTES` | Max download size in bytes (default: 500MB) |
-| `YT_DLP_INFO_TIMEOUT_MS` | Metadata timeout (default: 60000) |
-| `YT_DLP_FB_INFO_TIMEOUT_MS` | Facebook metadata timeout (default: 90000) |
-| `YT_DLP_DOWNLOAD_TIMEOUT_MS` | Download timeout (default: 180000) |
-| `YT_DLP_SOCKET_TIMEOUT_SEC` | Per-request socket timeout (default: 15) |
+| Variable                                                   | Description                                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `TTYD_BASE_URL` / `TTYD_KEY`                               | Remote terminal API (required for programmatic server install; same as doc conversion) |
+| `DOWNLOAD_HUB_AUTO_INSTALL_VIA_TTYD`                       | If `true`, `GET /api/tools/vid/health` runs install when deps missing (default: off)   |
+| `NEXT_PUBLIC_SERVER_TERMINAL_URL`                          | Optional browser ttyd link in the health banner                                        |
+| `VID_SESSION_TTL_MS`                                       | Session cache TTL in ms (default: 2700000)                                             |
+| `YT_DLP_BIN` / `YTDLP_BIN`                                 | Path to `yt-dlp` executable (preferred over auto-download)                             |
+| `FFMPEG_BIN`                                               | Path to ffmpeg if not on PATH                                                          |
+| `ADMIN_API_KEY`                                            | Protects `POST /api/tools/vid/setup` in production                                     |
+| `YT_DLP_COOKIES_FILE` / `YTDLP_COOKIES` / `YT_DLP_COOKIES` | Netscape cookies file for login-only content                                           |
+| `YT_DLP_MAX_BYTES`                                         | Max download size in bytes (default: 500MB)                                            |
+| `YT_DLP_INFO_TIMEOUT_MS`                                   | Metadata timeout (default: 60000)                                                      |
+| `YT_DLP_FB_INFO_TIMEOUT_MS`                                | Facebook metadata timeout (default: 90000)                                             |
+| `YT_DLP_DOWNLOAD_TIMEOUT_MS`                               | Download timeout (default: 180000)                                                     |
+| `YT_DLP_SOCKET_TIMEOUT_SEC`                                | Per-request socket timeout (default: 15)                                               |
 
 ## Example URLs per platform
 
-| Platform | Examples |
-|----------|----------|
-| **YouTube** | `https://www.youtube.com/watch?v=…`, `https://youtu.be/…`, `/shorts/…` |
-| **Facebook** | `facebook.com/watch?v=…`, `/reel/…`, `/share/v/…`, `fb.watch/…` |
-| **Instagram** | `/reel/…`, `/p/…`, `/tv/…`, `/stories/user/id` (login may be required) |
-| **TikTok** | `tiktok.com/@user/video/…`, `vm.tiktok.com/…`, `vt.tiktok.com/…` |
-| **X (Twitter)** | `x.com/user/status/…`, `twitter.com/…/status/…` |
-| **Vimeo** | `vimeo.com/123456789` |
+| Platform        | Examples                                                               |
+| --------------- | ---------------------------------------------------------------------- |
+| **YouTube**     | `https://www.youtube.com/watch?v=…`, `https://youtu.be/…`, `/shorts/…` |
+| **Facebook**    | `facebook.com/watch?v=…`, `/reel/…`, `/share/v/…`, `fb.watch/…`        |
+| **Instagram**   | `/reel/…`, `/p/…`, `/tv/…`, `/stories/user/id` (login may be required) |
+| **TikTok**      | `tiktok.com/@user/video/…`, `vm.tiktok.com/…`, `vt.tiktok.com/…`       |
+| **X (Twitter)** | `x.com/user/status/…`, `twitter.com/…/status/…`                        |
+| **Vimeo**       | `vimeo.com/123456789`                                                  |
 
 ## Error messages (UI)
 

@@ -31,8 +31,8 @@ export function FormatPicker({
           className="text-sm text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2"
           role="note"
         >
-          MP3 requires ffmpeg on the runtime server.
-          Use Audio M4A if MP3 is unavailable.
+          MP3 requires ffmpeg on the runtime server. Use Audio M4A if MP3 is
+          unavailable.
         </p>
       )}
       {videoFormats.length > 0 && (

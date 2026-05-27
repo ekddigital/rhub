@@ -22,7 +22,12 @@ const SYSTEM_CANDIDATE_PATHS: string[] =
   process.platform === "win32"
     ? [
         "C:\\Program Files\\yt-dlp\\yt-dlp.exe",
-        path.join(process.env.LOCALAPPDATA ?? "", "Programs", "yt-dlp", "yt-dlp.exe"),
+        path.join(
+          process.env.LOCALAPPDATA ?? "",
+          "Programs",
+          "yt-dlp",
+          "yt-dlp.exe",
+        ),
       ]
     : [
         path.join(os.homedir(), "bin", "yt-dlp"),
@@ -66,7 +71,11 @@ function installHintTarget(): InstallHintTarget {
   return "dev";
 }
 
-function installHints(): { ytDlp: string; ffmpeg: string; target: InstallHintTarget } {
+function installHints(): {
+  ytDlp: string;
+  ffmpeg: string;
+  target: InstallHintTarget;
+} {
   const target = installHintTarget();
 
   if (target === "ttyd") {
@@ -100,9 +109,7 @@ export function resetYtDlpPathCache(): void {
 
 function ytDlpBinFromEnv(): string | undefined {
   return (
-    process.env.YT_DLP_BIN?.trim() ||
-    process.env.YTDLP_BIN?.trim() ||
-    undefined
+    process.env.YT_DLP_BIN?.trim() || process.env.YTDLP_BIN?.trim() || undefined
   );
 }
 
@@ -250,7 +257,9 @@ export async function getDownloadHubToolHealth(): Promise<DownloadHubToolHealth>
   }
 
   const ffmpeg = await isFfmpegAvailable();
-  const ffmpegPath = ffmpeg ? ((await resolveFfmpegPath()) ?? undefined) : undefined;
+  const ffmpegPath = ffmpeg
+    ? ((await resolveFfmpegPath()) ?? undefined)
+    : undefined;
   const hints = installHints();
   const ttydConfigured = isTtydConfigured();
   const terminalUrl =

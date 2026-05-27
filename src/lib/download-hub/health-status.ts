@@ -17,6 +17,8 @@ export type DownloadHubDepsSnapshot = {
 export type DownloadHubHealthResponse = DownloadHubToolHealth & {
   local: DownloadHubDepsSnapshot;
   remote?: DownloadHubDepsSnapshot;
+  /** True when metadata analysis can run (local yt-dlp or remote ttyd yt-dlp). */
+  readyForAnalyze: boolean;
   /** True when this Node process can spawn yt-dlp and ffmpeg (downloads work). */
   readyForDownloads: boolean;
   /** True when TTYD remote host has both tools (install target). */
@@ -36,10 +38,12 @@ function toSnapshot(health: DownloadHubToolHealth): DownloadHubDepsSnapshot {
   };
 }
 
-function buildEnvSuggestions(remote?: DownloadHubDepsSnapshot): {
-  YT_DLP_BIN?: string;
-  FFMPEG_BIN?: string;
-} | undefined {
+function buildEnvSuggestions(remote?: DownloadHubDepsSnapshot):
+  | {
+      YT_DLP_BIN?: string;
+      FFMPEG_BIN?: string;
+    }
+  | undefined {
   if (!remote?.ytDlp && !remote?.ffmpeg) return undefined;
   return {
     YT_DLP_BIN: remote.paths.ytDlp,
@@ -101,12 +105,14 @@ export async function getDownloadHubHealthResponse(): Promise<DownloadHubHealthR
   }
 
   const readyForDownloads = local.ytDlp && local.ffmpeg;
+  const readyForAnalyze = local.ytDlp || remote?.ytDlp === true;
   const remoteInstallOk = remote ? remote.ytDlp && remote.ffmpeg : false;
 
   return {
     ...localHealth,
     local,
     remote,
+    readyForAnalyze,
     readyForDownloads,
     remoteInstallOk,
     statusMessage: buildDownloadHubStatusMessage(local, remote, ttydConfigured),

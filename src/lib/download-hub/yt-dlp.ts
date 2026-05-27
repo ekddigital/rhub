@@ -5,11 +5,13 @@ import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { nanoid } from "nanoid";
+import { executeRemoteCommand } from "@/lib/terminal/client";
 import {
   FFMPEG_REQUIRED_MESSAGE,
   ffmpegLocationArgs,
   resolveFfmpegPath,
 } from "./ffmpeg";
+import { isTtydConfigured } from "./ttyd-config";
 import { buildYtDlpSpawnEnv, resolveYtDlpPath } from "./yt-dlp-binary";
 import type { AudioQuality, DownloadFormat, VideoQuality } from "./types";
 
@@ -372,6 +374,60 @@ export {
   YT_DLP_NOT_INSTALLED_MESSAGE,
 } from "./constants";
 
+function quoteForShell(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+async function runYtDlpViaTtyd(
+  args: string[],
+  options: {
+    timeoutMs: number;
+    maxBytes?: number;
+    timeoutMessage?: string;
+    phase?: "info" | "download";
+  },
+): Promise<{ stdout: Buffer; stderr: string }> {
+  const commandArgs = args.map((arg) => quoteForShell(arg)).join(" ");
+
+  const script = [
+    "set -e",
+    'export PATH="$HOME/bin:/usr/local/bin:/usr/bin:$PATH"',
+    'YTDLP_BIN="${YT_DLP_BIN:-${YTDLP_BIN:-}}"',
+    'if [ -z "$YTDLP_BIN" ]; then YTDLP_BIN="$(command -v yt-dlp || true)"; fi',
+    'if [ -z "$YTDLP_BIN" ] && [ -x "$HOME/bin/yt-dlp" ]; then YTDLP_BIN="$HOME/bin/yt-dlp"; fi',
+    'if [ -z "$YTDLP_BIN" ]; then echo "yt-dlp is not installed or not available on the server."; exit 127; fi',
+    'TMP_ERR="$(mktemp)"',
+    `"$YTDLP_BIN" ${commandArgs} 2>"$TMP_ERR"`,
+    'RC=$?',
+    'if [ $RC -ne 0 ]; then cat "$TMP_ERR"; rm -f "$TMP_ERR"; exit $RC; fi',
+    'rm -f "$TMP_ERR"',
+  ].join("; ");
+
+  const result = await executeRemoteCommand({
+    command: `bash -lc ${quoteForShell(script)}`,
+    timeout: options.timeoutMs,
+    retries: 1,
+  });
+
+  if (!result.success) {
+    throw new Error(
+      result.output ||
+        result.error ||
+        options.timeoutMessage ||
+        (options.phase === "info" ? "Metadata fetch timed out" : "Download timed out"),
+    );
+  }
+
+  const stdout = Buffer.from(result.output ?? "", "utf8");
+  if (options.maxBytes && stdout.length > options.maxBytes) {
+    throw new Error(
+      `File exceeds maximum size (${Math.round(options.maxBytes / (1024 * 1024))} MB)`,
+    );
+  }
+
+  return { stdout, stderr: "" };
+}
+
 function runYtDlp(
   args: string[],
   options: {
@@ -382,16 +438,38 @@ function runYtDlp(
   },
 ): Promise<{ stdout: Buffer; stderr: string }> {
   return new Promise(async (resolve, reject) => {
-    let binaryPath: string;
+    let binaryPath: string | null = null;
 
     try {
       binaryPath = await resolveYtDlpPath();
     } catch (error) {
+      if (options.phase === "info" && isTtydConfigured()) {
+        try {
+          const remoteResult = await runYtDlpViaTtyd(args, options);
+          resolve(remoteResult);
+          return;
+        } catch (remoteError) {
+          reject(
+            new Error(
+              remoteError instanceof Error
+                ? remoteError.message
+                : "Remote yt-dlp execution failed",
+            ),
+          );
+          return;
+        }
+      }
+
       reject(
         new Error(
           error instanceof Error ? error.message : "Unknown setup error",
         ),
       );
+      return;
+    }
+
+    if (!binaryPath) {
+      reject(new Error("yt-dlp binary path could not be resolved"));
       return;
     }
 

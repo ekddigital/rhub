@@ -97,6 +97,8 @@ export type DownloadHubToolHealth = {
   /** Local vs remote dependency snapshots (health API). */
   local?: DownloadHubDepsSnapshot;
   remote?: DownloadHubDepsSnapshot;
+  /** True when metadata analysis can run (local yt-dlp or remote ttyd yt-dlp). */
+  readyForAnalyze?: boolean;
   /** True when this app can run downloads (local yt-dlp + ffmpeg). */
   readyForDownloads?: boolean;
   /** True when the TTYD host has both tools installed. */

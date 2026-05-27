@@ -82,10 +82,11 @@ export function DownloadHub() {
     void loadToolHealth();
   }, [loadToolHealth]);
 
-  const ytDlpReady =
+  const analyzeReady =
     !healthLoading &&
     !healthFetchFailed &&
-    toolHealth?.readyForDownloads === true;
+    (toolHealth?.readyForAnalyze === true ||
+      toolHealth?.readyForDownloads === true);
 
   const {
     loading,
@@ -245,7 +246,7 @@ export function DownloadHub() {
               onClick={handleAnalyze}
               disabled={
                 !url.trim() ||
-                !ytDlpReady ||
+                !analyzeReady ||
                 Boolean(instantValidation) ||
                 (detectedPlatform !== null &&
                   !isPlatformReady(detectedPlatform))

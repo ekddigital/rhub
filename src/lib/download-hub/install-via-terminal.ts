@@ -3,10 +3,7 @@ import "server-only";
 import { executeRemoteCommand } from "@/lib/terminal/client";
 import { isTtydConfigured } from "./ttyd-config";
 import type { DownloadHubToolHealth } from "./yt-dlp-binary";
-import {
-  getDownloadHubToolHealth,
-  resetYtDlpPathCache,
-} from "./yt-dlp-binary";
+import { getDownloadHubToolHealth, resetYtDlpPathCache } from "./yt-dlp-binary";
 
 const REMOTE_CHECK_TIMEOUT_MS = 30_000;
 const REMOTE_INSTALL_TIMEOUT_MS = 540_000;
@@ -82,10 +79,10 @@ function remoteDepsCheckCommand(): string {
     'if command -v yt-dlp >/dev/null 2>&1; then echo "YT_DLP_PATH=$(command -v yt-dlp)"; ' +
     'elif [ -x "$HOME/bin/yt-dlp" ]; then echo "YT_DLP_PATH=$HOME/bin/yt-dlp"; ' +
     'elif [ -x /home/hetawk/bin/yt-dlp ]; then echo "YT_DLP_PATH=/home/hetawk/bin/yt-dlp"; ' +
-    'else echo YT_DLP_MISSING; fi; ' +
+    "else echo YT_DLP_MISSING; fi; " +
     'if command -v ffmpeg >/dev/null 2>&1; then echo "FFMPEG_PATH=$(command -v ffmpeg)"; ' +
-    'elif [ -x /usr/bin/ffmpeg ]; then echo FFMPEG_PATH=/usr/bin/ffmpeg; ' +
-    'else echo FFMPEG_MISSING; fi\''
+    "elif [ -x /usr/bin/ffmpeg ]; then echo FFMPEG_PATH=/usr/bin/ffmpeg; " +
+    "else echo FFMPEG_MISSING; fi'"
   );
 }
 
@@ -159,8 +156,8 @@ async function installRemoteFfmpeg(): Promise<TerminalInstallStep> {
 
   const result = await executeRemoteCommand({
     command:
-      'bash -lc \'set -e; export DEBIAN_FRONTEND=noninteractive; ' +
-      'sudo apt-get update -qq; sudo apt-get install -y -qq ffmpeg; ffmpeg -version | head -1\'',
+      "bash -lc 'set -e; export DEBIAN_FRONTEND=noninteractive; " +
+      "sudo apt-get update -qq; sudo apt-get install -y -qq ffmpeg; ffmpeg -version | head -1'",
     timeout: REMOTE_INSTALL_TIMEOUT_MS,
     retries: 0,
   });
