@@ -23,6 +23,7 @@ export interface ToolConfig {
     | "ref"
     | "url"
     | "vid"
+    | "download"
     | "audio"
     | "docs"
     | "latex"
@@ -172,44 +173,32 @@ export const TOOLS: ToolConfig[] = [
     },
   },
 
-  // YouTube Downloader
+  // Download Hub (multi-platform video/audio)
   {
-    slug: "yt",
-    title: "YouTube Downloader",
-    tagline: "Download YouTube videos and audio",
+    slug: "vid",
+    title: "Download Hub",
+    tagline: "YouTube, Facebook, Instagram & more",
     summary:
-      "Download videos from YouTube in multiple formats and qualities. Extract audio tracks as MP3 or M4A.",
+      "Download videos and audio from multiple platforms in one place. YouTube, Facebook, and Instagram are live, with more platforms rolling out on a shared pipeline.",
     category: "media",
-    group: "vid",
+    group: "download",
+    subcategory: "video",
     status: "live",
     featured: true,
     icon: Video,
-    path: "/tools/vid/yt",
+    path: "/tools/vid",
     metadata: {
-      supportedSites: ["YouTube"],
+      supportedSites: [
+        "YouTube",
+        "Facebook",
+        "Instagram",
+        "TikTok",
+        "Twitter/X",
+        "Vimeo",
+      ],
+      liveSites: ["YouTube", "Facebook", "Instagram"],
       formats: ["MP4", "WebM", "MP3", "M4A"],
       qualities: ["4K", "1080p", "720p", "480p", "360p"],
-    },
-  },
-
-  // Instagram Downloader
-  {
-    slug: "ig",
-    title: "Instagram Downloader",
-    tagline: "Download Instagram videos and Reels",
-    summary:
-      "Download Instagram Reels, IGTV videos, and posts in MP4 format without watermarks. Supports multiple quality options.",
-    category: "media",
-    group: "vid",
-    status: "coming-soon",
-    featured: false,
-    icon: Video,
-    path: "/tools/vid/ig",
-    metadata: {
-      supportedSites: ["Instagram"],
-      formats: ["MP4", "MP3"],
-      qualities: ["1080p", "720p", "480p"],
-      features: ["No watermark", "Reels", "IGTV", "Posts"],
     },
   },
 

@@ -9,8 +9,10 @@ import {
   Download,
   Gavel,
   CalendarRange,
+  Video,
   type LucideIcon,
 } from "lucide-react";
+import { downloadHubNav } from "@/lib/download-hub/nav";
 
 export interface NavItem {
   name: string;
@@ -74,6 +76,12 @@ export const featuredResources: NavItem[] = [
     description: "Convert between 8+ formats",
   },
   {
+    name: downloadHubNav.label,
+    href: downloadHubNav.href,
+    icon: Video,
+    description: downloadHubNav.description,
+  },
+  {
     name: "URL Shortener",
     href: "/tools/s",
     icon: Link2,
@@ -114,6 +122,7 @@ export const footerNavSections: NavSection[] = [
       { name: "Converters", href: "/#converters" },
       { name: "URL Shortener", href: "/tools/s" },
       { name: "Image Tools", href: "/tools/img" },
+      { name: downloadHubNav.label, href: downloadHubNav.href },
       { name: "Conference Hub", href: "/tools/conf" },
       { name: "Conference Booklet", href: "/tools/conf/booklet" },
       { name: "Downloads", href: "/downloads" },

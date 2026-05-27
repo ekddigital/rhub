@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { getToolsByGroup } from "@/lib/tools-config";
+import { getAllPlatforms } from "@/lib/download-hub";
+import { downloadHubNav } from "@/lib/download-hub/nav";
 import { getFeaturedConversions } from "@/lib/img/conversions-config";
 import { getFeaturedDocumentTools } from "@/lib/doc/tools-config";
 import { kitSurfaces } from "@/lib/kit/tools-config";
@@ -38,7 +40,8 @@ export function ToolsDropdown() {
 
   // Group tools by category
   const imgTools = getToolsByGroup("img");
-  const vidTools = getToolsByGroup("vid");
+  const downloadTools = getToolsByGroup("download");
+  const downloadPlatforms = getAllPlatforms();
   const refTools = getToolsByGroup("ref");
   const urlTools = getToolsByGroup("url");
   const docTools = getToolsByGroup("doc");
@@ -184,23 +187,26 @@ export function ToolsDropdown() {
                 </div>
               )}
 
-              {/* Video Downloaders Group */}
-              {vidTools.length > 0 && (
+              {/* Download Hub */}
+              {downloadTools.length > 0 && (
                 <div
                   className="relative"
-                  onMouseEnter={() => setHoveredGroup("vid")}
+                  onMouseEnter={() => setHoveredGroup("download")}
                 >
-                  <div className="flex items-center justify-between rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20">
+                  <Link
+                    href={downloadHubNav.href}
+                    className="flex items-center justify-between rounded-md px-3 py-2 transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
+                  >
                     <div>
                       <div className="text-sm font-medium text-foreground">
-                        Video Downloaders
+                        {downloadHubNav.label}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        YouTube, Instagram & more
+                        {downloadHubNav.description}
                       </div>
                     </div>
                     <ChevronRight className="h-4 w-4" />
-                  </div>
+                  </Link>
                 </div>
               )}
 
@@ -333,25 +339,39 @@ export function ToolsDropdown() {
                 </div>
               )}
 
-              {hoveredGroup === "vid" && (
+              {hoveredGroup === "download" && (
                 <div className="space-y-1 animate-in fade-in-0 slide-in-from-left-2">
                   <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
-                    Video Platforms
+                    Platforms
                   </div>
-                  {vidTools.map((tool) => (
+                  {downloadPlatforms.map((platform) => (
                     <Link
-                      key={tool.slug}
-                      href={tool.path}
+                      key={platform.id}
+                      href={platform.href}
                       className="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground border-2 border-transparent hover:border-gold/20"
                     >
-                      <div className="font-medium text-foreground">
-                        {tool.title}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {tool.tagline}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground">
+                          {platform.icon} {platform.displayName}
+                        </span>
+                        <span
+                          className={`text-[10px] uppercase tracking-wide ${
+                            platform.status === "live"
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {platform.status === "live" ? "Live" : "Soon"}
+                        </span>
                       </div>
                     </Link>
                   ))}
+                  <Link
+                    href={downloadHubNav.href}
+                    className="block rounded-md px-3 py-2 text-sm font-medium text-gold hover:bg-accent border-2 border-transparent hover:border-gold/20"
+                  >
+                    Open Download Hub →
+                  </Link>
                 </div>
               )}
 

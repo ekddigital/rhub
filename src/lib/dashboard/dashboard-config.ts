@@ -5,8 +5,10 @@ import {
   Image as ImageIcon,
   Download,
   CalendarRange,
+  Video,
   type LucideIcon,
 } from "lucide-react";
+import { downloadHubNav } from "@/lib/download-hub/nav";
 
 export interface ToolConfig {
   icon: LucideIcon;
@@ -57,6 +59,14 @@ export const DASHBOARD_TOOLS: ToolConfig[] = [
     bg: "bg-orange-500/10",
   },
   {
+    icon: Video,
+    label: downloadHubNav.label,
+    description: downloadHubNav.tagline,
+    href: downloadHubNav.href,
+    color: "text-rose-500",
+    bg: "bg-rose-500/10",
+  },
+  {
     icon: CalendarRange,
     label: "Conference Hub",
     description: "LSUIC 2026 — budget, payments, meetings & more",
@@ -66,7 +76,7 @@ export const DASHBOARD_TOOLS: ToolConfig[] = [
   },
   {
     icon: Download,
-    label: "Downloads",
+    label: "File Downloads",
     description: "Templates, guides and resources",
     href: "/downloads",
     color: "text-ekd-gold",

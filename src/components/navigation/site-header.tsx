@@ -14,8 +14,10 @@ import {
   BookOpen,
   Code2,
   CalendarRange,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { downloadHubNav } from "@/lib/download-hub/nav";
 
 const navLinks = [
   { label: "Docs", href: "/docs" },
@@ -27,7 +29,12 @@ const navLinks = [
 const mobileLinks = [
   { label: "Conference Hub", href: "/tools/conf", icon: CalendarRange },
   { label: "Debate Hub", href: "/tools/dbt", icon: Gavel },
-  { label: "Downloads", href: "/downloads", icon: Download },
+  {
+    label: downloadHubNav.label,
+    href: downloadHubNav.href,
+    icon: Video,
+  },
+  { label: "File Downloads", href: "/downloads", icon: Download },
   { label: "Docs", href: "/docs", icon: BookOpen },
   { label: "API", href: "/api", icon: Code2 },
 ];

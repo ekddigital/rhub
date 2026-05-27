@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { downloadVideo, getVideoInfo } from "@/lib/vid/engine";
-import { validateUrl, getPlatformById } from "@/lib/vid/platforms-config";
+import {
+  validateUrl,
+  getPlatformById,
+  isPlatformReady,
+} from "@/lib/vid/platforms-config";
+import { getLivePlatforms } from "@/lib/download-hub";
 import { prisma } from "@/lib/prisma";
 import type { VideoQuality, AudioQuality } from "@/lib/vid/platforms-config";
 
 export const runtime = "nodejs";
+
+function buildComingSoonError(platformName: string): string {
+  const liveList = getLivePlatforms()
+    .map((platform) => platform.displayName)
+    .join(", ");
+  return `${platformName} downloads are coming soon. Currently live: ${liveList}.`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,11 +37,20 @@ export async function POST(req: NextRequest) {
     if (!validation.valid || !validation.platform) {
       return NextResponse.json(
         { error: validation.error || "Invalid URL" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const { platform, videoId } = validation;
+
+    if (!isPlatformReady(platform)) {
+      return NextResponse.json(
+        {
+          error: buildComingSoonError(platform.displayName),
+        },
+        { status: 501 },
+      );
+    }
 
     // Handle info request
     if (action === "info") {
@@ -41,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (!formatId || !qualityId) {
       return NextResponse.json(
         { error: "Format and quality are required for download" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -49,7 +70,7 @@ export async function POST(req: NextRequest) {
     if (!format) {
       return NextResponse.json(
         { error: "Unsupported format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -61,7 +82,7 @@ export async function POST(req: NextRequest) {
     if (!quality) {
       return NextResponse.json(
         { error: "Unsupported quality" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -115,7 +136,7 @@ export async function POST(req: NextRequest) {
       {
         error: error instanceof Error ? error.message : "Download failed",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -137,7 +158,7 @@ export async function GET(req: NextRequest) {
       if (!platform) {
         return NextResponse.json(
           { error: "Invalid platform" },
-          { status: 400 }
+          { status: 400 },
         );
       }
     } else {
@@ -145,10 +166,19 @@ export async function GET(req: NextRequest) {
       if (!validation.valid || !validation.platform) {
         return NextResponse.json(
           { error: validation.error || "Invalid URL" },
-          { status: 400 }
+          { status: 400 },
         );
       }
       platform = validation.platform;
+    }
+
+    if (!isPlatformReady(platform)) {
+      return NextResponse.json(
+        {
+          error: buildComingSoonError(platform.displayName),
+        },
+        { status: 501 },
+      );
     }
 
     const info = await getVideoInfo(url, platform);
@@ -159,7 +189,7 @@ export async function GET(req: NextRequest) {
       {
         error: error instanceof Error ? error.message : "Failed to get info",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

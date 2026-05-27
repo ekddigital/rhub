@@ -14,9 +14,16 @@ import {
   History,
   Crown,
   Wrench,
+  Video,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleMeta } from "@/lib/roles";
+import {
+  downloadHubNav,
+  isDownloadHubPath,
+  isFileDownloadsPath,
+} from "@/lib/download-hub/nav";
 
 interface SidebarUser {
   id: string;
@@ -162,29 +169,51 @@ export function AppSidebar({ user }: { user: SidebarUser }) {
           Tools
         </p>
         {[
-          { label: "LaTeX to Word", href: "/tools/latex" },
-          { label: "URL Shortener", href: "/tools/s" },
-          { label: "Reference Tools", href: "/tools/ref" },
-          { label: "Image Tools", href: "/tools/img" },
-          { label: "Conference Hub", href: "/tools/conf" },
-          { label: "Conference Docs", href: "/tools/conf/docs" },
-          { label: "Conference Booklet", href: "/tools/conf/booklet" },
-          { label: "Downloads", href: "/downloads" },
-        ].map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            className={cn(
-              "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
-              pathname.startsWith(t.href)
-                ? "bg-ekd-gold/15 text-ekd-dark-brown dark:text-ekd-gold"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent",
-            )}
-          >
-            <Wrench className="h-3.5 w-3.5 shrink-0" />
-            {t.label}
-          </Link>
-        ))}
+          { label: "LaTeX to Word", href: "/tools/latex", icon: Wrench },
+          { label: "URL Shortener", href: "/tools/s", icon: Wrench },
+          { label: "Reference Tools", href: "/tools/ref", icon: Wrench },
+          { label: "Image Tools", href: "/tools/img", icon: Wrench },
+          {
+            label: downloadHubNav.label,
+            href: downloadHubNav.href,
+            icon: Video,
+          },
+          { label: "Conference Hub", href: "/tools/conf", icon: Wrench },
+          { label: "Conference Docs", href: "/tools/conf/docs", icon: Wrench },
+          {
+            label: "Conference Booklet",
+            href: "/tools/conf/booklet",
+            icon: Wrench,
+          },
+          { label: "File Downloads", href: "/downloads", icon: Download },
+        ].map((t) => {
+          const active =
+            t.href === downloadHubNav.href
+              ? isDownloadHubPath(pathname)
+              : t.href === "/downloads"
+                ? isFileDownloadsPath(pathname)
+                : pathname === t.href || pathname.startsWith(`${t.href}/`);
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className={cn(
+                "flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+                active
+                  ? "bg-ekd-gold/15 text-ekd-dark-brown dark:text-ekd-gold"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
+              )}
+            >
+              <t.icon
+                className={cn(
+                  "h-3.5 w-3.5 shrink-0",
+                  active && t.icon === Video ? "text-ekd-gold" : "",
+                )}
+              />
+              {t.label}
+            </Link>
+          );
+        })}
       </div>
     </aside>
   );
