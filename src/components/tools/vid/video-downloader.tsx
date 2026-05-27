@@ -86,7 +86,8 @@ export function DownloadHub() {
     !healthLoading &&
     !healthFetchFailed &&
     (toolHealth?.readyForAnalyze === true ||
-      toolHealth?.readyForDownloads === true);
+      toolHealth?.readyForDownloads === true ||
+      toolHealth?.remoteInstallOk === true);
 
   const {
     loading,
