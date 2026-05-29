@@ -12,6 +12,8 @@ import {
   FileText,
   Loader2,
   Search,
+  Shirt,
+  UtensilsCrossed,
   Wallet,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,8 +22,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { formatConferenceOptionalAddOnsSummary } from "@/lib/conf/fees";
+import {
+  formatConferenceOptionalAddOnsSummary,
+  CONFERENCE_JERSEY_PACKAGE_ID,
+  getConferenceFeePackageById,
+} from "@/lib/conf/fees";
 import { buildConferenceDelegateFeeBreakdown } from "@/lib/conf/delegate-fee-breakdown";
+
+const TABLE_ADDON_IDS = new Set(["achievers-platinum", "achievers-gold", "achievers-vip"]);
 
 export type DelegateFinanceRow = {
   id: string;
@@ -53,7 +61,9 @@ function normalizeRow(row: DelegateFinanceRow): DelegateFinanceRow {
     ...row,
     feeAmount: toMoney(row.feeAmount),
     amountPaid: toMoney(row.amountPaid),
-    addOnPackageIds: Array.isArray(row.addOnPackageIds) ? row.addOnPackageIds : [],
+    addOnPackageIds: Array.isArray(row.addOnPackageIds)
+      ? row.addOnPackageIds
+      : [],
     feeFsApprovedAt: row.feeFsApprovedAt ?? null,
     feeFsApprovedBy: row.feeFsApprovedBy ?? null,
     feeTreasurerAckAt: row.feeTreasurerAckAt ?? null,
@@ -120,7 +130,9 @@ export function ConferenceFinanceDelegatesBoard({
         const payload = (await res.json()) as DelegateFinanceRow[];
         setRows(payload.map(normalizeRow));
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to load finance view");
+        setError(
+          e instanceof Error ? e.message : "Failed to load finance view",
+        );
       } finally {
         setLoading(false);
       }
@@ -152,7 +164,10 @@ export function ConferenceFinanceDelegatesBoard({
       const isTreasurerAcked = Boolean(row.feeTreasurerAckAt);
 
       if (variant === "fs") {
-        if (fsQueueFilter === "AWAITING_FS_RELEASE" && (!isFullyConfirmed || isFsReleased)) {
+        if (
+          fsQueueFilter === "AWAITING_FS_RELEASE" &&
+          (!isFullyConfirmed || isFsReleased)
+        ) {
           return false;
         }
         if (fsQueueFilter === "FS_RELEASED" && !isFsReleased) return false;
@@ -162,11 +177,13 @@ export function ConferenceFinanceDelegatesBoard({
       }
 
       if (cityFilter !== "ALL" && row.city !== cityFilter) return false;
-      if (paymentFilter !== "ALL" && paymentState !== paymentFilter) return false;
+      if (paymentFilter !== "ALL" && paymentState !== paymentFilter)
+        return false;
       if (confirmationFilter === "CONFIRMED_ONLY" && !isFullyConfirmed) {
         return false;
       }
-      if (confirmationFilter === "PENDING_ONLY" && isFullyConfirmed) return false;
+      if (confirmationFilter === "PENDING_ONLY" && isFullyConfirmed)
+        return false;
       if (!q) return true;
       return (
         row.name.toLowerCase().includes(q) ||
@@ -241,8 +258,34 @@ export function ConferenceFinanceDelegatesBoard({
       const paidAmount = toMoney(row.amountPaid);
       return paidAmount > 0 && paidAmount < dueAmount;
     }).length;
-    const unpaidCount = rows.filter((row) => toMoney(row.amountPaid) <= 0).length;
+    const unpaidCount = rows.filter(
+      (row) => toMoney(row.amountPaid) <= 0,
+    ).length;
     const outstanding = Math.max(due - paid, 0);
+
+    // Jersey breakdown
+    let jerseySets = 0;
+    let jerseyExpected = 0;
+    for (const row of rows) {
+      const sets = (row.addOnPackageIds ?? []).filter(
+        (id) => id === CONFERENCE_JERSEY_PACKAGE_ID,
+      ).length;
+      jerseySets += sets;
+      jerseyExpected += sets * 60;
+    }
+
+    // Table add-on breakdown (Platinum Table of 8, Gold Table of 5, VIP Table of 4)
+    let tablesCount = 0;
+    let tablesExpected = 0;
+    for (const row of rows) {
+      for (const id of row.addOnPackageIds ?? []) {
+        if (TABLE_ADDON_IDS.has(id)) {
+          tablesCount += 1;
+          tablesExpected += getConferenceFeePackageById(id)?.price ?? 0;
+        }
+      }
+    }
+
     return {
       due,
       paid,
@@ -250,6 +293,10 @@ export function ConferenceFinanceDelegatesBoard({
       partialPaidCount,
       unpaidCount,
       outstanding,
+      jerseySets,
+      jerseyExpected,
+      tablesCount,
+      tablesExpected,
     };
   }, [rows]);
 
@@ -364,7 +411,11 @@ export function ConferenceFinanceDelegatesBoard({
           row.confirmedPaid,
           row.status,
         ]
-          .map((value) => String(value ?? "").replace(/\t/g, " ").replace(/\n/g, " "))
+          .map((value) =>
+            String(value ?? "")
+              .replace(/\t/g, " ")
+              .replace(/\n/g, " "),
+          )
           .join("\t"),
       ),
     ];
@@ -442,7 +493,8 @@ export function ConferenceFinanceDelegatesBoard({
       const payload = (await res.json().catch(() => ({}))) as {
         error?: string;
       } & DelegateFinanceRow;
-      if (!res.ok) throw new Error(payload.error || "Failed to confirm payment");
+      if (!res.ok)
+        throw new Error(payload.error || "Failed to confirm payment");
 
       const approveRes = await fetch(
         `/api/conf/${confId}/delegates/${row.id}/fee-fs-approval`,
@@ -475,7 +527,9 @@ export function ConferenceFinanceDelegatesBoard({
             : item,
         ),
       );
-      setNotice(`Marked ${row.name} as paid and released to the Treasurer queue.`);
+      setNotice(
+        `Marked ${row.name} as paid and released to the Treasurer queue.`,
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to confirm payment");
     } finally {
@@ -518,7 +572,9 @@ export function ConferenceFinanceDelegatesBoard({
       );
       setNotice(`Released ${row.name} to the Treasurer queue.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to release to treasurer");
+      setError(
+        e instanceof Error ? e.message : "Failed to release to treasurer",
+      );
     } finally {
       setBusyId(null);
     }
@@ -541,7 +597,8 @@ export function ConferenceFinanceDelegatesBoard({
       const payload = (await revokeRes.json().catch(() => ({}))) as {
         error?: string;
       } & DelegateFinanceRow;
-      if (!revokeRes.ok) throw new Error(payload.error || "Failed to revoke FS release");
+      if (!revokeRes.ok)
+        throw new Error(payload.error || "Failed to revoke FS release");
       setRows((prev) =>
         prev.map((item) =>
           item.id === row.id
@@ -580,7 +637,8 @@ export function ConferenceFinanceDelegatesBoard({
       const payload = (await res.json().catch(() => ({}))) as {
         error?: string;
       } & DelegateFinanceRow;
-      if (!res.ok) throw new Error(payload.error || "Failed to record acknowledgement");
+      if (!res.ok)
+        throw new Error(payload.error || "Failed to record acknowledgement");
       setRows((prev) =>
         prev.map((item) =>
           item.id === row.id
@@ -619,7 +677,8 @@ export function ConferenceFinanceDelegatesBoard({
       const payload = (await res.json().catch(() => ({}))) as {
         error?: string;
       } & DelegateFinanceRow;
-      if (!res.ok) throw new Error(payload.error || "Failed to clear acknowledgement");
+      if (!res.ok)
+        throw new Error(payload.error || "Failed to clear acknowledgement");
       setRows((prev) =>
         prev.map((item) =>
           item.id === row.id
@@ -635,7 +694,9 @@ export function ConferenceFinanceDelegatesBoard({
       );
       setNotice(`Cleared acknowledgement for ${row.name}.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to clear acknowledgement");
+      setError(
+        e instanceof Error ? e.message : "Failed to clear acknowledgement",
+      );
     } finally {
       setBusyId(null);
     }
@@ -656,7 +717,9 @@ export function ConferenceFinanceDelegatesBoard({
         },
       );
       if (!revokeRes.ok) {
-        const errBody = (await revokeRes.json().catch(() => ({}))) as { error?: string };
+        const errBody = (await revokeRes.json().catch(() => ({}))) as {
+          error?: string;
+        };
         throw new Error(errBody.error || "Failed to revoke FS release");
       }
 
@@ -671,7 +734,8 @@ export function ConferenceFinanceDelegatesBoard({
       const payload = (await res.json().catch(() => ({}))) as {
         error?: string;
       } & DelegateFinanceRow;
-      if (!res.ok) throw new Error(payload.error || "Failed to mark as pending");
+      if (!res.ok)
+        throw new Error(payload.error || "Failed to mark as pending");
       setRows((prev) =>
         prev.map((item) =>
           item.id === row.id
@@ -688,7 +752,9 @@ export function ConferenceFinanceDelegatesBoard({
       setNotice(`Moved ${row.name} back to pending confirmation.`);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "Failed to revert payment confirmation",
+        e instanceof Error
+          ? e.message
+          : "Failed to revert payment confirmation",
       );
     } finally {
       setBusyId(null);
@@ -734,7 +800,9 @@ export function ConferenceFinanceDelegatesBoard({
       >
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold">
-            {variant === "fs" ? "FS workflow (verification → release)" : "Treasurer workflow (receipts)"}
+            {variant === "fs"
+              ? "FS workflow (verification → release)"
+              : "Treasurer workflow (receipts)"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1 text-xs text-muted-foreground">
@@ -742,27 +810,32 @@ export function ConferenceFinanceDelegatesBoard({
             <>
               <p>
                 <span className="font-medium text-foreground">You:</span> match
-                remittance proof to the delegate package, adjust paid amounts if needed,
-                then use <span className="font-medium text-foreground">Confirm &amp; release</span>{" "}
-                when the balance is cleared. That action moves the row to the Treasurer
-                dashboard.
+                remittance proof to the delegate package, adjust paid amounts if
+                needed, then use{" "}
+                <span className="font-medium text-foreground">
+                  Confirm &amp; release
+                </span>{" "}
+                when the balance is cleared. That action moves the row to the
+                Treasurer dashboard.
               </p>
               <p>
-                <span className="font-medium text-foreground">Treasurer:</span> works only
-                in the separate Treasurer area (amber navigation) and never edits your
-                verification queue.
+                <span className="font-medium text-foreground">Treasurer:</span>{" "}
+                works only in the separate Treasurer area (amber navigation) and
+                never edits your verification queue.
               </p>
             </>
           ) : (
             <>
               <p>
                 Every delegate listed here is already FS-released. Use{" "}
-                <span className="font-medium text-foreground">Acknowledge receipt</span> when
-                your official receipt / custody step is complete.
+                <span className="font-medium text-foreground">
+                  Acknowledge receipt
+                </span>{" "}
+                when your official receipt / custody step is complete.
               </p>
               <p>
-                To question a release, coordinate with the Financial Secretary or Chair —
-                you cannot change paid amounts in this view.
+                To question a release, coordinate with the Financial Secretary
+                or Chair — you cannot change paid amounts in this view.
               </p>
             </>
           )}
@@ -821,9 +894,50 @@ export function ConferenceFinanceDelegatesBoard({
           <CardContent className="flex items-center gap-3 pt-6">
             <CheckCircle2 className="size-5 text-amber-600" />
             <div>
-              <p className="text-lg font-semibold">{fmtRmb(totals.outstanding)}</p>
+              <p className="text-lg font-semibold">
+                {fmtRmb(totals.outstanding)}
+              </p>
               <p className="text-xs text-muted-foreground">
                 Outstanding ({totals.unpaidCount} unpaid)
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Breakdown totals — jerseys + tables */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="border-[#C8A061]/30 bg-[#C8A061]/[0.05]">
+          <CardContent className="flex items-center gap-3 pt-6">
+            <Shirt className="size-5 text-[#C8A061]" />
+            <div>
+              <p className="text-lg font-semibold">{fmtRmb(totals.jerseyExpected)}</p>
+              <p className="text-xs text-muted-foreground">
+                Jersey Revenue ({totals.jerseySets} set{totals.jerseySets !== 1 ? "s" : ""})
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-[#8E0E00]/25 bg-[#8E0E00]/[0.05]">
+          <CardContent className="flex items-center gap-3 pt-6">
+            <UtensilsCrossed className="size-5 text-[#8E0E00]" />
+            <div>
+              <p className="text-lg font-semibold">{fmtRmb(totals.tablesExpected)}</p>
+              <p className="text-xs text-muted-foreground">
+                Tables Revenue ({totals.tablesCount} table{totals.tablesCount !== 1 ? "s" : ""})
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-blue-600/20 bg-blue-500/[0.05]">
+          <CardContent className="flex items-center gap-3 pt-6">
+            <CircleDollarSign className="size-5 text-blue-700" />
+            <div>
+              <p className="text-lg font-semibold">
+                {fmtRmb(totals.due - totals.jerseyExpected - totals.tablesExpected)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Core Registration Total
               </p>
             </div>
           </CardContent>
@@ -924,7 +1038,9 @@ export function ConferenceFinanceDelegatesBoard({
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                 value={treasurerAckFilter}
                 onChange={(e) => {
-                  setTreasurerAckFilter(e.target.value as "ALL" | "ACKED" | "UNACKED");
+                  setTreasurerAckFilter(
+                    e.target.value as "ALL" | "ACKED" | "UNACKED",
+                  );
                   setPage(1);
                 }}
               >
@@ -994,7 +1110,8 @@ export function ConferenceFinanceDelegatesBoard({
               feeAmount: row.feeAmount,
             });
             const packageTitle =
-              feeBreakdown.requiredPackageLabel ?? "No required package recorded";
+              feeBreakdown.requiredPackageLabel ??
+              "No required package recorded";
             return (
               <div
                 key={row.id}
@@ -1014,20 +1131,30 @@ export function ConferenceFinanceDelegatesBoard({
                       {row.university ? ` · ${row.university}` : ""}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-medium text-foreground">Package:</span>{" "}
+                      <span className="font-medium text-foreground">
+                        Package:
+                      </span>{" "}
                       {packageTitle}
                     </p>
                     {feeBreakdown.jersey && (
                       <p className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">Jersey:</span>{" "}
-                        {feeBreakdown.jersey.label} × {feeBreakdown.jersey.quantity}{" "}
-                        ({fmtRmb(feeBreakdown.jersey.unitPrice)} per set) —{" "}
+                        <span className="font-medium text-foreground">
+                          Jersey:
+                        </span>{" "}
+                        {feeBreakdown.jersey.label} ×{" "}
+                        {feeBreakdown.jersey.quantity} (
+                        {fmtRmb(feeBreakdown.jersey.unitPrice)} per set) —{" "}
                         {fmtRmb(feeBreakdown.jersey.subtotal)}
                       </p>
                     )}
                     {feeBreakdown.otherOptionalLines.map((line) => (
-                      <p key={line.packageId} className="text-xs text-muted-foreground">
-                        <span className="font-medium text-foreground">Add-on:</span>{" "}
+                      <p
+                        key={line.packageId}
+                        className="text-xs text-muted-foreground"
+                      >
+                        <span className="font-medium text-foreground">
+                          Add-on:
+                        </span>{" "}
                         {line.label} — {fmtRmb(line.subtotal)}
                       </p>
                     ))}
@@ -1137,7 +1264,9 @@ export function ConferenceFinanceDelegatesBoard({
                           : "border-amber-600/40 bg-amber-500/10 text-amber-900"
                       }
                     >
-                      {row.feeTreasurerAckAt ? "Receipt logged" : "Receipt pending"}
+                      {row.feeTreasurerAckAt
+                        ? "Receipt logged"
+                        : "Receipt pending"}
                     </Badge>
                   )}
                   {variant === "fs" && !isFullyConfirmed && (
@@ -1154,20 +1283,22 @@ export function ConferenceFinanceDelegatesBoard({
                       Confirm &amp; release
                     </Button>
                   )}
-                  {variant === "fs" && isFullyConfirmed && !row.feeFsApprovedAt && (
-                    <Button
-                      size="sm"
-                      onClick={() => void releaseToTreasurerOnly(row)}
-                      disabled={busyId === row.id}
-                    >
-                      {busyId === row.id ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="size-4" />
-                      )}
-                      Release to Treasurer
-                    </Button>
-                  )}
+                  {variant === "fs" &&
+                    isFullyConfirmed &&
+                    !row.feeFsApprovedAt && (
+                      <Button
+                        size="sm"
+                        onClick={() => void releaseToTreasurerOnly(row)}
+                        disabled={busyId === row.id}
+                      >
+                        {busyId === row.id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="size-4" />
+                        )}
+                        Release to Treasurer
+                      </Button>
+                    )}
                   {variant === "fs" && row.feeFsApprovedAt && (
                     <Button
                       size="sm"

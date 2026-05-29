@@ -27,14 +27,14 @@ outbound IP** that yt-dlp uses when talking to YouTube.
 
 ## 2. Solution Overview (all free, all server-side)
 
-| Layer            | Component                            | Role                                                    |
-| ---------------- | ------------------------------------ | ------------------------------------------------------- |
-| Outbound IP      | **Cloudflare WARP** (proxy mode)     | Routes yt-dlp through Cloudflare's edge → fresh IP      |
-| Player tokens    | **bgutil PO Token provider**         | Supplies fresh PO Tokens to extend longevity            |
-| Extractor        | **yt-dlp nightly**                   | Latest player-client + signature decryption             |
-| App wiring       | `YT_DLP_PROXY` env var               | Tells yt-dlp to use WARP's SOCKS5 endpoint              |
-| Process keepup   | **PM2** + `pm2-hetawk` systemd unit  | Resurrects bgutil-pot + models-static on reboot         |
-| Network keepup   | `warp-svc` systemd unit, Always On   | Reconnects WARP on reboot, holds the tunnel forever     |
+| Layer          | Component                           | Role                                                |
+| -------------- | ----------------------------------- | --------------------------------------------------- |
+| Outbound IP    | **Cloudflare WARP** (proxy mode)    | Routes yt-dlp through Cloudflare's edge → fresh IP  |
+| Player tokens  | **bgutil PO Token provider**        | Supplies fresh PO Tokens to extend longevity        |
+| Extractor      | **yt-dlp nightly**                  | Latest player-client + signature decryption         |
+| App wiring     | `YT_DLP_PROXY` env var              | Tells yt-dlp to use WARP's SOCKS5 endpoint          |
+| Process keepup | **PM2** + `pm2-hetawk` systemd unit | Resurrects bgutil-pot + models-static on reboot     |
+| Network keepup | `warp-svc` systemd unit, Always On  | Reconnects WARP on reboot, holds the tunnel forever |
 
 End-to-end verified working against the previously blocked
 `https://youtu.be/4OjS0RiDAL8`.
@@ -168,14 +168,14 @@ On every change: `pm2 save --force` so the dump matches live state.
 
 Set these in **EKD Digital Launchpad** (not Vercel) for the rhub project:
 
-| Variable             | Value                              | Required | Purpose                                 |
-| -------------------- | ---------------------------------- | -------- | --------------------------------------- |
-| `YT_DLP_PROXY`       | `socks5://127.0.0.1:40000`         | **Yes**  | Route yt-dlp through WARP               |
-| `YT_DLP_BIN`         | `/home/hetawk/bin/yt-dlp`          | Yes      | Use nightly binary                      |
-| `FFMPEG_BIN`         | (existing)                         | Yes      | Merging streams                         |
-| `TTYD_BASE_URL`      | (existing)                         | Yes      | Remote terminal API                     |
-| `TTYD_KEY`           | (existing)                         | Yes      | Auth                                    |
-| `YT_DLP_COOKIES_FILE`| `/home/hetawk/.cookies/youtube.txt`| Optional | Fallback if WARP IP ever gets flagged   |
+| Variable              | Value                               | Required | Purpose                               |
+| --------------------- | ----------------------------------- | -------- | ------------------------------------- |
+| `YT_DLP_PROXY`        | `socks5://127.0.0.1:40000`          | **Yes**  | Route yt-dlp through WARP             |
+| `YT_DLP_BIN`          | `/home/hetawk/bin/yt-dlp`           | Yes      | Use nightly binary                    |
+| `FFMPEG_BIN`          | (existing)                          | Yes      | Merging streams                       |
+| `TTYD_BASE_URL`       | (existing)                          | Yes      | Remote terminal API                   |
+| `TTYD_KEY`            | (existing)                          | Yes      | Auth                                  |
+| `YT_DLP_COOKIES_FILE` | `/home/hetawk/.cookies/youtube.txt` | Optional | Fallback if WARP IP ever gets flagged |
 
 After updating env vars, redeploy rhub from Launchpad.
 
