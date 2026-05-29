@@ -214,6 +214,21 @@ function resolveCookiesFile(): string | undefined {
   );
 }
 
+/**
+ * Outbound HTTP/SOCKS proxy for yt-dlp (e.g. residential proxy, Cloudflare
+ * WARP via wgcf, or a local SOCKS5). Free options that fit here:
+ *   - Cloudflare WARP on the VPS (no proxy URL needed; rewrites all outbound)
+ *   - A SOCKS5 over an SSH tunnel from a residential network you control
+ * If set, yt-dlp uses it for both info and download phases.
+ */
+function resolveYtDlpProxy(): string | undefined {
+  return (
+    process.env.YT_DLP_PROXY?.trim() ||
+    process.env.YTDLP_PROXY?.trim() ||
+    undefined
+  );
+}
+
 /** Canonical reel/watch URL after redirect (drops tracking query params). */
 function canonicalizeFacebookMediaUrl(url: string): string {
   try {
@@ -914,6 +929,11 @@ function baseYtDlpArgs(
   const cookiesFile = resolveCookiesFile();
   if (cookiesFile) {
     args.unshift("--cookies", cookiesFile);
+  }
+
+  const proxy = resolveYtDlpProxy();
+  if (proxy) {
+    args.unshift("--proxy", proxy);
   }
 
   return args;
