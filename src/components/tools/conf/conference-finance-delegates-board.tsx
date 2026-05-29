@@ -24,12 +24,8 @@ import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   formatConferenceOptionalAddOnsSummary,
-  CONFERENCE_JERSEY_PACKAGE_ID,
-  getConferenceFeePackageById,
 } from "@/lib/conf/fees";
 import { buildConferenceDelegateFeeBreakdown } from "@/lib/conf/delegate-fee-breakdown";
-
-const TABLE_ADDON_IDS = new Set(["achievers-platinum", "achievers-gold", "achievers-vip"]);
 
 export type DelegateFinanceRow = {
   id: string;
@@ -263,26 +259,27 @@ export function ConferenceFinanceDelegatesBoard({
     ).length;
     const outstanding = Math.max(due - paid, 0);
 
-    // Jersey breakdown
+    // Per-row breakdown using the fee catalog — accurate regardless of stored feeAmount
     let jerseySets = 0;
     let jerseyExpected = 0;
-    for (const row of rows) {
-      const sets = (row.addOnPackageIds ?? []).filter(
-        (id) => id === CONFERENCE_JERSEY_PACKAGE_ID,
-      ).length;
-      jerseySets += sets;
-      jerseyExpected += sets * 60;
-    }
-
-    // Table add-on breakdown (Platinum Table of 8, Gold Table of 5, VIP Table of 4)
     let tablesCount = 0;
     let tablesExpected = 0;
+    let coreRegistrationTotal = 0;
+
     for (const row of rows) {
-      for (const id of row.addOnPackageIds ?? []) {
-        if (TABLE_ADDON_IDS.has(id)) {
-          tablesCount += 1;
-          tablesExpected += getConferenceFeePackageById(id)?.price ?? 0;
-        }
+      const bd = buildConferenceDelegateFeeBreakdown({
+        feePackageId: row.feePackageId,
+        addOnPackageIds: row.addOnPackageIds,
+        feeAmount: row.feeAmount,
+      });
+      coreRegistrationTotal += bd.corePackageSubtotal;
+      if (bd.jersey) {
+        jerseySets += bd.jersey.quantity;
+        jerseyExpected += bd.jersey.subtotal;
+      }
+      for (const line of bd.otherOptionalLines) {
+        tablesCount += 1;
+        tablesExpected += line.subtotal;
       }
     }
 
@@ -297,6 +294,7 @@ export function ConferenceFinanceDelegatesBoard({
       jerseyExpected,
       tablesCount,
       tablesExpected,
+      coreRegistrationTotal,
     };
   }, [rows]);
 
@@ -934,7 +932,7 @@ export function ConferenceFinanceDelegatesBoard({
             <CircleDollarSign className="size-5 text-blue-700" />
             <div>
               <p className="text-lg font-semibold">
-                {fmtRmb(totals.due - totals.jerseyExpected - totals.tablesExpected)}
+                {fmtRmb(totals.coreRegistrationTotal)}
               </p>
               <p className="text-xs text-muted-foreground">
                 Core Registration Total
