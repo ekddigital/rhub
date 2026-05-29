@@ -209,9 +209,7 @@ export async function POST(req: NextRequest) {
     try {
       safeUrl = sanitizeMediaUrl(url);
     } catch (error) {
-      return jsonError(
-        error instanceof Error ? error.message : "Invalid URL",
-      );
+      return jsonError(error instanceof Error ? error.message : "Invalid URL");
     }
 
     let platform;
@@ -314,8 +312,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Video download error:", error);
-    const message =
-      error instanceof Error ? error.message : "Download failed";
+    const message = error instanceof Error ? error.message : "Download failed";
     return jsonError(message, requestUrl);
   }
 }
@@ -339,12 +336,9 @@ export async function GET(req: NextRequest) {
     );
   } catch (error) {
     console.error("Video download error:", error);
-    const message =
-      error instanceof Error ? error.message : "Download failed";
+    const message = error instanceof Error ? error.message : "Download failed";
     const sessionId = new URL(req.url).searchParams.get("sessionId");
-    const sessionUrl = sessionId
-      ? getVideoSession(sessionId)?.url
-      : undefined;
+    const sessionUrl = sessionId ? getVideoSession(sessionId)?.url : undefined;
     return jsonError(message, sessionUrl);
   }
 }

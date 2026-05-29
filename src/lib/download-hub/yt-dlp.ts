@@ -114,6 +114,20 @@ function extractorArgsForUrl(url: string): string[] {
     return ["--extractor-args", "facebook:webpage_variant=regular"];
   }
 
+  if (
+    host === "youtu.be" ||
+    host === "www.youtu.be" ||
+    host.includes("youtube.com")
+  ) {
+    // Try multiple YouTube client variants to avoid bot-check / sign-in walls
+    // commonly hit by VPS IPs. Order matters: ios + web_safari tend to succeed
+    // for Shorts and standard watch URLs without cookies.
+    return [
+      "--extractor-args",
+      "youtube:player_client=ios,web_safari,android_vr,web",
+    ];
+  }
+
   return [];
 }
 

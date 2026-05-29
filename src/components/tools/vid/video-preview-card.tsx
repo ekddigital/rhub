@@ -3,7 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, ExternalLink, Eye, User } from "lucide-react";
-import type { VideoEntryPreview, VideoSessionResponse } from "@/lib/download-hub/client";
+import type {
+  VideoEntryPreview,
+  VideoSessionResponse,
+} from "@/lib/download-hub/client";
 
 function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds <= 0) {

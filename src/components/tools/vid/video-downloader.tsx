@@ -82,12 +82,27 @@ export function DownloadHub() {
     void loadToolHealth();
   }, [loadToolHealth]);
 
-  const analyzeReady =
-    !healthLoading &&
-    !healthFetchFailed &&
-    (toolHealth?.readyForAnalyze === true ||
-      toolHealth?.readyForDownloads === true ||
-      toolHealth?.remoteInstallOk === true);
+  const healthReady =
+    toolHealth?.readyForAnalyze === true ||
+    toolHealth?.readyForDownloads === true ||
+    toolHealth?.remoteInstallOk === true;
+
+  // Background-poll the health endpoint until it reports a ready state.
+  // This prevents the Analyze button from appearing stuck after the first
+  // (potentially long-running) install attempt completes server-side.
+  useEffect(() => {
+    if (healthReady) return;
+    if (healthLoading) return;
+    const interval = window.setInterval(() => {
+      void loadToolHealth();
+    }, 10_000);
+    return () => window.clearInterval(interval);
+  }, [healthReady, healthLoading, loadToolHealth]);
+
+  // Allow Analyze as soon as the user has a valid-looking URL. The server
+  // returns a clear, actionable error if tools aren't ready yet, which is a
+  // better UX than a permanently disabled button while health is loading.
+  const analyzeReady = healthReady || healthLoading || healthFetchFailed;
 
   const {
     loading,
@@ -313,6 +328,8 @@ export function DownloadHub() {
               variant="outline"
               onClick={() => {
                 setError("");
+                // Refresh tool health in case server-side install just completed.
+                void loadToolHealth();
                 void handleAnalyze();
               }}
             >

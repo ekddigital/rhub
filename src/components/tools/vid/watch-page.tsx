@@ -74,7 +74,9 @@ export function WatchPage({ platformRouteSlug, sessionId }: WatchPageProps) {
   }, [loadSession]);
 
   const handleDownload = async (formatOptionId: string) => {
-    const selectedFormat = session?.formats.find((f) => f.id === formatOptionId);
+    const selectedFormat = session?.formats.find(
+      (f) => f.id === formatOptionId,
+    );
 
     setDownloadingId(formatOptionId);
     setDownloadSuccess(false);

@@ -87,7 +87,7 @@ function matchesAny(text: string, patterns: RegExp[]): boolean {
 function normalizeRawError(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed || /^(null|undefined|nan)$/i.test(trimmed)) {
-    return "Failed to fetch media metadata from source. Try again.";
+    return "The server didn't return a clear reason for the failure. The link may be private, region-restricted, or temporarily blocked by the platform. Try a different URL or retry shortly.";
   }
   return trimmed;
 }

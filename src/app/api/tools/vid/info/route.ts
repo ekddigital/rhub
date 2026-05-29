@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       mapped.trim().length > 0 &&
       !/^(null|undefined|nan)$/i.test(mapped.trim())
         ? mapped
-        : "Failed to fetch media metadata from source. Try again.";
+        : "The server couldn't read metadata for this URL. The link may be private, region-restricted, or blocked. Try a different URL or retry shortly.";
     return NextResponse.json(
       {
         error: safeError,

@@ -132,7 +132,10 @@ export function buildFormatOptions(
         f.acodec !== "none" &&
         typeof f.height === "number",
     )
-    .sort((a, b) => (b.height ?? 0) - (a.height ?? 0) || (b.tbr ?? 0) - (a.tbr ?? 0));
+    .sort(
+      (a, b) =>
+        (b.height ?? 0) - (a.height ?? 0) || (b.tbr ?? 0) - (a.tbr ?? 0),
+    );
 
   const heightsSeen = new Set<number>();
   for (const format of merged) {
@@ -168,45 +171,44 @@ export function buildFormatOptions(
     ext: string;
     selector: string;
     maxHeight?: number;
-  }> =
-    [
-      {
-        id: "video-mp4-best",
-        label: "Best quality MP4",
-        ext: "mp4",
-        selector: "best[ext=mp4]/best",
-      },
-      {
-        id: "video-webm-best",
-        label: "Best quality WebM",
-        ext: "webm",
-        selector: "best[ext=webm]/best",
-      },
-      {
-        id: "video-1080p",
-        label: "1080p MP4",
-        ext: "mp4",
-        maxHeight: 1080,
-        selector:
-          "best[height<=1080][ext=mp4]/best[height<=1080]/best[ext=mp4]/best",
-      },
-      {
-        id: "video-720p",
-        label: "720p MP4",
-        ext: "mp4",
-        maxHeight: 720,
-        selector:
-          "best[height<=720][ext=mp4]/best[height<=720]/best[ext=mp4]/best",
-      },
-      {
-        id: "video-480p",
-        label: "480p MP4",
-        ext: "mp4",
-        maxHeight: 480,
-        selector:
-          "best[height<=480][ext=mp4]/best[height<=480]/best[ext=mp4]/best",
-      },
-    ];
+  }> = [
+    {
+      id: "video-mp4-best",
+      label: "Best quality MP4",
+      ext: "mp4",
+      selector: "best[ext=mp4]/best",
+    },
+    {
+      id: "video-webm-best",
+      label: "Best quality WebM",
+      ext: "webm",
+      selector: "best[ext=webm]/best",
+    },
+    {
+      id: "video-1080p",
+      label: "1080p MP4",
+      ext: "mp4",
+      maxHeight: 1080,
+      selector:
+        "best[height<=1080][ext=mp4]/best[height<=1080]/best[ext=mp4]/best",
+    },
+    {
+      id: "video-720p",
+      label: "720p MP4",
+      ext: "mp4",
+      maxHeight: 720,
+      selector:
+        "best[height<=720][ext=mp4]/best[height<=720]/best[ext=mp4]/best",
+    },
+    {
+      id: "video-480p",
+      label: "480p MP4",
+      ext: "mp4",
+      maxHeight: 480,
+      selector:
+        "best[height<=480][ext=mp4]/best[height<=480]/best[ext=mp4]/best",
+    },
+  ];
 
   for (const preset of presets) {
     const sizeMeta = estimatePresetSize(
@@ -231,7 +233,10 @@ export function buildFormatOptions(
 
   // Audio options
   const bestAudio = formats
-    .filter((f) => f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"))
+    .filter(
+      (f) =>
+        f.acodec && f.acodec !== "none" && (!f.vcodec || f.vcodec === "none"),
+    )
     .sort((a, b) => (b.tbr ?? 0) - (a.tbr ?? 0))[0];
 
   const audioSizeMeta = pickFilesize(bestAudio, durationSec);
