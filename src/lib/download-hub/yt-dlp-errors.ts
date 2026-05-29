@@ -200,7 +200,12 @@ export function mapYtDlpError(
       return "This video is private and cannot be downloaded.";
 
     case "bot_check":
-      return "YouTube blocked automated access from this server (bot check). Try again later, or ask an admin to set YT_DLP_COOKIES_FILE with exported cookies.";
+      return (
+        "YouTube blocked this download with a \u201CSign in to confirm you\u2019re not a bot\u201D check. " +
+        "This is an IP-level block on the server, not a bug. " +
+        "An admin needs to upload a YouTube cookies file to the VPS and set YT_DLP_COOKIES_FILE \u2014 " +
+        "see scripts/setup-vid-cookies.sh."
+      );
 
     case "auth_required":
       if (isFacebookUrl(url) || lower.includes("facebook")) {

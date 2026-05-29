@@ -127,7 +127,8 @@ async function installRemoteYtDlp(): Promise<TerminalInstallStep> {
   const result = await executeRemoteCommand({
     command:
       'bash -lc \'set -e; export PATH="$HOME/bin:$PATH"; mkdir -p "$HOME/bin"; ' +
-      'curl -fsSL "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp" -o "$HOME/bin/yt-dlp"; ' +
+      // Use nightly channel — YouTube extractor bot-check fixes ship there first.
+      'curl -fsSL "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp" -o "$HOME/bin/yt-dlp"; ' +
       'chmod +x "$HOME/bin/yt-dlp"; "$HOME/bin/yt-dlp" --version | head -1\'',
     timeout: REMOTE_INSTALL_TIMEOUT_MS,
     retries: 0,
