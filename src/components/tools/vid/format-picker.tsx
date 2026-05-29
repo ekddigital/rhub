@@ -99,7 +99,7 @@ function FormatSection({
                       Recommended
                     </Badge>
                   )}
-                  {format.requiresFfmpeg && (
+                  {format.requiresFfmpeg && !ffmpegAvailable && (
                     <Badge
                       variant="outline"
                       className="text-[10px] text-amber-700 dark:text-amber-400 border-amber-500/30"
