@@ -1022,8 +1022,7 @@ function applyLetterSample(
       fundraisingUseOfFunds: NGO_SAMPLE_USE_OF_FUNDS.trim(),
     },
     miss_lsuic: {
-      title:
-        "Miss LSUIC Pageant & Achievers Night — Programme Sponsor Invitation",
+      title: "Partnership Invitation - Miss LSUIC 2026 Sponsorship",
       to: MISS_LSUIC_SAMPLE_RECIPIENT,
       from: CONF_FROM_COMMITTEE,
       re: MISS_LSUIC_SAMPLE_SUBJECT,

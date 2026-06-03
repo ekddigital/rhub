@@ -125,7 +125,7 @@ export const NGO_SAMPLE_PARTNERSHIP_TYPE =
 export const MISS_LSUIC_SAMPLE_RECIPIENT =
   "[Programme Sponsor Name or Organization]";
 export const MISS_LSUIC_SAMPLE_SUBJECT =
-  "Programme Sponsorship Invitation — Achievers Award Dinner & Miss LSUIC Pageant";
+  "Partnership Invitation - Miss LSUIC 2026 / Liberia Students Union in China (LSUIC) Annual Conference - Jinan, July 23-27, 2026";
 /** Editable sidebar lines — rendered as sponsor visibility / recognition bullets in the Miss LSUIC letter. */
 export const MISS_LSUIC_SAMPLE_USE_OF_FUNDS = `- Placement of your business logo on the official Miss LSUIC event banner
 - Inclusion of your promotional video or clip in the event marketing/programme replay reel
@@ -176,6 +176,7 @@ export const MISS_LSUIC_SAMPLE_EVENT_DATE = "July 26, 2026";
 export const MISS_LSUIC_SAMPLE_EVENT_TIME =
   "Evening programme during LSUIC 2026 Conference week (exact time TBC)";
 export const MISS_LSUIC_SAMPLE_PAYMENT_DEADLINE = "July 10, 2026";
+export const MISS_LSUIC_SAMPLE_CONFERENCE_DATES = "July 23-27, 2026";
 
 const DEFAULT_USE_OF_FUND_ITEMS = [
   "Fee reduction support for financially constrained students",
@@ -629,7 +630,7 @@ export function buildMissLsuicSponsorshipLetterBodyRichHtml(
   ).join("\n");
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
-<p>Greetings from the <strong>Liberian Student Union in China (LSUIC)</strong>. As we celebrate our <strong>20th Anniversary</strong> and convene our Annual Conference from <strong>${CONF_DATES}</strong> in <strong>${CONF_VENUE}</strong>, we are preparing a signature evening programme: the <strong>Achievers Award Dinner &amp; Miss LSUIC Pageant</strong>.</p>
+<p>Greetings from the <strong>Liberian Student Union in China (LSUIC)</strong>. As we celebrate our <strong>20th Anniversary</strong> and convene our Annual Conference from <strong>${MISS_LSUIC_SAMPLE_CONFERENCE_DATES}</strong> in <strong>${CONF_VENUE}</strong>, we are preparing a signature evening programme: the <strong>Achievers Award Dinner &amp; Miss LSUIC Pageant</strong>.</p>
 <p>This celebration honours student excellence, leadership, and service while showcasing the talent and dignity of Liberian young women in our community. The evening sits within our broader conference vision: <em>&ldquo;${escapeLetterHtml(theme)}&rdquo;</em>. Rather than quoting a conference-wide lump-sum goal, we are asking programme sponsors to help offset the tangible costs below so the committee can pay vendors, procure awards, and present the programme responsibly.</p>
 <p>We respectfully invite you to join us as a <strong>Programme Sponsor</strong>.</p>
 
@@ -665,7 +666,7 @@ ${benefitRows}
 </thead>
 <tbody>
 <tr><td>Achievers &amp; pageant evening</td><td>${escapeLetterHtml(evDate)} (${escapeLetterHtml(evTime)}) — during LSUIC 2026 in Jinan.</td></tr>
-<tr><td>Conference dates</td><td>${CONF_DATES}</td></tr>
+<tr><td>Conference dates</td><td>${MISS_LSUIC_SAMPLE_CONFERENCE_DATES}</td></tr>
 <tr><td>Venue</td><td>${CONF_VENUE}</td></tr>
 <tr><td>Programme sponsor confirmation (suggested)</td><td>Please revert by ${escapeLetterHtml(payDl)} so we can lock placements, banners, and table counts.</td></tr>
 </tbody>
