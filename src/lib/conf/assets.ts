@@ -15,6 +15,13 @@ type EKDAssetUploadResult = {
   downloadUrl: string | null;
 };
 
+type UploadRequestPayload = {
+  file: File;
+  assetType: EKDAssetType;
+  clientId: string;
+  projectName: string;
+};
+
 function isHttpUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
@@ -149,6 +156,57 @@ function getAuthCandidates(apiKey: string, apiSecret: string) {
   return candidates;
 }
 
+function createUploadFormData(payload: UploadRequestPayload) {
+  const formData = new FormData();
+  formData.append("file", payload.file, payload.file.name);
+  formData.append("client_id", payload.clientId);
+  formData.append("project_name", payload.projectName);
+  formData.append("asset_type", payload.assetType);
+  return formData;
+}
+
+function isRedirectStatus(status: number) {
+  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
+}
+
+async function postUploadPreservingMethod(
+  uploadUrl: string,
+  headers: Record<string, string>,
+  payload: UploadRequestPayload,
+  requestId: string,
+  authMethod: string,
+) {
+  const doPost = async (targetUrl: string) =>
+    fetch(targetUrl, {
+      method: "POST",
+      headers,
+      body: createUploadFormData(payload),
+      cache: "no-store",
+      redirect: "manual",
+    });
+
+  const response = await doPost(uploadUrl);
+  if (!isRedirectStatus(response.status)) {
+    return response;
+  }
+
+  const locationHeader = response.headers.get("location");
+  if (!locationHeader) {
+    return response;
+  }
+
+  const redirectUrl = new URL(locationHeader, uploadUrl).toString();
+  console.warn("[assets.upload.redirect_detected]", {
+    requestId,
+    authMethod,
+    status: response.status,
+    from: uploadUrl,
+    to: redirectUrl,
+  });
+
+  return doPost(redirectUrl);
+}
+
 export async function uploadFileToEKDDigitalAssets(
   params: EKDAssetUploadParams,
 ): Promise<EKDAssetUploadResult> {
@@ -192,18 +250,18 @@ export async function uploadFileToEKDDigitalAssets(
   });
 
   for (const candidate of authCandidates) {
-    const formData = new FormData();
-    formData.append("file", params.file, params.file.name);
-    formData.append("client_id", clientId);
-    formData.append("project_name", projectName);
-    formData.append("asset_type", params.assetType);
-
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      headers: candidate.headers,
-      body: formData,
-      cache: "no-store",
-    });
+    const response = await postUploadPreservingMethod(
+      uploadUrl,
+      candidate.headers,
+      {
+        file: params.file,
+        assetType: params.assetType,
+        clientId,
+        projectName,
+      },
+      requestId,
+      candidate.label,
+    );
 
     const rawBody = await response.text();
     let payload: unknown = null;
