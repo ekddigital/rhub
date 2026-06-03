@@ -509,6 +509,9 @@ function legacyMissGenericTargetLine(html: string): boolean {
     plain.includes("rmb 180,000") ||
     plain.includes("illustrative cost snapshot") ||
     plain.includes("working estimate") ||
+    plain.includes("programme support snapshot") ||
+    plain.includes("programme total") ||
+    plain.includes("sponsor visibility and recognition") ||
     plain.includes("support is applied") ||
     hasLegacyAmountRanges ||
     (plain.includes("payment deadline for confirmed") &&
@@ -5635,7 +5638,7 @@ export function LetterComposerShell() {
                         <p className="text-[10px] text-muted-foreground leading-snug">
                           <span className="block mb-1">
                             {activeDraft.fundraisingCategory === "miss_lsuic"
-                              ? "Programme sponsor invitation — itemised production costs in the letter body; edit sponsor visibility lines below. No virtual fundraiser block and no flyer/payment attachment page."
+                              ? "Partnership invitation aligned to the Miss LSUIC 2026 sponsorship draft. Edit recipient and support items below; no virtual fundraiser block and no flyer/payment attachment page."
                               : "Every letter category includes campaign overview, use of proceeds, session logistics, and the flyer payment note in the generated body."}
                             {activeDraft.fundraisingCategory === "general"
                               ? " Keynote Speaker (General only): both speaking and substantive support."
@@ -5654,7 +5657,7 @@ export function LetterComposerShell() {
                           {activeDraft.fundraisingCategory === "ngo" &&
                             "Development partner — capacity building, mutual impact, program collaboration."}
                           {activeDraft.fundraisingCategory === "miss_lsuic" &&
-                            "Achievers Award Dinner & Miss LSUIC Pageant — programme sponsor tables, sponsorship, and visibility."}
+                            "Achievers Award Dinner & Miss LSUIC Pageant - partnership invitation with direct-funding list and sponsor value positioning."}
                         </p>
                       </div>
 
@@ -5919,7 +5922,7 @@ export function LetterComposerShell() {
                                   ? "Impact Areas"
                                   : activeDraft.fundraisingCategory ===
                                       "miss_lsuic"
-                                    ? "Sponsor visibility & recognition"
+                                    ? "Direct Sponsorship Support Items"
                                     : "Intended Use of Funds"}
                           <span className="text-muted-foreground">
                             {" "}

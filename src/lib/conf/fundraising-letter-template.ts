@@ -126,51 +126,20 @@ export const MISS_LSUIC_SAMPLE_RECIPIENT =
   "[Programme Sponsor Name or Organization]";
 export const MISS_LSUIC_SAMPLE_SUBJECT =
   "Partnership Invitation - Miss LSUIC 2026 / Liberia Students Union in China (LSUIC) Annual Conference - Jinan, July 23-27, 2026";
-/** Editable sidebar lines — rendered as sponsor visibility / recognition bullets in the Miss LSUIC letter. */
-export const MISS_LSUIC_SAMPLE_USE_OF_FUNDS = `- Placement of your business logo on the official Miss LSUIC event banner
-- Inclusion of your promotional video or clip in the event marketing/programme replay reel
-- On-stage / printed acknowledgement aligned to Platinum, Gold, and VIP programme sponsor table tiers`;
+/** Sidebar-editable lines: direct sponsorship uses for the Miss LSUIC programme. */
+export const MISS_LSUIC_SAMPLE_USE_OF_FUNDS = `- Cash prizes: CNY 1,500 (Winner), CNY 1,000 (1st Runner-up), CNY 500 (2nd Runner-up)
+- Crown, title sashes, and special-award sashes (Miss Talent, Miss Photogenic, Best Traditional Wear, Miss Intellectual, Best in Evening Gown)
+- Three bouquets of flowers for winners
+- Official event banner featuring supporting partner logos
+- Professional pageant staging, sound, lighting, and rehearsals
+- Photo and video documentation of the pageant and awardees
+- Contestant preparation (June auditions, line-up coordination, show night management)
+- Achievers Award Dinner (hospitality, table patronage tiers, and professional delivery)`;
 
-/** Consolidated programme-support table (single table to avoid repeated sections). */
-export const MISS_LSUIC_PROGRAMME_SNAPSHOT_ROWS: readonly {
-  area: string;
-  basis: string;
-}[] = [
-  {
-    area: "Cash prizes for placings (winner + first runner-up + second runner-up)",
-    basis: "Fixed per committee minutes",
-  },
-  {
-    area: "Recognition kit (crown, sashes, flowers)",
-    basis:
-      "Depends on sash count as registrations grow toward 6–10 contestants (+ title & special-award units)",
-  },
-  {
-    area: "Official event banner incorporating supporting partners' logos",
-    basis: "One main banner with sponsor visibility placement",
-  },
-  {
-    area: "Pageant staging, sound/lighting, and rehearsal support",
-    basis: "Venue-dependent; programme scope",
-  },
-  {
-    area: "Photo/video documentation of the Achievers and Miss LSUIC programme",
-    basis: "Event documentation deliverables",
-  },
-  {
-    area: "Contestant preparation through June auditions and line-up coordination to show night",
-    basis: "Committee planning and rehearsal operations",
-  },
-  {
-    area: "Achievers Award Dinner hospitality, programme sponsor table tiers, and professional programme delivery",
-    basis: "Banquet-night execution and guest hosting requirements",
-  },
-];
-
-const MISS_LSUIC_SPONSORSHIP_CLOSER = `<p>Your generosity helps us honour student achievement, celebrate leadership, and invest in the next generation of Liberian women in our community. We are sincerely grateful for any support you can offer toward this milestone evening.</p>
-<p>Thank you for considering this invitation and for standing with LSUIC in building a meaningful, dignified programme for our students. We would be honoured to welcome you and your guests, and to acknowledge your contribution before our community.</p>
-<p>Please accept our heartfelt appreciation for your time, goodwill, and continued support. Should you require further information, the Conference Committee remains at your disposal.</p>`;
-export const MISS_LSUIC_ESTIMATED_TOTAL_BUDGET = "¥36,000";
+const MISS_LSUIC_SAMPLE_PARTNER_BENEFITS = [
+  "Brand Publicity - Your logo placed prominently on the official Miss LSUIC event banner, displayed throughout the conference and shared across LSUIC digital channels.",
+  "Targeted Marketing Reel - We will produce a compelling, professional short promotional video for your business (goods, services, or message), compiled into a looped reel played multiple times during the pageant and dinner, reaching an engaged audience of Liberian students, alumni, and guests.",
+] as const;
 
 export const MISS_LSUIC_SAMPLE_EVENT_DATE = "July 26, 2026";
 export const MISS_LSUIC_SAMPLE_EVENT_TIME =
@@ -592,88 +561,38 @@ export function buildMissLsuicSponsorshipLetterBodyRichHtml(
 ): string {
   const dear =
     fields.fundraisingRecipientName.trim() || MISS_LSUIC_SAMPLE_RECIPIENT;
-  const theme = fields.fundraisingConferenceTheme.trim() || CONF_THEME;
   const bullets = parseUseOfFundsLines(fields.fundraisingUseOfFunds);
-  const sponsorBenefits =
+  const directSupportItems =
     bullets.length > 0
       ? bullets
       : parseUseOfFundsLines(MISS_LSUIC_SAMPLE_USE_OF_FUNDS);
-
-  const benefitRows = sponsorBenefits
-    .map(
-      (item, i) =>
-        `<tr><td>${i + 1}.</td><td>${escapeLetterHtml(item)}</td></tr>`,
-    )
+  const supportList = directSupportItems
+    .map((item) => `<li>${escapeLetterHtml(item)}</li>`)
     .join("\n");
-
-  const rawEvDate = fields.fundraisingEventDate.trim();
-  const rawEvTime = fields.fundraisingEventTime.trim();
-  const rawPayDl = fields.fundraisingPaymentDeadline.trim();
-
-  // Guard against stale general-fundraising defaults leaking into Miss LSUIC drafts.
-  const evDate =
-    !rawEvDate || rawEvDate === FUNDRAISING_SAMPLE_EVENT_DATE
-      ? MISS_LSUIC_SAMPLE_EVENT_DATE
-      : rawEvDate;
-  const evTime =
-    !rawEvTime || rawEvTime === FUNDRAISING_SAMPLE_EVENT_TIME
-      ? MISS_LSUIC_SAMPLE_EVENT_TIME
-      : rawEvTime;
-  const payDl =
-    !rawPayDl || rawPayDl === FUNDRAISING_SAMPLE_PAYMENT_DEADLINE
-      ? MISS_LSUIC_SAMPLE_PAYMENT_DEADLINE
-      : rawPayDl;
-
-  const programmeSnapshotRows = MISS_LSUIC_PROGRAMME_SNAPSHOT_ROWS.map(
-    (row) =>
-      `<tr><td>${escapeLetterHtml(row.area)}</td><td>${escapeLetterHtml(row.basis)}</td></tr>`,
+  const partnerValueList = MISS_LSUIC_SAMPLE_PARTNER_BENEFITS.map(
+    (item) => `<li>${escapeLetterHtml(item)}</li>`,
   ).join("\n");
 
   return `<p>Dear <strong>${escapeLetterHtml(dear)}</strong>,</p>
-<p>Greetings from the <strong>Liberian Student Union in China (LSUIC)</strong>. As we celebrate our <strong>20th Anniversary</strong> and convene our Annual Conference from <strong>${MISS_LSUIC_SAMPLE_CONFERENCE_DATES}</strong> in <strong>${CONF_VENUE}</strong>, we are preparing a signature evening programme: the <strong>Achievers Award Dinner &amp; Miss LSUIC Pageant</strong>.</p>
-<p>This celebration honours student excellence, leadership, and service while showcasing the talent and dignity of Liberian young women in our community. The evening sits within our broader conference vision: <em>&ldquo;${escapeLetterHtml(theme)}&rdquo;</em>. Rather than quoting a conference-wide lump-sum goal, we are asking programme sponsors to help offset the tangible costs below so the committee can pay vendors, procure awards, and present the programme responsibly.</p>
-<p>We respectfully invite you to join us as a <strong>Programme Sponsor</strong>.</p>
-
-<h3>Programme support snapshot</h3>
-<p>The table below summarizes where programme sponsor support is applied. Individual line-item figures are not quoted in this letter; only the committee&rsquo;s current working total is shown (subject to final vendor quotes and headcount).</p>
-<table>
-<thead>
-<tr><th scope="col">Supporting area</th><th scope="col">Basis</th></tr>
-</thead>
-<tbody>
-${programmeSnapshotRows}
-<tr><td colspan="2"><strong>Programme total: ${escapeLetterHtml(MISS_LSUIC_ESTIMATED_TOTAL_BUDGET)}</strong></td></tr>
-</tbody>
-</table>
-<p>This total excludes wider Achievers dinner catering and unrelated conference pillars; programme sponsor tables exist precisely to crowd-in support where student contributions and union reserves cannot comfortably carry production alone.</p>
-
-<h3>Sponsor visibility and recognition</h3>
-<p>In return we offer clear acknowledgement opportunities (final artwork subject to sponsor tier).</p>
-<table>
-<thead>
-<tr><th scope="col">#</th><th scope="col">Recognition</th></tr>
-</thead>
-<tbody>
-${benefitRows}
-</tbody>
-</table>
-<p>Published programme sponsor table tiers reference <strong>Platinum (table of 8)</strong>, <strong>Gold (table of 5)</strong>, and <strong>VIP (table of 4)</strong>, with hospitality and programme recognition scaled accordingly. Contributions may alternatively be customised as directed programme sponsorship or in-kind support toward any of the expenditure lines above.</p>
-
-<h3>Programme schedule</h3>
-<table>
-<thead>
-<tr><th scope="col">Item</th><th scope="col">Detail</th></tr>
-</thead>
-<tbody>
-<tr><td>Achievers &amp; pageant evening</td><td>${escapeLetterHtml(evDate)} (${escapeLetterHtml(evTime)}) — during LSUIC 2026 in Jinan.</td></tr>
-<tr><td>Conference dates</td><td>${MISS_LSUIC_SAMPLE_CONFERENCE_DATES}</td></tr>
-<tr><td>Venue</td><td>${CONF_VENUE}</td></tr>
-<tr><td>Programme sponsor confirmation (suggested)</td><td>Please revert by ${escapeLetterHtml(payDl)} so we can lock placements, banners, and table counts.</td></tr>
-</tbody>
-</table>
-
-<p>Payment details and formal sponsorship confirmation packets are supplied by the Conference Committee on request.</p>
-${MISS_LSUIC_SPONSORSHIP_CLOSER}`;
+<p>I write to you on behalf of the Liberia Students Union in China (LSUIC) Conference Committee and the Miss LSUIC 2026 Pageant Planning Committee with a distinct opportunity: to place your business at the forefront of a prestigious, high-visibility event that celebrates Liberian excellence, leadership, and young women of purpose.</p>
+<p>From July 23-27, 2026, LSUIC will host its 20th Annual General Conference in Jinan City, bringing together Liberian students from across China. The centerpiece of that conference is the Miss LSUIC 2026 Pageant, celebrating Identity and Heritage with Focus on Leadership and Representation. Our contestants are academically accomplished, culturally grounded, and eager to represent Liberia with dignity.</p>
+<p>We are inviting a select group of Liberian-owned businesses in China to partner with us. Your support will directly fund:</p>
+<ul>
+${supportList}
+</ul>
+<h3>Why partner with Miss LSUIC 2026?</h3>
+<p>Your business will not simply be listed, it will be showcased. We have designed a value proposition that moves beyond logos to genuine audience engagement:</p>
+<ul>
+${partnerValueList}
+</ul>
+<p>This is not passive sponsorship. It is targeted marketing to a concentrated demographic of young, educated, and connected Liberians in China, many of whom are future professionals, entrepreneurs, and diaspora leaders.</p>
+<h3>How you can partner</h3>
+<p>We offer flexible tiers of support. Every contribution, large or small, is acknowledged with the benefits above. If you wish to discuss a specific level of partnership, including table patronage at the Achievers Award Dinner, we are happy to tailor a package that fits your business goals.</p>
+<p>Your support will do more than fund a pageant. It will invest in the leadership development of young Liberian women who are studying far from home, striving for excellence, and building the future of our nation right here in China.</p>
+<p>Thank you sincerely for your consideration.</p>
+<p>With respect and partnership,</p>
+<p>Pageant Organizing Team, Miss LSUIC 2026<br />Liberia Students Union in China (LSUIC)</p>
+<p><em>Encl: Miss LSUIC 2026 Official Pageant Guidelines (summary) - available upon request</em></p>`;
 }
 
 export function buildNgoLetterBodyRichHtml(
