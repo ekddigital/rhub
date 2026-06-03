@@ -19,6 +19,7 @@ import {
   ClipboardList,
   BarChart3,
   Mail,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -82,6 +83,12 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/letters",
     label: "Letters / Memos",
     icon: Mail,
+    minAccess: "manager",
+  },
+  {
+    href: "/tools/conf/certificates",
+    label: "Certificates",
+    icon: Award,
     minAccess: "manager",
   },
   {

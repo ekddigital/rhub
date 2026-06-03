@@ -166,7 +166,13 @@ function createUploadFormData(payload: UploadRequestPayload) {
 }
 
 function isRedirectStatus(status: number) {
-  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
+  return (
+    status === 301 ||
+    status === 302 ||
+    status === 303 ||
+    status === 307 ||
+    status === 308
+  );
 }
 
 async function postUploadPreservingMethod(
@@ -379,13 +385,9 @@ export async function listAssetsFromEKDDigital(
   searchParams.set("page", String(params.page ?? 1));
   searchParams.set("size", String(params.size ?? 30));
   const clientId =
-    params.clientId ||
-    process.env.EKD_DIGITAL_ASSETS_CLIENT_ID ||
-    "andgroupco";
+    params.clientId || process.env.EKD_DIGITAL_ASSETS_CLIENT_ID || "andgroupco";
   const projectName =
-    params.projectName ||
-    process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME ||
-    "rhub";
+    params.projectName || process.env.EKD_DIGITAL_ASSETS_PROJECT_NAME || "rhub";
   searchParams.set("client_id", clientId);
   searchParams.set("project_name", projectName);
   if (params.assetType) searchParams.set("asset_type", params.assetType);
