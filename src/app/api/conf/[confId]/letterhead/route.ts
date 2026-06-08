@@ -709,11 +709,17 @@ export async function GET(
 
     // Convert SVG → PNG via resvg-js
     const { Resvg } = await import("@resvg/resvg-js");
+    const fontsDir = path.join(process.cwd(), "public", "conf", "fonts");
     const resvg = new Resvg(svg, {
       background: mode === "sidebar" ? "transparent" : "white",
       fitTo: {
         mode: "width",
         value: Math.round(basePngWidthForMode(mode) * pngScale),
+      },
+      font: {
+        fontDirs: [fontsDir],
+        loadSystemFonts: true,
+        defaultFontFamily: "Poppins",
       },
     });
     const pngData = resvg.render();
