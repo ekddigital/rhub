@@ -110,6 +110,8 @@ type Props = {
   delegateId: string;
   canManage: boolean;
   canSelfEdit: boolean;
+  /** When true the edit form opens immediately instead of view mode */
+  startInEditMode?: boolean;
 };
 
 const STATUS_CONFIG = {
@@ -171,6 +173,7 @@ export function DelegateDetailShell({
   delegateId,
   canManage,
   canSelfEdit,
+  startInEditMode = false,
 }: Props) {
   const [confId, setConfId] = useState("");
   const [defaultFee, setDefaultFee] = useState(250);
@@ -178,7 +181,7 @@ export function DelegateDetailShell({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startInEditMode);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [uploadingKind, setUploadingKind] = useState<
     "booklet" | "passport" | "entry-stamp" | "visa" | null

@@ -664,7 +664,11 @@ export function ParticipantsDataTable({
                           <div className="space-y-0.5">
                             {canOpenDetail ? (
                               <Link
-                                href={`/tools/conf/delegates/${row.id}`}
+                                href={
+                                  row.passportNo
+                                    ? `/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`
+                                    : `/tools/conf/delegates/${row.id}`
+                                }
                                 className="block font-semibold text-sm text-[#0B4FD9] hover:underline"
                               >
                                 {row.name}
@@ -674,7 +678,11 @@ export function ParticipantsDataTable({
                             )}
                             {canOpenDetail ? (
                               <Link
-                                href={`/tools/conf/delegates/${row.id}`}
+                                href={
+                                  row.passportNo
+                                    ? `/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`
+                                    : `/tools/conf/delegates/${row.id}`
+                                }
                                 className="block text-[11px] text-muted-foreground hover:underline"
                               >
                                 {row.delegateCode || "Pending ID"}
@@ -817,7 +825,11 @@ export function ParticipantsDataTable({
                         <div className="flex flex-wrap gap-1.5">
                           {canOpenDetail && (
                             <Link
-                              href={`/tools/conf/delegates/${row.id}`}
+                              href={
+                                row.passportNo
+                                  ? `/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`
+                                  : `/tools/conf/delegates/${row.id}`
+                              }
                               className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] font-medium hover:bg-accent"
                             >
                               <Eye className="size-3" /> Details
