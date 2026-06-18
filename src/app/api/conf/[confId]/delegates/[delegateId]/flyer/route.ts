@@ -3,6 +3,8 @@ import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { CONF_2026 } from "@/lib/conf/config";
 import {
   buildSvgTextLines,
+  DELEGATE_FLYER_LEFT_TEXT_CLIP_WIDTH,
+  DELEGATE_FLYER_LEFT_TEXT_CLIP_X,
   layoutDelegateFlyerIdentity,
   layoutDelegateFlyerUniversity,
 } from "@/lib/conf/delegate-flyer-text";
@@ -443,8 +445,8 @@ export async function GET(
     <clipPath id="photoClip">
       <rect x="646" y="560" width="252" height="398" rx="26"/>
     </clipPath>
-    <clipPath id="leftProfileTextClip">
-      <rect x="178" y="548" width="438" height="700" rx="8"/>
+    <clipPath id="leftClip">
+      <rect x="${DELEGATE_FLYER_LEFT_TEXT_CLIP_X}" y="548" width="${DELEGATE_FLYER_LEFT_TEXT_CLIP_WIDTH}" height="700" rx="8"/>
     </clipPath>
   </defs>
 
@@ -486,23 +488,21 @@ export async function GET(
   <rect x="624" y="536" width="296" height="700" rx="28" fill="#EAF1FF" stroke="#CBD8EF" stroke-width="2"/>
   ${photoLayer}
 
-  <!-- Left profile identity block -->
-  <g clip-path="url(#leftProfileTextClip)">
+  <!-- Left profile column — clipped so text cannot bleed into photo -->
+  <g clip-path="url(#leftClip)">
     <text x="190" y="586" font-size="22" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E2A76">NATIONAL DELEGATE PROFILE</text>
     <text x="190" y="636" font-size="54" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#101827">I am</text>
     <text x="190" y="${identityLayout.firstName.y}" font-size="${identityLayout.firstName.fontSize}" font-family="'Great Vibes',Georgia,Segoe Script,cursive" fill="#0B4FD9">${firstName}</text>
     ${familyNameLayer}
     <text x="190" y="${identityLayout.confirmedDelegateY}" font-size="36.5" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
+    ${delegateStatementLayer}
+    <rect x="190" y="${dividerY}" width="392" height="2" fill="#D0DBEE"/>
+    <text x="190" y="${conferenceDatesLabelY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">CONFERENCE DATES</text>
+    <text x="190" y="${dateRangeY}" font-size="24" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${dateRangeLabel}</text>
+    <text x="190" y="${weekdayRangeY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#28417B">${weekdayRangeLabel}</text>
+    <text x="190" y="${scoreLineY}" font-size="38" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
+    ${committeeLayer}
   </g>
-
-  <!-- Delegate statement + conference date details -->
-  ${delegateStatementLayer}
-  <rect x="190" y="${dividerY}" width="392" height="2" fill="#D0DBEE"/>
-  <text x="190" y="${conferenceDatesLabelY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">CONFERENCE DATES</text>
-  <text x="190" y="${dateRangeY}" font-size="24" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${dateRangeLabel}</text>
-  <text x="190" y="${weekdayRangeY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#28417B">${weekdayRangeLabel}</text>
-  <text x="190" y="${scoreLineY}" font-size="38" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
-  ${committeeLayer}
 
   <!-- Right-side delegate metadata -->
   <text x="772" y="998" text-anchor="middle" font-size="17" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">DELEGATE CODE</text>
