@@ -2,6 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { CONF_2026 } from "@/lib/conf/config";
 import {
+  buildSvgTextLines,
+  layoutDelegateFlyerIdentity,
+  layoutDelegateFlyerUniversity,
+} from "@/lib/conf/delegate-flyer-text";
+import {
   escapeXml,
   toDataUri,
   readPublicFile,
@@ -248,14 +253,12 @@ export async function GET(
     const embeddedFonts = await loadEmbeddedFonts();
     const photoDataUri = await fetchImageAsDataUri(photoUrl);
 
-    const splitName = delegate.name.trim().split(/\s+/).filter(Boolean);
-    const firstName = escapeXml(clampText(splitName[0] || delegate.name, 18));
-    const familyName = escapeXml(
-      clampText(
-        splitName.slice(1).join(" ") || splitName[0] || delegate.name,
-        24,
-      ),
+    const identityLayout = layoutDelegateFlyerIdentity(delegate.name);
+    const firstName = escapeXml(identityLayout.firstName.text);
+    const familyNameLines = identityLayout.familyName.lines.map((line) =>
+      escapeXml(line),
     );
+    const contentShiftY = identityLayout.contentShiftY;
     const conferenceCityRaw = clampText(
       (CONF_2026.city || "Jinan").toUpperCase(),
       14,
@@ -290,16 +293,10 @@ export async function GET(
     const committeeLines = wrapTextLines(committeeLineRaw, 40, 2).map((line) =>
       escapeXml(line),
     );
-    const universityLines = wrapTextLines(
-      clampText(
-        (
-          delegate.university || "Liberian Student Union in China"
-        ).toUpperCase(),
-        42,
-      ),
-      26,
-      2,
-    ).map((line) => escapeXml(line));
+    const universityLayout = layoutDelegateFlyerUniversity(delegate.university);
+    const universityLines = universityLayout.lines.map((line) =>
+      escapeXml(line),
+    );
     const cityLine = delegate.city?.trim()
       ? escapeXml(clampText(ensureSuffix(delegate.city, "City"), 28))
       : "";
@@ -344,27 +341,31 @@ export async function GET(
   <text x="772" y="768" text-anchor="middle" font-size="30" font-family="Segoe UI, Arial, sans-serif" font-weight="600" fill="#35559B">Photo unavailable</text>
 </g>`;
 
+    const statementStartY = 846 + contentShiftY;
     const delegateStatementLayer = delegateStatementLines
       .map(
         (line, index) =>
-          `<text x="190" y="${846 + index * 30}" font-size="20" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#2D3D5D">${line}</text>`,
+          `<text x="190" y="${statementStartY + index * 30}" font-size="20" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#2D3D5D">${line}</text>`,
       )
       .join("");
 
+    const committeeStartY = 1080 + contentShiftY;
     const committeeLayer = committeeLines
       .map(
         (line, index) =>
-          `<text x="190" y="${1080 + index * 26}" font-size="19" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E">${line}</text>`,
+          `<text x="190" y="${committeeStartY + index * 26}" font-size="19" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E">${line}</text>`,
       )
       .join("");
 
-    const universityLayer = universityLines
-      .map(
-        (line, index) =>
-          `<text x="772" y="${1082 + index * 24}" text-anchor="middle" font-size="16" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E">${line}</text>`,
-      )
-      .join("");
-    const locationStartY = 1082 + universityLines.length * 24 + 10;
+    const universityLayer = buildSvgTextLines(
+      universityLines,
+      772,
+      1082,
+      universityLayout.lineHeight,
+      `text-anchor="middle" font-size="${universityLayout.fontSize}" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#1E2F5E"`,
+    );
+    const locationStartY =
+      1082 + universityLines.length * universityLayout.lineHeight + 10;
     const locationLayer = locationLines
       .map(
         (line, index) =>
@@ -374,6 +375,19 @@ export async function GET(
     const detailsDividerY = locationStartY + locationLines.length * 22 + 10;
     const conferenceTitleY = detailsDividerY + 34;
     const conferenceSubtitleY = conferenceTitleY + 30;
+
+    const familyNameLayer = buildSvgTextLines(
+      familyNameLines,
+      190,
+      identityLayout.familyName.startY,
+      identityLayout.familyName.lineHeight,
+      `font-size="${identityLayout.familyName.fontSize}" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0D2A73"`,
+    );
+    const dividerY = 880 + contentShiftY;
+    const conferenceDatesLabelY = 914 + contentShiftY;
+    const dateRangeY = 952 + contentShiftY;
+    const weekdayRangeY = 982 + contentShiftY;
+    const scoreLineY = 1038 + contentShiftY;
 
     const downloadControlsLayer = shouldDownload
       ? ""
@@ -429,6 +443,9 @@ export async function GET(
     <clipPath id="photoClip">
       <rect x="646" y="560" width="252" height="398" rx="26"/>
     </clipPath>
+    <clipPath id="leftProfileTextClip">
+      <rect x="178" y="548" width="438" height="700" rx="8"/>
+    </clipPath>
   </defs>
 
   <!-- Full canvas background layers -->
@@ -470,19 +487,21 @@ export async function GET(
   ${photoLayer}
 
   <!-- Left profile identity block -->
-  <text x="190" y="586" font-size="22" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E2A76">NATIONAL DELEGATE PROFILE</text>
-  <text x="190" y="636" font-size="54" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#101827">I am</text>
-  <text x="190" y="704" font-size="74" font-family="'Great Vibes',Segoe Script,cursive" fill="#0B4FD9">${firstName}</text>
-  <text x="190" y="760" font-size="55" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0D2A73">${familyName}</text>
-  <text x="190" y="812" font-size="36.5" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
+  <g clip-path="url(#leftProfileTextClip)">
+    <text x="190" y="586" font-size="22" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E2A76">NATIONAL DELEGATE PROFILE</text>
+    <text x="190" y="636" font-size="54" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#101827">I am</text>
+    <text x="190" y="${identityLayout.firstName.y}" font-size="${identityLayout.firstName.fontSize}" font-family="'Great Vibes',Georgia,Segoe Script,cursive" fill="#0B4FD9">${firstName}</text>
+    ${familyNameLayer}
+    <text x="190" y="${identityLayout.confirmedDelegateY}" font-size="36.5" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0B2E9B">CONFIRMED DELEGATE</text>
+  </g>
 
   <!-- Delegate statement + conference date details -->
   ${delegateStatementLayer}
-  <rect x="190" y="880" width="392" height="2" fill="#D0DBEE"/>
-  <text x="190" y="914" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">CONFERENCE DATES</text>
-  <text x="190" y="952" font-size="24" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${dateRangeLabel}</text>
-  <text x="190" y="982" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#28417B">${weekdayRangeLabel}</text>
-  <text x="190" y="1038" font-size="38" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
+  <rect x="190" y="${dividerY}" width="392" height="2" fill="#D0DBEE"/>
+  <text x="190" y="${conferenceDatesLabelY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" font-weight="700" fill="#103580">CONFERENCE DATES</text>
+  <text x="190" y="${dateRangeY}" font-size="24" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#0E327F">${dateRangeLabel}</text>
+  <text x="190" y="${weekdayRangeY}" font-size="18" font-family="Poppins,Segoe UI,Arial,sans-serif" fill="#28417B">${weekdayRangeLabel}</text>
+  <text x="190" y="${scoreLineY}" font-size="38" font-family="Oswald,Segoe UI,Arial,sans-serif" font-weight="700" fill="#C8102E">${scoreLine}</text>
   ${committeeLayer}
 
   <!-- Right-side delegate metadata -->
