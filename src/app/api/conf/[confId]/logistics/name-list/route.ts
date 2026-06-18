@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
@@ -64,12 +65,18 @@ export async function GET(
 
     const paidDelegates = filterFullyPaidDelegates(allDelegates);
 
+    const headersList = await headers();
+    const host = headersList.get("host") ?? "localhost";
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    const origin = `${proto}://${host}`;
+
     return NextResponse.json(
       buildLogisticsNameListResponse({
         conf,
         paidDelegates,
         manualEntries,
         allDelegates,
+        origin,
       }),
     );
   } catch (error) {

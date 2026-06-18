@@ -1,4 +1,10 @@
-import { C, ASSETS, FLAG_STRIPES_11, FLAG_STRIPES_7 } from "./constants";
+import {
+  BOOKLET_A4,
+  C,
+  ASSETS,
+  FLAG_STRIPES_11,
+  FLAG_STRIPES_7,
+} from "./constants";
 import { fmtRange } from "./utils";
 import type { BookletData } from "./types";
 
@@ -17,8 +23,9 @@ export function CoverPage({
     <div
       className="booklet-page"
       style={{
-        width: "680px",
-        minHeight: "962px",
+        width: `${BOOKLET_A4.width}px`,
+        height: `${BOOKLET_A4.height}px`,
+        minHeight: `${BOOKLET_A4.height}px`,
         display: "flex",
         flexDirection: "column",
         position: "relative",

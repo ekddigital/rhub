@@ -35,18 +35,17 @@ import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 import { fmtRmb } from "@/lib/conf/currency";
 import {
   isDelegateFullyPaid,
+  isStoredDelegateDocumentPdf,
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
 } from "@/lib/conf/logistics-name-list";
-
-const PLACEHOLDER_SVG = "/conf/placeholder-delegate.svg";
 
 function DocCell({
   confId,
   delegateId,
   kind,
-  docUrl,
-  hasPath,
+  previewUrl,
+  proxyUrl,
   label,
   uploading,
   onUpload,
@@ -54,31 +53,34 @@ function DocCell({
   confId: string;
   delegateId: string;
   kind: "passport" | "entry-stamp" | "visa";
-  docUrl: string | null;
-  hasPath: boolean;
+  previewUrl: string | null;
+  proxyUrl: string;
   label: string;
   uploading: boolean;
   onUpload: (file: File | null) => void;
 }) {
-  const proxyUrl =
-    docUrl ||
-    `/api/conf/${confId}/delegates/${delegateId}/secure-document?kind=${kind}`;
+  const isPdf = isStoredDelegateDocumentPdf(previewUrl);
 
   return (
     <div className="flex flex-col items-start gap-1.5">
       <div className="h-[92px] w-[132px] overflow-hidden rounded-md border border-border bg-muted">
-        {hasPath ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={proxyUrl}
-            alt={label}
-            className="h-full w-full object-cover object-top"
-            onError={(e) => {
-              const el = e.target as HTMLImageElement;
-              el.src = PLACEHOLDER_SVG;
-              el.className = "h-full w-full object-contain opacity-70";
-            }}
-          />
+        {previewUrl ? (
+          isPdf ? (
+            <iframe
+              src={proxyUrl}
+              title={label}
+              className="h-full w-full border-0 bg-white"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={previewUrl}
+              alt={label}
+              className="h-full w-full object-cover object-top"
+              loading="lazy"
+              decoding="async"
+            />
+          )
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center px-1 text-center text-[9px] leading-tight text-muted-foreground">
             {label} — missing
@@ -86,10 +88,10 @@ function DocCell({
         )}
       </div>
       <div className="flex flex-wrap gap-1">
-        {hasPath && (
+        {previewUrl && (
           <PassportViewerModal
             proxyUrl={proxyUrl}
-            isPdf={false}
+            isPdf={isPdf}
             label="View"
             title={label}
             triggerClassName="px-1.5 py-0.5 text-[10px] leading-none"
@@ -495,8 +497,17 @@ export function LogisticsNameListShell() {
                       </td>
                       <td className="px-3 py-4">
                         <p className="font-medium leading-snug">{row.name}</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {row.passportNo || "—"}
+                        <p className="mt-0.5 text-xs">
+                          {row.passportNo ? (
+                            <Link
+                              href={`/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`}
+                              className="text-[#C8A061] hover:underline"
+                            >
+                              {row.passportNo}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </p>
                         {paid ? (
                           <Badge
@@ -529,8 +540,11 @@ export function LogisticsNameListShell() {
                           confId={confId}
                           delegateId={row.id}
                           kind="passport"
-                          docUrl={row.passportDocUrl}
-                          hasPath={Boolean(row.passportPhotoPath)}
+                          previewUrl={row.passportPhotoPath}
+                          proxyUrl={
+                            row.passportDocUrl ||
+                            `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=passport`
+                          }
                           label="Passport"
                           uploading={uploadingDocKey === `${row.id}:passport`}
                           onUpload={(file) =>
@@ -543,8 +557,11 @@ export function LogisticsNameListShell() {
                           confId={confId}
                           delegateId={row.id}
                           kind="visa"
-                          docUrl={row.visaDocUrl}
-                          hasPath={Boolean(row.currentVisaPath)}
+                          previewUrl={row.currentVisaPath}
+                          proxyUrl={
+                            row.visaDocUrl ||
+                            `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=visa`
+                          }
                           label="Visa"
                           uploading={uploadingDocKey === `${row.id}:visa`}
                           onUpload={(file) =>
@@ -557,8 +574,11 @@ export function LogisticsNameListShell() {
                           confId={confId}
                           delegateId={row.id}
                           kind="entry-stamp"
-                          docUrl={row.entryStampDocUrl}
-                          hasPath={Boolean(row.lastEntryStampPath)}
+                          previewUrl={row.lastEntryStampPath}
+                          proxyUrl={
+                            row.entryStampDocUrl ||
+                            `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=entry-stamp`
+                          }
                           label="Entry stamp"
                           uploading={
                             uploadingDocKey === `${row.id}:entry-stamp`

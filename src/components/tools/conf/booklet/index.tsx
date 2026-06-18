@@ -1,176 +1,30 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
-import { Download, ExternalLink, ZoomIn, ZoomOut } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Download,
+  ExternalLink,
+  Loader2,
+  Printer,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { C, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
-import type { BookletData, BookletSection } from "./types";
+import { BOOKLET_A4, C } from "./constants";
+import type { BookletData } from "./types";
 import {
-  bookletBodyPageCount,
-  chunkDelegates,
-  computeSectionTocRows,
-  getTocPageNum,
-  sectionPageSpan,
-} from "./booklet-section-pages";
+  BookletDocument,
+  computeBookletLayout,
+} from "./booklet-document";
 
-import { CoverPage } from "./CoverPage";
-import { BackCoverPage } from "./BackCoverPage";
-import { TableOfContentsPage } from "./TableOfContentsPage";
-import { LeaderSection } from "./LeaderSection";
-import { AddressSection } from "./AddressSection";
-import { CommitteeSection } from "./CommitteeSection";
-import { DelegatesSection } from "./DelegatesSection";
-import { TextSection } from "./TextSection";
-
-// ─── Section dispatcher ───────────────────────────────────────────────────────
-// startPageNum: the page number of the FIRST page this section occupies.
-// For LEADER sections this spans leaders.length pages.
-function renderSection(
-  section: BookletSection,
-  data: BookletData,
-  startPageNum: number,
-  totalPages: number,
-) {
-  const {
-    event,
-    leaders,
-    necMembers,
-    committeeMembers,
-    conferenceChair,
-    delegates,
-  } = data;
-  const confName = event.name;
-  const confYear = event.year;
-  const key = section.id;
-  const common = { startPageNum, totalPages, confName, confYear };
-  // Alias for sections that are always single-page
-  const pageNum = startPageNum;
-  const commonSingle = { pageNum, totalPages, confName, confYear };
-
-  // Helper: normalize name for comparison
-  function normalizeName(name: string): string {
-    return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
-  }
-
-  // For CITY_PRESIDENTS: filter out members that match leader names to prevent duplicates
-  const leaderNames = new Set(leaders.map((l) => normalizeName(l.name)));
-  const filteredCommitteeForCityPresidents = committeeMembers.filter(
-    (m) => !leaderNames.has(normalizeName(m.name)),
-  );
-  const nationalPresident = necMembers.find((m) => m.role === "CHAIR") ?? null;
-
-  switch (section.type) {
-    case "LEADER":
-      return (
-        <LeaderSection
-          key={key}
-          section={section}
-          leaders={leaders}
-          conferenceId={event.id}
-          startPageNum={common.startPageNum}
-          totalPages={totalPages}
-          confName={confName}
-          confYear={confYear}
-        />
-      );
-
-    case "PRESIDENT_ADDRESS":
-      return (
-        <AddressSection
-          key={key}
-          section={section}
-          speaker={nationalPresident}
-          content={nationalPresident?.bookletBio ?? section.bodyText}
-          {...commonSingle}
-        />
-      );
-
-    case "GUEST_BIO":
-      return (
-        <AddressSection
-          key={key}
-          section={section}
-          speaker={null}
-          content={section.bodyText}
-          {...commonSingle}
-        />
-      );
-
-    case "CHAIRMAN_ADDRESS":
-      return (
-        <AddressSection
-          key={key}
-          section={section}
-          speaker={conferenceChair}
-          content={conferenceChair?.bookletBio ?? section.bodyText}
-          {...commonSingle}
-        />
-      );
-
-    case "NEC":
-      return (
-        <CommitteeSection
-          key={key}
-          section={section}
-          members={necMembers}
-          startPageNum={startPageNum}
-          totalPages={totalPages}
-          confName={confName}
-          confYear={confYear}
-        />
-      );
-
-    case "COMMITTEE":
-    case "COC":
-    case "COC_MEMBERS":
-    case "CITY_PRESIDENTS":
-    case "JUDICIAL":
-      return (
-        <CommitteeSection
-          key={key}
-          section={section}
-          members={
-            section.type === "CITY_PRESIDENTS"
-              ? filteredCommitteeForCityPresidents
-              : committeeMembers
-          }
-          startPageNum={startPageNum}
-          totalPages={totalPages}
-          confName={confName}
-          confYear={confYear}
-        />
-      );
-
-    case "DELEGATES": {
-      const rosterChunks =
-        delegates.length === 0
-          ? [[] as typeof delegates]
-          : chunkDelegates(delegates, DELEGATES_PER_BOOKLET_PAGE);
-      return (
-        <>
-          {rosterChunks.map((chunk, idx) => (
-            <DelegatesSection
-              key={`${key}-${idx}`}
-              section={section}
-              delegates={chunk}
-              totalDelegateCount={delegates.length}
-              rosterPageIndex={idx}
-              rosterPageCount={rosterChunks.length}
-              pageNum={startPageNum + idx}
-              totalPages={totalPages}
-              confName={confName}
-              confYear={confYear}
-            />
-          ))}
-        </>
-      );
-    }
-
-    default:
-      return <TextSection key={key} section={section} {...commonSingle} />;
-  }
+function bookletExportBasename(data: BookletData): string {
+  const slug = (data.event.name || "conference-booklet")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `lsuic-booklet-${data.event.year}-${slug || "export"}`;
 }
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
@@ -182,60 +36,78 @@ export function BookletPreview({
   confId: string;
 }) {
   const [zoom, setZoom] = useState(90);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
-  const enabledSections = [...(data.booklet?.sections ?? [])]
-    .filter(
-      (s) =>
-        s.isEnabled &&
-        s.type !== "COVER" &&
-        s.type !== "BACK_COVER" &&
-        s.type !== "SCHEDULE",
-    )
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  const hasCover = (data.booklet?.sections ?? []).some(
-    (s) => s.type === "COVER" && s.isEnabled,
-  );
-  const hasBackCover = (data.booklet?.sections ?? []).some(
-    (s) => s.type === "BACK_COVER" && s.isEnabled,
-  );
-
-  // Count pages properly: LEADER sections → leaders.length pages each
-  // Committee sections → 2 pages when there are general members (role=COMMITTEE), else 1
-  const bodyPageCount = bookletBodyPageCount(enabledSections, data);
-  const tocSectionRows = computeSectionTocRows(
-    enabledSections,
-    data,
-    hasCover,
-  );
-  const tocPageNum = getTocPageNum(hasCover);
-  const totalPages =
-    (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
+  const layout = useMemo(() => computeBookletLayout(data), [data]);
+  const { enabledSections, totalPages } = layout;
 
   const letterheadUrl = `/api/conf/${confId}/letterhead?mode=header&format=png`;
 
+  const handleExportPdf = async () => {
+    if (exporting) return;
+    setExporting(true);
+    setExportError(null);
+    try {
+      await document.fonts.ready;
+      await new Promise((r) => setTimeout(r, 300));
+      const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+      await exportToPDF(
+        "booklet-print-root",
+        bookletExportBasename(data),
+        undefined,
+        {
+          pageSelector: ".booklet-page",
+          pageWrapperSelector: null,
+          mode: "download",
+          canvasScale: 2,
+          jpegQuality: 0.88,
+        },
+      );
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : "PDF export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      {/* Print CSS */}
       <style>{`
+        #booklet-print-root {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: ${BOOKLET_A4.width}px;
+          pointer-events: none;
+        }
         @media print {
           body * { visibility: hidden; }
-          .booklet-document, .booklet-document * { visibility: visible; }
-          .booklet-no-print { display: none !important; }
-          .booklet-document {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
+          #booklet-print-root,
+          #booklet-print-root * { visibility: visible !important; }
+          #booklet-print-root {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            pointer-events: auto !important;
           }
+          .booklet-no-print { display: none !important; }
           .booklet-page {
             width: 210mm !important;
             height: 297mm !important;
+            min-height: 297mm !important;
             max-height: 297mm !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            break-after: page;
             page-break-after: always;
             page-break-inside: avoid;
             overflow: hidden !important;
-            box-shadow: none !important;
+          }
+          .booklet-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
           }
           @page { size: A4 portrait; margin: 0; }
         }
@@ -341,14 +213,36 @@ export function BookletPreview({
             className="h-7 text-xs"
             onClick={() => window.print()}
           >
-            <Download className="size-3.5" />
-            Print / PDF
+            <Printer className="size-3.5" />
+            Print
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            disabled={exporting}
+            onClick={() => void handleExportPdf()}
+          >
+            {exporting ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Download className="size-3.5" />
+            )}
+            {exporting ? "Exporting…" : "Export PDF"}
           </Button>
         </div>
       </div>
 
-      {/* Booklet viewport */}
+      {exportError && (
+        <div className="booklet-no-print rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+          {exportError}
+        </div>
+      )}
+
+      {/* Scaled on-screen preview (transform must not affect print root) */}
       <div
+        className="booklet-no-print"
         style={{
           overflowX: "auto",
           borderRadius: "16px",
@@ -357,88 +251,22 @@ export function BookletPreview({
         }}
       >
         <div
-          className="booklet-document"
           style={{
             transform: `scale(${zoom / 100})`,
             transformOrigin: "top center",
-            width: "680px",
+            width: `${BOOKLET_A4.width}px`,
             margin: "0 auto",
-            marginBottom: zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
+            marginBottom:
+              zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
           }}
         >
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            {hasCover && (
-              <CoverPage
-                event={data.event}
-                bookletTitle={data.booklet?.title ?? data.event.name}
-                bookletSubtitle={data.booklet?.subtitle ?? null}
-                theme={data.booklet?.theme ?? null}
-              />
-            )}
-
-            <TableOfContentsPage
-              tocPageNum={tocPageNum}
-              hasCover={hasCover}
-              hasBackCover={hasBackCover}
-              sectionRows={tocSectionRows}
-              confName={data.event.name}
-              confYear={data.event.year}
-              totalPages={totalPages}
-            />
-
-            {
-              enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
-                ({ nodes, rp }, s) => {
-                  const startPage = rp;
-                  const delta = sectionPageSpan(s, data);
-                  return {
-                    nodes: [
-                      ...nodes,
-                      renderSection(s, data, startPage, totalPages),
-                    ],
-                    rp: rp + delta,
-                  };
-                },
-                { nodes: [], rp: (hasCover ? 1 : 0) + 2 } as {
-                  nodes: ReactNode[];
-                  rp: number;
-                },
-              ).nodes
-            }
-
-            {hasBackCover && (
-              <BackCoverPage event={data.event} totalPages={totalPages} />
-            )}
-
-            {!hasBackCover && (
-              <div
-                style={{
-                  width: "680px",
-                  padding: "18px 40px",
-                  background: C.blue,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase",
-                    color: `${C.white}70`,
-                  }}
-                >
-                  Liberian Student Union in China · {data.event.name} ·{" "}
-                  {data.event.year}
-                </p>
-              </div>
-            )}
-          </div>
+          <BookletDocument data={data} layout={layout} gap={16} />
         </div>
+      </div>
+
+      {/* Off-screen print / PDF capture root — full A4, no zoom transform */}
+      <div id="booklet-print-root">
+        <BookletDocument data={data} layout={layout} gap={0} />
       </div>
 
       {/* Letterhead preview strip */}

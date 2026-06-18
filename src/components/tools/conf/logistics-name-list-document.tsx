@@ -15,9 +15,12 @@ import {
   formatDate,
 } from "@/lib/conf/document-constants";
 import type { LogisticsNameListEntry } from "@/lib/conf/logistics-name-list";
-import { isDelegateFullyPaid } from "@/lib/conf/logistics-name-list";
+import {
+  hasStoredDelegateDocumentPath,
+  isDelegateFullyPaid,
+  isStoredDelegateDocumentPdf,
+} from "@/lib/conf/logistics-name-list";
 
-const PLACEHOLDER_SVG = "/conf/placeholder-delegate.svg";
 /** Prioritize readable document scans over max rows per page. */
 const ROWS_PER_PAGE = 5;
 const DOC_THUMB_HEIGHT = 140;
@@ -55,15 +58,17 @@ const docThumbStyle = {
 } as const;
 
 function DocThumb({
-  src,
+  previewUrl,
+  proxyUrl,
   label,
   missingLabel,
 }: {
-  src: string | null;
+  previewUrl: string | null;
+  proxyUrl: string | null;
   label: string;
   missingLabel: string;
 }) {
-  if (!src) {
+  if (!hasStoredDelegateDocumentPath(previewUrl)) {
     return (
       <div
         style={{
@@ -85,6 +90,24 @@ function DocThumb({
     );
   }
 
+  const src = previewUrl!;
+  const isPdf = isStoredDelegateDocumentPdf(src);
+
+  if (isPdf && proxyUrl) {
+    return (
+      <iframe
+        src={proxyUrl}
+        title={label}
+        style={{
+          ...docThumbStyle,
+          border: `1px solid ${C.divider}`,
+          background: "#fff",
+          display: "block",
+        }}
+      />
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -97,11 +120,6 @@ function DocThumb({
         border: `1px solid ${C.divider}`,
         background: "#fff",
         display: "block",
-      }}
-      onError={(e) => {
-        const el = e.target as HTMLImageElement;
-        el.src = PLACEHOLDER_SVG;
-        el.style.objectFit = "contain";
       }}
     />
   );
@@ -222,7 +240,8 @@ function RosterTable({
                   }}
                 >
                   <DocThumb
-                    src={row.passportDocUrl}
+                    previewUrl={row.passportPhotoPath}
+                    proxyUrl={row.passportDocUrl}
                     label="Passport"
                     missingLabel="Passport — missing"
                   />
@@ -235,7 +254,8 @@ function RosterTable({
                   }}
                 >
                   <DocThumb
-                    src={row.visaDocUrl}
+                    previewUrl={row.currentVisaPath}
+                    proxyUrl={row.visaDocUrl}
                     label="Visa"
                     missingLabel="Visa — missing"
                   />
@@ -248,7 +268,8 @@ function RosterTable({
                   }}
                 >
                   <DocThumb
-                    src={row.entryStampDocUrl}
+                    previewUrl={row.lastEntryStampPath}
+                    proxyUrl={row.entryStampDocUrl}
                     label="Entry stamp"
                     missingLabel="Entry stamp — missing"
                   />

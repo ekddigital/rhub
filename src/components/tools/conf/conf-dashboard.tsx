@@ -131,6 +131,14 @@ const NAV_ITEMS: ConfNavItem[] = [
     minAccess: "delegate",
   },
   {
+    href: "/tools/conf/booklet/downloads",
+    icon: Download,
+    title: "Booklet Downloads",
+    desc: "Cover pages, interior chrome, logos, and source photos for print layouts",
+    color: "text-[#001A4E]",
+    minAccess: "manager",
+  },
+  {
     href: "/tools/conf/meetings",
     icon: CalendarDays,
     title: "Meetings",

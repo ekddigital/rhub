@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { C, ASSETS } from "./constants";
+import { BOOKLET_A4, C, ASSETS } from "./constants";
 import { PageHeader } from "./PageHeader";
 import { PageFooter } from "./PageFooter";
 
@@ -22,9 +22,9 @@ export function A4Page({
     <div
       className="booklet-page"
       style={{
-        width: "680px",
-        height: "962px",
-        maxHeight: "962px",
+        width: `${BOOKLET_A4.width}px`,
+        height: `${BOOKLET_A4.height}px`,
+        maxHeight: `${BOOKLET_A4.height}px`,
         background: C.white,
         display: "flex",
         flexDirection: "column",

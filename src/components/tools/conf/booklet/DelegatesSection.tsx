@@ -231,22 +231,22 @@ export function DelegatesSection({
                     marginTop: "2px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1px",
+                    gap: "2px",
                     width: "100%",
                     flex: 1,
                     minHeight: 0,
                     justifyContent: "flex-end",
+                    textAlign: "center",
                   }}
                 >
                   <div
                     style={{
                       fontSize: "7.5px",
                       color: C.muted,
-                      lineHeight: 1.3,
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
+                      lineHeight: 1.35,
+                      overflowWrap: "break-word",
+                      wordBreak: "normal",
+                      width: "100%",
                     }}
                   >
                     {(d.city ? d.city : "Member") +
@@ -257,11 +257,10 @@ export function DelegatesSection({
                     style={{
                       fontSize: "7.5px",
                       color: C.muted,
-                      lineHeight: 1.25,
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
+                      lineHeight: 1.35,
+                      overflowWrap: "break-word",
+                      wordBreak: "normal",
+                      width: "100%",
                     }}
                   >
                     {d.university?.trim() || "Member"}

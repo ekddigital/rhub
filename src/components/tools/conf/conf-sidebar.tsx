@@ -21,6 +21,7 @@ import {
   Mail,
   Award,
   ListChecks,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/contexts/user-context";
@@ -69,6 +70,12 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     label: "Booklet",
     icon: FileText,
     minAccess: "delegate",
+  },
+  {
+    href: "/tools/conf/booklet/downloads",
+    label: "Booklet Downloads",
+    icon: Download,
+    minAccess: "manager",
   },
   {
     href: "/tools/conf/budget",

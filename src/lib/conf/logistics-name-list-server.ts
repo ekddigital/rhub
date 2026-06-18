@@ -1,5 +1,7 @@
 import type { ConfDelegate } from "@prisma/client";
+import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
+  hasStoredDelegateDocumentPath,
   isDelegateFullyPaid,
   secureDocumentUrl,
   type LogisticsNameListEntry,
@@ -37,9 +39,18 @@ type ConfRow = {
   endsAt: Date;
 };
 
+function resolveDocumentPath(
+  path: string | null | undefined,
+  origin: string,
+): string | null {
+  if (!hasStoredDelegateDocumentPath(path)) return null;
+  return resolveStoredAssetUrl(path!.trim(), origin);
+}
+
 function mapDelegateDocs(
   confId: string,
   delegate: DelegateRow,
+  origin: string,
 ): Pick<
   LogisticsNameListEntry,
   | "passportPhotoPath"
@@ -49,17 +60,27 @@ function mapDelegateDocs(
   | "entryStampDocUrl"
   | "visaDocUrl"
 > {
+  const passportPhotoPath = resolveDocumentPath(
+    delegate.passportPhotoPath,
+    origin,
+  );
+  const lastEntryStampPath = resolveDocumentPath(
+    delegate.lastEntryStampPath,
+    origin,
+  );
+  const currentVisaPath = resolveDocumentPath(delegate.currentVisaPath, origin);
+
   return {
-    passportPhotoPath: delegate.passportPhotoPath,
-    lastEntryStampPath: delegate.lastEntryStampPath,
-    currentVisaPath: delegate.currentVisaPath,
-    passportDocUrl: delegate.passportPhotoPath
+    passportPhotoPath,
+    lastEntryStampPath,
+    currentVisaPath,
+    passportDocUrl: passportPhotoPath
       ? secureDocumentUrl(confId, delegate.id, "passport")
       : null,
-    entryStampDocUrl: delegate.lastEntryStampPath
+    entryStampDocUrl: lastEntryStampPath
       ? secureDocumentUrl(confId, delegate.id, "entry-stamp")
       : null,
-    visaDocUrl: delegate.currentVisaPath
+    visaDocUrl: currentVisaPath
       ? secureDocumentUrl(confId, delegate.id, "visa")
       : null,
   };
@@ -68,6 +89,7 @@ function mapDelegateDocs(
 function toEntryBase(
   confId: string,
   delegate: DelegateRow,
+  origin: string,
 ): Omit<
   LogisticsNameListEntry,
   "rosterSource" | "entryId" | "isAutoPaid" | "isManual" | "canRemove"
@@ -80,7 +102,7 @@ function toEntryBase(
     feeAmount: delegate.feeAmount,
     amountPaid: delegate.amountPaid,
     feePaid: delegate.feePaid,
-    ...mapDelegateDocs(confId, delegate),
+    ...mapDelegateDocs(confId, delegate, origin),
   };
 }
 
@@ -89,8 +111,9 @@ export function buildLogisticsNameListResponse(input: {
   paidDelegates: DelegateRow[];
   manualEntries: ManualEntryRow[];
   allDelegates: DelegateRow[];
+  origin: string;
 }): LogisticsNameListResponse {
-  const { conf, paidDelegates, manualEntries, allDelegates } = input;
+  const { conf, paidDelegates, manualEntries, allDelegates, origin } = input;
   const confId = conf.id;
 
   const merged = new Map<string, LogisticsNameListEntry>();
@@ -98,7 +121,7 @@ export function buildLogisticsNameListResponse(input: {
   for (const delegate of paidDelegates) {
     if (delegate.status === "CANCELLED") continue;
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate),
+      ...toEntryBase(confId, delegate, origin),
       rosterSource: "AUTO_PAID",
       entryId: null,
       isAutoPaid: true,
@@ -115,7 +138,7 @@ export function buildLogisticsNameListResponse(input: {
     if (existing) {
       merged.set(delegate.id, {
         ...existing,
-        ...toEntryBase(confId, delegate),
+        ...toEntryBase(confId, delegate, origin),
         entryId: entry.id,
         isManual: true,
         rosterSource: existing.isAutoPaid ? "AUTO_PAID" : "MANUAL",
@@ -125,7 +148,7 @@ export function buildLogisticsNameListResponse(input: {
     }
 
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate),
+      ...toEntryBase(confId, delegate, origin),
       rosterSource: "MANUAL",
       entryId: entry.id,
       isAutoPaid: false,

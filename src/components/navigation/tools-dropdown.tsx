@@ -95,6 +95,12 @@ export function ToolsDropdown() {
         "Printable participant cards with IDs, photos, and room details",
     },
     {
+      href: "/tools/conf/booklet/downloads",
+      title: "Booklet Downloads",
+      description:
+        "Cover pages, interior chrome, logos, and source photography",
+    },
+    {
       href: "/tools/conf/meetings",
       title: "Meetings",
       description: "Agenda planning and minutes tracking",

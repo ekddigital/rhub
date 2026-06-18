@@ -2,6 +2,10 @@ import { C } from "./constants";
 import { roleLabel } from "./utils";
 import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
+import {
+  ProfileContactDetails,
+  ProfileDelegateCodeBadge,
+} from "./ProfileContactDetails";
 import type { BookletSection, NecMember } from "./types";
 
 const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
@@ -185,59 +189,19 @@ function ChairHeroCard({
           </div>
         )}
 
-        {/* City / phone / university / code */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: isNec ? "1fr 1fr" : "1fr",
-            gap: isNec ? "8px 14px" : "4px",
-            marginBottom: isNec ? "8px" : "6px",
-          }}
-        >
-          {chair.city && (
-            <div
-              style={{
-                fontSize: isNec ? "15px" : "10px",
-                color: `${C.white}80`,
-              }}
-            >
-              📍 {chair.city}
-              {chair.province ? `, ${chair.province}` : ""}
-            </div>
-          )}
-          {chair.phone && (
-            <div
-              style={{
-                fontSize: isNec ? "16px" : "10px",
-                color: `${C.white}95`,
-                fontWeight: 600,
-              }}
-            >
-              Phone: {chair.phone}
-            </div>
-          )}
-          <div
-            style={{
-              fontSize: isNec ? "16px" : "10px",
-              color: `${C.white}7A`,
-            }}
-          >
-            🎓 {chair.university?.trim() || "Member"}
-          </div>
-          <div
-            style={{
-              fontSize: isNec ? "12px" : "7.5px",
-              fontFamily: "monospace",
-              color: chair.delegateCode ? C.gold : `${C.white}80`,
-              background: chair.delegateCode ? `${C.gold}20` : `${C.white}15`,
-              padding: "3px 8px",
-              borderRadius: "5px",
-              display: "inline-block",
-              width: "fit-content",
-            }}
-          >
-            {chair.delegateCode ?? "ID pending"}
-          </div>
+        {/* City / phone / university / code — full-width stack */}
+        <div style={{ marginBottom: isNec ? "8px" : "6px" }}>
+          <ProfileContactDetails
+            member={chair}
+            tone="hero"
+            fontSize={isNec ? "15px" : "10px"}
+            showIcons
+          />
+          <ProfileDelegateCodeBadge
+            delegateCode={chair.delegateCode}
+            tone="hero"
+            fontSize={isNec ? "12px" : "7.5px"}
+          />
         </div>
 
         {/* Bio */}
@@ -274,10 +238,9 @@ function OfficerCard({
     <div
       style={{
         display: "flex",
-        flexDirection: "row",
-        alignItems: "stretch",
+        flexDirection: "column",
         minWidth: 0,
-        gap: "10px",
+        gap: "8px",
         padding: "14px 12px",
         borderRadius: "10px",
         background: bg,
@@ -286,12 +249,10 @@ function OfficerCard({
     >
       <div
         style={{
-          flexShrink: 0,
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "5px",
-          width: "76px",
+          alignItems: "flex-start",
+          gap: "10px",
+          minWidth: 0,
         }}
       >
         <Avatar
@@ -301,117 +262,38 @@ function OfficerCard({
           silhouette={!member.photoPath}
           borderColor={textColor}
         />
-        <div
-          style={{
-            fontSize: "7px",
-            color: C.muted,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            textAlign: "center",
-            lineHeight: 1.2,
-          }}
-        >
-          {member.delegateCode ?? "Member"}
-        </div>
-      </div>
-      <div
-        style={{
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "12.5px",
-            fontWeight: 700,
-            color: textColor,
-            marginBottom: "3px",
-            lineHeight: 1.25,
-            overflowWrap: "anywhere",
-            wordBreak: "break-word",
-          }}
-        >
-          {member.name}
-        </div>
-        <div
-          style={{
-            fontSize: "9.5px",
-            fontWeight: 600,
-            color: `${textColor}90`,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            lineHeight: 1.35,
-            overflowWrap: "anywhere",
-            wordBreak: "break-word",
-          }}
-        >
-          {member.conferencePosition?.trim() || roleLabel(member)}
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-            gap: "2px 10px",
-            marginTop: "3px",
-          }}
-        >
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: "9px",
-              color: C.muted,
-              lineHeight: 1.3,
-              minWidth: 0,
-              overflowWrap: "anywhere",
-              wordBreak: "break-word",
+              fontSize: "12.5px",
+              fontWeight: 700,
+              color: textColor,
+              marginBottom: "3px",
+              lineHeight: 1.25,
+              overflowWrap: "break-word",
+              wordBreak: "normal",
             }}
           >
-            {(member.city ?? "Member") +
-              (member.province ? `, ${member.province}` : "")}
+            {member.name}
           </div>
           <div
             style={{
-              fontSize: "9px",
-              color: C.blue,
-              lineHeight: 1.3,
+              fontSize: "9.5px",
               fontWeight: 600,
-              minWidth: 0,
-              overflowWrap: "anywhere",
-              wordBreak: "break-word",
+              color: `${textColor}90`,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              lineHeight: 1.35,
+              overflowWrap: "break-word",
+              wordBreak: "normal",
             }}
           >
-            {member.phone ?? "Phone pending"}
+            {member.conferencePosition?.trim() || roleLabel(member)}
           </div>
-          <div
-            style={{
-              gridColumn: "1 / span 2",
-              fontSize: "9px",
-              color: C.muted,
-              lineHeight: 1.3,
-              minWidth: 0,
-              overflowWrap: "anywhere",
-              wordBreak: "break-word",
-            }}
-          >
-            {member.university?.trim() || "Member"}
-          </div>
-        </div>
-        <div
-          style={{
-            marginTop: "4px",
-            fontSize: "8px",
-            fontFamily: "monospace",
-            color: member.delegateCode ? C.red : C.muted,
-            background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
-            padding: "1px 6px",
-            borderRadius: "4px",
-            display: "inline-block",
-          }}
-        >
-          {member.delegateCode ?? "ID pending"}
         </div>
       </div>
+      <ProfileContactDetails member={member} tone="light" fontSize="9px" />
+      <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
 }
@@ -422,10 +304,9 @@ function MemberCard({ member }: { member: NecMember }) {
     <div
       style={{
         display: "flex",
-        flexDirection: "row",
-        alignItems: "stretch",
+        flexDirection: "column",
         minWidth: 0,
-        gap: "10px",
+        gap: "8px",
         padding: "12px 10px",
         borderRadius: "8px",
         background: C.lightBlue,
@@ -434,12 +315,10 @@ function MemberCard({ member }: { member: NecMember }) {
     >
       <div
         style={{
-          flexShrink: 0,
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "5px",
-          width: "68px",
+          alignItems: "flex-start",
+          gap: "10px",
+          minWidth: 0,
         }}
       >
         <Avatar
@@ -449,106 +328,36 @@ function MemberCard({ member }: { member: NecMember }) {
           silhouette={!member.photoPath}
           borderColor={C.blue}
         />
-        <div
-          style={{
-            fontSize: "7px",
-            color: C.muted,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            textAlign: "center",
-            lineHeight: 1.2,
-          }}
-        >
-          {member.delegateCode ?? "Member"}
-        </div>
-      </div>
-      <div
-        style={{
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "12px",
-            fontWeight: 700,
-            color: C.blue,
-            lineHeight: 1.25,
-            marginBottom: "3px",
-            overflowWrap: "anywhere",
-            wordBreak: "break-word",
-          }}
-        >
-          {member.name}
-        </div>
-        <div
-          style={{
-            fontSize: "9.5px",
-            color: C.muted,
-            lineHeight: 1.4,
-          }}
-        >
-          <div style={{ fontWeight: 500 }}>
-            {member.conferencePosition?.trim() || member.title || "Member"}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              color: C.blue,
+              lineHeight: 1.25,
+              marginBottom: "3px",
+              overflowWrap: "break-word",
+              wordBreak: "normal",
+            }}
+          >
+            {member.name}
           </div>
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-              gap: "2px 10px",
+              fontSize: "9.5px",
+              color: C.muted,
+              lineHeight: 1.35,
+              fontWeight: 500,
+              overflowWrap: "break-word",
+              wordBreak: "normal",
             }}
           >
-            <div
-              style={{
-                minWidth: 0,
-                overflowWrap: "anywhere",
-                wordBreak: "break-word",
-              }}
-            >
-              {(member.city ?? "Member") +
-                (member.province ? `, ${member.province}` : "")}
-            </div>
-            <div
-              style={{
-                color: C.blue,
-                fontWeight: 600,
-                fontSize: "9px",
-                minWidth: 0,
-                overflowWrap: "anywhere",
-                wordBreak: "break-word",
-              }}
-            >
-              {member.phone ?? "Phone pending"}
-            </div>
-            <div
-              style={{
-                gridColumn: "1 / span 2",
-                minWidth: 0,
-                overflowWrap: "anywhere",
-                wordBreak: "break-word",
-              }}
-            >
-              {member.university?.trim() || "Member"}
-            </div>
+            {member.conferencePosition?.trim() || member.title || "Member"}
           </div>
         </div>
-        <div
-          style={{
-            marginTop: "4px",
-            fontSize: "8px",
-            fontFamily: "monospace",
-            color: member.delegateCode ? C.red : C.muted,
-            background: member.delegateCode ? `${C.red}15` : `${C.border}60`,
-            padding: "1px 6px",
-            borderRadius: "4px",
-            display: "inline-block",
-          }}
-        >
-          {member.delegateCode ?? "ID pending"}
-        </div>
       </div>
+      <ProfileContactDetails member={member} tone="light" fontSize="9px" />
+      <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
 }

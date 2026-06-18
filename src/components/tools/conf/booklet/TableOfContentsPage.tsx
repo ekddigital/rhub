@@ -1,4 +1,4 @@
-import { C } from "./constants";
+import { BOOKLET_A4, C } from "./constants";
 import type { BookletTocSectionRow } from "./booklet-section-pages";
 import { PageHeader } from "./PageHeader";
 import { PageFooter } from "./PageFooter";
@@ -24,8 +24,9 @@ export function TableOfContentsPage({
     <div
       className="booklet-page"
       style={{
-        width: "680px",
-        minHeight: "962px",
+        width: `${BOOKLET_A4.width}px`,
+        height: `${BOOKLET_A4.height}px`,
+        minHeight: `${BOOKLET_A4.height}px`,
         background: C.white,
         display: "flex",
         flexDirection: "column",

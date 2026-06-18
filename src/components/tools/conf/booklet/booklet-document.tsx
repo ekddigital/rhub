@@ -1,0 +1,305 @@
+import { type ReactNode } from "react";
+import { C } from "./constants";
+import type { BookletData, BookletSection } from "./types";
+import {
+  bookletBodyPageCount,
+  chunkDelegates,
+  computeSectionTocRows,
+  getTocPageNum,
+  sectionPageSpan,
+} from "./booklet-section-pages";
+import { CoverPage } from "./CoverPage";
+import { BackCoverPage } from "./BackCoverPage";
+import { TableOfContentsPage } from "./TableOfContentsPage";
+import { LeaderSection } from "./LeaderSection";
+import { AddressSection } from "./AddressSection";
+import { CommitteeSection } from "./CommitteeSection";
+import { DelegatesSection } from "./DelegatesSection";
+import { TextSection } from "./TextSection";
+import { BOOKLET_A4, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
+
+export type BookletLayout = {
+  enabledSections: BookletSection[];
+  hasCover: boolean;
+  hasBackCover: boolean;
+  totalPages: number;
+  tocSectionRows: ReturnType<typeof computeSectionTocRows>;
+  tocPageNum: number;
+};
+
+export function computeBookletLayout(data: BookletData): BookletLayout {
+  const enabledSections = [...(data.booklet?.sections ?? [])]
+    .filter(
+      (s) =>
+        s.isEnabled &&
+        s.type !== "COVER" &&
+        s.type !== "BACK_COVER" &&
+        s.type !== "SCHEDULE",
+    )
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const hasCover = (data.booklet?.sections ?? []).some(
+    (s) => s.type === "COVER" && s.isEnabled,
+  );
+  const hasBackCover = (data.booklet?.sections ?? []).some(
+    (s) => s.type === "BACK_COVER" && s.isEnabled,
+  );
+
+  const bodyPageCount = bookletBodyPageCount(enabledSections, data);
+  const tocSectionRows = computeSectionTocRows(
+    enabledSections,
+    data,
+    hasCover,
+  );
+  const tocPageNum = getTocPageNum(hasCover);
+  const totalPages =
+    (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
+
+  return {
+    enabledSections,
+    hasCover,
+    hasBackCover,
+    totalPages,
+    tocSectionRows,
+    tocPageNum,
+  };
+}
+
+function renderSection(
+  section: BookletSection,
+  data: BookletData,
+  startPageNum: number,
+  totalPages: number,
+) {
+  const {
+    event,
+    leaders,
+    necMembers,
+    committeeMembers,
+    conferenceChair,
+    delegates,
+  } = data;
+  const confName = event.name;
+  const confYear = event.year;
+  const key = section.id;
+  const common = { startPageNum, totalPages, confName, confYear };
+  const pageNum = startPageNum;
+  const commonSingle = { pageNum, totalPages, confName, confYear };
+
+  function normalizeName(name: string): string {
+    return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  const leaderNames = new Set(leaders.map((l) => normalizeName(l.name)));
+  const filteredCommitteeForCityPresidents = committeeMembers.filter(
+    (m) => !leaderNames.has(normalizeName(m.name)),
+  );
+  const nationalPresident = necMembers.find((m) => m.role === "CHAIR") ?? null;
+
+  switch (section.type) {
+    case "LEADER":
+      return (
+        <LeaderSection
+          key={key}
+          section={section}
+          leaders={leaders}
+          conferenceId={event.id}
+          startPageNum={common.startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
+        />
+      );
+
+    case "PRESIDENT_ADDRESS":
+      return (
+        <AddressSection
+          key={key}
+          section={section}
+          speaker={nationalPresident}
+          content={nationalPresident?.bookletBio ?? section.bodyText}
+          {...commonSingle}
+        />
+      );
+
+    case "GUEST_BIO":
+      return (
+        <AddressSection
+          key={key}
+          section={section}
+          speaker={null}
+          content={section.bodyText}
+          {...commonSingle}
+        />
+      );
+
+    case "CHAIRMAN_ADDRESS":
+      return (
+        <AddressSection
+          key={key}
+          section={section}
+          speaker={conferenceChair}
+          content={conferenceChair?.bookletBio ?? section.bodyText}
+          {...commonSingle}
+        />
+      );
+
+    case "NEC":
+      return (
+        <CommitteeSection
+          key={key}
+          section={section}
+          members={necMembers}
+          startPageNum={startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
+        />
+      );
+
+    case "COMMITTEE":
+    case "COC":
+    case "COC_MEMBERS":
+    case "CITY_PRESIDENTS":
+    case "JUDICIAL":
+      return (
+        <CommitteeSection
+          key={key}
+          section={section}
+          members={
+            section.type === "CITY_PRESIDENTS"
+              ? filteredCommitteeForCityPresidents
+              : committeeMembers
+          }
+          startPageNum={startPageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
+        />
+      );
+
+    case "DELEGATES": {
+      const rosterChunks =
+        delegates.length === 0
+          ? [[] as typeof delegates]
+          : chunkDelegates(delegates, DELEGATES_PER_BOOKLET_PAGE);
+      return (
+        <>
+          {rosterChunks.map((chunk, idx) => (
+            <DelegatesSection
+              key={`${key}-${idx}`}
+              section={section}
+              delegates={chunk}
+              totalDelegateCount={delegates.length}
+              rosterPageIndex={idx}
+              rosterPageCount={rosterChunks.length}
+              pageNum={startPageNum + idx}
+              totalPages={totalPages}
+              confName={confName}
+              confYear={confYear}
+            />
+          ))}
+        </>
+      );
+    }
+
+    default:
+      return <TextSection key={key} section={section} {...commonSingle} />;
+  }
+}
+
+export function BookletDocument({
+  data,
+  layout,
+  gap = 0,
+}: {
+  data: BookletData;
+  layout: BookletLayout;
+  /** Preview uses spacing between pages; print/export uses 0. */
+  gap?: number;
+}) {
+  const {
+    enabledSections,
+    hasCover,
+    hasBackCover,
+    totalPages,
+    tocSectionRows,
+    tocPageNum,
+  } = layout;
+
+  const sectionNodes = enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
+    ({ nodes, rp }, s) => {
+      const startPage = rp;
+      const delta = sectionPageSpan(s, data);
+      return {
+        nodes: [...nodes, renderSection(s, data, startPage, totalPages)],
+        rp: rp + delta,
+      };
+    },
+    { nodes: [], rp: (hasCover ? 1 : 0) + 2 },
+  ).nodes;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: `${gap}px`,
+      }}
+    >
+      {hasCover && (
+        <CoverPage
+          event={data.event}
+          bookletTitle={data.booklet?.title ?? data.event.name}
+          bookletSubtitle={data.booklet?.subtitle ?? null}
+          theme={data.booklet?.theme ?? null}
+        />
+      )}
+
+      <TableOfContentsPage
+        tocPageNum={tocPageNum}
+        hasCover={hasCover}
+        hasBackCover={hasBackCover}
+        sectionRows={tocSectionRows}
+        confName={data.event.name}
+        confYear={data.event.year}
+        totalPages={totalPages}
+      />
+
+      {sectionNodes}
+
+      {hasBackCover && (
+        <BackCoverPage event={data.event} totalPages={totalPages} />
+      )}
+
+      {!hasBackCover && (
+        <div
+          className="booklet-page"
+          style={{
+            width: `${BOOKLET_A4.width}px`,
+            height: `${BOOKLET_A4.height}px`,
+            padding: "18px 40px",
+            background: C.blue,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: `${C.white}70`,
+            }}
+          >
+            Liberian Student Union in China · {data.event.name} ·{" "}
+            {data.event.year}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
