@@ -2,516 +2,575 @@
 > rhub@0.1.0 dev
 > next dev
 
-▲ Next.js 16.2.6 (Turbopack)
+▲ Next.js 16.2.9 (Turbopack)
 - Local:         http://localhost:3000
-- Network:       http://192.168.32.241:3000
+- Network:       http://192.168.55.241:3000
 - Environments: .env
-✓ Ready in 348ms
+✓ Ready in 342ms
 
-○ Compiling /tools/vid ...
+○ Compiling /tools/conf ...
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/vid 200 in 10.8s (next.js: 9.7s, proxy.ts: 327ms, application-code: 750ms)
- GET /api/tools/vid/health 200 in 3.6s (next.js: 2.2s, proxy.ts: 122ms, application-code: 1315ms)
- GET /api/auth/me?_t=1779882502103 200 in 4.7s (next.js: 2.1s, proxy.ts: 131ms, application-code: 2.5s)
- GET /api/auth/me?_t=1779882502103 200 in 6.4s (next.js: 1853ms, proxy.ts: 123ms, application-code: 4.4s)
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/tools/vid" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html lang="en" suppressHydrationWarning={true}>
-                          <head>
-                          <body
-                            className="geistsans_d5a4f12f-module__Ur3q_a__variable geistmono_157ca88a-module__iaM1Ya__..."
--                           data-new-gr-c-s-check-loaded="14.1296.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
- 
-Video info session error: Error: Facebook share links can expire or resolve slowly. Open the share link in Facebook, copy the final watch/reel URL, and paste that here.
-    at createVideoSession (src/lib/download-hub/session.ts:37:13)
-    at async POST (src/app/api/tools/vid/info/route.ts:33:21)
-  35 |
-  36 |     if (isFacebookShare && /timed out|timeout/i.test(message)) {
-> 37 |       throw new Error(
-     |             ^
-  38 |         "Facebook share links can expire or resolve slowly. Open the share link in Faceboo...
-  39 |       );
-  40 |     }
- POST /api/tools/vid/info 500 in 72s (next.js: 170ms, proxy.ts: 5ms, application-code: 72s)
-✓ Compiled in 221ms
- GET /tools/vid 200 in 288ms (next.js: 100ms, proxy.ts: 118ms, application-code: 70ms)
- GET /tools/vid 200 in 84ms (next.js: 3ms, proxy.ts: 3ms, application-code: 77ms)
- GET /tools/vid 200 in 95ms (next.js: 3ms, proxy.ts: 6ms, application-code: 87ms)
- GET /tools/vid 200 in 99ms (next.js: 6ms, proxy.ts: 5ms, application-code: 88ms)
- GET /tools/vid 200 in 165ms (next.js: 5ms, proxy.ts: 4ms, application-code: 157ms)
- GET /tools/vid 200 in 168ms (next.js: 7ms, proxy.ts: 4ms, application-code: 156ms)
- GET /tools/vid 200 in 107ms (next.js: 6ms, proxy.ts: 5ms, application-code: 96ms)
- GET /tools/vid 200 in 91ms (next.js: 4ms, proxy.ts: 7ms, application-code: 80ms)
- GET /tools/vid 200 in 60ms (next.js: 4ms, proxy.ts: 5ms, application-code: 51ms)
- GET /tools/vid 200 in 58ms (next.js: 4ms, proxy.ts: 4ms, application-code: 51ms)
- GET /tools/vid 200 in 87ms (next.js: 3ms, proxy.ts: 4ms, application-code: 80ms)
- GET /tools/vid 200 in 66ms (next.js: 2ms, proxy.ts: 1938µs, application-code: 62ms)
- GET /tools/vid 200 in 70ms (next.js: 5ms, proxy.ts: 2ms, application-code: 63ms)
- GET /tools/vid 200 in 104ms (next.js: 4ms, proxy.ts: 4ms, application-code: 96ms)
- GET /tools/vid 200 in 105ms (next.js: 4ms, proxy.ts: 3ms, application-code: 99ms)
- GET /tools/vid 200 in 85ms (next.js: 4ms, proxy.ts: 5ms, application-code: 76ms)
- GET /tools/vid 200 in 87ms (next.js: 6ms, proxy.ts: 3ms, application-code: 77ms)
- GET /tools/vid 200 in 77ms (next.js: 4ms, proxy.ts: 5ms, application-code: 69ms)
- GET /tools/vid 200 in 85ms (next.js: 5ms, proxy.ts: 7ms, application-code: 73ms)
- GET /tools/vid 200 in 79ms (next.js: 4ms, proxy.ts: 3ms, application-code: 72ms)
- GET /tools/vid 200 in 52ms (next.js: 4ms, proxy.ts: 3ms, application-code: 46ms)
- GET /tools/vid 200 in 52ms (next.js: 3ms, proxy.ts: 3ms, application-code: 46ms)
- GET /tools/vid 200 in 55ms (next.js: 1965µs, proxy.ts: 3ms, application-code: 50ms)
- GET /tools/vid 200 in 57ms (next.js: 5ms, proxy.ts: 3ms, application-code: 50ms)
- GET /tools/vid 200 in 69ms (next.js: 4ms, proxy.ts: 3ms, application-code: 62ms)
- GET /tools/vid 200 in 48ms (next.js: 3ms, proxy.ts: 4ms, application-code: 42ms)
- GET /tools/vid 200 in 44ms (next.js: 1462µs, proxy.ts: 2ms, application-code: 41ms)
- GET /tools/vid 200 in 44ms (next.js: 2ms, proxy.ts: 3ms, application-code: 39ms)
- GET /tools/vid 200 in 42ms (next.js: 4ms, proxy.ts: 3ms, application-code: 36ms)
- GET /tools/vid 200 in 46ms (next.js: 1833µs, proxy.ts: 1709µs, application-code: 43ms)
- GET /tools/vid 200 in 65ms (next.js: 2ms, proxy.ts: 1965µs, application-code: 60ms)
- GET /tools/vid 200 in 43ms (next.js: 3ms, proxy.ts: 1884µs, application-code: 38ms)
- GET /tools/vid 200 in 45ms (next.js: 1724µs, proxy.ts: 4ms, application-code: 39ms)
- GET /tools/vid 200 in 59ms (next.js: 2ms, proxy.ts: 3ms, application-code: 53ms)
- GET /tools/vid 200 in 44ms (next.js: 2ms, proxy.ts: 1751µs, application-code: 40ms)
- GET /tools/vid 200 in 39ms (next.js: 1573µs, proxy.ts: 3ms, application-code: 35ms)
- GET /tools/vid 200 in 21ms (next.js: 3ms, proxy.ts: 3ms, application-code: 15ms)
- GET /tools/vid 200 in 46ms (next.js: 1559µs, proxy.ts: 1846µs, application-code: 43ms)
- GET /tools/vid 200 in 52ms (next.js: 1620µs, proxy.ts: 2ms, application-code: 48ms)
- GET /tools/vid 200 in 53ms (next.js: 2ms, proxy.ts: 8ms, application-code: 43ms)
- GET /tools/vid 200 in 53ms (next.js: 2ms, proxy.ts: 4ms, application-code: 47ms)
- GET /tools/vid 200 in 62ms (next.js: 3ms, proxy.ts: 1893µs, application-code: 57ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 2ms, application-code: 35ms)
- GET /tools/vid 200 in 53ms (next.js: 1523µs, proxy.ts: 1648µs, application-code: 50ms)
- GET /tools/vid 200 in 54ms (next.js: 2ms, proxy.ts: 2ms, application-code: 50ms)
- GET /tools/vid 200 in 60ms (next.js: 1384µs, proxy.ts: 1675µs, application-code: 57ms)
- GET /tools/vid 200 in 90ms (next.js: 1842µs, proxy.ts: 3ms, application-code: 86ms)
- GET /tools/vid 200 in 74ms (next.js: 1835µs, proxy.ts: 2ms, application-code: 70ms)
- GET /tools/vid 200 in 89ms (next.js: 20ms, proxy.ts: 5ms, application-code: 64ms)
- GET /tools/vid 200 in 76ms (next.js: 2ms, proxy.ts: 2ms, application-code: 71ms)
- GET /tools/vid 200 in 61ms (next.js: 1779µs, proxy.ts: 2ms, application-code: 58ms)
- GET /tools/vid 200 in 62ms (next.js: 4ms, proxy.ts: 2ms, application-code: 56ms)
- GET /tools/vid 200 in 47ms (next.js: 4ms, proxy.ts: 3ms, application-code: 39ms)
- GET /tools/vid 200 in 42ms (next.js: 2ms, proxy.ts: 2ms, application-code: 38ms)
- GET /tools/vid 200 in 45ms (next.js: 2ms, proxy.ts: 2ms, application-code: 40ms)
- GET /tools/vid 200 in 56ms (next.js: 2ms, proxy.ts: 1840µs, application-code: 52ms)
- GET /tools/vid 200 in 56ms (next.js: 5ms, proxy.ts: 3ms, application-code: 47ms)
- GET /tools/vid 200 in 61ms (next.js: 3ms, proxy.ts: 4ms, application-code: 54ms)
- GET /tools/vid 200 in 42ms (next.js: 1900µs, proxy.ts: 1659µs, application-code: 39ms)
- GET /tools/vid 200 in 40ms (next.js: 1649µs, proxy.ts: 2ms, application-code: 36ms)
- GET /tools/vid 200 in 49ms (next.js: 2ms, proxy.ts: 2ms, application-code: 45ms)
- GET /tools/vid 200 in 50ms (next.js: 3ms, proxy.ts: 2ms, application-code: 44ms)
- GET /tools/vid 200 in 56ms (next.js: 2ms, proxy.ts: 2ms, application-code: 51ms)
- GET /tools/vid 200 in 38ms (next.js: 2ms, proxy.ts: 1856µs, application-code: 34ms)
- GET /tools/vid 200 in 57ms (next.js: 1332µs, proxy.ts: 1628µs, application-code: 54ms)
- GET /tools/vid 200 in 58ms (next.js: 2ms, proxy.ts: 1789µs, application-code: 54ms)
- GET /tools/vid 200 in 41ms (next.js: 1253µs, proxy.ts: 1838µs, application-code: 38ms)
- GET /tools/vid 200 in 44ms (next.js: 1346µs, proxy.ts: 1771µs, application-code: 41ms)
- GET /tools/vid 200 in 49ms (next.js: 3ms, proxy.ts: 1794µs, application-code: 44ms)
- GET /tools/vid 200 in 78ms (next.js: 1559µs, proxy.ts: 3ms, application-code: 74ms)
- GET /tools/vid 200 in 99ms (next.js: 2ms, proxy.ts: 1515µs, application-code: 96ms)
- GET /tools/vid 200 in 87ms (next.js: 16ms, proxy.ts: 5ms, application-code: 66ms)
- GET /tools/vid 200 in 51ms (next.js: 2ms, proxy.ts: 1773µs, application-code: 47ms)
- GET /tools/vid 200 in 50ms (next.js: 1357µs, proxy.ts: 1631µs, application-code: 47ms)
- GET /tools/vid 200 in 37ms (next.js: 1280µs, proxy.ts: 1739µs, application-code: 34ms)
- GET /tools/vid 200 in 49ms (next.js: 1373µs, proxy.ts: 1876µs, application-code: 46ms)
- GET /tools/vid 200 in 48ms (next.js: 1759µs, proxy.ts: 1673µs, application-code: 44ms)
- GET /tools/vid 200 in 48ms (next.js: 1311µs, proxy.ts: 1542µs, application-code: 45ms)
- GET /tools/vid 200 in 35ms (next.js: 1321µs, proxy.ts: 1665µs, application-code: 32ms)
- GET /tools/vid 200 in 56ms (next.js: 1320µs, proxy.ts: 1528µs, application-code: 53ms)
- GET /tools/vid 200 in 43ms (next.js: 1901µs, proxy.ts: 1470µs, application-code: 40ms)
- GET /tools/vid 200 in 43ms (next.js: 1332µs, proxy.ts: 1426µs, application-code: 40ms)
- GET /tools/vid 200 in 36ms (next.js: 1907µs, proxy.ts: 1785µs, application-code: 32ms)
- GET /tools/vid 200 in 36ms (next.js: 1982µs, proxy.ts: 1719µs, application-code: 33ms)
- GET /tools/vid 200 in 50ms (next.js: 2ms, proxy.ts: 1734µs, application-code: 46ms)
- GET /tools/vid 200 in 35ms (next.js: 1977µs, proxy.ts: 1517µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1213µs, proxy.ts: 1571µs, application-code: 33ms)
- GET /tools/vid 200 in 36ms (next.js: 2ms, proxy.ts: 1583µs, application-code: 32ms)
- GET /tools/vid 200 in 36ms (next.js: 2ms, proxy.ts: 1565µs, application-code: 33ms)
- GET /tools/vid 200 in 38ms (next.js: 1979µs, proxy.ts: 1530µs, application-code: 35ms)
- GET /tools/vid 200 in 38ms (next.js: 2ms, proxy.ts: 1786µs, application-code: 34ms)
- GET /tools/vid 200 in 59ms (next.js: 2ms, proxy.ts: 1722µs, application-code: 55ms)
- GET /tools/vid 200 in 45ms (next.js: 1904µs, proxy.ts: 1431µs, application-code: 41ms)
- GET /tools/vid 200 in 56ms (next.js: 1491µs, proxy.ts: 1712µs, application-code: 53ms)
- GET /tools/vid 200 in 36ms (next.js: 1882µs, proxy.ts: 1827µs, application-code: 32ms)
- GET /tools/vid 200 in 52ms (next.js: 1219µs, proxy.ts: 1447µs, application-code: 49ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 1779µs, application-code: 35ms)
- GET /tools/vid 200 in 44ms (next.js: 1662µs, proxy.ts: 1743µs, application-code: 40ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 1993µs, application-code: 42ms)
- GET /tools/vid 200 in 42ms (next.js: 3ms, proxy.ts: 1893µs, application-code: 38ms)
- GET /tools/vid 200 in 56ms (next.js: 2ms, proxy.ts: 4ms, application-code: 50ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 1953µs, application-code: 35ms)
- GET /tools/vid 200 in 39ms (next.js: 1509µs, proxy.ts: 1479µs, application-code: 36ms)
- GET /tools/vid 200 in 60ms (next.js: 3ms, proxy.ts: 3ms, application-code: 55ms)
- GET /tools/vid 200 in 58ms (next.js: 2ms, proxy.ts: 1840µs, application-code: 54ms)
- GET /tools/vid 200 in 43ms (next.js: 1470µs, proxy.ts: 8ms, application-code: 34ms)
- GET /tools/vid 200 in 75ms (next.js: 1232µs, proxy.ts: 1681µs, application-code: 72ms)
- GET /tools/vid 200 in 81ms (next.js: 1776µs, proxy.ts: 2ms, application-code: 77ms)
- GET /tools/vid 200 in 59ms (next.js: 3ms, proxy.ts: 3ms, application-code: 53ms)
- GET /tools/vid 200 in 54ms (next.js: 3ms, proxy.ts: 1852µs, application-code: 50ms)
- GET /tools/vid 200 in 53ms (next.js: 1543µs, proxy.ts: 2ms, application-code: 49ms)
- GET /tools/vid 200 in 58ms (next.js: 1656µs, proxy.ts: 3ms, application-code: 53ms)
- GET /tools/vid 200 in 45ms (next.js: 1303µs, proxy.ts: 1730µs, application-code: 42ms)
- GET /tools/vid 200 in 30ms (next.js: 1425µs, proxy.ts: 1554µs, application-code: 27ms)
- GET /tools/vid 200 in 229ms (next.js: 135ms, proxy.ts: 4ms, application-code: 90ms)
- GET /tools/vid 200 in 76ms (next.js: 2ms, proxy.ts: 29ms, application-code: 44ms)
- GET /tools/vid 200 in 45ms (next.js: 4ms, proxy.ts: 1969µs, application-code: 39ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 4ms, application-code: 40ms)
- GET /tools/vid 200 in 64ms (next.js: 1780µs, proxy.ts: 1764µs, application-code: 61ms)
- GET /tools/vid 200 in 63ms (next.js: 2ms, proxy.ts: 1965µs, application-code: 58ms)
- GET /tools/vid 200 in 45ms (next.js: 3ms, proxy.ts: 1755µs, application-code: 40ms)
- GET /tools/vid 200 in 40ms (next.js: 1389µs, proxy.ts: 1879µs, application-code: 37ms)
- GET /tools/vid 200 in 48ms (next.js: 3ms, proxy.ts: 2ms, application-code: 43ms)
- GET /tools/vid 200 in 63ms (next.js: 2ms, proxy.ts: 2ms, application-code: 59ms)
- GET /tools/vid 200 in 40ms (next.js: 2ms, proxy.ts: 1847µs, application-code: 37ms)
- GET /tools/vid 200 in 39ms (next.js: 1257µs, proxy.ts: 1725µs, application-code: 36ms)
- GET /tools/vid 200 in 54ms (next.js: 2ms, proxy.ts: 1771µs, application-code: 50ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 1608µs, application-code: 35ms)
- GET /tools/vid 200 in 44ms (next.js: 1460µs, proxy.ts: 1618µs, application-code: 41ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 1749µs, application-code: 42ms)
- GET /tools/vid 200 in 48ms (next.js: 2ms, proxy.ts: 4ms, application-code: 41ms)
- GET /tools/vid 200 in 58ms (next.js: 3ms, proxy.ts: 2ms, application-code: 53ms)
- GET /tools/vid 200 in 85ms (next.js: 2ms, proxy.ts: 2ms, application-code: 81ms)
- GET /tools/vid 200 in 210ms (next.js: 4ms, proxy.ts: 3ms, application-code: 202ms)
- GET /tools/vid 200 in 223ms (next.js: 9ms, proxy.ts: 8ms, application-code: 205ms)
- GET /tools/vid 200 in 204ms (next.js: 5ms, proxy.ts: 112ms, application-code: 87ms)
- GET /tools/vid 200 in 103ms (next.js: 1976µs, proxy.ts: 1912µs, application-code: 99ms)
- GET /tools/vid 200 in 103ms (next.js: 3ms, proxy.ts: 5ms, application-code: 94ms)
- GET /tools/vid 200 in 77ms (next.js: 3ms, proxy.ts: 3ms, application-code: 72ms)
- GET /tools/vid 200 in 106ms (next.js: 3ms, proxy.ts: 6ms, application-code: 97ms)
- GET /tools/vid 200 in 110ms (next.js: 7ms, proxy.ts: 4ms, application-code: 99ms)
- GET /tools/vid 200 in 121ms (next.js: 5ms, proxy.ts: 4ms, application-code: 112ms)
- GET /tools/vid 200 in 111ms (next.js: 3ms, proxy.ts: 7ms, application-code: 101ms)
- GET /tools/vid 200 in 77ms (next.js: 5ms, proxy.ts: 9ms, application-code: 64ms)
- GET /tools/vid 200 in 60ms (next.js: 3ms, proxy.ts: 6ms, application-code: 51ms)
- GET /tools/vid 200 in 38ms (next.js: 2ms, proxy.ts: 1519µs, application-code: 35ms)
- GET /tools/vid 200 in 38ms (next.js: 1404µs, proxy.ts: 1715µs, application-code: 35ms)
- GET /tools/vid 200 in 45ms (next.js: 1772µs, proxy.ts: 1751µs, application-code: 42ms)
- GET /tools/vid 200 in 46ms (next.js: 1973µs, proxy.ts: 1520µs, application-code: 43ms)
- GET /tools/vid 200 in 40ms (next.js: 2ms, proxy.ts: 1843µs, application-code: 36ms)
- GET /tools/vid 200 in 40ms (next.js: 2ms, proxy.ts: 1646µs, application-code: 37ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 1620µs, application-code: 36ms)
- GET /tools/vid 200 in 54ms (next.js: 2ms, proxy.ts: 1729µs, application-code: 50ms)
- GET /tools/vid 200 in 62ms (next.js: 1906µs, proxy.ts: 1481µs, application-code: 59ms)
- GET /tools/vid 200 in 64ms (next.js: 3ms, proxy.ts: 1664µs, application-code: 60ms)
- GET /tools/vid 200 in 50ms (next.js: 3ms, proxy.ts: 6ms, application-code: 41ms)
- GET /tools/vid 200 in 42ms (next.js: 1712µs, proxy.ts: 3ms, application-code: 38ms)
- GET /tools/vid 200 in 40ms (next.js: 3ms, proxy.ts: 1898µs, application-code: 35ms)
- GET /tools/vid 200 in 45ms (next.js: 3ms, proxy.ts: 1875µs, application-code: 39ms)
- GET /tools/vid 200 in 44ms (next.js: 1947µs, proxy.ts: 2ms, application-code: 40ms)
- GET /tools/vid 200 in 50ms (next.js: 1912µs, proxy.ts: 1569µs, application-code: 47ms)
- GET /tools/vid 200 in 50ms (next.js: 1926µs, proxy.ts: 1587µs, application-code: 46ms)
- GET /tools/vid 200 in 36ms (next.js: 1300µs, proxy.ts: 1338µs, application-code: 33ms)
- GET /tools/vid 200 in 37ms (next.js: 1262µs, proxy.ts: 1742µs, application-code: 34ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1706µs, application-code: 33ms)
- GET /tools/vid 200 in 51ms (next.js: 2ms, proxy.ts: 1417µs, application-code: 47ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1801µs, application-code: 33ms)
- GET /tools/vid 200 in 35ms (next.js: 1531µs, proxy.ts: 1721µs, application-code: 32ms)
- GET /tools/vid 200 in 18ms (next.js: 2ms, proxy.ts: 1895µs, application-code: 14ms)
- GET /tools/vid 200 in 35ms (next.js: 1040µs, proxy.ts: 3ms, application-code: 31ms)
- GET /tools/vid 200 in 42ms (next.js: 1630µs, proxy.ts: 1615µs, application-code: 39ms)
- GET /tools/vid 200 in 43ms (next.js: 2ms, proxy.ts: 1895µs, application-code: 38ms)
- GET /tools/vid 200 in 51ms (next.js: 1820µs, proxy.ts: 1504µs, application-code: 47ms)
- GET /tools/vid 200 in 37ms (next.js: 1945µs, proxy.ts: 1552µs, application-code: 33ms)
- GET /tools/vid 200 in 48ms (next.js: 1220µs, proxy.ts: 3ms, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1585µs, proxy.ts: 1662µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1284µs, proxy.ts: 1512µs, application-code: 31ms)
- GET /tools/vid 200 in 35ms (next.js: 1192µs, proxy.ts: 1840µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1050µs, proxy.ts: 1572µs, application-code: 33ms)
- GET /tools/vid 200 in 36ms (next.js: 1031µs, proxy.ts: 1732µs, application-code: 33ms)
- GET /tools/vid 200 in 37ms (next.js: 1941µs, proxy.ts: 1410µs, application-code: 34ms)
- GET /tools/vid 200 in 85ms (next.js: 1868µs, proxy.ts: 1721µs, application-code: 82ms)
- GET /tools/vid 200 in 97ms (next.js: 1858µs, proxy.ts: 1385µs, application-code: 93ms)
- GET /tools/vid 200 in 99ms (next.js: 12ms, proxy.ts: 1278µs, application-code: 86ms)
- GET /tools/vid 200 in 67ms (next.js: 3ms, proxy.ts: 2ms, application-code: 62ms)
- GET /tools/vid 200 in 44ms (next.js: 1060µs, proxy.ts: 3ms, application-code: 40ms)
- GET /tools/vid 200 in 57ms (next.js: 1369µs, proxy.ts: 1699µs, application-code: 54ms)
- GET /tools/vid 200 in 54ms (next.js: 2ms, proxy.ts: 1893µs, application-code: 50ms)
- GET /tools/vid 200 in 40ms (next.js: 3ms, proxy.ts: 1682µs, application-code: 36ms)
- GET /tools/vid 200 in 56ms (next.js: 1870µs, proxy.ts: 3ms, application-code: 50ms)
- GET /tools/vid 200 in 56ms (next.js: 2ms, proxy.ts: 4ms, application-code: 50ms)
- GET /tools/vid 200 in 39ms (next.js: 1275µs, proxy.ts: 1856µs, application-code: 36ms)
- GET /tools/vid 200 in 40ms (next.js: 1189µs, proxy.ts: 1592µs, application-code: 37ms)
- GET /tools/vid 200 in 47ms (next.js: 2ms, proxy.ts: 1889µs, application-code: 43ms)
- GET /tools/vid 200 in 47ms (next.js: 1662µs, proxy.ts: 1270µs, application-code: 44ms)
- GET /tools/vid 200 in 41ms (next.js: 3ms, proxy.ts: 2ms, application-code: 36ms)
- GET /tools/vid 200 in 40ms (next.js: 2ms, proxy.ts: 2ms, application-code: 35ms)
- GET /tools/vid 200 in 40ms (next.js: 1464µs, proxy.ts: 1639µs, application-code: 37ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 1696µs, application-code: 36ms)
- GET /tools/vid 200 in 53ms (next.js: 2ms, proxy.ts: 1671µs, application-code: 49ms)
- GET /tools/vid 200 in 51ms (next.js: 1911µs, proxy.ts: 1624µs, application-code: 47ms)
- GET /tools/vid 200 in 38ms (next.js: 1294µs, proxy.ts: 1654µs, application-code: 35ms)
- GET /tools/vid 200 in 53ms (next.js: 1338µs, proxy.ts: 1866µs, application-code: 49ms)
- GET /tools/vid 200 in 41ms (next.js: 4ms, proxy.ts: 3ms, application-code: 34ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1868µs, application-code: 33ms)
- GET /tools/vid 200 in 43ms (next.js: 2ms, proxy.ts: 3ms, application-code: 38ms)
- GET /tools/vid 200 in 43ms (next.js: 2ms, proxy.ts: 3ms, application-code: 38ms)
- GET /tools/vid 200 in 36ms (next.js: 1082µs, proxy.ts: 1596µs, application-code: 34ms)
- GET /tools/vid 200 in 35ms (next.js: 1541µs, proxy.ts: 1648µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1838µs, proxy.ts: 1604µs, application-code: 31ms)
- GET /tools/vid 200 in 39ms (next.js: 1862µs, proxy.ts: 1303µs, application-code: 36ms)
- GET /tools/vid 200 in 43ms (next.js: 3ms, proxy.ts: 1399µs, application-code: 39ms)
- GET /tools/vid 200 in 41ms (next.js: 2ms, proxy.ts: 1898µs, application-code: 37ms)
- GET /tools/vid 200 in 39ms (next.js: 4ms, proxy.ts: 1843µs, application-code: 33ms)
- GET /tools/vid 200 in 40ms (next.js: 3ms, proxy.ts: 2ms, application-code: 35ms)
- GET /tools/vid 200 in 35ms (next.js: 2ms, proxy.ts: 1751µs, application-code: 31ms)
- GET /tools/vid 200 in 17ms (next.js: 1859µs, proxy.ts: 1424µs, application-code: 13ms)
- GET /tools/vid 200 in 40ms (next.js: 1221µs, proxy.ts: 1343µs, application-code: 38ms)
- GET /tools/vid 200 in 63ms (next.js: 1155µs, proxy.ts: 1309µs, application-code: 60ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 1582µs, application-code: 42ms)
- GET /tools/vid 200 in 43ms (next.js: 2ms, proxy.ts: 3ms, application-code: 38ms)
- GET /tools/vid 200 in 48ms (next.js: 2ms, proxy.ts: 1912µs, application-code: 44ms)
- GET /tools/vid 200 in 30ms (next.js: 1934µs, proxy.ts: 1866µs, application-code: 27ms)
- GET /tools/vid 200 in 97ms (next.js: 65ms, proxy.ts: 3ms, application-code: 30ms)
- GET /tools/vid 200 in 32ms (next.js: 986µs, proxy.ts: 1308µs, application-code: 30ms)
- GET /tools/vid 200 in 47ms (next.js: 1200µs, proxy.ts: 1287µs, application-code: 45ms)
- GET /tools/vid 200 in 36ms (next.js: 2ms, proxy.ts: 1679µs, application-code: 33ms)
- GET /tools/vid 200 in 37ms (next.js: 1237µs, proxy.ts: 1576µs, application-code: 34ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1720µs, application-code: 33ms)
- GET /tools/vid 200 in 44ms (next.js: 1516µs, proxy.ts: 1579µs, application-code: 41ms)
- GET /tools/vid 200 in 47ms (next.js: 1897µs, proxy.ts: 1632µs, application-code: 44ms)
- GET /tools/vid 200 in 57ms (next.js: 3ms, proxy.ts: 1684µs, application-code: 52ms)
- GET /tools/vid 200 in 40ms (next.js: 1355µs, proxy.ts: 1431µs, application-code: 38ms)
- GET /tools/vid 200 in 61ms (next.js: 1405µs, proxy.ts: 1595µs, application-code: 58ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 1710µs, application-code: 42ms)
- GET /tools/vid 200 in 49ms (next.js: 1569µs, proxy.ts: 1535µs, application-code: 46ms)
- GET /tools/vid 200 in 49ms (next.js: 1933µs, proxy.ts: 1838µs, application-code: 45ms)
- GET /tools/vid 200 in 61ms (next.js: 2ms, proxy.ts: 1841µs, application-code: 57ms)
- GET /tools/vid 200 in 39ms (next.js: 2ms, proxy.ts: 2ms, application-code: 35ms)
- GET /tools/vid 200 in 53ms (next.js: 1150µs, proxy.ts: 1529µs, application-code: 51ms)
- GET /tools/vid 200 in 40ms (next.js: 2ms, proxy.ts: 1942µs, application-code: 36ms)
- GET /tools/vid 200 in 162ms (next.js: 1278µs, proxy.ts: 1535µs, application-code: 159ms)
- GET /tools/vid 200 in 164ms (next.js: 2ms, proxy.ts: 3ms, application-code: 159ms)
- GET /tools/vid 200 in 52ms (next.js: 1317µs, proxy.ts: 3ms, application-code: 48ms)
- GET /tools/vid 200 in 35ms (next.js: 1444µs, proxy.ts: 1359µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1401µs, proxy.ts: 1712µs, application-code: 32ms)
- GET /tools/vid 200 in 37ms (next.js: 1466µs, proxy.ts: 2ms, application-code: 33ms)
- GET /tools/vid 200 in 36ms (next.js: 1864µs, proxy.ts: 1475µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1756µs, proxy.ts: 1682µs, application-code: 31ms)
- GET /tools/vid 200 in 36ms (next.js: 1324µs, proxy.ts: 1398µs, application-code: 34ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1480µs, application-code: 33ms)
- GET /tools/vid 200 in 36ms (next.js: 1710µs, proxy.ts: 1463µs, application-code: 33ms)
- GET /tools/vid 200 in 35ms (next.js: 2ms, proxy.ts: 1372µs, application-code: 32ms)
- GET /tools/vid 200 in 43ms (next.js: 1318µs, proxy.ts: 1345µs, application-code: 40ms)
- GET /tools/vid 200 in 43ms (next.js: 1151µs, proxy.ts: 2ms, application-code: 39ms)
- GET /tools/vid 200 in 36ms (next.js: 1694µs, proxy.ts: 1427µs, application-code: 33ms)
- GET /tools/vid 200 in 36ms (next.js: 3ms, proxy.ts: 1644µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 3ms, proxy.ts: 1512µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 2ms, proxy.ts: 1323µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1320µs, proxy.ts: 1224µs, application-code: 30ms)
- GET /tools/vid 200 in 32ms (next.js: 1283µs, proxy.ts: 1235µs, application-code: 29ms)
- GET /tools/vid 200 in 32ms (next.js: 1282µs, proxy.ts: 1381µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1425µs, proxy.ts: 1639µs, application-code: 30ms)
- GET /tools/vid 200 in 49ms (next.js: 1854µs, proxy.ts: 1577µs, application-code: 45ms)
- GET /tools/vid 200 in 36ms (next.js: 1803µs, proxy.ts: 1452µs, application-code: 33ms)
- GET /tools/vid 200 in 44ms (next.js: 1544µs, proxy.ts: 1521µs, application-code: 41ms)
- GET /tools/vid 200 in 60ms (next.js: 1954µs, proxy.ts: 1812µs, application-code: 56ms)
- GET /tools/vid 200 in 39ms (next.js: 1986µs, proxy.ts: 1491µs, application-code: 36ms)
- GET /tools/vid 200 in 38ms (next.js: 1331µs, proxy.ts: 1342µs, application-code: 35ms)
- GET /tools/vid 200 in 48ms (next.js: 1712µs, proxy.ts: 1529µs, application-code: 44ms)
- GET /tools/vid 200 in 35ms (next.js: 1904µs, proxy.ts: 1411µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1436µs, proxy.ts: 1500µs, application-code: 31ms)
- GET /tools/vid 200 in 35ms (next.js: 2ms, proxy.ts: 1561µs, application-code: 31ms)
- GET /tools/vid 200 in 48ms (next.js: 1919µs, proxy.ts: 1546µs, application-code: 44ms)
- GET /tools/vid 200 in 35ms (next.js: 2ms, proxy.ts: 1504µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 1325µs, proxy.ts: 1446µs, application-code: 45ms)
- GET /tools/vid 200 in 55ms (next.js: 1994µs, proxy.ts: 1310µs, application-code: 52ms)
- GET /tools/vid 200 in 57ms (next.js: 1189µs, proxy.ts: 1482µs, application-code: 54ms)
- GET /tools/vid 200 in 57ms (next.js: 2ms, proxy.ts: 1836µs, application-code: 53ms)
- GET /tools/vid 200 in 36ms (next.js: 1435µs, proxy.ts: 1594µs, application-code: 33ms)
- GET /tools/vid 200 in 51ms (next.js: 1388µs, proxy.ts: 2ms, application-code: 48ms)
- GET /tools/vid 200 in 38ms (next.js: 1914µs, proxy.ts: 1536µs, application-code: 34ms)
- GET /tools/vid 200 in 49ms (next.js: 1517µs, proxy.ts: 2ms, application-code: 45ms)
- GET /tools/vid 200 in 34ms (next.js: 1984µs, proxy.ts: 1754µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1180µs, proxy.ts: 1408µs, application-code: 30ms)
- GET /tools/vid 200 in 35ms (next.js: 1997µs, proxy.ts: 1566µs, application-code: 32ms)
- GET /tools/vid 200 in 35ms (next.js: 1771µs, proxy.ts: 1200µs, application-code: 32ms)
- GET /tools/vid 200 in 47ms (next.js: 2ms, proxy.ts: 1508µs, application-code: 44ms)
- GET /tools/vid 200 in 33ms (next.js: 1531µs, proxy.ts: 1245µs, application-code: 30ms)
- GET /tools/vid 200 in 38ms (next.js: 1124µs, proxy.ts: 1201µs, application-code: 36ms)
- GET /tools/vid 200 in 40ms (next.js: 1439µs, proxy.ts: 1209µs, application-code: 37ms)
- GET /tools/vid 200 in 51ms (next.js: 1294µs, proxy.ts: 1251µs, application-code: 48ms)
- GET /tools/vid 200 in 37ms (next.js: 2ms, proxy.ts: 1358µs, application-code: 34ms)
- GET /tools/vid 200 in 35ms (next.js: 1442µs, proxy.ts: 1631µs, application-code: 32ms)
- GET /tools/vid 200 in 34ms (next.js: 2ms, proxy.ts: 1703µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1869µs, proxy.ts: 1495µs, application-code: 31ms)
- GET /tools/vid 200 in 36ms (next.js: 2ms, proxy.ts: 1502µs, application-code: 32ms)
- GET /tools/vid 200 in 40ms (next.js: 1898µs, proxy.ts: 1220µs, application-code: 37ms)
- GET /tools/vid 200 in 41ms (next.js: 1582µs, proxy.ts: 3ms, application-code: 37ms)
- GET /tools/vid 200 in 56ms (next.js: 1240µs, proxy.ts: 1515µs, application-code: 53ms)
- GET /tools/vid 200 in 61ms (next.js: 2ms, proxy.ts: 1459µs, application-code: 58ms)
- GET /tools/vid 200 in 41ms (next.js: 1258µs, proxy.ts: 1561µs, application-code: 38ms)
- GET /tools/vid 200 in 41ms (next.js: 1210µs, proxy.ts: 2ms, application-code: 38ms)
- GET /tools/vid 200 in 34ms (next.js: 1677µs, proxy.ts: 1710µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 1822µs, proxy.ts: 1384µs, application-code: 44ms)
- GET /tools/vid 200 in 47ms (next.js: 1952µs, proxy.ts: 1293µs, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1279µs, proxy.ts: 1429µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1169µs, proxy.ts: 1540µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 1931µs, proxy.ts: 1494µs, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1748µs, proxy.ts: 1434µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 1310µs, proxy.ts: 1427µs, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1776µs, proxy.ts: 1485µs, application-code: 31ms)
- GET /tools/vid 200 in 53ms (next.js: 1310µs, proxy.ts: 1338µs, application-code: 50ms)
- GET /tools/vid 200 in 39ms (next.js: 1754µs, proxy.ts: 1539µs, application-code: 35ms)
- GET /tools/vid 200 in 47ms (next.js: 1160µs, proxy.ts: 1331µs, application-code: 44ms)
- GET /tools/vid 200 in 40ms (next.js: 1139µs, proxy.ts: 1221µs, application-code: 38ms)
- GET /tools/vid 200 in 31ms (next.js: 1328µs, proxy.ts: 1224µs, application-code: 29ms)
- GET /tools/vid 200 in 33ms (next.js: 1228µs, proxy.ts: 1233µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1516µs, proxy.ts: 1298µs, application-code: 30ms)
- GET /tools/vid 200 in 32ms (next.js: 1962µs, proxy.ts: 1469µs, application-code: 29ms)
- GET /tools/vid 200 in 31ms (next.js: 1608µs, proxy.ts: 1264µs, application-code: 28ms)
- GET /tools/vid 200 in 32ms (next.js: 1437µs, proxy.ts: 1256µs, application-code: 30ms)
- GET /tools/vid 200 in 46ms (next.js: 1338µs, proxy.ts: 1627µs, application-code: 43ms)
- GET /tools/vid 200 in 48ms (next.js: 1454µs, proxy.ts: 1419µs, application-code: 46ms)
- GET /tools/vid 200 in 56ms (next.js: 1436µs, proxy.ts: 1483µs, application-code: 53ms)
- GET /tools/vid 200 in 42ms (next.js: 1166µs, proxy.ts: 1715µs, application-code: 39ms)
- GET /tools/vid 200 in 40ms (next.js: 1309µs, proxy.ts: 1607µs, application-code: 37ms)
- GET /tools/vid 200 in 32ms (next.js: 1371µs, proxy.ts: 1245µs, application-code: 29ms)
- GET /tools/vid 200 in 33ms (next.js: 1551µs, proxy.ts: 1216µs, application-code: 30ms)
- GET /tools/vid 200 in 48ms (next.js: 1891µs, proxy.ts: 1157µs, application-code: 45ms)
- GET /tools/vid 200 in 50ms (next.js: 1984µs, proxy.ts: 1603µs, application-code: 46ms)
- GET /tools/vid 200 in 48ms (next.js: 1279µs, proxy.ts: 1509µs, application-code: 46ms)
- GET /tools/vid 200 in 55ms (next.js: 1490µs, proxy.ts: 1466µs, application-code: 52ms)
- GET /tools/vid 200 in 41ms (next.js: 1344µs, proxy.ts: 1479µs, application-code: 38ms)
- GET /tools/vid 200 in 40ms (next.js: 1399µs, proxy.ts: 1421µs, application-code: 37ms)
- GET /tools/vid 200 in 34ms (next.js: 1811µs, proxy.ts: 1641µs, application-code: 31ms)
- GET /tools/vid 200 in 53ms (next.js: 1790µs, proxy.ts: 1521µs, application-code: 50ms)
- GET /tools/vid 200 in 40ms (next.js: 1792µs, proxy.ts: 1371µs, application-code: 37ms)
- GET /tools/vid 200 in 52ms (next.js: 1185µs, proxy.ts: 1456µs, application-code: 50ms)
- GET /tools/vid 200 in 34ms (next.js: 1726µs, proxy.ts: 1667µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1232µs, proxy.ts: 1396µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1717µs, proxy.ts: 1492µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 2ms, proxy.ts: 1388µs, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1760µs, proxy.ts: 1318µs, application-code: 31ms)
- GET /tools/vid 200 in 47ms (next.js: 1257µs, proxy.ts: 1367µs, application-code: 44ms)
- GET /tools/vid 200 in 34ms (next.js: 1709µs, proxy.ts: 1555µs, application-code: 31ms)
- GET /tools/vid 200 in 34ms (next.js: 1074µs, proxy.ts: 1380µs, application-code: 31ms)
- GET /tools/vid 200 in 46ms (next.js: 1847µs, proxy.ts: 1502µs, application-code: 42ms)
- GET /tools/vid 200 in 51ms (next.js: 1923µs, proxy.ts: 1376µs, application-code: 48ms)
- GET /tools/vid 200 in 38ms (next.js: 1256µs, proxy.ts: 1335µs, application-code: 35ms)
- GET /tools/vid 200 in 44ms (next.js: 1261µs, proxy.ts: 1530µs, application-code: 41ms)
- GET /tools/vid 200 in 39ms (next.js: 1639µs, proxy.ts: 1270µs, application-code: 36ms)
- GET /tools/vid 200 in 34ms (next.js: 1863µs, proxy.ts: 1507µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 2ms, proxy.ts: 1581µs, application-code: 30ms)
- GET /tools/vid 200 in 32ms (next.js: 1857µs, proxy.ts: 1486µs, application-code: 29ms)
- GET /tools/vid 200 in 32ms (next.js: 1319µs, proxy.ts: 1325µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1833µs, proxy.ts: 1400µs, application-code: 30ms)
- GET /tools/vid 200 in 33ms (next.js: 1703µs, proxy.ts: 1383µs, application-code: 30ms)
- GET /tools/vid 200 in 32ms (next.js: 1836µs, proxy.ts: 1362µs, application-code: 29ms)
- GET /tools/vid 200 in 32ms (next.js: 1263µs, proxy.ts: 1189µs, application-code: 29ms)
- GET /tools/vid 200 in 33ms (next.js: 2ms, proxy.ts: 1275µs, application-code: 29ms)
- GET /tools/vid 200 in 39ms (next.js: 1133µs, proxy.ts: 2ms, application-code: 36ms)
- GET /tools/vid 200 in 42ms (next.js: 2ms, proxy.ts: 1292µs, application-code: 38ms)
- GET /tools/vid 200 in 59ms (next.js: 2ms, proxy.ts: 1355µs, application-code: 55ms)
- GET /tools/vid 200 in 43ms (next.js: 1326µs, proxy.ts: 2ms, application-code: 39ms)
- GET /tools/vid 200 in 25ms (next.js: 1470µs, proxy.ts: 1558µs, application-code: 22ms)
-✓ Compiled in 188ms
- GET /tools/vid 200 in 91ms (next.js: 34ms, proxy.ts: 35ms, application-code: 21ms)
-✓ Compiled in 383ms
- GET /tools/vid 200 in 172ms (next.js: 67ms, proxy.ts: 36ms, application-code: 70ms)
- GET /tools/vid 200 in 44ms (next.js: 1746µs, proxy.ts: 2ms, application-code: 40ms)
- GET /tools/vid 200 in 26ms (next.js: 4ms, proxy.ts: 3ms, application-code: 19ms)
- GET /tools/vid 200 in 120ms (next.js: 52ms, proxy.ts: 33ms, application-code: 35ms)
- GET /tools/vid 200 in 39ms (next.js: 1136µs, proxy.ts: 2ms, application-code: 35ms)
- GET /tools/vid 200 in 25ms (next.js: 1936µs, proxy.ts: 1400µs, application-code: 22ms)
- GET /tools/vid 200 in 113ms (next.js: 43ms, proxy.ts: 35ms, application-code: 36ms)
- GET /tools/vid 200 in 46ms (next.js: 1291µs, proxy.ts: 1646µs, application-code: 44ms)
- GET /tools/vid 200 in 30ms (next.js: 3ms, proxy.ts: 1905µs, application-code: 25ms)
-✓ Compiled in 208ms
-✓ Compiled in 94ms
-✓ Compiled in 162ms
-✓ Compiled in 89ms
-✓ Compiled in 135ms
-✓ Compiled in 126ms
-✓ Compiled in 208ms
- GET /tools/vid 200 in 97ms (next.js: 31ms, proxy.ts: 30ms, application-code: 36ms)
- GET /tools/vid 200 in 20ms (next.js: 1238µs, proxy.ts: 1472µs, application-code: 17ms)
-✓ Compiled in 214ms
-✓ Compiled in 94ms
- GET /api/tools/vid/health 503 in 51ms (next.js: 27ms, proxy.ts: 2ms, application-code: 22ms)
- GET /api/tools/vid/health 503 in 5ms (next.js: 1039µs, proxy.ts: 1447µs, application-code: 2ms)
-✓ Compiled in 101ms
-✓ Compiled in 129ms
- POST /api/tools/vid/setup 503 in 41s (next.js: 91ms, proxy.ts: 10ms, application-code: 41s)
- POST /api/tools/vid/setup 503 in 42s (next.js: 6ms, proxy.ts: 5ms, application-code: 42s)
- GET /tools/vid 200 in 130ms (next.js: 54ms, proxy.ts: 40ms, application-code: 36ms)
- GET /tools/vid 200 in 44ms (next.js: 1099µs, proxy.ts: 1475µs, application-code: 41ms)
- GET /tools/vid 200 in 46ms (next.js: 2ms, proxy.ts: 6ms, application-code: 38ms)
- GET /tools/vid 200 in 24ms (next.js: 1930µs, proxy.ts: 3ms, application-code: 19ms)
-✓ Compiled in 158ms
- GET /tools/vid 200 in 123ms (next.js: 42ms, proxy.ts: 35ms, application-code: 47ms)
- GET /tools/vid 200 in 53ms (next.js: 3ms, proxy.ts: 3ms, application-code: 48ms)
-✓ Compiled in 290ms
- GET /tools/vid 200 in 95ms (next.js: 36ms, proxy.ts: 27ms, application-code: 32ms)
- GET /tools/vid 200 in 48ms (next.js: 1132µs, proxy.ts: 1394µs, application-code: 45ms)
- GET /tools/vid 200 in 33ms (next.js: 1376µs, proxy.ts: 1464µs, application-code: 30ms)
- GET /tools/vid 200 in 18ms (next.js: 1684µs, proxy.ts: 3ms, application-code: 14ms)
- GET /tools/vid 200 in 103ms (next.js: 44ms, proxy.ts: 26ms, application-code: 33ms)
- GET /tools/vid 200 in 35ms (next.js: 1267µs, proxy.ts: 2ms, application-code: 31ms)
- GET /tools/vid 200 in 19ms (next.js: 1182µs, proxy.ts: 1770µs, application-code: 16ms)
- GET /api/tools/vid/health 503 in 14.5s (next.js: 51ms, proxy.ts: 7ms, application-code: 14.4s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/conf 200 in 1432ms (next.js: 1147ms, proxy.ts: 8ms, application-code: 277ms)
-✓ Compiled in 222ms
- GET /tools/vid 200 in 127ms (next.js: 41ms, proxy.ts: 45ms, application-code: 41ms)
- GET /tools/vid 200 in 38ms (next.js: 1764µs, proxy.ts: 1908µs, application-code: 34ms)
- GET /tools/vid 200 in 21ms (next.js: 3ms, proxy.ts: 2ms, application-code: 16ms)
-✓ Compiled in 321ms
-✓ Compiled in 230ms
- GET /api/tools/vid/health 503 in 11.5s (next.js: 18ms, proxy.ts: 2ms, application-code: 11.4s)
- GET /api/tools/vid/health 503 in 8.0s (next.js: 1636µs, proxy.ts: 4ms, application-code: 8.0s)
- GET /api/tools/vid/health 503 in 8.3s (next.js: 4ms, proxy.ts: 4ms, application-code: 8.3s)
+ GET /tools/conf 200 in 1281ms (next.js: 839ms, proxy.ts: 7ms, application-code: 434ms)
+ GET /tools/conf 200 in 3.7s (next.js: 3.2s, proxy.ts: 107ms, application-code: 399ms)
+ GET /api/auth/me 200 in 7.8s (next.js: 317ms, proxy.ts: 35ms, application-code: 7.4s)
+ GET /api/auth/me 200 in 569ms (next.js: 4ms, proxy.ts: 5ms, application-code: 561ms)
+ GET /api/auth/me?_t=1781786028695 200 in 1412ms (next.js: 4ms, proxy.ts: 7ms, application-code: 1401ms)
+ GET /api/auth/me?_t=1781786028695 200 in 565ms (next.js: 6ms, proxy.ts: 6ms, application-code: 553ms)
+ GET /api/auth/me 200 in 11.9s (next.js: 798ms, proxy.ts: 10ms, application-code: 11.1s)
+ GET /api/auth/me 200 in 12.6s (next.js: 328ms, proxy.ts: 46ms, application-code: 12.3s)
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/vid 200 in 282ms (next.js: 17ms, proxy.ts: 10ms, application-code: 256ms)
- GET /api/auth/me?_t=1779885556818 200 in 2.9s (next.js: 33ms, proxy.ts: 5ms, application-code: 2.9s)
- GET /api/auth/me?_t=1779885556818 200 in 4.0s (next.js: 29ms, proxy.ts: 7ms, application-code: 4.0s)
- GET /api/tools/vid/health 503 in 14.8s (next.js: 37ms, proxy.ts: 4ms, application-code: 14.7s)
- POST /api/tools/vid/setup 503 in 44s (next.js: 36ms, proxy.ts: 5ms, application-code: 44s)
- GET /api/tools/vid/health 503 in 7.6s (next.js: 4ms, proxy.ts: 5ms, application-code: 7.6s)
- GET /api/tools/vid/health 503 in 10.4s (next.js: 5ms, proxy.ts: 6ms, application-code: 10.4s)
- GET /api/tools/vid/health 503 in 8.2s (next.js: 4ms, proxy.ts: 7ms, application-code: 8.2s)
+ GET /api/conf/default/access 200 in 12.7s (next.js: 248ms, proxy.ts: 33ms, application-code: 12.4s)
+ GET /api/conf/default/access 200 in 12.7s (next.js: 330ms, proxy.ts: 45ms, application-code: 12.3s)
+ GET /api/conf/default/access 200 in 12.7s (next.js: 338ms, proxy.ts: 38ms, application-code: 12.3s)
+ GET /api/conf/default 200 in 12.7s (next.js: 361ms, proxy.ts: 35ms, application-code: 12.3s)
+ GET /tools/conf 200 in 86ms (next.js: 3ms, proxy.ts: 5ms, application-code: 79ms)
+ GET /api/auth/me 200 in 1286ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1279ms)
+ GET /api/auth/me?_t=1781786028105 200 in 583ms (next.js: 41ms, proxy.ts: 12ms, application-code: 530ms)
+ GET /api/auth/me 200 in 582ms (next.js: 15ms, proxy.ts: 24ms, application-code: 542ms)
+ GET /api/auth/me 200 in 600ms (next.js: 9ms, proxy.ts: 22ms, application-code: 569ms)
+ GET /api/auth/me 200 in 524ms (next.js: 918µs, proxy.ts: 3ms, application-code: 520ms)
+ GET /api/auth/me?_t=1781786028105 200 in 994ms (next.js: 1691µs, proxy.ts: 2ms, application-code: 991ms)
+ GET /api/auth/me?_t=1781786041613 200 in 1285ms (next.js: 1428µs, proxy.ts: 2ms, application-code: 1281ms)
+ GET /api/auth/me?_t=1781786041613 200 in 1267ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1260ms)
+ GET /api/auth/me 200 in 16.4s (next.js: 832ms, proxy.ts: 15ms, application-code: 15.6s)
+ GET /api/conf/default 200 in 2.1min (next.js: 683ms, proxy.ts: 14ms, application-code: 2.1min)
+ GET /api/conf/default 200 in 113s (next.js: 1458µs, proxy.ts: 1443µs, application-code: 113s)
+ GET /api/conf/default/access 200 in 2.1min (next.js: 2ms, proxy.ts: 1776µs, application-code: 2.1min)
+ GET /api/conf/default/access 200 in 2.2min (next.js: 843ms, proxy.ts: 14ms, application-code: 2.1min)
+ GET /api/conf/default/access 200 in 2.2min (next.js: 805ms, proxy.ts: 18ms, application-code: 2.1min)
+ GET /api/conf/default/access 200 in 116s (next.js: 17ms, proxy.ts: 18ms, application-code: 116s)
+ GET /api/conf/default/access 200 in 116s (next.js: 10ms, proxy.ts: 31ms, application-code: 116s)
+ GET /api/conf/default/access 200 in 117s (next.js: 1101µs, proxy.ts: 1765µs, application-code: 117s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1322ms (next.js: 781ms, proxy.ts: 2ms, application-code: 539ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 613ms (next.js: 12ms, proxy.ts: 24ms, application-code: 577ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 2.2s (next.js: 784ms, proxy.ts: 3ms, application-code: 1375ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 2.1s (next.js: 13ms, proxy.ts: 2ms, application-code: 2.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1843ms (next.js: 9ms, proxy.ts: 5ms, application-code: 1829ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1741ms (next.js: 8ms, proxy.ts: 4ms, application-code: 1729ms)
+ GET /api/auth/me 200 in 9ms (next.js: 1827µs, proxy.ts: 1636µs, application-code: 6ms)
+ GET /api/auth/me 200 in 6ms (next.js: 1692µs, proxy.ts: 1477µs, application-code: 3ms)
+ GET /api/conf/default/access 200 in 5ms (next.js: 1118µs, proxy.ts: 1803µs, application-code: 2ms)
+ GET /tools/conf/logistics/name-list 200 in 111s (next.js: 1505ms, proxy.ts: 4ms, application-code: 110s)
+ GET /api/conf/default 200 in 29ms (next.js: 6ms, proxy.ts: 17ms, application-code: 6ms)
+ GET /api/conf/default 200 in 31ms (next.js: 12ms, proxy.ts: 16ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/logistics/name-list 200 in 3.6s (next.js: 796ms, proxy.ts: 3ms, application-code: 2.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 5.9s (next.js: 803ms, proxy.ts: 3ms, application-code: 5.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=entry-stamp 200 in 6.1s (next.js: 563ms, proxy.ts: 13ms, application-code: 5.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=passport 200 in 6.3s (next.js: 575ms, proxy.ts: 5ms, application-code: 5.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmocnu2xw00dccr3of7nj8zpt/secure-document?kind=passport 200 in 6.8s (next.js: 575ms, proxy.ts: 6ms, application-code: 6.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=visa 200 in 7.2s (next.js: 597ms, proxy.ts: 3ms, application-code: 6.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmocnu2xw00dccr3of7nj8zpt/secure-document?kind=passport 200 in 7.5s (next.js: 598ms, proxy.ts: 4ms, application-code: 6.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=passport 200 in 8.4s (next.js: 560ms, proxy.ts: 13ms, application-code: 7.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=visa 200 in 8.5s (next.js: 573ms, proxy.ts: 5ms, application-code: 7.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=passport 200 in 8.7s (next.js: 598ms, proxy.ts: 4ms, application-code: 8.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=visa 200 in 9.1s (next.js: 559ms, proxy.ts: 11ms, application-code: 8.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=visa 200 in 2.6s (next.js: 5ms, proxy.ts: 2ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=passport 200 in 3.5s (next.js: 3ms, proxy.ts: 1570µs, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=entry-stamp 200 in 2.6s (next.js: 3ms, proxy.ts: 1766µs, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=entry-stamp 200 in 4.3s (next.js: 8ms, proxy.ts: 3ms, application-code: 4.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=passport 200 in 3.2s (next.js: 5ms, proxy.ts: 2ms, application-code: 3.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=entry-stamp 200 in 4.5s (next.js: 8ms, proxy.ts: 5ms, application-code: 4.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=visa 200 in 4.5s (next.js: 3ms, proxy.ts: 1630µs, application-code: 4.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 200 in 3.5s (next.js: 6ms, proxy.ts: 3ms, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 200 in 5.7s (next.js: 5ms, proxy.ts: 3ms, application-code: 5.7s)
+✓ Compiled in 142ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 200 in 5.8s (next.js: 3ms, proxy.ts: 3ms, application-code: 5.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=entry-stamp 200 in 6.1s (next.js: 1942µs, proxy.ts: 1674µs, application-code: 6.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 200 in 3.0s (next.js: 10ms, proxy.ts: 4ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 200 in 7.7s (next.js: 4ms, proxy.ts: 3ms, application-code: 7.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=passport 200 in 2.9s (next.js: 5ms, proxy.ts: 4ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=passport 200 in 8.9s (next.js: 6ms, proxy.ts: 3ms, application-code: 8.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=passport 200 in 3.8s (next.js: 12ms, proxy.ts: 5ms, application-code: 3.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmp0p3o4f00pecrvughww5txq/secure-document?kind=passport 200 in 1997ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1992ms)
+✓ Compiled in 90ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=visa 200 in 2.5s (next.js: 13ms, proxy.ts: 5ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=passport 200 in 2.7s (next.js: 12ms, proxy.ts: 4ms, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=visa 200 in 2.6s (next.js: 3ms, proxy.ts: 2ms, application-code: 2.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=visa 200 in 5.0s (next.js: 8ms, proxy.ts: 4ms, application-code: 5.0s)
+ GET /tools/conf 200 in 55ms (next.js: 5ms, proxy.ts: 3ms, application-code: 48ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=entry-stamp 200 in 2.9s (next.js: 6ms, proxy.ts: 3ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 200 in 3.9s (next.js: 2ms, proxy.ts: 2ms, application-code: 3.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=entry-stamp 200 in 5.6s (next.js: 7ms, proxy.ts: 4ms, application-code: 5.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=entry-stamp 200 in 4.3s (next.js: 2ms, proxy.ts: 1805µs, application-code: 4.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 200 in 2.9s (next.js: 6ms, proxy.ts: 4ms, application-code: 2.9s)
+ GET /tools/conf/logistics/name-list 200 in 1946ms (next.js: 31ms, proxy.ts: 1378µs, application-code: 1913ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=visa 200 in 3.0s (next.js: 2ms, proxy.ts: 2ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=passport 200 in 4.5s (next.js: 3ms, proxy.ts: 1377µs, application-code: 4.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=visa 200 in 3.0s (next.js: 6ms, proxy.ts: 1775µs, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=passport 200 in 3.9s (next.js: 3ms, proxy.ts: 1617µs, application-code: 3.9s)
+ GET /tools/conf 200 in 44ms (next.js: 1735µs, proxy.ts: 2ms, application-code: 40ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=passport 200 in 3.0s (next.js: 1705µs, proxy.ts: 1233µs, application-code: 2.9s)
+ GET /tools/conf/logistics/name-list 200 in 1475ms (next.js: 5ms, proxy.ts: 20ms, application-code: 1450ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=entry-stamp 200 in 5.6s (next.js: 3ms, proxy.ts: 3ms, application-code: 5.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=visa 200 in 3.0s (next.js: 7ms, proxy.ts: 3ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 200 in 3.5s (next.js: 6ms, proxy.ts: 3ms, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=entry-stamp 200 in 4.4s (next.js: 2ms, proxy.ts: 1386µs, application-code: 4.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 200 in 4.8s (next.js: 4ms, proxy.ts: 3ms, application-code: 4.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=passport 200 in 4.4s (next.js: 6ms, proxy.ts: 7ms, application-code: 4.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=entry-stamp 200 in 3.7s (next.js: 7ms, proxy.ts: 3ms, application-code: 3.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=passport 200 in 2.4s (next.js: 8ms, proxy.ts: 3ms, application-code: 2.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=visa 200 in 3.1s (next.js: 4ms, proxy.ts: 4ms, application-code: 3.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmp0p3o4f00pecrvughww5txq/secure-document?kind=passport 200 in 2.5s (next.js: 38ms, proxy.ts: 12ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 200 in 6.3s (next.js: 8ms, proxy.ts: 5ms, application-code: 6.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=passport 200 in 2.9s (next.js: 50ms, proxy.ts: 11ms, application-code: 2.8s)
+✓ Compiled in 169ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=visa 200 in 4.2s (next.js: 3ms, proxy.ts: 3ms, application-code: 4.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=visa 200 in 1953ms (next.js: 3ms, proxy.ts: 2ms, application-code: 1948ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=entry-stamp 200 in 3.8s (next.js: 5ms, proxy.ts: 3ms, application-code: 3.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=entry-stamp 200 in 6.6s (next.js: 27ms, proxy.ts: 12ms, application-code: 6.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=entry-stamp 200 in 2.0s (next.js: 4ms, proxy.ts: 1646µs, application-code: 2.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=entry-stamp 200 in 4.4s (next.js: 3ms, proxy.ts: 7ms, application-code: 4.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=passport 200 in 5.9s (next.js: 7ms, proxy.ts: 3ms, application-code: 5.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=passport 200 in 4.1s (next.js: 4ms, proxy.ts: 1482µs, application-code: 4.1s)
+✓ Compiled in 245ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=visa 200 in 4.0s (next.js: 3ms, proxy.ts: 1759µs, application-code: 4.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=passport 200 in 2.5s (next.js: 6ms, proxy.ts: 3ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=entry-stamp 200 in 1959ms (next.js: 8ms, proxy.ts: 5ms, application-code: 1946ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=visa 200 in 2.1s (next.js: 2ms, proxy.ts: 1649µs, application-code: 2.1s)
+✓ Compiled in 107ms
+ GET /api/auth/me?_t=1781786316534 200 in 531ms (next.js: 6ms, proxy.ts: 5ms, application-code: 521ms)
+ GET /api/conf/default/access 200 in 834ms (next.js: 5ms, proxy.ts: 4ms, application-code: 826ms)
+ GET /api/auth/me?_t=1781786316537 200 in 853ms (next.js: 2ms, proxy.ts: 2ms, application-code: 849ms)
+✓ Compiled in 128ms
+ GET /api/conf/default/access 200 in 1509ms (next.js: 1286µs, proxy.ts: 4ms, application-code: 1504ms)
+ GET /api/auth/me?_t=1781786317664 200 in 551ms (next.js: 4ms, proxy.ts: 4ms, application-code: 543ms)
+ GET /api/conf/default/access 200 in 804ms (next.js: 4ms, proxy.ts: 5ms, application-code: 795ms)
+ GET /api/conf/default/access 200 in 819ms (next.js: 3ms, proxy.ts: 4ms, application-code: 812ms)
+ GET /api/auth/me?_t=1781786317664 200 in 1309ms (next.js: 5ms, proxy.ts: 3ms, application-code: 1301ms)
+✓ Compiled in 217ms
+ GET /api/conf/default 200 in 9ms (next.js: 3ms, proxy.ts: 4ms, application-code: 3ms)
+ GET /api/auth/me?_t=1781786319049 200 in 564ms (next.js: 8ms, proxy.ts: 4ms, application-code: 553ms)
+ GET /api/conf/default/access 200 in 769ms (next.js: 6ms, proxy.ts: 4ms, application-code: 760ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 1025ms (next.js: 5ms, proxy.ts: 2ms, application-code: 1018ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 2.3s (next.js: 5ms, proxy.ts: 1751µs, application-code: 2.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1529ms (next.js: 6ms, proxy.ts: 5ms, application-code: 1518ms)
+✓ Compiled in 273ms
+ GET /api/auth/me?_t=1781786324257 200 in 537ms (next.js: 7ms, proxy.ts: 4ms, application-code: 526ms)
+ GET /api/conf/default/access 200 in 1385ms (next.js: 2ms, proxy.ts: 4ms, application-code: 1379ms)
+ GET /api/conf/default 200 in 10ms (next.js: 2ms, proxy.ts: 4ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 305ms (next.js: 5ms, proxy.ts: 3ms, application-code: 297ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1374ms (next.js: 4ms, proxy.ts: 2ms, application-code: 1367ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1061ms (next.js: 7ms, proxy.ts: 4ms, application-code: 1051ms)
+✓ Compiled in 235ms
+✓ Compiled in 161ms
+✓ Compiled in 211ms
+ GET /api/auth/me?_t=1781786368398 200 in 5.2s (next.js: 8ms, proxy.ts: 4ms, application-code: 5.2s)
+✓ Compiled in 110ms
+ GET /api/auth/me?_t=1781786365378 200 in 9.1s (next.js: 6ms, proxy.ts: 8ms, application-code: 9.1s)
+ GET /api/conf/default/access 200 in 9.2s (next.js: 10ms, proxy.ts: 6ms, application-code: 9.2s)
+✓ Compiled in 223ms
+ GET /api/auth/me?_t=1781786365374 200 in 9.7s (next.js: 10ms, proxy.ts: 6ms, application-code: 9.7s)
+ GET /api/conf/default/access 200 in 6.7s (next.js: 4ms, proxy.ts: 4ms, application-code: 6.7s)
+ GET /api/conf/default 200 in 5ms (next.js: 1592µs, proxy.ts: 1431µs, application-code: 2ms)
+ GET /api/auth/me?_t=1781786373577 200 in 1997ms (next.js: 4ms, proxy.ts: 2ms, application-code: 1991ms)
+ GET /api/conf/default/access 200 in 10.2s (next.js: 6ms, proxy.ts: 7ms, application-code: 10.2s)
+ GET /api/conf/default/access 200 in 3.5s (next.js: 1839µs, proxy.ts: 2ms, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=entry-stamp 200 in 11.9s (next.js: 3ms, proxy.ts: 2ms, application-code: 11.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=visa 200 in 12.7s (next.js: 14ms, proxy.ts: 8ms, application-code: 12.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=passport 200 in 13.1s (next.js: 19ms, proxy.ts: 8ms, application-code: 13.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmocnu2xw00dccr3of7nj8zpt/secure-document?kind=passport 200 in 13.8s (next.js: 17ms, proxy.ts: 7ms, application-code: 13.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=passport 200 in 6.3s (next.js: 33ms, proxy.ts: 10ms, application-code: 6.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=passport 200 in 1906ms (next.js: 4ms, proxy.ts: 1775µs, application-code: 1899ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 227ms
 [UserMenu] Render - loading: true user: null
 [UserMenu] Showing loading skeleton
- GET /tools/vid 200 in 135ms (next.js: 26ms, proxy.ts: 8ms, application-code: 101ms)
- GET /api/auth/me?_t=1779898576561 200 in 3.0s (next.js: 9ms, proxy.ts: 57ms, application-code: 3.0s)
- GET /api/auth/me?_t=1779898576562 200 in 3.8s (next.js: 59ms, proxy.ts: 56ms, application-code: 3.7s)
- GET /api/tools/vid/health 503 in 8.7s (next.js: 64ms, proxy.ts: 16ms, application-code: 8.6s)
-Video info session error: Error: yt-dlp is not installed or not available on the server. Use "Install on server" above to install yt-dlp on the VPS.
-    at <unknown> (src/lib/download-hub/yt-dlp.ts:391:9)
-  389 |     } catch (error) {
-  390 |       reject(
-> 391 |         new Error(
-      |         ^
-  392 |           error instanceof Error ? error.message : "Unknown setup error",
-  393 |         ),
-  394 |       );
- POST /api/tools/vid/info 503 in 10.6s (next.js: 63ms, proxy.ts: 15ms, application-code: 10.6s)
+ GET /tools/conf 200 in 118ms (next.js: 6ms, proxy.ts: 1649µs, application-code: 110ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=visa 200 in 2.5s (next.js: 4ms, proxy.ts: 3ms, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=entry-stamp 200 in 3.9s (next.js: 9ms, proxy.ts: 4ms, application-code: 3.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=visa 200 in 8.1s (next.js: 30ms, proxy.ts: 10ms, application-code: 8.0s)
+ GET /api/auth/me?_t=1781786382385 200 in 564ms (next.js: 30ms, proxy.ts: 7ms, application-code: 528ms)
+ GET /api/auth/me?_t=1781786382385 200 in 761ms (next.js: 33ms, proxy.ts: 7ms, application-code: 722ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=entry-stamp 200 in 2.7s (next.js: 6ms, proxy.ts: 7ms, application-code: 2.6s)
+ GET /api/auth/me?_t=1781786382386 200 in 1079ms (next.js: 28ms, proxy.ts: 26ms, application-code: 1025ms)
+ GET /api/conf/default/access 200 in 2.1s (next.js: 31ms, proxy.ts: 6ms, application-code: 2.1s)
+ GET /api/auth/me?_t=1781786382386 200 in 1981ms (next.js: 992µs, proxy.ts: 1209µs, application-code: 1979ms)
+ GET /api/conf/default/access 200 in 2.7s (next.js: 34ms, proxy.ts: 7ms, application-code: 2.6s)
+ GET /api/auth/me?_t=1781786382386 200 in 1965ms (next.js: 2ms, proxy.ts: 4ms, application-code: 1959ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 200 in 3.9s (next.js: 11ms, proxy.ts: 5ms, application-code: 3.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 200 in 5.2s (next.js: 1821µs, proxy.ts: 1367µs, application-code: 5.2s)
+ GET /api/auth/me?_t=1781786385001 200 in 1154ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1147ms)
+ GET /api/auth/me?_t=1781786385001 200 in 1625ms (next.js: 1615µs, proxy.ts: 1907µs, application-code: 1622ms)
+ GET /api/conf/default 200 in 8ms (next.js: 3ms, proxy.ts: 3ms, application-code: 3ms)
+ GET /api/conf/default/access 200 in 4.7s (next.js: 25ms, proxy.ts: 7ms, application-code: 4.7s)
+ GET /api/conf/default/access 200 in 2.2s (next.js: 3ms, proxy.ts: 3ms, application-code: 2.1s)
+ GET /api/conf/default/access 200 in 2.4s (next.js: 6ms, proxy.ts: 3ms, application-code: 2.4s)
+ GET /api/auth/me?_t=1781786385002 200 in 1766ms (next.js: 1060µs, proxy.ts: 1416µs, application-code: 1764ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 200 in 5.9s (next.js: 3ms, proxy.ts: 5ms, application-code: 5.9s)
+ GET /api/conf/default/access 200 in 3.3s (next.js: 1453µs, proxy.ts: 2ms, application-code: 3.3s)
+ GET /api/conf/default 200 in 6ms (next.js: 1462µs, proxy.ts: 2ms, application-code: 2ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/countdown-flyer 200 in 544ms (next.js: 5ms, proxy.ts: 3ms, application-code: 536ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=visa 200 in 6.9s (next.js: 2ms, proxy.ts: 1645µs, application-code: 6.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 1336ms (next.js: 9ms, proxy.ts: 1904µs, application-code: 1325ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=entry-stamp 200 in 7.4s (next.js: 7ms, proxy.ts: 3ms, application-code: 7.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmp0p3o4f00pecrvughww5txq/secure-document?kind=passport 200 in 5.6s (next.js: 8ms, proxy.ts: 3ms, application-code: 5.6s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=passport 200 in 5.2s (next.js: 10ms, proxy.ts: 5ms, application-code: 5.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=visa 200 in 3.0s (next.js: 8ms, proxy.ts: 4ms, application-code: 3.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/qa 200 in 2.9s (next.js: 4ms, proxy.ts: 1528µs, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=passport 200 in 10.7s (next.js: 3ms, proxy.ts: 1495µs, application-code: 10.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=visa 200 in 2.7s (next.js: 1719µs, proxy.ts: 1459µs, application-code: 2.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=entry-stamp 200 in 5.1s (next.js: 3ms, proxy.ts: 2ms, application-code: 5.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=passport 200 in 3.5s (next.js: 3ms, proxy.ts: 1473µs, application-code: 3.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=visa 200 in 1974ms (next.js: 7ms, proxy.ts: 5ms, application-code: 1963ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=passport 200 in 5.0s (next.js: 7ms, proxy.ts: 3ms, application-code: 5.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=entry-stamp 200 in 3.2s (next.js: 2ms, proxy.ts: 1771µs, application-code: 3.2s)
+ GET /api/conf/default/access 200 in 1169ms (next.js: 13ms, proxy.ts: 11ms, application-code: 1145ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=passport 200 in 2.4s (next.js: 7ms, proxy.ts: 4ms, application-code: 2.3s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=entry-stamp 200 in 1960ms (next.js: 5ms, proxy.ts: 4ms, application-code: 1951ms)
+ GET /api/auth/me?_t=1781786373579 200 in 532ms (next.js: 1916µs, proxy.ts: 1550µs, application-code: 529ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=visa 200 in 2.5s (next.js: 1921µs, proxy.ts: 1288µs, application-code: 2.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=entry-stamp 200 in 6.5s (next.js: 1666µs, proxy.ts: 1371µs, application-code: 6.5s)
+✓ Compiled in 239ms
+✓ Compiled in 104ms
+✓ Compiled in 149ms
+✓ Compiled in 84ms
+✓ Compiled in 232ms
+✓ Compiled in 138ms
+✓ Compiled in 169ms
+✓ Compiled in 168ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=passport 200 in 14.0s (next.js: 15ms, proxy.ts: 12ms, application-code: 13.9s)
+✓ Compiled in 141ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 200 in 16.2s (next.js: 27ms, proxy.ts: 6ms, application-code: 16.1s)
+✓ Compiled in 130ms
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 200 in 17.4s (next.js: 33ms, proxy.ts: 5ms, application-code: 17.4s)
+✓ Compiled in 113ms
+✓ Compiled in 212ms
+✓ Compiled in 131ms
+✓ Compiled in 121ms
+ GET /api/conf/default 200 in 119s (next.js: 2ms, proxy.ts: 3ms, application-code: 119s)
+ GET /api/conf/default 200 in 117s (next.js: 892µs, proxy.ts: 1533µs, application-code: 117s)
+ GET /api/conf/default 200 in 116s (next.js: 1182µs, proxy.ts: 1823µs, application-code: 116s)
+ GET /api/conf/default 200 in 23.1s (next.js: 2ms, proxy.ts: 5ms, application-code: 23.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/logistics/name-list 200 in 2.9s (next.js: 10ms, proxy.ts: 5ms, application-code: 2.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 4.8s (next.js: 19ms, proxy.ts: 5ms, application-code: 4.8s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 200 in 3.1s (next.js: 8ms, proxy.ts: 6ms, application-code: 3.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 200 in 5.9s (next.js: 5ms, proxy.ts: 6ms, application-code: 5.9s)
+✓ Compiled in 295ms
+✓ Compiled in 141ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 201ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/default 200 in 21ms (next.js: 8ms, proxy.ts: 9ms, application-code: 3ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 1380ms (next.js: 31ms, proxy.ts: 8ms, application-code: 1341ms)
+✓ Compiled in 70ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 165ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 77ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 107ms
+ GET /api/auth/me?_t=1781787073010 200 in 6.3s (next.js: 10ms, proxy.ts: 7ms, application-code: 6.3s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 228ms (next.js: 4ms, proxy.ts: 2ms, application-code: 221ms)
+✓ Compiled in 102ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/auth/me?_t=1781787073010 200 in 6.6s (next.js: 7ms, proxy.ts: 9ms, application-code: 6.6s)
+ GET /api/auth/me?_t=1781787073010 200 in 6.7s (next.js: 907µs, proxy.ts: 3ms, application-code: 6.7s)
+ GET /api/conf/default/access 200 in 7.3s (next.js: 6ms, proxy.ts: 213ms, application-code: 7.1s)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /api/auth/me?_t=1781787073010 200 in 6.6s (next.js: 1763µs, proxy.ts: 3ms, application-code: 6.6s)
+ GET /tools/conf/logistics/name-list 200 in 1158ms (next.js: 5ms, proxy.ts: 1343µs, application-code: 1152ms)
+✓ Compiled in 136ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 115ms
+ GET /api/auth/me?_t=1781787079949 200 in 1415ms (next.js: 1368µs, proxy.ts: 1906µs, application-code: 1412ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/default/access 200 in 2.3s (next.js: 1111µs, proxy.ts: 1695µs, application-code: 2.3s)
+ GET /api/conf/default/access 200 in 10.1s (next.js: 12ms, proxy.ts: 5ms, application-code: 10.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/logistics/name-list 200 in 3.6s (next.js: 3ms, proxy.ts: 1286µs, application-code: 3.6s)
+ GET /api/auth/me?_t=1781787079949 200 in 1248ms (next.js: 2ms, proxy.ts: 5ms, application-code: 1241ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/members 200 in 4.0s (next.js: 3ms, proxy.ts: 1339µs, application-code: 4.0s)
+ GET /api/conf/default/access 200 in 3.1s (next.js: 928µs, proxy.ts: 1767µs, application-code: 3.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 200 in 4.8s (next.js: 9ms, proxy.ts: 6ms, application-code: 4.8s)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 6.6s (next.js: 6ms, proxy.ts: 2ms, application-code: 6.6s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=passport 200 in 5.0s (next.js: 12ms, proxy.ts: 5ms, application-code: 5.0s)
+✓ Compiled in 110ms
+✓ Compiled in 92ms
+[browser] ./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+Expression expected
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/logistics-name-list-shell.tsx:
+./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/logistics-name-list-shell.tsx
+    ./src/app/(hub)/tools/conf/logistics/name-list/page.tsx 
+[browser] ./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+Expression expected
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/logistics-name-list-shell.tsx:
+./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/logistics-name-list-shell.tsx
+    ./src/app/(hub)/tools/conf/logistics/name-list/page.tsx 
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 200 in 5.9s (next.js: 7ms, proxy.ts: 9ms, application-code: 5.9s)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 6.9s (next.js: 3ms, proxy.ts: 4ms, application-code: 6.9s)
+✓ Compiled in 134ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+ GET /tools/conf 200 in 77ms (next.js: 4ms, proxy.ts: 15ms, application-code: 58ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 2.4s (next.js: 28ms, proxy.ts: 3ms, application-code: 2.4s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 225ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 2.2s (next.js: 3ms, proxy.ts: 4ms, application-code: 2.2s)
+✓ Compiled in 146ms
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 1391ms (next.js: 11ms, proxy.ts: 5ms, application-code: 1375ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 157ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 1242ms (next.js: 3ms, proxy.ts: 4ms, application-code: 1235ms)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 115ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 2.5s (next.js: 3ms, proxy.ts: 4ms, application-code: 2.5s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 134ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./src/components/tools/conf/logistics-name-list-document.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /tools/conf/logistics/name-list 200 in 4.9s (next.js: 4ms, proxy.ts: 4ms, application-code: 4.8s)
+[UserMenu] Render - loading: true user: null
+[UserMenu] Showing loading skeleton
+✓ Compiled in 142ms
+[browser] Uncaught ReferenceError: normalizeSidebarMembers is not defined
+    at LogisticsNameListDocument (src/components/tools/conf/logistics-name-list-document.tsx:277:65)
+    at S.scheduleRefresh (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
+    at Set.forEach (<anonymous>)
+    at LogisticsNameListShell (src/components/tools/conf/logistics-name-list-shell.tsx:629:44)
+    at LogisticsNameListPage (src/app/(hub)/tools/conf/logistics/name-list/page.tsx:2:1)
+  275 |     : formatDate(new Date().toISOString());
+  276 |
+> 277 |   const pages = useMemo(() => chunkPages(entries, ROWS_PER_PAGE), [entries]);
+      |                                                                 ^
+  278 |   const visiblePages = pageFilter
+  279 |     ? pages.filter((_, idx) => pageFilter.includes(idx))
+  280 |     : pages;
+[browser] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). 
+    at S.scheduleRefresh (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
+    at Set.forEach (<anonymous>) (chrome-extension://fmkadmapgofadopljbjfkapdkoienihi/build/installHook.js:1:86461)
+[browser] Uncaught ReferenceError: normalizeSidebarMembers is not defined
+    at LogisticsNameListDocument (src/components/tools/conf/logistics-name-list-document.tsx:277:65)
+    at LogisticsNameListShell (src/components/tools/conf/logistics-name-list-shell.tsx:629:44)
+    at LogisticsNameListPage (src/app/(hub)/tools/conf/logistics/name-list/page.tsx:2:1)
+  275 |     : formatDate(new Date().toISOString());
+  276 |
+> 277 |   const pages = useMemo(() => chunkPages(entries, ROWS_PER_PAGE), [entries]);
+      |                                                                 ^
+  278 |   const visiblePages = pageFilter
+  279 |     ? pages.filter((_, idx) => pageFilter.includes(idx))
+  280 |     : pages;
+[browser] ./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+Expression expected
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/logistics-name-list-shell.tsx:
+./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/logistics-name-list-shell.tsx
+    ./src/app/(hub)/tools/conf/logistics/name-list/page.tsx 
+[browser] ./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+Expression expected
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Parsing ecmascript source code failed
+
+Generated code of loaders [next/dist/build/babel/loader] transform of file content of src/components/tools/conf/logistics-name-list-shell.tsx:
+./src/components/tools/conf/logistics-name-list-shell.tsx:55:1
+  53 |   uploading,
+  54 |   onUpload,
+> 55 | }: {
+     | ^
+  56 |   confId: string;
+  57 |   delegateId: string;
+  58 |   kind: "passport" | "entry-stamp" | "visa";
+
+Import trace:
+  Server Component:
+    ./src/components/tools/conf/logistics-name-list-shell.tsx
+    ./src/app/(hub)/tools/conf/logistics/name-list/page.tsx 
+ GET /tools/conf/logistics/name-list 200 in 88s (next.js: 5ms, proxy.ts: 4ms, application-code: 88s)
+ GET /api/auth/me?_t=1781787198804 200 in 872ms (next.js: 12ms, proxy.ts: 10ms, application-code: 849ms)
+ GET /api/auth/me?_t=1781787198804 200 in 869ms (next.js: 24ms, proxy.ts: 9ms, application-code: 837ms)
+ GET /api/auth/me?_t=1781787198805 200 in 863ms (next.js: 13ms, proxy.ts: 23ms, application-code: 827ms)
+ GET /api/auth/me?_t=1781787199701 200 in 1002ms (next.js: 6ms, proxy.ts: 1875µs, application-code: 994ms)
+ GET /api/auth/me?_t=1781787198805 200 in 1668ms (next.js: 1776µs, proxy.ts: 4ms, application-code: 1663ms)
+ GET /api/auth/me?_t=1781787199701 200 in 606ms (next.js: 1736µs, proxy.ts: 4ms, application-code: 600ms)
+ GET /api/conf/default 200 in 2.6min (next.js: 12ms, proxy.ts: 23ms, application-code: 2.6min)
+ GET /api/conf/default/access 200 in 2.6min (next.js: 1153µs, proxy.ts: 2ms, application-code: 2.6min)
+ GET /api/conf/default/access 200 in 2.7min (next.js: 1402µs, proxy.ts: 1817µs, application-code: 2.7min)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/logistics/name-list 200 in 2.2s (next.js: 8ms, proxy.ts: 3ms, application-code: 2.2s)
+ GET /api/conf/default/access 200 in 2.7min (next.js: 19ms, proxy.ts: 11ms, application-code: 2.7min)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=visa 200 in 4.2s (next.js: 12ms, proxy.ts: 6ms, application-code: 4.2s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=passport 200 in 4.7s (next.js: 14ms, proxy.ts: 5ms, application-code: 4.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmocnu2xw00dccr3of7nj8zpt/secure-document?kind=passport 200 in 4.9s (next.js: 9ms, proxy.ts: 8ms, application-code: 4.9s)
+ GET /api/conf/default/access 200 in 2.8min (next.js: 6ms, proxy.ts: 10ms, application-code: 2.8min)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=entry-stamp 200 in 3.4s (next.js: 6ms, proxy.ts: 2ms, application-code: 3.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=passport 200 in 7.4s (next.js: 3ms, proxy.ts: 1291µs, application-code: 7.4s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=visa 200 in 9.1s (next.js: 6ms, proxy.ts: 3ms, application-code: 9.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=entry-stamp 200 in 8.5s (next.js: 6ms, proxy.ts: 3ms, application-code: 8.5s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=visa 200 in 10.7s (next.js: 7ms, proxy.ts: 3ms, application-code: 10.7s)
+⨯ Error [PrismaClientKnownRequestError]: 
+Invalid `prisma.confDelegate.findUnique()` invocation:
+
+
+Can't reach database server at `31.97.41.230:9909`
+
+Please make sure your database server is running at `31.97.41.230:9909`.
+    at async GET (src/app/api/conf/[confId]/delegates/[delegateId]/secure-document/route.ts:42:20)
+  40 |   }
+  41 |
+> 42 |   const delegate = await prisma.confDelegate.findUnique({
+     |                    ^
+  43 |     where: { id: delegateId },
+  44 |     select: {
+  45 |       confId: true, {
+  code: 'P1001',
+  meta: { modelName: 'ConfDelegate', database_location: '31.97.41.230:9909' },
+  clientVersion: '6.19.3'
+}
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=entry-stamp 500 in 11.9s (next.js: 8ms, proxy.ts: 4ms, application-code: 11.9s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=visa 503 in 10.0s (next.js: 4ms, proxy.ts: 1639µs, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=entry-stamp 503 in 17ms (next.js: 7ms, proxy.ts: 4ms, application-code: 7ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=passport 503 in 11ms (next.js: 4ms, proxy.ts: 3ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=visa 503 in 10ms (next.js: 3ms, proxy.ts: 2ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpf134fd012bcrhpprz5jov5/secure-document?kind=entry-stamp 503 in 8ms (next.js: 2ms, proxy.ts: 1985µs, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=passport 503 in 7ms (next.js: 2ms, proxy.ts: 1509µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=visa 503 in 6ms (next.js: 1773µs, proxy.ts: 1332µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoc8ksfr00yecr5zrcs4oi9d/secure-document?kind=entry-stamp 503 in 7ms (next.js: 1894µs, proxy.ts: 1910µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmp0p3o4f00pecrvughww5txq/secure-document?kind=passport 503 in 9ms (next.js: 5ms, proxy.ts: 1454µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=passport 503 in 7ms (next.js: 1963µs, proxy.ts: 2ms, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=visa 503 in 6ms (next.js: 1814µs, proxy.ts: 1368µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmqetbk1p0168cr9k97sbkb1b/secure-document?kind=entry-stamp 503 in 6ms (next.js: 2ms, proxy.ts: 1307µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=passport 503 in 7ms (next.js: 1810µs, proxy.ts: 1442µs, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=visa 503 in 6ms (next.js: 1687µs, proxy.ts: 1989µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpzrdqqk02bbcr3it9erzvyp/secure-document?kind=entry-stamp 503 in 6ms (next.js: 1455µs, proxy.ts: 1186µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=passport 503 in 7ms (next.js: 3ms, proxy.ts: 1401µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=visa 503 in 7ms (next.js: 1844µs, proxy.ts: 1668µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz1uu0g0107cr3iv10aio09/secure-document?kind=entry-stamp 503 in 7ms (next.js: 2ms, proxy.ts: 1497µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=passport 503 in 6ms (next.js: 1451µs, proxy.ts: 1307µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=visa 503 in 5ms (next.js: 1414µs, proxy.ts: 1178µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpz2gcif0169cr3ino17u0wg/secure-document?kind=entry-stamp 503 in 6ms (next.js: 1676µs, proxy.ts: 1905µs, application-code: 3ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmnxcr390000acreqwoalj98h/secure-document?kind=passport 502 in 21.7s (next.js: 7ms, proxy.ts: 6ms, application-code: 21.7s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=passport 200 in 67s (next.js: 8ms, proxy.ts: 5ms, application-code: 67s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=entry-stamp 503 in 10.1s (next.js: 39ms, proxy.ts: 11ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=passport 503 in 10.1s (next.js: 21ms, proxy.ts: 26ms, application-code: 10.0s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=entry-stamp 503 in 17ms (next.js: 5ms, proxy.ts: 1828µs, application-code: 11ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=passport 503 in 24ms (next.js: 16ms, proxy.ts: 5ms, application-code: 4ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmowa92e000jhcrh41hulfac6/secure-document?kind=visa 503 in 11ms (next.js: 3ms, proxy.ts: 3ms, application-code: 5ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=visa 200 in 10.3s (next.js: 40ms, proxy.ts: 11ms, application-code: 10.3s)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmoi6v1yv00flcrjta4l0a3e2%2Fsecure-document%3Fkind%3Dpassport 404 in 448ms (next.js: 358ms, proxy.ts: 5ms, application-code: 85ms)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmoi6v1yv00flcrjta4l0a3e2%2Fsecure-document%3Fkind%3Dentry-stamp 404 in 318ms (next.js: 267ms, proxy.ts: 2ms, application-code: 48ms)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmpploo7700c5crr1m07nfqit%2Fsecure-document%3Fkind%3Dentry-stamp 404 in 470ms (next.js: 392ms, proxy.ts: 2ms, application-code: 76ms)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmowa92e000jhcrh41hulfac6%2Fsecure-document%3Fkind%3Dpassport 404 in 142ms (next.js: 21ms, proxy.ts: 26ms, application-code: 95ms)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmowa92e000jhcrh41hulfac6%2Fsecure-document%3Fkind%3Dvisa 404 in 125ms (next.js: 67ms, proxy.ts: 13ms, application-code: 46ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmocnu2xw00dccr3of7nj8zpt/secure-document?kind=passport 200 in 13.1s (next.js: 33ms, proxy.ts: 9ms, application-code: 13.1s)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmoi6v1yv00flcrjta4l0a3e2/secure-document?kind=visa 502 in 15.2s (next.js: 1883µs, proxy.ts: 2ms, application-code: 15.2s)
+ GET /api/assets/proxy?url=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fconf%2Fcmnwxmdn80000rw8uwrttdzf7%2Fdelegates%2Fcmoi6v1yv00flcrjta4l0a3e2%2Fsecure-document%3Fkind%3Dvisa 404 in 22ms (next.js: 2ms, proxy.ts: 1215µs, application-code: 18ms)
+ GET /api/conf/cmnwxmdn80000rw8uwrttdzf7/delegates/cmpploo7700c5crr1m07nfqit/secure-document?kind=passport 200 in 18.6s (next.js: 38ms, proxy.ts: 9ms, application-code: 18.6s)

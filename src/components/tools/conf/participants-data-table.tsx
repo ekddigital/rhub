@@ -621,7 +621,8 @@ export function ParticipantsDataTable({
               ) : (
                 pageRows.map((row, index) => {
                   const isFullyConfirmedPayment =
-                    row.feePaid && (row.amountPaid ?? 0) >= (row.feeAmount ?? 0);
+                    row.feePaid &&
+                    (row.amountPaid ?? 0) >= (row.feeAmount ?? 0);
                   const canOpenDetail =
                     isAdminControl ||
                     (Boolean(currentUserId) && row.userId === currentUserId) ||
@@ -674,7 +675,9 @@ export function ParticipantsDataTable({
                                 {row.name}
                               </Link>
                             ) : (
-                              <p className="font-semibold text-sm">{row.name}</p>
+                              <p className="font-semibold text-sm">
+                                {row.name}
+                              </p>
                             )}
                             {canOpenDetail ? (
                               <Link
@@ -874,7 +877,9 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept={delegateDocumentAcceptAttribute("booklet")}
+                                accept={delegateDocumentAcceptAttribute(
+                                  "booklet",
+                                )}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(
@@ -903,7 +908,9 @@ export function ParticipantsDataTable({
                               <input
                                 type="file"
                                 className="hidden"
-                                accept={delegateDocumentAcceptAttribute("passport")}
+                                accept={delegateDocumentAcceptAttribute(
+                                  "passport",
+                                )}
                                 onChange={(e) => {
                                   const file = e.target.files?.[0] || null;
                                   void onReplaceDocument(

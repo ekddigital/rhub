@@ -59,6 +59,9 @@ export interface DocumentLayoutProps {
   /** Optional page numbering support for multi-page previews */
   pageNumber?: number;
   totalPages?: number;
+
+  /** Hide committee sidebar so main content uses full page width */
+  hideCommitteeSidebar?: boolean;
 }
 
 export interface TableColumn {
@@ -87,6 +90,7 @@ export function DocumentLayout({
   className = "",
   pageNumber,
   totalPages,
+  hideCommitteeSidebar = false,
 }: DocumentLayoutProps) {
   const STRIPE_H = LETTERHEAD_SECTIONS.stripeHeight;
   const HEADER_H = LETTERHEAD_SECTIONS.headerHeight;
@@ -286,7 +290,7 @@ export function DocumentLayout({
           }}
         >
           {/* Left sidebar */}
-          {members && members.length > 0 && (
+          {!hideCommitteeSidebar && members && members.length > 0 && (
             <div
               style={{
                 width: SIDEBAR_W,

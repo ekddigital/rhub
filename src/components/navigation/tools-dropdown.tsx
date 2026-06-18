@@ -68,6 +68,11 @@ export function ToolsDropdown() {
       description: "Record and verify conference payments",
     },
     {
+      href: "/tools/conf/logistics/name-list",
+      title: "Logistics Name List",
+      description: "Printable roster with passport, visa, and entry stamp documents",
+    },
+    {
       href: "/tools/conf/finance",
       title: "Conference finance",
       description:

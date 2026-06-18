@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,8 +20,17 @@ import {
   BarChart3,
   Mail,
   Award,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/contexts/user-context";
+import {
+  canViewConfNavItem,
+  getAccessFlagsFromRole,
+  mergeConfAccessFlags,
+  resolveConferenceAccessFlags,
+  type ConfAccessFlags,
+} from "@/lib/conf/client-access";
 
 type ConfNavItem = {
   href: string;
@@ -80,6 +89,12 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     minAccess: "manager",
   },
   {
+    href: "/tools/conf/logistics/name-list",
+    label: "Logistics Name List",
+    icon: ListChecks,
+    minAccess: "manager",
+  },
+  {
     href: "/tools/conf/letters",
     label: "Letters / Memos",
     icon: Mail,
@@ -129,80 +144,8 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
   },
 ];
 
-type ConfAccessFlags = {
-  isParticipant: boolean;
-  isManager: boolean;
-  isSuperAdmin: boolean;
-};
-
 function canViewNavItem(item: ConfNavItem, access: ConfAccessFlags): boolean {
-  const requirement = item.minAccess ?? "manager";
-
-  if (requirement === "public") return true;
-  if (requirement === "delegate") {
-    return access.isParticipant || access.isManager || access.isSuperAdmin;
-  }
-
-  return access.isManager || access.isSuperAdmin;
-}
-
-function getManagerFlagsFromRole(role: string) {
-  const normalized = role.toUpperCase();
-  const isManager = [
-    "SUPER_ADMIN",
-    "ADMIN",
-    "JUDGE_ADMIN",
-    "HEAD_JUDGE",
-  ].includes(normalized);
-  return {
-    isManager,
-    isSuperAdmin: normalized === "SUPER_ADMIN",
-  };
-}
-
-async function resolveConferenceAccessFlags(): Promise<ConfAccessFlags> {
-  const [confRes, authRes] = await Promise.all([
-    fetch("/api/conf/default/access", { cache: "no-store" }),
-    fetch("/api/auth/me", { cache: "no-store" }),
-  ]);
-
-  let confFlags: ConfAccessFlags = {
-    isParticipant: false,
-    isManager: false,
-    isSuperAdmin: false,
-  };
-
-  if (confRes.ok) {
-    const payload = (await confRes.json()) as {
-      isParticipant?: boolean;
-      isManager?: boolean;
-      isSuperAdmin?: boolean;
-    };
-
-    confFlags = {
-      isParticipant: Boolean(payload.isParticipant),
-      isManager: Boolean(payload.isManager),
-      isSuperAdmin: Boolean(payload.isSuperAdmin),
-    };
-  }
-
-  let roleFlags = {
-    isManager: false,
-    isSuperAdmin: false,
-  };
-  if (authRes.ok) {
-    const authPayload = (await authRes.json()) as {
-      role?: string;
-    };
-    roleFlags = getManagerFlagsFromRole(String(authPayload.role || ""));
-  }
-
-  return {
-    isParticipant:
-      confFlags.isParticipant || roleFlags.isManager || roleFlags.isSuperAdmin,
-    isManager: confFlags.isManager || roleFlags.isManager,
-    isSuperAdmin: confFlags.isSuperAdmin || roleFlags.isSuperAdmin,
-  };
+  return canViewConfNavItem(item.minAccess, access);
 }
 
 function isItemActive(pathname: string, href: string): boolean {
@@ -214,22 +157,31 @@ function isItemActive(pathname: string, href: string): boolean {
 
 export function ConfSidebar() {
   const pathname = usePathname();
-  const [access, setAccess] = useState<ConfAccessFlags>({
-    isParticipant: false,
-    isManager: false,
-    isSuperAdmin: false,
-  });
+  const { user } = useUser();
+  const roleAccess = useMemo(
+    () => getAccessFlagsFromRole(user?.role),
+    [user?.role],
+  );
+  const [apiAccess, setApiAccess] = useState<Partial<ConfAccessFlags> | null>(
+    null,
+  );
+  const access = useMemo(
+    () => mergeConfAccessFlags(apiAccess ?? {}, roleAccess),
+    [apiAccess, roleAccess],
+  );
 
   useEffect(() => {
     let active = true;
 
     const loadAccess = async () => {
       try {
-        const flags = await resolveConferenceAccessFlags();
+        const flags = await resolveConferenceAccessFlags({
+          knownRole: user?.role,
+        });
         if (!active) return;
-        setAccess(flags);
+        setApiAccess(flags);
       } catch {
-        // Keep public-only navigation on network errors.
+        // Keep role-derived navigation on network errors.
       }
     };
 
@@ -237,7 +189,7 @@ export function ConfSidebar() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user?.id, user?.role]);
 
   const visibleItems = CONF_NAV_ITEMS.filter((item) =>
     canViewNavItem(item, access),
@@ -274,22 +226,31 @@ export function ConfSidebar() {
 
 export function ConfMobileNav() {
   const pathname = usePathname();
-  const [access, setAccess] = useState<ConfAccessFlags>({
-    isParticipant: false,
-    isManager: false,
-    isSuperAdmin: false,
-  });
+  const { user } = useUser();
+  const roleAccess = useMemo(
+    () => getAccessFlagsFromRole(user?.role),
+    [user?.role],
+  );
+  const [apiAccess, setApiAccess] = useState<Partial<ConfAccessFlags> | null>(
+    null,
+  );
+  const access = useMemo(
+    () => mergeConfAccessFlags(apiAccess ?? {}, roleAccess),
+    [apiAccess, roleAccess],
+  );
 
   useEffect(() => {
     let active = true;
 
     const loadAccess = async () => {
       try {
-        const flags = await resolveConferenceAccessFlags();
+        const flags = await resolveConferenceAccessFlags({
+          knownRole: user?.role,
+        });
         if (!active) return;
-        setAccess(flags);
+        setApiAccess(flags);
       } catch {
-        // Keep public-only navigation on network errors.
+        // Keep role-derived navigation on network errors.
       }
     };
 
@@ -297,7 +258,7 @@ export function ConfMobileNav() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user?.id, user?.role]);
 
   const visibleItems = CONF_NAV_ITEMS.filter((item) =>
     canViewNavItem(item, access),

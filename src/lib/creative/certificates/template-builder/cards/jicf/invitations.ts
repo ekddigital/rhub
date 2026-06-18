@@ -140,7 +140,7 @@ export const celebrationInvite: CardTemplate = {
       id: "event-datetime",
       type: "text",
       content:
-        "Sunday, June 15, 2025\nService starts at 2:50 PM PROMPTLY\nChurch doors open at 2:30 PM",
+        "Sunday, June 14, 2026\nService starts at 2:50 PM PROMPTLY\nChurch doors open at 2:30 PM",
       position: { x: 50, y: 420, width: 400, height: 80 },
       style: {
         fontSize: 18,

@@ -39,6 +39,18 @@ const PLATFORM_MANAGER_ROLES = new Set([
   "HEAD_JUDGE",
 ]);
 
+function normalizeUserRole(role: string): string {
+  const compact = role.trim().toUpperCase().replace(/[\s-]+/g, "_");
+  if (compact === "SUPERADMIN") return "SUPER_ADMIN";
+  return compact;
+}
+
+export function hasConferenceManagerAccess(
+  access: Pick<ConferenceAccess, "isManager" | "isSuperAdmin">,
+): boolean {
+  return access.isManager || access.isSuperAdmin;
+}
+
 async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
@@ -99,10 +111,12 @@ export async function getConferenceAccess(
     }),
   ]);
 
-  const isPlatformManager = PLATFORM_MANAGER_ROLES.has(user.role);
+  const normalizedRole = normalizeUserRole(user.role);
+  const isPlatformManager = PLATFORM_MANAGER_ROLES.has(normalizedRole);
   const isConferenceManager = Boolean(member && member.role !== "DELEGATE");
-  const isManager = isPlatformManager || isConferenceManager;
-  const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isSuperAdmin = normalizedRole === "SUPER_ADMIN";
+  const isManager =
+    isPlatformManager || isConferenceManager || isSuperAdmin;
   const isConferenceChair = Boolean(member?.role === "CHAIR");
   const isChair =
     isSuperAdmin ||
@@ -154,7 +168,7 @@ export async function requireConferenceApiAccess(
     };
   }
 
-  if (scope === "manager" && !access.isManager) {
+  if (scope === "manager" && !hasConferenceManagerAccess(access)) {
     return {
       ok: false as const,
       response: NextResponse.json(
@@ -253,7 +267,7 @@ export async function requireConferencePageAccess(
     redirect(`/login?redirect=${encodeURIComponent(routePath)}`);
   }
 
-  if (scope === "manager" && !access.isManager) {
+  if (scope === "manager" && !hasConferenceManagerAccess(access)) {
     redirect("/tools/conf?forbidden=1");
   }
 

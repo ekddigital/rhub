@@ -630,6 +630,11 @@ enum DelStatus {
     CANCELLED
 }
 
+enum ConfLogisticsRosterSource {
+    MANUAL
+    AUTO_PAID
+}
+
 enum MeetStatus {
     SCHEDULED
     IN_PROGRESS
@@ -718,6 +723,7 @@ model ConfEvent {
     leaderProfiles ConfLeaderProfile[]
     letters        ConfLetter[]
     questions      ConfQuestion[]
+    logisticsRosterEntries ConfLogisticsRosterEntry[]
 
     @@index([slug])
     @@index([status])
@@ -773,6 +779,7 @@ model ConfMember {
     budgets ConfBudget[] @relation("BudgetCreator")
     submittedPayments   ConfPayment[] @relation("PaymentSubmitter")
     committeeApprovals  ConfPayment[] @relation("CommitteeApprover")
+    logisticsRosterAdds ConfLogisticsRosterEntry[] @relation("LogisticsRosterAddedBy")
 
     @@index([confId])
     @@index([userId])
@@ -942,6 +949,7 @@ model ConfDelegate {
     receivedPairRequests ConfPairRequest[] @relation("PairTarget")
     roomAsA ConfRoomAssignment? @relation("RoomOccupantA")
     roomAsB ConfRoomAssignment? @relation("RoomOccupantB")
+    logisticsRosterEntries ConfLogisticsRosterEntry[]
 
     @@index([confId])
     @@index([status])
@@ -952,6 +960,24 @@ model ConfDelegate {
     @@index([confId, feeFsApprovedAt])
     @@unique([confId, email])
     @@unique([confId, passportNo])
+}
+
+model ConfLogisticsRosterEntry {
+    id              String                    @id @default(cuid())
+    confId          String
+    delegateId      String
+    source          ConfLogisticsRosterSource @default(MANUAL)
+    addedByMemberId String?
+    note            String?                   @db.Text
+    createdAt       DateTime                  @default(now())
+
+    conf     ConfEvent     @relation(fields: [confId], references: [id], onDelete: Cascade)
+    delegate ConfDelegate  @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+    addedBy  ConfMember?   @relation("LogisticsRosterAddedBy", fields: [addedByMemberId], references: [id], onDelete: SetNull)
+
+    @@unique([confId, delegateId])
+    @@index([confId])
+    @@index([delegateId])
 }
 
 model ConfPairRequest {

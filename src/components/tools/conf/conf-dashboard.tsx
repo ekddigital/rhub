@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -23,6 +23,7 @@ import {
   Megaphone,
   Download,
   ImageIcon,
+  ClipboardList,
 } from "lucide-react";
 import {
   Card,
@@ -37,6 +38,13 @@ import { Badge } from "@/components/ui/badge";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { groupConferenceFeePackages, formatFeeRmb } from "@/lib/conf/fees";
 import { ConfQA } from "@/components/tools/conf/conf-qa";
+import { useUser } from "@/contexts/user-context";
+import {
+  canViewConfNavItem,
+  getAccessFlagsFromRole,
+  mergeConfAccessFlags,
+  resolveConferenceAccessFlags,
+} from "@/lib/conf/client-access";
 
 type ConfNavItem = {
   href: string;
@@ -79,6 +87,14 @@ const NAV_ITEMS: ConfNavItem[] = [
     title: "Committee",
     desc: "Manage committee members, roles, and contact information",
     color: "text-purple-500",
+    minAccess: "manager",
+  },
+  {
+    href: "/tools/conf/logistics/name-list",
+    icon: ClipboardList,
+    title: "Logistics Name List",
+    desc: "Printable roster with passport, visa, and entry stamp documents",
+    color: "text-teal-600",
     minAccess: "manager",
   },
   {
@@ -174,11 +190,22 @@ const VENUE_GALLERY = [
 const LIBERIA_INDEPENDENCE_YEAR = 1847;
 
 export function ConfDashboard() {
+  const { user } = useUser();
   const [confYear, setConfYear] = useState(2026);
   const [confId, setConfId] = useState("");
-  const [isParticipant, setIsParticipant] = useState(false);
-  const [isManager, setIsManager] = useState(false);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const roleAccess = useMemo(
+    () => getAccessFlagsFromRole(user?.role),
+    [user?.role],
+  );
+  const [apiAccess, setApiAccess] = useState<{
+    isParticipant: boolean;
+    isManager: boolean;
+    isSuperAdmin: boolean;
+  } | null>(null);
+  const { isParticipant, isManager, isSuperAdmin } = useMemo(
+    () => mergeConfAccessFlags(apiAccess ?? {}, roleAccess),
+    [apiAccess, roleAccess],
+  );
   const [showFeeStructure, setShowFeeStructure] = useState(false);
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
@@ -190,47 +217,18 @@ export function ConfDashboard() {
 
     const loadConference = async () => {
       try {
-        const [conf, accessRes, authRes] = await Promise.all([
-          fetchDefaultConference(),
-          fetch("/api/conf/default/access", { cache: "no-store" }),
-          fetch("/api/auth/me", { cache: "no-store" }),
-        ]);
-
-        if (!mounted) return;
-
-        if (accessRes.ok) {
-          const accessPayload = (await accessRes.json()) as {
-            isParticipant?: boolean;
-            isManager?: boolean;
-            isSuperAdmin?: boolean;
-          };
-          setIsParticipant(Boolean(accessPayload.isParticipant));
-          setIsManager(Boolean(accessPayload.isManager));
-          setIsSuperAdmin(Boolean(accessPayload.isSuperAdmin));
+        const accessFlags = await resolveConferenceAccessFlags({
+          knownRole: user?.role,
+        });
+        if (mounted) {
+          setApiAccess(accessFlags);
         }
+      } catch {
+        // Keep role-derived access if conference access lookup fails.
+      }
 
-        if (authRes.ok) {
-          const authPayload = (await authRes.json()) as {
-            role?: string;
-          };
-          const role = String(authPayload.role || "").toUpperCase();
-          const roleIsManager = [
-            "SUPER_ADMIN",
-            "ADMIN",
-            "JUDGE_ADMIN",
-            "HEAD_JUDGE",
-          ].includes(role);
-          const roleIsSuperAdmin = role === "SUPER_ADMIN";
-
-          if (roleIsManager || roleIsSuperAdmin) {
-            setIsParticipant(true);
-            setIsManager(true);
-          }
-          if (roleIsSuperAdmin) {
-            setIsSuperAdmin(true);
-          }
-        }
-
+      try {
+        const conf = await fetchDefaultConference();
         if (mounted) {
           setConfYear(conf.year);
           setConfId(conf.id);
@@ -244,20 +242,15 @@ export function ConfDashboard() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user?.id, user?.role]);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => {
-    if (item.superAdminOnly) {
-      return isSuperAdmin;
-    }
-
-    if (item.minAccess === "public") return true;
-    if (item.minAccess === "delegate") {
-      return isParticipant || isManager || isSuperAdmin;
-    }
-
-    return isManager || isSuperAdmin;
-  });
+  const visibleNavItems = NAV_ITEMS.filter((item) =>
+    canViewConfNavItem(
+      item.minAccess,
+      { isParticipant, isManager, isSuperAdmin },
+      { superAdminOnly: item.superAdminOnly },
+    ),
+  );
 
   return (
     <div className="space-y-8">
@@ -326,7 +319,9 @@ export function ConfDashboard() {
             >
               {`${liberiaAnniversaryLabel} Independence`}
             </Badge>
-            {isManager && <Badge>¥5,000 Deposit Paid</Badge>}
+            {isManager || isSuperAdmin ? (
+              <Badge>¥5,000 Deposit Paid</Badge>
+            ) : null}
           </div>
         </CardContent>
       </Card>
