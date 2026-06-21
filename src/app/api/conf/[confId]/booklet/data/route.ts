@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
 
 // Official NEC roster from conference letterhead / directives.
@@ -448,9 +449,11 @@ export async function GET(
 
     const resolvedDelegates = delegates.map((d) => ({
       ...d,
-      bookletPhotoPath: d.bookletPhotoPath
-        ? resolveStoredAssetUrl(d.bookletPhotoPath, origin)
-        : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        confId,
+        d.id,
+        d.bookletPhotoPath,
+      ),
     }));
 
     const delegateByUserId = new Map(

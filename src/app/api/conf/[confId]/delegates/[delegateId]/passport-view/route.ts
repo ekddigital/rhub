@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { assetsBearerHeaders } from "@/lib/conf/delegate-document-urls";
 import { headers } from "next/headers";
 
 // GET /api/conf/[confId]/delegates/[delegateId]/passport-view
@@ -35,10 +36,19 @@ export async function GET(
   const origin = `${proto}://${host}`;
 
   const assetUrl = resolveStoredAssetUrl(delegate.passportPhotoPath, origin);
+  const previewUrl = assetUrl.includes("?")
+    ? `${assetUrl}&preview=true`
+    : `${assetUrl}?preview=true`;
 
   let upstreamRes: Response;
   try {
-    upstreamRes = await fetch(assetUrl, { cache: "no-store" });
+    upstreamRes = await fetch(previewUrl, {
+      cache: "no-store",
+      headers: {
+        ...assetsBearerHeaders(),
+        Accept: "*/*",
+      },
+    });
   } catch {
     return new Response("Failed to fetch asset", { status: 502 });
   }

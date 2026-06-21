@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { canManageConferenceDelegateFinanceFs } from "@/lib/conf/conference-finance-access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/fee-fs-approval
@@ -58,9 +59,11 @@ export async function POST(
           currentVisaPath: current.currentVisaPath
             ? resolveStoredAssetUrl(current.currentVisaPath, origin)
             : null,
-          bookletPhotoPath: current.bookletPhotoPath
-            ? resolveStoredAssetUrl(current.bookletPhotoPath, origin)
-            : null,
+          bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+            confId,
+            delegateId,
+            current.bookletPhotoPath,
+          ),
         });
       }
 
@@ -99,9 +102,11 @@ export async function POST(
         currentVisaPath: updated.currentVisaPath
           ? resolveStoredAssetUrl(updated.currentVisaPath, origin)
           : null,
-        bookletPhotoPath: updated.bookletPhotoPath
-          ? resolveStoredAssetUrl(updated.bookletPhotoPath, origin)
-          : null,
+        bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+          confId,
+          delegateId,
+          updated.bookletPhotoPath,
+        ),
       });
     }
 
@@ -131,9 +136,11 @@ export async function POST(
       currentVisaPath: updated.currentVisaPath
         ? resolveStoredAssetUrl(updated.currentVisaPath, origin)
         : null,
-      bookletPhotoPath: updated.bookletPhotoPath
-        ? resolveStoredAssetUrl(updated.bookletPhotoPath, origin)
-        : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        confId,
+        delegateId,
+        updated.bookletPhotoPath,
+      ),
     });
   } catch (error) {
     console.error("fee-fs-approval failed:", error);

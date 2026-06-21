@@ -1,5 +1,6 @@
 import type { ConfDelegate } from "@prisma/client";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
@@ -61,10 +62,11 @@ export function mapDelegatesForApiResponse(
         canViewSensitive && delegateWithDocs.currentVisaPath
           ? resolveStoredAssetUrl(delegateWithDocs.currentVisaPath, origin)
           : null,
-      bookletPhotoPath:
-        canViewSensitive && delegateWithDocs.bookletPhotoPath
-          ? resolveStoredAssetUrl(delegateWithDocs.bookletPhotoPath, origin)
-          : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        delegate.confId,
+        delegate.id,
+        canViewSensitive ? delegateWithDocs.bookletPhotoPath : null,
+      ),
     };
   });
 }

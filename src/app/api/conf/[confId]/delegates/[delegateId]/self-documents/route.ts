@@ -5,6 +5,7 @@ import {
   uploadFileToEKDDigitalAssets,
   resolveStoredAssetUrl,
 } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 
@@ -189,9 +190,11 @@ export async function POST(
       currentVisaPath: finalDelegate.currentVisaPath
         ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
         : null,
-      bookletPhotoPath: finalDelegate.bookletPhotoPath
-        ? resolveStoredAssetUrl(finalDelegate.bookletPhotoPath, origin)
-        : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        confId,
+        delegateId,
+        finalDelegate.bookletPhotoPath,
+      ),
     });
   } catch (error) {
     console.error("[conf.delegate.self_document.upload_error]", {

@@ -2,20 +2,15 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { assetsBearerHeaders } from "@/lib/conf/delegate-document-urls";
 
-type SecureDocumentKind = "passport" | "entry-stamp" | "visa";
+type SecureDocumentKind = "passport" | "entry-stamp" | "visa" | "booklet";
 
 function getKindLabel(kind: SecureDocumentKind) {
   if (kind === "passport") return "passport";
   if (kind === "entry-stamp") return "last-entry-stamp";
+  if (kind === "booklet") return "booklet-photo";
   return "current-visa";
-}
-
-function assetsBearerHeaders(): Record<string, string> {
-  const secret =
-    process.env.EKD_DIGITAL_ASSETS_API_SECRET?.trim() ||
-    process.env.ASSETS_API_SECRET?.trim();
-  return secret ? { Authorization: `Bearer ${secret}` } : {};
 }
 
 function inlineProxyHeaders(upstream: Response, filename: string): HeadersInit {
@@ -38,7 +33,7 @@ function inlineProxyHeaders(upstream: Response, filename: string): HeadersInit {
   return headers;
 }
 
-// GET /api/conf/[confId]/delegates/[delegateId]/secure-document?kind=passport|entry-stamp|visa
+// GET /api/conf/[confId]/delegates/[delegateId]/secure-document?kind=passport|entry-stamp|visa|booklet
 // Proxies sensitive delegate documents with Content-Disposition:inline.
 export async function GET(
   req: Request,
@@ -48,7 +43,7 @@ export async function GET(
   const requestUrl = new URL(req.url);
   const kindParam = (requestUrl.searchParams.get("kind") || "").toLowerCase();
 
-  if (!["passport", "entry-stamp", "visa"].includes(kindParam)) {
+  if (!["passport", "entry-stamp", "visa", "booklet"].includes(kindParam)) {
     return new Response("Invalid document kind", { status: 400 });
   }
   const kind = kindParam as SecureDocumentKind;
@@ -62,7 +57,11 @@ export async function GET(
   if (kind === "passport" && !isManager) {
     return new Response("Forbidden", { status: 403 });
   }
-  if ((kind === "entry-stamp" || kind === "visa") && !isManager && !isOwner) {
+  if (
+    (kind === "entry-stamp" || kind === "visa" || kind === "booklet") &&
+    !isManager &&
+    !isOwner
+  ) {
     return new Response("Forbidden", { status: 403 });
   }
 
@@ -74,6 +73,7 @@ export async function GET(
       passportPhotoPath: true,
       lastEntryStampPath: true,
       currentVisaPath: true,
+      bookletPhotoPath: true,
     },
   });
 
@@ -86,7 +86,9 @@ export async function GET(
       ? delegate.passportPhotoPath
       : kind === "entry-stamp"
         ? delegate.lastEntryStampPath
-        : delegate.currentVisaPath;
+        : kind === "booklet"
+          ? delegate.bookletPhotoPath
+          : delegate.currentVisaPath;
 
   if (!sourcePath) {
     return new Response("Document not found", { status: 404 });

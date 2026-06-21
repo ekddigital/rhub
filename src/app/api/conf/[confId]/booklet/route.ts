@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
@@ -164,11 +165,11 @@ export async function GET(
         passportNo: canViewSensitive ? delegate.passportNo : null,
         phone: canViewSensitive ? delegate.phone : null,
         email: canViewSensitive ? delegate.email : null,
-        bookletPhotoPath: delegate.bookletPhotoPath
-          ? canViewSensitive
-            ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
-            : null
-          : null,
+        bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+          confId,
+          delegate.id,
+          canViewSensitive ? delegate.bookletPhotoPath : null,
+        ),
         roomCode: room?.roomCode || null,
         roommateName: room?.roommateName || null,
         roomType: room?.roomType || null,

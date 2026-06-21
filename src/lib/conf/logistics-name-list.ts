@@ -73,10 +73,7 @@ export function isDelegateFullyPaid(input: {
   );
 }
 
-export function secureDocumentUrl(
-  confId: string,
-  delegateId: string,
-  kind: "passport" | "entry-stamp" | "visa",
-): string {
-  return `/api/conf/${confId}/delegates/${delegateId}/secure-document?kind=${kind}`;
-}
+export {
+  buildDelegateSecureDocumentUrl as secureDocumentUrl,
+  type DelegateSecureDocumentKind,
+} from "@/lib/conf/delegate-document-urls";

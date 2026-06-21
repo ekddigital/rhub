@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { assetsBearerHeaders } from "@/lib/conf/delegate-document-urls";
 import { CONF_2026 } from "@/lib/conf/config";
 import {
   buildSvgTextLines,
@@ -166,7 +167,16 @@ async function loadEmbeddedFonts() {
 
 async function fetchImageAsDataUri(imageUrl: string) {
   try {
-    const response = await fetch(imageUrl, { cache: "no-store" });
+    const previewUrl = imageUrl.includes("?")
+      ? `${imageUrl}&preview=true`
+      : `${imageUrl}?preview=true`;
+    const response = await fetch(previewUrl, {
+      cache: "no-store",
+      headers: {
+        ...assetsBearerHeaders(),
+        Accept: "image/*,*/*",
+      },
+    });
     if (!response.ok) {
       return null;
     }

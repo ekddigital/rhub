@@ -9,6 +9,7 @@ import {
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
@@ -92,9 +93,11 @@ export async function GET(
       currentVisaPath: delegate.currentVisaPath
         ? resolveStoredAssetUrl(delegate.currentVisaPath, origin)
         : null,
-      bookletPhotoPath: delegate.bookletPhotoPath
-        ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
-        : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        confId,
+        delegateId,
+        delegate.bookletPhotoPath,
+      ),
     });
   } catch (error) {
     console.error("Failed to fetch delegate:", error);
@@ -506,9 +509,11 @@ export async function PATCH(
       currentVisaPath: finalDelegate.currentVisaPath
         ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
         : null,
-      bookletPhotoPath: finalDelegate.bookletPhotoPath
-        ? resolveStoredAssetUrl(finalDelegate.bookletPhotoPath, origin)
-        : null,
+      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+        confId,
+        delegateId,
+        finalDelegate.bookletPhotoPath,
+      ),
     });
   } catch (error) {
     if (

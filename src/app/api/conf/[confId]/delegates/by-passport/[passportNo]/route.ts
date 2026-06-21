@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // GET /api/conf/[confId]/delegates/by-passport/[passportNo]
@@ -73,8 +74,10 @@ export async function GET(
     currentVisaPath: delegate.currentVisaPath
       ? resolveStoredAssetUrl(delegate.currentVisaPath, origin)
       : null,
-    bookletPhotoPath: delegate.bookletPhotoPath
-      ? resolveStoredAssetUrl(delegate.bookletPhotoPath, origin)
-      : null,
+    bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+      confId,
+      delegate.id,
+      delegate.bookletPhotoPath,
+    ),
   });
 }

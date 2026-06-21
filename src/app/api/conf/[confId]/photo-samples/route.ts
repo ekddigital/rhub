@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { buildPhotoSampleImageUrl } from "@/lib/conf/delegate-document-urls";
 
 function parseLimit(raw: string | null) {
   const value = raw ? Number(raw) : 8;
@@ -39,12 +39,11 @@ export async function GET(
       take: 60,
     });
 
-    const origin = new URL(req.url).origin;
     const items = delegates
       .filter((d) => Boolean(d.bookletPhotoPath))
       .map((d) => ({
         id: d.id,
-        imageUrl: resolveStoredAssetUrl(d.bookletPhotoPath!, origin),
+        imageUrl: buildPhotoSampleImageUrl(confId, d.id),
       }));
 
     shuffleInPlace(items);
