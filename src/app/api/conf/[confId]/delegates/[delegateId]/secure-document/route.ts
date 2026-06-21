@@ -11,6 +11,33 @@ function getKindLabel(kind: SecureDocumentKind) {
   return "current-visa";
 }
 
+function assetsBearerHeaders(): Record<string, string> {
+  const secret =
+    process.env.EKD_DIGITAL_ASSETS_API_SECRET?.trim() ||
+    process.env.ASSETS_API_SECRET?.trim();
+  return secret ? { Authorization: `Bearer ${secret}` } : {};
+}
+
+function inlineProxyHeaders(upstream: Response, filename: string): HeadersInit {
+  const contentType =
+    upstream.headers.get("content-type") ?? "application/octet-stream";
+
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Content-Disposition": `inline; filename="${filename}"`,
+    "Cache-Control": "private, max-age=300",
+    "X-Frame-Options": "SAMEORIGIN",
+    "Accept-Ranges": "bytes",
+  };
+
+  for (const key of ["Content-Range", "Content-Length", "ETag"]) {
+    const value = upstream.headers.get(key);
+    if (value) headers[key] = value;
+  }
+
+  return headers;
+}
+
 // GET /api/conf/[confId]/delegates/[delegateId]/secure-document?kind=passport|entry-stamp|visa
 // Proxies sensitive delegate documents with Content-Disposition:inline.
 export async function GET(
@@ -70,15 +97,29 @@ export async function GET(
   const proto = process.env.NODE_ENV === "production" ? "https" : "http";
   const origin = `${proto}://${host}`;
   const assetUrl = resolveStoredAssetUrl(sourcePath, origin);
+  const previewUrl = assetUrl.includes("?")
+    ? `${assetUrl}&preview=true`
+    : `${assetUrl}?preview=true`;
+
+  const upstreamHeaders: Record<string, string> = {
+    ...assetsBearerHeaders(),
+    Accept: "*/*",
+    "Cache-Control": "no-store",
+  };
+  const range = req.headers.get("range");
+  if (range) upstreamHeaders.Range = range;
 
   let upstreamRes: Response;
   try {
-    upstreamRes = await fetch(assetUrl, { cache: "no-store" });
+    upstreamRes = await fetch(previewUrl, {
+      cache: "no-store",
+      headers: upstreamHeaders,
+    });
   } catch {
     return new Response("Failed to fetch asset", { status: 502 });
   }
 
-  if (!upstreamRes.ok) {
+  if (!upstreamRes.ok && upstreamRes.status !== 206) {
     return new Response("Asset unavailable", { status: upstreamRes.status });
   }
 
@@ -91,16 +132,16 @@ export async function GET(
       ? "png"
       : contentType.includes("webp")
         ? "webp"
-        : "jpg";
+        : contentType.includes("video")
+          ? "mp4"
+          : "jpg";
 
-  const body = await upstreamRes.arrayBuffer();
-  return new Response(body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Content-Disposition": `inline; filename="${safeName}_${getKindLabel(kind)}.${ext}"`,
-      "Cache-Control": "private, max-age=300",
-    },
+  const status = upstreamRes.status === 206 ? 206 : 200;
+  return new Response(upstreamRes.body, {
+    status,
+    headers: inlineProxyHeaders(
+      upstreamRes,
+      `${safeName}_${getKindLabel(kind)}.${ext}`,
+    ),
   });
 }
-

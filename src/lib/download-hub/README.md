@@ -14,7 +14,7 @@ Uses the same **TTYD terminal API** as document conversion (`src/lib/terminal/cl
    # Production: Authorization: Bearer $ADMIN_API_KEY
    ```
 
-   Commands run on the **TTYD target host** via the HTTP API (`/api/ttyd/connect` + `/api/ttyd/execute`).
+   Commands run on the **TTYD target host** via `POST /api/ttyd/execute` (HTTP — no WebSocket layer).
 
 3. **Verify:**
 

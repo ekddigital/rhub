@@ -1,5 +1,5 @@
-// Remote Terminal Client for TTYD/Xterm API
-// Executes commands on VPS server via HTTP/WebSocket
+// Remote Terminal Client for xterm TTYD API
+// Executes commands on VPS host via POST /api/ttyd/execute (host nsenter shell)
 
 interface TerminalExecuteOptions {
   command: string;
@@ -75,53 +75,20 @@ async function executeRemoteCommandOnce(options: {
   }
 
   try {
-    const sessionId = `rhub-${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(7)}`;
-
-    // Step 1: Connect (create session)
-    const connectResponse = await fetch(`${ttydBaseUrl}/api/ttyd/connect`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ttydKey}`,
-      },
-      body: JSON.stringify({ sessionId }),
-      signal: AbortSignal.timeout(cmdTimeout),
-    });
-
-    if (!connectResponse.ok) {
-      const errorText = await connectResponse.text();
-      return {
-        success: false,
-        output: "",
-        exitCode: 1,
-        error: `Connection failed: ${connectResponse.status} ${errorText}`,
-      };
-    }
-
-    const { sessionId: realSessionId } = await connectResponse.json();
-
-    // Step 2: Build command
     let finalCommand = command;
     if (workingDirectory) {
       finalCommand = `cd "${workingDirectory}" && ${command}`;
     }
 
-    // Wrap command to extract output cleanly
-    const wrappedCommand = `echo "START_TEST"; ${finalCommand}; echo "END_TEST_$?"`;
+    const wrappedCommand = `echo "START_TEST"; { ${finalCommand}; }; __ec=$?; echo "END_TEST_$__ec"; exit $__ec`;
 
-    // Step 3: Execute command
     const executeResponse = await fetch(`${ttydBaseUrl}/api/ttyd/execute`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${ttydKey}`,
       },
-      body: JSON.stringify({
-        sessionId: realSessionId,
-        command: wrappedCommand + "\n",
-      }),
+      body: JSON.stringify({ command: wrappedCommand }),
       signal: AbortSignal.timeout(cmdTimeout),
     });
 
@@ -135,11 +102,11 @@ async function executeRemoteCommandOnce(options: {
       };
     }
 
-    const { output: rawOutput } = await executeResponse.json();
+    const { output: rawOutput, exitCode: apiExitCode } =
+      await executeResponse.json();
 
-    // Step 4: Parse output
-    const output = extractOutput(rawOutput);
-    const exitCode = extractExitCode(rawOutput);
+    const output = extractOutput(rawOutput ?? "");
+    const exitCode = resolveExitCode(rawOutput ?? "", apiExitCode);
 
     return {
       success: exitCode === 0,
@@ -263,11 +230,17 @@ function extractOutput(fullOutput: string): string {
 }
 
 /**
- * Extract exit code from END_TEST_N marker
+ * Extract exit code — prefer END_TEST marker over API exitCode.
  */
-function extractExitCode(fullOutput: string): number {
+function resolveExitCode(fullOutput: string, apiExitCode?: number): number {
   const match = fullOutput.match(/END_TEST_(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  if (typeof apiExitCode === "number") {
+    return apiExitCode;
+  }
+  return 1;
 }
 
 /**
