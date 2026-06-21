@@ -2,8 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { canAccessConferenceTreasurerFinance } from "@/lib/conf/conference-finance-access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/fee-treasurer-ack
@@ -57,26 +56,17 @@ export async function POST(
             },
     });
 
-    const origin = new URL(req.url).origin;
     const parsed = parseDelegateCommentsWithAddOns(updated.additionalComments);
     return NextResponse.json({
       ...updated,
       additionalComments: parsed.additionalComments,
       addOnPackageIds: parsed.addOnPackageIds,
-      passportPhotoPath: updated.passportPhotoPath
-        ? resolveStoredAssetUrl(updated.passportPhotoPath, origin)
-        : null,
-      lastEntryStampPath: updated.lastEntryStampPath
-        ? resolveStoredAssetUrl(updated.lastEntryStampPath, origin)
-        : null,
-      currentVisaPath: updated.currentVisaPath
-        ? resolveStoredAssetUrl(updated.currentVisaPath, origin)
-        : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-        confId,
-        delegateId,
-        updated.bookletPhotoPath,
-      ),
+      ...mapDelegateDocumentsForClient(confId, delegateId, {
+        passportPhotoPath: updated.passportPhotoPath,
+        lastEntryStampPath: updated.lastEntryStampPath,
+        currentVisaPath: updated.currentVisaPath,
+        bookletPhotoPath: updated.bookletPhotoPath,
+      }),
     });
   } catch (error) {
     console.error("fee-treasurer-ack failed:", error);

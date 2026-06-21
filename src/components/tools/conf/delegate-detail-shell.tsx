@@ -87,8 +87,11 @@ type Delegate = {
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
   passportPhotoPath: string | null;
+  passportPhotoIsPdf?: boolean;
   lastEntryStampPath: string | null;
+  lastEntryStampIsPdf?: boolean;
   currentVisaPath: string | null;
+  currentVisaIsPdf?: boolean;
   bookletPhotoPath: string | null;
   flyerReady: boolean;
   conferencePosition: string | null;
@@ -591,15 +594,13 @@ export function DelegateDetailShell({
                 {delegate.passportPhotoPath ? (
                   <>
                     <AdaptivePhotoFrame
-                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=passport`}
+                      src={delegate.passportPhotoPath}
                       alt={`${delegate.name} passport`}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
-                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=passport`}
-                      isPdf={delegate.passportPhotoPath
-                        .toLowerCase()
-                        .endsWith(".pdf")}
+                      proxyUrl={delegate.passportPhotoPath}
+                      isPdf={delegate.passportPhotoIsPdf ?? false}
                       label="Full View"
                       title="Passport Document"
                     />
@@ -629,15 +630,13 @@ export function DelegateDetailShell({
                 {delegate.lastEntryStampPath ? (
                   <>
                     <AdaptivePhotoFrame
-                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=entry-stamp`}
+                      src={delegate.lastEntryStampPath}
                       alt={`${delegate.name} last entry stamp`}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
-                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=entry-stamp`}
-                      isPdf={delegate.lastEntryStampPath
-                        .toLowerCase()
-                        .endsWith(".pdf")}
+                      proxyUrl={delegate.lastEntryStampPath}
+                      isPdf={delegate.lastEntryStampIsPdf ?? false}
                       label="Open File"
                       title="Last Entry Stamp"
                     />
@@ -668,15 +667,13 @@ export function DelegateDetailShell({
                 {delegate.currentVisaPath ? (
                   <>
                     <AdaptivePhotoFrame
-                      src={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=visa`}
+                      src={delegate.currentVisaPath}
                       alt={`${delegate.name} current visa`}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
-                      proxyUrl={`/api/conf/${confId}/delegates/${delegate.id}/secure-document?kind=visa`}
-                      isPdf={delegate.currentVisaPath
-                        .toLowerCase()
-                        .endsWith(".pdf")}
+                      proxyUrl={delegate.currentVisaPath}
+                      isPdf={delegate.currentVisaIsPdf ?? false}
                       label="Open File"
                       title="Current Visa"
                     />

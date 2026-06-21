@@ -1,6 +1,5 @@
 import type { ConfDelegate } from "@prisma/client";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
@@ -27,7 +26,7 @@ export function buildDelegateListViewerContext(
 export function mapDelegatesForApiResponse(
   delegates: ConfDelegate[],
   viewer: DelegateViewerContext,
-  origin: string,
+  _origin: string,
 ) {
   return delegates.map((delegate) => {
     const delegateWithDocs = delegate as typeof delegate & {
@@ -42,6 +41,21 @@ export function mapDelegatesForApiResponse(
     const parsedComments = parseDelegateCommentsWithAddOns(
       delegateWithDocs.additionalComments,
     );
+
+    const storedDocs = canViewSensitive
+      ? {
+          passportPhotoPath: delegateWithDocs.passportPhotoPath,
+          lastEntryStampPath: delegateWithDocs.lastEntryStampPath,
+          currentVisaPath: delegateWithDocs.currentVisaPath,
+          bookletPhotoPath: delegateWithDocs.bookletPhotoPath,
+        }
+      : {
+          passportPhotoPath: null,
+          lastEntryStampPath: null,
+          currentVisaPath: null,
+          bookletPhotoPath: null,
+        };
+
     return {
       ...delegateWithDocs,
       userId: canViewSensitive ? delegate.userId : null,
@@ -50,22 +64,10 @@ export function mapDelegatesForApiResponse(
       phone: canViewSensitive ? delegate.phone : null,
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
-      passportPhotoPath:
-        canViewSensitive && delegateWithDocs.passportPhotoPath
-          ? resolveStoredAssetUrl(delegateWithDocs.passportPhotoPath, origin)
-          : null,
-      lastEntryStampPath:
-        canViewSensitive && delegateWithDocs.lastEntryStampPath
-          ? resolveStoredAssetUrl(delegateWithDocs.lastEntryStampPath, origin)
-          : null,
-      currentVisaPath:
-        canViewSensitive && delegateWithDocs.currentVisaPath
-          ? resolveStoredAssetUrl(delegateWithDocs.currentVisaPath, origin)
-          : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
+      ...mapDelegateDocumentsForClient(
         delegate.confId,
         delegate.id,
-        canViewSensitive ? delegateWithDocs.bookletPhotoPath : null,
+        storedDocs,
       ),
     };
   });

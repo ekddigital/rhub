@@ -86,8 +86,11 @@ type Delegate = {
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
   passportPhotoPath: string | null;
+  passportPhotoIsPdf?: boolean;
   lastEntryStampPath: string | null;
+  lastEntryStampIsPdf?: boolean;
   currentVisaPath: string | null;
+  currentVisaIsPdf?: boolean;
   bookletPhotoPath: string | null;
   conferencePosition: string | null;
   flyerReady: boolean;

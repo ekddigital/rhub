@@ -1,12 +1,16 @@
 import type { ConfDelegate } from "@prisma/client";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   hasStoredDelegateDocumentPath,
   isDelegateFullyPaid,
-  secureDocumentUrl,
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
 } from "@/lib/conf/logistics-name-list";
+import {
+  resolveDelegateEntryStampForClient,
+  resolveDelegatePassportPhotoForClient,
+  resolveDelegateVisaForClient,
+  isStoredDelegateDocumentPdf,
+} from "@/lib/conf/delegate-document-urls";
 
 type DelegateRow = Pick<
   ConfDelegate,
@@ -39,57 +43,57 @@ type ConfRow = {
   endsAt: Date;
 };
 
-function resolveDocumentPath(
-  path: string | null | undefined,
-  origin: string,
-): string | null {
-  if (!hasStoredDelegateDocumentPath(path)) return null;
-  return resolveStoredAssetUrl(path!.trim(), origin);
-}
-
 function mapDelegateDocs(
   confId: string,
   delegate: DelegateRow,
-  origin: string,
 ): Pick<
   LogisticsNameListEntry,
   | "passportPhotoPath"
+  | "passportPhotoIsPdf"
   | "lastEntryStampPath"
+  | "lastEntryStampIsPdf"
   | "currentVisaPath"
+  | "currentVisaIsPdf"
   | "passportDocUrl"
   | "entryStampDocUrl"
   | "visaDocUrl"
 > {
-  const passportPhotoPath = resolveDocumentPath(
-    delegate.passportPhotoPath,
-    origin,
+  const passportStored = delegate.passportPhotoPath;
+  const entryStampStored = delegate.lastEntryStampPath;
+  const visaStored = delegate.currentVisaPath;
+
+  const passportPhotoPath = resolveDelegatePassportPhotoForClient(
+    confId,
+    delegate.id,
+    passportStored,
   );
-  const lastEntryStampPath = resolveDocumentPath(
-    delegate.lastEntryStampPath,
-    origin,
+  const lastEntryStampPath = resolveDelegateEntryStampForClient(
+    confId,
+    delegate.id,
+    entryStampStored,
   );
-  const currentVisaPath = resolveDocumentPath(delegate.currentVisaPath, origin);
+  const currentVisaPath = resolveDelegateVisaForClient(
+    confId,
+    delegate.id,
+    visaStored,
+  );
 
   return {
     passportPhotoPath,
+    passportPhotoIsPdf: isStoredDelegateDocumentPdf(passportStored),
     lastEntryStampPath,
+    lastEntryStampIsPdf: isStoredDelegateDocumentPdf(entryStampStored),
     currentVisaPath,
-    passportDocUrl: passportPhotoPath
-      ? secureDocumentUrl(confId, delegate.id, "passport")
-      : null,
-    entryStampDocUrl: lastEntryStampPath
-      ? secureDocumentUrl(confId, delegate.id, "entry-stamp")
-      : null,
-    visaDocUrl: currentVisaPath
-      ? secureDocumentUrl(confId, delegate.id, "visa")
-      : null,
+    currentVisaIsPdf: isStoredDelegateDocumentPdf(visaStored),
+    passportDocUrl: passportPhotoPath,
+    entryStampDocUrl: lastEntryStampPath,
+    visaDocUrl: currentVisaPath,
   };
 }
 
 function toEntryBase(
   confId: string,
   delegate: DelegateRow,
-  origin: string,
 ): Omit<
   LogisticsNameListEntry,
   "rosterSource" | "entryId" | "isAutoPaid" | "isManual" | "canRemove"
@@ -102,7 +106,7 @@ function toEntryBase(
     feeAmount: delegate.feeAmount,
     amountPaid: delegate.amountPaid,
     feePaid: delegate.feePaid,
-    ...mapDelegateDocs(confId, delegate, origin),
+    ...mapDelegateDocs(confId, delegate),
   };
 }
 
@@ -113,7 +117,7 @@ export function buildLogisticsNameListResponse(input: {
   allDelegates: DelegateRow[];
   origin: string;
 }): LogisticsNameListResponse {
-  const { conf, paidDelegates, manualEntries, allDelegates, origin } = input;
+  const { conf, paidDelegates, manualEntries, allDelegates } = input;
   const confId = conf.id;
 
   const merged = new Map<string, LogisticsNameListEntry>();
@@ -121,7 +125,7 @@ export function buildLogisticsNameListResponse(input: {
   for (const delegate of paidDelegates) {
     if (delegate.status === "CANCELLED") continue;
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate, origin),
+      ...toEntryBase(confId, delegate),
       rosterSource: "AUTO_PAID",
       entryId: null,
       isAutoPaid: true,
@@ -138,7 +142,7 @@ export function buildLogisticsNameListResponse(input: {
     if (existing) {
       merged.set(delegate.id, {
         ...existing,
-        ...toEntryBase(confId, delegate, origin),
+        ...toEntryBase(confId, delegate),
         entryId: entry.id,
         isManual: true,
         rosterSource: existing.isAutoPaid ? "AUTO_PAID" : "MANUAL",
@@ -148,7 +152,7 @@ export function buildLogisticsNameListResponse(input: {
     }
 
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate, origin),
+      ...toEntryBase(confId, delegate),
       rosterSource: "MANUAL",
       entryId: entry.id,
       isAutoPaid: false,
@@ -199,3 +203,6 @@ export function filterFullyPaidDelegates(delegates: DelegateRow[]): DelegateRow[
     }),
   );
 }
+
+// Kept for callers that gate on stored paths before mapping to proxy URLs.
+export { hasStoredDelegateDocumentPath };

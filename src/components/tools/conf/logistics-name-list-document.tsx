@@ -18,7 +18,6 @@ import type { LogisticsNameListEntry } from "@/lib/conf/logistics-name-list";
 import {
   hasStoredDelegateDocumentPath,
   isDelegateFullyPaid,
-  isStoredDelegateDocumentPdf,
 } from "@/lib/conf/logistics-name-list";
 
 /** Prioritize readable document scans over max rows per page. */
@@ -60,11 +59,13 @@ const docThumbStyle = {
 function DocThumb({
   previewUrl,
   proxyUrl,
+  isPdf,
   label,
   missingLabel,
 }: {
   previewUrl: string | null;
   proxyUrl: string | null;
+  isPdf: boolean;
   label: string;
   missingLabel: string;
 }) {
@@ -90,8 +91,7 @@ function DocThumb({
     );
   }
 
-  const src = previewUrl!;
-  const isPdf = isStoredDelegateDocumentPdf(src);
+  const src = proxyUrl || previewUrl!;
 
   if (isPdf && proxyUrl) {
     return (
@@ -242,6 +242,7 @@ function RosterTable({
                   <DocThumb
                     previewUrl={row.passportPhotoPath}
                     proxyUrl={row.passportDocUrl}
+                    isPdf={row.passportPhotoIsPdf}
                     label="Passport"
                     missingLabel="Passport — missing"
                   />
@@ -256,6 +257,7 @@ function RosterTable({
                   <DocThumb
                     previewUrl={row.currentVisaPath}
                     proxyUrl={row.visaDocUrl}
+                    isPdf={row.currentVisaIsPdf}
                     label="Visa"
                     missingLabel="Visa — missing"
                   />
@@ -270,6 +272,7 @@ function RosterTable({
                   <DocThumb
                     previewUrl={row.lastEntryStampPath}
                     proxyUrl={row.entryStampDocUrl}
+                    isPdf={row.lastEntryStampIsPdf}
                     label="Entry stamp"
                     missingLabel="Entry stamp — missing"
                   />

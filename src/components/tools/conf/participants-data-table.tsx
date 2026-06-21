@@ -45,8 +45,11 @@ export type ParticipantRow = {
   feePaid: boolean;
   roomPref: "PAIR" | "SINGLE";
   passportPhotoPath: string | null;
+  passportPhotoIsPdf?: boolean;
   lastEntryStampPath: string | null;
+  lastEntryStampIsPdf?: boolean;
   currentVisaPath: string | null;
+  currentVisaIsPdf?: boolean;
   bookletPhotoPath: string | null;
   conferencePosition: string | null;
   flyerReady: boolean;
@@ -719,10 +722,8 @@ export function ParticipantsDataTable({
                         <div className="mt-1.5 flex flex-wrap gap-1.5">
                           {row.passportPhotoPath ? (
                             <PassportViewerModal
-                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=passport`}
-                              isPdf={row.passportPhotoPath
-                                .toLowerCase()
-                                .endsWith(".pdf")}
+                              proxyUrl={row.passportPhotoPath}
+                              isPdf={row.passportPhotoIsPdf ?? false}
                               label="Passport File"
                               title="Passport Document"
                             />
@@ -733,10 +734,8 @@ export function ParticipantsDataTable({
                           )}
                           {row.lastEntryStampPath && (
                             <PassportViewerModal
-                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=entry-stamp`}
-                              isPdf={row.lastEntryStampPath
-                                .toLowerCase()
-                                .endsWith(".pdf")}
+                              proxyUrl={row.lastEntryStampPath}
+                              isPdf={row.lastEntryStampIsPdf ?? false}
                               label="Last Entry Stamp"
                               title="Last Entry Stamp"
                               triggerClassName="px-2 py-1 text-[11px] leading-none"
@@ -744,10 +743,8 @@ export function ParticipantsDataTable({
                           )}
                           {row.currentVisaPath && (
                             <PassportViewerModal
-                              proxyUrl={`/api/conf/${confId}/delegates/${row.id}/secure-document?kind=visa`}
-                              isPdf={row.currentVisaPath
-                                .toLowerCase()
-                                .endsWith(".pdf")}
+                              proxyUrl={row.currentVisaPath}
+                              isPdf={row.currentVisaIsPdf ?? false}
                               label="Current Visa"
                               title="Current Visa"
                               triggerClassName="px-2 py-1 text-[11px] leading-none"

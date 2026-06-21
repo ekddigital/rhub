@@ -8,8 +8,7 @@ import {
 } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
@@ -76,28 +75,20 @@ export async function GET(
       );
     }
 
-    const origin = new URL(req.url).origin;
     const parsedComments = parseDelegateCommentsWithAddOns(
       delegate.additionalComments,
     );
+
     return NextResponse.json({
       ...delegate,
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
-      passportPhotoPath: delegate.passportPhotoPath
-        ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
-        : null,
-      lastEntryStampPath: delegate.lastEntryStampPath
-        ? resolveStoredAssetUrl(delegate.lastEntryStampPath, origin)
-        : null,
-      currentVisaPath: delegate.currentVisaPath
-        ? resolveStoredAssetUrl(delegate.currentVisaPath, origin)
-        : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-        confId,
-        delegateId,
-        delegate.bookletPhotoPath,
-      ),
+      ...mapDelegateDocumentsForClient(confId, delegateId, {
+        passportPhotoPath: delegate.passportPhotoPath,
+        lastEntryStampPath: delegate.lastEntryStampPath,
+        currentVisaPath: delegate.currentVisaPath,
+        bookletPhotoPath: delegate.bookletPhotoPath,
+      }),
     });
   } catch (error) {
     console.error("Failed to fetch delegate:", error);
@@ -492,28 +483,20 @@ export async function PATCH(
       } as never,
     });
 
-    const origin = new URL(req.url).origin;
     const finalParsedComments = parseDelegateCommentsWithAddOns(
       finalDelegate.additionalComments,
     );
+
     return NextResponse.json({
       ...finalDelegate,
       additionalComments: finalParsedComments.additionalComments,
       addOnPackageIds: finalParsedComments.addOnPackageIds,
-      passportPhotoPath: finalDelegate.passportPhotoPath
-        ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
-        : null,
-      lastEntryStampPath: finalDelegate.lastEntryStampPath
-        ? resolveStoredAssetUrl(finalDelegate.lastEntryStampPath, origin)
-        : null,
-      currentVisaPath: finalDelegate.currentVisaPath
-        ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
-        : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-        confId,
-        delegateId,
-        finalDelegate.bookletPhotoPath,
-      ),
+      ...mapDelegateDocumentsForClient(confId, delegateId, {
+        passportPhotoPath: finalDelegate.passportPhotoPath,
+        lastEntryStampPath: finalDelegate.lastEntryStampPath,
+        currentVisaPath: finalDelegate.currentVisaPath,
+        bookletPhotoPath: finalDelegate.bookletPhotoPath,
+      }),
     });
   } catch (error) {
     if (

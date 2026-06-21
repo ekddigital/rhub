@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import {
-  uploadFileToEKDDigitalAssets,
-  resolveStoredAssetUrl,
-} from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 
@@ -169,7 +166,6 @@ export async function POST(
       },
     });
 
-    const origin = new URL(req.url).origin;
     console.info("[conf.delegate.self_document.upload_success]", {
       requestId,
       confId,
@@ -181,20 +177,12 @@ export async function POST(
     return NextResponse.json({
       ...finalDelegate,
       requestId,
-      passportPhotoPath: finalDelegate.passportPhotoPath
-        ? resolveStoredAssetUrl(finalDelegate.passportPhotoPath, origin)
-        : null,
-      lastEntryStampPath: finalDelegate.lastEntryStampPath
-        ? resolveStoredAssetUrl(finalDelegate.lastEntryStampPath, origin)
-        : null,
-      currentVisaPath: finalDelegate.currentVisaPath
-        ? resolveStoredAssetUrl(finalDelegate.currentVisaPath, origin)
-        : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-        confId,
-        delegateId,
-        finalDelegate.bookletPhotoPath,
-      ),
+      ...mapDelegateDocumentsForClient(confId, delegateId, {
+        passportPhotoPath: finalDelegate.passportPhotoPath,
+        lastEntryStampPath: finalDelegate.lastEntryStampPath,
+        currentVisaPath: finalDelegate.currentVisaPath,
+        bookletPhotoPath: finalDelegate.bookletPhotoPath,
+      }),
     });
   } catch (error) {
     console.error("[conf.delegate.self_document.upload_error]", {

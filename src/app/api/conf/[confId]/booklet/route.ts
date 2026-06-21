@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getConferenceAccess } from "@/lib/conf/access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import {
   buildDelegateViewerContext,

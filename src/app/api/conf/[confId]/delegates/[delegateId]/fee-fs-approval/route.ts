@@ -2,9 +2,34 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { canManageConferenceDelegateFinanceFs } from "@/lib/conf/conference-finance-access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
+
+function serializeDelegateResponse(
+  confId: string,
+  delegateId: string,
+  delegate: {
+    additionalComments: string | null;
+    passportPhotoPath: string | null;
+    lastEntryStampPath: string | null;
+    currentVisaPath: string | null;
+    bookletPhotoPath: string | null;
+    [key: string]: unknown;
+  },
+) {
+  const parsed = parseDelegateCommentsWithAddOns(delegate.additionalComments);
+  return {
+    ...delegate,
+    additionalComments: parsed.additionalComments,
+    addOnPackageIds: parsed.addOnPackageIds,
+    ...mapDelegateDocumentsForClient(confId, delegateId, {
+      passportPhotoPath: delegate.passportPhotoPath,
+      lastEntryStampPath: delegate.lastEntryStampPath,
+      currentVisaPath: delegate.currentVisaPath,
+      bookletPhotoPath: delegate.bookletPhotoPath,
+    }),
+  };
+}
 
 // POST /api/conf/[confId]/delegates/[delegateId]/fee-fs-approval
 // Body: { "action": "approve" | "revoke" }
@@ -44,27 +69,9 @@ export async function POST(
 
     if (action === "approve") {
       if (current.feeFsApprovedAt) {
-        const origin = new URL(req.url).origin;
-        const parsed = parseDelegateCommentsWithAddOns(current.additionalComments);
-        return NextResponse.json({
-          ...current,
-          additionalComments: parsed.additionalComments,
-          addOnPackageIds: parsed.addOnPackageIds,
-          passportPhotoPath: current.passportPhotoPath
-            ? resolveStoredAssetUrl(current.passportPhotoPath, origin)
-            : null,
-          lastEntryStampPath: current.lastEntryStampPath
-            ? resolveStoredAssetUrl(current.lastEntryStampPath, origin)
-            : null,
-          currentVisaPath: current.currentVisaPath
-            ? resolveStoredAssetUrl(current.currentVisaPath, origin)
-            : null,
-          bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-            confId,
-            delegateId,
-            current.bookletPhotoPath,
-          ),
-        });
+        return NextResponse.json(
+          serializeDelegateResponse(confId, delegateId, current),
+        );
       }
 
       if (!isFullyPaid) {
@@ -87,30 +94,11 @@ export async function POST(
         },
       });
 
-      const origin = new URL(req.url).origin;
-      const parsed = parseDelegateCommentsWithAddOns(updated.additionalComments);
-      return NextResponse.json({
-        ...updated,
-        additionalComments: parsed.additionalComments,
-        addOnPackageIds: parsed.addOnPackageIds,
-        passportPhotoPath: updated.passportPhotoPath
-          ? resolveStoredAssetUrl(updated.passportPhotoPath, origin)
-          : null,
-        lastEntryStampPath: updated.lastEntryStampPath
-          ? resolveStoredAssetUrl(updated.lastEntryStampPath, origin)
-          : null,
-        currentVisaPath: updated.currentVisaPath
-          ? resolveStoredAssetUrl(updated.currentVisaPath, origin)
-          : null,
-        bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-          confId,
-          delegateId,
-          updated.bookletPhotoPath,
-        ),
-      });
+      return NextResponse.json(
+        serializeDelegateResponse(confId, delegateId, updated),
+      );
     }
 
-    // revoke
     const updated = await prisma.confDelegate.update({
       where: { id: delegateId },
       data: {
@@ -121,27 +109,9 @@ export async function POST(
       },
     });
 
-    const origin = new URL(req.url).origin;
-    const parsed = parseDelegateCommentsWithAddOns(updated.additionalComments);
-    return NextResponse.json({
-      ...updated,
-      additionalComments: parsed.additionalComments,
-      addOnPackageIds: parsed.addOnPackageIds,
-      passportPhotoPath: updated.passportPhotoPath
-        ? resolveStoredAssetUrl(updated.passportPhotoPath, origin)
-        : null,
-      lastEntryStampPath: updated.lastEntryStampPath
-        ? resolveStoredAssetUrl(updated.lastEntryStampPath, origin)
-        : null,
-      currentVisaPath: updated.currentVisaPath
-        ? resolveStoredAssetUrl(updated.currentVisaPath, origin)
-        : null,
-      bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-        confId,
-        delegateId,
-        updated.bookletPhotoPath,
-      ),
-    });
+    return NextResponse.json(
+      serializeDelegateResponse(confId, delegateId, updated),
+    );
   } catch (error) {
     console.error("fee-fs-approval failed:", error);
     return NextResponse.json(

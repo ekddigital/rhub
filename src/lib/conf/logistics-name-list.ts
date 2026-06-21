@@ -9,8 +9,11 @@ export type LogisticsNameListDelegate = {
   amountPaid: number | null;
   feePaid: boolean;
   passportPhotoPath: string | null;
+  passportPhotoIsPdf: boolean;
   lastEntryStampPath: string | null;
+  lastEntryStampIsPdf: boolean;
   currentVisaPath: string | null;
+  currentVisaIsPdf: boolean;
   passportDocUrl: string | null;
   entryStampDocUrl: string | null;
   visaDocUrl: string | null;
@@ -42,26 +45,6 @@ export type LogisticsNameListResponse = {
   }>;
 };
 
-/** True when a delegate document column has a non-empty stored path. */
-export function hasStoredDelegateDocumentPath(
-  path: string | null | undefined,
-): boolean {
-  return typeof path === "string" && path.trim().length > 0;
-}
-
-function stripUrlHashQuery(url: string): string {
-  return url.split(/[?#]/)[0] ?? url;
-}
-
-/** Detect PDF uploads by filename extension on stored paths or proxy URLs. */
-export function isStoredDelegateDocumentPdf(
-  path: string | null | undefined,
-): boolean {
-  if (!hasStoredDelegateDocumentPath(path)) return false;
-  const normalized = stripUrlHashQuery(path!.trim()).toLowerCase();
-  return normalized.endsWith(".pdf");
-}
-
 /** Matches participants-data-table payment confirmation logic. */
 export function isDelegateFullyPaid(input: {
   feePaid: boolean;
@@ -75,5 +58,7 @@ export function isDelegateFullyPaid(input: {
 
 export {
   buildDelegateSecureDocumentUrl as secureDocumentUrl,
+  hasStoredDelegateDocumentPath,
+  isStoredDelegateDocumentPdf,
   type DelegateSecureDocumentKind,
 } from "@/lib/conf/delegate-document-urls";

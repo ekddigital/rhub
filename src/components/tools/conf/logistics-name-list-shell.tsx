@@ -35,7 +35,6 @@ import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 import { fmtRmb } from "@/lib/conf/currency";
 import {
   isDelegateFullyPaid,
-  isStoredDelegateDocumentPdf,
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
 } from "@/lib/conf/logistics-name-list";
@@ -46,6 +45,7 @@ function DocCell({
   kind,
   previewUrl,
   proxyUrl,
+  isPdf,
   label,
   uploading,
   onUpload,
@@ -55,12 +55,11 @@ function DocCell({
   kind: "passport" | "entry-stamp" | "visa";
   previewUrl: string | null;
   proxyUrl: string;
+  isPdf: boolean;
   label: string;
   uploading: boolean;
   onUpload: (file: File | null) => void;
 }) {
-  const isPdf = isStoredDelegateDocumentPdf(previewUrl);
-
   return (
     <div className="flex flex-col items-start gap-1.5">
       <div className="h-[92px] w-[132px] overflow-hidden rounded-md border border-border bg-muted">
@@ -74,7 +73,7 @@ function DocCell({
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={previewUrl}
+              src={proxyUrl}
               alt={label}
               className="h-full w-full object-cover object-top"
               loading="lazy"
@@ -545,6 +544,7 @@ export function LogisticsNameListShell() {
                             row.passportDocUrl ||
                             `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=passport`
                           }
+                          isPdf={row.passportPhotoIsPdf}
                           label="Passport"
                           uploading={uploadingDocKey === `${row.id}:passport`}
                           onUpload={(file) =>
@@ -562,6 +562,7 @@ export function LogisticsNameListShell() {
                             row.visaDocUrl ||
                             `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=visa`
                           }
+                          isPdf={row.currentVisaIsPdf}
                           label="Visa"
                           uploading={uploadingDocKey === `${row.id}:visa`}
                           onUpload={(file) =>
@@ -579,6 +580,7 @@ export function LogisticsNameListShell() {
                             row.entryStampDocUrl ||
                             `/api/conf/${confId}/delegates/${row.id}/secure-document?kind=entry-stamp`
                           }
+                          isPdf={row.lastEntryStampIsPdf}
                           label="Entry stamp"
                           uploading={
                             uploadingDocKey === `${row.id}:entry-stamp`

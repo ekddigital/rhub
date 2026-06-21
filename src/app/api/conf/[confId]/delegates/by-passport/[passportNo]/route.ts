@@ -2,8 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // GET /api/conf/[confId]/delegates/by-passport/[passportNo]
@@ -58,26 +57,17 @@ export async function GET(
     );
   }
 
-  const origin = new URL(req.url).origin;
   const parsed = parseDelegateCommentsWithAddOns(delegate.additionalComments);
 
   return NextResponse.json({
     ...delegate,
     additionalComments: parsed.additionalComments,
     addOnPackageIds: parsed.addOnPackageIds,
-    passportPhotoPath: delegate.passportPhotoPath
-      ? resolveStoredAssetUrl(delegate.passportPhotoPath, origin)
-      : null,
-    lastEntryStampPath: delegate.lastEntryStampPath
-      ? resolveStoredAssetUrl(delegate.lastEntryStampPath, origin)
-      : null,
-    currentVisaPath: delegate.currentVisaPath
-      ? resolveStoredAssetUrl(delegate.currentVisaPath, origin)
-      : null,
-    bookletPhotoPath: resolveDelegateBookletPhotoForClient(
-      confId,
-      delegate.id,
-      delegate.bookletPhotoPath,
-    ),
+    ...mapDelegateDocumentsForClient(confId, delegate.id, {
+      passportPhotoPath: delegate.passportPhotoPath,
+      lastEntryStampPath: delegate.lastEntryStampPath,
+      currentVisaPath: delegate.currentVisaPath,
+      bookletPhotoPath: delegate.bookletPhotoPath,
+    }),
   });
 }

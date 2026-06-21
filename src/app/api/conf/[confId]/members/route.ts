@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import { resolveStoredAssetUrl } from "@/lib/conf/assets";
+import { resolveMemberPhotoForClient } from "@/lib/conf/delegate-document-urls";
 import { getBootstrapMemberContactFallback } from "@/lib/conf/bootstrap";
 
 async function ensureUniqueCommitteeApprover(input: {
@@ -53,7 +53,6 @@ export async function GET(
       : [];
     const userById = new Map(linkedUsers.map((user) => [user.id, user]));
 
-    const origin = new URL(req.url).origin;
     const normalized = members.map((member) => {
       const fb = getBootstrapMemberContactFallback(member.name);
       const phone = (member.phone ?? "").trim() || fb?.phone || null;
@@ -65,9 +64,11 @@ export async function GET(
         email: member.email || userById.get(member.userId || "")?.email || null,
         linkedUserName: userById.get(member.userId || "")?.name || null,
         linkedUserEmail: userById.get(member.userId || "")?.email || null,
-        photoPath: member.photoPath
-          ? resolveStoredAssetUrl(member.photoPath, origin)
-          : null,
+        photoPath: resolveMemberPhotoForClient(
+          confId,
+          member.id,
+          member.photoPath,
+        ),
       };
     });
 
@@ -358,16 +359,17 @@ export async function POST(
         })
       : null;
 
-    const origin = new URL(req.url).origin;
     return NextResponse.json(
       {
         ...member,
         email: member.email || linkedUser?.email || null,
         linkedUserName: linkedUser?.name || null,
         linkedUserEmail: linkedUser?.email || null,
-        photoPath: member.photoPath
-          ? resolveStoredAssetUrl(member.photoPath, origin)
-          : null,
+        photoPath: resolveMemberPhotoForClient(
+          confId,
+          member.id,
+          member.photoPath,
+        ),
       },
       { status: 201 },
     );
