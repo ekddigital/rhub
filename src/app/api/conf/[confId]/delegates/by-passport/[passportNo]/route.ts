@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
 import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
@@ -38,7 +39,7 @@ export async function GET(
 
   // Access check: manager OR the matching delegate (by session delegateId,
   // userId, or email).
-  const { isManager, delegateId, user } = auth.access;
+  const { delegateId, user } = auth.access;
 
   const isSelf =
     delegateId === delegate.id ||
@@ -47,7 +48,7 @@ export async function GET(
       delegate.email &&
       user.email.toLowerCase() === delegate.email.toLowerCase());
 
-  if (!isManager && !isSelf) {
+  if (!canViewDelegateDocuments(auth.access) && !isSelf) {
     return NextResponse.json(
       {
         error:

@@ -166,6 +166,7 @@ export function DelegatesShell() {
   const [confId, setConfId] = useState("");
   const [canDeleteDelegates, setCanDeleteDelegates] = useState(false);
   const [canViewPaymentStats, setCanViewPaymentStats] = useState(false);
+  const [canViewDelegateDetails, setCanViewDelegateDetails] = useState(false);
   const [defaultFeeAmount, setDefaultFeeAmount] = useState(250);
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
@@ -258,10 +259,14 @@ export function DelegatesShell() {
         if (accessRes.ok) {
           const accessPayload = (await accessRes.json()) as {
             isManager?: boolean;
+            isHotelCheckin?: boolean;
           };
           const canManageConference = Boolean(accessPayload.isManager);
           setCanDeleteDelegates(canManageConference);
           setCanViewPaymentStats(canManageConference);
+          setCanViewDelegateDetails(
+            canManageConference || Boolean(accessPayload.isHotelCheckin),
+          );
         }
         await reloadAll(conf.id);
       } catch (e) {
@@ -830,6 +835,7 @@ export function DelegatesShell() {
           isAdminControl={Boolean(isAdminControl)}
           canDeleteDelegates={canDeleteDelegates}
           canManagePayments={isAdminControl}
+          canViewDelegateDetails={canViewDelegateDetails}
           uploadingDocKey={uploadingDocKey}
           onTogglePaid={(row) => {
             const delegate = delegates.find((item) => item.id === row.id);

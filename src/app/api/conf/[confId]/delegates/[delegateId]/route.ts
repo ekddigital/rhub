@@ -8,6 +8,7 @@ import {
   normalizeDelegatePassport,
 } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
 import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import {
@@ -58,7 +59,10 @@ export async function GET(
     const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
 
-    if (!auth.access.isManager && auth.access.delegateId !== delegateId) {
+    if (
+      !canViewDelegateDocuments(auth.access) &&
+      auth.access.delegateId !== delegateId
+    ) {
       return NextResponse.json(
         { error: "You can only view your own delegate profile" },
         { status: 403 },

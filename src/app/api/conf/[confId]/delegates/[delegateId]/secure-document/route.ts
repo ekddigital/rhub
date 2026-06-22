@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import { assetsBearerHeaders } from "@/lib/conf/delegate-document-urls";
 
@@ -51,15 +52,15 @@ export async function GET(
   const auth = await requireConferenceApiAccess(confId, "participant");
   if (!auth.ok) return auth.response;
 
-  const isManager = auth.access.isManager;
+  const canViewDocs = canViewDelegateDocuments(auth.access);
   const isOwner = auth.access.delegateId === delegateId;
 
-  if (kind === "passport" && !isManager) {
+  if (kind === "passport" && !canViewDocs) {
     return new Response("Forbidden", { status: 403 });
   }
   if (
     (kind === "entry-stamp" || kind === "visa" || kind === "booklet") &&
-    !isManager &&
+    !canViewDocs &&
     !isOwner
   ) {
     return new Response("Forbidden", { status: 403 });

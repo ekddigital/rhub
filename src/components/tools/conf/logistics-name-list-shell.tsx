@@ -49,6 +49,7 @@ function DocCell({
   label,
   uploading,
   onUpload,
+  readOnly = false,
 }: {
   confId: string;
   delegateId: string;
@@ -59,6 +60,7 @@ function DocCell({
   label: string;
   uploading: boolean;
   onUpload: (file: File | null) => void;
+  readOnly?: boolean;
 }) {
   return (
     <div className="flex flex-col items-start gap-1.5">
@@ -96,7 +98,8 @@ function DocCell({
             triggerClassName="px-1.5 py-0.5 text-[10px] leading-none"
           />
         )}
-        <label
+        {!readOnly && (
+          <label
           className={`inline-flex cursor-pointer items-center gap-0.5 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-accent ${
             uploading ? "pointer-events-none opacity-60" : ""
           }`}
@@ -113,6 +116,7 @@ function DocCell({
             }}
           />
         </label>
+        )}
       </div>
     </div>
   );
@@ -129,6 +133,7 @@ export function LogisticsNameListShell() {
   const [pickerQuery, setPickerQuery] = useState("");
   const [selectedDelegateId, setSelectedDelegateId] = useState("");
   const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
   const [generatedAt] = useState(() => new Date().toISOString());
 
   const loadRoster = useCallback(async (id: string) => {
@@ -163,6 +168,18 @@ export function LogisticsNameListShell() {
         const conf = await fetchDefaultConference();
         if (!mounted) return;
         setConfId(conf.id);
+
+        const accessRes = await fetch("/api/conf/default/access", {
+          cache: "no-store",
+        });
+        if (accessRes.ok) {
+          const accessPayload = (await accessRes.json()) as {
+            isHotelCheckinOnly?: boolean;
+          };
+          if (mounted) {
+            setReadOnly(Boolean(accessPayload.isHotelCheckinOnly));
+          }
+        }
 
         const roster = await loadRoster(conf.id);
 
@@ -409,6 +426,7 @@ export function LogisticsNameListShell() {
         </div>
       )}
 
+      {!readOnly && (
       <Card className="logistics-no-print border-[#C8A061]/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -449,6 +467,7 @@ export function LogisticsNameListShell() {
           </Button>
         </CardContent>
       </Card>
+      )}
 
       <Card className="logistics-no-print border-[#C8A061]/30">
         <CardHeader>
@@ -550,6 +569,7 @@ export function LogisticsNameListShell() {
                           onUpload={(file) =>
                             void handleReplaceDocument(row.id, "passport", file)
                           }
+                          readOnly={readOnly}
                         />
                       </td>
                       <td className="px-3 py-4">
@@ -568,6 +588,7 @@ export function LogisticsNameListShell() {
                           onUpload={(file) =>
                             void handleReplaceDocument(row.id, "visa", file)
                           }
+                          readOnly={readOnly}
                         />
                       </td>
                       <td className="px-3 py-4">
@@ -592,11 +613,12 @@ export function LogisticsNameListShell() {
                               file,
                             )
                           }
+                          readOnly={readOnly}
                         />
                       </td>
                       <td className="px-3 py-4">
                         <div className="flex flex-wrap gap-1.5">
-                          {row.canRemove && (
+                          {row.canRemove && !readOnly && (
                             <Button
                               variant="outline"
                               size="sm"

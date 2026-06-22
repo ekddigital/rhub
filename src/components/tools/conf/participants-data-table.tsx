@@ -65,6 +65,7 @@ type Props = {
   isAdminControl: boolean;
   canDeleteDelegates?: boolean;
   canManagePayments: boolean;
+  canViewDelegateDetails?: boolean;
   uploadingDocKey: string | null;
   onTogglePaid: (delegate: ParticipantRow) => void | Promise<void>;
   onReplaceDocument: (
@@ -123,6 +124,7 @@ export function ParticipantsDataTable({
   isAdminControl,
   canDeleteDelegates = false,
   canManagePayments,
+  canViewDelegateDetails = false,
   uploadingDocKey,
   onTogglePaid,
   onReplaceDocument,
@@ -626,12 +628,14 @@ export function ParticipantsDataTable({
                   const isFullyConfirmedPayment =
                     row.feePaid &&
                     (row.amountPaid ?? 0) >= (row.feeAmount ?? 0);
-                  const canOpenDetail =
-                    isAdminControl ||
+                  const isSelfRow =
                     (Boolean(currentUserId) && row.userId === currentUserId) ||
                     (Boolean(normalizedUserEmail) &&
                       Boolean(row.email) &&
                       normalizeForSearch(row.email) === normalizedUserEmail);
+                  const canOpenDetail =
+                    isAdminControl || canViewDelegateDetails || isSelfRow;
+                  const canUploadBooklet = isAdminControl || isSelfRow;
 
                   return (
                     <tr
@@ -859,7 +863,7 @@ export function ParticipantsDataTable({
                             </Button>
                           )}
 
-                          {canOpenDetail && (
+                          {canUploadBooklet && (
                             <label
                               className={`inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent ${
                                 uploadingDocKey

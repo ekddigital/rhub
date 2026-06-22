@@ -15,20 +15,46 @@ export function normalizeConfRoutePath(pathname: string): string {
   return trimmed || "/";
 }
 
+function isHotelCheckinDelegateDetailRoute(normalized: string): boolean {
+  if (normalized.startsWith("/tools/conf/delegates/p/")) {
+    const suffix = normalized.slice("/tools/conf/delegates/p/".length);
+    return Boolean(suffix) && !suffix.includes("/edit");
+  }
+
+  const match = normalized.match(/^\/tools\/conf\/delegates\/([^/]+)$/);
+  if (!match) return false;
+
+  const segment = match[1];
+  return segment !== "register" && segment !== "finance";
+}
+
 export function isHotelCheckinAllowedRoute(pathname: string): boolean {
   const normalized = normalizeConfRoutePath(pathname);
   if (normalized.startsWith("/tools/conf/unavailable")) {
     return true;
   }
-  return (HOTEL_CHECKIN_ALLOWED_ROUTES as readonly string[]).includes(
-    normalized,
-  );
+  if ((HOTEL_CHECKIN_ALLOWED_ROUTES as readonly string[]).includes(normalized)) {
+    return true;
+  }
+  return isHotelCheckinDelegateDetailRoute(normalized);
 }
 
 export function canAccessHotelCheckin(
   access: Pick<ConferenceAccess, "isHotelCheckin" | "isSuperAdmin">,
 ): boolean {
   return access.isSuperAdmin || access.isHotelCheckin;
+}
+
+/** Read-only access to all delegate passports, visas, stamps, and booklet photos. */
+export function canViewDelegateDocuments(
+  access: Pick<
+    ConferenceAccess,
+    "isManager" | "isSuperAdmin" | "isHotelCheckin"
+  >,
+): boolean {
+  return (
+    access.isSuperAdmin || access.isManager || access.isHotelCheckin
+  );
 }
 
 export function canViewLogisticsNameList(

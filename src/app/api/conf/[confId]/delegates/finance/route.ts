@@ -46,6 +46,7 @@ export async function GET(
 
     const viewer = buildDelegateListViewerContext({
       isManager: access.isManager,
+      isHotelCheckin: access.isHotelCheckin,
       delegateId: access.delegateId,
       user: access.user
         ? { id: access.user.id, email: access.user.email }

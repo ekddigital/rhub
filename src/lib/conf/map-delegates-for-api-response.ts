@@ -12,6 +12,7 @@ import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons"
 
 type AccessLike = {
   isManager: boolean;
+  isHotelCheckin?: boolean;
   delegateId: string | null;
   user: { id: string; email: string } | null;
 };
@@ -21,6 +22,7 @@ export function buildDelegateListViewerContext(
 ): DelegateViewerContext {
   return buildDelegateViewerContext({
     isManager: access.isManager,
+    isHotelCheckin: access.isHotelCheckin,
     delegateId: access.delegateId,
     user: access.user,
   });

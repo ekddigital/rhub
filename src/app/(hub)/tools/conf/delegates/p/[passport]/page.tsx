@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { requireConferencePageAccess } from "@/lib/conf/access";
+import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { prisma } from "@/lib/prisma";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
 import { ensureDefaultConference } from "@/lib/conf/bootstrap";
@@ -42,7 +43,7 @@ export default async function DelegateByPassportPage({ params }: Props) {
       delegate.email &&
       access.user.email.toLowerCase() === delegate.email.toLowerCase());
 
-  if (!isManager && !isSelf) {
+  if (!canViewDelegateDocuments(access) && !isSelf) {
     redirect("/tools/conf/delegates?restricted=1");
   }
 

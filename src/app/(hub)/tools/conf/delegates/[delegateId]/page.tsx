@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { DelegateDetailShell } from "../../../../../../components/tools/conf/delegate-detail-shell";
 import { requireConferencePageAccess } from "@/lib/conf/access";
+import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 
 export default async function DelegateDetailPage({
   params,
@@ -16,7 +17,7 @@ export default async function DelegateDetailPage({
   const canManage = access.isManager;
   const canSelfEdit = canManage || access.delegateId === delegateId;
 
-  if (!canSelfEdit) {
+  if (!canViewDelegateDocuments(access) && !canSelfEdit) {
     redirect("/tools/conf/delegates?restricted=1");
   }
 
