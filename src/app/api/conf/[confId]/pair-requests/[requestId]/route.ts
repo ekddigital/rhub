@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/access";
 
 type Action =
   | "accept"
@@ -41,6 +41,8 @@ export async function PATCH(
     // Allow participants for accept/decline/cancel; chair actions need manager
     const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
+    const writeDenied = denyIfHotelCheckinWrite(auth.access);
+    if (writeDenied) return writeDenied;
 
     const body = await req.json();
     const action = String(body.action || "") as Action;

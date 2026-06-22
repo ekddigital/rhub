@@ -2,6 +2,8 @@ export type ConfAccessFlags = {
   isParticipant: boolean;
   isManager: boolean;
   isSuperAdmin: boolean;
+  isHotelCheckin?: boolean;
+  isHotelCheckinOnly?: boolean;
 };
 
 const PLATFORM_MANAGER_ROLES = [
@@ -62,7 +64,7 @@ export function mergeConfAccessFlags(
 }
 
 export function canViewConfNavItem(
-  minAccess: "public" | "delegate" | "manager" | undefined,
+  minAccess: "public" | "delegate" | "manager" | "logistics-viewer" | undefined,
   access: ConfAccessFlags,
   options?: { superAdminOnly?: boolean },
 ): boolean {
@@ -78,6 +80,13 @@ export function canViewConfNavItem(
   if (requirement === "public") return true;
   if (requirement === "delegate") {
     return access.isParticipant || access.isManager || access.isSuperAdmin;
+  }
+  if (requirement === "logistics-viewer") {
+    return (
+      access.isManager ||
+      access.isSuperAdmin ||
+      Boolean(access.isHotelCheckin)
+    );
   }
 
   return access.isManager || access.isSuperAdmin;
@@ -117,6 +126,8 @@ export async function resolveConferenceAccessFlags(options?: {
     isParticipant: false,
     isManager: false,
     isSuperAdmin: false,
+    isHotelCheckin: false,
+    isHotelCheckinOnly: false,
   };
 
   if (confRes.ok) {
@@ -125,6 +136,8 @@ export async function resolveConferenceAccessFlags(options?: {
       isParticipant: Boolean(payload.isParticipant),
       isManager: Boolean(payload.isManager),
       isSuperAdmin: Boolean(payload.isSuperAdmin),
+      isHotelCheckin: Boolean(payload.isHotelCheckin),
+      isHotelCheckinOnly: Boolean(payload.isHotelCheckinOnly),
     };
   }
 

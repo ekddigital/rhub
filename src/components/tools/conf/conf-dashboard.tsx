@@ -44,7 +44,9 @@ import {
   getAccessFlagsFromRole,
   mergeConfAccessFlags,
   resolveConferenceAccessFlags,
+  type ConfAccessFlags,
 } from "@/lib/conf/client-access";
+import { isHotelCheckinNavHref } from "@/lib/conf/conference-hotel-access";
 
 type ConfNavItem = {
   href: string;
@@ -52,7 +54,7 @@ type ConfNavItem = {
   title: string;
   desc: string;
   color: string;
-  minAccess: "public" | "delegate" | "manager";
+  minAccess: "public" | "delegate" | "manager" | "logistics-viewer";
   superAdminOnly?: boolean;
 };
 
@@ -95,7 +97,7 @@ const NAV_ITEMS: ConfNavItem[] = [
     title: "Logistics Name List",
     desc: "Printable roster with passport, visa, and entry stamp documents",
     color: "text-teal-600",
-    minAccess: "manager",
+    minAccess: "logistics-viewer",
   },
   {
     href: "/tools/conf/committee?roles=1",
@@ -205,15 +207,14 @@ export function ConfDashboard() {
     () => getAccessFlagsFromRole(user?.role),
     [user?.role],
   );
-  const [apiAccess, setApiAccess] = useState<{
-    isParticipant: boolean;
-    isManager: boolean;
-    isSuperAdmin: boolean;
-  } | null>(null);
-  const { isParticipant, isManager, isSuperAdmin } = useMemo(
+  const [apiAccess, setApiAccess] = useState<Partial<ConfAccessFlags> | null>(
+    null,
+  );
+  const access = useMemo(
     () => mergeConfAccessFlags(apiAccess ?? {}, roleAccess),
     [apiAccess, roleAccess],
   );
+  const { isParticipant, isManager, isSuperAdmin } = access;
   const [showFeeStructure, setShowFeeStructure] = useState(false);
   const liberiaAnniversary = Math.max(0, confYear - LIBERIA_INDEPENDENCE_YEAR);
   const liberiaAnniversaryLabel = formatOrdinal(liberiaAnniversary);
@@ -252,13 +253,14 @@ export function ConfDashboard() {
     };
   }, [user?.id, user?.role]);
 
-  const visibleNavItems = NAV_ITEMS.filter((item) =>
-    canViewConfNavItem(
-      item.minAccess,
-      { isParticipant, isManager, isSuperAdmin },
-      { superAdminOnly: item.superAdminOnly },
-    ),
-  );
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (access.isHotelCheckinOnly) {
+      return isHotelCheckinNavHref(item.href.split("?")[0] ?? item.href);
+    }
+    return canViewConfNavItem(item.minAccess, access, {
+      superAdminOnly: item.superAdminOnly,
+    });
+  });
 
   return (
     <div className="space-y-8">

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/access";
 import {
   buildLogisticsNameListResponse,
   filterFullyPaidDelegates,
@@ -28,7 +28,7 @@ export async function GET(
 ) {
   try {
     const { confId } = await params;
-    const auth = await requireConferenceApiAccess(confId, "manager");
+    const auth = await requireConferenceApiAccess(confId, "logistics-viewer");
     if (!auth.ok) return auth.response;
 
     const [conf, allDelegates, manualEntries] = await Promise.all([
@@ -97,6 +97,8 @@ export async function POST(
     const { confId } = await params;
     const auth = await requireConferenceApiAccess(confId, "manager");
     if (!auth.ok) return auth.response;
+    const writeDenied = denyIfHotelCheckinWrite(auth.access);
+    if (writeDenied) return writeDenied;
 
     const body = (await req.json()) as { delegateId?: string; note?: string };
     const delegateId = String(body.delegateId || "").trim();

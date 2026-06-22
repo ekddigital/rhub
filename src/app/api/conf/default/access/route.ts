@@ -4,6 +4,7 @@ import {
   isConferenceDatabaseUnavailableError,
 } from "@/lib/conf/bootstrap";
 import { getConferenceAccess } from "@/lib/conf/access";
+import { isConferenceHotelCheckinOnly } from "@/lib/conf/conference-hotel-access";
 
 // GET /api/conf/default/access
 // Returns lightweight conference access flags for navigation filtering.
@@ -19,6 +20,8 @@ export async function GET() {
       isManager: access.isManager,
       isChair: access.isChair,
       isSuperAdmin: access.isSuperAdmin,
+      isHotelCheckin: access.isHotelCheckin,
+      isHotelCheckinOnly: isConferenceHotelCheckinOnly(access),
     });
   } catch (error) {
     if (isConferenceDatabaseUnavailableError(error)) {

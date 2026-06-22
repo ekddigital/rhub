@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/access";
 import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
 
 function isPairEligible(delegate: {
@@ -79,6 +79,8 @@ export async function POST(
     const { confId } = await params;
     const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
+    const writeDenied = denyIfHotelCheckinWrite(auth.access);
+    if (writeDenied) return writeDenied;
 
     const body = await req.json();
 

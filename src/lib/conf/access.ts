@@ -9,9 +9,19 @@ import {
   ensureDefaultConference,
   isConferenceDatabaseUnavailableError,
 } from "@/lib/conf/bootstrap";
+import {
+  canViewLogisticsNameList,
+  isConferenceHotelCheckinOnly,
+  isHotelCheckinAllowedRoute,
+} from "@/lib/conf/conference-hotel-access";
 import { prisma } from "@/lib/prisma";
 
-type AccessScope = "participant" | "manager" | "chair" | "super-admin";
+type AccessScope =
+  | "participant"
+  | "manager"
+  | "chair"
+  | "super-admin"
+  | "logistics-viewer";
 
 type SessionUser = NonNullable<
   NonNullable<Awaited<ReturnType<typeof validateSessionFull>>>["user"]
@@ -24,6 +34,7 @@ export type ConferenceAccess = {
   isManager: boolean;
   isChair: boolean;
   isSuperAdmin: boolean;
+  isHotelCheckin: boolean;
   delegateId: string | null;
   memberId: string | null;
   memberRole: string | null;
@@ -51,6 +62,17 @@ export function hasConferenceManagerAccess(
   return access.isManager || access.isSuperAdmin;
 }
 
+export { isConferenceHotelCheckinOnly } from "@/lib/conf/conference-hotel-access";
+
+export function denyIfHotelCheckinWrite(
+  access: ConferenceAccess,
+): NextResponse | null {
+  if (isConferenceHotelCheckinOnly(access)) {
+    return NextResponse.json({ error: "Read-only access" }, { status: 403 });
+  }
+  return null;
+}
+
 async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
@@ -75,6 +97,7 @@ export async function getConferenceAccess(
       isManager: false,
       isChair: false,
       isSuperAdmin: false,
+      isHotelCheckin: false,
       delegateId: null,
       memberId: null,
       memberRole: null,
@@ -113,7 +136,11 @@ export async function getConferenceAccess(
 
   const normalizedRole = normalizeUserRole(user.role);
   const isPlatformManager = PLATFORM_MANAGER_ROLES.has(normalizedRole);
-  const isConferenceManager = Boolean(member && member.role !== "DELEGATE");
+  const memberRole = member?.role ?? null;
+  const isHotelCheckin = memberRole === "HOTEL_CHECKIN";
+  const isConferenceManager = Boolean(
+    member && member.role !== "DELEGATE" && member.role !== "HOTEL_CHECKIN",
+  );
   const isSuperAdmin = normalizedRole === "SUPER_ADMIN";
   const isManager =
     isPlatformManager || isConferenceManager || isSuperAdmin;
@@ -130,9 +157,10 @@ export async function getConferenceAccess(
     isManager,
     isChair,
     isSuperAdmin,
+    isHotelCheckin,
     delegateId: delegate?.id ?? null,
     memberId: member?.id ?? null,
-    memberRole: member?.role ?? null,
+    memberRole,
     committeeScope: member?.committeeScope ?? null,
     canApprovePayments:
       isSuperAdmin || Boolean(member?.canApprovePayments),
@@ -173,6 +201,16 @@ export async function requireConferenceApiAccess(
       ok: false as const,
       response: NextResponse.json(
         { error: "Manager access required" },
+        { status: 403 },
+      ),
+    };
+  }
+
+  if (scope === "logistics-viewer" && !canViewLogisticsNameList(access)) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        { error: "Logistics name list access required" },
         { status: 403 },
       ),
     };
@@ -271,8 +309,19 @@ export async function requireConferencePageAccess(
     redirect("/tools/conf?forbidden=1");
   }
 
+  if (scope === "logistics-viewer" && !canViewLogisticsNameList(access)) {
+    redirect("/tools/conf?forbidden=1");
+  }
+
   if (scope === "participant" && !access.isParticipant) {
     redirect("/tools/conf/delegates/register?restricted=1");
+  }
+
+  if (
+    isConferenceHotelCheckinOnly(access) &&
+    !isHotelCheckinAllowedRoute(routePath)
+  ) {
+    redirect("/tools/conf?forbidden=1");
   }
 
   return access;

@@ -32,12 +32,13 @@ import {
   resolveConferenceAccessFlags,
   type ConfAccessFlags,
 } from "@/lib/conf/client-access";
+import { isHotelCheckinNavHref } from "@/lib/conf/conference-hotel-access";
 
 type ConfNavItem = {
   href: string;
   label: string;
   icon: React.ElementType;
-  minAccess?: "public" | "delegate" | "manager";
+  minAccess?: "public" | "delegate" | "manager" | "logistics-viewer";
 };
 
 const CONF_NAV_ITEMS: ConfNavItem[] = [
@@ -99,7 +100,7 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/logistics/name-list",
     label: "Logistics Name List",
     icon: ListChecks,
-    minAccess: "manager",
+    minAccess: "logistics-viewer",
   },
   {
     href: "/tools/conf/letters",
@@ -152,6 +153,9 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
 ];
 
 function canViewNavItem(item: ConfNavItem, access: ConfAccessFlags): boolean {
+  if (access.isHotelCheckinOnly) {
+    return isHotelCheckinNavHref(item.href);
+  }
   return canViewConfNavItem(item.minAccess, access);
 }
 

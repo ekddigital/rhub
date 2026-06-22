@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isHotelCheckinAllowedRoute } from "@/lib/conf/conference-hotel-access";
 
 /**
  * Proxy for route protection and auth redirects.
@@ -56,6 +57,33 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
       break;
+    }
+  }
+
+  // Hotel check-in staff: block conference routes outside the allowlist.
+  if (pathname.startsWith("/tools/conf") && isAuthenticated) {
+    if (!isHotelCheckinAllowedRoute(pathname)) {
+      try {
+        const accessUrl = new URL("/api/conf/default/access", request.url);
+        const accessRes = await fetch(accessUrl, {
+          headers: { cookie: request.headers.get("cookie") ?? "" },
+          cache: "no-store",
+        });
+
+        if (accessRes.ok) {
+          const payload = (await accessRes.json()) as {
+            isHotelCheckinOnly?: boolean;
+          };
+
+          if (payload.isHotelCheckinOnly) {
+            const redirectUrl = new URL("/tools/conf", request.url);
+            redirectUrl.searchParams.set("forbidden", "1");
+            return NextResponse.redirect(redirectUrl);
+          }
+        }
+      } catch {
+        // Fall through when access lookup fails.
+      }
     }
   }
 

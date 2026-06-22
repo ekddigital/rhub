@@ -658,6 +658,7 @@ enum ConfRole {
     TREASURER
     COMMITTEE
     DELEGATE
+    HOTEL_CHECKIN
 }
 
 enum Gender {

@@ -124,6 +124,16 @@ export const DEFAULT_COMMITTEE_ROLE_TEMPLATES: readonly CommitteeRoleTemplateSee
       sortOrder: 15,
       isSystem: true,
     },
+    {
+      key: "HOTEL_CHECKIN",
+      label: "Hotel Check-in",
+      baseRole: "HOTEL_CHECKIN",
+      title: "Hotel Check-in",
+      committeeScope: "Hotel",
+      officeLabel: "Hotel Front Desk",
+      sortOrder: 20,
+      isSystem: true,
+    },
   ] as const;
 
 export function normalizeRoleKey(input: string): string {
