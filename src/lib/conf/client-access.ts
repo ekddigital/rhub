@@ -59,8 +59,20 @@ export function mergeConfAccessFlags(
   const isParticipant = Boolean(
     confFlags.isParticipant || isManager || isSuperAdmin,
   );
+  const isHotelCheckin = Boolean(
+    confFlags.isHotelCheckin || roleFlags.isHotelCheckin,
+  );
+  const isHotelCheckinOnly = Boolean(
+    confFlags.isHotelCheckinOnly || roleFlags.isHotelCheckinOnly,
+  );
 
-  return { isParticipant, isManager, isSuperAdmin };
+  return {
+    isParticipant,
+    isManager,
+    isSuperAdmin,
+    isHotelCheckin,
+    isHotelCheckinOnly,
+  };
 }
 
 export function canViewConfNavItem(
