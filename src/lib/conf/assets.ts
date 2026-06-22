@@ -26,7 +26,7 @@ function isHttpUrl(value: string) {
   return /^https?:\/\//i.test(value);
 }
 
-function extractAssetId(value: string) {
+export function extractAssetId(value: string) {
   const direct = value.match(
     /\/api\/v1\/assets\/([0-9a-fA-F-]{36})\/download/i,
   );

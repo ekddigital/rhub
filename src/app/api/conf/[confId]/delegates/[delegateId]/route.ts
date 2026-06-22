@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
@@ -8,7 +9,7 @@ import {
 } from "@/lib/conf/delegate-utils";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import {
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
@@ -79,16 +80,26 @@ export async function GET(
       delegate.additionalComments,
     );
 
+    const headersList = await headers();
+    const host = headersList.get("host") ?? "localhost";
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    const origin = `${proto}://${host}`;
+
     return NextResponse.json({
       ...delegate,
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
-      ...mapDelegateDocumentsForClient(confId, delegateId, {
-        passportPhotoPath: delegate.passportPhotoPath,
-        lastEntryStampPath: delegate.lastEntryStampPath,
-        currentVisaPath: delegate.currentVisaPath,
-        bookletPhotoPath: delegate.bookletPhotoPath,
-      }),
+      ...(await mapDelegateDocumentsForClientAsync(
+        confId,
+        delegateId,
+        {
+          passportPhotoPath: delegate.passportPhotoPath,
+          lastEntryStampPath: delegate.lastEntryStampPath,
+          currentVisaPath: delegate.currentVisaPath,
+          bookletPhotoPath: delegate.bookletPhotoPath,
+        },
+        origin,
+      )),
     });
   } catch (error) {
     console.error("Failed to fetch delegate:", error);
@@ -487,16 +498,26 @@ export async function PATCH(
       finalDelegate.additionalComments,
     );
 
+    const headersList = await headers();
+    const host = headersList.get("host") ?? "localhost";
+    const proto = process.env.NODE_ENV === "production" ? "https" : "http";
+    const origin = `${proto}://${host}`;
+
     return NextResponse.json({
       ...finalDelegate,
       additionalComments: finalParsedComments.additionalComments,
       addOnPackageIds: finalParsedComments.addOnPackageIds,
-      ...mapDelegateDocumentsForClient(confId, delegateId, {
-        passportPhotoPath: finalDelegate.passportPhotoPath,
-        lastEntryStampPath: finalDelegate.lastEntryStampPath,
-        currentVisaPath: finalDelegate.currentVisaPath,
-        bookletPhotoPath: finalDelegate.bookletPhotoPath,
-      }),
+      ...(await mapDelegateDocumentsForClientAsync(
+        confId,
+        delegateId,
+        {
+          passportPhotoPath: finalDelegate.passportPhotoPath,
+          lastEntryStampPath: finalDelegate.lastEntryStampPath,
+          currentVisaPath: finalDelegate.currentVisaPath,
+          bookletPhotoPath: finalDelegate.bookletPhotoPath,
+        },
+        origin,
+      )),
     });
   } catch (error) {
     if (

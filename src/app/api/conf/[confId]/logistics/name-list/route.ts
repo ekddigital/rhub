@@ -71,7 +71,7 @@ export async function GET(
     const origin = `${proto}://${host}`;
 
     return NextResponse.json(
-      buildLogisticsNameListResponse({
+      await buildLogisticsNameListResponse({
         conf,
         paidDelegates,
         manualEntries,

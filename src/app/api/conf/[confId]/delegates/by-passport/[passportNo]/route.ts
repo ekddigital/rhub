@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // GET /api/conf/[confId]/delegates/by-passport/[passportNo]
@@ -63,11 +63,16 @@ export async function GET(
     ...delegate,
     additionalComments: parsed.additionalComments,
     addOnPackageIds: parsed.addOnPackageIds,
-    ...mapDelegateDocumentsForClient(confId, delegate.id, {
-      passportPhotoPath: delegate.passportPhotoPath,
-      lastEntryStampPath: delegate.lastEntryStampPath,
-      currentVisaPath: delegate.currentVisaPath,
-      bookletPhotoPath: delegate.bookletPhotoPath,
-    }),
+    ...(await mapDelegateDocumentsForClientAsync(
+      confId,
+      delegate.id,
+      {
+        passportPhotoPath: delegate.passportPhotoPath,
+        lastEntryStampPath: delegate.lastEntryStampPath,
+        currentVisaPath: delegate.currentVisaPath,
+        bookletPhotoPath: delegate.bookletPhotoPath,
+      },
+      new URL(req.url).origin,
+    )),
   });
 }

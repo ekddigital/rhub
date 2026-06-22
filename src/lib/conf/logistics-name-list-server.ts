@@ -10,6 +10,7 @@ import {
   resolveDelegatePassportPhotoForClient,
   resolveDelegateVisaForClient,
   isStoredDelegateDocumentPdf,
+  probeManyStoredDelegateDocumentsIsPdf,
 } from "@/lib/conf/delegate-document-urls";
 
 type DelegateRow = Pick<
@@ -46,6 +47,7 @@ type ConfRow = {
 function mapDelegateDocs(
   confId: string,
   delegate: DelegateRow,
+  pdfByPath: Map<string, boolean>,
 ): Pick<
   LogisticsNameListEntry,
   | "passportPhotoPath"
@@ -80,20 +82,31 @@ function mapDelegateDocs(
 
   return {
     passportPhotoPath,
-    passportPhotoIsPdf: isStoredDelegateDocumentPdf(passportStored),
+    passportPhotoIsPdf: resolveDocIsPdf(passportStored, pdfByPath),
     lastEntryStampPath,
-    lastEntryStampIsPdf: isStoredDelegateDocumentPdf(entryStampStored),
+    lastEntryStampIsPdf: resolveDocIsPdf(entryStampStored, pdfByPath),
     currentVisaPath,
-    currentVisaIsPdf: isStoredDelegateDocumentPdf(visaStored),
+    currentVisaIsPdf: resolveDocIsPdf(visaStored, pdfByPath),
     passportDocUrl: passportPhotoPath,
     entryStampDocUrl: lastEntryStampPath,
     visaDocUrl: currentVisaPath,
   };
 }
 
+function resolveDocIsPdf(
+  path: string | null | undefined,
+  pdfByPath: Map<string, boolean>,
+): boolean {
+  if (!path?.trim()) return false;
+  const cached = pdfByPath.get(path.trim());
+  if (cached !== undefined) return cached;
+  return isStoredDelegateDocumentPdf(path);
+}
+
 function toEntryBase(
   confId: string,
   delegate: DelegateRow,
+  pdfByPath: Map<string, boolean>,
 ): Omit<
   LogisticsNameListEntry,
   "rosterSource" | "entryId" | "isAutoPaid" | "isManual" | "canRemove"
@@ -106,26 +119,43 @@ function toEntryBase(
     feeAmount: delegate.feeAmount,
     amountPaid: delegate.amountPaid,
     feePaid: delegate.feePaid,
-    ...mapDelegateDocs(confId, delegate),
+    ...mapDelegateDocs(confId, delegate, pdfByPath),
   };
 }
 
-export function buildLogisticsNameListResponse(input: {
+export async function buildLogisticsNameListResponse(input: {
   conf: ConfRow;
   paidDelegates: DelegateRow[];
   manualEntries: ManualEntryRow[];
   allDelegates: DelegateRow[];
   origin: string;
-}): LogisticsNameListResponse {
-  const { conf, paidDelegates, manualEntries, allDelegates } = input;
+}): Promise<LogisticsNameListResponse> {
+  const { conf, paidDelegates, manualEntries, allDelegates, origin } = input;
   const confId = conf.id;
+
+  const allDocPaths = [
+    ...paidDelegates.flatMap((d) => [
+      d.passportPhotoPath,
+      d.lastEntryStampPath,
+      d.currentVisaPath,
+    ]),
+    ...manualEntries.flatMap((e) => [
+      e.delegate.passportPhotoPath,
+      e.delegate.lastEntryStampPath,
+      e.delegate.currentVisaPath,
+    ]),
+  ];
+  const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
+    allDocPaths,
+    origin,
+  );
 
   const merged = new Map<string, LogisticsNameListEntry>();
 
   for (const delegate of paidDelegates) {
     if (delegate.status === "CANCELLED") continue;
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate),
+      ...toEntryBase(confId, delegate, pdfByPath),
       rosterSource: "AUTO_PAID",
       entryId: null,
       isAutoPaid: true,
@@ -142,7 +172,7 @@ export function buildLogisticsNameListResponse(input: {
     if (existing) {
       merged.set(delegate.id, {
         ...existing,
-        ...toEntryBase(confId, delegate),
+        ...toEntryBase(confId, delegate, pdfByPath),
         entryId: entry.id,
         isManual: true,
         rosterSource: existing.isAutoPaid ? "AUTO_PAID" : "MANUAL",
@@ -152,7 +182,7 @@ export function buildLogisticsNameListResponse(input: {
     }
 
     merged.set(delegate.id, {
-      ...toEntryBase(confId, delegate),
+      ...toEntryBase(confId, delegate, pdfByPath),
       rosterSource: "MANUAL",
       entryId: entry.id,
       isAutoPaid: false,

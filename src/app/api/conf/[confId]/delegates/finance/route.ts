@@ -62,7 +62,7 @@ export async function GET(
     });
 
     const origin = new URL(req.url).origin;
-    return NextResponse.json(mapDelegatesForApiResponse(delegates, viewer, origin));
+    return NextResponse.json(await mapDelegatesForApiResponse(delegates, viewer, origin));
   } catch (error) {
     console.error("Failed to fetch finance delegates:", error);
     return NextResponse.json(

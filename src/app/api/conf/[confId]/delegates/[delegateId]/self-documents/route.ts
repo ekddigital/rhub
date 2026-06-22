@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 
@@ -177,12 +177,17 @@ export async function POST(
     return NextResponse.json({
       ...finalDelegate,
       requestId,
-      ...mapDelegateDocumentsForClient(confId, delegateId, {
-        passportPhotoPath: finalDelegate.passportPhotoPath,
-        lastEntryStampPath: finalDelegate.lastEntryStampPath,
-        currentVisaPath: finalDelegate.currentVisaPath,
-        bookletPhotoPath: finalDelegate.bookletPhotoPath,
-      }),
+      ...(await mapDelegateDocumentsForClientAsync(
+        confId,
+        delegateId,
+        {
+          passportPhotoPath: finalDelegate.passportPhotoPath,
+          lastEntryStampPath: finalDelegate.lastEntryStampPath,
+          currentVisaPath: finalDelegate.currentVisaPath,
+          bookletPhotoPath: finalDelegate.bookletPhotoPath,
+        },
+        new URL(req.url).origin,
+      )),
     });
   } catch (error) {
     console.error("[conf.delegate.self_document.upload_error]", {

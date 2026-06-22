@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdaptivePhotoFrame } from "@/components/tools/conf/adaptive-photo-frame";
+import { DelegateTravelDocumentFrame } from "@/components/tools/conf/delegate-travel-document-frame";
 import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { fmtRmb } from "@/lib/conf/currency";
@@ -593,9 +594,10 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.passportPhotoPath ? (
                   <>
-                    <AdaptivePhotoFrame
+                    <DelegateTravelDocumentFrame
                       src={delegate.passportPhotoPath}
                       alt={`${delegate.name} passport`}
+                      isPdf={delegate.passportPhotoIsPdf ?? false}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
@@ -629,9 +631,10 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.lastEntryStampPath ? (
                   <>
-                    <AdaptivePhotoFrame
+                    <DelegateTravelDocumentFrame
                       src={delegate.lastEntryStampPath}
                       alt={`${delegate.name} last entry stamp`}
+                      isPdf={delegate.lastEntryStampIsPdf ?? false}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal
@@ -666,9 +669,10 @@ export function DelegateDetailShell({
               <CardContent className="space-y-3">
                 {delegate.currentVisaPath ? (
                   <>
-                    <AdaptivePhotoFrame
+                    <DelegateTravelDocumentFrame
                       src={delegate.currentVisaPath}
                       alt={`${delegate.name} current visa`}
+                      isPdf={delegate.currentVisaIsPdf ?? false}
                       containerClassName="h-52 w-full rounded-xl border border-border"
                     />
                     <PassportViewerModal

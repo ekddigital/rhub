@@ -1,5 +1,8 @@
 import type { ConfDelegate } from "@prisma/client";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import {
+  mapDelegateDocumentsForClient,
+  probeManyStoredDelegateDocumentsIsPdf,
+} from "@/lib/conf/delegate-document-urls";
 import {
   buildDelegateViewerContext,
   canViewDelegateSensitiveData,
@@ -23,11 +26,21 @@ export function buildDelegateListViewerContext(
   });
 }
 
-export function mapDelegatesForApiResponse(
+export async function mapDelegatesForApiResponse(
   delegates: ConfDelegate[],
   viewer: DelegateViewerContext,
-  _origin: string,
+  origin: string,
 ) {
+  const allDocPaths = delegates.flatMap((delegate) => [
+    delegate.passportPhotoPath,
+    delegate.lastEntryStampPath,
+    delegate.currentVisaPath,
+  ]);
+  const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
+    allDocPaths,
+    origin,
+  );
+
   return delegates.map((delegate) => {
     const delegateWithDocs = delegate as typeof delegate & {
       lastEntryStampPath?: string | null;
@@ -68,6 +81,7 @@ export function mapDelegatesForApiResponse(
         delegate.confId,
         delegate.id,
         storedDocs,
+        { pdfByPath },
       ),
     };
   });

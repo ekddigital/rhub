@@ -78,7 +78,7 @@ export async function GET(
     });
 
     const origin = new URL(req.url).origin;
-    const normalized = mapDelegatesForApiResponse(delegates, viewer, origin);
+    const normalized = await mapDelegatesForApiResponse(delegates, viewer, origin);
 
     return NextResponse.json(normalized);
   } catch (error) {

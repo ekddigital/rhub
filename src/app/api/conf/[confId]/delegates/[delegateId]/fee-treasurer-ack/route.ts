@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { canAccessConferenceTreasurerFinance } from "@/lib/conf/conference-finance-access";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/fee-treasurer-ack
@@ -61,12 +61,17 @@ export async function POST(
       ...updated,
       additionalComments: parsed.additionalComments,
       addOnPackageIds: parsed.addOnPackageIds,
-      ...mapDelegateDocumentsForClient(confId, delegateId, {
-        passportPhotoPath: updated.passportPhotoPath,
-        lastEntryStampPath: updated.lastEntryStampPath,
-        currentVisaPath: updated.currentVisaPath,
-        bookletPhotoPath: updated.bookletPhotoPath,
-      }),
+      ...(await mapDelegateDocumentsForClientAsync(
+        confId,
+        delegateId,
+        {
+          passportPhotoPath: updated.passportPhotoPath,
+          lastEntryStampPath: updated.lastEntryStampPath,
+          currentVisaPath: updated.currentVisaPath,
+          bookletPhotoPath: updated.bookletPhotoPath,
+        },
+        new URL(req.url).origin,
+      )),
     });
   } catch (error) {
     console.error("fee-treasurer-ack failed:", error);

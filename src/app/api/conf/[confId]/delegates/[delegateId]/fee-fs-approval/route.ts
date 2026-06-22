@@ -2,10 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getConferenceAccess } from "@/lib/conf/access";
 import { canManageConferenceDelegateFinanceFs } from "@/lib/conf/conference-finance-access";
-import { mapDelegateDocumentsForClient } from "@/lib/conf/delegate-document-urls";
+import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 
-function serializeDelegateResponse(
+async function serializeDelegateResponse(
   confId: string,
   delegateId: string,
   delegate: {
@@ -16,18 +16,24 @@ function serializeDelegateResponse(
     bookletPhotoPath: string | null;
     [key: string]: unknown;
   },
+  origin: string,
 ) {
   const parsed = parseDelegateCommentsWithAddOns(delegate.additionalComments);
   return {
     ...delegate,
     additionalComments: parsed.additionalComments,
     addOnPackageIds: parsed.addOnPackageIds,
-    ...mapDelegateDocumentsForClient(confId, delegateId, {
-      passportPhotoPath: delegate.passportPhotoPath,
-      lastEntryStampPath: delegate.lastEntryStampPath,
-      currentVisaPath: delegate.currentVisaPath,
-      bookletPhotoPath: delegate.bookletPhotoPath,
-    }),
+    ...(await mapDelegateDocumentsForClientAsync(
+      confId,
+      delegateId,
+      {
+        passportPhotoPath: delegate.passportPhotoPath,
+        lastEntryStampPath: delegate.lastEntryStampPath,
+        currentVisaPath: delegate.currentVisaPath,
+        bookletPhotoPath: delegate.bookletPhotoPath,
+      },
+      origin,
+    )),
   };
 }
 
@@ -54,6 +60,7 @@ export async function POST(
 
     const body = (await req.json().catch(() => ({}))) as { action?: string };
     const action = body.action === "revoke" ? "revoke" : "approve";
+    const origin = new URL(req.url).origin;
 
     const current = await prisma.confDelegate.findFirst({
       where: { id: delegateId, confId },
@@ -70,7 +77,7 @@ export async function POST(
     if (action === "approve") {
       if (current.feeFsApprovedAt) {
         return NextResponse.json(
-          serializeDelegateResponse(confId, delegateId, current),
+          await serializeDelegateResponse(confId, delegateId, current, origin),
         );
       }
 
@@ -95,7 +102,7 @@ export async function POST(
       });
 
       return NextResponse.json(
-        serializeDelegateResponse(confId, delegateId, updated),
+        await serializeDelegateResponse(confId, delegateId, updated, origin),
       );
     }
 
@@ -110,7 +117,7 @@ export async function POST(
     });
 
     return NextResponse.json(
-      serializeDelegateResponse(confId, delegateId, updated),
+      await serializeDelegateResponse(confId, delegateId, updated, origin),
     );
   } catch (error) {
     console.error("fee-fs-approval failed:", error);

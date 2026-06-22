@@ -1,3 +1,5 @@
+import { extractAssetId, resolveStoredAssetUrl } from "@/lib/conf/assets";
+
 export type DelegateSecureDocumentKind =
   | "passport"
   | "entry-stamp"
@@ -30,6 +32,73 @@ export function isStoredDelegateDocumentPdf(
   if (!hasStoredDelegateDocumentPath(path)) return false;
   const normalized = stripUrlHashQuery(path!.trim()).toLowerCase();
   return normalized.endsWith(".pdf");
+}
+
+const assetPdfFlagCache = new Map<string, boolean>();
+
+/** Probe assets API content-type when stored paths lack a `.pdf` suffix (e.g. `/download` URLs). */
+export async function probeStoredDelegateDocumentIsPdf(
+  path: string | null | undefined,
+  origin: string,
+): Promise<boolean> {
+  if (!hasStoredDelegateDocumentPath(path)) return false;
+  if (isStoredDelegateDocumentPdf(path)) return true;
+
+  const trimmed = path!.trim();
+  const assetId = extractAssetId(trimmed);
+  if (assetId && assetPdfFlagCache.has(assetId)) {
+    return assetPdfFlagCache.get(assetId)!;
+  }
+
+  const assetUrl = resolveStoredAssetUrl(trimmed, origin);
+  const previewUrl = assetUrl.includes("?")
+    ? `${assetUrl}&preview=true`
+    : `${assetUrl}?preview=true`;
+
+  try {
+    const res = await fetch(previewUrl, {
+      method: "HEAD",
+      headers: { ...assetsBearerHeaders(), Accept: "*/*" },
+      cache: "no-store",
+    });
+    if (!res.ok) return false;
+    const isPdf = (res.headers.get("content-type") ?? "")
+      .toLowerCase()
+      .includes("pdf");
+    if (assetId) assetPdfFlagCache.set(assetId, isPdf);
+    return isPdf;
+  } catch {
+    return false;
+  }
+}
+
+export async function probeManyStoredDelegateDocumentsIsPdf(
+  paths: (string | null | undefined)[],
+  origin: string,
+): Promise<Map<string, boolean>> {
+  const unique = [
+    ...new Set(paths.filter(hasStoredDelegateDocumentPath) as string[]),
+  ];
+  const pdfByPath = new Map<string, boolean>();
+  await Promise.all(
+    unique.map(async (path) => {
+      pdfByPath.set(
+        path.trim(),
+        await probeStoredDelegateDocumentIsPdf(path, origin),
+      );
+    }),
+  );
+  return pdfByPath;
+}
+
+function resolveStoredDelegateDocumentIsPdf(
+  path: string | null | undefined,
+  pdfByPath: Map<string, boolean>,
+): boolean {
+  if (!hasStoredDelegateDocumentPath(path)) return false;
+  const cached = pdfByPath.get(path!.trim());
+  if (cached !== undefined) return cached;
+  return isStoredDelegateDocumentPdf(path);
 }
 
 export function resolveDelegateDocumentForClient(
@@ -128,12 +197,14 @@ export function mapDelegateDocumentsForClient(
     includeEntryStamp?: boolean;
     includeVisa?: boolean;
     includeBooklet?: boolean;
+    pdfByPath?: Map<string, boolean>;
   },
 ): Partial<DelegateDocumentClientFields> {
   const includePassport = options?.includePassport ?? true;
   const includeEntryStamp = options?.includeEntryStamp ?? true;
   const includeVisa = options?.includeVisa ?? true;
   const includeBooklet = options?.includeBooklet ?? true;
+  const pdfByPath = options?.pdfByPath ?? new Map<string, boolean>();
   const result: Partial<DelegateDocumentClientFields> = {};
 
   if (includePassport) {
@@ -143,7 +214,10 @@ export function mapDelegateDocumentsForClient(
       delegateId,
       path,
     );
-    result.passportPhotoIsPdf = isStoredDelegateDocumentPdf(path);
+    result.passportPhotoIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
   }
 
   if (includeEntryStamp) {
@@ -153,7 +227,10 @@ export function mapDelegateDocumentsForClient(
       delegateId,
       path,
     );
-    result.lastEntryStampIsPdf = isStoredDelegateDocumentPdf(path);
+    result.lastEntryStampIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
   }
 
   if (includeVisa) {
@@ -163,7 +240,89 @@ export function mapDelegateDocumentsForClient(
       delegateId,
       path,
     );
-    result.currentVisaIsPdf = isStoredDelegateDocumentPdf(path);
+    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(path, pdfByPath);
+  }
+
+  if (includeBooklet) {
+    const path = stored.bookletPhotoPath;
+    result.bookletPhotoPath = resolveDelegateBookletPhotoForClient(
+      confId,
+      delegateId,
+      path,
+    );
+  }
+
+  return result;
+}
+
+export async function mapDelegateDocumentsForClientAsync(
+  confId: string,
+  delegateId: string,
+  stored: {
+    passportPhotoPath?: string | null;
+    lastEntryStampPath?: string | null;
+    currentVisaPath?: string | null;
+    bookletPhotoPath?: string | null;
+  },
+  origin: string,
+  options?: {
+    includePassport?: boolean;
+    includeEntryStamp?: boolean;
+    includeVisa?: boolean;
+    includeBooklet?: boolean;
+  },
+): Promise<Partial<DelegateDocumentClientFields>> {
+  const includePassport = options?.includePassport ?? true;
+  const includeEntryStamp = options?.includeEntryStamp ?? true;
+  const includeVisa = options?.includeVisa ?? true;
+  const includeBooklet = options?.includeBooklet ?? true;
+
+  const pathsToProbe = [
+    includePassport ? stored.passportPhotoPath : null,
+    includeEntryStamp ? stored.lastEntryStampPath : null,
+    includeVisa ? stored.currentVisaPath : null,
+  ];
+  const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
+    pathsToProbe,
+    origin,
+  );
+
+  const result: Partial<DelegateDocumentClientFields> = {};
+
+  if (includePassport) {
+    const path = stored.passportPhotoPath;
+    result.passportPhotoPath = resolveDelegatePassportPhotoForClient(
+      confId,
+      delegateId,
+      path,
+    );
+    result.passportPhotoIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
+  }
+
+  if (includeEntryStamp) {
+    const path = stored.lastEntryStampPath;
+    result.lastEntryStampPath = resolveDelegateEntryStampForClient(
+      confId,
+      delegateId,
+      path,
+    );
+    result.lastEntryStampIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
+  }
+
+  if (includeVisa) {
+    const path = stored.currentVisaPath;
+    result.currentVisaPath = resolveDelegateVisaForClient(
+      confId,
+      delegateId,
+      path,
+    );
+    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(path, pdfByPath);
   }
 
   if (includeBooklet) {
