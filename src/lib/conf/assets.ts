@@ -37,7 +37,38 @@ function extractAssetId(value: string) {
   );
   if (fromFilePath?.[1]) return fromFilePath[1];
 
+  const embedded = value.match(
+    /([0-9a-fA-F-]{8}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{12})/i,
+  );
+  if (embedded?.[1]) return embedded[1];
+
   return null;
+}
+
+/** Canonical assets CDN origin for server-side download fetches (no www redirect). */
+function normalizeAssetsDownloadOrigin(origin: string) {
+  try {
+    const url = new URL(origin);
+    if (url.hostname.toLowerCase() === "www.assets.andgroupco.com") {
+      url.hostname = "assets.andgroupco.com";
+    }
+    return url.origin;
+  } catch {
+    return origin;
+  }
+}
+
+function normalizeAssetsDownloadUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.toLowerCase() === "www.assets.andgroupco.com") {
+      parsed.hostname = "assets.andgroupco.com";
+      return parsed.toString();
+    }
+    return url;
+  } catch {
+    return url;
+  }
 }
 
 function buildAssetsDownloadPath(assetId: string) {
@@ -65,12 +96,16 @@ function normalizeAssetsApiBaseUrl(rawUrl: string) {
 
 function resolveAssetsOrigin(fallbackOrigin: string) {
   const apiUrl = process.env.EKD_DIGITAL_ASSETS_API_URL;
-  if (!apiUrl) return fallbackOrigin;
+  if (!apiUrl) {
+    return normalizeAssetsDownloadOrigin(fallbackOrigin);
+  }
 
   try {
-    return new URL(normalizeAssetsApiBaseUrl(apiUrl)).origin;
+    return normalizeAssetsDownloadOrigin(
+      new URL(normalizeAssetsApiBaseUrl(apiUrl)).origin,
+    );
   } catch {
-    return fallbackOrigin;
+    return normalizeAssetsDownloadOrigin(fallbackOrigin);
   }
 }
 
@@ -440,9 +475,9 @@ export function resolveStoredAssetUrl(pathOrUrl: string, origin: string) {
       const parsed = new URL(pathOrUrl);
       const assetId = extractAssetId(`${parsed.pathname}${parsed.search}`);
       if (assetId) {
-        return `${parsed.origin}${buildAssetsDownloadPath(assetId)}`;
+        return `${assetsOrigin}${buildAssetsDownloadPath(assetId)}`;
       }
-      return pathOrUrl;
+      return normalizeAssetsDownloadUrl(pathOrUrl);
     } catch {
       return pathOrUrl;
     }

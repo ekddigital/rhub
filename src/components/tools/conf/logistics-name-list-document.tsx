@@ -69,7 +69,7 @@ function DocThumb({
   label: string;
   missingLabel: string;
 }) {
-  if (!hasStoredDelegateDocumentPath(previewUrl)) {
+  if (!hasStoredDelegateDocumentPath(proxyUrl ?? previewUrl)) {
     return (
       <div
         style={{
