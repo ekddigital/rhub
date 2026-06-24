@@ -39,23 +39,27 @@ function sectionMembersForPageCount(
   data: BookletData,
 ): BookletData["committeeMembers"] | BookletData["necMembers"] {
   if (s.type === "NEC") return data.necMembers;
+
+  let members = data.committeeMembers;
+
   if (s.type === "CITY_PRESIDENTS") {
     const leaderNames = new Set(
       data.leaders.map((l) => normalizeName(l.name)),
     );
-    return data.committeeMembers.filter(
+    members = members.filter(
       (m) => !leaderNames.has(normalizeName(m.name)),
     );
   }
+
   if (s.committeeScope) {
-    return data.committeeMembers.filter(
-      (m) => m.committeeScope === s.committeeScope,
-    );
+    return members.filter((m) => m.committeeScope === s.committeeScope);
   }
+
   if (s.type === "COMMITTEE") {
-    return data.committeeMembers.filter((m) => m.committeeScope === null);
+    return members.filter((m) => m.committeeScope === null);
   }
-  return data.committeeMembers;
+
+  return members;
 }
 
 function committeeSectionPageCount(
