@@ -17,6 +17,7 @@ import {
   findLsuicLeaderLinks,
   isConfLsuicLeaderLinkTableMissing,
   lsuicLeaderLinkTableMissingResponse,
+  lsuicLeaderMappingStatus,
 } from "@/lib/conf/lsuic-leader-links";
 
 // GET /api/conf/[confId]/lsuic-leaders
@@ -108,6 +109,17 @@ export async function GET(
       const autoMatch = storedLink
         ? null
         : autoMatchDelegateForRosterRow(row, delegateIndexes);
+      const mappingStatus = storedLink
+        ? lsuicLeaderMappingStatus(storedLink)
+        : "unmapped";
+
+      const linkedDelegateId =
+        storedLink?.delegateId ??
+        (mappingStatus === "unmapped" ? autoMatch?.id : null) ??
+        null;
+      const linkedDelegate = linkedDelegateId
+        ? delegateIndexes.byId.get(linkedDelegateId)
+        : null;
 
       return {
         rosterKey,
@@ -118,20 +130,26 @@ export async function GET(
         csvPhotoUrl: row.leader_photo_url || null,
         resolvedPhotoPath:
           built?.photoPath ?? (row.leader_photo_url || null),
+        mappingStatus,
         link: storedLink
           ? {
               delegateId: storedLink.delegateId,
               userId: storedLink.userId,
               linkSource: storedLink.linkSource,
+              confirmed: storedLink.confirmed,
             }
           : autoMatch
             ? {
                 delegateId: autoMatch.id,
                 userId: autoMatch.userId,
                 linkSource: "AUTO_SUGGESTED",
+                confirmed: false,
               }
             : null,
-        isMapped: Boolean(storedLink?.delegateId || storedLink?.userId),
+        linkedDelegateName: linkedDelegate?.name ?? null,
+        linkedDelegateCity: linkedDelegate?.city ?? null,
+        isMapped: mappingStatus === "confirmed",
+        isPending: mappingStatus === "pending",
       };
     });
 
@@ -140,7 +158,8 @@ export async function GET(
       counts: {
         total: rows.length,
         mapped: rows.filter((r) => r.isMapped).length,
-        unmapped: rows.filter((r) => !r.isMapped).length,
+        unmapped: rows.filter((r) => r.mappingStatus === "unmapped").length,
+        pending: rows.filter((r) => r.isPending).length,
       },
     });
   } catch (error) {
@@ -214,6 +233,7 @@ export async function POST(
             delegateId: match.id,
             userId: match.userId,
             linkSource: "AUTO_NAME",
+            confirmed: false,
           },
         });
       } catch (error) {

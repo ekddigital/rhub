@@ -6,7 +6,17 @@ export type LsuicLeaderLinkRow = {
   delegateId: string | null;
   userId: string | null;
   linkSource: string | null;
+  confirmed: boolean;
 };
+
+export type LsuicLeaderMappingStatus = "unmapped" | "pending" | "confirmed";
+
+export function lsuicLeaderMappingStatus(
+  link: Pick<LsuicLeaderLinkRow, "delegateId" | "userId" | "confirmed"> | null | undefined,
+): LsuicLeaderMappingStatus {
+  if (!link?.delegateId && !link?.userId) return "unmapped";
+  return link.confirmed ? "confirmed" : "pending";
+}
 
 /** True when `ConfLsuicLeaderLink` has not been migrated yet (Prisma P2021). */
 export function isConfLsuicLeaderLinkTableMissing(error: unknown): boolean {
@@ -29,6 +39,7 @@ export async function findLsuicLeaderLinks(
     delegateId?: true;
     userId?: true;
     linkSource?: true;
+    confirmed?: true;
   },
 ): Promise<LsuicLeaderLinkRow[]> {
   try {
@@ -39,6 +50,7 @@ export async function findLsuicLeaderLinks(
         delegateId: true,
         userId: true,
         linkSource: true,
+        confirmed: true,
       },
     });
   } catch (error) {

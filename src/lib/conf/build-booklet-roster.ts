@@ -60,6 +60,7 @@ type LeaderLinkLike = {
   delegateId: string | null;
   userId: string | null;
   linkSource: string | null;
+  confirmed?: boolean;
 };
 
 function normalizeName(value: string | null | undefined): string {
@@ -114,13 +115,16 @@ function resolveLinkedDelegate(
   link: LeaderLinkLike | undefined,
   indexes: ReturnType<typeof buildDelegateIndexes>,
 ): DelegateLike | null {
-  if (link?.delegateId) {
-    return indexes.byId.get(link.delegateId) ?? null;
+  if (link) {
+    if (!link.confirmed) return null;
+    if (link.delegateId) {
+      return indexes.byId.get(link.delegateId) ?? null;
+    }
+    if (link.userId) {
+      return indexes.byUserId.get(link.userId) ?? null;
+    }
+    return null;
   }
-  if (link?.userId) {
-    return indexes.byUserId.get(link.userId) ?? null;
-  }
-  if (link) return null;
   return autoMatchDelegateForRosterRow(row, indexes);
 }
 

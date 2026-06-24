@@ -1220,6 +1220,8 @@ model ConfLsuicLeaderLink {
     delegateId String?
     userId     String?
     linkSource String?  // "AUTO_NAME" | "AUTO_PHONE" | "MANUAL"
+    /// Auto-links start unconfirmed; booklet photo override uses confirmed links only.
+    confirmed  Boolean  @default(false)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 

@@ -22,6 +22,7 @@ export async function PATCH(
     const body = (await req.json()) as {
       delegateId?: string | null;
       userId?: string | null;
+      confirmed?: boolean;
     };
 
     if (body.delegateId === null && body.userId === null) {
@@ -29,6 +30,27 @@ export async function PATCH(
         where: { confId, rosterKey },
       });
       return NextResponse.json({ cleared: true });
+    }
+
+    if (
+      body.confirmed === true &&
+      body.delegateId === undefined &&
+      body.userId === undefined
+    ) {
+      const existing = await prisma.confLsuicLeaderLink.findUnique({
+        where: { confId_rosterKey: { confId, rosterKey } },
+      });
+      if (!existing) {
+        return NextResponse.json(
+          { error: "No link exists for this roster row" },
+          { status: 404 },
+        );
+      }
+      const link = await prisma.confLsuicLeaderLink.update({
+        where: { confId_rosterKey: { confId, rosterKey } },
+        data: { confirmed: true },
+      });
+      return NextResponse.json({ link });
     }
 
     let delegateId = body.delegateId ?? null;
@@ -48,6 +70,9 @@ export async function PATCH(
       userId = delegate.userId ?? userId;
     }
 
+    const confirmed =
+      body.confirmed ?? (delegateId || userId ? true : false);
+
     const link = await prisma.confLsuicLeaderLink.upsert({
       where: {
         confId_rosterKey: { confId, rosterKey },
@@ -58,11 +83,13 @@ export async function PATCH(
         delegateId,
         userId,
         linkSource: "MANUAL",
+        confirmed,
       },
       update: {
         delegateId,
         userId,
         linkSource: "MANUAL",
+        confirmed,
       },
     });
 
