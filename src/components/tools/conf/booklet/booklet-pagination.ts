@@ -5,6 +5,9 @@ import type { BookletSection, NecMember } from "./types";
 export const BOOKLET_CONTENT_HEIGHT =
   BOOKLET_A4.height - 61 - 33 - 48; // header, footer, content padding
 
+/** Conservative pack limit — leaves headroom so rows are not clipped by A4 overflow. */
+const PAGE_PACK_LIMIT = BOOKLET_CONTENT_HEIGHT - 24;
+
 const KEY_ORDER = [
   "CHAIR",
   "VICE_CHAIR",
@@ -15,7 +18,9 @@ const KEY_ORDER = [
 
 const KEY_ROLE_SET = new Set<string>(KEY_ORDER);
 
-const GRID_COLS = 3;
+export const BOOKLET_GRID_COLS = 3;
+const GRID_COLS = BOOKLET_GRID_COLS;
+const GRID_ROW_GAP = 12;
 
 // ─── Height estimates (px) — tuned to CommitteeSection / TableOfContentsPage ─
 
@@ -25,9 +30,12 @@ const SECTION_BODY_LINE_H = 17;
 const CHAIR_HERO_NON_NEC = 176;
 const CHAIR_HERO_NEC = 224;
 const CHAIR_BIO_LINE_H = 17;
-const OFFICER_ROW_H = 148;
-const MEMBER_ROW_H = 136;
+/** Officer card: avatar row + contact block + delegate badge + padding. */
+const OFFICER_CARD_H = 178;
+/** Member card: slightly shorter avatar + contact block + delegate badge + padding. */
+const MEMBER_CARD_H = 168;
 const MEMBERS_SUBHEADING_H = 38;
+const MEMBERS_SUBHEADING_TOP_GAP = 12;
 
 const TOC_HEADING_BLOCK = 55;
 const TOC_ENTRY_H = 40;
@@ -37,9 +45,11 @@ const TOC_HIGHLIGHT_ENTRY_H = 44;
 export type CommitteePageLayout = {
   showSectionHeading: boolean;
   chair: NecMember | null;
-  officers: NecMember[];
+  /** Full grid rows (up to 3 cards each) — never split across pages. */
+  officerRows: NecMember[][];
   showMembersHeading: boolean;
-  members: NecMember[];
+  /** Full grid rows (up to 3 cards each) — never split across pages. */
+  memberRows: NecMember[][];
 };
 
 type LayoutRow =
@@ -55,6 +65,14 @@ function chunk<T>(items: T[], size: number): T[][] {
     out.push(items.slice(i, i + size));
   }
   return out;
+}
+
+function isPartialGridRow(row: LayoutRow): boolean {
+  return (
+    (row.kind === "officers" || row.kind === "members") &&
+    row.members.length > 0 &&
+    row.members.length < GRID_COLS
+  );
 }
 
 function estimateSectionHeadingH(section: BookletSection): number {
@@ -76,13 +94,12 @@ function estimateChairH(chair: NecMember, isNec: boolean): number {
   return h;
 }
 
-function estimateOfficerRowH(members: NecMember[]): number {
-  if (members.length === 0) return 0;
-  return OFFICER_ROW_H + (members.length < GRID_COLS ? 0 : 0);
+function estimateOfficerRowH(): number {
+  return OFFICER_CARD_H + GRID_ROW_GAP;
 }
 
-function estimateMemberRowH(): number {
-  return MEMBER_ROW_H;
+function estimateMemberRowH(extraTopGap = false): number {
+  return MEMBER_CARD_H + GRID_ROW_GAP + (extraTopGap ? MEMBERS_SUBHEADING_TOP_GAP : 0);
 }
 
 export function splitCommitteeMembers(members: NecMember[]): {
@@ -117,28 +134,26 @@ function buildCommitteeRows(
     rows.push({
       kind: "officers",
       members: officerRow,
-      h: estimateOfficerRowH(officerRow),
+      h: estimateOfficerRowH(),
     });
   }
 
   let firstMemberRow = true;
   for (const memberRow of chunk(generalMembers, GRID_COLS)) {
-    let h = estimateMemberRowH();
-    if (firstMemberRow && (chair != null || keyOfficers.length > 0)) {
-      h += 12;
-      firstMemberRow = false;
-    }
     rows.push({
       kind: "members",
       members: memberRow,
-      h,
+      h: estimateMemberRowH(
+        firstMemberRow && (chair != null || keyOfficers.length > 0),
+      ),
     });
+    firstMemberRow = false;
   }
 
   return rows;
 }
 
-function packRowsIntoPages(rows: LayoutRow[]): LayoutRow[][] {
+function heightPackRows(rows: LayoutRow[]): LayoutRow[][] {
   if (rows.length === 0) return [[]];
 
   const pages: LayoutRow[][] = [];
@@ -153,7 +168,7 @@ function packRowsIntoPages(rows: LayoutRow[]): LayoutRow[][] {
   };
 
   const appendRow = (row: LayoutRow) => {
-    if (usedH + row.h > BOOKLET_CONTENT_HEIGHT && current.length > 0) {
+    if (usedH + row.h > PAGE_PACK_LIMIT && current.length > 0) {
       startNewPage();
     }
     current.push(row);
@@ -178,13 +193,86 @@ function packRowsIntoPages(rows: LayoutRow[]): LayoutRow[][] {
   return pages;
 }
 
+/**
+ * Move trailing 1–2 card rows off a page so interior pages never end with a
+ * partial grid row. The final page of a section may still end with a remainder.
+ */
+function rebalanceTrailingPartialRows(pages: LayoutRow[][]): LayoutRow[][] {
+  if (pages.length < 2) return pages;
+
+  const out = pages.map((page) => [...page]);
+
+  for (let i = 0; i < out.length - 1; i++) {
+    const page = out[i];
+    if (page.length === 0) continue;
+
+    const last = page[page.length - 1];
+    if (!isPartialGridRow(last)) continue;
+
+    const moved: LayoutRow[] = [last];
+    page.pop();
+
+    if (last.kind === "members") {
+      const prev = page[page.length - 1];
+      if (prev?.kind === "members_heading") {
+        moved.unshift(prev);
+        page.pop();
+      }
+    }
+
+    out[i + 1] = [...moved, ...out[i + 1]];
+  }
+
+  return out.filter((page) => page.length > 0);
+}
+
+/** Re-split any page that exceeds the pack limit after partial-row moves. */
+function splitOverflowingPages(pages: LayoutRow[][]): LayoutRow[][] {
+  const result: LayoutRow[][] = [];
+
+  for (const page of pages) {
+    let current: LayoutRow[] = [];
+    let usedH = 0;
+
+    for (const row of page) {
+      if (usedH + row.h > PAGE_PACK_LIMIT && current.length > 0) {
+        result.push(current);
+        current = [];
+        usedH = 0;
+      }
+      current.push(row);
+      usedH += row.h;
+    }
+
+    if (current.length > 0) result.push(current);
+  }
+
+  return result.length > 0 ? result : [[]];
+}
+
+function packRowsIntoPages(rows: LayoutRow[]): LayoutRow[][] {
+  if (rows.length === 0) return [[]];
+
+  let pages = heightPackRows(rows);
+
+  for (let pass = 0; pass < 4; pass++) {
+    const next = rebalanceTrailingPartialRows(splitOverflowingPages(pages));
+    if (next.length === pages.length && next.every((p, i) => p === pages[i])) {
+      break;
+    }
+    pages = next;
+  }
+
+  return pages;
+}
+
 function pageLayoutFromRows(rows: LayoutRow[]): CommitteePageLayout {
   const layout: CommitteePageLayout = {
     showSectionHeading: false,
     chair: null,
-    officers: [],
+    officerRows: [],
     showMembersHeading: false,
-    members: [],
+    memberRows: [],
   };
 
   for (const row of rows) {
@@ -196,13 +284,13 @@ function pageLayoutFromRows(rows: LayoutRow[]): CommitteePageLayout {
         layout.chair = row.member;
         break;
       case "officers":
-        layout.officers.push(...row.members);
+        layout.officerRows.push(row.members);
         break;
       case "members_heading":
         layout.showMembersHeading = true;
         break;
       case "members":
-        layout.members.push(...row.members);
+        layout.memberRows.push(row.members);
         break;
       default:
         break;
@@ -222,9 +310,9 @@ export function paginateCommitteeSection(
       {
         showSectionHeading: true,
         chair: null,
-        officers: [],
+        officerRows: [],
         showMembersHeading: false,
-        members: [],
+        memberRows: [],
       },
     ];
   }

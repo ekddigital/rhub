@@ -484,16 +484,22 @@ export function CommitteeSection({
             </div>
           ) : null}
 
-          {page.officers.length > 0 && (
+          {page.officerRows.map((row, rowIndex) => (
             <div
+              key={`officers-row-${rowIndex}`}
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                 gap: "12px",
-                marginBottom: page.members.length > 0 ? "12px" : 0,
+                marginBottom:
+                  rowIndex < page.officerRows.length - 1 ||
+                  page.memberRows.length > 0 ||
+                  page.showMembersHeading
+                    ? "12px"
+                    : 0,
               }}
             >
-              {page.officers.map((m) => {
+              {row.map((m) => {
                 const colors = officerColors[m.role] ?? {
                   bg: C.lightBlue,
                   text: C.blue,
@@ -508,25 +514,28 @@ export function CommitteeSection({
                 );
               })}
             </div>
-          )}
+          ))}
 
           {page.showMembersHeading && (
             <MembersSubheading isNec={isNecSection} />
           )}
 
-          {page.members.length > 0 && (
+          {page.memberRows.map((row, rowIndex) => (
             <div
+              key={`members-row-${rowIndex}`}
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                 gap: "12px",
+                marginBottom:
+                  rowIndex < page.memberRows.length - 1 ? "12px" : 0,
               }}
             >
-              {page.members.map((m) => (
+              {row.map((m) => (
                 <MemberCard key={m.id} member={m} />
               ))}
             </div>
-          )}
+          ))}
         </A4Page>
       ))}
     </>
