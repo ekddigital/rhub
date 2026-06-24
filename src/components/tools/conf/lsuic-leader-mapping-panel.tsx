@@ -48,6 +48,12 @@ type DelegateOption = {
 
 type ListFilter = "all" | "mapped" | "unmapped" | "pending";
 
+function isSuggestedRow(row: RosterRow): boolean {
+  return (
+    row.mappingStatus === "unmapped" && row.link?.linkSource === "AUTO_SUGGESTED"
+  );
+}
+
 export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
   const [rows, setRows] = useState<RosterRow[]>([]);
   const [delegates, setDelegates] = useState<DelegateOption[]>([]);
@@ -58,6 +64,7 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
   const [filter, setFilter] = useState("");
   const [listFilter, setListFilter] = useState<ListFilter>("all");
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [draftDelegateId, setDraftDelegateId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -173,6 +180,7 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
       }
       await load();
       setEditingKey(null);
+      setDraftDelegateId(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Link update failed");
     } finally {
@@ -185,6 +193,21 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
 
   const handleConfirm = (rosterKey: string) =>
     patchLink(rosterKey, { confirmed: true });
+
+  const handleConfirmSuggestion = (rosterKey: string, delegateId: string | null) =>
+    patchLink(rosterKey, { delegateId, userId: null, confirmed: true });
+
+  const startEditing = (row: RosterRow) => {
+    setEditingKey(row.rosterKey);
+    if (isSuggestedRow(row)) {
+      setDraftDelegateId(row.link?.delegateId ?? null);
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingKey(null);
+    setDraftDelegateId(null);
+  };
 
   const handleUnlink = (rosterKey: string) =>
     patchLink(rosterKey, { delegateId: null, userId: null });
@@ -292,10 +315,15 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
             filteredRows.map((row) => {
               const isSaving = savingKey === row.rosterKey;
               const isEditing = editingKey === row.rosterKey;
+              const isSuggested = isSuggestedRow(row);
+              const needsConfirmation =
+                row.mappingStatus === "pending" || isSuggested;
               const showSelector =
-                row.mappingStatus === "unmapped" ||
-                isEditing ||
-                (row.mappingStatus === "pending" && isEditing);
+                (row.mappingStatus === "unmapped" && !isSuggested) ||
+                isEditing;
+              const selectorValue = isEditing && isSuggested
+                ? (draftDelegateId ?? "")
+                : (row.link?.delegateId ?? "");
 
               return (
                 <div
@@ -354,10 +382,13 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
                       </div>
                     )}
 
-                    {row.mappingStatus === "pending" && !isEditing && (
+                    {needsConfirmation && !isEditing && (
                       <div className="min-w-[160px]">
                         <p className="text-sm font-medium leading-tight">
-                          {row.linkedDelegateName ?? "Auto-matched delegate"}
+                          {row.linkedDelegateName ??
+                            (isSuggested
+                              ? "Suggested delegate"
+                              : "Auto-matched delegate")}
                         </p>
                         {row.linkedDelegateCity && (
                           <p className="text-xs text-muted-foreground">
@@ -367,13 +398,17 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
                       </div>
                     )}
 
-                    {(showSelector || isEditing) && (
+                    {showSelector && (
                       <select
                         className="h-9 min-w-[200px] rounded-md border border-input bg-transparent px-2 text-sm"
-                        value={row.link?.delegateId ?? ""}
+                        value={selectorValue}
                         disabled={isSaving}
                         onChange={(e) => {
                           const value = e.target.value || null;
+                          if (isEditing && isSuggested) {
+                            setDraftDelegateId(value);
+                            return;
+                          }
                           void handleLink(row.rosterKey, value);
                         }}
                       >
@@ -387,11 +422,38 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
                       </select>
                     )}
 
-                    {row.mappingStatus === "pending" && !isEditing && (
+                    {needsConfirmation && !isEditing && (
                       <Button
                         size="sm"
                         disabled={isSaving}
-                        onClick={() => void handleConfirm(row.rosterKey)}
+                        onClick={() =>
+                          void (isSuggested
+                            ? handleConfirmSuggestion(
+                                row.rosterKey,
+                                row.link?.delegateId ?? null,
+                              )
+                            : handleConfirm(row.rosterKey))
+                        }
+                      >
+                        {isSaving ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Check className="size-4" />
+                        )}
+                        Confirm
+                      </Button>
+                    )}
+
+                    {isEditing && isSuggested && (
+                      <Button
+                        size="sm"
+                        disabled={isSaving || !draftDelegateId}
+                        onClick={() =>
+                          void handleConfirmSuggestion(
+                            row.rosterKey,
+                            draftDelegateId,
+                          )
+                        }
                       >
                         {isSaving ? (
                           <Loader2 className="size-4 animate-spin" />
@@ -407,19 +469,19 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
                         size="sm"
                         variant="outline"
                         disabled={isSaving}
-                        onClick={() => setEditingKey(row.rosterKey)}
+                        onClick={() => startEditing(row)}
                       >
                         <Pencil className="size-4" />
                         Change
                       </Button>
                     )}
 
-                    {row.mappingStatus === "pending" && !isEditing && (
+                    {needsConfirmation && !isEditing && (
                       <Button
                         size="sm"
                         variant="outline"
                         disabled={isSaving}
-                        onClick={() => setEditingKey(row.rosterKey)}
+                        onClick={() => startEditing(row)}
                       >
                         <Pencil className="size-4" />
                         Change
@@ -445,7 +507,7 @@ export function LsuicLeaderMappingPanel({ confId }: { confId: string }) {
                         size="sm"
                         variant="ghost"
                         disabled={isSaving}
-                        onClick={() => setEditingKey(null)}
+                        onClick={cancelEditing}
                       >
                         Cancel
                       </Button>
