@@ -1,4 +1,8 @@
 import {
+  COVER_SPACING,
+  COVER_TYPOGRAPHY,
+} from "@/lib/conf/booklet-cover-typography";
+import {
   BOOKLET_A4,
   C,
   ASSETS,
@@ -7,6 +11,9 @@ import {
 } from "./constants";
 import { fmtRange } from "./utils";
 import type { BookletData } from "./types";
+
+const T = COVER_TYPOGRAPHY;
+const S = COVER_SPACING;
 
 export function CoverPage({
   event,
@@ -102,7 +109,7 @@ export function CoverPage({
         >
           <div
             style={{
-              fontSize: "52px",
+              fontSize: `${T.flagStar}px`,
               color: C.white,
               lineHeight: 1,
               textShadow: `0 0 24px ${C.white}60`,
@@ -174,7 +181,9 @@ export function CoverPage({
                 background: `${C.white}25`,
               }}
             />
-            <div style={{ fontSize: "18px", color: `${C.white}40` }}>×</div>
+            <div style={{ fontSize: `${T.logoDivider}px`, color: `${C.white}40` }}>
+              ×
+            </div>
             <div
               style={{
                 width: "1.5px",
@@ -211,12 +220,12 @@ export function CoverPage({
         {/* Org name */}
         <div
           style={{
-            fontSize: "12.5px",
-            fontWeight: 800,
-            letterSpacing: "0.24em",
+            fontSize: `${T.orgName.fontSize}px`,
+            fontWeight: T.orgName.fontWeight,
+            letterSpacing: T.orgName.letterSpacing,
             textTransform: "uppercase",
             color: C.gold,
-            marginBottom: "12px",
+            marginBottom: `${S.orgNameMarginBottom}px`,
           }}
         >
           Liberian Student Union in China
@@ -228,21 +237,21 @@ export function CoverPage({
             width: "100px",
             height: "1.5px",
             background: `linear-gradient(90deg, transparent, ${C.gold}, transparent)`,
-            marginBottom: "20px",
+            marginBottom: `${S.goldDividerMarginBottom}px`,
           }}
         />
 
         {/* Conference / booklet title */}
         <div
           style={{
-            fontSize: "36px",
-            fontWeight: 900,
+            fontSize: `${T.title.fontSize}px`,
+            fontWeight: T.title.fontWeight,
             color: C.white,
-            lineHeight: 1.12,
+            lineHeight: T.title.lineHeight,
             maxWidth: "540px",
-            marginBottom: "16px",
+            marginBottom: `${S.titleMarginBottom}px`,
             textShadow: "0 2px 24px rgba(0,0,0,0.7)",
-            letterSpacing: "-0.01em",
+            letterSpacing: T.title.letterSpacing,
           }}
         >
           {bookletTitle}
@@ -251,11 +260,11 @@ export function CoverPage({
         {bookletSubtitle && (
           <div
             style={{
-              fontSize: "15px",
-              fontWeight: 600,
+              fontSize: `${T.subtitle.fontSize}px`,
+              fontWeight: T.subtitle.fontWeight,
               color: C.gold,
-              marginBottom: "14px",
-              letterSpacing: "0.04em",
+              marginBottom: `${S.subtitleMarginBottom}px`,
+              letterSpacing: T.subtitle.letterSpacing,
             }}
           >
             {bookletSubtitle}
@@ -265,19 +274,19 @@ export function CoverPage({
         {theme && (
           <div
             style={{
-              padding: "14px 28px",
+              padding: `${S.themePaddingY}px ${S.themePaddingX}px`,
               borderRadius: "8px",
               background: `${C.gold}20`,
               border: `1.5px solid ${C.gold}50`,
               maxWidth: "500px",
-              marginBottom: "18px",
+              marginBottom: `${S.themeMarginBottom}px`,
             }}
           >
             <div
               style={{
-                fontSize: "9.5px",
-                fontWeight: 800,
-                letterSpacing: "0.22em",
+                fontSize: `${T.themeLabel.fontSize}px`,
+                fontWeight: T.themeLabel.fontWeight,
+                letterSpacing: T.themeLabel.letterSpacing,
                 textTransform: "uppercase",
                 color: C.gold,
                 marginBottom: "7px",
@@ -287,11 +296,11 @@ export function CoverPage({
             </div>
             <div
               style={{
-                fontSize: "14.5px",
+                fontSize: `${T.themeText.fontSize}px`,
                 fontStyle: "italic",
-                fontWeight: 600,
+                fontWeight: T.themeText.fontWeight,
                 color: C.white,
-                lineHeight: 1.55,
+                lineHeight: T.themeText.lineHeight,
               }}
             >
               &ldquo;{theme}&rdquo;
@@ -305,47 +314,47 @@ export function CoverPage({
             width: "100px",
             height: "2px",
             background: `linear-gradient(90deg, transparent, ${C.red}, transparent)`,
-            marginBottom: "24px",
+            marginBottom: `${S.redRuleMarginBottom}px`,
           }}
         />
 
         {/* Date + Venue frosted card */}
         <div
           style={{
-            padding: "20px 44px",
+            padding: `${S.detailsCardPaddingY}px ${S.detailsCardPaddingX}px`,
             borderRadius: "14px",
             border: `1px solid ${C.white}28`,
             background: `${C.white}10`,
             backdropFilter: "blur(8px)",
             WebkitBackdropFilter: "blur(8px)",
-            marginBottom: "24px",
+            marginBottom: `${S.detailsCardMarginBottom}px`,
           }}
         >
           <div
             style={{
-              fontSize: "20px",
-              fontWeight: 800,
+              fontSize: `${T.date.fontSize}px`,
+              fontWeight: T.date.fontWeight,
               color: C.white,
-              marginBottom: "10px",
-              letterSpacing: "0.02em",
+              marginBottom: `${S.dateMarginBottom}px`,
+              letterSpacing: T.date.letterSpacing,
             }}
           >
             {fmtRange(event.startsAt, event.endsAt)}
           </div>
           <div
             style={{
-              fontSize: "12px",
+              fontSize: `${T.venue.fontSize}px`,
               color: `${C.white}90`,
-              letterSpacing: "0.06em",
+              letterSpacing: T.venue.letterSpacing,
             }}
           >
             {event.venue}
           </div>
           <div
             style={{
-              fontSize: "11px",
+              fontSize: `${T.location.fontSize}px`,
               color: `${C.white}70`,
-              marginTop: "4px",
+              marginTop: `${S.locationMarginTop}px`,
             }}
           >
             {event.city}, People&apos;s Republic of China
@@ -358,16 +367,21 @@ export function CoverPage({
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            fontSize: "10px",
+            fontSize: `${T.tagline.fontSize}px`,
             color: `${C.white}40`,
-            letterSpacing: "0.08em",
+            letterSpacing: T.tagline.letterSpacing,
           }}
         >
           <span>🇱🇷</span>
           <span
             style={{ height: "1px", width: "44px", background: `${C.white}18` }}
           />
-          <span style={{ textTransform: "uppercase", fontSize: "9px" }}>
+          <span
+            style={{
+              textTransform: "uppercase",
+              fontSize: `${T.taglineMeta.fontSize}px`,
+            }}
+          >
             Est. July 2006
           </span>
           <span
@@ -399,9 +413,9 @@ export function CoverPage({
             textAlign: "center",
             padding: "8px",
             background: "rgba(0,10,32,0.92)",
-            fontSize: "8px",
+            fontSize: `${T.footer.fontSize}px`,
             color: `${C.white}40`,
-            letterSpacing: "0.14em",
+            letterSpacing: T.footer.letterSpacing,
             textTransform: "uppercase",
           }}
         >

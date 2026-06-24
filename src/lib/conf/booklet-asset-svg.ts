@@ -4,6 +4,9 @@
  */
 
 import { buildCityRegionLine } from "@/lib/conf/letterhead-config";
+import {
+  COVER_TYPOGRAPHY,
+} from "@/lib/conf/booklet-cover-typography";
 
 export const BOOKLET_PAGE_W = 794;
 export const BOOKLET_PAGE_H = 1123;
@@ -129,19 +132,20 @@ export function buildBookletCoverSvg(ctx: BookletAssetContext): string {
   const stripeH = 28;
   const cantonW = 222;
   const cantonH = stripeH * 6;
+  const T = COVER_TYPOGRAPHY;
 
   const bgPhoto = ctx.cityPhotoUri
     ? `<image href="${escapeXml(ctx.cityPhotoUri)}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="xMidYMid slice"/>`
     : `<rect width="${W}" height="${H}" fill="${C.darkBlue}"/>`;
 
   const themeBlock = ctx.theme
-    ? `<rect x="${W / 2 - 250}" y="520" width="500" height="72" rx="8" fill="${C.gold}20" stroke="${C.gold}80" stroke-width="1.5"/>
-  <text x="${W / 2}" y="542" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="9.5" font-weight="800" fill="${C.gold}" letter-spacing="2.2">CONFERENCE THEME</text>
-  <text x="${W / 2}" y="572" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="14.5" font-weight="600" fill="${C.white}">&ldquo;${escapeXml(ctx.theme)}&rdquo;</text>`
+    ? `<rect x="${W / 2 - 250}" y="518" width="500" height="78" rx="8" fill="${C.gold}20" stroke="${C.gold}80" stroke-width="1.5"/>
+  <text x="${W / 2}" y="542" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.themeLabel.fontSize}" font-weight="800" fill="${C.gold}" letter-spacing="2.2">CONFERENCE THEME</text>
+  <text x="${W / 2}" y="576" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="${T.themeText.fontSize}" font-weight="600" fill="${C.white}">&ldquo;${escapeXml(ctx.theme)}&rdquo;</text>`
     : "";
 
   const subtitleBlock = ctx.bookletSubtitle
-    ? `<text x="${W / 2}" y="470" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="15" font-weight="600" fill="${C.gold}" letter-spacing="0.6">${escapeXml(ctx.bookletSubtitle)}</text>`
+    ? `<text x="${W / 2}" y="472" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="${T.subtitle.fontSize}" font-weight="600" fill="${C.gold}" letter-spacing="0.6">${escapeXml(ctx.bookletSubtitle)}</text>`
     : "";
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -163,7 +167,7 @@ export function buildBookletCoverSvg(ctx: BookletAssetContext): string {
 
   ${flagStripes(W, stripeH, FLAG_11)}
   <rect x="0" y="0" width="${cantonW}" height="${cantonH}" fill="${C.blue}"/>
-  <text x="${cantonW / 2}" y="${cantonH / 2 + 8}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="52" fill="${C.white}">★</text>
+  <text x="${cantonW / 2}" y="${cantonH / 2 + 8}" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.flagStar}" fill="${C.white}">★</text>
 
   <circle cx="${W / 2 - 72}" cy="250" r="58" fill="${C.white}" stroke="${C.gold}" stroke-opacity="0.6" stroke-width="4"/>
   ${logoImage(ctx.logoUri, W / 2 - 72 - 45, 250 - 45, 90, "LSUIC")}
@@ -171,22 +175,22 @@ export function buildBookletCoverSvg(ctx: BookletAssetContext): string {
   <circle cx="${W / 2 + 72}" cy="250" r="58" fill="${C.white}" stroke="${C.red}" stroke-opacity="0.6" stroke-width="4"/>
   ${logoImage(ctx.sealUri, W / 2 + 72 - 45, 250 - 45, 90, "Seal")}
 
-  <text x="${W / 2}" y="340" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="12.5" font-weight="800" fill="${C.gold}" letter-spacing="2.4">${escapeXml(ORG_NAME.toUpperCase())}</text>
-  <line x1="${W / 2 - 50}" y1="352" x2="${W / 2 + 50}" y2="352" stroke="${C.gold}" stroke-width="1.5"/>
-  <text x="${W / 2}" y="420" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="36" font-weight="900" fill="${C.white}">${escapeXml(ctx.bookletTitle)}</text>
+  <text x="${W / 2}" y="340" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.orgName.fontSize}" font-weight="800" fill="${C.gold}" letter-spacing="2.2">${escapeXml(ORG_NAME.toUpperCase())}</text>
+  <line x1="${W / 2 - 50}" y1="354" x2="${W / 2 + 50}" y2="354" stroke="${C.gold}" stroke-width="1.5"/>
+  <text x="${W / 2}" y="424" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.title.fontSize}" font-weight="900" fill="${C.white}">${escapeXml(ctx.bookletTitle)}</text>
   ${subtitleBlock}
   ${themeBlock}
 
-  <line x1="${W / 2 - 50}" y1="610" x2="${W / 2 + 50}" y2="610" stroke="${C.red}" stroke-width="2"/>
+  <line x1="${W / 2 - 50}" y1="612" x2="${W / 2 + 50}" y2="612" stroke="${C.red}" stroke-width="2"/>
 
-  <rect x="${W / 2 - 220}" y="630" width="440" height="96" rx="14" fill="${C.white}18" stroke="${C.white}40"/>
-  <text x="${W / 2}" y="668" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="20" font-weight="800" fill="${C.white}">${escapeXml(ctx.dateRange)}</text>
-  <text x="${W / 2}" y="692" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="12" fill="${C.white}" opacity="0.9">${escapeXml(ctx.venue ?? "Conference Venue")}</text>
-  <text x="${W / 2}" y="710" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="11" fill="${C.white}" opacity="0.7">${escapeXml(buildCityRegionLine(ctx.city))}</text>
+  <rect x="${W / 2 - 230}" y="628" width="460" height="112" rx="14" fill="${C.white}18" stroke="${C.white}40"/>
+  <text x="${W / 2}" y="668" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.date.fontSize}" font-weight="800" fill="${C.white}">${escapeXml(ctx.dateRange)}</text>
+  <text x="${W / 2}" y="696" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.venue.fontSize}" fill="${C.white}" opacity="0.9">${escapeXml(ctx.venue ?? "Conference Venue")}</text>
+  <text x="${W / 2}" y="718" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.location.fontSize}" fill="${C.white}" opacity="0.7">${escapeXml(buildCityRegionLine(ctx.city))}</text>
 
   ${flagStripes(W, 20, FLAG_7, H - 36)}
   <rect y="${H - 16}" width="${W}" height="16" fill="rgba(0,10,32,0.92)"/>
-  <text x="${W / 2}" y="${H - 5}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="8" font-weight="700" fill="${C.white}" opacity="0.4" letter-spacing="1.4">OFFICIAL CONFERENCE BOOKLET · PAGE 1</text>
+  <text x="${W / 2}" y="${H - 5}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.footer.fontSize}" font-weight="700" fill="${C.white}" opacity="0.4" letter-spacing="1.4">OFFICIAL CONFERENCE BOOKLET · PAGE 1</text>
 </svg>`;
 }
 
