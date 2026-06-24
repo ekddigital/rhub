@@ -12,6 +12,12 @@ import {
   normalizeLeaderName,
   stripHonorificDisplayName,
 } from "@/lib/conf/lsuic-leaders-roster";
+import {
+  findLsuicLeaderLinkRosterKeys,
+  findLsuicLeaderLinks,
+  isConfLsuicLeaderLinkTableMissing,
+  lsuicLeaderLinkTableMissingResponse,
+} from "@/lib/conf/lsuic-leader-links";
 
 // GET /api/conf/[confId]/lsuic-leaders
 // LSUIC CSV roster with delegate link status for booklet photo overrides.
@@ -41,9 +47,7 @@ export async function GET(
         },
         orderBy: { name: "asc" },
       }),
-      prisma.confLsuicLeaderLink.findMany({
-        where: { confId },
-      }),
+      findLsuicLeaderLinks(confId),
     ]);
 
     const resolvedDelegates = delegates.map((d) => ({
@@ -193,11 +197,7 @@ export async function POST(
       if (phone) indexes.byPhone.set(phone, d);
     }
 
-    const existing = await prisma.confLsuicLeaderLink.findMany({
-      where: { confId },
-      select: { rosterKey: true },
-    });
-    const existingKeys = new Set(existing.map((e) => e.rosterKey));
+    const existingKeys = await findLsuicLeaderLinkRosterKeys(confId);
 
     let created = 0;
     for (const row of loadLsuicLeadersRoster()) {
@@ -206,15 +206,24 @@ export async function POST(
       const match = autoMatchDelegateForRosterRow(row, indexes);
       if (!match) continue;
 
-      await prisma.confLsuicLeaderLink.create({
-        data: {
-          confId,
-          rosterKey,
-          delegateId: match.id,
-          userId: match.userId,
-          linkSource: "AUTO_NAME",
-        },
-      });
+      try {
+        await prisma.confLsuicLeaderLink.create({
+          data: {
+            confId,
+            rosterKey,
+            delegateId: match.id,
+            userId: match.userId,
+            linkSource: "AUTO_NAME",
+          },
+        });
+      } catch (error) {
+        if (isConfLsuicLeaderLinkTableMissing(error)) {
+          return NextResponse.json(lsuicLeaderLinkTableMissingResponse(), {
+            status: 503,
+          });
+        }
+        throw error;
+      }
       created += 1;
       existingKeys.add(rosterKey);
     }

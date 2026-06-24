@@ -8,6 +8,7 @@ import {
 } from "@/lib/conf/delegate-document-urls";
 import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
 import { buildBookletRosterMembers } from "@/lib/conf/build-booklet-roster";
+import { findLsuicLeaderLinks } from "@/lib/conf/lsuic-leader-links";
 
 function normalizePosition(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -115,15 +116,7 @@ export async function GET(
         select: { userId: true },
       }),
 
-      prisma.confLsuicLeaderLink.findMany({
-        where: { confId },
-        select: {
-          rosterKey: true,
-          delegateId: true,
-          userId: true,
-          linkSource: true,
-        },
-      }),
+      findLsuicLeaderLinks(confId),
 
       prisma.confMeeting.findMany({
         where: { confId },

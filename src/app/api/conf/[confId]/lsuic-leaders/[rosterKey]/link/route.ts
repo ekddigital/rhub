@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import {
+  isConfLsuicLeaderLinkTableMissing,
+  lsuicLeaderLinkTableMissingResponse,
+} from "@/lib/conf/lsuic-leader-links";
 
 // PATCH /api/conf/[confId]/lsuic-leaders/[rosterKey]/link
 export async function PATCH(
@@ -64,6 +68,11 @@ export async function PATCH(
 
     return NextResponse.json({ link });
   } catch (error) {
+    if (isConfLsuicLeaderLinkTableMissing(error)) {
+      return NextResponse.json(lsuicLeaderLinkTableMissingResponse(), {
+        status: 503,
+      });
+    }
     console.error("PATCH /lsuic-leaders link error:", error);
     return NextResponse.json(
       { error: "Failed to update LSUIC leader link" },
