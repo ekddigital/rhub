@@ -1,21 +1,19 @@
 import { BOOKLET_A4, C } from "./constants";
-import type { BookletTocSectionRow } from "./booklet-section-pages";
+import type { TocRenderableEntry } from "./booklet-section-pages";
 import { PageHeader } from "./PageHeader";
 import { PageFooter } from "./PageFooter";
 
 export function TableOfContentsPage({
   tocPageNum,
-  hasCover,
-  hasBackCover,
-  sectionRows,
+  showHeading,
+  entries,
   confName,
   confYear,
   totalPages,
 }: {
   tocPageNum: number;
-  hasCover: boolean;
-  hasBackCover: boolean;
-  sectionRows: BookletTocSectionRow[];
+  showHeading: boolean;
+  entries: TocRenderableEntry[];
   confName: string;
   confYear: number;
   totalPages: number;
@@ -39,67 +37,114 @@ export function TableOfContentsPage({
         pageNum={tocPageNum}
       />
 
-      <div style={{ flex: 1, padding: "28px 40px 20px" }}>
-        {/* Heading */}
-        <div style={{ marginBottom: "24px" }}>
-          <div
-            style={{
-              fontSize: "22px",
-              fontWeight: 800,
-              color: C.blue,
-              marginBottom: "6px",
-            }}
-          >
-            Table of Contents
-          </div>
-          <div
-            style={{
-              height: "3px",
-              width: "60px",
-              background: `linear-gradient(90deg, ${C.red}, ${C.blue})`,
-              borderRadius: "2px",
-            }}
-          />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-          {hasCover && (
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          padding: "28px 40px 20px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {showHeading && (
+          <div style={{ marginBottom: "24px", flexShrink: 0 }}>
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "9px 12px",
-                borderRadius: "6px",
-                background: C.lightBlue,
-                marginBottom: "4px",
+                fontSize: "22px",
+                fontWeight: 800,
+                color: C.blue,
+                marginBottom: "6px",
               }}
             >
-              <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
-                Cover Page
-              </div>
-              <PageRangeBadge startPage={1} pageSpan={1} highlighted />
+              Table of Contents
             </div>
-          )}
+            <div
+              style={{
+                height: "3px",
+                width: "60px",
+                background: `linear-gradient(90deg, ${C.red}, ${C.blue})`,
+                borderRadius: "2px",
+              }}
+            />
+          </div>
+        )}
 
-          {sectionRows.map(({ section: s, startPage, pageSpan }) => {
-            const isKey =
-              s.type === "LEADER" ||
-              s.type === "NEC" ||
-              s.type === "CHAIRMAN_ADDRESS" ||
-              s.type === "PRESIDENT_ADDRESS";
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {entries.map((entry, idx) => {
+            if (entry.kind === "cover") {
+              return (
+                <div
+                  key={`cover-${idx}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    background: C.lightBlue,
+                    marginBottom: "4px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}
+                  >
+                    Cover Page
+                  </div>
+                  <PageRangeBadge startPage={1} pageSpan={1} highlighted />
+                </div>
+              );
+            }
+
+            if (entry.kind === "back_cover") {
+              return (
+                <div
+                  key={`back-${idx}`}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "9px 12px",
+                    borderRadius: "6px",
+                    background: C.lightBlue,
+                    marginTop: "6px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}
+                  >
+                    Back Cover
+                  </div>
+                  <PageRangeBadge
+                    startPage={entry.page}
+                    pageSpan={1}
+                    highlighted={false}
+                  />
+                </div>
+              );
+            }
 
             return (
               <div
-                key={s.id}
+                key={entry.sectionId}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "9px 12px",
                   borderRadius: "6px",
-                  background: isKey ? `${C.blue}08` : "transparent",
+                  background: entry.isKey ? `${C.blue}08` : "transparent",
                   borderBottom: `1px solid ${C.border}50`,
+                  flexShrink: 0,
                 }}
               >
                 <div
@@ -110,7 +155,7 @@ export function TableOfContentsPage({
                       width: "6px",
                       height: "6px",
                       borderRadius: "50%",
-                      background: isKey ? C.red : C.border,
+                      background: entry.isKey ? C.red : C.border,
                       flexShrink: 0,
                     }}
                   />
@@ -118,15 +163,15 @@ export function TableOfContentsPage({
                     <div
                       style={{
                         fontSize: "11px",
-                        fontWeight: isKey ? 700 : 500,
-                        color: isKey ? C.blue : C.text,
+                        fontWeight: entry.isKey ? 700 : 500,
+                        color: entry.isKey ? C.blue : C.text,
                       }}
                     >
-                      {s.title}
+                      {entry.title}
                     </div>
-                    {s.subtitle && (
+                    {entry.subtitle && (
                       <div style={{ fontSize: "9px", color: C.muted }}>
-                        {s.subtitle}
+                        {entry.subtitle}
                       </div>
                     )}
                   </div>
@@ -144,37 +189,14 @@ export function TableOfContentsPage({
                     }}
                   />
                   <PageRangeBadge
-                    startPage={startPage}
-                    pageSpan={pageSpan}
-                    highlighted={isKey}
+                    startPage={entry.startPage}
+                    pageSpan={entry.pageSpan}
+                    highlighted={entry.isKey}
                   />
                 </div>
               </div>
             );
           })}
-
-          {hasBackCover && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "9px 12px",
-                borderRadius: "6px",
-                background: C.lightBlue,
-                marginTop: "6px",
-              }}
-            >
-              <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
-                Back Cover
-              </div>
-              <PageRangeBadge
-                startPage={totalPages}
-                pageSpan={1}
-                highlighted={false}
-              />
-            </div>
-          )}
         </div>
       </div>
 

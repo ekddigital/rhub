@@ -1,8 +1,11 @@
-import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
+import {
+  committeeSectionPageCountFromMembers,
+  paginateTocEntries,
+  tocPageCount,
+  type TocRenderableEntry,
+} from "./booklet-pagination";
 import { DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 import type { BookletData, BookletSection } from "./types";
-
-const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
 
 function normalizeName(name: string): string {
   return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -60,14 +63,11 @@ function committeeSectionPageCount(
   data: BookletData,
 ): number {
   const relevant = sectionMembersForPageCount(s, data);
-  const isMainConferenceCommittee =
-    s.type === "COMMITTEE" && !s.committeeScope?.trim();
-  if (s.type === "NEC" && relevant.length <= 10) return 1;
-  if (isMainConferenceCommittee && relevant.length <= 7) return 1;
-  const generalCount = relevant.filter(
-    (m) => !KEY_ROLES.includes(m.role),
-  ).length;
-  return 1 + Math.ceil(generalCount / 9);
+  return committeeSectionPageCountFromMembers(
+    s,
+    relevant,
+    s.type === "NEC",
+  );
 }
 
 /** Pages consumed by one enabled booklet section (matches render order). */
@@ -92,14 +92,17 @@ export function bookletBodyPageCount(
   return enabledSections.reduce((sum, s) => sum + sectionPageSpan(s, data), 0);
 }
 
-/** TOC sits immediately after optional cover. */
+/** First TOC page number (immediately after optional cover). */
 export function getTocPageNum(hasCover: boolean): number {
   return (hasCover ? 1 : 0) + 1;
 }
 
-/** First interior content page after TOC. */
-export function getFirstBodyPageNum(hasCover: boolean): number {
-  return (hasCover ? 1 : 0) + 2;
+/** First interior content page after all TOC pages. */
+export function getFirstBodyPageNum(
+  hasCover: boolean,
+  tocPages: number,
+): number {
+  return getTocPageNum(hasCover) + tocPages;
 }
 
 export type BookletTocSectionRow = {
@@ -108,12 +111,47 @@ export type BookletTocSectionRow = {
   pageSpan: number;
 };
 
+export function buildTocRenderableEntries(
+  sectionRows: BookletTocSectionRow[],
+  hasCover: boolean,
+  hasBackCover: boolean,
+  totalPages: number,
+): TocRenderableEntry[] {
+  const entries: TocRenderableEntry[] = [];
+  if (hasCover) entries.push({ kind: "cover" });
+
+  for (const { section, startPage, pageSpan } of sectionRows) {
+    const isKey =
+      section.type === "LEADER" ||
+      section.type === "NEC" ||
+      section.type === "CHAIRMAN_ADDRESS" ||
+      section.type === "PRESIDENT_ADDRESS";
+
+    entries.push({
+      kind: "section",
+      sectionId: section.id,
+      title: section.title,
+      subtitle: section.subtitle,
+      isKey,
+      startPage,
+      pageSpan,
+    });
+  }
+
+  if (hasBackCover) {
+    entries.push({ kind: "back_cover", page: totalPages });
+  }
+
+  return entries;
+}
+
 export function computeSectionTocRows(
   enabledSections: BookletSection[],
   data: BookletData,
   hasCover: boolean,
+  tocPages: number,
 ): BookletTocSectionRow[] {
-  let rp = getFirstBodyPageNum(hasCover);
+  let rp = getFirstBodyPageNum(hasCover, tocPages);
   return enabledSections.map((section) => {
     const pageSpan = sectionPageSpan(section, data);
     const row: BookletTocSectionRow = { section, startPage: rp, pageSpan };
@@ -121,3 +159,50 @@ export function computeSectionTocRows(
     return row;
   });
 }
+
+/** Resolve TOC page count (iterates once — body start pages depend on TOC length). */
+export function resolveBookletTocPages(
+  enabledSections: BookletSection[],
+  data: BookletData,
+  hasCover: boolean,
+  hasBackCover: boolean,
+  bodyPageCount: number,
+): number {
+  const provisionalTotal =
+    (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
+
+  let sectionRows = computeSectionTocRows(
+    enabledSections,
+    data,
+    hasCover,
+    1,
+  );
+  let entries = buildTocRenderableEntries(
+    sectionRows,
+    hasCover,
+    hasBackCover,
+    provisionalTotal,
+  );
+  let pages = tocPageCount(entries);
+
+  if (pages <= 1) return pages;
+
+  const finalTotal =
+    (hasCover ? 1 : 0) + pages + bodyPageCount + (hasBackCover ? 1 : 0);
+  sectionRows = computeSectionTocRows(
+    enabledSections,
+    data,
+    hasCover,
+    pages,
+  );
+  entries = buildTocRenderableEntries(
+    sectionRows,
+    hasCover,
+    hasBackCover,
+    finalTotal,
+  );
+  const adjusted = tocPageCount(entries);
+  return adjusted;
+}
+
+export { paginateTocEntries, type TocRenderableEntry };

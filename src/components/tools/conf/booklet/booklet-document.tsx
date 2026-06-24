@@ -3,9 +3,13 @@ import { C } from "./constants";
 import type { BookletData, BookletSection } from "./types";
 import {
   bookletBodyPageCount,
+  buildTocRenderableEntries,
   chunkDelegates,
   computeSectionTocRows,
+  getFirstBodyPageNum,
   getTocPageNum,
+  paginateTocEntries,
+  resolveBookletTocPages,
   sectionPageSpan,
 } from "./booklet-section-pages";
 import { CoverPage } from "./CoverPage";
@@ -25,6 +29,8 @@ export type BookletLayout = {
   totalPages: number;
   tocSectionRows: ReturnType<typeof computeSectionTocRows>;
   tocPageNum: number;
+  tocPageCount: number;
+  tocEntryPages: ReturnType<typeof paginateTocEntries>;
 };
 
 export function computeBookletLayout(data: BookletData): BookletLayout {
@@ -46,14 +52,30 @@ export function computeBookletLayout(data: BookletData): BookletLayout {
   );
 
   const bodyPageCount = bookletBodyPageCount(enabledSections, data);
+  const tocPageCount = resolveBookletTocPages(
+    enabledSections,
+    data,
+    hasCover,
+    hasBackCover,
+    bodyPageCount,
+  );
   const tocSectionRows = computeSectionTocRows(
     enabledSections,
     data,
     hasCover,
+    tocPageCount,
   );
   const tocPageNum = getTocPageNum(hasCover);
   const totalPages =
-    (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
+    (hasCover ? 1 : 0) + tocPageCount + bodyPageCount + (hasBackCover ? 1 : 0);
+  const tocEntryPages = paginateTocEntries(
+    buildTocRenderableEntries(
+      tocSectionRows,
+      hasCover,
+      hasBackCover,
+      totalPages,
+    ),
+  );
 
   return {
     enabledSections,
@@ -62,6 +84,8 @@ export function computeBookletLayout(data: BookletData): BookletLayout {
     totalPages,
     tocSectionRows,
     tocPageNum,
+    tocPageCount,
+    tocEntryPages,
   };
 }
 
@@ -225,8 +249,9 @@ export function BookletDocument({
     hasCover,
     hasBackCover,
     totalPages,
-    tocSectionRows,
     tocPageNum,
+    tocPageCount,
+    tocEntryPages,
   } = layout;
 
   const sectionNodes = enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
@@ -238,7 +263,7 @@ export function BookletDocument({
         rp: rp + delta,
       };
     },
-    { nodes: [], rp: (hasCover ? 1 : 0) + 2 },
+    { nodes: [], rp: getFirstBodyPageNum(hasCover, tocPageCount) },
   ).nodes;
 
   return (
@@ -258,15 +283,17 @@ export function BookletDocument({
         />
       )}
 
-      <TableOfContentsPage
-        tocPageNum={tocPageNum}
-        hasCover={hasCover}
-        hasBackCover={hasBackCover}
-        sectionRows={tocSectionRows}
-        confName={data.event.name}
-        confYear={data.event.year}
-        totalPages={totalPages}
-      />
+      {tocEntryPages.map((entryPage, idx) => (
+        <TableOfContentsPage
+          key={`toc-${idx}`}
+          tocPageNum={tocPageNum + idx}
+          showHeading={idx === 0}
+          entries={entryPage}
+          confName={data.event.name}
+          confYear={data.event.year}
+          totalPages={totalPages}
+        />
+      ))}
 
       {sectionNodes}
 

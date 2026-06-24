@@ -6,9 +6,16 @@ import {
   ProfileContactDetails,
   ProfileDelegateCodeBadge,
 } from "./ProfileContactDetails";
+import { paginateCommitteeSection } from "./booklet-pagination";
 import type { BookletSection, NecMember } from "./types";
 
-const KEY_ORDER = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
+const KEY_ORDER = [
+  "CHAIR",
+  "VICE_CHAIR",
+  "SECRETARY",
+  "FINANCIAL_SECRETARY",
+  "TREASURER",
+];
 
 function chairBadgeLabel(chair: NecMember, isNec?: boolean): string {
   if (isNec) return "National President";
@@ -16,7 +23,6 @@ function chairBadgeLabel(chair: NecMember, isNec?: boolean): string {
   return preferred || "Conference Chair";
 }
 
-// ─── Section header used on both pages ────────────────────────────────────────
 function SectionHeading({ section }: { section: BookletSection }) {
   return (
     <div style={{ marginBottom: "20px" }}>
@@ -71,7 +77,6 @@ function SectionHeading({ section }: { section: BookletSection }) {
   );
 }
 
-// ─── Chair hero card (full-width, compact for NEC sections) ──────────────────────────────────
 function ChairHeroCard({
   chair,
   isNec,
@@ -97,7 +102,6 @@ function ChairHeroCard({
         boxShadow: "0 4px 18px rgba(0,40,104,0.18)",
       }}
     >
-      {/* Large portrait avatar */}
       <div style={{ flexShrink: 0 }}>
         {chair.photoPath ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -139,9 +143,7 @@ function ChairHeroCard({
         )}
       </div>
 
-      {/* Info block */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Gold "Chairman" badge */}
         <div
           style={{
             display: "inline-flex",
@@ -161,7 +163,6 @@ function ChairHeroCard({
           ★ {chairBadgeLabel(chair, isNec)}
         </div>
 
-        {/* Name */}
         <div
           style={{
             fontSize: isNec ? "18px" : "20px",
@@ -174,14 +175,13 @@ function ChairHeroCard({
           {chair.name}
         </div>
 
-        {/* Title */}
         {title && (
           <div
             style={{
               fontSize: isNec ? "12px" : "11px",
               fontWeight: 700,
               color: `${C.white}B0`,
-              marginBottom: isNec ? "8px" : "8px",
+              marginBottom: "8px",
               letterSpacing: "0.03em",
             }}
           >
@@ -189,7 +189,6 @@ function ChairHeroCard({
           </div>
         )}
 
-        {/* City / phone / university / code — full-width stack */}
         <div style={{ marginBottom: isNec ? "8px" : "6px" }}>
           <ProfileContactDetails
             member={chair}
@@ -204,7 +203,6 @@ function ChairHeroCard({
           />
         </div>
 
-        {/* Bio */}
         {chair.bookletBio && (
           <div
             style={{
@@ -224,7 +222,6 @@ function ChairHeroCard({
   );
 }
 
-// ─── Key officer card (Vice-Chair, Secretary, Treasurer) ──────────────────────
 function OfficerCard({
   member,
   bg,
@@ -298,7 +295,6 @@ function OfficerCard({
   );
 }
 
-// ─── General committee member card (3-col grid) ───────────────────────────────
 function MemberCard({ member }: { member: NecMember }) {
   return (
     <div
@@ -362,7 +358,41 @@ function MemberCard({ member }: { member: NecMember }) {
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+function MembersSubheading({ isNec }: { isNec: boolean }) {
+  return (
+    <div
+      style={{
+        fontSize: "12px",
+        fontWeight: 700,
+        color: C.blue,
+        textTransform: "uppercase",
+        letterSpacing: "0.12em",
+        marginBottom: "20px",
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+      }}
+    >
+      <div
+        style={{
+          width: "4px",
+          height: "18px",
+          borderRadius: "2px",
+          background: `linear-gradient(${C.blue}, ${C.red})`,
+        }}
+      />
+      {isNec ? "NEC Board Members" : "Committee Members"}
+    </div>
+  );
+}
+
+const officerColors: Record<string, { bg: string; text: string }> = {
+  VICE_CHAIR: { bg: `${C.red}12`, text: C.red },
+  SECRETARY: { bg: `${C.blue}0E`, text: C.blue },
+  FINANCIAL_SECRETARY: { bg: `${C.gold}18`, text: C.blue },
+  TREASURER: { bg: `${C.blue}0E`, text: C.blue },
+};
+
 export function CommitteeSection({
   section,
   members,
@@ -382,7 +412,6 @@ export function CommitteeSection({
   const isMainConferenceCommittee =
     section.type === "COMMITTEE" && !section.committeeScope?.trim();
 
-  // Filter by scope if defined
   const filtered = section.committeeScope
     ? members.filter(
         (m) =>
@@ -392,16 +421,6 @@ export function CommitteeSection({
     : isMainConferenceCommittee
       ? members.filter((m) => m.committeeScope === null)
       : members;
-
-  const chair = filtered.find((m) => m.role === "CHAIR");
-  const keyOfficers = KEY_ORDER.slice(1).flatMap((r) =>
-    filtered.filter((m) => m.role === r),
-  );
-  const generalMembers = filtered.filter((m) => !KEY_ORDER.includes(m.role));
-  const generalMemberChunks: NecMember[][] = [];
-  for (let i = 0; i < generalMembers.length; i += 9) {
-    generalMemberChunks.push(generalMembers.slice(i, i + 9));
-  }
 
   if (filtered.length === 0) {
     return (
@@ -430,184 +449,84 @@ export function CommitteeSection({
     );
   }
 
-  const officerColors: Record<string, { bg: string; text: string }> = {
-    VICE_CHAIR: { bg: `${C.red}12`, text: C.red },
-    SECRETARY: { bg: `${C.blue}0E`, text: C.blue },
-    FINANCIAL_SECRETARY: { bg: `${C.gold}18`, text: C.blue },
-    TREASURER: { bg: `${C.blue}0E`, text: C.blue },
-  };
+  const pages = paginateCommitteeSection(section, filtered, isNecSection);
 
-  // Keep a one-page dense layout only when committee size is manageable.
-  if (
-    (isNecSection && filtered.length <= 10) ||
-    (isMainConferenceCommittee && filtered.length <= 7)
-  ) {
-    return (
-      <A4Page
-        pageNum={startPageNum}
-        totalPages={totalPages}
-        sectionLabel={section.title}
-        confName={confName}
-        confYear={confYear}
-      >
-        <SectionHeading section={section} />
-
-        {chair ? (
-          <ChairHeroCard chair={chair} isNec={isNecSection} />
-        ) : (
-          <div
-            style={{
-              padding: "24px",
-              textAlign: "center",
-              border: `2px dashed ${C.border}`,
-              borderRadius: "10px",
-              color: C.muted,
-              fontSize: "11px",
-              marginBottom: "12px",
-            }}
-          >
-            {isNecSection
-              ? "NEC board lead not yet assigned."
-              : "Conference committee lead not yet assigned."}
-          </div>
-        )}
-
-        {/* Keep all officers and members on one compact page */}
-        {(keyOfficers.length > 0 || generalMembers.length > 0) && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "9px",
-            }}
-          >
-            {keyOfficers.map((m) => {
-              const colors = officerColors[m.role] ?? {
-                bg: C.lightBlue,
-                text: C.blue,
-              };
-              return (
-                <OfficerCard
-                  key={m.id}
-                  member={m}
-                  bg={colors.bg}
-                  textColor={colors.text}
-                />
-              );
-            })}
-            {generalMembers.map((m) => (
-              <MemberCard key={m.id} member={m} />
-            ))}
-          </div>
-        )}
-      </A4Page>
-    );
-  }
-
-  // For non-NEC or larger committees: use multi-page layout
   return (
     <>
-      {/* ── PAGE 1: Chair hero + key officers ── */}
-      <A4Page
-        pageNum={startPageNum}
-        totalPages={totalPages}
-        sectionLabel={section.title}
-        confName={confName}
-        confYear={confYear}
-      >
-        <SectionHeading section={section} />
-
-        {chair ? (
-          <ChairHeroCard chair={chair} isNec={false} />
-        ) : (
-          <div
-            style={{
-              padding: "24px",
-              textAlign: "center",
-              border: `2px dashed ${C.border}`,
-              borderRadius: "10px",
-              color: C.muted,
-              fontSize: "11px",
-              marginBottom: "18px",
-            }}
-          >
-            {isNecSection
-              ? "NEC board lead not yet assigned."
-              : "Conference Chair not yet assigned."}
-          </div>
-        )}
-
-        {keyOfficers.length > 0 && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "12px",
-            }}
-          >
-            {keyOfficers.map((m) => {
-              const colors = officerColors[m.role] ?? {
-                bg: C.lightBlue,
-                text: C.blue,
-              };
-              return (
-                <OfficerCard
-                  key={m.id}
-                  member={m}
-                  bg={colors.bg}
-                  textColor={colors.text}
-                />
-              );
-            })}
-          </div>
-        )}
-      </A4Page>
-
-      {/* ── PAGE 2+: General committee members (paginated in chunks) ── */}
-      {generalMemberChunks.map((membersChunk, chunkIndex) => (
+      {pages.map((page, pageIndex) => (
         <A4Page
-          key={`general-page-${chunkIndex}`}
-          pageNum={startPageNum + 1 + chunkIndex}
+          key={`${section.id}-page-${pageIndex}`}
+          pageNum={startPageNum + pageIndex}
           totalPages={totalPages}
           sectionLabel={section.title}
           confName={confName}
           confYear={confYear}
         >
-          <div
-            style={{
-              fontSize: "12px",
-              fontWeight: 700,
-              color: C.blue,
-              textTransform: "uppercase",
-              letterSpacing: "0.12em",
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
+          {page.showSectionHeading && <SectionHeading section={section} />}
+
+          {page.chair ? (
+            <ChairHeroCard chair={page.chair} isNec={isNecSection} />
+          ) : page.showSectionHeading && pageIndex === 0 ? (
             <div
               style={{
-                width: "4px",
-                height: "18px",
-                borderRadius: "2px",
-                background: `linear-gradient(${C.blue}, ${C.red})`,
+                padding: "24px",
+                textAlign: "center",
+                border: `2px dashed ${C.border}`,
+                borderRadius: "10px",
+                color: C.muted,
+                fontSize: "11px",
+                marginBottom: "18px",
               }}
-            />
-            {isNecSection ? "NEC Board Members" : "Committee Members"}
-          </div>
+            >
+              {isNecSection
+                ? "NEC board lead not yet assigned."
+                : "Conference Chair not yet assigned."}
+            </div>
+          ) : null}
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: "14px",
-            }}
-          >
-            {membersChunk.map((m) => (
-              <MemberCard key={m.id} member={m} />
-            ))}
-          </div>
+          {page.officers.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "12px",
+                marginBottom: page.members.length > 0 ? "12px" : 0,
+              }}
+            >
+              {page.officers.map((m) => {
+                const colors = officerColors[m.role] ?? {
+                  bg: C.lightBlue,
+                  text: C.blue,
+                };
+                return (
+                  <OfficerCard
+                    key={m.id}
+                    member={m}
+                    bg={colors.bg}
+                    textColor={colors.text}
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {page.showMembersHeading && (
+            <MembersSubheading isNec={isNecSection} />
+          )}
+
+          {page.members.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "12px",
+              }}
+            >
+              {page.members.map((m) => (
+                <MemberCard key={m.id} member={m} />
+              ))}
+            </div>
+          )}
         </A4Page>
       ))}
     </>
