@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ASSETS, C } from "./constants";
-import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
+import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
 import { A4Page } from "./A4Page";
 import type { BookletSection, LeaderProfile } from "./types";
 
@@ -281,7 +281,11 @@ export function LeaderSection({
   startPageNum: number;
   totalPages: number;
 }) {
-  const rosterLeaders = dedupeLeaderProfilesForConference(leaders, conferenceId);
+  const rosterLeaders = resolveLeadersForBookletSection(
+    section.title,
+    leaders,
+    conferenceId,
+  );
 
   if (rosterLeaders.length === 0) {
     // Empty state — single page placeholder

@@ -1,12 +1,8 @@
-import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
+import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
 import { DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 import type { BookletData, BookletSection } from "./types";
 
 const KEY_ROLES = ["CHAIR", "VICE_CHAIR", "SECRETARY", "FINANCIAL_SECRETARY", "TREASURER"];
-
-function bookletLeadersDeduped(data: BookletData) {
-  return dedupeLeaderProfilesForConference(data.leaders, data.event.id);
-}
 
 function normalizeName(name: string): string {
   return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -42,7 +38,7 @@ function sectionMembersForPageCount(
   if (s.type === "NEC") return data.necMembers;
   if (s.type === "CITY_PRESIDENTS") {
     const leaderNames = new Set(
-      bookletLeadersDeduped(data).map((l) => normalizeName(l.name)),
+      data.leaders.map((l) => normalizeName(l.name)),
     );
     return data.committeeMembers.filter(
       (m) => !leaderNames.has(normalizeName(m.name)),
@@ -52,6 +48,9 @@ function sectionMembersForPageCount(
     return data.committeeMembers.filter(
       (m) => m.committeeScope === s.committeeScope,
     );
+  }
+  if (s.type === "COMMITTEE") {
+    return data.committeeMembers.filter((m) => m.committeeScope === null);
   }
   return data.committeeMembers;
 }
@@ -76,8 +75,7 @@ export function sectionPageSpan(
   s: BookletSection,
   data: BookletData,
 ): number {
-  if (s.type === "LEADER")
-    return Math.max(1, bookletLeadersDeduped(data).length);
+  if (s.type === "LEADER") return 1;
   if (s.type === "NEC") return committeeSectionPageCount(s, data);
   if (isCommitteeBookletSection(s.type)) {
     return committeeSectionPageCount(s, data);

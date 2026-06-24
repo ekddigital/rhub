@@ -7,250 +7,13 @@ import {
   resolveMemberPhotoForClient,
 } from "@/lib/conf/delegate-document-urls";
 import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
-
-// Official NEC roster from conference letterhead / directives.
-// This remains distinct from Conference Committee members (ConfMember).
-const DEFAULT_NEC_BOARD = [
-  {
-    name: "Olano Teah Bloh",
-    title: "National President",
-    role: "CHAIR",
-    city: "Nanjing",
-    province: "Jiangsu",
-    phone: "18351981723",
-  },
-  {
-    name: "Ruphine M. Harmon",
-    title: "National Vice President",
-    role: "VICE_CHAIR",
-    city: "Jinan",
-    province: "Shandong",
-    phone: "18651615822",
-  },
-  {
-    name: "C. Nathaniel Willie II",
-    title: "National Secretary General",
-    role: "SECRETARY",
-    city: "Chengdu",
-    province: "Sichuan",
-    phone: "18581578335",
-  },
-  {
-    name: "Jenkins G. Wilson",
-    title: "Acting National Deputy Secretary General",
-    role: "COMMITTEE",
-    city: "Xuzhou",
-    province: "Jiangsu",
-    phone: "18556169627",
-  },
-  {
-    name: "Noah D. Mason",
-    title: "National Financial Secretary General",
-    role: "FINANCIAL_SECRETARY",
-    city: "Ningbo",
-    province: "Zhejiang",
-    phone: "19825661023",
-  },
-  {
-    name: "Jenneh Bonah",
-    title: "National Treasurer",
-    role: "TREASURER",
-    city: "Jinan",
-    province: "Shandong",
-    phone: "18906417225",
-  },
-  {
-    name: "Mitchell Vampelt",
-    title: "National Chaplain General",
-    role: "COMMITTEE",
-    city: "Suzhou",
-    province: "Jiangsu",
-    phone: "15601544001",
-  },
-] as const;
-
-// Official conference committee roster from appointment letter.
-// Used as fallback when members have not linked a delegate profile yet.
-const DEFAULT_COMMITTEE_ROSTER = [
-  {
-    name: "Enoch Kwateh Dongbo",
-    title: "General Chairman",
-    city: "Jinan",
-    province: "Shandong",
-    university: "University of Jinan",
-    phone: "18506832159",
-  },
-  {
-    name: "Alfreda Ruth Togbah",
-    title: "General Co-Chair",
-    city: "Suzhou",
-    province: "Jiangsu",
-    university: "Suzhou Uni. of Sci & Tech",
-    phone: "13915437321",
-  },
-  {
-    name: "Harris M Bowulo",
-    title: "General Secretary",
-    city: "Beijing",
-    province: "Beijing",
-    university: "North China Uni. of Tech",
-    phone: "18514556295",
-  },
-  {
-    name: "Abdul Corneh",
-    title: "PRO & Media",
-    city: "Zhengzhou",
-    province: "Henan",
-    university: "North China Uni.",
-    phone: "15638483183",
-  },
-  {
-    name: "Kukor Brooks",
-    title: "Cooking Team Chair",
-    city: "Jinan",
-    province: "Shandong",
-    university: "Shandong Jianzhu Uni.",
-    phone: "15376176715",
-  },
-  {
-    name: "Jefferson T Banquando",
-    title: "Chair on Sports",
-    city: "Suzhou",
-    province: "Jiangsu",
-    university: "Suzhou Uni. Sci & Tech",
-    phone: "18662966349",
-  },
-  {
-    name: "Lisa Y Synyenlentu",
-    title: "Member, Cooking Team",
-    city: "Qingdao",
-    province: "Shandong",
-    university: "Ocean Uni. of China",
-    phone: "17863971479",
-  },
-  {
-    name: "Blessing Hawa Washington",
-    title: "Member, Cooking Team",
-    city: "Nantong",
-    province: "Jiangsu",
-    university: "Nantong University",
-    phone: "19850012998",
-  },
-  {
-    name: "Robert D. Molley",
-    title: "Chair on Logistics",
-    city: "Qufu",
-    province: "Shandong",
-    university: "Jining University",
-    phone: "18853752989",
-  },
-  {
-    name: "Priscilla Bamu Dweh",
-    title: "Member, Cooking Team",
-    city: "Suzhou",
-    province: "Jiangsu",
-    university: "Suzhou Uni. of Sci & Tech",
-    phone: "13291194526",
-  },
-  {
-    name: "Williamena Yah Munyenneh",
-    title: "Member, Cooking Team",
-    city: "Suzhou",
-    province: "Jiangsu",
-    university: "Suzhou Uni. of Sci & Tech",
-    phone: "16606212125",
-  },
-] as const;
-
-function normalizeName(value: string | null | undefined): string {
-  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
-}
+import { buildBookletRosterMembers } from "@/lib/conf/build-booklet-roster";
 
 function normalizePosition(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-function inferRoleFromTitle(title: string): "CHAIR" | "VICE_CHAIR" | "SECRETARY" | "COMMITTEE" {
-  const normalized = normalizePosition(title);
-  if (normalized.includes("general chairman")) return "CHAIR";
-  if (normalized.includes("co-chair") || normalized.includes("vice")) {
-    return "VICE_CHAIR";
-  }
-  if (normalized.includes("secretary")) return "SECRETARY";
-  return "COMMITTEE";
-}
-
-function inferScopeFromTitle(title: string): string | null {
-  const normalized = normalizePosition(title);
-  if (normalized.includes("cooking")) return "Cooking";
-  if (normalized.includes("sports")) return "Sports";
-  if (normalized.includes("logistics")) return "Logistics";
-  if (normalized.includes("media") || normalized.includes("publicity")) {
-    return "Media";
-  }
-  if (normalized.includes("fundraising")) return "Fundraising";
-  if (normalized.includes("decoration")) return "Decoration";
-  return null;
-}
-
-const COMMITTEE_ALIAS_TO_CANONICAL: Array<[string, string]> = [
-  ["Lisa Y SET", "Lisa Y Synyenlentu"],
-  ["Robert D Molley", "Robert D. Molley"],
-  ["Williama Yah Munyenneh", "Williamena Yah Munyenneh"],
-  ["Williamena Yah SENET", "Williamena Yah Munyenneh"],
-  ["Willimena Y. Munyenneh", "Williamena Yah Munyenneh"],
-  ["Willimena Yah Munyenneh", "Williamena Yah Munyenneh"],
-  ["Williamena Yah MUNYENEH", "Williamena Yah Munyenneh"],
-];
-
-const COMMITTEE_ROSTER_LOOKUP = (() => {
-  const lookup = new Map<string, (typeof DEFAULT_COMMITTEE_ROSTER)[number]>();
-  for (const entry of DEFAULT_COMMITTEE_ROSTER) {
-    lookup.set(normalizeName(entry.name), entry);
-  }
-  for (const [alias, canonical] of COMMITTEE_ALIAS_TO_CANONICAL) {
-    const canonicalEntry = lookup.get(normalizeName(canonical));
-    if (canonicalEntry) {
-      lookup.set(normalizeName(alias), canonicalEntry);
-    }
-  }
-  return lookup;
-})();
-
-function findCommitteeRosterEntry(
-  name: string,
-  title: string | null,
-): (typeof DEFAULT_COMMITTEE_ROSTER)[number] | null {
-  const byName = COMMITTEE_ROSTER_LOOKUP.get(normalizeName(name));
-  if (byName) return byName;
-
-  if (title) {
-    const byTitle = DEFAULT_COMMITTEE_ROSTER.find(
-      (entry) => normalizePosition(entry.title) === normalizePosition(title),
-    );
-    if (byTitle) return byTitle;
-  }
-
-  return null;
-}
-
 // GET /api/conf/[confId]/booklet/data
-// Returns the complete data payload needed to render a booklet preview.
-//
-// Structure:
-//   - event              — conference event details
-//   - booklet            — booklet config + ordered sections
-//   - leaders            — ConfLeaderProfile entries (heads of state, ambassador, etc.)
-//   - necMembers         — NEC board entries (from official roster), auto-linked to
-//                          delegate signup data when available
-//   - committeeMembers   — ALL active ConfMember entries for this conference
-//                          (Conference Chair + all committee members; NOT the NEC)
-//                          Each member has a `hasRegistered` flag (true if signed up as delegate)
-//   - conferenceChair    — the ConfMember with role CHAIR (Conference Chair)
-//   - membersByScope     — committeeMembers grouped by committeeScope
-//   - delegates          — ALL signed-up delegates (excluding CANCELLED)
-//   - meetings           — scheduled meetings
-//   - counts             — summary counters
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
@@ -269,6 +32,7 @@ export async function GET(
       members,
       delegates,
       registeredDelegateUserIds,
+      leaderLinks,
       meetings,
     ] = await Promise.all([
       prisma.confEvent.findUnique({
@@ -301,7 +65,6 @@ export async function GET(
         orderBy: { sortOrder: "asc" },
       }),
 
-      // Conference Committee members (all roles — CHAIR = Conference Chair)
       prisma.confMember.findMany({
         where: { confId, isActive: true },
         orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
@@ -320,7 +83,6 @@ export async function GET(
         },
       }),
 
-      // Booklet roster: all signed-up delegates (except cancelled)
       prisma.confDelegate.findMany({
         where: {
           confId,
@@ -335,6 +97,7 @@ export async function GET(
           province: true,
           city: true,
           phone: true,
+          email: true,
           conferencePosition: true,
           gender: true,
           bookletPhotoPath: true,
@@ -343,7 +106,6 @@ export async function GET(
         },
       }),
 
-      // All delegate userIds (any status) — used to mark which committee members have registered
       prisma.confDelegate.findMany({
         where: {
           confId,
@@ -351,6 +113,16 @@ export async function GET(
           status: { in: ["REGISTERED", "CONFIRMED", "ATTENDED"] },
         },
         select: { userId: true },
+      }),
+
+      prisma.confLsuicLeaderLink.findMany({
+        where: { confId },
+        select: {
+          rosterKey: true,
+          delegateId: true,
+          userId: true,
+          linkSource: true,
+        },
       }),
 
       prisma.confMeeting.findMany({
@@ -373,15 +145,12 @@ export async function GET(
       );
     }
 
-    // Resolve photo URLs.
-    // Public static files (e.g. /conf/president_boakai_Liberia.png) must be
-    // kept as relative paths — on the server the internal origin (localhost)
-    // differs from the browser's origin, so absolutising them produces URLs
-    // the browser can never reach.  Only proper asset-server paths need
-    // resolveStoredAssetUrl.
     function resolveLeaderPhoto(photoPath: string): string {
       if (photoPath.startsWith("/conf/") || photoPath.startsWith("/public/")) {
-        return photoPath; // relative — browser resolves against its own origin
+        return photoPath;
+      }
+      if (photoPath.startsWith("http://") || photoPath.startsWith("https://")) {
+        return photoPath;
       }
       return resolveStoredAssetUrl(photoPath, origin);
     }
@@ -401,53 +170,6 @@ export async function GET(
       photoPath: resolveMemberPhotoForClient(confId, m.id, m.photoPath),
     }));
 
-    const dedupedMembers = (() => {
-      const byKey = new Map<string, (typeof resolvedMembers)[number]>();
-      const score = (member: (typeof resolvedMembers)[number]) =>
-        (member.userId ? 4 : 0) +
-        (member.photoPath ? 2 : 0) +
-        (member.phone ? 1 : 0);
-
-      for (const member of resolvedMembers) {
-        const key =
-          member.userId ??
-          [
-            normalizeName(member.name),
-            member.role,
-            normalizePosition(member.title),
-            normalizePosition(member.committeeScope),
-          ].join("|");
-        const existing = byKey.get(key);
-        if (!existing || score(member) > score(existing)) {
-          byKey.set(key, member);
-        }
-      }
-      return Array.from(byKey.values());
-    })();
-
-    // Ensure committee templates appear in booklet cards even before members
-    // are fully linked/registered in the system.
-    const existingMemberNames = new Set(
-      dedupedMembers.map((m) => normalizeName(m.name)),
-    );
-    const supplementalTemplateMembers = DEFAULT_COMMITTEE_ROSTER.filter(
-      (entry) => !existingMemberNames.has(normalizeName(entry.name)),
-    ).map((entry, idx) => ({
-      id: `template-${idx + 1}`,
-      name: entry.name,
-      role: inferRoleFromTitle(entry.title),
-      city: entry.city,
-      phone: entry.phone,
-      title: entry.title,
-      committeeScope: inferScopeFromTitle(entry.title),
-      photoPath: null,
-      photoFileName: null,
-      bookletBio: null,
-      userId: null,
-    }));
-
-    const mergedMembers = [...dedupedMembers, ...supplementalTemplateMembers];
-
     const resolvedDelegates = delegates.map((d) => ({
       ...d,
       bookletPhotoPath: resolveDelegateBookletPhotoForClient(
@@ -457,55 +179,19 @@ export async function GET(
       ),
     }));
 
-    const delegateByUserId = new Map(
-      resolvedDelegates
-        .filter((d) => d.userId)
-        .map((d) => [d.userId as string, d]),
-    );
-    const delegateByName = new Map(
-      resolvedDelegates.map((d) => [normalizeName(d.name), d]),
-    );
-
-    function findLinkedDelegate(
-      userId: string | null | undefined,
-      name: string,
-    ) {
-      if (userId && delegateByUserId.has(userId)) {
-        return delegateByUserId.get(userId) ?? null;
-      }
-      return delegateByName.get(normalizeName(name)) ?? null;
-    }
-
-    // Build Set of userIds that have any delegate registration for this conference
     const signedUpUserIds = new Set(
       registeredDelegateUserIds
         .map((d) => d.userId)
         .filter(Boolean) as string[],
     );
 
-    // Conference Committee members (NOT NEC): annotate each member with linked
-    // delegate profile fields so booklet cards can show school/code/province.
-    const committeeMembers = mergedMembers.map((m) => {
-      const linked = findLinkedDelegate(m.userId, m.name);
-      const roster = findCommitteeRosterEntry(m.name, m.title);
-      return {
-        ...m,
-        name: roster?.name ?? m.name,
-        city: linked?.city ?? m.city ?? roster?.city ?? null,
-        phone: linked?.phone ?? m.phone ?? roster?.phone ?? null,
-        province: linked?.province ?? roster?.province ?? null,
-        university: linked?.university ?? roster?.university ?? null,
-        delegateCode: linked?.delegateCode ?? null,
-        conferencePosition:
-          linked?.conferencePosition ?? m.title ?? roster?.title ?? null,
-        photoPath: m.photoPath ?? linked?.bookletPhotoPath ?? null,
-        hasRegistered:
-          (m.userId !== null && signedUpUserIds.has(m.userId as string)) ||
-          Boolean(linked),
-      };
+    const { necMembers, committeeMembers } = buildBookletRosterMembers({
+      dbMembers: resolvedMembers,
+      delegates: resolvedDelegates,
+      leaderLinks,
+      signedUpUserIds,
     });
 
-    // Conference Chair is the CHAIR-role member (Enoch). NOT an NEC member.
     const conferenceChair =
       committeeMembers.find((m) => m.role === "CHAIR") ??
       committeeMembers.find((m) =>
@@ -513,37 +199,6 @@ export async function GET(
       ) ??
       null;
 
-    // NEC board: fixed roster + live overlay from delegate signups.
-    // Missing signup/photo data intentionally stays null, so UI shows placeholders.
-    const necMembers = DEFAULT_NEC_BOARD.map((entry, idx) => {
-      const byPosition = resolvedDelegates.find(
-        (d) =>
-          normalizePosition(d.conferencePosition) ===
-          normalizePosition(entry.title),
-      );
-      const byName = delegateByName.get(normalizeName(entry.name)) ?? null;
-      const linked = byPosition ?? byName;
-
-      return {
-        id: `nec-${idx + 1}`,
-        name: linked?.name ?? entry.name,
-        role: entry.role,
-        title: entry.title,
-        city: linked?.city ?? entry.city,
-        province: linked?.province ?? entry.province,
-        phone: linked?.phone ?? entry.phone,
-        committeeScope: "NEC",
-        photoPath: linked?.bookletPhotoPath ?? null,
-        bookletBio: null,
-        userId: linked?.userId ?? null,
-        university: linked?.university ?? null,
-        delegateCode: linked?.delegateCode ?? null,
-        conferencePosition: linked?.conferencePosition ?? entry.title,
-        hasRegistered: Boolean(linked),
-      };
-    });
-
-    // Group all (unfiltered) members by committeeScope for section rendering
     const membersByScope: Record<string, typeof committeeMembers> = {};
     for (const member of committeeMembers) {
       const scope = member.committeeScope ?? "_unassigned";
@@ -563,11 +218,12 @@ export async function GET(
       meetings,
       counts: {
         totalDelegates: resolvedDelegates.length,
-        totalMembers: dedupedMembers.length + necMembers.length,
+        totalMembers: necMembers.length + committeeMembers.length,
         sectionsEnabled:
           booklet?.sections.filter((s) => s.isEnabled).length ?? 0,
         sectionsTotal: booklet?.sections.length ?? 0,
         leadersStored: dedupedLeaders.length,
+        rosterLeadersTotal: necMembers.length + committeeMembers.length,
       },
     });
   } catch (error) {

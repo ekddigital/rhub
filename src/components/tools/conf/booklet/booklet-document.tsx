@@ -169,7 +169,9 @@ function renderSection(
           members={
             section.type === "CITY_PRESIDENTS"
               ? filteredCommitteeForCityPresidents
-              : committeeMembers
+              : section.type === "COMMITTEE" && !section.committeeScope?.trim()
+                ? committeeMembers.filter((m) => m.committeeScope === null)
+                : committeeMembers
           }
           startPageNum={startPageNum}
           totalPages={totalPages}

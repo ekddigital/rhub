@@ -11,10 +11,23 @@ const DEFAULT_ABBREVIATIONS_BODY = [
   "PPC — Planning & Program Committee",
   "PPA — Press & Public Affairs",
   "AEC — Academic Excellence Committee",
-  "WMF — Ways, Means & Finance Committee",
+  "CRC — Constitution Review Committee",
+  "IEC — Independent Elections Commission",
+  "WC — Welfare Committee",
+  "AC — Audit Committee",
   "GS — Guest Speaker",
   "LSUIC — Liberian Student Union in China",
 ].join("\n");
+
+const SCOPED_COMMITTEE_SECTIONS = [
+  { type: "COMMITTEE", title: "Program and Planning Committee", subtitle: "PPC", committeeScope: "PPC" },
+  { type: "COMMITTEE", title: "Academic Excellence Committee", subtitle: "AEC", committeeScope: "AEC" },
+  { type: "COMMITTEE", title: "Constitution Review Committee", subtitle: "CRC", committeeScope: "CRC" },
+  { type: "COMMITTEE", title: "Press and Public Affairs Committee", subtitle: "PPA", committeeScope: "PPA" },
+  { type: "COMMITTEE", title: "Independent Elections Commission", subtitle: "IEC", committeeScope: "IEC" },
+  { type: "COMMITTEE", title: "Welfare Committee", subtitle: "WC", committeeScope: "WC" },
+  { type: "COMMITTEE", title: "Audit Committee", subtitle: "AC", committeeScope: "AC" },
+] as const;
 
 const DEFAULT_SECTIONS = [
   { type: "COVER", title: "Cover Page", sortOrder: 1 },
@@ -56,34 +69,24 @@ const DEFAULT_SECTIONS = [
   {
     type: "COMMITTEE",
     title: "Conference Committee",
-    subtitle: "PPC",
+    subtitle: "CC",
     sortOrder: 13,
-    committeeScope: "PPC",
+    committeeScope: null,
   },
-  {
-    type: "COMMITTEE",
-    title: "Academic Excellence Committee",
-    subtitle: "AEC",
-    sortOrder: 14,
-    committeeScope: "AEC",
-  },
-  {
-    type: "COMMITTEE",
-    title: "Ways, Means & Finance Committee",
-    subtitle: "WMF",
-    sortOrder: 15,
-    committeeScope: "WMF",
-  },
+  ...SCOPED_COMMITTEE_SECTIONS.map((section, index) => ({
+    ...section,
+    sortOrder: 14 + index,
+  })),
   {
     type: "ABBREVIATIONS",
     title: "Abbreviations",
     subtitle: "Glossary",
-    sortOrder: 16,
+    sortOrder: 14 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_ABBREVIATIONS_BODY,
   },
-  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 17 },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 },
+  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 15 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "BACK_COVER", title: "Back Cover", sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length },
 ];
 
 function normalizeLabel(value: string | null | undefined): string {
@@ -226,6 +229,59 @@ export async function GET(
             },
           });
         }
+
+        const existingScopes = new Set(
+          existingSections
+            .filter((s) => s.type === "COMMITTEE" && s.committeeScope)
+            .map((s) => s.committeeScope),
+        );
+        const missingScoped = SCOPED_COMMITTEE_SECTIONS.filter(
+          (section) => !existingScopes.has(section.committeeScope),
+        );
+
+        if (missingScoped.length > 0) {
+          const insertBeforeSort =
+            existingSections.find((s) => s.type === "ABBREVIATIONS")
+              ?.sortOrder ??
+            existingSections.find((s) => s.type === "DELEGATES")?.sortOrder ??
+            existingSections.length + 1;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: insertBeforeSort },
+            },
+            data: { sortOrder: { increment: missingScoped.length } },
+          });
+
+          for (let i = 0; i < missingScoped.length; i++) {
+            const section = missingScoped[i];
+            await tx.confBookletSection.create({
+              data: {
+                bookletId: existingBooklet.id,
+                type: section.type,
+                title: section.title,
+                subtitle: section.subtitle,
+                bodyText: null,
+                isEnabled: true,
+                sortOrder: insertBeforeSort + i,
+                committeeScope: section.committeeScope,
+              },
+            });
+          }
+        }
+
+        await tx.confBookletSection.updateMany({
+          where: {
+            bookletId: existingBooklet.id,
+            type: "COMMITTEE",
+            committeeScope: "WMF",
+          },
+          data: {
+            isEnabled: false,
+            title: "Ways, Means & Finance (Legacy)",
+          },
+        });
       });
 
       booklet = await prisma.confBooklet.findUnique({

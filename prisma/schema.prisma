@@ -725,6 +725,7 @@ model ConfEvent {
     letters        ConfLetter[]
     questions      ConfQuestion[]
     logisticsRosterEntries ConfLogisticsRosterEntry[]
+    lsuicLeaderLinks       ConfLsuicLeaderLink[]
 
     @@index([slug])
     @@index([status])
@@ -951,6 +952,7 @@ model ConfDelegate {
     roomAsA ConfRoomAssignment? @relation("RoomOccupantA")
     roomAsB ConfRoomAssignment? @relation("RoomOccupantB")
     logisticsRosterEntries ConfLogisticsRosterEntry[]
+    lsuicLeaderLinks       ConfLsuicLeaderLink[]
 
     @@index([confId])
     @@index([status])
@@ -1208,6 +1210,25 @@ model ConfBookletSection {
     booklet ConfBooklet @relation(fields: [bookletId], references: [id], onDelete: Cascade)
 
     @@index([bookletId])
+}
+
+/// Manual or auto link from an LSUIC CSV roster row to a conference delegate account.
+model ConfLsuicLeaderLink {
+    id         String   @id @default(cuid())
+    confId     String
+    rosterKey  String
+    delegateId String?
+    userId     String?
+    linkSource String?  // "AUTO_NAME" | "AUTO_PHONE" | "MANUAL"
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    conf     ConfEvent     @relation(fields: [confId], references: [id], onDelete: Cascade)
+    delegate ConfDelegate? @relation(fields: [delegateId], references: [id], onDelete: SetNull)
+
+    @@unique([confId, rosterKey])
+    @@index([confId])
+    @@index([delegateId])
 }
 
 // ==========================================

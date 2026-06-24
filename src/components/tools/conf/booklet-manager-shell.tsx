@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { BookletPreview } from "@/components/tools/conf/booklet-preview";
+import { LsuicLeaderMappingPanel } from "@/components/tools/conf/lsuic-leader-mapping-panel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1303,6 +1304,8 @@ export function BookletManagerShell() {
               ))}
             </div>
           )}
+
+          {confId && <LsuicLeaderMappingPanel confId={confId} />}
         </div>
       )}
 

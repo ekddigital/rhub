@@ -389,7 +389,9 @@ export function CommitteeSection({
           m.committeeScope === section.committeeScope ||
           (section.type === "NEC" && KEY_ORDER.includes(m.role)),
       )
-    : members;
+    : isMainConferenceCommittee
+      ? members.filter((m) => m.committeeScope === null)
+      : members;
 
   const chair = filtered.find((m) => m.role === "CHAIR");
   const keyOfficers = KEY_ORDER.slice(1).flatMap((r) =>
