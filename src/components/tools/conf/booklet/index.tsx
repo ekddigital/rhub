@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { warmupBookletPdfExport } from "@/lib/conf/booklet-pdf-export-support";
 import {
   Download,
@@ -39,6 +40,7 @@ export function BookletPreview({
   const [zoom, setZoom] = useState(90);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
 
   const layout = useMemo(() => computeBookletLayout(data), [data]);
   const { enabledSections, totalPages } = layout;
@@ -47,6 +49,10 @@ export function BookletPreview({
 
   useEffect(() => {
     void warmupBookletPdfExport();
+  }, []);
+
+  useEffect(() => {
+    setPortalReady(true);
   }, []);
 
   const handleExportPdf = async () => {
@@ -124,36 +130,69 @@ export function BookletPreview({
           top: 0;
           width: ${BOOKLET_A4.width}px;
           pointer-events: none;
+          z-index: -1;
         }
         @media print {
-          body * { visibility: hidden; }
-          #booklet-print-root,
-          #booklet-print-root * { visibility: visible !important; }
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          /* Portal keeps print root on body; hide all other top-level nodes */
+          body > :not(#booklet-print-root) {
+            display: none !important;
+          }
+          .booklet-no-print {
+            display: none !important;
+          }
           #booklet-print-root {
+            display: block !important;
             position: static !important;
             left: auto !important;
             top: auto !important;
             width: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
             pointer-events: auto !important;
+            z-index: auto !important;
           }
-          .booklet-no-print { display: none !important; }
+          #booklet-print-root > div {
+            display: block !important;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           .booklet-page {
             width: 210mm !important;
             height: 297mm !important;
             min-height: 297mm !important;
             max-height: 297mm !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             box-shadow: none !important;
+            transform: none !important;
             break-after: page;
             page-break-after: always;
             page-break-inside: avoid;
             overflow: hidden !important;
+            box-sizing: border-box !important;
+          }
+          .booklet-page:first-child {
+            break-before: avoid;
+            page-break-before: avoid;
           }
           .booklet-page:last-child {
             break-after: auto;
             page-break-after: auto;
           }
-          @page { size: A4 portrait; margin: 0; }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
         }
       `}</style>
 
@@ -308,10 +347,14 @@ export function BookletPreview({
         </div>
       </div>
 
-      {/* Off-screen print / PDF capture root — full A4, no zoom transform */}
-      <div id="booklet-print-root">
-        <BookletDocument data={data} layout={layout} gap={0} />
-      </div>
+      {/* Off-screen print / PDF capture root — portaled to body to escape app chrome */}
+      {portalReady &&
+        createPortal(
+          <div id="booklet-print-root">
+            <BookletDocument data={data} layout={layout} gap={0} />
+          </div>,
+          document.body,
+        )}
 
       {/* Letterhead preview strip */}
       <div className="booklet-no-print rounded-xl border border-[#C8A061]/20 bg-white p-4 shadow-sm space-y-3">
