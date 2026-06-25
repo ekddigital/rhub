@@ -183,9 +183,8 @@ export function TableOfContentsPage({
                   <div
                     style={{
                       width: "80px",
-                      height: "1px",
-                      backgroundImage:
-                        "repeating-linear-gradient(90deg, transparent, transparent 3px, #D1D9F0 3px, #D1D9F0 4px)",
+                      height: 0,
+                      borderTop: `1px dotted ${C.border}`,
                     }}
                   />
                   <PageRangeBadge

@@ -343,10 +343,16 @@ async function inlineAllImages(
           await downscaleIfNeeded(img);
         } else {
           failCount++;
+          if (!img.naturalWidth || !img.naturalHeight) {
+            img.style.display = "none";
+          }
         }
       } catch (e) {
         console.warn(`[PDF Export] Failed to inline image: ${src}`, e);
         failCount++;
+        if (!img.naturalWidth || !img.naturalHeight) {
+          img.style.display = "none";
+        }
       }
     }),
   );
@@ -507,6 +513,32 @@ async function rasterizeSVGs(
 
   // No src replacement was done — restore is a no-op
   return { rasterMap, restore: () => {} };
+}
+
+/**
+ * html2canvas can throw when `createPattern` receives a 0×0 canvas — common with
+ * unloaded images and repeating CSS gradients. Sanitize the cloned DOM before capture.
+ */
+function sanitizeClonedDomForHtml2Canvas(clonedDoc: Document): void {
+  clonedDoc.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+    if (!img.naturalWidth || !img.naturalHeight) {
+      img.style.visibility = "hidden";
+      img.style.display = "none";
+    }
+  });
+
+  clonedDoc.querySelectorAll<HTMLElement>("*").forEach((el) => {
+    const bgImage =
+      el.style.backgroundImage ||
+      clonedDoc.defaultView?.getComputedStyle(el).backgroundImage ||
+      "";
+    if (bgImage.includes("repeating-linear-gradient")) {
+      el.style.backgroundImage = "none";
+      if (!el.style.backgroundColor) {
+        el.style.backgroundColor = "#D1D9F0";
+      }
+    }
+  });
 }
 
 /* ================================================================
@@ -731,6 +763,7 @@ export async function exportToPDF(
         logging: false,
         imageTimeout: 30000,
         removeContainer: true,
+        onclone: (clonedDoc) => sanitizeClonedDomForHtml2Canvas(clonedDoc),
       });
 
       // Restore SVG visibility
@@ -957,6 +990,7 @@ export async function exportToDocx(
         logging: false,
         imageTimeout: 30000,
         removeContainer: true,
+        onclone: (clonedDoc) => sanitizeClonedDomForHtml2Canvas(clonedDoc),
       });
 
       for (const { img } of svgsOnPage) img.style.visibility = "";
@@ -1050,6 +1084,7 @@ export async function exportPageAsImage(
       height: A4.px96.height,
       logging: false,
       imageTimeout: 30000,
+      onclone: (clonedDoc) => sanitizeClonedDomForHtml2Canvas(clonedDoc),
     });
 
     // Download

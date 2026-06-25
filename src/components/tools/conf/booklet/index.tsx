@@ -48,9 +48,47 @@ export function BookletPreview({
     if (exporting) return;
     setExporting(true);
     setExportError(null);
+
+    const printRoot = document.getElementById("booklet-print-root");
+    const prevPrintRootCssText = printRoot?.style.cssText ?? "";
+
     try {
-      await document.fonts.ready;
-      await new Promise((r) => setTimeout(r, 300));
+      const {
+        warmupBookletPdfExport,
+        settleAfterPrintRootUpdate,
+        waitForBookletPagesInDom,
+        waitForBookletImagesInDom,
+        hideZeroSizeImages,
+      } = await import("@/lib/conf/booklet-pdf-export-support");
+
+      await warmupBookletPdfExport();
+      await settleAfterPrintRootUpdate();
+
+      const pagesReady = await waitForBookletPagesInDom(
+        "booklet-print-root",
+        totalPages,
+        { timeoutMs: 12_000 },
+      );
+      if (!pagesReady) {
+        throw new Error("Booklet pages did not finish rendering for export.");
+      }
+
+      // On-screen capture helps html2canvas measure pages and decode images reliably.
+      if (printRoot) {
+        printRoot.style.cssText = [
+          "position:fixed",
+          "left:0",
+          "top:0",
+          "width:794px",
+          "z-index:-1",
+          "opacity:0",
+          "pointer-events:none",
+        ].join(";");
+      }
+
+      await waitForBookletImagesInDom("booklet-print-root");
+      if (printRoot) hideZeroSizeImages(printRoot);
+
       const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
       await exportToPDF(
         "booklet-print-root",
@@ -67,6 +105,9 @@ export function BookletPreview({
     } catch (e) {
       setExportError(e instanceof Error ? e.message : "PDF export failed");
     } finally {
+      if (printRoot) {
+        printRoot.style.cssText = prevPrintRootCssText;
+      }
       setExporting(false);
     }
   };
