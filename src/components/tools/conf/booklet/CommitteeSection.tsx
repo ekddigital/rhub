@@ -6,7 +6,10 @@ import {
   ProfileContactDetails,
   ProfileDelegateCodeBadge,
 } from "./ProfileContactDetails";
-import { paginateCommitteeSection } from "./booklet-pagination";
+import {
+  paginateCommitteeSection,
+  type CommitteeSectionContinuation,
+} from "./booklet-pagination";
 import type { BookletSection, NecMember } from "./types";
 
 const KEY_ORDER = [
@@ -400,6 +403,7 @@ export function CommitteeSection({
   confYear,
   startPageNum,
   totalPages,
+  continuation,
 }: {
   section: BookletSection;
   members: NecMember[];
@@ -407,6 +411,7 @@ export function CommitteeSection({
   confYear: number;
   startPageNum: number;
   totalPages: number;
+  continuation?: CommitteeSectionContinuation;
 }) {
   const isNecSection = section.type === "NEC";
   const isMainConferenceCommittee =
@@ -449,7 +454,9 @@ export function CommitteeSection({
     );
   }
 
-  const pages = paginateCommitteeSection(section, filtered, isNecSection);
+  const pages = paginateCommitteeSection(section, filtered, isNecSection, {
+    continuation,
+  });
 
   return (
     <>
@@ -466,7 +473,7 @@ export function CommitteeSection({
 
           {page.chair ? (
             <ChairHeroCard chair={page.chair} isNec={isNecSection} />
-          ) : page.showSectionHeading && pageIndex === 0 ? (
+          ) : page.showChairPlaceholder ? (
             <div
               style={{
                 padding: "24px",
@@ -518,6 +525,37 @@ export function CommitteeSection({
 
           {page.showMembersHeading && (
             <MembersSubheading isNec={isNecSection} />
+          )}
+
+          {page.showSubsectionHeading && page.subsectionTitle && (
+            <div style={{ marginBottom: "16px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "4px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "4px",
+                    height: "20px",
+                    borderRadius: "2px",
+                    background: `linear-gradient(${C.blue}, ${C.red})`,
+                  }}
+                />
+                <div
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 800,
+                    color: C.blue,
+                  }}
+                >
+                  {page.subsectionTitle}
+                </div>
+              </div>
+            </div>
           )}
 
           {page.memberRows.map((row, rowIndex) => (

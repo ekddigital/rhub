@@ -12,6 +12,7 @@ import {
   resolveBookletTocPages,
   sectionPageSpan,
 } from "./booklet-section-pages";
+import { isCocMembersContinuation } from "./booklet-pagination";
 import { CoverPage } from "./CoverPage";
 import { BackCoverPage } from "./BackCoverPage";
 import { TableOfContentsPage } from "./TableOfContentsPage";
@@ -89,11 +90,40 @@ export function computeBookletLayout(data: BookletData): BookletLayout {
   };
 }
 
+function filterCommitteeMembersForSection(
+  section: BookletSection,
+  data: BookletData,
+  leaderNames: Set<string>,
+): BookletData["committeeMembers"] {
+  if (section.type === "CITY_PRESIDENTS") {
+    return data.committeeMembers.filter(
+      (m) => !leaderNames.has(normalizeBookletName(m.name)),
+    );
+  }
+  if (section.type === "COMMITTEE" && !section.committeeScope?.trim()) {
+    return data.committeeMembers.filter((m) => m.committeeScope === null);
+  }
+  if (section.committeeScope) {
+    return data.committeeMembers.filter(
+      (m) => m.committeeScope === section.committeeScope,
+    );
+  }
+  return data.committeeMembers;
+}
+
+function normalizeBookletName(name: string): string {
+  return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 function renderSection(
   section: BookletSection,
   data: BookletData,
   startPageNum: number,
   totalPages: number,
+  options?: {
+    allSections?: BookletSection[];
+    sectionIndex?: number;
+  },
 ) {
   const {
     event,
@@ -111,14 +141,26 @@ function renderSection(
   const commonSingle = { pageNum, totalPages, confName, confYear };
 
   function normalizeName(name: string): string {
-    return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+    return normalizeBookletName(name);
   }
 
   const leaderNames = new Set(leaders.map((l) => normalizeName(l.name)));
-  const filteredCommitteeForCityPresidents = committeeMembers.filter(
-    (m) => !leaderNames.has(normalizeName(m.name)),
-  );
   const nationalPresident = necMembers.find((m) => m.role === "CHAIR") ?? null;
+  const nextSection =
+    options?.allSections && options.sectionIndex != null
+      ? options.allSections[options.sectionIndex + 1]
+      : undefined;
+  const cocContinuation =
+    isCocMembersContinuation(section, nextSection) && nextSection
+      ? {
+          section: nextSection,
+          members: filterCommitteeMembersForSection(
+            nextSection,
+            data,
+            leaderNames,
+          ),
+        }
+      : undefined;
 
   switch (section.type) {
     case "LEADER":
@@ -190,13 +232,12 @@ function renderSection(
         <CommitteeSection
           key={key}
           section={section}
-          members={
-            section.type === "CITY_PRESIDENTS"
-              ? filteredCommitteeForCityPresidents
-              : section.type === "COMMITTEE" && !section.committeeScope?.trim()
-                ? committeeMembers.filter((m) => m.committeeScope === null)
-                : committeeMembers
-          }
+          members={filterCommitteeMembersForSection(
+            section,
+            data,
+            leaderNames,
+          )}
+          continuation={cocContinuation}
           startPageNum={startPageNum}
           totalPages={totalPages}
           confName={confName}
@@ -255,11 +296,25 @@ export function BookletDocument({
   } = layout;
 
   const sectionNodes = enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
-    ({ nodes, rp }, s) => {
+    ({ nodes, rp }, s, index) => {
+      const prev = enabledSections[index - 1];
+      if (prev && isCocMembersContinuation(prev, s)) {
+        return { nodes, rp };
+      }
+
       const startPage = rp;
-      const delta = sectionPageSpan(s, data);
+      const delta = sectionPageSpan(s, data, {
+        allSections: enabledSections,
+        index,
+      });
       return {
-        nodes: [...nodes, renderSection(s, data, startPage, totalPages)],
+        nodes: [
+          ...nodes,
+          renderSection(s, data, startPage, totalPages, {
+            allSections: enabledSections,
+            sectionIndex: index,
+          }),
+        ],
         rp: rp + delta,
       };
     },

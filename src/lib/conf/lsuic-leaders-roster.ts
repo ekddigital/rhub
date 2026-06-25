@@ -46,6 +46,12 @@ export function loadLsuicLeadersRoster(): LsuicLeaderRosterRow[] {
 export function inferLsuicMemberRole(leaderRole: string): LsuicMemberRole {
   const role = (leaderRole ?? "").toLowerCase();
   if (
+    role.includes("coc-1") ||
+    role.includes("coordinator: coc-1")
+  ) {
+    return "CHAIR";
+  }
+  if (
     role.includes("national president") ||
     role.includes("general chairman") ||
     (role.includes("chairman") && !role.includes("co-chair")) ||
@@ -59,7 +65,7 @@ export function inferLsuicMemberRole(leaderRole: string): LsuicMemberRole {
   if (
     role.includes("vice president") ||
     role.includes("co-chair") ||
-    role.includes("deputy") ||
+    (role.includes("deputy") && !role.includes("secretary")) ||
     role.includes("associate adjudicator")
   ) {
     return "VICE_CHAIR";

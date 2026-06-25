@@ -1,7 +1,9 @@
 import {
   committeeSectionPageCountFromMembers,
+  isCocMembersContinuation,
   paginateTocEntries,
   tocPageCount,
+  type CommitteeSectionContinuation,
   type TocRenderableEntry,
 } from "./booklet-pagination";
 import { DELEGATES_PER_BOOKLET_PAGE } from "./constants";
@@ -65,12 +67,27 @@ function sectionMembersForPageCount(
 function committeeSectionPageCount(
   s: BookletSection,
   data: BookletData,
+  context?: { allSections: BookletSection[]; index: number },
 ): number {
   const relevant = sectionMembersForPageCount(s, data);
+  const nextSection = context?.allSections[context.index + 1];
+  let continuation: CommitteeSectionContinuation | undefined;
+
+  if (isCocMembersContinuation(s, nextSection)) {
+    const continuationMembers = sectionMembersForPageCount(nextSection!, data);
+    if (continuationMembers.length > 0) {
+      continuation = {
+        section: nextSection!,
+        members: continuationMembers,
+      };
+    }
+  }
+
   return committeeSectionPageCountFromMembers(
     s,
     relevant,
     s.type === "NEC",
+    continuation ? { continuation } : undefined,
   );
 }
 
@@ -78,11 +95,21 @@ function committeeSectionPageCount(
 export function sectionPageSpan(
   s: BookletSection,
   data: BookletData,
+  context?: { allSections: BookletSection[]; index: number },
 ): number {
+  if (context) {
+    const prev = context.allSections[context.index - 1];
+    if (prev && isCocMembersContinuation(prev, s)) {
+      return 0;
+    }
+  }
+
   if (s.type === "LEADER") return 1;
-  if (s.type === "NEC") return committeeSectionPageCount(s, data);
+  if (s.type === "NEC") {
+    return committeeSectionPageCount(s, data, context);
+  }
   if (isCommitteeBookletSection(s.type)) {
-    return committeeSectionPageCount(s, data);
+    return committeeSectionPageCount(s, data, context);
   }
   if (s.type === "DELEGATES")
     return delegatesSectionPageCount(data.delegates.length);
@@ -93,7 +120,11 @@ export function bookletBodyPageCount(
   enabledSections: BookletSection[],
   data: BookletData,
 ): number {
-  return enabledSections.reduce((sum, s) => sum + sectionPageSpan(s, data), 0);
+  return enabledSections.reduce(
+    (sum, s, index) =>
+      sum + sectionPageSpan(s, data, { allSections: enabledSections, index }),
+    0,
+  );
 }
 
 /** First TOC page number (immediately after optional cover). */
@@ -156,8 +187,11 @@ export function computeSectionTocRows(
   tocPages: number,
 ): BookletTocSectionRow[] {
   let rp = getFirstBodyPageNum(hasCover, tocPages);
-  return enabledSections.map((section) => {
-    const pageSpan = sectionPageSpan(section, data);
+  return enabledSections.map((section, index) => {
+    const pageSpan = sectionPageSpan(section, data, {
+      allSections: enabledSections,
+      index,
+    });
     const row: BookletTocSectionRow = { section, startPage: rp, pageSpan };
     rp += pageSpan;
     return row;

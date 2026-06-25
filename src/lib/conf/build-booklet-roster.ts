@@ -8,6 +8,7 @@ import {
   stripHonorificDisplayName,
   type LsuicLeaderRosterRow,
 } from "@/lib/conf/lsuic-leaders-roster";
+import { resolveBookletMemberPhotoPath } from "@/lib/conf/resolve-booklet-member-photo";
 
 export type BookletRosterMember = {
   id: string;
@@ -128,16 +129,34 @@ function resolveLinkedDelegate(
   return autoMatchDelegateForRosterRow(row, indexes);
 }
 
+/** Delegate match used for platform booklet photos (includes pending manual links). */
+function resolveDelegateForBookletPhoto(
+  row: LsuicLeaderRosterRow,
+  link: LeaderLinkLike | undefined,
+  indexes: ReturnType<typeof buildDelegateIndexes>,
+): DelegateLike | null {
+  if (link?.delegateId) {
+    return indexes.byId.get(link.delegateId) ?? null;
+  }
+  if (link?.confirmed && link.userId) {
+    return indexes.byUserId.get(link.userId) ?? null;
+  }
+  return autoMatchDelegateForRosterRow(row, indexes);
+}
+
 function memberFromRosterRow(
   row: LsuicLeaderRosterRow,
   idx: number,
   linked: DelegateLike | null,
+  photoDelegate: DelegateLike | null,
   dbMember: DbMemberLike | null,
+  link: LeaderLinkLike | undefined,
 ): BookletRosterMember {
   const rosterKey = lsuicLeaderRosterKey(row);
   const { city, province } = parseCityArea(row.leader_city_area);
   const csvPhoto = row.leader_photo_url?.trim() || null;
-  const platformPhoto = linked?.bookletPhotoPath ?? null;
+  const delegateBookletPhoto = photoDelegate?.bookletPhotoPath ?? null;
+  const confMemberPhoto = dbMember?.photoPath ?? null;
 
   return {
     id: dbMember?.id ?? `roster-${rosterKey}`,
@@ -155,7 +174,12 @@ function memberFromRosterRow(
     conferencePosition:
       linked?.conferencePosition ?? (row.leader_role?.trim() || null),
     committeeScope: bookletScopeForLsuicRow(row),
-    photoPath: platformPhoto ?? dbMember?.photoPath ?? csvPhoto,
+    photoPath: resolveBookletMemberPhotoPath({
+      csvPhoto,
+      delegateBookletPhoto,
+      confMemberPhoto,
+      leaderLinkConfirmed: Boolean(link?.confirmed),
+    }),
     bookletBio: dbMember?.bookletBio ?? null,
     userId: linked?.userId ?? dbMember?.userId ?? null,
     hasRegistered: Boolean(linked),
@@ -175,8 +199,12 @@ export function buildBookletRosterMembers(input: {
   );
 
   const dbByName = new Map<string, DbMemberLike>();
+  const dbByUserId = new Map<string, DbMemberLike>();
   for (const member of input.dbMembers) {
     dbByName.set(normalizeName(member.name), member);
+    if (member.userId) {
+      dbByUserId.set(member.userId, member);
+    }
   }
 
   const necMembers: BookletRosterMember[] = [];
@@ -186,8 +214,21 @@ export function buildBookletRosterMembers(input: {
     const rosterKey = lsuicLeaderRosterKey(row);
     const link = linkByKey.get(rosterKey);
     const linked = resolveLinkedDelegate(row, link, indexes);
-    const dbMember = dbByName.get(normalizeName(row.leader_name)) ?? null;
-    const member = memberFromRosterRow(row, idx, linked, dbMember);
+    const linkedForPhoto = resolveDelegateForBookletPhoto(row, link, indexes);
+    const dbMember =
+      dbByName.get(normalizeName(row.leader_name)) ??
+      (linkedForPhoto?.userId
+        ? (dbByUserId.get(linkedForPhoto.userId) ?? null)
+        : null) ??
+      (link?.userId ? (dbByUserId.get(link.userId) ?? null) : null);
+    const member = memberFromRosterRow(
+      row,
+      idx,
+      linked,
+      linkedForPhoto,
+      dbMember,
+      link,
+    );
 
     if (member.userId && input.signedUpUserIds.has(member.userId)) {
       member.hasRegistered = true;
