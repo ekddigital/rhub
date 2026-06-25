@@ -38,11 +38,16 @@ export function Avatar({
 
   // ── Real photo ──────────────────────────────────────────────────────────────
   if (src) {
+    const needsCrossOrigin =
+      src.startsWith("http://") ||
+      src.startsWith("https://") ||
+      src.startsWith("/api/assets/proxy");
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={name}
+        crossOrigin={needsCrossOrigin ? "anonymous" : undefined}
         style={{
           width: size,
           height: size,

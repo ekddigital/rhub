@@ -58,6 +58,31 @@ export function hideZeroSizeImages(root: HTMLElement): void {
   });
 }
 
+/** Force each booklet page to exact A4 px so html2canvas does not scale content down. */
+export function normalizeBookletPagesForCapture(
+  containerId: string,
+  pageWidth: number,
+  pageHeight: number,
+): void {
+  const root = document.getElementById(containerId);
+  if (!root) return;
+
+  root.style.width = `${pageWidth}px`;
+  root.style.maxWidth = `${pageWidth}px`;
+  root.style.transform = "none";
+  root.style.zoom = "1";
+
+  root.querySelectorAll<HTMLElement>(".booklet-page").forEach((page) => {
+    page.style.width = `${pageWidth}px`;
+    page.style.height = `${pageHeight}px`;
+    page.style.minHeight = `${pageHeight}px`;
+    page.style.maxHeight = `${pageHeight}px`;
+    page.style.transform = "none";
+    page.style.zoom = "1";
+    page.style.boxSizing = "border-box";
+  });
+}
+
 /**
  * Full pre-capture pipeline for booklet Live Preview export.
  * Returns false when `.booklet-page` nodes never appear in the print root.

@@ -11,14 +11,14 @@ export function resolveBookletMemberPhotoPath(input: {
   confMemberPhoto: string | null;
   leaderLinkConfirmed: boolean;
 }): string | null {
-  const { csvPhoto, delegateBookletPhoto, confMemberPhoto, leaderLinkConfirmed } =
-    input;
+  const csvPhoto = input.csvPhoto?.trim() || null;
+  const delegateBookletPhoto = input.delegateBookletPhoto?.trim() || null;
+  const confMemberPhoto = input.confMemberPhoto?.trim() || null;
+  const { leaderLinkConfirmed } = input;
 
   if (leaderLinkConfirmed && confMemberPhoto) {
     return confMemberPhoto;
   }
 
-  return (
-    delegateBookletPhoto ?? confMemberPhoto ?? csvPhoto
-  );
+  return delegateBookletPhoto ?? confMemberPhoto ?? csvPhoto;
 }

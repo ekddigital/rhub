@@ -111,6 +111,12 @@ function ChairHeroCard({
           <img
             src={chair.photoPath}
             alt={chair.name}
+            crossOrigin={
+              chair.photoPath.startsWith("http") ||
+              chair.photoPath.startsWith("/api/assets/proxy")
+                ? "anonymous"
+                : undefined
+            }
             style={{
               width: `${photoWidth}px`,
               height: `${photoHeight}px`,

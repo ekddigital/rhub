@@ -581,6 +581,11 @@ export type ExportToPdfOptions = {
    * (helps flyer / photo attachments dominate file size).
    */
   maxInlineImagePixels?: number;
+  /**
+   * Override html2canvas capture dimensions (px @ 96dpi). Defaults to A4.px96.
+   * When set, each page is normalized to this size before capture.
+   */
+  pageSizePx?: { width: number; height: number };
 };
 
 /**
@@ -614,6 +619,7 @@ export async function exportToPDF(
   const jpegQuality = opts?.jpegQuality ?? 0.92;
   const svgRasterScale = opts?.svgRasterScale ?? 4;
   const maxInlineImagePixels = opts?.maxInlineImagePixels;
+  const pageSizePx = opts?.pageSizePx ?? A4.px96;
 
   const nearestPageWrapper = (page: HTMLElement) =>
     wrapSel ? page.closest<HTMLElement>(wrapSel) : null;
@@ -725,6 +731,14 @@ export async function exportToPDF(
         wrapper.style.marginBottom = "0";
       }
 
+      page.style.width = `${pageSizePx.width}px`;
+      page.style.height = `${pageSizePx.height}px`;
+      page.style.minHeight = `${pageSizePx.height}px`;
+      page.style.maxHeight = `${pageSizePx.height}px`;
+      page.style.transform = "none";
+      page.style.zoom = "1";
+      page.style.boxSizing = "border-box";
+
       // Measure all positions NOW — transform is reset so getBoundingClientRect()
       // returns the full-resolution coordinates that match our mm calculations.
       const pageRect = page.getBoundingClientRect();
@@ -770,8 +784,10 @@ export async function exportToPDF(
         useCORS: true,
         allowTaint: false,
         backgroundColor: "#FFFFFF",
-        width: A4.px96.width,
-        height: A4.px96.height,
+        width: pageSizePx.width,
+        height: pageSizePx.height,
+        windowWidth: pageSizePx.width,
+        windowHeight: pageSizePx.height,
         logging: false,
         imageTimeout: 30000,
         removeContainer: true,

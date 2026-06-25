@@ -64,6 +64,7 @@ export function BookletPreview({
         waitForBookletPagesInDom,
         waitForBookletImagesInDom,
         hideZeroSizeImages,
+        normalizeBookletPagesForCapture,
       } = await import("@/lib/conf/booklet-pdf-export-support");
 
       await warmupBookletPdfExport();
@@ -78,18 +79,11 @@ export function BookletPreview({
         throw new Error("Booklet pages did not finish rendering for export.");
       }
 
-      // On-screen capture helps html2canvas measure pages and decode images reliably.
-      if (printRoot) {
-        printRoot.style.cssText = [
-          "position:fixed",
-          "left:0",
-          "top:0",
-          "width:794px",
-          "z-index:-1",
-          "opacity:0",
-          "pointer-events:none",
-        ].join(";");
-      }
+      normalizeBookletPagesForCapture(
+        "booklet-print-root",
+        BOOKLET_A4.width,
+        BOOKLET_A4.height,
+      );
 
       await waitForBookletImagesInDom("booklet-print-root");
       if (printRoot) hideZeroSizeImages(printRoot);
@@ -104,7 +98,11 @@ export function BookletPreview({
           pageWrapperSelector: null,
           mode: "download",
           canvasScale: 2,
-          jpegQuality: 0.88,
+          jpegQuality: 0.9,
+          pageSizePx: {
+            width: BOOKLET_A4.width,
+            height: BOOKLET_A4.height,
+          },
         },
       );
     } catch (e) {

@@ -5,7 +5,10 @@ import {
   autoMatchDelegateForRosterRow,
   buildBookletRosterMembers,
 } from "@/lib/conf/build-booklet-roster";
-import { resolveDelegateBookletPhotoForClient } from "@/lib/conf/delegate-document-urls";
+import {
+  resolveDelegateBookletPhotoForClient,
+  resolveExternalBookletPhotoForClient,
+} from "@/lib/conf/delegate-document-urls";
 import {
   loadLsuicLeadersRoster,
   lsuicLeaderRosterKey,
@@ -128,8 +131,9 @@ export async function GET(
         leaderName: stripHonorificDisplayName(row.leader_name),
         leaderRole: row.leader_role,
         csvPhotoUrl: row.leader_photo_url || null,
-        resolvedPhotoPath:
+        resolvedPhotoPath: resolveExternalBookletPhotoForClient(
           built?.photoPath ?? (row.leader_photo_url || null),
+        ),
         mappingStatus,
         link: storedLink
           ? {

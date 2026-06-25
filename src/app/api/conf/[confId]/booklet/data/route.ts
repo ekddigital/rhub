@@ -4,8 +4,10 @@ import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { resolveStoredAssetUrl } from "@/lib/conf/assets";
 import {
   resolveDelegateBookletPhotoForClient,
+  resolveExternalBookletPhotoForClient,
   resolveMemberPhotoForClient,
 } from "@/lib/conf/delegate-document-urls";
+import type { BookletRosterMember } from "@/lib/conf/build-booklet-roster";
 import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
 import { buildBookletRosterMembers } from "@/lib/conf/build-booklet-roster";
 import { findLsuicLeaderLinks } from "@/lib/conf/lsuic-leader-links";
@@ -178,6 +180,15 @@ export async function GET(
         .filter(Boolean) as string[],
     );
 
+    function resolveRosterMemberPhoto(
+      member: BookletRosterMember,
+    ): BookletRosterMember {
+      return {
+        ...member,
+        photoPath: resolveExternalBookletPhotoForClient(member.photoPath),
+      };
+    }
+
     const { necMembers, committeeMembers } = buildBookletRosterMembers({
       dbMembers: resolvedMembers,
       delegates: resolvedDelegates,
@@ -185,15 +196,19 @@ export async function GET(
       signedUpUserIds,
     });
 
+    const resolvedNecMembers = necMembers.map(resolveRosterMemberPhoto);
+    const resolvedCommitteeMembers =
+      committeeMembers.map(resolveRosterMemberPhoto);
+
     const conferenceChair =
-      committeeMembers.find((m) => m.role === "CHAIR") ??
-      committeeMembers.find((m) =>
+      resolvedCommitteeMembers.find((m) => m.role === "CHAIR") ??
+      resolvedCommitteeMembers.find((m) =>
         normalizePosition(m.title).includes("general chairman"),
       ) ??
       null;
 
-    const membersByScope: Record<string, typeof committeeMembers> = {};
-    for (const member of committeeMembers) {
+    const membersByScope: Record<string, typeof resolvedCommitteeMembers> = {};
+    for (const member of resolvedCommitteeMembers) {
       const scope = member.committeeScope ?? "_unassigned";
       if (!membersByScope[scope]) membersByScope[scope] = [];
       membersByScope[scope].push(member);
@@ -203,20 +218,22 @@ export async function GET(
       event,
       booklet,
       leaders: dedupedLeaders,
-      necMembers,
-      committeeMembers,
+      necMembers: resolvedNecMembers,
+      committeeMembers: resolvedCommitteeMembers,
       conferenceChair,
       membersByScope,
       delegates: resolvedDelegates,
       meetings,
       counts: {
         totalDelegates: resolvedDelegates.length,
-        totalMembers: necMembers.length + committeeMembers.length,
+        totalMembers:
+          resolvedNecMembers.length + resolvedCommitteeMembers.length,
         sectionsEnabled:
           booklet?.sections.filter((s) => s.isEnabled).length ?? 0,
         sectionsTotal: booklet?.sections.length ?? 0,
         leadersStored: dedupedLeaders.length,
-        rosterLeadersTotal: necMembers.length + committeeMembers.length,
+        rosterLeadersTotal:
+          resolvedNecMembers.length + resolvedCommitteeMembers.length,
       },
     });
   } catch (error) {

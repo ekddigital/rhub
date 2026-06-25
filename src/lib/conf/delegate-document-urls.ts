@@ -173,6 +173,25 @@ export function resolveMemberPhotoForClient(
   return `/api/conf/${confId}/members/${memberId}/photo`;
 }
 
+/** Same-origin proxy for external roster / CDN images (LSUIC CSV leader_photo_url). */
+export function resolveExternalBookletPhotoForClient(
+  photoPath: string | null | undefined,
+): string | null {
+  const trimmed = photoPath?.trim();
+  if (!trimmed) return null;
+  if (
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("data:") ||
+    trimmed.startsWith("blob:")
+  ) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return `/api/assets/proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return trimmed;
+}
+
 export type DelegateDocumentClientFields = {
   passportPhotoPath: string | null;
   passportPhotoIsPdf: boolean;

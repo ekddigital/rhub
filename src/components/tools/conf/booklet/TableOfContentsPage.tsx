@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { BOOKLET_A4, C } from "./constants";
 import type { TocRenderableEntry } from "./booklet-section-pages";
 import { PageHeader } from "./PageHeader";
@@ -81,55 +82,25 @@ export function TableOfContentsPage({
           {entries.map((entry, idx) => {
             if (entry.kind === "cover") {
               return (
-                <div
-                  key={`cover-${idx}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "9px 12px",
-                    borderRadius: "6px",
-                    background: C.lightBlue,
-                    marginBottom: "4px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}
-                  >
-                    Cover Page
-                  </div>
+                <TocHighlightRow key={`cover-${idx}`} label="Cover Page">
                   <PageRangeBadge startPage={1} pageSpan={1} highlighted />
-                </div>
+                </TocHighlightRow>
               );
             }
 
             if (entry.kind === "back_cover") {
               return (
-                <div
+                <TocHighlightRow
                   key={`back-${idx}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "9px 12px",
-                    borderRadius: "6px",
-                    background: C.lightBlue,
-                    marginTop: "6px",
-                    flexShrink: 0,
-                  }}
+                  label="Back Cover"
+                  marginTop
                 >
-                  <div
-                    style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}
-                  >
-                    Back Cover
-                  </div>
                   <PageRangeBadge
                     startPage={entry.page}
                     pageSpan={1}
                     highlighted={false}
                   />
-                </div>
+                </TocHighlightRow>
               );
             }
 
@@ -137,9 +108,10 @@ export function TableOfContentsPage({
               <div
                 key={entry.sectionId}
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) 72px 40px",
+                  columnGap: "8px",
                   alignItems: "center",
-                  justifyContent: "space-between",
                   padding: "9px 12px",
                   borderRadius: "6px",
                   background: entry.isKey ? `${C.blue}08` : "transparent",
@@ -148,7 +120,12 @@ export function TableOfContentsPage({
                 }}
               >
                 <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    minWidth: 0,
+                  }}
                 >
                   <div
                     style={{
@@ -157,36 +134,37 @@ export function TableOfContentsPage({
                       borderRadius: "50%",
                       background: entry.isKey ? C.red : C.border,
                       flexShrink: 0,
+                      marginTop: "5px",
                     }}
                   />
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div
                       style={{
                         fontSize: "11px",
                         fontWeight: entry.isKey ? 700 : 500,
                         color: entry.isKey ? C.blue : C.text,
+                        lineHeight: 1.35,
                       }}
                     >
                       {entry.title}
                     </div>
                     {entry.subtitle && (
-                      <div style={{ fontSize: "9px", color: C.muted }}>
+                      <div
+                        style={{
+                          fontSize: "9px",
+                          color: C.muted,
+                          lineHeight: 1.35,
+                        }}
+                      >
                         {entry.subtitle}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
-                >
-                  <div
-                    style={{
-                      width: "80px",
-                      height: 0,
-                      borderTop: `1px dotted ${C.border}`,
-                    }}
-                  />
+                <TocDotLeader />
+
+                <div style={{ justifySelf: "end" }}>
                   <PageRangeBadge
                     startPage={entry.startPage}
                     pageSpan={entry.pageSpan}
@@ -209,6 +187,59 @@ export function TableOfContentsPage({
   );
 }
 
+function TocHighlightRow({
+  label,
+  children,
+  marginTop,
+}: {
+  label: string;
+  children: ReactNode;
+  marginTop?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto",
+        columnGap: "8px",
+        alignItems: "center",
+        padding: "9px 12px",
+        borderRadius: "6px",
+        background: C.lightBlue,
+        marginBottom: marginTop ? undefined : "4px",
+        marginTop: marginTop ? "6px" : undefined,
+        flexShrink: 0,
+      }}
+    >
+      <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
+        {label}
+      </div>
+      <div style={{ justifySelf: "end" }}>{children}</div>
+    </div>
+  );
+}
+
+/** Dot leader stable for html2canvas (avoids flex + border-top sub-pixel drift). */
+function TocDotLeader() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        height: "12px",
+        overflow: "hidden",
+        fontSize: "10px",
+        lineHeight: "12px",
+        letterSpacing: "2px",
+        color: C.border,
+        whiteSpace: "nowrap",
+        userSelect: "none",
+      }}
+    >
+      {"·".repeat(24)}
+    </div>
+  );
+}
+
 function PageRangeBadge({
   startPage,
   pageSpan,
@@ -225,9 +256,9 @@ function PageRangeBadge({
   return (
     <div
       style={{
-        minWidth: multi ? 38 : 22,
+        boxSizing: "border-box",
+        width: multi ? "38px" : "22px",
         height: "22px",
-        padding: multi ? "0 7px" : "0",
         borderRadius: multi ? "11px" : "50%",
         background: highlighted ? C.blue : C.lightBlue,
         border: `1px solid ${highlighted ? C.blue : C.border}`,
@@ -238,6 +269,7 @@ function PageRangeBadge({
         fontWeight: 700,
         color: highlighted ? C.white : C.blue,
         flexShrink: 0,
+        lineHeight: 1,
       }}
     >
       {label}

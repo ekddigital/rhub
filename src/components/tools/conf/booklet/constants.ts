@@ -24,39 +24,14 @@ export const DELEGATE_ROSTER_COLS = 3;
 /** Shared delegate roster card sizing — fixed height, no flex-grow stretch. */
 export const DELEGATE_ROSTER_GAP_PX = 8;
 export const DELEGATE_ROSTER_GAP = `${DELEGATE_ROSTER_GAP_PX}px`;
-export const DELEGATE_CARD_HEIGHT = 108;
+/** Taller cards + 6 rows (18/page) for readable PDF text. */
+export const DELEGATE_CARD_HEIGHT = 122;
+export const DELEGATE_ROSTER_ROWS = 6;
 
-/**
- * Vertical layout budget inside A4Page content area (matches booklet-pagination).
- * Usable grid height = content − section header − last-page roster note − pack margin.
- * Max rows = floor((usable + gap) / (cardHeight + gap)).
- */
-const BOOKLET_CONTENT_HEIGHT =
-  BOOKLET_A4.height - 61 - 33 - 48; // 981px @ 96dpi
-/** DelegatesSection title row + margins (no optional bodyText). */
-const DELEGATE_ROSTER_SECTION_HEADER_H = 44;
-/** “N signed-up participants as of …” on the final roster page only. */
-const DELEGATE_ROSTER_LAST_PAGE_NOTE_H = 24;
-const DELEGATE_ROSTER_PACK_MARGIN = 4;
-
-function delegateRosterMaxRows(cardHeightPx: number): number {
-  const usable =
-    BOOKLET_CONTENT_HEIGHT -
-    DELEGATE_ROSTER_SECTION_HEADER_H -
-    DELEGATE_ROSTER_LAST_PAGE_NOTE_H -
-    DELEGATE_ROSTER_PACK_MARGIN;
-  return Math.max(
-    1,
-    Math.floor(
-      (usable + DELEGATE_ROSTER_GAP_PX) / (cardHeightPx + DELEGATE_ROSTER_GAP_PX),
-    ),
-  );
-}
-
-export const DELEGATE_ROSTER_ROWS = delegateRosterMaxRows(DELEGATE_CARD_HEIGHT);
+/** Fixed row cap — 18 delegates/page (6×3) for legible roster PDFs. */
 export const DELEGATES_PER_BOOKLET_PAGE =
   DELEGATE_ROSTER_COLS * DELEGATE_ROSTER_ROWS;
-export const DELEGATE_CARD_PHOTO_SIZE = 70;
+export const DELEGATE_CARD_PHOTO_SIZE = 76;
 export const DELEGATE_CARD_PADDING = "5px 7px 4px";
 export const DELEGATE_CARD_INNER_GAP = "7px";
 
