@@ -24,8 +24,8 @@ export const BOOKLET_OFFICER_GRID_COLS = 3;
 /** Default member grid for committees with chair + officer cards. */
 export const BOOKLET_GRID_COLS = 3;
 
-/** Dense member grids (city presidents, province coordinators, large rosters). */
-export const BOOKLET_DENSE_GRID_COLS = 5;
+/** Dense member grids (city presidents, province coordinators). */
+export const BOOKLET_DENSE_GRID_COLS = 4;
 
 const OFFICER_GRID_COLS = BOOKLET_OFFICER_GRID_COLS;
 const GRID_ROW_GAP = 12;
@@ -43,27 +43,19 @@ const CHAIR_BIO_LINE_H = 17;
 const OFFICER_CARD_H = 188;
 /** Member card at 3 cols. */
 const MEMBER_CARD_H_3COL = 168;
-/** Member card at 5 cols — narrower, shorter avatar stack. */
-const MEMBER_CARD_H_5COL = 132;
+/** Member card at 4 cols — slightly wider than 5-col, shorter than 3-col. */
+const MEMBER_CARD_H_4COL = 148;
 const MEMBERS_SUBHEADING_H = 38;
 const MEMBERS_SUBHEADING_TOP_GAP = 12;
 const SUBSECTION_HEADING_H = 52;
 
-const JUDICIAL_DENSE_MEMBER_THRESHOLD = 6;
-
 export function getMemberGridCols(
   section: BookletSection,
-  generalMemberCount: number,
+  _generalMemberCount: number,
 ): number {
   if (
     section.type === "CITY_PRESIDENTS" ||
     section.type === "COC_MEMBERS"
-  ) {
-    return BOOKLET_DENSE_GRID_COLS;
-  }
-  if (
-    section.type === "JUDICIAL" &&
-    generalMemberCount >= JUDICIAL_DENSE_MEMBER_THRESHOLD
   ) {
     return BOOKLET_DENSE_GRID_COLS;
   }
@@ -72,7 +64,7 @@ export function getMemberGridCols(
 
 function memberCardHeight(cols: number): number {
   return cols >= BOOKLET_DENSE_GRID_COLS
-    ? MEMBER_CARD_H_5COL
+    ? MEMBER_CARD_H_4COL
     : MEMBER_CARD_H_3COL;
 }
 

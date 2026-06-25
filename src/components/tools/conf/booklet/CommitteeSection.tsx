@@ -7,6 +7,7 @@ import {
   ProfileDelegateCodeBadge,
 } from "./ProfileContactDetails";
 import {
+  BOOKLET_DENSE_GRID_COLS,
   BOOKLET_OFFICER_GRID_COLS,
   paginateCommitteeSection,
   type CommitteeSectionContinuation,
@@ -582,7 +583,7 @@ export function CommitteeSection({
           )}
 
           {page.memberRows.map((row, rowIndex) => {
-            const dense = page.memberGridCols >= 5;
+            const dense = page.memberGridCols >= BOOKLET_DENSE_GRID_COLS;
             return (
             <div
               key={`members-row-${rowIndex}`}
