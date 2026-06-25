@@ -6,7 +6,7 @@ export const BOOKLET_CONTENT_HEIGHT =
   BOOKLET_A4.height - 61 - 33 - 48; // header, footer, content padding
 
 /** Conservative pack limit — leaves headroom so rows are not clipped by A4 overflow. */
-const PAGE_PACK_LIMIT = BOOKLET_CONTENT_HEIGHT - 24;
+const PAGE_PACK_LIMIT = BOOKLET_CONTENT_HEIGHT - 36;
 
 const KEY_ORDER = [
   "CHAIR",
@@ -27,13 +27,14 @@ const GRID_ROW_GAP = 12;
 const SECTION_HEADING_BASE = 66;
 const SECTION_SUBTITLE_EXTRA = 18;
 const SECTION_BODY_LINE_H = 17;
-const CHAIR_HERO_NON_NEC = 176;
-const CHAIR_HERO_NEC = 224;
+const CHAIR_HERO_NON_NEC = 196;
+const CHAIR_HERO_NEC = 232;
+const CHAIR_HERO_BOTTOM_MARGIN = 18;
 const CHAIR_BIO_LINE_H = 17;
 /** Officer card: avatar row + contact block + delegate badge + padding. */
-const OFFICER_CARD_H = 178;
+const OFFICER_CARD_H = 196;
 /** Member card: slightly shorter avatar + contact block + delegate badge + padding. */
-const MEMBER_CARD_H = 168;
+const MEMBER_CARD_H = 186;
 const MEMBERS_SUBHEADING_H = 38;
 const MEMBERS_SUBHEADING_TOP_GAP = 12;
 const SUBSECTION_HEADING_H = 52;
@@ -79,9 +80,15 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 function isPartialGridRow(row: LayoutRow): boolean {
   return (
-    (row.kind === "officers" || row.kind === "members") &&
+    row.kind === "members" &&
     row.members.length > 0 &&
     row.members.length < GRID_COLS
+  );
+}
+
+function pageHasMembersHeading(page: LayoutRow[]): boolean {
+  return page.some(
+    (row) => row.kind === "members_heading" || row.kind === "members",
   );
 }
 
@@ -96,7 +103,7 @@ function estimateSectionHeadingH(section: BookletSection): number {
 }
 
 function estimateChairH(chair: NecMember, isNec: boolean): number {
-  let h = isNec ? CHAIR_HERO_NEC : CHAIR_HERO_NON_NEC;
+  let h = (isNec ? CHAIR_HERO_NEC : CHAIR_HERO_NON_NEC) + CHAIR_HERO_BOTTOM_MARGIN;
   if (chair.bookletBio?.trim()) {
     const lines = Math.max(1, Math.ceil(chair.bookletBio.length / 72));
     h += 8 + lines * CHAIR_BIO_LINE_H;
@@ -280,7 +287,8 @@ function heightPackRows(rows: LayoutRow[]): LayoutRow[][] {
     }
 
     if (row.kind === "members") {
-      const needsHeading = !membersLabelPlaced && current.length === 0;
+      const needsHeading =
+        !membersLabelPlaced && !pageHasMembersHeading(current);
       if (needsHeading) {
         appendRow({ kind: "members_heading", h: MEMBERS_SUBHEADING_H });
         membersLabelPlaced = true;
@@ -322,8 +330,10 @@ function rebalanceTrailingPartialRows(pages: LayoutRow[][]): LayoutRow[][] {
       const lastPartialIndex = partialIndexes[partialIndexes.length - 1]!;
       const hasEarlierPartial = partialIndexes.length > 1;
       const isInteriorPage = i < out.length - 1;
+      const partialRow = page[lastPartialIndex]!;
       const shouldMoveLastPartial =
-        isInteriorPage || hasEarlierPartial || partialIndexes.length > 1;
+        partialRow.kind === "members" &&
+        (isInteriorPage || hasEarlierPartial || partialIndexes.length > 1);
 
       if (!shouldMoveLastPartial) continue;
 
