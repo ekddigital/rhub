@@ -39,8 +39,8 @@ export const DELEGATE_ROSTER_ROWS = 6;
 export const DELEGATES_PER_BOOKLET_PAGE =
   DELEGATE_ROSTER_COLS * DELEGATE_ROSTER_ROWS;
 
-export const DELEGATE_CARD_PADDING = "5px 7px 4px";
-export const DELEGATE_CARD_INNER_GAP = "7px";
+export const DELEGATE_CARD_PADDING = "6px 7px";
+export const DELEGATE_CARD_INNER_GAP = "8px";
 
 export type DelegateRosterLayoutOptions = {
   bodyText?: boolean;
@@ -71,9 +71,9 @@ export function computeDelegateRosterCardHeight(
   );
 }
 
-/** Photo size scales with stretched card height. */
+/** Photo size scales with card height; capped so text column stays readable. */
 export function computeDelegatePhotoSize(cardHeight: number): number {
-  return Math.min(88, Math.max(52, Math.floor(cardHeight * 0.58)));
+  return Math.min(72, Math.max(48, Math.floor(cardHeight * 0.5)));
 }
 
 // ─── Static asset paths (served from /public) ─────────────────────────────────

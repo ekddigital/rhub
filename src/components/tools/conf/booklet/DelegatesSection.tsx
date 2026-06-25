@@ -72,12 +72,43 @@ function DelegateCard({
     (d.city ? d.city : "Member") + (d.province ? `, ${d.province}` : "");
   const university = d.university?.trim() || "Member";
 
+  const idBadge = d.delegateCode ? (
+    <div
+      style={{
+        padding: "1px 6px",
+        borderRadius: "4px",
+        background: `${C.red}18`,
+        color: C.red,
+        fontSize: "7px",
+        fontFamily: "monospace",
+        fontWeight: 600,
+      }}
+    >
+      {d.delegateCode}
+    </div>
+  ) : (
+    <div
+      style={{
+        padding: "1px 6px",
+        borderRadius: "4px",
+        background: `${C.border}60`,
+        color: C.muted,
+        fontSize: "7px",
+        fontFamily: "monospace",
+        fontWeight: 600,
+      }}
+    >
+      ID pending
+    </div>
+  );
+
   return (
     <div
       style={{
+        minHeight: `${cardHeight}px`,
         height: `${cardHeight}px`,
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
         padding: DELEGATE_CARD_PADDING,
         borderRadius: "10px",
         border: `1px solid ${C.border}`,
@@ -89,10 +120,10 @@ function DelegateCard({
       <div
         style={{
           display: "flex",
-          flex: 1,
-          minHeight: 0,
           gap: DELEGATE_CARD_INNER_GAP,
-          alignItems: "flex-start",
+          alignItems: "center",
+          width: "100%",
+          minWidth: 0,
         }}
       >
         <div
@@ -130,7 +161,7 @@ function DelegateCard({
               fontSize: "11px",
               fontWeight: 700,
               color: C.blue,
-              lineHeight: 1.2,
+              lineHeight: 1.25,
               width: "100%",
               ...clamp2,
             }}
@@ -140,13 +171,13 @@ function DelegateCard({
 
           <div
             style={{
-              marginTop: "2px",
-              fontSize: "7.5px",
+              marginTop: "4px",
+              fontSize: "9px",
               color: C.blue,
               fontWeight: 600,
               textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              lineHeight: 1.2,
+              letterSpacing: "0.04em",
+              lineHeight: 1.3,
               width: "100%",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -158,14 +189,14 @@ function DelegateCard({
 
           <div
             style={{
-              marginTop: "2px",
+              marginTop: "4px",
               display: "flex",
               alignItems: "flex-start",
               gap: "3px",
               width: "100%",
-              fontSize: "7.5px",
+              fontSize: "8.5px",
               color: C.muted,
-              lineHeight: 1.2,
+              lineHeight: 1.3,
             }}
           >
             <MapPinIcon />
@@ -184,59 +215,22 @@ function DelegateCard({
 
           <div
             style={{
-              marginTop: "2px",
+              marginTop: "4px",
               display: "flex",
               alignItems: "flex-start",
               gap: "3px",
               width: "100%",
-              fontSize: "7.5px",
+              fontSize: "8.5px",
               color: C.muted,
-              lineHeight: 1.2,
+              lineHeight: 1.3,
             }}
           >
             <BuildingIcon />
             <span style={{ flex: 1, minWidth: 0, ...clamp2 }}>{university}</span>
           </div>
-        </div>
-      </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          flexShrink: 0,
-          marginTop: "2px",
-        }}
-      >
-        {d.delegateCode ? (
-          <div
-            style={{
-              padding: "1px 6px",
-              borderRadius: "4px",
-              background: `${C.red}18`,
-              color: C.red,
-              fontSize: "7px",
-              fontFamily: "monospace",
-              fontWeight: 600,
-            }}
-          >
-            {d.delegateCode}
-          </div>
-        ) : (
-          <div
-            style={{
-              padding: "1px 6px",
-              borderRadius: "4px",
-              background: `${C.border}60`,
-              color: C.muted,
-              fontSize: "7px",
-              fontFamily: "monospace",
-              fontWeight: 600,
-            }}
-          >
-            ID pending
-          </div>
-        )}
+          <div style={{ marginTop: "5px" }}>{idBadge}</div>
+        </div>
       </div>
     </div>
   );
