@@ -22,7 +22,7 @@ export const BOOKLET_CONTENT_HEIGHT =
   BOOKLET_A4.height - 61 - 33 - 48;
 
 // ─── Delegate roster (booklet / print) ─────────────────────────────────────
-/** Grid columns; row count fixed, card height stretches to fill A4. */
+/** Grid columns; card height matches full-page (6-row) density on every page. */
 export const DELEGATE_ROSTER_COLS = 3;
 
 export const DELEGATE_ROSTER_GAP_PX = 8;
@@ -33,7 +33,7 @@ export const DELEGATE_ROSTER_HEADER_BLOCK_H = 44;
 export const DELEGATE_ROSTER_BODY_TEXT_EXTRA_H = 18;
 export const DELEGATE_ROSTER_LAST_PAGE_FOOTER_H = 28;
 
-/** Target 6 rows × 3 cols; card height derived per page to fill usable height. */
+/** Target 6 rows × 3 cols; card height always derived for this row count. */
 export const DELEGATE_ROSTER_ROWS = 6;
 
 export const DELEGATES_PER_BOOKLET_PAGE =
@@ -57,16 +57,17 @@ export function delegateRosterUsableHeight(
   return h;
 }
 
-/** Stretch card height so rows fill the roster page (no bottom gap). */
+/** Card height for full-page density; partial pages keep this size (no stretch). */
 export function computeDelegateRosterCardHeight(
   delegatesOnPage: number,
   options?: DelegateRosterLayoutOptions,
 ): number {
   if (delegatesOnPage <= 0) return 122;
-  const rows = Math.ceil(delegatesOnPage / DELEGATE_ROSTER_COLS);
   const usable = delegateRosterUsableHeight(options);
   return Math.floor(
-    (usable - Math.max(0, rows - 1) * DELEGATE_ROSTER_GAP_PX) / rows,
+    (usable -
+      Math.max(0, DELEGATE_ROSTER_ROWS - 1) * DELEGATE_ROSTER_GAP_PX) /
+      DELEGATE_ROSTER_ROWS,
   );
 }
 
