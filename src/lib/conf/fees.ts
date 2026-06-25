@@ -115,8 +115,9 @@ export const CONFERENCE_FEE_PACKAGES: ConferenceFeePackage[] = [
   {
     id: "conference-jersey",
     category: "Conference Jersey",
-    label: "Male and Female Jersey Set",
-    packageSummary: "Both male and female jersey set",
+    label: "Conference Jersey",
+    packageSummary:
+      "RMB 60.00 per set. Each set is one jersey — choose male or female when entering details below.",
     price: 60,
     isOptionalAddOn: true,
   },
@@ -191,10 +192,10 @@ export function getConferenceOptionalAddOnPackages() {
   return CONFERENCE_FEE_PACKAGES.filter((item) => item.isOptionalAddOn);
 }
 
-/** Optional add-on id for male + female jersey set — quantity is encoded by repeating this id. */
+/** Optional add-on id for conference jersey — quantity is encoded by repeating this id (one jersey per set). */
 export const CONFERENCE_JERSEY_PACKAGE_ID = "conference-jersey";
 
-/** Upper bound on jersey sets per registration (abuse / typo guard). */
+/** Upper bound on jerseys per registration (abuse / typo guard). */
 export const MAX_CONFERENCE_JERSEY_SETS = 20;
 
 export function countConferenceJerseySets(packageIds: string[]): number {

@@ -917,7 +917,8 @@ export function ConferenceFinanceDelegatesBoard({
             <div>
               <p className="text-lg font-semibold">{fmtRmb(totals.jerseyExpected)}</p>
               <p className="text-xs text-muted-foreground">
-                Jersey Revenue ({totals.jerseySets} set{totals.jerseySets !== 1 ? "s" : ""})
+                Jersey Revenue ({totals.jerseySets} jersey
+                {totals.jerseySets !== 1 ? "s" : ""})
               </p>
             </div>
           </CardContent>
@@ -1147,7 +1148,7 @@ export function ConferenceFinanceDelegatesBoard({
                         </span>{" "}
                         {feeBreakdown.jersey.label} ×{" "}
                         {feeBreakdown.jersey.quantity} (
-                        {fmtRmb(feeBreakdown.jersey.unitPrice)} per set) —{" "}
+                        {fmtRmb(feeBreakdown.jersey.unitPrice)} per jersey) —{" "}
                         {fmtRmb(feeBreakdown.jersey.subtotal)}
                       </p>
                     )}

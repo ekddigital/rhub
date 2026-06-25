@@ -1799,9 +1799,9 @@ export function DelegateRegistrationForm({
           <Label>Optional Add-ons (Conference Jersey and below)</Label>
           <p className="text-xs text-muted-foreground">
             Add achievers dinner tables and as many{" "}
-            <strong className="font-medium text-foreground">jersey sets</strong>{" "}
-            as you need — each set is male + female. Use + / − to include extras
-            for family or friends.
+            <strong className="font-medium text-foreground">jerseys</strong> as
+            you need — each set is one jersey (male or female). Use + / − to
+            include extras for family or friends.
           </p>
           <div className="space-y-2 rounded-md border border-border/70 p-3">
             {Object.entries(groupedAddOnOptions).map(([category, items]) => (
@@ -1821,9 +1821,10 @@ export function DelegateRegistrationForm({
                           <div className="min-w-0 flex-1 space-y-1">
                             <p className="font-medium">{item.label}</p>
                             <p className="text-muted-foreground leading-snug">
-                              {formatFeeRmb(item.price)} per set. Quantity =
-                              number of male+female sets ordered (max{" "}
-                              {MAX_CONFERENCE_JERSEY_SETS}).
+                              {formatFeeRmb(item.price)} per set. Each set is
+                              one jersey — choose male or female when entering
+                              details below. Quantity = number of jerseys
+                              ordered (max {MAX_CONFERENCE_JERSEY_SETS}).
                             </p>
                           </div>
                           <div className="flex shrink-0 items-center gap-2 self-end sm:self-center">
@@ -1832,7 +1833,7 @@ export function DelegateRegistrationForm({
                               variant="outline"
                               size="icon-sm"
                               className="shrink-0"
-                              aria-label="Decrease jersey sets"
+                              aria-label="Decrease jersey quantity"
                               disabled={jerseyQuantity <= 0 || submitting}
                               onClick={() => adjustJerseyQuantity(-1)}
                             >
@@ -1846,7 +1847,7 @@ export function DelegateRegistrationForm({
                               variant="outline"
                               size="icon-sm"
                               className="shrink-0"
-                              aria-label="Increase jersey sets"
+                              aria-label="Increase jersey quantity"
                               disabled={
                                 jerseyQuantity >= MAX_CONFERENCE_JERSEY_SETS ||
                                 submitting
@@ -1917,7 +1918,8 @@ export function DelegateRegistrationForm({
           <div className="space-y-3 sm:col-span-2">
             <Label>Jersey customization</Label>
             <p className="text-xs text-muted-foreground">
-              Enter name, size, and jersey number for each set ordered.
+              Enter gender, name, size, and jersey number for each jersey
+              ordered.
             </p>
             <div className="space-y-3 rounded-md border border-border/70 p-3">
               {jerseyDetails.map((row, index) => (
@@ -1928,7 +1930,26 @@ export function DelegateRegistrationForm({
                   <p className="text-xs font-semibold text-foreground">
                     Jersey {index + 1} of {jerseyQuantity}
                   </p>
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="space-y-1">
+                      <Label htmlFor={`jersey-gender-${index}`}>
+                        Jersey gender *
+                      </Label>
+                      <select
+                        id={`jersey-gender-${index}`}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+                        value={row.gender}
+                        onChange={(e) =>
+                          updateJerseyDetail(index, {
+                            gender: e.target.value as ConferenceJerseyDetail["gender"],
+                          })
+                        }
+                        disabled={submitting}
+                      >
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                      </select>
+                    </div>
                     <div className="space-y-1">
                       <Label htmlFor={`jersey-name-${index}`}>
                         Name on jersey *

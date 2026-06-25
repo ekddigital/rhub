@@ -73,7 +73,7 @@ export function buildConferenceDelegateFeeBreakdown(args: {
     jerseyQty > 0
       ? {
           packageId: CONFERENCE_JERSEY_PACKAGE_ID,
-          label: jerseyPkg?.label ?? "Conference jersey set",
+          label: jerseyPkg?.label ?? "Conference Jersey",
           quantity: jerseyQty,
           unitPrice: jerseyUnit,
           subtotal: jerseySubtotal,

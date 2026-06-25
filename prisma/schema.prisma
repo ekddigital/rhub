@@ -919,7 +919,7 @@ model ConfDelegate {
     dietaryNeeds ResponseChoice?
     dietaryDetails String? @db.Text
     additionalComments String? @db.Text
-    /// Per-set jersey customization when conference-jersey add-on is ordered: [{ name, size, number }]
+    /// Per-jersey customization when conference-jersey add-on is ordered: [{ gender, name, size, number }]
     jerseyDetails Json?
     passportPhotoPath String?
     lastEntryStampPath String?

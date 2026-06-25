@@ -11,7 +11,13 @@ export const CONFERENCE_JERSEY_SIZES = [
 
 export type ConferenceJerseySize = (typeof CONFERENCE_JERSEY_SIZES)[number];
 
+export const CONFERENCE_JERSEY_GENDERS = ["MALE", "FEMALE"] as const;
+
+export type ConferenceJerseyGender =
+  (typeof CONFERENCE_JERSEY_GENDERS)[number];
+
 export type ConferenceJerseyDetail = {
+  gender: ConferenceJerseyGender;
   name: string;
   size: ConferenceJerseySize;
   number: string;
@@ -21,7 +27,17 @@ export const MIN_CONFERENCE_JERSEY_NUMBER = 0;
 export const MAX_CONFERENCE_JERSEY_NUMBER = 99;
 
 export function emptyConferenceJerseyDetail(): ConferenceJerseyDetail {
-  return { name: "", size: "M", number: "" };
+  return { gender: "MALE", name: "", size: "M", number: "" };
+}
+
+function isJerseyGender(value: string): value is ConferenceJerseyGender {
+  return (CONFERENCE_JERSEY_GENDERS as readonly string[]).includes(value);
+}
+
+export function conferenceJerseyGenderLabel(
+  gender: ConferenceJerseyGender,
+): string {
+  return gender === "MALE" ? "Male" : "Female";
 }
 
 export function resizeConferenceJerseyDetails(
@@ -48,8 +64,10 @@ export function coerceConferenceJerseyDetailsFromClient(
   return raw.map((item) => {
     if (!item || typeof item !== "object") return emptyConferenceJerseyDetail();
     const row = item as Record<string, unknown>;
+    const genderRaw = String(row.gender ?? "").trim().toUpperCase();
     const sizeRaw = String(row.size ?? "").trim().toUpperCase();
     return {
+      gender: isJerseyGender(genderRaw) ? genderRaw : "MALE",
       name: String(row.name ?? ""),
       size: isJerseySize(sizeRaw) ? sizeRaw : "M",
       number: String(row.number ?? ""),
@@ -65,11 +83,17 @@ export function parseConferenceJerseyDetails(
   for (const item of raw) {
     if (!item || typeof item !== "object") continue;
     const row = item as Record<string, unknown>;
+    const genderRaw = String(row.gender ?? "").trim().toUpperCase();
     const name = String(row.name ?? "").trim();
     const sizeRaw = String(row.size ?? "").trim().toUpperCase();
     const number = String(row.number ?? "").trim();
     if (!name || !isJerseySize(sizeRaw) || !number) continue;
-    parsed.push({ name, size: sizeRaw, number });
+    parsed.push({
+      gender: isJerseyGender(genderRaw) ? genderRaw : "MALE",
+      name,
+      size: sizeRaw,
+      number,
+    });
   }
   return parsed;
 }
@@ -80,6 +104,7 @@ export function normalizeConferenceJerseyDetailsForStorage(
 ): ConferenceJerseyDetail[] | null {
   if (jerseyQuantity <= 0) return null;
   return details.slice(0, jerseyQuantity).map((row) => ({
+    gender: row.gender,
     name: row.name.trim(),
     size: row.size,
     number: row.number.trim(),
@@ -129,7 +154,7 @@ export function validateConferenceJerseyDetails(
   if (details.length !== jerseyQuantity) {
     return {
       ok: false,
-      error: `Please complete customization for all ${jerseyQuantity} jersey set${jerseyQuantity === 1 ? "" : "s"}`,
+      error: `Please complete customization for all ${jerseyQuantity} jersey${jerseyQuantity === 1 ? "" : "s"}`,
     };
   }
 
@@ -137,6 +162,10 @@ export function validateConferenceJerseyDetails(
   for (let i = 0; i < details.length; i++) {
     const row = details[i];
     const label = `Jersey ${i + 1} of ${jerseyQuantity}`;
+    const genderRaw = String(row.gender ?? "").trim().toUpperCase();
+    if (!isJerseyGender(genderRaw)) {
+      return { ok: false, error: `${label}: please select male or female` };
+    }
     const name = row.name.trim();
     if (!name) {
       return { ok: false, error: `${label}: name on jersey is required` };
@@ -150,6 +179,7 @@ export function validateConferenceJerseyDetails(
       return { ok: false, error: `${label}: ${numberCheck.error}` };
     }
     normalized.push({
+      gender: genderRaw,
       name,
       size: sizeRaw,
       number: numberCheck.number,
@@ -173,5 +203,5 @@ export function formatConferenceJerseyDetailLine(
   detail: ConferenceJerseyDetail,
   index: number,
 ): string {
-  return `#${index + 1}: ${detail.name} · ${detail.size} · #${detail.number}`;
+  return `#${index + 1}: ${conferenceJerseyGenderLabel(detail.gender)} · ${detail.name} · ${detail.size} · #${detail.number}`;
 }
