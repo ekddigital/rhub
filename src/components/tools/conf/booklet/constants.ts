@@ -26,9 +26,11 @@ export const DELEGATES_PER_BOOKLET_PAGE =
 
 /** Shared delegate roster card sizing — fixed height, no flex-grow stretch. */
 export const DELEGATE_ROSTER_GAP = "8px";
-export const DELEGATE_CARD_HEIGHT = 178;
-export const DELEGATE_CARD_PHOTO_SIZE = 72;
-export const DELEGATE_CARD_PADDING = "6px 6px 5px";
+/** Horizontal card: 4 rows × 108px + 3 gaps × 8px ≈ 456px grid (fits A4 content area). */
+export const DELEGATE_CARD_HEIGHT = 108;
+export const DELEGATE_CARD_PHOTO_SIZE = 70;
+export const DELEGATE_CARD_PADDING = "5px 7px 4px";
+export const DELEGATE_CARD_INNER_GAP = "7px";
 
 // ─── Static asset paths (served from /public) ─────────────────────────────────
 export const ASSETS = {
