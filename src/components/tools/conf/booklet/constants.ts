@@ -24,6 +24,12 @@ export const DELEGATE_ROSTER_ROWS = 4;
 export const DELEGATES_PER_BOOKLET_PAGE =
   DELEGATE_ROSTER_COLS * DELEGATE_ROSTER_ROWS;
 
+/** Shared delegate roster card sizing — fixed height, no flex-grow stretch. */
+export const DELEGATE_ROSTER_GAP = "8px";
+export const DELEGATE_CARD_HEIGHT = 178;
+export const DELEGATE_CARD_PHOTO_SIZE = 72;
+export const DELEGATE_CARD_PADDING = "6px 6px 5px";
+
 // ─── Static asset paths (served from /public) ─────────────────────────────────
 export const ASSETS = {
   lsuicLogo: "/conf/lsuic_logo.png",

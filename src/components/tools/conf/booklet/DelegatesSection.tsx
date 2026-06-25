@@ -1,7 +1,10 @@
 import {
   C,
+  DELEGATE_CARD_HEIGHT,
+  DELEGATE_CARD_PADDING,
+  DELEGATE_CARD_PHOTO_SIZE,
   DELEGATE_ROSTER_COLS,
-  DELEGATE_ROSTER_ROWS,
+  DELEGATE_ROSTER_GAP,
 } from "./constants";
 import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
@@ -53,7 +56,6 @@ export function DelegatesSection({
   pageNum: number;
   totalPages: number;
 }) {
-  const rosterGap = "9px";
   const participantLabel =
     rosterPageCount > 1
       ? `${totalDelegateCount} Participants · Page ${rosterPageIndex + 1} of ${rosterPageCount}`
@@ -141,29 +143,23 @@ export function DelegatesSection({
         ) : (
           <div
             style={{
-              flex: 1,
-              minHeight: 0,
               display: "grid",
               gridTemplateColumns: `repeat(${DELEGATE_ROSTER_COLS}, minmax(0, 1fr))`,
-              gridTemplateRows: `repeat(${Math.min(
-                DELEGATE_ROSTER_ROWS,
-                Math.ceil(delegates.length / DELEGATE_ROSTER_COLS),
-              )}, minmax(0, 1fr))`,
-              gap: rosterGap,
-              alignContent: "stretch",
+              gridAutoRows: `${DELEGATE_CARD_HEIGHT}px`,
+              gap: DELEGATE_ROSTER_GAP,
+              alignContent: "start",
             }}
           >
             {delegates.map((d) => (
               <div
                 key={d.id}
                 style={{
-                  height: "100%",
-                  minHeight: 0,
+                  height: `${DELEGATE_CARD_HEIGHT}px`,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   textAlign: "center",
-                  padding: "8px 6px 6px",
+                  padding: DELEGATE_CARD_PADDING,
                   borderRadius: "10px",
                   border: `1px solid ${C.border}`,
                   background: C.lightBlue,
@@ -173,20 +169,19 @@ export function DelegatesSection({
               >
                 <div
                   style={{
-                    width: "72px",
-                    height: "78px",
+                    width: `${DELEGATE_CARD_PHOTO_SIZE}px`,
+                    height: `${DELEGATE_CARD_PHOTO_SIZE}px`,
                     maxWidth: "100%",
                     borderRadius: "7px",
                     overflow: "hidden",
                     border: `2px solid ${C.blue}30`,
-                    marginBottom: "2px",
                     flexShrink: 0,
                   }}
                 >
                   <Avatar
                     src={d.bookletPhotoPath}
                     name={d.name}
-                    size={78}
+                    size={DELEGATE_CARD_PHOTO_SIZE}
                     square
                     silhouette
                     borderColor={C.blue}
@@ -197,9 +192,9 @@ export function DelegatesSection({
                     fontSize: "10px",
                     fontWeight: 700,
                     color: C.blue,
-                    marginTop: "6px",
-                    lineHeight: 1.25,
-                    maxHeight: "30px",
+                    marginTop: "3px",
+                    lineHeight: 1.2,
+                    maxHeight: "24px",
                     overflow: "hidden",
                     width: "100%",
                     textAlign: "center",
@@ -211,16 +206,17 @@ export function DelegatesSection({
 
                 <div
                   style={{
-                    marginTop: "2px",
+                    marginTop: "1px",
                     fontSize: "7.5px",
                     color: C.blue,
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    lineHeight: 1.25,
-                    maxHeight: "28px",
+                    lineHeight: 1.2,
+                    maxHeight: "18px",
                     overflow: "hidden",
                     flexShrink: 0,
+                    width: "100%",
                   }}
                 >
                   {formatDelegateOffice(d.conferencePosition)}
@@ -228,14 +224,12 @@ export function DelegatesSection({
 
                 <div
                   style={{
-                    marginTop: "2px",
+                    marginTop: "3px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "2px",
+                    gap: "1px",
                     width: "100%",
-                    flex: 1,
-                    minHeight: 0,
-                    justifyContent: "flex-end",
+                    flexShrink: 0,
                     textAlign: "center",
                   }}
                 >
@@ -243,10 +237,12 @@ export function DelegatesSection({
                     style={{
                       fontSize: "7.5px",
                       color: C.muted,
-                      lineHeight: 1.35,
+                      lineHeight: 1.25,
+                      overflow: "hidden",
                       overflowWrap: "break-word",
                       wordBreak: "normal",
                       width: "100%",
+                      maxHeight: "18px",
                     }}
                   >
                     {(d.city ? d.city : "Member") +
@@ -257,10 +253,12 @@ export function DelegatesSection({
                     style={{
                       fontSize: "7.5px",
                       color: C.muted,
-                      lineHeight: 1.35,
+                      lineHeight: 1.25,
+                      overflow: "hidden",
                       overflowWrap: "break-word",
                       wordBreak: "normal",
                       width: "100%",
+                      maxHeight: "18px",
                     }}
                   >
                     {d.university?.trim() || "Member"}
@@ -270,7 +268,7 @@ export function DelegatesSection({
                 {d.delegateCode ? (
                   <div
                     style={{
-                      marginTop: "4px",
+                      marginTop: "2px",
                       padding: "1px 6px",
                       borderRadius: "4px",
                       background: `${C.red}15`,
@@ -286,7 +284,7 @@ export function DelegatesSection({
                 ) : (
                   <div
                     style={{
-                      marginTop: "4px",
+                      marginTop: "2px",
                       padding: "1px 6px",
                       borderRadius: "4px",
                       background: `${C.border}60`,
