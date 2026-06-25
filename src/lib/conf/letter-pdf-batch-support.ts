@@ -3,7 +3,7 @@
  * fonts, static images, React paint, and `.letter-page` presence in #letter-print-root.
  */
 
-function preloadUrl(src: string): Promise<void> {
+export function preloadUrl(src: string): Promise<void> {
   return new Promise((resolve) => {
     const img = new Image();
     const done = () => resolve();
@@ -58,4 +58,50 @@ export async function waitForLetterPagesInDom(
 /** Yield so the UI can show progress between heavy html2canvas passes. */
 export async function yieldToMain(): Promise<void> {
   await new Promise((r) => setTimeout(r, 0));
+}
+
+/**
+ * Wait until every `<img>` under a container has finished loading (or errored).
+ * Prevents html2canvas from capturing zero-size / incomplete images in off-screen
+ * print roots.
+ */
+export async function waitForImagesInContainer(
+  containerId: string,
+  opts?: { timeoutMs?: number; intervalMs?: number },
+): Promise<boolean> {
+  const timeoutMs = opts?.timeoutMs ?? 30_000;
+  const intervalMs = opts?.intervalMs ?? 50;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const root = document.getElementById(containerId);
+    if (!root) {
+      await new Promise((r) => setTimeout(r, intervalMs));
+      continue;
+    }
+
+    const imgs = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
+    if (imgs.length === 0) return true;
+
+    const pending = imgs.filter((img) => !img.complete);
+    if (pending.length === 0) {
+      await new Promise((r) => setTimeout(r, 100));
+      return true;
+    }
+
+    await Promise.all(
+      pending.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            const done = () => resolve();
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          }),
+      ),
+    );
+    await new Promise((r) => setTimeout(r, 100));
+    return true;
+  }
+
+  return false;
 }

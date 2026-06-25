@@ -1,98 +1,80 @@
 /**
  * Client-side helpers so booklet PDF export is reliable before html2canvas capture:
- * fonts, static assets, React paint, page presence, and image decode in #booklet-print-root.
+ * fonts, static cover assets, React paint, and image decode in #booklet-print-root.
  */
 
 import {
+  preloadUrl,
   settleAfterPrintRootUpdate,
+  waitForImagesInContainer,
   waitForLetterPagesInDom,
 } from "./letter-pdf-batch-support";
 
-const BOOKLET_STATIC_ASSETS = [
+export { settleAfterPrintRootUpdate };
+
+/** Static booklet assets referenced on cover / headers (same paths as booklet/constants ASSETS). */
+const BOOKLET_PDF_STATIC_ASSETS = [
   "/conf/lsuic_logo.png",
   "/conf/liberia-seal.svg",
   "/conf/assets/jinan_city/evening_view_portrait.png",
-  "/conf/assets/jinan_city/day_view_landscape.png",
-  "/conf/assets/jinan_city/morning_view_landscape.png",
   "/conf/assets/hotel/main_entrance_view.png",
-  "/conf/assets/hotel/conference_hall.jpg",
   "/conf/president_boakai_Liberia.png",
   "/conf/president_xi_China.png",
   "/conf/placeholder-delegate.svg",
 ] as const;
 
-function preloadUrl(src: string): Promise<void> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const done = () => resolve();
-    img.onload = done;
-    img.onerror = done;
-    img.src = src;
-  });
-}
-
-/** Warm fonts + booklet artwork used across cover, headers, and delegate placeholders. */
+/** Warm fonts + recurring static images (reduces first-frame blank captures). */
 export async function warmupBookletPdfExport(): Promise<void> {
   if (typeof document === "undefined") return;
   await document.fonts.ready;
-  await Promise.all(BOOKLET_STATIC_ASSETS.map(preloadUrl));
+  await Promise.all(BOOKLET_PDF_STATIC_ASSETS.map((src) => preloadUrl(src)));
 }
 
-export { settleAfterPrintRootUpdate };
-
-/** Poll until `.booklet-page` nodes exist under the print root (or timeout). */
 export async function waitForBookletPagesInDom(
-  containerId = "booklet-print-root",
-  minPages = 1,
+  containerId: string,
+  minPages: number,
   opts?: { timeoutMs?: number; intervalMs?: number },
 ): Promise<boolean> {
-  return waitForLetterPagesInDom(containerId, ".booklet-page", minPages, opts);
+  return waitForLetterPagesInDom(
+    containerId,
+    ".booklet-page",
+    minPages,
+    opts,
+  );
+}
+
+export async function waitForBookletImagesInDom(
+  containerId: string,
+): Promise<void> {
+  await waitForImagesInContainer(containerId, { timeoutMs: 30_000 });
+}
+
+/** Hide images that failed to decode before html2canvas capture. */
+export function hideZeroSizeImages(root: HTMLElement): void {
+  root.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+    if (!img.complete || !img.naturalWidth || !img.naturalHeight) {
+      img.style.visibility = "hidden";
+    }
+  });
 }
 
 /**
- * Wait until images in the print root have loaded or errored.
- * Unloaded 0×0 images break html2canvas `createPattern` during capture.
+ * Full pre-capture pipeline for booklet Live Preview export.
+ * Returns false when `.booklet-page` nodes never appear in the print root.
  */
-export async function waitForBookletImagesInDom(
-  containerId = "booklet-print-root",
-  opts?: { timeoutMs?: number },
-): Promise<void> {
-  const timeoutMs = opts?.timeoutMs ?? 15_000;
-  const deadline = Date.now() + timeoutMs;
+export async function prepareBookletPdfExport(
+  minPages: number = 1,
+): Promise<boolean> {
+  await warmupBookletPdfExport();
 
-  while (Date.now() < deadline) {
-    const root = document.getElementById(containerId);
-    if (!root) return;
+  const pagesReady = await waitForBookletPagesInDom(
+    "booklet-print-root",
+    minPages,
+    { timeoutMs: 12_000, intervalMs: 40 },
+  );
+  if (!pagesReady) return false;
 
-    const imgs = Array.from(root.querySelectorAll<HTMLImageElement>("img"));
-    const pending = imgs.filter((img) => !img.complete);
-
-    if (pending.length === 0) {
-      // Brief settle after last decode
-      await new Promise((r) => setTimeout(r, 150));
-      return;
-    }
-
-    await Promise.all(
-      pending.map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            const done = () => resolve();
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-          }),
-      ),
-    );
-    await new Promise((r) => setTimeout(r, 40));
-  }
-}
-
-/** Hide 0×0 images so html2canvas does not pass empty canvases to createPattern. */
-export function hideZeroSizeImages(container: HTMLElement): void {
-  container.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
-    if (!img.naturalWidth || !img.naturalHeight) {
-      img.style.visibility = "hidden";
-      img.style.display = "none";
-    }
-  });
+  await waitForBookletImagesInDom("booklet-print-root");
+  await settleAfterPrintRootUpdate();
+  return true;
 }

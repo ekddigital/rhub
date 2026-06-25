@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { warmupBookletPdfExport } from "@/lib/conf/booklet-pdf-export-support";
 import {
   Download,
   ExternalLink,
@@ -43,6 +44,10 @@ export function BookletPreview({
   const { enabledSections, totalPages } = layout;
 
   const letterheadUrl = `/api/conf/${confId}/letterhead?mode=header&format=png`;
+
+  useEffect(() => {
+    void warmupBookletPdfExport();
+  }, []);
 
   const handleExportPdf = async () => {
     if (exporting) return;
