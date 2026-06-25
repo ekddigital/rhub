@@ -12,12 +12,17 @@ import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
 import type { BookletSection, Delegate } from "./types";
 
-const clamp2: CSSProperties = {
-  display: "-webkit-box",
-  WebkitLineClamp: 2,
-  WebkitBoxOrient: "vertical",
-  overflow: "hidden",
-};
+/** Fixed-height text block — avoids -webkit-line-clamp, which html2canvas mispositions in PDF. */
+function linesBlock(
+  lines: number,
+  lineHeightPx: number,
+): Pick<CSSProperties, "lineHeight" | "maxHeight" | "overflow"> {
+  return {
+    lineHeight: `${lineHeightPx}px`,
+    maxHeight: `${lines * lineHeightPx}px`,
+    overflow: "hidden",
+  };
+}
 
 function MapPinIcon() {
   return (
@@ -107,8 +112,7 @@ function DelegateCard({
       style={{
         minHeight: `${cardHeight}px`,
         height: `${cardHeight}px`,
-        display: "flex",
-        alignItems: "center",
+        boxSizing: "border-box",
         padding: DELEGATE_CARD_PADDING,
         borderRadius: "10px",
         border: `1px solid ${C.border}`,
@@ -121,7 +125,7 @@ function DelegateCard({
         style={{
           display: "flex",
           gap: DELEGATE_CARD_INNER_GAP,
-          alignItems: "center",
+          alignItems: "flex-start",
           width: "100%",
           minWidth: 0,
         }}
@@ -161,9 +165,9 @@ function DelegateCard({
               fontSize: "11px",
               fontWeight: 700,
               color: C.blue,
-              lineHeight: 1.25,
               width: "100%",
-              ...clamp2,
+              wordBreak: "break-word",
+              ...linesBlock(2, 14),
             }}
           >
             {d.name}
@@ -177,11 +181,11 @@ function DelegateCard({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.04em",
-              lineHeight: 1.3,
               width: "100%",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              lineHeight: "12px",
             }}
           >
             {formatDelegateOffice(d.conferencePosition)}
@@ -196,7 +200,7 @@ function DelegateCard({
               width: "100%",
               fontSize: "8.5px",
               color: C.muted,
-              lineHeight: 1.3,
+              lineHeight: "11px",
             }}
           >
             <MapPinIcon />
@@ -207,6 +211,7 @@ function DelegateCard({
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                lineHeight: "11px",
               }}
             >
               {location}
@@ -222,11 +227,20 @@ function DelegateCard({
               width: "100%",
               fontSize: "8.5px",
               color: C.muted,
-              lineHeight: 1.3,
+              lineHeight: "11px",
             }}
           >
             <BuildingIcon />
-            <span style={{ flex: 1, minWidth: 0, ...clamp2 }}>{university}</span>
+            <span
+              style={{
+                flex: 1,
+                minWidth: 0,
+                wordBreak: "break-word",
+                ...linesBlock(2, 11),
+              }}
+            >
+              {university}
+            </span>
           </div>
 
           <div style={{ marginTop: "5px" }}>{idBadge}</div>
