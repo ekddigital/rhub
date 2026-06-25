@@ -23,6 +23,12 @@ import {
   composeDelegateCommentsWithAddOns,
   parseDelegateCommentsWithAddOns,
 } from "@/lib/conf/delegate-fee-addons";
+import {
+  coerceConferenceJerseyDetailsFromClient,
+  mapDelegateJerseyDetailsForClient,
+  parseConferenceJerseyDetails,
+  validateConferenceJerseyDetailsForAddOns,
+} from "@/lib/conf/delegate-jersey-details";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -83,6 +89,9 @@ export async function GET(
     const parsedComments = parseDelegateCommentsWithAddOns(
       delegate.additionalComments,
     );
+    const jerseyDetails = mapDelegateJerseyDetailsForClient(
+      delegate.jerseyDetails,
+    );
 
     const headersList = await headers();
     const host = headersList.get("host") ?? "localhost";
@@ -93,6 +102,7 @@ export async function GET(
       ...delegate,
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
+      jerseyDetails,
       ...(await mapDelegateDocumentsForClientAsync(
         confId,
         delegateId,
@@ -170,6 +180,7 @@ export async function PATCH(
       feePaid: boolean;
       feePackageId: string | null;
       additionalComments: string | null;
+      jerseyDetails: unknown;
     } | null;
 
     if (!current || current.confId !== confId) {
@@ -394,6 +405,29 @@ export async function PATCH(
       );
     }
 
+    if (
+      typeof body.jerseyDetails !== "undefined" ||
+      typeof body.addOnPackageIds !== "undefined"
+    ) {
+      const effectiveJerseyInput =
+        typeof body.jerseyDetails !== "undefined"
+          ? coerceConferenceJerseyDetailsFromClient(body.jerseyDetails)
+          : mapDelegateJerseyDetailsForClient(current.jerseyDetails);
+      const jerseyValidation = validateConferenceJerseyDetailsForAddOns(
+        effectiveAddOnPackageIds,
+        effectiveJerseyInput,
+      );
+      if (!jerseyValidation.ok) {
+        return NextResponse.json(
+          { error: jerseyValidation.error },
+          { status: 400 },
+        );
+      }
+      updates.jerseyDetails = jerseyValidation.details.length
+        ? jerseyValidation.details
+        : Prisma.JsonNull;
+    }
+
     if (typeof body.feeAmount !== "undefined") {
       // Manager-only: participants cannot change fee amounts
       if (auth.access.isManager) {
@@ -501,6 +535,9 @@ export async function PATCH(
     const finalParsedComments = parseDelegateCommentsWithAddOns(
       finalDelegate.additionalComments,
     );
+    const finalJerseyDetails = mapDelegateJerseyDetailsForClient(
+      finalDelegate.jerseyDetails,
+    );
 
     const headersList = await headers();
     const host = headersList.get("host") ?? "localhost";
@@ -511,6 +548,7 @@ export async function PATCH(
       ...finalDelegate,
       additionalComments: finalParsedComments.additionalComments,
       addOnPackageIds: finalParsedComments.addOnPackageIds,
+      jerseyDetails: finalJerseyDetails,
       ...(await mapDelegateDocumentsForClientAsync(
         confId,
         delegateId,

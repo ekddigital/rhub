@@ -9,6 +9,7 @@ import {
   type DelegateViewerContext,
 } from "@/lib/conf/delegate-privacy";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
+import { mapDelegateJerseyDetailsForClient } from "@/lib/conf/delegate-jersey-details";
 
 type AccessLike = {
   isManager: boolean;
@@ -79,6 +80,9 @@ export async function mapDelegatesForApiResponse(
       phone: canViewSensitive ? delegate.phone : null,
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
+      jerseyDetails: mapDelegateJerseyDetailsForClient(
+        delegateWithDocs.jerseyDetails,
+      ),
       ...mapDelegateDocumentsForClient(
         delegate.confId,
         delegate.id,

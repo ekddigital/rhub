@@ -33,6 +33,12 @@ import {
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
   DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/file-upload-client";
+import {
+  CONFERENCE_JERSEY_SIZES,
+  type ConferenceJerseyDetail,
+  resizeConferenceJerseyDetails,
+  validateConferenceJerseyDetails,
+} from "@/lib/conf/delegate-jersey-details";
 
 export type DelegateRegistrationPayload = {
   name: string;
@@ -68,6 +74,7 @@ export type DelegateRegistrationPayload = {
   feeAmount: number | null;
   feePackageId: string;
   addOnPackageIds: string[];
+  jerseyDetails: ConferenceJerseyDetail[];
   amountPaid: number;
   roomPref: "PAIR" | "SINGLE";
   partnerClaimNote: string;
@@ -454,6 +461,17 @@ export function DelegateRegistrationForm({
       initialValues?.addOnPackageIds ?? [],
     ),
   );
+  const [jerseyDetails, setJerseyDetails] = useState<ConferenceJerseyDetail[]>(
+    () =>
+      resizeConferenceJerseyDetails(
+        initialValues?.jerseyDetails ?? [],
+        countConferenceJerseySets(
+          normalizeConferenceOptionalAddOnPackageIds(
+            initialValues?.addOnPackageIds ?? [],
+          ),
+        ),
+      ),
+  );
   const [feePaid, setFeePaid] = useState(initialValues?.feePaid ?? false);
   const [feeAmount, setFeeAmount] = useState(
     String(
@@ -560,6 +578,7 @@ export function DelegateRegistrationForm({
       feeAmount: Number(feeAmount) || 0,
       feePackageId: selectedFeePackage,
       addOnPackageIds: selectedAddOnPackageIds,
+      jerseyDetails,
       amountPaid: amountPaid.trim() ? Number(amountPaid) : 0,
       roomPref,
       partnerClaimNote,
@@ -590,6 +609,7 @@ export function DelegateRegistrationForm({
       feeAmount,
       selectedFeePackage,
       selectedAddOnPackageIds,
+      jerseyDetails,
       amountPaid,
       roomPref,
       partnerClaimNote,
@@ -675,6 +695,19 @@ export function DelegateRegistrationForm({
     () => countConferenceJerseySets(selectedAddOnPackageIds),
     [selectedAddOnPackageIds],
   );
+
+  useEffect(() => {
+    setJerseyDetails((prev) => resizeConferenceJerseyDetails(prev, jerseyQuantity));
+  }, [jerseyQuantity]);
+
+  const updateJerseyDetail = (
+    index: number,
+    patch: Partial<ConferenceJerseyDetail>,
+  ) => {
+    setJerseyDetails((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+    );
+  };
 
   const adjustJerseyQuantity = (delta: number) => {
     const nonJersey = selectedAddOnPackageIds.filter(
@@ -808,8 +841,17 @@ export function DelegateRegistrationForm({
         }
       }
       if (Array.isArray(d.addOnPackageIds)) {
-        setSelectedAddOnPackageIds(
-          normalizeConferenceOptionalAddOnPackageIds(d.addOnPackageIds),
+        const restoredAddOns = normalizeConferenceOptionalAddOnPackageIds(
+          d.addOnPackageIds,
+        );
+        setSelectedAddOnPackageIds(restoredAddOns);
+        setJerseyDetails(
+          resizeConferenceJerseyDetails(
+            Array.isArray(d.jerseyDetails)
+              ? (d.jerseyDetails as ConferenceJerseyDetail[])
+              : [],
+            countConferenceJerseySets(restoredAddOns),
+          ),
         );
       }
       if (typeof d.feeAmount === "string") setFeeAmount(d.feeAmount);
@@ -900,6 +942,7 @@ export function DelegateRegistrationForm({
           feePaid,
           feePackageId: selectedFeePackage,
           addOnPackageIds: selectedAddOnPackageIds,
+          jerseyDetails,
           feeAmount,
           amountPaid,
           roomPref,
@@ -941,6 +984,7 @@ export function DelegateRegistrationForm({
     feePaid,
     selectedFeePackage,
     selectedAddOnPackageIds,
+    jerseyDetails,
     amountPaid,
     feeAmount,
     roomPref,
@@ -990,6 +1034,16 @@ export function DelegateRegistrationForm({
     setSelectedAddOnPackageIds(
       normalizeConferenceOptionalAddOnPackageIds(
         initialValues?.addOnPackageIds ?? [],
+      ),
+    );
+    setJerseyDetails(
+      resizeConferenceJerseyDetails(
+        initialValues?.jerseyDetails ?? [],
+        countConferenceJerseySets(
+          normalizeConferenceOptionalAddOnPackageIds(
+            initialValues?.addOnPackageIds ?? [],
+          ),
+        ),
       ),
     );
     setFeeAmount(
@@ -1119,6 +1173,15 @@ export function DelegateRegistrationForm({
       return;
     }
 
+    const jerseyValidation = validateConferenceJerseyDetails(
+      jerseyQuantity,
+      jerseyDetails,
+    );
+    if (!jerseyValidation.ok) {
+      setError(jerseyValidation.error);
+      return;
+    }
+
     setFieldErrors({});
     setError(null);
 
@@ -1173,6 +1236,7 @@ export function DelegateRegistrationForm({
         feePaid,
         feePackageId: selectedFee.id,
         addOnPackageIds: selectedAddOnPackageIds,
+        jerseyDetails: jerseyValidation.details,
         feeAmount: finalFeeAmount,
         amountPaid: parsedAmountPaid,
         roomPref,
@@ -1848,6 +1912,80 @@ export function DelegateRegistrationForm({
             </p>
           </div>
         </div>
+
+        {jerseyQuantity > 0 && (
+          <div className="space-y-3 sm:col-span-2">
+            <Label>Jersey customization</Label>
+            <p className="text-xs text-muted-foreground">
+              Enter name, size, and jersey number for each set ordered.
+            </p>
+            <div className="space-y-3 rounded-md border border-border/70 p-3">
+              {jerseyDetails.map((row, index) => (
+                <div
+                  key={index}
+                  className="space-y-2 rounded-md border border-border/60 p-3"
+                >
+                  <p className="text-xs font-semibold text-foreground">
+                    Jersey {index + 1} of {jerseyQuantity}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label htmlFor={`jersey-name-${index}`}>
+                        Name on jersey *
+                      </Label>
+                      <Input
+                        id={`jersey-name-${index}`}
+                        value={row.name}
+                        onChange={(e) =>
+                          updateJerseyDetail(index, { name: e.target.value })
+                        }
+                        placeholder="Name to print"
+                        disabled={submitting}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`jersey-size-${index}`}>Size *</Label>
+                      <select
+                        id={`jersey-size-${index}`}
+                        className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs"
+                        value={row.size}
+                        onChange={(e) =>
+                          updateJerseyDetail(index, {
+                            size: e.target.value as ConferenceJerseyDetail["size"],
+                          })
+                        }
+                        disabled={submitting}
+                      >
+                        {CONFERENCE_JERSEY_SIZES.map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor={`jersey-number-${index}`}>
+                        Jersey number *
+                      </Label>
+                      <Input
+                        id={`jersey-number-${index}`}
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={row.number}
+                        onChange={(e) =>
+                          updateJerseyDetail(index, { number: e.target.value })
+                        }
+                        placeholder="0–99"
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label>Amount Already Paid (RMB)</Label>

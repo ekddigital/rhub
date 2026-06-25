@@ -26,6 +26,10 @@ import {
   formatConferenceOptionalAddOnsSummary,
 } from "@/lib/conf/fees";
 import { buildConferenceDelegateFeeBreakdown } from "@/lib/conf/delegate-fee-breakdown";
+import {
+  formatConferenceJerseyDetailLine,
+  type ConferenceJerseyDetail,
+} from "@/lib/conf/delegate-jersey-details";
 
 export type DelegateFinanceRow = {
   id: string;
@@ -41,6 +45,7 @@ export type DelegateFinanceRow = {
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
   addOnPackageIds?: string[];
+  jerseyDetails?: ConferenceJerseyDetail[];
   feeFsApprovedAt?: string | null;
   feeFsApprovedBy?: string | null;
   feeTreasurerAckAt?: string | null;
@@ -60,6 +65,7 @@ function normalizeRow(row: DelegateFinanceRow): DelegateFinanceRow {
     addOnPackageIds: Array.isArray(row.addOnPackageIds)
       ? row.addOnPackageIds
       : [],
+    jerseyDetails: Array.isArray(row.jerseyDetails) ? row.jerseyDetails : [],
     feeFsApprovedAt: row.feeFsApprovedAt ?? null,
     feeFsApprovedBy: row.feeFsApprovedBy ?? null,
     feeTreasurerAckAt: row.feeTreasurerAckAt ?? null,
@@ -1144,6 +1150,20 @@ export function ConferenceFinanceDelegatesBoard({
                         {fmtRmb(feeBreakdown.jersey.unitPrice)} per set) —{" "}
                         {fmtRmb(feeBreakdown.jersey.subtotal)}
                       </p>
+                    )}
+                    {(row.jerseyDetails?.length ?? 0) > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          Jersey details:
+                        </span>
+                        <ul className="mt-0.5 list-inside list-disc space-y-0.5">
+                          {row.jerseyDetails?.map((detail, index) => (
+                            <li key={index}>
+                              {formatConferenceJerseyDetailLine(detail, index)}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                     {feeBreakdown.otherOptionalLines.map((line) => (
                       <p

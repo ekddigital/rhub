@@ -26,6 +26,12 @@ import {
   composeDelegateCommentsWithAddOns,
   parseDelegateCommentsWithAddOns,
 } from "@/lib/conf/delegate-fee-addons";
+import {
+  mapDelegateJerseyDetailsForClient,
+  coerceConferenceJerseyDetailsFromClient,
+  parseConferenceJerseyDetails,
+  validateConferenceJerseyDetailsForAddOns,
+} from "@/lib/conf/delegate-jersey-details";
 
 const RESPONSE_CHOICES = ["YES", "NO", "OTHER"] as const;
 const STUDY_YEARS = [
@@ -120,6 +126,7 @@ export async function POST(
       additionalComments,
       feePackageId,
       addOnPackageIds,
+      jerseyDetails,
       amountPaid,
       feePaid,
       passportNo,
@@ -282,6 +289,16 @@ export async function POST(
     }
     const normalizedAddOnPackageIds =
       normalizeConferenceOptionalAddOnPackageIds(addOnPackageIds);
+    const jerseyDetailsValidation = validateConferenceJerseyDetailsForAddOns(
+      normalizedAddOnPackageIds,
+      coerceConferenceJerseyDetailsFromClient(jerseyDetails),
+    );
+    if (!jerseyDetailsValidation.ok) {
+      return NextResponse.json(
+        { error: jerseyDetailsValidation.error },
+        { status: 400 },
+      );
+    }
     const addOnsTotal = sumConferenceOptionalAddOns(normalizedAddOnPackageIds);
     const resolvedFeeAmount = resolvedFeePackage.price + addOnsTotal;
     const parsedAmountPaid =
@@ -340,6 +357,9 @@ export async function POST(
         additionalComments,
         normalizedAddOnPackageIds,
       ),
+      jerseyDetails: jerseyDetailsValidation.details.length
+        ? jerseyDetailsValidation.details
+        : Prisma.JsonNull,
       feePackageId: resolvedFeePackage.id,
       feeAmount: resolvedFeeAmount,
       amountPaid: resolvedAmountPaid,

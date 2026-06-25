@@ -347,6 +347,7 @@ export function DelegatesShell() {
           additionalComments: payload.additionalComments,
           feePackageId: payload.feePackageId,
           addOnPackageIds: payload.addOnPackageIds,
+          jerseyDetails: payload.jerseyDetails,
           feeAmount: payload.feeAmount,
           amountPaid: payload.amountPaid,
           feePaid: payload.feePaid,

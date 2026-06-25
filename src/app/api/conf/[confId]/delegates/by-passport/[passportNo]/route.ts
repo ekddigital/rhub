@@ -5,6 +5,7 @@ import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { normalizeDelegatePassport } from "@/lib/conf/delegate-utils";
 import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
+import { mapDelegateJerseyDetailsForClient } from "@/lib/conf/delegate-jersey-details";
 
 // GET /api/conf/[confId]/delegates/by-passport/[passportNo]
 // Resolves a passport number → delegate record.
@@ -59,11 +60,13 @@ export async function GET(
   }
 
   const parsed = parseDelegateCommentsWithAddOns(delegate.additionalComments);
+  const jerseyDetails = mapDelegateJerseyDetailsForClient(delegate.jerseyDetails);
 
   return NextResponse.json({
     ...delegate,
     additionalComments: parsed.additionalComments,
     addOnPackageIds: parsed.addOnPackageIds,
+    jerseyDetails,
     ...(await mapDelegateDocumentsForClientAsync(
       confId,
       delegate.id,

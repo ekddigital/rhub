@@ -281,6 +281,7 @@ export function DelegatePublicRegister() {
       additionalComments: snapshot.additionalComments,
       feePackageId: snapshot.feePackageId,
       addOnPackageIds: snapshot.addOnPackageIds,
+      jerseyDetails: snapshot.jerseyDetails,
       feeAmount: snapshot.feeAmount,
       amountPaid: snapshot.amountPaid,
       feePaid: snapshot.feePaid,

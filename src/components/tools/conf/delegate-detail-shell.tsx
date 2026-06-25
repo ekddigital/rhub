@@ -40,6 +40,10 @@ import {
   DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/file-upload-client";
 import {
+  formatConferenceJerseyDetailLine,
+  type ConferenceJerseyDetail,
+} from "@/lib/conf/delegate-jersey-details";
+import {
   formatUploadError,
   parseUploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
@@ -80,6 +84,7 @@ type Delegate = {
   dietaryDetails: string | null;
   additionalComments: string | null;
   addOnPackageIds?: string[];
+  jerseyDetails?: ConferenceJerseyDetail[];
   feePackageId: string | null;
   feeAmount: number | null;
   amountPaid: number | null;
@@ -315,6 +320,7 @@ export function DelegateDetailShell({
         conferencePosition: payload.conferencePosition,
         feePackageId: payload.feePackageId,
         addOnPackageIds: payload.addOnPackageIds,
+        jerseyDetails: payload.jerseyDetails,
         feeAmount: payload.feeAmount,
         amountPaid: payload.amountPaid,
         feePaid: payload.feePaid,
@@ -882,6 +888,21 @@ export function DelegateDetailShell({
                 Comments: {asText(delegate.additionalComments)}
               </p>
             </div>
+
+            {(delegate.jerseyDetails?.length ?? 0) > 0 && (
+              <div className="mt-3 rounded-lg border border-border p-3 text-sm">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Jersey customization
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {delegate.jerseyDetails?.map((detail, index) => (
+                    <li key={index}>
+                      {formatConferenceJerseyDetailLine(detail, index)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -967,6 +988,7 @@ export function DelegateDetailShell({
                 additionalComments: delegate.additionalComments ?? "",
                 feePackageId: delegate.feePackageId ?? "",
                 addOnPackageIds: delegate.addOnPackageIds ?? [],
+                jerseyDetails: delegate.jerseyDetails ?? [],
                 feePaid: delegate.feePaid,
                 feeAmount: delegate.feeAmount,
                 amountPaid: delegate.amountPaid ?? undefined,
