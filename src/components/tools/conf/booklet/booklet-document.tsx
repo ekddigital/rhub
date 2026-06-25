@@ -13,6 +13,7 @@ import {
   sectionPageSpan,
 } from "./booklet-section-pages";
 import { isCocMembersContinuation } from "./booklet-pagination";
+import { sortBookletMembersByName } from "./sort-booklet-members";
 import { CoverPage } from "./CoverPage";
 import { BackCoverPage } from "./BackCoverPage";
 import { TableOfContentsPage } from "./TableOfContentsPage";
@@ -246,10 +247,11 @@ function renderSection(
       );
 
     case "DELEGATES": {
+      const sortedDelegates = sortBookletMembersByName(delegates);
       const rosterChunks =
-        delegates.length === 0
+        sortedDelegates.length === 0
           ? [[] as typeof delegates]
-          : chunkDelegates(delegates, DELEGATES_PER_BOOKLET_PAGE);
+          : chunkDelegates(sortedDelegates, DELEGATES_PER_BOOKLET_PAGE);
       return (
         <>
           {rosterChunks.map((chunk, idx) => (
@@ -257,7 +259,7 @@ function renderSection(
               key={`${key}-${idx}`}
               section={section}
               delegates={chunk}
-              totalDelegateCount={delegates.length}
+              totalDelegateCount={sortedDelegates.length}
               rosterPageIndex={idx}
               rosterPageCount={rosterChunks.length}
               pageNum={startPageNum + idx}

@@ -7,6 +7,7 @@ import {
   ProfileDelegateCodeBadge,
 } from "./ProfileContactDetails";
 import {
+  BOOKLET_OFFICER_GRID_COLS,
   paginateCommitteeSection,
   type CommitteeSectionContinuation,
 } from "./booklet-pagination";
@@ -304,16 +305,28 @@ function OfficerCard({
   );
 }
 
-function MemberCard({ member }: { member: NecMember }) {
+function MemberCard({
+  member,
+  dense = false,
+}: {
+  member: NecMember;
+  dense?: boolean;
+}) {
+  const avatarSize = dense ? 48 : 66;
+  const padding = dense ? "8px 6px" : "12px 10px";
+  const nameSize = dense ? "10.5px" : "12px";
+  const titleSize = dense ? "8.5px" : "9.5px";
+  const contactSize = dense ? "8px" : "9px";
+
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
         minWidth: 0,
-        gap: "8px",
-        padding: "12px 10px",
-        borderRadius: "8px",
+        gap: dense ? "6px" : "8px",
+        padding,
+        borderRadius: dense ? "7px" : "8px",
         background: C.lightBlue,
         border: `1px solid ${C.border}`,
       }}
@@ -322,21 +335,21 @@ function MemberCard({ member }: { member: NecMember }) {
         style={{
           display: "flex",
           alignItems: "flex-start",
-          gap: "10px",
+          gap: dense ? "6px" : "10px",
           minWidth: 0,
         }}
       >
         <Avatar
           src={member.photoPath}
           name={member.name}
-          size={66}
+          size={avatarSize}
           silhouette={!member.photoPath}
           borderColor={C.blue}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: "12px",
+              fontSize: nameSize,
               fontWeight: 700,
               color: C.blue,
               lineHeight: 1.25,
@@ -349,7 +362,7 @@ function MemberCard({ member }: { member: NecMember }) {
           </div>
           <div
             style={{
-              fontSize: "9.5px",
+              fontSize: titleSize,
               color: C.muted,
               lineHeight: 1.35,
               fontWeight: 500,
@@ -361,7 +374,11 @@ function MemberCard({ member }: { member: NecMember }) {
           </div>
         </div>
       </div>
-      <ProfileContactDetails member={member} tone="light" fontSize="9px" />
+      <ProfileContactDetails
+        member={member}
+        tone="light"
+        fontSize={contactSize}
+      />
       <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
@@ -502,7 +519,7 @@ export function CommitteeSection({
               key={`officers-row-${rowIndex}`}
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gridTemplateColumns: `repeat(${BOOKLET_OFFICER_GRID_COLS}, minmax(0, 1fr))`,
                 gap: "12px",
                 marginBottom:
                   rowIndex < page.officerRows.length - 1 ||
@@ -564,22 +581,25 @@ export function CommitteeSection({
             </div>
           )}
 
-          {page.memberRows.map((row, rowIndex) => (
+          {page.memberRows.map((row, rowIndex) => {
+            const dense = page.memberGridCols >= 5;
+            return (
             <div
               key={`members-row-${rowIndex}`}
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gridTemplateColumns: `repeat(${page.memberGridCols}, minmax(0, 1fr))`,
                 gap: "12px",
                 marginBottom:
                   rowIndex < page.memberRows.length - 1 ? "12px" : 0,
               }}
             >
               {row.map((m) => (
-                <MemberCard key={m.id} member={m} />
+                <MemberCard key={m.id} member={m} dense={dense} />
               ))}
             </div>
-          ))}
+            );
+          })}
         </A4Page>
       ))}
     </>

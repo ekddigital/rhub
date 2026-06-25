@@ -1,10 +1,10 @@
 import type { CSSProperties } from "react";
 import {
   C,
-  DELEGATE_CARD_HEIGHT,
+  computeDelegatePhotoSize,
+  computeDelegateRosterCardHeight,
   DELEGATE_CARD_INNER_GAP,
   DELEGATE_CARD_PADDING,
-  DELEGATE_CARD_PHOTO_SIZE,
   DELEGATE_ROSTER_COLS,
   DELEGATE_ROSTER_GAP,
 } from "./constants";
@@ -59,7 +59,15 @@ function BuildingIcon() {
   );
 }
 
-function DelegateCard({ delegate: d }: { delegate: Delegate }) {
+function DelegateCard({
+  delegate: d,
+  cardHeight,
+  photoSize,
+}: {
+  delegate: Delegate;
+  cardHeight: number;
+  photoSize: number;
+}) {
   const location =
     (d.city ? d.city : "Member") + (d.province ? `, ${d.province}` : "");
   const university = d.university?.trim() || "Member";
@@ -67,7 +75,7 @@ function DelegateCard({ delegate: d }: { delegate: Delegate }) {
   return (
     <div
       style={{
-        height: `${DELEGATE_CARD_HEIGHT}px`,
+        height: `${cardHeight}px`,
         display: "flex",
         flexDirection: "column",
         padding: DELEGATE_CARD_PADDING,
@@ -89,8 +97,8 @@ function DelegateCard({ delegate: d }: { delegate: Delegate }) {
       >
         <div
           style={{
-            width: `${DELEGATE_CARD_PHOTO_SIZE}px`,
-            height: `${DELEGATE_CARD_PHOTO_SIZE}px`,
+            width: `${photoSize}px`,
+            height: `${photoSize}px`,
             borderRadius: "7px",
             overflow: "hidden",
             border: `2px solid ${C.blue}30`,
@@ -100,7 +108,7 @@ function DelegateCard({ delegate: d }: { delegate: Delegate }) {
           <Avatar
             src={d.bookletPhotoPath}
             name={d.name}
-            size={DELEGATE_CARD_PHOTO_SIZE}
+            size={photoSize}
             square
             silhouette
             borderColor={C.blue}
@@ -285,6 +293,13 @@ export function DelegatesSection({
       ? `${totalDelegateCount} Participants · Page ${rosterPageIndex + 1} of ${rosterPageCount}`
       : `${totalDelegateCount} Participants`;
 
+  const isLastRosterPage = rosterPageIndex === rosterPageCount - 1;
+  const cardHeight = computeDelegateRosterCardHeight(delegates.length, {
+    bodyText: Boolean(section.bodyText?.trim()),
+    lastPage: isLastRosterPage && totalDelegateCount > 0,
+  });
+  const photoSize = computeDelegatePhotoSize(cardHeight);
+
   return (
     <A4Page
       pageNum={pageNum}
@@ -369,18 +384,23 @@ export function DelegatesSection({
             style={{
               display: "grid",
               gridTemplateColumns: `repeat(${DELEGATE_ROSTER_COLS}, minmax(0, 1fr))`,
-              gridAutoRows: `${DELEGATE_CARD_HEIGHT}px`,
+              gridAutoRows: `${cardHeight}px`,
               gap: DELEGATE_ROSTER_GAP,
               alignContent: "start",
             }}
           >
             {delegates.map((d) => (
-              <DelegateCard key={d.id} delegate={d} />
+              <DelegateCard
+                key={d.id}
+                delegate={d}
+                cardHeight={cardHeight}
+                photoSize={photoSize}
+              />
             ))}
           </div>
         )}
 
-        {totalDelegateCount > 0 && rosterPageIndex === rosterPageCount - 1 && (
+        {totalDelegateCount > 0 && isLastRosterPage && (
           <div
             style={{
               flexShrink: 0,

@@ -1,12 +1,12 @@
-import { BOOKLET_A4 } from "./constants";
+import { BOOKLET_CONTENT_HEIGHT } from "./constants";
+import { sortBookletMembersByName } from "./sort-booklet-members";
 import type { BookletSection, NecMember } from "./types";
 
 /** Vertical space available inside A4Page content area (px @ 96dpi). */
-export const BOOKLET_CONTENT_HEIGHT =
-  BOOKLET_A4.height - 61 - 33 - 48; // header, footer, content padding
+export { BOOKLET_CONTENT_HEIGHT };
 
-/** Conservative pack limit — leaves headroom so rows are not clipped by A4 overflow. */
-const PAGE_PACK_LIMIT = BOOKLET_CONTENT_HEIGHT - 36;
+/** Small headroom so rows are not clipped by A4 overflow. */
+const PAGE_PACK_LIMIT = BOOKLET_CONTENT_HEIGHT - 16;
 
 const KEY_ORDER = [
   "CHAIR",
@@ -18,8 +18,16 @@ const KEY_ORDER = [
 
 const KEY_ROLE_SET = new Set<string>(KEY_ORDER);
 
+/** Officer / chair grids always use 3 columns. */
+export const BOOKLET_OFFICER_GRID_COLS = 3;
+
+/** Default member grid for committees with chair + officer cards. */
 export const BOOKLET_GRID_COLS = 3;
-const GRID_COLS = BOOKLET_GRID_COLS;
+
+/** Dense member grids (city presidents, province coordinators, large rosters). */
+export const BOOKLET_DENSE_GRID_COLS = 5;
+
+const OFFICER_GRID_COLS = BOOKLET_OFFICER_GRID_COLS;
 const GRID_ROW_GAP = 12;
 
 // ─── Height estimates (px) — tuned to CommitteeSection / TableOfContentsPage ─
@@ -32,12 +40,41 @@ const CHAIR_HERO_NEC = 232;
 const CHAIR_HERO_BOTTOM_MARGIN = 18;
 const CHAIR_BIO_LINE_H = 17;
 /** Officer card: avatar row + contact block + delegate badge + padding. */
-const OFFICER_CARD_H = 196;
-/** Member card: slightly shorter avatar + contact block + delegate badge + padding. */
-const MEMBER_CARD_H = 186;
+const OFFICER_CARD_H = 188;
+/** Member card at 3 cols. */
+const MEMBER_CARD_H_3COL = 168;
+/** Member card at 5 cols — narrower, shorter avatar stack. */
+const MEMBER_CARD_H_5COL = 132;
 const MEMBERS_SUBHEADING_H = 38;
 const MEMBERS_SUBHEADING_TOP_GAP = 12;
 const SUBSECTION_HEADING_H = 52;
+
+const JUDICIAL_DENSE_MEMBER_THRESHOLD = 6;
+
+export function getMemberGridCols(
+  section: BookletSection,
+  generalMemberCount: number,
+): number {
+  if (
+    section.type === "CITY_PRESIDENTS" ||
+    section.type === "COC_MEMBERS"
+  ) {
+    return BOOKLET_DENSE_GRID_COLS;
+  }
+  if (
+    section.type === "JUDICIAL" &&
+    generalMemberCount >= JUDICIAL_DENSE_MEMBER_THRESHOLD
+  ) {
+    return BOOKLET_DENSE_GRID_COLS;
+  }
+  return BOOKLET_GRID_COLS;
+}
+
+function memberCardHeight(cols: number): number {
+  return cols >= BOOKLET_DENSE_GRID_COLS
+    ? MEMBER_CARD_H_5COL
+    : MEMBER_CARD_H_3COL;
+}
 
 export type CommitteeSectionContinuation = {
   section: BookletSection;
@@ -48,13 +85,14 @@ export type CommitteePageLayout = {
   showSectionHeading: boolean;
   chair: NecMember | null;
   showChairPlaceholder: boolean;
-  /** Full grid rows (up to 3 cards each) — never split across pages. */
+  /** Full grid rows — never split across pages. */
   officerRows: NecMember[][];
   showMembersHeading: boolean;
   showSubsectionHeading: boolean;
   subsectionTitle: string | null;
-  /** Full grid rows (up to 3 cards each) — never split across pages. */
+  /** Full grid rows — never split across pages. */
   memberRows: NecMember[][];
+  memberGridCols: number;
 };
 
 type LayoutRow =
@@ -63,7 +101,7 @@ type LayoutRow =
   | { kind: "officers"; members: NecMember[]; h: number }
   | { kind: "members_heading"; h: number }
   | { kind: "subsection_heading"; title: string; h: number }
-  | { kind: "members"; members: NecMember[]; h: number };
+  | { kind: "members"; members: NecMember[]; h: number; cols: number };
 
 const TOC_HEADING_BLOCK = 55;
 const TOC_ENTRY_H = 40;
@@ -76,14 +114,6 @@ function chunk<T>(items: T[], size: number): T[][] {
     out.push(items.slice(i, i + size));
   }
   return out;
-}
-
-function isPartialGridRow(row: LayoutRow): boolean {
-  return (
-    row.kind === "members" &&
-    row.members.length > 0 &&
-    row.members.length < GRID_COLS
-  );
 }
 
 function pageHasMembersHeading(page: LayoutRow[]): boolean {
@@ -115,8 +145,12 @@ function estimateOfficerRowH(): number {
   return OFFICER_CARD_H + GRID_ROW_GAP;
 }
 
-function estimateMemberRowH(extraTopGap = false): number {
-  return MEMBER_CARD_H + GRID_ROW_GAP + (extraTopGap ? MEMBERS_SUBHEADING_TOP_GAP : 0);
+function estimateMemberRowH(cols: number, extraTopGap = false): number {
+  return (
+    memberCardHeight(cols) +
+    GRID_ROW_GAP +
+    (extraTopGap ? MEMBERS_SUBHEADING_TOP_GAP : 0)
+  );
 }
 
 function normalizePosition(value: string | null | undefined): string {
@@ -178,6 +212,14 @@ export function splitCommitteeMembers(
   keyOfficers: NecMember[];
   generalMembers: NecMember[];
 } {
+  if (section.type === "CITY_PRESIDENTS" || section.type === "COC_MEMBERS") {
+    return {
+      chair: null,
+      keyOfficers: [],
+      generalMembers: sortBookletMembersByName(members),
+    };
+  }
+
   if (isNec || section.type === "NEC") {
     const chair = members.find((m) => m.role === "CHAIR") ?? null;
     const keyOfficers = members.filter((m) => m !== chair);
@@ -193,7 +235,9 @@ export function splitCommitteeMembers(
     const keyOfficers = leadership
       .filter((m) => m !== chair)
       .sort((a, b) => cocOfficerSortKey(a) - cocOfficerSortKey(b));
-    const generalMembers = members.filter((m) => !leadership.includes(m));
+    const generalMembers = sortBookletMembersByName(
+      members.filter((m) => !leadership.includes(m)),
+    );
     return { chair, keyOfficers, generalMembers };
   }
 
@@ -201,7 +245,9 @@ export function splitCommitteeMembers(
   const keyOfficers = KEY_ORDER.slice(1).flatMap((role) =>
     members.filter((m) => m.role === role),
   );
-  const generalMembers = members.filter((m) => !KEY_ROLE_SET.has(m.role));
+  const generalMembers = sortBookletMembersByName(
+    members.filter((m) => !KEY_ROLE_SET.has(m.role)),
+  );
   return { chair, keyOfficers, generalMembers };
 }
 
@@ -213,6 +259,7 @@ function buildCommitteeRows(
   isNec: boolean,
   continuation?: CommitteeSectionContinuation,
 ): LayoutRow[] {
+  const memberCols = getMemberGridCols(section, generalMembers.length);
   const rows: LayoutRow[] = [
     { kind: "heading", h: estimateSectionHeadingH(section) },
   ];
@@ -221,7 +268,7 @@ function buildCommitteeRows(
     rows.push({ kind: "chair", member: chair, h: estimateChairH(chair, isNec) });
   }
 
-  for (const officerRow of chunk(keyOfficers, GRID_COLS)) {
+  for (const officerRow of chunk(keyOfficers, OFFICER_GRID_COLS)) {
     rows.push({
       kind: "officers",
       members: officerRow,
@@ -229,15 +276,29 @@ function buildCommitteeRows(
     });
   }
 
-  appendMemberRows(rows, generalMembers, chair != null || keyOfficers.length > 0);
+  appendMemberRows(
+    rows,
+    generalMembers,
+    chair != null || keyOfficers.length > 0,
+    memberCols,
+  );
 
   if (continuation && continuation.members.length > 0) {
+    const continuationCols = getMemberGridCols(
+      continuation.section,
+      continuation.members.length,
+    );
     rows.push({
       kind: "subsection_heading",
       title: continuation.section.title,
       h: SUBSECTION_HEADING_H,
     });
-    appendMemberRows(rows, continuation.members, true);
+    appendMemberRows(
+      rows,
+      sortBookletMembersByName(continuation.members),
+      true,
+      continuationCols,
+    );
   }
 
   return rows;
@@ -247,13 +308,15 @@ function appendMemberRows(
   rows: LayoutRow[],
   generalMembers: NecMember[],
   hasLeadershipAbove: boolean,
+  cols: number,
 ) {
   let firstMemberRow = true;
-  for (const memberRow of chunk(generalMembers, GRID_COLS)) {
+  for (const memberRow of chunk(generalMembers, cols)) {
     rows.push({
       kind: "members",
       members: memberRow,
-      h: estimateMemberRowH(firstMemberRow && hasLeadershipAbove),
+      cols,
+      h: estimateMemberRowH(cols, firstMemberRow && hasLeadershipAbove),
     });
     firstMemberRow = false;
   }
@@ -271,6 +334,7 @@ function heightPackRows(rows: LayoutRow[]): LayoutRow[][] {
     if (current.length > 0) pages.push(current);
     current = [];
     usedH = 0;
+    membersLabelPlaced = false;
   };
 
   const appendRow = (row: LayoutRow) => {
@@ -304,116 +368,15 @@ function heightPackRows(rows: LayoutRow[]): LayoutRow[][] {
   return pages;
 }
 
-/**
- * Move trailing 1–2 card rows off a page so interior pages never end with a
- * partial grid row. Also splits pages that would show multiple partial rows
- * (e.g. 3+2+1) so each page has at most one partial row at the bottom.
- */
-function rebalanceTrailingPartialRows(pages: LayoutRow[][]): LayoutRow[][] {
-  if (pages.length === 0) return pages;
-
-  let out = pages.map((page) => [...page]);
-
-  for (let pass = 0; pass < 8; pass++) {
-    let changed = false;
-
-    for (let i = 0; i < out.length; i++) {
-      const page = out[i];
-      if (page.length === 0) continue;
-
-      const partialIndexes = page
-        .map((row, index) => (isPartialGridRow(row) ? index : -1))
-        .filter((index) => index >= 0);
-
-      if (partialIndexes.length === 0) continue;
-
-      const lastPartialIndex = partialIndexes[partialIndexes.length - 1]!;
-      const hasEarlierPartial = partialIndexes.length > 1;
-      const isInteriorPage = i < out.length - 1;
-      const partialRow = page[lastPartialIndex]!;
-      const shouldMoveLastPartial =
-        partialRow.kind === "members" &&
-        (isInteriorPage || hasEarlierPartial || partialIndexes.length > 1);
-
-      if (!shouldMoveLastPartial) continue;
-
-      const moved: LayoutRow[] = [];
-      while (page.length > lastPartialIndex) {
-        moved.unshift(page.pop()!);
-      }
-
-      if (moved[0]?.kind === "members") {
-        while (page.length > 0) {
-          const prev = page[page.length - 1];
-          if (
-            prev?.kind === "members_heading" ||
-            prev?.kind === "subsection_heading"
-          ) {
-            moved.unshift(page.pop()!);
-          } else {
-            break;
-          }
-        }
-      }
-
-      if (i + 1 < out.length) {
-        out[i + 1] = [...moved, ...out[i + 1]!];
-      } else {
-        out.push(moved);
-      }
-      changed = true;
-    }
-
-    out = out.filter((page) => page.length > 0);
-    if (!changed) break;
-  }
-
-  return out;
-}
-
-/** Re-split any page that exceeds the pack limit after partial-row moves. */
-function splitOverflowingPages(pages: LayoutRow[][]): LayoutRow[][] {
-  const result: LayoutRow[][] = [];
-
-  for (const page of pages) {
-    let current: LayoutRow[] = [];
-    let usedH = 0;
-
-    for (const row of page) {
-      if (usedH + row.h > PAGE_PACK_LIMIT && current.length > 0) {
-        result.push(current);
-        current = [];
-        usedH = 0;
-      }
-      current.push(row);
-      usedH += row.h;
-    }
-
-    if (current.length > 0) result.push(current);
-  }
-
-  return result.length > 0 ? result : [[]];
-}
-
 function packRowsIntoPages(rows: LayoutRow[]): LayoutRow[][] {
   if (rows.length === 0) return [[]];
-
-  let pages = heightPackRows(rows);
-
-  for (let pass = 0; pass < 4; pass++) {
-    const next = rebalanceTrailingPartialRows(splitOverflowingPages(pages));
-    if (next.length === pages.length && next.every((p, i) => p === pages[i])) {
-      break;
-    }
-    pages = next;
-  }
-
-  return pages;
+  return heightPackRows(rows);
 }
 
 function pageLayoutFromRows(
   rows: LayoutRow[],
   expectsChair: boolean,
+  defaultMemberCols: number,
 ): CommitteePageLayout {
   const layout: CommitteePageLayout = {
     showSectionHeading: false,
@@ -424,6 +387,7 @@ function pageLayoutFromRows(
     showSubsectionHeading: false,
     subsectionTitle: null,
     memberRows: [],
+    memberGridCols: defaultMemberCols,
   };
 
   for (const row of rows) {
@@ -446,6 +410,7 @@ function pageLayoutFromRows(
         break;
       case "members":
         layout.memberRows.push(row.members);
+        layout.memberGridCols = row.cols;
         break;
       default:
         break;
@@ -470,6 +435,7 @@ function paginateCommitteeMembers(
     members,
     isNec,
   );
+  const memberCols = getMemberGridCols(section, generalMembers.length);
   const rows = buildCommitteeRows(
     section,
     chair,
@@ -479,7 +445,7 @@ function paginateCommitteeMembers(
     continuation,
   );
   return packRowsIntoPages(rows).map((pageRows, pageIndex) => {
-    const layout = pageLayoutFromRows(pageRows, expectsChair);
+    const layout = pageLayoutFromRows(pageRows, expectsChair, memberCols);
     if (pageIndex > 0) {
       layout.showChairPlaceholder = false;
     }
@@ -504,6 +470,7 @@ export function paginateCommitteeSection(
         showSubsectionHeading: false,
         subsectionTitle: null,
         memberRows: [],
+        memberGridCols: getMemberGridCols(section, 0),
       },
     ];
   }
