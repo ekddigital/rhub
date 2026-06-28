@@ -302,7 +302,7 @@ export function DelegatePublicRegister() {
       onFlyerReady?: (ready: boolean) => void,
     ) => {
       const meta = FILE_KIND_META[field];
-      const validation = validateDelegateUploadFile(file, meta.kind);
+      const validation = await validateDelegateUploadFile(file, meta.kind);
       if (!validation.ok) {
         const message = `${meta.label}: ${validation.error}`;
         setPhotoFieldErrors((prev) => ({ ...prev, [field]: message }));
@@ -553,7 +553,7 @@ export function DelegatePublicRegister() {
   ) => {
     if (!file || !success || correctionBusy) return;
 
-    const validation = validateDelegateUploadFile(file, kind);
+    const validation = await validateDelegateUploadFile(file, kind);
     if (!validation.ok) {
       setError(validation.error);
       return;

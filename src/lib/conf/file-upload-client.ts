@@ -9,6 +9,7 @@ import {
   DELEGATE_BOOKLET_UPLOAD_RULE_TEXT,
   DELEGATE_UPLOAD_CONVERSION_TIP,
 } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 export type { DelegateDocumentKind };
 
@@ -22,21 +23,26 @@ export {
   DELEGATE_UPLOAD_CONVERSION_TIP,
 };
 
-export function validateDelegateUploadFile(
+export async function validateDelegateUploadFile(
   file: File,
   kind: DelegateDocumentKind,
-): { ok: true; inferredMime: string | null } | { ok: false; error: string } {
-  const r = validateDelegateDocumentUpload(file, kind);
+): Promise<
+  { ok: true; inferredMime: string | null } | { ok: false; error: string }
+> {
+  const resolvedSize = await resolveFileByteSize(file);
+  const r = validateDelegateDocumentUpload(file, kind, {
+    sizeBytes: resolvedSize,
+  });
   if (!r.ok) {
     return { ok: false, error: r.error ?? "Invalid file." };
   }
   return { ok: true, inferredMime: r.normalizedMime };
 }
 
-export function validatePaymentProofFile(file: File) {
+export async function validatePaymentProofFile(file: File) {
   return validateDelegateUploadFile(file, "passport");
 }
 
-export function validateProfilePhotoFile(file: File) {
+export async function validateProfilePhotoFile(file: File) {
   return validateDelegateUploadFile(file, "booklet");
 }

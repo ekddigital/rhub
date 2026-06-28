@@ -86,9 +86,11 @@ export function inferMimeTypeFromFile(file: File) {
 export function validateDelegateDocumentUpload(
   file: File,
   kind: DelegateDocumentKind,
+  options?: { sizeBytes?: number },
 ): ValidateUploadResult {
   const maxSizeBytes = CONFERENCE_UPLOAD_MAX_SIZE_BYTES;
   const normalizedMime = inferMimeTypeFromFile(file);
+  const effectiveSize = options?.sizeBytes ?? file.size;
   const supportsPdf = kind !== "booklet";
   const supportedMimeTypes = supportsPdf
     ? [...IMAGE_MIME_TYPES, "application/pdf"]
@@ -112,7 +114,7 @@ export function validateDelegateDocumentUpload(
     };
   }
 
-  if (file.size > maxSizeBytes) {
+  if (effectiveSize > maxSizeBytes) {
     return {
       ok: false,
       normalizedMime,

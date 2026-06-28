@@ -5,6 +5,7 @@ import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/self-documents
 // Secure delegate file updates for managers and linked delegate accounts.
@@ -81,9 +82,11 @@ export async function POST(
       );
     }
 
+    const resolvedSize = await resolveFileByteSize(file);
     const validation = validateDelegateDocumentUpload(
       file,
       kind as "passport" | "entry-stamp" | "visa" | "booklet",
+      { sizeBytes: resolvedSize },
     );
     if (!validation.ok) {
       console.warn("[conf.delegate.self_document.invalid_file]", {

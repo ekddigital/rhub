@@ -624,12 +624,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [confId],
   );
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const valid: File[] = [];
     const invalidMessages: string[] = [];
-    files.forEach((file) => {
-      const validation = validatePaymentProofFile(file);
+    for (const file of files) {
+      const validation = await validatePaymentProofFile(file);
       if (!validation.ok) {
         if (validation.error.startsWith("Unsupported file format")) {
           invalidMessages.push(
@@ -638,10 +638,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         } else {
           invalidMessages.push(`${file.name}: ${validation.error}`);
         }
-        return;
+        continue;
       }
       valid.push(file);
-    });
+    }
 
     if (invalidMessages.length > 0) {
       setProofValidationFeedback(

@@ -8,6 +8,7 @@ import {
   resolveMemberPhotoForClient,
 } from "@/lib/conf/delegate-document-urls";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 // GET /api/conf/[confId]/members/[memberId]/photo — inline committee profile photo
 export async function GET(
@@ -111,7 +112,10 @@ export async function POST(
       );
     }
 
-    const validation = validateDelegateDocumentUpload(file, "booklet");
+    const resolvedSize = await resolveFileByteSize(file);
+    const validation = validateDelegateDocumentUpload(file, "booklet", {
+      sizeBytes: resolvedSize,
+    });
     if (!validation.ok) {
       return NextResponse.json(
         {

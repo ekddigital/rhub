@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 // POST /api/conf/[confId]/payments/[paymentId]/upload — upload payment proof screenshot
 export async function POST(
@@ -45,7 +46,10 @@ export async function POST(
       );
     }
 
-    const validation = validateDelegateDocumentUpload(file, "passport");
+    const resolvedSize = await resolveFileByteSize(file);
+    const validation = validateDelegateDocumentUpload(file, "passport", {
+      sizeBytes: resolvedSize,
+    });
     if (!validation.ok) {
       return NextResponse.json(
         {

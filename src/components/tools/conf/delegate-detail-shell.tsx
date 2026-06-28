@@ -234,7 +234,7 @@ export function DelegateDetailShell({
   ) => {
     if (!confId || !file || !canSelfEdit || uploadingKind) return;
 
-    const fileValidation = validateDelegateUploadFile(file, kind);
+    const fileValidation = await validateDelegateUploadFile(file, kind);
     if (!fileValidation.ok) {
       setError(fileValidation.error);
       return;

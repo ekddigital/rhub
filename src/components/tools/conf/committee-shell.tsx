@@ -696,7 +696,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       let created = (await createRes.json()) as Member;
 
       if (photoFile) {
-        const validation = validateProfilePhotoFile(photoFile);
+        const validation = await validateProfilePhotoFile(photoFile);
         if (!validation.ok) {
           throw new Error(
             `Cannot upload profile photo: ${validation.error} (File: ${photoFile.name})`,
@@ -736,7 +736,7 @@ export function CommitteeShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const handleReplacePhoto = async (memberId: string, file: File | null) => {
     if (!file || !confId) return;
-    const validation = validateProfilePhotoFile(file);
+    const validation = await validateProfilePhotoFile(file);
     if (!validation.ok) {
       setError(
         `Cannot upload profile photo: ${validation.error} (File: ${file.name})`,

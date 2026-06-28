@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canIssueFlyer } from "@/lib/conf/delegate-utils";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 // POST /api/conf/[confId]/delegates/[delegateId]/documents
 // Upload delegate documents: kind=passport|entry-stamp|visa|booklet
@@ -54,9 +55,11 @@ export async function POST(
       );
     }
 
+    const resolvedSize = await resolveFileByteSize(file);
     const validation = validateDelegateDocumentUpload(
       file,
       kind as "passport" | "entry-stamp" | "visa" | "booklet",
+      { sizeBytes: resolvedSize },
     );
     if (!validation.ok) {
       console.warn("[conf.delegate.document.invalid_file]", {

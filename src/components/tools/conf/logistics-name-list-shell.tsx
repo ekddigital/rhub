@@ -267,7 +267,7 @@ export function LogisticsNameListShell() {
     file: File | null,
   ) => {
     if (!confId || !file || uploadingDocKey) return;
-    const validation = validateDelegateUploadFile(file, kind);
+    const validation = await validateDelegateUploadFile(file, kind);
     if (!validation.ok) {
       setError(validation.error);
       return;

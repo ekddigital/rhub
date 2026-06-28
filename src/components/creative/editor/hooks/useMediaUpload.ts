@@ -7,6 +7,8 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { uploadAssetClient } from "@/lib/creative/shims/lib/ekd-assets-client";
+import { inferMimeTypeFromFile } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 import type { MediaAsset, UploadOptions } from "../types";
 
 interface UseMediaUploadReturn {
@@ -48,33 +50,44 @@ export function useMediaUpload(): UseMediaUploadReturn {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const validateFile = useCallback(
-    (file: File, options?: UploadOptions): boolean => {
+    async (file: File, options?: UploadOptions): Promise<boolean> => {
       const assetType = options?.assetType || "images";
       const maxSize = options?.maxSize || DEFAULT_MAX_SIZE[assetType];
       const allowedTypes =
         options?.allowedTypes || DEFAULT_ALLOWED_TYPES[assetType];
 
-      // Check file size
-      if (file.size > maxSize) {
+      const resolvedSize = await resolveFileByteSize(file);
+      if (!Number.isFinite(resolvedSize) || resolvedSize <= 0) {
+        toast.error(
+          "Could not read file size. Try saving a copy as JPEG or PNG first.",
+        );
+        return false;
+      }
+
+      if (resolvedSize > maxSize) {
         const sizeMB = Math.round(maxSize / 1024 / 1024);
         toast.error(`File must be less than ${sizeMB}MB`);
         return false;
       }
 
-      // Check file type
-      if (!allowedTypes.includes(file.type)) {
+      const inferredMime = inferMimeTypeFromFile(file);
+      const mimeOk =
+        (inferredMime && allowedTypes.includes(inferredMime)) ||
+        allowedTypes.includes(file.type);
+
+      if (!mimeOk) {
         toast.error(`Please upload a valid ${assetType.slice(0, -1)} file`);
         return false;
       }
 
       return true;
     },
-    [toast]
+    [],
   );
 
   const uploadFile = useCallback(
     async (file: File, options?: UploadOptions): Promise<MediaAsset | null> => {
-      if (!validateFile(file, options)) {
+      if (!(await validateFile(file, options))) {
         return null;
       }
 

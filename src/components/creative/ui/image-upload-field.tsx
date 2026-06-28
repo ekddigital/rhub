@@ -7,6 +7,8 @@ import { Loader2, Upload, X, FolderOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadImageClient } from "@/lib/creative/shims/lib/image-upload-client";
 import { AssetBrowser, type AssetItem } from "@/lib/creative/shims/email/asset-browser";
+import { inferMimeTypeFromFile } from "@/lib/conf/upload-validation";
+import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
 
 interface ImageUploadFieldProps {
   initialImageUrl?: string;
@@ -49,14 +51,23 @@ export function ImageUploadField({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
+    // Validate file type (extension fallback when MIME is empty)
+    const inferredMime = inferMimeTypeFromFile(file);
+    if (!inferredMime?.startsWith("image/")) {
       setError("Please upload an image file");
       return;
     }
 
+    const resolvedSize = await resolveFileByteSize(file);
+    if (!Number.isFinite(resolvedSize) || resolvedSize <= 0) {
+      setError(
+        "Could not read file size. Try saving a copy as JPEG or PNG first.",
+      );
+      return;
+    }
+
     // Validate file size
-    if (file.size > maxSizeMB * 1024 * 1024) {
+    if (resolvedSize > maxSizeMB * 1024 * 1024) {
       setError(`File size exceeds ${maxSizeMB}MB limit`);
       return;
     }

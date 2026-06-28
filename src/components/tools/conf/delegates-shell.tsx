@@ -370,7 +370,7 @@ export function DelegatesShell() {
         file: File | null,
       ) => {
         if (!file) return;
-        const validation = validateDelegateUploadFile(file, kind);
+        const validation = await validateDelegateUploadFile(file, kind);
         if (!validation.ok) {
           throw new Error(
             `Cannot upload ${kind}: ${validation.error} (File: ${file.name})`,
@@ -442,7 +442,7 @@ export function DelegatesShell() {
     file: File | null,
   ) => {
     if (!confId || !file || uploadingDocKey) return;
-    const validation = validateDelegateUploadFile(file, kind);
+    const validation = await validateDelegateUploadFile(file, kind);
     if (!validation.ok) {
       setError(validation.error);
       return;

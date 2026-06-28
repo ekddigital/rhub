@@ -519,7 +519,7 @@ export function DelegateRegistrationForm({
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleCredentialFileChange = useCallback(
-    (
+    async (
       e: ChangeEvent<HTMLInputElement>,
       fieldKey:
         | "passportPhoto"
@@ -537,7 +537,7 @@ export function DelegateRegistrationForm({
         onPhotoFileChange?.(fieldKey, null);
         return;
       }
-      const validation = validateDelegateUploadFile(next, kind);
+      const validation = await validateDelegateUploadFile(next, kind);
       if (!validation.ok) {
         setFieldErrors((p) => ({ ...p, [fieldKey]: validation.error }));
         setFile(null);
@@ -1140,7 +1140,7 @@ export function DelegateRegistrationForm({
         "Enter at least one custom committee role, or choose a listed role.";
     }
 
-    const validateSelectedFile = (
+    const validateSelectedFile = async (
       field:
         | "passportPhoto"
         | "lastEntryStampPhoto"
@@ -1150,20 +1150,20 @@ export function DelegateRegistrationForm({
       file: File | null,
     ) => {
       if (!file) return;
-      const validation = validateDelegateUploadFile(file, kind);
+      const validation = await validateDelegateUploadFile(file, kind);
       if (!validation.ok) {
         errs[field] = validation.error;
       }
     };
 
-    validateSelectedFile("passportPhoto", "passport", passportPhoto);
-    validateSelectedFile(
+    await validateSelectedFile("passportPhoto", "passport", passportPhoto);
+    await validateSelectedFile(
       "lastEntryStampPhoto",
       "entry-stamp",
       lastEntryStampPhoto,
     );
-    validateSelectedFile("currentVisaPhoto", "visa", currentVisaPhoto);
-    validateSelectedFile("bookletPhoto", "booklet", bookletPhoto);
+    await validateSelectedFile("currentVisaPhoto", "visa", currentVisaPhoto);
+    await validateSelectedFile("bookletPhoto", "booklet", bookletPhoto);
 
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
