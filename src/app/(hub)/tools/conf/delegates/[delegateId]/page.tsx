@@ -5,10 +5,13 @@ import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 
 export default async function DelegateDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ delegateId: string }>;
+  searchParams: Promise<{ guest?: string }>;
 }) {
   const { delegateId } = await params;
+  const { guest: highlightGuestId } = await searchParams;
   const access = await requireConferencePageAccess(
     `/tools/conf/delegates/${delegateId}`,
     "participant",
@@ -27,6 +30,7 @@ export default async function DelegateDetailPage({
         delegateId={delegateId}
         canManage={canManage}
         canSelfEdit={canSelfEdit}
+        highlightGuestId={highlightGuestId ?? null}
       />
     </div>
   );

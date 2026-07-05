@@ -130,6 +130,8 @@ type Props = {
   canSelfEdit: boolean;
   /** When true the edit form opens immediately instead of view mode */
   startInEditMode?: boolean;
+  /** Companion guest id to highlight (from logistics / passport lookup). */
+  highlightGuestId?: string | null;
 };
 
 const STATUS_CONFIG = {
@@ -192,6 +194,7 @@ export function DelegateDetailShell({
   canManage,
   canSelfEdit,
   startInEditMode = false,
+  highlightGuestId = null,
 }: Props) {
   const [confId, setConfId] = useState("");
   const [defaultFee, setDefaultFee] = useState(250);
@@ -436,6 +439,10 @@ export function DelegateDetailShell({
 
   const status = STATUS_CONFIG[delegate.status];
   const StatusIcon = status.icon;
+  const highlightGuest =
+    highlightGuestId && delegate.guests
+      ? (delegate.guests.find((g) => g.id === highlightGuestId) ?? null)
+      : null;
 
   return (
     <div className="space-y-6">
@@ -481,6 +488,21 @@ export function DelegateDetailShell({
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
           {error}
+        </div>
+      )}
+
+      {highlightGuest && (
+        <div className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-900 dark:text-violet-200">
+          <p className="font-medium">
+            {highlightGuest.name} is a companion guest of {delegate.name}
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            Passport {asText(highlightGuest.passportNo)}
+            {highlightGuest.nationality
+              ? ` · ${highlightGuest.nationality}`
+              : ""}
+            . Travel documents are listed under the registrant profile below.
+          </p>
         </div>
       )}
 

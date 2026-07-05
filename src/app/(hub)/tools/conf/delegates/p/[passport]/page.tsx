@@ -27,7 +27,42 @@ export default async function DelegateByPassportPage({ params }: Props) {
     select: { id: true, userId: true, email: true },
   });
 
-  if (!delegate) notFound();
+  if (!delegate) {
+    const guest = await prisma.confDelegateGuest.findFirst({
+      where: { confId: conf.id, passportNo: normalized },
+      select: { id: true, delegateId: true },
+    });
+
+    if (!guest) notFound();
+
+    const host = await prisma.confDelegate.findUnique({
+      where: { id: guest.delegateId },
+      select: { id: true, userId: true, email: true },
+    });
+
+    if (!host) notFound();
+
+    const access = await requireConferencePageAccess(
+      `/tools/conf/delegates/p/${passport}`,
+      "participant",
+    );
+
+    const isManager = access.isManager;
+    const isSelf =
+      access.delegateId === host.id ||
+      (access.user && host.userId && access.user.id === host.userId) ||
+      (access.user &&
+        host.email &&
+        access.user.email.toLowerCase() === host.email.toLowerCase());
+
+    if (!canViewDelegateDocuments(access) && !isSelf) {
+      redirect("/tools/conf/delegates?restricted=1");
+    }
+
+    redirect(
+      `/tools/conf/delegates/${guest.delegateId}?guest=${encodeURIComponent(guest.id)}`,
+    );
+  }
 
   // Auth check
   const access = await requireConferencePageAccess(

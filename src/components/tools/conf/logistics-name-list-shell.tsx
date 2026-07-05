@@ -35,6 +35,7 @@ import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
 import { fmtRmb } from "@/lib/conf/currency";
 import {
   isDelegateFullyPaid,
+  logisticsProfileHref,
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
 } from "@/lib/conf/logistics-name-list";
@@ -505,6 +506,7 @@ export function LogisticsNameListShell() {
               ) : (
                 entries.map((row, index) => {
                   const paid = isDelegateFullyPaid(row);
+                  const profileHref = logisticsProfileHref(row);
                   return (
                     <tr
                       key={row.id}
@@ -518,7 +520,7 @@ export function LogisticsNameListShell() {
                         <p className="mt-0.5 text-xs">
                           {row.passportNo ? (
                             <Link
-                              href={`/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`}
+                              href={profileHref}
                               className="text-[#C8A061] hover:underline"
                             >
                               {row.passportNo}
@@ -639,11 +641,7 @@ export function LogisticsNameListShell() {
                             </Button>
                           )}
                           <Link
-                            href={
-                              row.passportNo
-                                ? `/tools/conf/delegates/p/${encodeURIComponent(row.passportNo)}`
-                                : `/tools/conf/delegates/${row.id}`
-                            }
+                            href={profileHref}
                             className="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-xs font-medium hover:bg-accent"
                           >
                             <Eye className="size-3" />
