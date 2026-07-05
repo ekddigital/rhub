@@ -9,9 +9,24 @@ import {
   resolveDelegateEntryStampForClient,
   resolveDelegatePassportPhotoForClient,
   resolveDelegateVisaForClient,
+  resolveGuestEntryStampForClient,
+  resolveGuestPassportPhotoForClient,
+  resolveGuestVisaForClient,
   isStoredDelegateDocumentPdf,
   probeManyStoredDelegateDocumentsIsPdf,
 } from "@/lib/conf/delegate-document-urls";
+
+type GuestRow = {
+  id: string;
+  delegateId: string;
+  sortOrder: number;
+  name: string;
+  passportNo: string | null;
+  nationality: string | null;
+  passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
+};
 
 type DelegateRow = Pick<
   ConfDelegate,
@@ -123,14 +138,102 @@ function toEntryBase(
   };
 }
 
+function mapGuestDocs(
+  confId: string,
+  delegateId: string,
+  guest: GuestRow,
+  pdfByPath: Map<string, boolean>,
+): Pick<
+  LogisticsNameListEntry,
+  | "passportPhotoPath"
+  | "passportPhotoIsPdf"
+  | "lastEntryStampPath"
+  | "lastEntryStampIsPdf"
+  | "currentVisaPath"
+  | "currentVisaIsPdf"
+  | "passportDocUrl"
+  | "entryStampDocUrl"
+  | "visaDocUrl"
+> {
+  const passportStored = guest.passportPhotoPath;
+  const entryStampStored = guest.lastEntryStampPath;
+  const visaStored = guest.currentVisaPath;
+
+  const passportPhotoPath = resolveGuestPassportPhotoForClient(
+    confId,
+    delegateId,
+    guest.id,
+    passportStored,
+  );
+  const lastEntryStampPath = resolveGuestEntryStampForClient(
+    confId,
+    delegateId,
+    guest.id,
+    entryStampStored,
+  );
+  const currentVisaPath = resolveGuestVisaForClient(
+    confId,
+    delegateId,
+    guest.id,
+    visaStored,
+  );
+
+  return {
+    passportPhotoPath,
+    passportPhotoIsPdf: resolveDocIsPdf(passportStored, pdfByPath),
+    lastEntryStampPath,
+    lastEntryStampIsPdf: resolveDocIsPdf(entryStampStored, pdfByPath),
+    currentVisaPath,
+    currentVisaIsPdf: resolveDocIsPdf(visaStored, pdfByPath),
+    passportDocUrl: passportPhotoPath,
+    entryStampDocUrl: lastEntryStampPath,
+    visaDocUrl: currentVisaPath,
+  };
+}
+
+function toGuestEntry(
+  confId: string,
+  host: DelegateRow,
+  guest: GuestRow,
+  pdfByPath: Map<string, boolean>,
+): LogisticsNameListEntry {
+  return {
+    id: `guest:${guest.id}`,
+    name: guest.name,
+    passportNo: guest.passportNo,
+    city: host.city,
+    feeAmount: null,
+    amountPaid: null,
+    feePaid: true,
+    guestNationality: guest.nationality,
+    isGuest: true,
+    hostDelegateId: host.id,
+    hostDelegateName: host.name,
+    ...mapGuestDocs(confId, host.id, guest, pdfByPath),
+    rosterSource: "AUTO_PAID",
+    entryId: null,
+    isAutoPaid: true,
+    isManual: false,
+    canRemove: false,
+  };
+}
+
 export async function buildLogisticsNameListResponse(input: {
   conf: ConfRow;
   paidDelegates: DelegateRow[];
   manualEntries: ManualEntryRow[];
   allDelegates: DelegateRow[];
+  paidDelegateGuests?: GuestRow[];
   origin: string;
 }): Promise<LogisticsNameListResponse> {
-  const { conf, paidDelegates, manualEntries, allDelegates, origin } = input;
+  const {
+    conf,
+    paidDelegates,
+    manualEntries,
+    allDelegates,
+    paidDelegateGuests = [],
+    origin,
+  } = input;
   const confId = conf.id;
 
   const allDocPaths = [
@@ -143,6 +246,11 @@ export async function buildLogisticsNameListResponse(input: {
       e.delegate.passportPhotoPath,
       e.delegate.lastEntryStampPath,
       e.delegate.currentVisaPath,
+    ]),
+    ...paidDelegateGuests.flatMap((g) => [
+      g.passportPhotoPath,
+      g.lastEntryStampPath,
+      g.currentVisaPath,
     ]),
   ];
   const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
@@ -192,6 +300,15 @@ export async function buildLogisticsNameListResponse(input: {
   }
 
   const rosterIds = new Set(merged.keys());
+  const hostById = new Map(allDelegates.map((d) => [d.id, d]));
+
+  for (const guest of paidDelegateGuests) {
+    const host = hostById.get(guest.delegateId);
+    if (!host || host.status === "CANCELLED") continue;
+    if (!rosterIds.has(host.id)) continue;
+    merged.set(`guest:${guest.id}`, toGuestEntry(confId, host, guest, pdfByPath));
+  }
+
   const entries = Array.from(merged.values()).sort((a, b) =>
     a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
   );

@@ -31,6 +31,7 @@ import {
   type UploadedPhotoMeta,
   type UploadFeedback,
 } from "@/components/tools/conf/delegate-registration-form";
+import { uploadConferenceGuestDocuments } from "@/components/tools/conf/conference-guest-registration-section";
 import {
   validateDelegateUploadFile,
   delegateDocumentAcceptAttribute,
@@ -289,6 +290,8 @@ export function DelegatePublicRegister() {
       wantsSingleRoom: snapshot.roomPref === "SINGLE",
       partnerClaimNote: snapshot.partnerClaimNote,
       conferencePosition: snapshot.conferencePosition || null,
+      guestCount: snapshot.guestCount,
+      guests: snapshot.guests,
     }),
     [],
   );
@@ -511,6 +514,19 @@ export function DelegatePublicRegister() {
             flyerReady = flyerReady || ready;
           },
         );
+      }
+
+      if (payload.guestCount > 0 && payload.guests.length > 0) {
+        const guestRows = (createdPayload.guests ?? []) as Array<{
+          id: string;
+          sortOrder: number;
+        }>;
+        await uploadConferenceGuestDocuments({
+          confId,
+          delegateId,
+          guestRows,
+          guests: payload.guests,
+        });
       }
 
       setSuccess({

@@ -17,6 +17,12 @@ export type LogisticsNameListDelegate = {
   passportDocUrl: string | null;
   entryStampDocUrl: string | null;
   visaDocUrl: string | null;
+  /** True for companion guests (not LSUIC delegates). */
+  isGuest?: boolean;
+  /** Registrant who registered this guest. */
+  hostDelegateId?: string | null;
+  hostDelegateName?: string | null;
+  guestNationality?: string | null;
 };
 
 export type LogisticsNameListEntry = LogisticsNameListDelegate & {

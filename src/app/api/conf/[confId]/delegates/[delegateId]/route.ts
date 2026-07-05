@@ -12,12 +12,20 @@ import { canViewDelegateDocuments } from "@/lib/conf/conference-hotel-access";
 import { isConferenceTreasurerOnlyManager } from "@/lib/conf/conference-finance-access";
 import { mapDelegateDocumentsForClientAsync } from "@/lib/conf/delegate-document-urls";
 import {
+  calcConferenceRegistrationTotal,
+  conferencePackageIncludesGuest,
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
   isConferenceOptionalAddOnPackage,
   normalizeConferenceOptionalAddOnPackageIds,
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
+import {
+  coerceConferenceGuestsFromClient,
+  mapConferenceGuestsForClient,
+  validateConferenceGuestsForPackage,
+} from "@/lib/conf/delegate-guests";
+import { syncDelegateGuests } from "@/lib/conf/sync-delegate-guests";
 import { formatPersonName } from "@/lib/conf/name-format";
 import {
   composeDelegateCommentsWithAddOns,
@@ -92,6 +100,10 @@ export async function GET(
     const jerseyDetails = mapDelegateJerseyDetailsForClient(
       delegate.jerseyDetails,
     );
+    const storedGuests = await prisma.confDelegateGuest.findMany({
+      where: { delegateId },
+      orderBy: { sortOrder: "asc" },
+    });
 
     const headersList = await headers();
     const host = headersList.get("host") ?? "localhost";
@@ -103,6 +115,7 @@ export async function GET(
       additionalComments: parsedComments.additionalComments,
       addOnPackageIds: parsedComments.addOnPackageIds,
       jerseyDetails,
+      guests: mapConferenceGuestsForClient(storedGuests),
       ...(await mapDelegateDocumentsForClientAsync(
         confId,
         delegateId,
@@ -179,6 +192,7 @@ export async function PATCH(
       amountPaid: number | null;
       feePaid: boolean;
       feePackageId: string | null;
+      guestCount: number;
       additionalComments: string | null;
       jerseyDetails: unknown;
     } | null;
@@ -191,6 +205,17 @@ export async function PATCH(
     }
 
     const updates: Record<string, unknown> = {};
+    let pendingGuestSync:
+      | {
+          guestCount: number;
+          guests: Array<{
+            name: string;
+            passportNo: string;
+            nationality: string;
+            passportExpiry: Date | null;
+          }>;
+        }
+      | null = null;
 
     if (typeof body.name === "string") {
       updates.name = formatPersonName(body.name);
@@ -357,8 +382,17 @@ export async function PATCH(
       }
       updates.feePackageId = feePackage?.id ?? null;
       if (feePackage) {
-        updates.feeAmount =
-          feePackage.price + sumConferenceOptionalAddOns(effectiveAddOnPackageIds);
+        const nextGuestCount =
+          typeof body.guestCount === "number"
+            ? body.guestCount
+            : typeof updates.guestCount === "number"
+              ? updates.guestCount
+              : current.guestCount;
+        updates.feeAmount = calcConferenceRegistrationTotal({
+          feePackageId: feePackage.id,
+          addOnPackageIds: effectiveAddOnPackageIds,
+          guestCount: nextGuestCount,
+        });
         const accommodationMode = getConferenceFeeAccommodationMode(feePackage.id);
         if (accommodationMode === "SINGLE") {
           updates.roomPref = "SINGLE";
@@ -385,10 +419,81 @@ export async function PATCH(
         ? getConferenceFeePackageById(nextFeePackageId)
         : null;
       if (nextFeePackage) {
-        updates.feeAmount =
-          nextFeePackage.price +
-          sumConferenceOptionalAddOns(effectiveAddOnPackageIds);
+        const nextGuestCount =
+          typeof body.guestCount === "number"
+            ? body.guestCount
+            : typeof updates.guestCount === "number"
+              ? updates.guestCount
+              : current.guestCount;
+        updates.feeAmount = calcConferenceRegistrationTotal({
+          feePackageId: nextFeePackage.id,
+          addOnPackageIds: effectiveAddOnPackageIds,
+          guestCount: nextGuestCount,
+        });
       }
+    }
+
+    if (
+      typeof body.guestCount !== "undefined" ||
+      typeof body.guests !== "undefined"
+    ) {
+      const nextFeePackageId =
+        typeof updates.feePackageId === "string"
+          ? updates.feePackageId
+          : current.feePackageId;
+      if (!nextFeePackageId) {
+        return NextResponse.json(
+          { error: "A conference package must be selected before adding guests." },
+          { status: 400 },
+        );
+      }
+      const guestValidation = validateConferenceGuestsForPackage({
+        feePackageId: nextFeePackageId,
+        guestCount:
+          typeof body.guestCount === "number"
+            ? body.guestCount
+            : current.guestCount,
+        guests:
+          typeof body.guests !== "undefined"
+            ? coerceConferenceGuestsFromClient(body.guests)
+            : (
+                await prisma.confDelegateGuest.findMany({
+                  where: { delegateId },
+                  orderBy: { sortOrder: "asc" },
+                })
+              ).map((g: {
+                id: string;
+                name: string;
+                passportNo: string | null;
+                nationality: string | null;
+                passportExpiry: Date | null;
+              }) => ({
+                id: g.id,
+                name: g.name,
+                passportNo: g.passportNo ?? "",
+                nationality: g.nationality ?? "",
+                passportExpiry: g.passportExpiry
+                  ? g.passportExpiry.toISOString().slice(0, 10)
+                  : "",
+              })),
+        requireGuestDetails: conferencePackageIncludesGuest(nextFeePackageId),
+      });
+      if (!guestValidation.ok) {
+        return NextResponse.json(
+          { error: guestValidation.error },
+          { status: 400 },
+        );
+      }
+      updates.guestCount = guestValidation.guestCount;
+      updates.feeAmount = calcConferenceRegistrationTotal({
+        feePackageId: nextFeePackageId,
+        addOnPackageIds: effectiveAddOnPackageIds,
+        guestCount: guestValidation.guestCount,
+      });
+      pendingGuestSync = {
+        guestCount: guestValidation.guestCount,
+        guests: guestValidation.guests,
+      };
     }
 
     if (
@@ -532,6 +637,20 @@ export async function PATCH(
       } as never,
     });
 
+    if (pendingGuestSync) {
+      await syncDelegateGuests(prisma, {
+        confId,
+        delegateId,
+        guestCount: pendingGuestSync.guestCount,
+        guests: pendingGuestSync.guests,
+      });
+    }
+
+    const storedGuests = await prisma.confDelegateGuest.findMany({
+      where: { delegateId },
+      orderBy: { sortOrder: "asc" },
+    });
+
     const finalParsedComments = parseDelegateCommentsWithAddOns(
       finalDelegate.additionalComments,
     );
@@ -549,6 +668,8 @@ export async function PATCH(
       additionalComments: finalParsedComments.additionalComments,
       addOnPackageIds: finalParsedComments.addOnPackageIds,
       jerseyDetails: finalJerseyDetails,
+      guestCount: finalDelegate.guestCount,
+      guests: mapConferenceGuestsForClient(storedGuests),
       ...(await mapDelegateDocumentsForClientAsync(
         confId,
         delegateId,

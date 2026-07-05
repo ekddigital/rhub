@@ -726,6 +726,7 @@ model ConfEvent {
     questions      ConfQuestion[]
     logisticsRosterEntries ConfLogisticsRosterEntry[]
     lsuicLeaderLinks       ConfLsuicLeaderLink[]
+    delegateGuests         ConfDelegateGuest[]
 
     @@index([slug])
     @@index([status])
@@ -955,6 +956,8 @@ model ConfDelegate {
     roomAsB ConfRoomAssignment? @relation("RoomOccupantB")
     logisticsRosterEntries ConfLogisticsRosterEntry[]
     lsuicLeaderLinks       ConfLsuicLeaderLink[]
+    guestCount             Int                 @default(0)
+    guests                 ConfDelegateGuest[]
 
     @@index([confId])
     @@index([status])
@@ -965,6 +968,28 @@ model ConfDelegate {
     @@index([confId, feeFsApprovedAt])
     @@unique([confId, email])
     @@unique([confId, passportNo])
+}
+
+model ConfDelegateGuest {
+    id                 String    @id @default(cuid())
+    confId             String
+    delegateId         String
+    sortOrder          Int       @default(0)
+    name               String
+    passportNo         String?
+    nationality        String?
+    passportExpiry     DateTime?
+    passportPhotoPath  String?
+    lastEntryStampPath String?
+    currentVisaPath    String?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
+
+    conf     ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
+    delegate ConfDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+
+    @@index([confId])
+    @@index([delegateId])
 }
 
 model ConfLogisticsRosterEntry {

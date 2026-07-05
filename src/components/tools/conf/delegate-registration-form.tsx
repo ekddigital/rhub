@@ -22,6 +22,9 @@ import {
   getConferenceRequiredFeePackages,
   CONFERENCE_JERSEY_PACKAGE_ID,
   MAX_CONFERENCE_JERSEY_SETS,
+  calcAdditionalGuestFee,
+  calcConferenceRegistrationTotal,
+  conferencePackageIncludesGuest,
   countConferenceJerseySets,
   normalizeConferenceOptionalAddOnPackageIds,
   sumConferenceOptionalAddOns,
@@ -39,6 +42,18 @@ import {
   resizeConferenceJerseyDetails,
   validateConferenceJerseyDetails,
 } from "@/lib/conf/delegate-jersey-details";
+import {
+  DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE,
+  resizeConferenceGuestRegistrationPayload,
+  type ConferenceGuestClientPayload,
+  type ConferenceGuestDetail,
+  type ConferenceGuestRegistrationPayload,
+  validateConferenceGuestsForPackage,
+} from "@/lib/conf/delegate-guests";
+import {
+  ConferenceGuestRegistrationSection,
+  createInitialGuestRows,
+} from "@/components/tools/conf/conference-guest-registration-section";
 
 export type DelegateRegistrationPayload = {
   name: string;
@@ -83,6 +98,8 @@ export type DelegateRegistrationPayload = {
   currentVisaPhoto: File | null;
   bookletPhoto: File | null;
   conferencePosition: string;
+  guestCount: number;
+  guests: ConferenceGuestRegistrationPayload[];
 };
 
 export type DelegatePhotoField =
@@ -214,19 +231,17 @@ function ExistingUploadedFileCallout({ meta }: { meta: UploadedPhotoMeta }) {
 
 export type DelegateRegistrationSnapshot = Omit<
   DelegateRegistrationPayload,
-  "passportPhoto" | "lastEntryStampPhoto" | "currentVisaPhoto" | "bookletPhoto"
->;
+  | "passportPhoto"
+  | "lastEntryStampPhoto"
+  | "currentVisaPhoto"
+  | "bookletPhoto"
+  | "guests"
+> & {
+  guests: ConferenceGuestClientPayload[];
+};
 
 /** Pre-populated field values for edit mode (files are not pre-populated). */
-export type InitialFormValues = Partial<
-  Omit<
-    DelegateRegistrationPayload,
-    | "passportPhoto"
-    | "lastEntryStampPhoto"
-    | "currentVisaPhoto"
-    | "bookletPhoto"
-  >
->;
+export type InitialFormValues = Partial<DelegateRegistrationSnapshot>;
 
 const CUSTOM_CONFERENCE_ROLE = "__CUSTOM__";
 
@@ -513,6 +528,31 @@ export function DelegateRegistrationForm({
       ? initialConferencePosition
       : "",
   );
+  const initialGuestPackage = conferencePackageIncludesGuest(
+    resolveInitialFeePackageId(feeOptions, initialValues, defaultFeeAmount),
+  );
+  const [guestCount, setGuestCount] = useState(
+    initialValues?.guestCount ??
+      (initialGuestPackage ? DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE : 0),
+  );
+  const [guests, setGuests] = useState<ConferenceGuestRegistrationPayload[]>(
+    () => {
+      if (initialValues?.guests?.length) {
+        return initialValues.guests.map((guest) => ({
+          ...guest,
+          passportPhoto: null,
+          lastEntryStampPhoto: null,
+          currentVisaPhoto: null,
+        }));
+      }
+      return initialGuestPackage
+        ? createInitialGuestRows(DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE)
+        : [];
+    },
+  );
+  const [guestFieldErrors, setGuestFieldErrors] = useState<
+    Record<string, string>
+  >({});
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [draftRestored, setDraftRestored] = useState(false);
@@ -583,6 +623,11 @@ export function DelegateRegistrationForm({
       roomPref,
       partnerClaimNote,
       conferencePosition: conferencePosition.trim(),
+      guestCount,
+      guests: guests.map(
+        ({ passportPhoto, lastEntryStampPhoto, currentVisaPhoto, ...guest }) =>
+          guest,
+      ),
     }),
     [
       name,
@@ -614,6 +659,8 @@ export function DelegateRegistrationForm({
       roomPref,
       partnerClaimNote,
       conferencePosition,
+      guestCount,
+      guests,
     ],
   );
 
@@ -684,12 +731,17 @@ export function DelegateRegistrationForm({
   );
 
   const computeSelectedTotal = (corePackageId: string, addOnIds: string[]) => {
-    const corePackage = feeOptions.find(
-      (option) => option.id === corePackageId,
-    );
-    const corePrice = corePackage?.price ?? 0;
-    return corePrice + sumConferenceOptionalAddOns(addOnIds);
+    return calcConferenceRegistrationTotal({
+      feePackageId: corePackageId,
+      addOnPackageIds: addOnIds,
+      guestCount,
+    });
   };
+
+  const packageIncludesGuest = conferencePackageIncludesGuest(selectedFeePackage);
+  const additionalGuestFee = packageIncludesGuest
+    ? calcAdditionalGuestFee(guestCount)
+    : 0;
 
   const jerseyQuantity = useMemo(
     () => countConferenceJerseySets(selectedAddOnPackageIds),
@@ -699,6 +751,39 @@ export function DelegateRegistrationForm({
   useEffect(() => {
     setJerseyDetails((prev) => resizeConferenceJerseyDetails(prev, jerseyQuantity));
   }, [jerseyQuantity]);
+
+  useEffect(() => {
+    if (!selectedFeePackage) return;
+    setFeeAmount(
+      String(computeSelectedTotal(selectedFeePackage, selectedAddOnPackageIds)),
+    );
+  }, [guestCount, selectedFeePackage, selectedAddOnPackageIds]);
+
+  useEffect(() => {
+    if (!selectedFeePackage) return;
+    if (conferencePackageIncludesGuest(selectedFeePackage)) {
+      setGuestCount((prev) =>
+        prev >= DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE
+          ? prev
+          : DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE,
+      );
+      setGuests((prev) => {
+        const count =
+          prev.length >= DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE
+            ? prev.length
+            : DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE;
+        const base =
+          prev.length >= DEFAULT_GUEST_COUNT_FOR_GUEST_PACKAGE
+            ? prev
+            : createInitialGuestRows(count);
+        return resizeConferenceGuestRegistrationPayload(base, count);
+      });
+    } else {
+      setGuestCount(0);
+      setGuests([]);
+      setGuestFieldErrors({});
+    }
+  }, [selectedFeePackage]);
 
   const updateJerseyDetail = (
     index: number,
@@ -1098,7 +1183,9 @@ export function DelegateRegistrationForm({
   const selectedAddOnsTotal = sumConferenceOptionalAddOns(
     selectedAddOnPackageIds,
   );
-  const totalSelectedFee = (selectedFee?.price ?? 0) + selectedAddOnsTotal;
+  const totalSelectedFee = selectedFeePackage
+    ? computeSelectedTotal(selectedFeePackage, selectedAddOnPackageIds)
+    : selectedAddOnsTotal;
 
   const handleSubmit = async () => {
     // In edit mode, photos are optional (existing files are kept server-side)
@@ -1132,12 +1219,32 @@ export function DelegateRegistrationForm({
         "Please provide details for school/supervisor communication.";
     if (dietaryNeeds === "YES" && !dietaryDetails.trim())
       errs.dietaryDetails = "Please describe your dietary requirements.";
-    if (
-      conferencePositionSelect === CUSTOM_CONFERENCE_ROLE &&
+    if (conferencePositionSelect === CUSTOM_CONFERENCE_ROLE &&
       !customConferenceRoles.trim()
     ) {
       errs.conferencePosition =
         "Enter at least one custom committee role, or choose a listed role.";
+    }
+
+    if (packageIncludesGuest) {
+      const guestValidation = validateConferenceGuestsForPackage({
+        feePackageId: selectedFeePackage,
+        guestCount,
+        guests: guests.map(
+          ({ passportPhoto, lastEntryStampPhoto, currentVisaPhoto, ...guest }) =>
+            guest,
+        ),
+      });
+      if (!guestValidation.ok) {
+        errs.guests = guestValidation.error;
+      } else if (!isEditMode) {
+        for (let i = 0; i < guests.length; i++) {
+          if (!guests[i].passportPhoto) {
+            errs[`guests.${i}.passportPhoto`] =
+              `Guest ${i + 1}: passport photo page is required.`;
+          }
+        }
+      }
     }
 
     const validateSelectedFile = async (
@@ -1167,11 +1274,18 @@ export function DelegateRegistrationForm({
 
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
+      setGuestFieldErrors(
+        Object.fromEntries(
+          Object.entries(errs).filter(([key]) => key.startsWith("guests.")),
+        ),
+      );
       setError(
         `Please fix ${Object.keys(errs).length} field${Object.keys(errs).length > 1 ? "s" : ""} below.`,
       );
       return;
     }
+
+    setGuestFieldErrors({});
 
     const jerseyValidation = validateConferenceJerseyDetails(
       jerseyQuantity,
@@ -1194,8 +1308,11 @@ export function DelegateRegistrationForm({
       return;
     }
 
-    const finalFeeAmount =
-      selectedFee.price + sumConferenceOptionalAddOns(selectedAddOnPackageIds);
+    const finalFeeAmount = calcConferenceRegistrationTotal({
+      feePackageId: selectedFee.id,
+      addOnPackageIds: selectedAddOnPackageIds,
+      guestCount: packageIncludesGuest ? guestCount : 0,
+    });
     const parsedAmountPaid = amountPaid.trim() ? Number(amountPaid) : 0;
 
     if (!Number.isFinite(parsedAmountPaid) || parsedAmountPaid < 0) {
@@ -1246,6 +1363,8 @@ export function DelegateRegistrationForm({
         currentVisaPhoto,
         bookletPhoto,
         conferencePosition: conferencePosition.trim(),
+        guestCount: packageIncludesGuest ? guestCount : 0,
+        guests: packageIncludesGuest ? guests : [],
       });
 
       // In edit mode the parent handles closing the form; only reset on fresh creation.
@@ -1794,6 +1913,18 @@ export function DelegateRegistrationForm({
             return null;
           })()}
         </div>
+
+        {packageIncludesGuest && (
+          <ConferenceGuestRegistrationSection
+            guestCount={guestCount}
+            guests={guests}
+            submitting={submitting}
+            fieldErrors={guestFieldErrors}
+            onGuestCountChange={setGuestCount}
+            onGuestsChange={setGuests}
+            onFieldErrorsChange={setGuestFieldErrors}
+          />
+        )}
 
         <div className="space-y-2 sm:col-span-2">
           <Label>Optional Add-ons (Conference Jersey and below)</Label>

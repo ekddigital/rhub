@@ -153,6 +153,12 @@ function NameCell({ row }: { row: LogisticsNameListEntry }) {
       ) : row.isManual ? (
         <div style={{ fontSize: 7, color: "#475569", marginTop: 3 }}>Manual</div>
       ) : null}
+      {row.isGuest ? (
+        <div style={{ fontSize: 7, color: "#6d28d9", marginTop: 3 }}>
+          Guest of {row.hostDelegateName || "registrant"}
+          {row.guestNationality ? ` · ${row.guestNationality}` : ""}
+        </div>
+      ) : null}
     </div>
   );
 }

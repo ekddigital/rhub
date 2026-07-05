@@ -271,5 +271,42 @@ export function groupConferenceFeePackages() {
 }
 
 export function formatFeeRmb(amount: number): string {
-  return `RMB ${amount.toFixed(2)}`;
+  return `¥${amount.toFixed(2)}`;
+}
+
+/** Fee per guest beyond the first included in a +guest package (¥ RMB). */
+export const ADDITIONAL_GUEST_FEE_RMB = 600;
+
+/** True when the selected package category includes one guest in the base price. */
+export function conferencePackageIncludesGuest(
+  packageId: string | null | undefined,
+): boolean {
+  if (!packageId?.trim()) return false;
+  const pkg = getConferenceFeePackageById(packageId.trim());
+  if (!pkg) return false;
+  const category = pkg.category.toLowerCase();
+  if (category.includes("+ guest")) return true;
+  if (pkg.id === "veteran-guest") return true;
+  return false;
+}
+
+/** ¥600 for each guest beyond the first when guestCount > 1. */
+export function calcAdditionalGuestFee(guestCount: number): number {
+  const count = Math.max(0, Math.floor(guestCount));
+  if (count <= 1) return 0;
+  return (count - 1) * ADDITIONAL_GUEST_FEE_RMB;
+}
+
+export function calcConferenceRegistrationTotal(args: {
+  feePackageId: string;
+  addOnPackageIds?: string[];
+  guestCount?: number;
+}): number {
+  const pkg = getConferenceFeePackageById(args.feePackageId);
+  if (!pkg || pkg.isOptionalAddOn) return 0;
+  const addOns = sumConferenceOptionalAddOns(args.addOnPackageIds ?? []);
+  const guestFee = conferencePackageIncludesGuest(args.feePackageId)
+    ? calcAdditionalGuestFee(args.guestCount ?? 0)
+    : 0;
+  return pkg.price + addOns + guestFee;
 }

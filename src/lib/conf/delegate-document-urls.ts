@@ -6,12 +6,23 @@ export type DelegateSecureDocumentKind =
   | "visa"
   | "booklet";
 
+export type GuestSecureDocumentKind = "passport" | "entry-stamp" | "visa";
+
 export function buildDelegateSecureDocumentUrl(
   confId: string,
   delegateId: string,
   kind: DelegateSecureDocumentKind,
 ): string {
   return `/api/conf/${confId}/delegates/${delegateId}/secure-document?kind=${kind}`;
+}
+
+export function buildGuestSecureDocumentUrl(
+  confId: string,
+  delegateId: string,
+  guestId: string,
+  kind: GuestSecureDocumentKind,
+): string {
+  return `/api/conf/${confId}/delegates/${delegateId}/guests/${guestId}/secure-document?kind=${kind}`;
 }
 
 /** True when a delegate document column has a non-empty stored path. */
@@ -354,6 +365,62 @@ export async function mapDelegateDocumentsForClientAsync(
   }
 
   return result;
+}
+
+export function resolveGuestDocumentForClient(
+  confId: string,
+  delegateId: string,
+  guestId: string,
+  kind: GuestSecureDocumentKind,
+  storedPath: string | null | undefined,
+): string | null {
+  if (!storedPath?.trim()) return null;
+  return buildGuestSecureDocumentUrl(confId, delegateId, guestId, kind);
+}
+
+export function resolveGuestPassportPhotoForClient(
+  confId: string,
+  delegateId: string,
+  guestId: string,
+  storedPath: string | null | undefined,
+): string | null {
+  return resolveGuestDocumentForClient(
+    confId,
+    delegateId,
+    guestId,
+    "passport",
+    storedPath,
+  );
+}
+
+export function resolveGuestEntryStampForClient(
+  confId: string,
+  delegateId: string,
+  guestId: string,
+  storedPath: string | null | undefined,
+): string | null {
+  return resolveGuestDocumentForClient(
+    confId,
+    delegateId,
+    guestId,
+    "entry-stamp",
+    storedPath,
+  );
+}
+
+export function resolveGuestVisaForClient(
+  confId: string,
+  delegateId: string,
+  guestId: string,
+  storedPath: string | null | undefined,
+): string | null {
+  return resolveGuestDocumentForClient(
+    confId,
+    delegateId,
+    guestId,
+    "visa",
+    storedPath,
+  );
 }
 
 export function assetsBearerHeaders(): Record<string, string> {

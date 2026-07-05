@@ -10,12 +10,18 @@ import {
 import { getConferenceAccess } from "@/lib/conf/access";
 import {
   formatConferenceOptionalAddOnsSummary,
+  calcConferenceRegistrationTotal,
   getConferenceFeeAccommodationMode,
   getConferenceFeePackageById,
   isConferenceOptionalAddOnPackage,
   normalizeConferenceOptionalAddOnPackageIds,
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
+import {
+  coerceConferenceGuestsFromClient,
+  validateConferenceGuestsForPackage,
+} from "@/lib/conf/delegate-guests";
+import { syncDelegateGuests } from "@/lib/conf/sync-delegate-guests";
 import {
   buildDelegateListViewerContext,
   mapDelegatesForApiResponse,
@@ -135,6 +141,8 @@ export async function POST(
       wantsSingleRoom,
       partnerClaimNote,
       conferencePosition,
+      guestCount,
+      guests,
     } = body;
 
     const normalizedEmail = normalizeDelegateEmail(email);
@@ -300,7 +308,25 @@ export async function POST(
       );
     }
     const addOnsTotal = sumConferenceOptionalAddOns(normalizedAddOnPackageIds);
-    const resolvedFeeAmount = resolvedFeePackage.price + addOnsTotal;
+    const guestValidation = validateConferenceGuestsForPackage({
+      feePackageId: resolvedFeePackage.id,
+      guestCount:
+        typeof guestCount === "number"
+          ? guestCount
+          : Number(guestCount ?? 0),
+      guests: coerceConferenceGuestsFromClient(guests),
+    });
+    if (!guestValidation.ok) {
+      return NextResponse.json(
+        { error: guestValidation.error },
+        { status: 400 },
+      );
+    }
+    const resolvedFeeAmount = calcConferenceRegistrationTotal({
+      feePackageId: resolvedFeePackage.id,
+      addOnPackageIds: normalizedAddOnPackageIds,
+      guestCount: guestValidation.guestCount,
+    });
     const parsedAmountPaid =
       typeof amountPaid === "number" ? amountPaid : Number(amountPaid);
     const resolvedAmountPaid =
@@ -361,6 +387,7 @@ export async function POST(
         ? jerseyDetailsValidation.details
         : Prisma.JsonNull,
       feePackageId: resolvedFeePackage.id,
+      guestCount: guestValidation.guestCount,
       feeAmount: resolvedFeeAmount,
       amountPaid: resolvedAmountPaid,
       feePaid: feePaidBool,
@@ -469,7 +496,19 @@ export async function POST(
             },
           });
 
-          return { ok: true as const, kind: "update" as const, delegate: updated };
+          const guestRows = await syncDelegateGuests(tx, {
+            confId,
+            delegateId: updated.id,
+            guestCount: guestValidation.guestCount,
+            guests: guestValidation.guests,
+          });
+
+          return {
+            ok: true as const,
+            kind: "update" as const,
+            delegate: updated,
+            guestRows,
+          };
         }
 
         if (existingEmail) {
@@ -524,7 +563,19 @@ export async function POST(
             },
           });
 
-          return { ok: true as const, kind: "update" as const, delegate: updated };
+          const guestRows = await syncDelegateGuests(tx, {
+            confId,
+            delegateId: updated.id,
+            guestCount: guestValidation.guestCount,
+            guests: guestValidation.guests,
+          });
+
+          return {
+            ok: true as const,
+            kind: "update" as const,
+            delegate: updated,
+            guestRows,
+          };
         }
 
         let delegate: Awaited<ReturnType<typeof prisma.confDelegate.create>> | null =
@@ -560,7 +611,19 @@ export async function POST(
           throw new Error("Could not assign a delegate conference ID");
         }
 
-        return { ok: true as const, kind: "create" as const, delegate };
+        const guestRows = await syncDelegateGuests(tx, {
+          confId,
+          delegateId: delegate.id,
+          guestCount: guestValidation.guestCount,
+          guests: guestValidation.guests,
+        });
+
+        return {
+          ok: true as const,
+          kind: "create" as const,
+          delegate,
+          guestRows,
+        };
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead,
@@ -573,7 +636,7 @@ export async function POST(
       return NextResponse.json(txResult.body, { status: txResult.status });
     }
 
-    const { delegate, kind } = txResult;
+    const { delegate, kind, guestRows } = txResult;
 
     if (kind === "update") {
       return NextResponse.json(
@@ -581,6 +644,8 @@ export async function POST(
           ...delegate,
           ...parseDelegateCommentsWithAddOns(delegate.additionalComments),
           updatedExisting: true,
+          guestCount: delegate.guestCount,
+          guests: guestRows,
         },
         { status: 200 },
       );
@@ -637,6 +702,8 @@ export async function POST(
       {
         ...delegate,
         ...parseDelegateCommentsWithAddOns(delegate.additionalComments),
+        guestCount: delegate.guestCount,
+        guests: guestRows,
       },
       { status: 201 },
     );

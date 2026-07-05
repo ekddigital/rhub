@@ -32,6 +32,7 @@ import {
   type DelegateRegistrationPayload,
   type UploadedPhotoMeta,
 } from "@/components/tools/conf/delegate-registration-form";
+import { uploadConferenceGuestDocuments } from "@/components/tools/conf/conference-guest-registration-section";
 import {
   validateDelegateUploadFile,
   delegateDocumentAcceptAttribute,
@@ -101,6 +102,14 @@ type Delegate = {
   bookletPhotoPath: string | null;
   flyerReady: boolean;
   conferencePosition: string | null;
+  guestCount: number;
+  guests?: Array<{
+    id?: string;
+    name: string;
+    passportNo: string;
+    nationality: string;
+    passportExpiry: string;
+  }>;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
   updatedAt: string;
@@ -324,6 +333,15 @@ export function DelegateDetailShell({
         feeAmount: payload.feeAmount,
         amountPaid: payload.amountPaid,
         feePaid: payload.feePaid,
+        guestCount: payload.guestCount,
+        guests: payload.guests.map(
+          ({
+            passportPhoto: _p,
+            lastEntryStampPhoto: _e,
+            currentVisaPhoto: _v,
+            ...guest
+          }) => guest,
+        ),
       };
 
       const res = await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {
@@ -350,6 +368,17 @@ export function DelegateDetailShell({
       }
       if (payload.bookletPhoto) {
         await handleUpload("booklet", payload.bookletPhoto);
+      }
+
+      if (payload.guestCount > 0 && payload.guests.length > 0) {
+        const guestRows = ((updated as { guests?: Array<{ id: string }> })
+          .guests ?? []) as Array<{ id: string; sortOrder: number }>;
+        await uploadConferenceGuestDocuments({
+          confId,
+          delegateId,
+          guestRows,
+          guests: payload.guests,
+        });
       }
 
       setDelegate(updated as Delegate);
@@ -995,6 +1024,13 @@ export function DelegateDetailShell({
                 roomPref: delegate.roomPref,
                 partnerClaimNote: delegate.partnerClaimNote ?? "",
                 conferencePosition: delegate.conferencePosition ?? "",
+                guestCount: delegate.guestCount ?? 0,
+                guests: (delegate.guests ?? []).map((guest) => ({
+                  ...guest,
+                  passportPhoto: null,
+                  lastEntryStampPhoto: null,
+                  currentVisaPhoto: null,
+                })),
               }}
               defaultFeeAmount={defaultFee}
               isManagerMode={canManage}

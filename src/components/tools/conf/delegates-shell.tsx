@@ -35,6 +35,7 @@ import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
 } from "@/components/tools/conf/delegate-registration-form";
+import { uploadConferenceGuestDocuments } from "@/components/tools/conf/conference-guest-registration-section";
 import { ParticipantsDataTable } from "@/components/tools/conf/participants-data-table";
 import { useUser } from "@/contexts/user-context";
 import { validateDelegateUploadFile } from "@/lib/conf/file-upload-client";
@@ -355,6 +356,15 @@ export function DelegatesShell() {
           wantsSingleRoom: payload.roomPref === "SINGLE",
           partnerClaimNote: payload.partnerClaimNote,
           conferencePosition: payload.conferencePosition || null,
+          guestCount: payload.guestCount,
+          guests: payload.guests.map(
+            ({
+              passportPhoto: _p,
+              lastEntryStampPhoto: _e,
+              currentVisaPhoto: _v,
+              ...guest
+            }) => guest,
+          ),
         }),
       });
 
@@ -402,6 +412,19 @@ export function DelegatesShell() {
       await uploadDocument("entry-stamp", payload.lastEntryStampPhoto);
       await uploadDocument("visa", payload.currentVisaPhoto);
       await uploadDocument("booklet", payload.bookletPhoto);
+
+      if (payload.guestCount > 0 && payload.guests.length > 0) {
+        const guestRows = (createdPayload.guests ?? []) as Array<{
+          id: string;
+          sortOrder: number;
+        }>;
+        await uploadConferenceGuestDocuments({
+          confId,
+          delegateId,
+          guestRows,
+          guests: payload.guests,
+        });
+      }
 
       if (payload.feePaid) {
         await fetch(`/api/conf/${confId}/delegates/${delegateId}`, {

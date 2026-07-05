@@ -64,6 +64,25 @@ export async function GET(
     }
 
     const paidDelegates = filterFullyPaidDelegates(allDelegates);
+    const paidDelegateIds = paidDelegates.map((d) => d.id);
+    const paidDelegateGuests =
+      paidDelegateIds.length > 0
+        ? await prisma.confDelegateGuest.findMany({
+            where: { confId, delegateId: { in: paidDelegateIds } },
+            orderBy: [{ delegateId: "asc" }, { sortOrder: "asc" }],
+            select: {
+              id: true,
+              delegateId: true,
+              sortOrder: true,
+              name: true,
+              passportNo: true,
+              nationality: true,
+              passportPhotoPath: true,
+              lastEntryStampPath: true,
+              currentVisaPath: true,
+            },
+          })
+        : [];
 
     const headersList = await headers();
     const host = headersList.get("host") ?? "localhost";
@@ -76,6 +95,7 @@ export async function GET(
         paidDelegates,
         manualEntries,
         allDelegates,
+        paidDelegateGuests,
         origin,
       }),
     );

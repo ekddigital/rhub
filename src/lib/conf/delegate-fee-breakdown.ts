@@ -1,9 +1,12 @@
 import {
   CONFERENCE_JERSEY_PACKAGE_ID,
+  calcAdditionalGuestFee,
+  conferencePackageIncludesGuest,
   countConferenceJerseySets,
   getConferenceFeePackageById,
   sumConferenceOptionalAddOns,
 } from "@/lib/conf/fees";
+import { additionalGuestFeeLineLabel } from "@/lib/conf/delegate-guests";
 
 /**
  * Required-package title aligned with registration / admin notifications:
@@ -29,13 +32,17 @@ export type ConferenceOptionalAddOnLine = {
 
 export type ConferenceDelegateFeeBreakdown = {
   requiredPackageLabel: string | null;
-  /** Base conference package subtotal (excludes optional add-ons). */
+  /** Base conference package subtotal (excludes optional add-ons and guest fees). */
   corePackageSubtotal: number;
+  /** ¥600 × (guestCount − 1) when guestCount > 1 on a +guest package. */
+  additionalGuestFee: number;
+  additionalGuestCount: number;
+  additionalGuestFeeLabel: string | null;
   jersey: ConferenceOptionalAddOnLine | null;
   /** Non-jersey optional add-ons (e.g. achievers tables). */
   otherOptionalLines: ConferenceOptionalAddOnLine[];
   optionalAddOnsSubtotal: number;
-  /** corePackageSubtotal + optionalAddOnsSubtotal */
+  /** corePackageSubtotal + optionalAddOnsSubtotal + additionalGuestFee */
   computedDueTotal: number;
   /** True when stored feeAmount matches the package model within one fen. */
   reconcilesWithPackageModel: boolean;
@@ -49,10 +56,12 @@ export type ConferenceDelegateFeeBreakdown = {
 export function buildConferenceDelegateFeeBreakdown(args: {
   feePackageId: string | null | undefined;
   addOnPackageIds?: string[] | null;
+  guestCount?: number | null;
   feeAmount: number | null | undefined;
 }): ConferenceDelegateFeeBreakdown {
   const addOns = args.addOnPackageIds ?? [];
   const feePackageId = args.feePackageId?.trim() ?? null;
+  const guestCount = Math.max(0, Math.floor(args.guestCount ?? 0));
   const storedRaw =
     typeof args.feeAmount === "number"
       ? args.feeAmount
@@ -98,13 +107,22 @@ export function buildConferenceDelegateFeeBreakdown(args: {
   );
 
   const optionalAddOnsSubtotal = sumConferenceOptionalAddOns(addOns);
-  const computedDueTotal = corePackageSubtotal + optionalAddOnsSubtotal;
+  const additionalGuestFee =
+    feePackageId && conferencePackageIncludesGuest(feePackageId)
+      ? calcAdditionalGuestFee(guestCount)
+      : 0;
+  const computedDueTotal =
+    corePackageSubtotal + optionalAddOnsSubtotal + additionalGuestFee;
   const reconcilesWithPackageModel =
     Math.abs(stored - computedDueTotal) < 0.015;
 
   return {
     requiredPackageLabel,
     corePackageSubtotal,
+    additionalGuestFee,
+    additionalGuestCount: guestCount,
+    additionalGuestFeeLabel:
+      additionalGuestFee > 0 ? additionalGuestFeeLineLabel(guestCount) : null,
     jersey,
     otherOptionalLines,
     optionalAddOnsSubtotal,

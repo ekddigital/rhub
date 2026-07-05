@@ -50,6 +50,7 @@ export type DelegateFinanceRow = {
   feeFsApprovedBy?: string | null;
   feeTreasurerAckAt?: string | null;
   feeTreasurerAckBy?: string | null;
+  guestCount?: number;
 };
 
 function toMoney(value: unknown): number {
@@ -276,6 +277,7 @@ export function ConferenceFinanceDelegatesBoard({
       const bd = buildConferenceDelegateFeeBreakdown({
         feePackageId: row.feePackageId,
         addOnPackageIds: row.addOnPackageIds,
+        guestCount: row.guestCount,
         feeAmount: row.feeAmount,
       });
       coreRegistrationTotal += bd.corePackageSubtotal;
@@ -318,6 +320,7 @@ export function ConferenceFinanceDelegatesBoard({
       const breakdown = buildConferenceDelegateFeeBreakdown({
         feePackageId: row.feePackageId,
         addOnPackageIds: row.addOnPackageIds,
+        guestCount: row.guestCount,
         feeAmount: row.feeAmount,
       });
       return {
@@ -1112,6 +1115,7 @@ export function ConferenceFinanceDelegatesBoard({
             const feeBreakdown = buildConferenceDelegateFeeBreakdown({
               feePackageId: row.feePackageId,
               addOnPackageIds: row.addOnPackageIds,
+              guestCount: row.guestCount,
               feeAmount: row.feeAmount,
             });
             const packageTitle =
@@ -1177,6 +1181,15 @@ export function ConferenceFinanceDelegatesBoard({
                         {line.label} — {fmtRmb(line.subtotal)}
                       </p>
                     ))}
+                    {feeBreakdown.additionalGuestFee > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">
+                          Guests:
+                        </span>{" "}
+                        {feeBreakdown.additionalGuestFeeLabel} —{" "}
+                        {fmtRmb(feeBreakdown.additionalGuestFee)}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       Paid {fmtRmb(amountPaid)} / Due {fmtRmb(amountDue)}
                     </p>
@@ -1211,6 +1224,14 @@ export function ConferenceFinanceDelegatesBoard({
                             </span>
                           </p>
                         ))}
+                        {feeBreakdown.additionalGuestFee > 0 && (
+                          <p>
+                            {feeBreakdown.additionalGuestFeeLabel}:{" "}
+                            <span className="font-medium text-foreground">
+                              {fmtRmb(feeBreakdown.additionalGuestFee)}
+                            </span>
+                          </p>
+                        )}
                         <p>
                           Optional add-ons total:{" "}
                           <span className="font-medium text-foreground">
