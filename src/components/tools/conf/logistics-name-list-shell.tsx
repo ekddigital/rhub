@@ -539,6 +539,14 @@ export function LogisticsNameListShell() {
                             Manual
                           </Badge>
                         ) : null}
+                        {row.isGuest ? (
+                          <p className="mt-1 text-xs text-violet-700">
+                            Guest of {row.hostDelegateName || "registrant"}
+                            {row.guestNationality
+                              ? ` · ${row.guestNationality}`
+                              : ""}
+                          </p>
+                        ) : null}
                       </td>
                       <td className="px-3 py-4">
                         <p className="text-xs text-muted-foreground">
