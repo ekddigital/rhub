@@ -1,40 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
-
-function isPairEligible(delegate: {
-  roomPref: "PAIR" | "SINGLE";
-  wantsSingleRoom: boolean;
-  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
-  feePackageId: string | null;
-}) {
-  const packageAccommodationMode = getConferenceFeeAccommodationMode(
-    delegate.feePackageId,
-  );
-  if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
-    return false;
-  }
-  if (delegate.accommodationNeeded === "NO") return false;
-  if (delegate.wantsSingleRoom) return false;
-  return delegate.roomPref === "PAIR";
-}
-
-async function generateRoomCode(confId: string) {
-  const count = await prisma.confRoomAssignment.count({ where: { confId } });
-  return `RM-${String(count + 1).padStart(3, "0")}`;
-}
-
-async function hasActiveAssignment(delegateId: string) {
-  const assignment = await prisma.confRoomAssignment.findFirst({
-    where: {
-      status: { not: "CANCELLED" },
-      OR: [{ occupantAId: delegateId }, { occupantBId: delegateId }],
-    },
-    select: { id: true },
-  });
-  return Boolean(assignment);
-}
+import {
+  fetchDelegateForPairing,
+  generateRoomCode,
+  hasActiveAssignment,
+  ROOM_ASSIGNMENT_INCLUDE,
+  validateOccupantPairing,
+} from "@/lib/conf/room-assignments-server";
 
 // GET /api/conf/[confId]/room-assignments
 export async function GET(
@@ -48,26 +21,7 @@ export async function GET(
 
     const assignments = await prisma.confRoomAssignment.findMany({
       where: { confId },
-      include: {
-        occupantA: {
-          select: {
-            id: true,
-            name: true,
-            delegateCode: true,
-            gender: true,
-            city: true,
-          },
-        },
-        occupantB: {
-          select: {
-            id: true,
-            name: true,
-            delegateCode: true,
-            gender: true,
-            city: true,
-          },
-        },
-      },
+      include: ROOM_ASSIGNMENT_INCLUDE,
       orderBy: { createdAt: "desc" },
     });
 
@@ -95,7 +49,7 @@ export async function POST(
 
     const occupantAId = String(body.occupantAId || "");
     const occupantBId = body.occupantBId ? String(body.occupantBId) : null;
-    const roomCode = body.roomCode ? String(body.roomCode) : null;
+    const roomCode = body.roomCode ? String(body.roomCode).trim() : null;
     const overrideReason = body.overrideReason
       ? String(body.overrideReason)
       : null;
@@ -114,19 +68,7 @@ export async function POST(
       );
     }
 
-    const occupantA = await prisma.confDelegate.findUnique({
-      where: { id: occupantAId },
-      select: {
-        id: true,
-        confId: true,
-        gender: true,
-        roomPref: true,
-        wantsSingleRoom: true,
-        accommodationNeeded: true,
-        feePackageId: true,
-      },
-    });
-
+    const occupantA = await fetchDelegateForPairing(occupantAId);
     if (!occupantA || occupantA.confId !== confId) {
       return NextResponse.json(
         { error: "Primary delegate not found" },
@@ -134,29 +76,9 @@ export async function POST(
       );
     }
 
-    let occupantB: {
-      id: string;
-      confId: string;
-      gender: "MALE" | "FEMALE" | null;
-      roomPref: "PAIR" | "SINGLE";
-      wantsSingleRoom: boolean;
-      accommodationNeeded: "YES" | "NO" | "OTHER" | null;
-      feePackageId: string | null;
-    } | null = null;
-
+    let occupantB = null;
     if (occupantBId) {
-      occupantB = await prisma.confDelegate.findUnique({
-        where: { id: occupantBId },
-        select: {
-          id: true,
-          confId: true,
-          gender: true,
-          roomPref: true,
-          wantsSingleRoom: true,
-          accommodationNeeded: true,
-          feePackageId: true,
-        },
-      });
+      occupantB = await fetchDelegateForPairing(occupantBId);
       if (!occupantB || occupantB.confId !== confId) {
         return NextResponse.json(
           { error: "Second delegate not found" },
@@ -165,24 +87,13 @@ export async function POST(
       }
     }
 
-    if (occupantB && !isPairEligible(occupantA)) {
-      return NextResponse.json(
-        {
-          error:
-            "Primary delegate is not eligible for pairing (single-room or no-accommodation registration).",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (occupantB && !isPairEligible(occupantB)) {
-      return NextResponse.json(
-        {
-          error:
-            "Second delegate is not eligible for pairing (single-room or no-accommodation registration).",
-        },
-        { status: 400 },
-      );
+    const validationError = validateOccupantPairing(
+      occupantA,
+      occupantB,
+      overrideReason,
+    );
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
     if (await hasActiveAssignment(occupantAId)) {
@@ -199,52 +110,36 @@ export async function POST(
       );
     }
 
-    if (
-      occupantB &&
-      occupantA.gender &&
-      occupantB.gender &&
-      occupantA.gender !== occupantB.gender &&
-      !overrideReason
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Cross-gender room assignment requires an override reason (legal partner exception).",
+    const resolvedRoomCode = roomCode || (await generateRoomCode(confId));
+
+    if (roomCode) {
+      const duplicateCode = await prisma.confRoomAssignment.findFirst({
+        where: {
+          confId,
+          roomCode: resolvedRoomCode,
+          status: { not: "CANCELLED" },
         },
-        { status: 400 },
-      );
+        select: { id: true },
+      });
+      if (duplicateCode) {
+        return NextResponse.json(
+          { error: "Room code is already in use" },
+          { status: 409 },
+        );
+      }
     }
 
     const assignment = await prisma.confRoomAssignment.create({
       data: {
         confId,
-        roomCode: roomCode || (await generateRoomCode(confId)),
+        roomCode: resolvedRoomCode,
         occupantAId,
         occupantBId,
         status: "ASSIGNED",
         isManual: true,
         overrideReason: overrideReason || null,
       },
-      include: {
-        occupantA: {
-          select: {
-            id: true,
-            name: true,
-            delegateCode: true,
-            gender: true,
-            city: true,
-          },
-        },
-        occupantB: {
-          select: {
-            id: true,
-            name: true,
-            delegateCode: true,
-            gender: true,
-            city: true,
-          },
-        },
-      },
+      include: ROOM_ASSIGNMENT_INCLUDE,
     });
 
     return NextResponse.json(assignment, { status: 201 });

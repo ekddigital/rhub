@@ -27,10 +27,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
+import { isDelegateEligibleForRoomPairing } from "@/lib/conf/room-pairing-eligibility";
+import {
+  RoomAssignmentWorkspace,
+  type RoomAssignmentRow,
+} from "@/components/tools/conf/room-assignment-workspace";
 import {
   DelegateRegistrationForm,
   type DelegateRegistrationPayload,
@@ -86,6 +89,7 @@ type Delegate = {
   roomPref: "PAIR" | "SINGLE";
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
+  guestCount: number;
   passportPhotoPath: string | null;
   passportPhotoIsPdf?: boolean;
   lastEntryStampPath: string | null;
@@ -130,28 +134,7 @@ type PairRequest = {
   } | null;
 };
 
-type RoomAssignment = {
-  id: string;
-  roomCode: string;
-  status: "PENDING" | "ASSIGNED" | "CANCELLED";
-  isManual: boolean;
-  overrideReason: string | null;
-  createdAt: string;
-  occupantA: {
-    id: string;
-    name: string;
-    delegateCode: string | null;
-    gender: "MALE" | "FEMALE" | null;
-    city: string;
-  };
-  occupantB: {
-    id: string;
-    name: string;
-    delegateCode: string | null;
-    gender: "MALE" | "FEMALE" | null;
-    city: string;
-  } | null;
-};
+type RoomAssignment = RoomAssignmentRow;
 
 const PAIR_STATUS_COLOR: Record<PairRequest["status"], string> = {
   PENDING: "text-yellow-600",
@@ -189,11 +172,6 @@ export function DelegatesShell() {
   >("STANDARD_PAIR");
   const [requestNote, setRequestNote] = useState("");
   const [pairingBusy, setPairingBusy] = useState(false);
-
-  const [manualA, setManualA] = useState("");
-  const [manualB, setManualB] = useState("");
-  const [manualRoomCode, setManualRoomCode] = useState("");
-  const [manualOverride, setManualOverride] = useState("");
 
   const isAdminControl = Boolean(
     user &&
@@ -289,19 +267,16 @@ export function DelegatesShell() {
   const cities = [...new Set(delegates.map((d) => d.city).filter(Boolean))];
   const flyerReadyCount = delegates.filter((d) => d.flyerReady).length;
 
-  const isPairEligible = (delegate: Delegate) => {
-    const packageAccommodationMode = getConferenceFeeAccommodationMode(
-      delegate.feePackageId,
-    );
-    if (packageAccommodationMode === "SINGLE" || packageAccommodationMode === "NONE") {
-      return false;
-    }
-    if (delegate.accommodationNeeded === "NO") return false;
-    if (delegate.wantsSingleRoom) return false;
-    return delegate.roomPref === "PAIR";
-  };
+  const assignedDelegateIds = new Set(
+    assignments
+      .filter((a) => a.status !== "CANCELLED")
+      .flatMap((a) => [a.occupantA.id, a.occupantB?.id].filter(Boolean)),
+  );
 
-  const pairEligibleDelegates = delegates.filter(isPairEligible);
+  const pairEligibleDelegates = delegates.filter(
+    (d) =>
+      isDelegateEligibleForRoomPairing(d) && !assignedDelegateIds.has(d.id),
+  );
 
   const handleCopyRegistrationLink = async () => {
     try {
@@ -645,40 +620,9 @@ export function DelegatesShell() {
     }
   };
 
-  const handleManualAssignment = async () => {
-    if (!confId || !manualA || pairingBusy) return;
-
-    setPairingBusy(true);
-    setError(null);
-
-    try {
-      const res = await fetch(`/api/conf/${confId}/room-assignments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          occupantAId: manualA,
-          occupantBId: manualB || null,
-          roomCode: manualRoomCode || null,
-          overrideReason: manualOverride || null,
-        }),
-      });
-
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload.error || "Failed to assign room");
-      }
-
-      setManualA("");
-      setManualB("");
-      setManualRoomCode("");
-      setManualOverride("");
-      setPairingAvailable(await loadPairingData(confId));
-      setNotice("Room assignment created.");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to assign room");
-    } finally {
-      setPairingBusy(false);
-    }
+  const refreshPairingWorkspace = async () => {
+    if (!confId) return;
+    setPairingAvailable(await loadPairingData(confId));
   };
 
   if (loading) {
@@ -894,8 +838,8 @@ export function DelegatesShell() {
             <CardHeader>
               <CardTitle className="text-base">Pairing Requests</CardTitle>
               <CardDescription>
-                Submit and review pairing requests. Delegates with single-room
-                or no-accommodation registrations are excluded from target lists.
+                Submit and review pairing requests. Only fully paid delegates
+                appear in requester and target lists.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1085,131 +1029,20 @@ export function DelegatesShell() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
-              <CardDescription>
-                Assign delegates to rooms manually. Provide an override reason
-                for cross-gender assignments (legal partner exceptions).
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isAdminControl && (
-                <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-5">
-                  <div className="space-y-2">
-                    <Label>Occupant A</Label>
-                    <select
-                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                      value={manualA}
-                      onChange={(e) => setManualA(e.target.value)}
-                    >
-                      <option value="">Select delegate</option>
-                      {delegates.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Occupant B (optional)</Label>
-                    <select
-                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                      value={manualB}
-                      onChange={(e) => setManualB(e.target.value)}
-                    >
-                      <option value="">Single room</option>
-                      {pairEligibleDelegates
-                        .filter((d) => d.id !== manualA)
-                        .map((d) => (
-                          <option key={d.id} value={d.id}>
-                            {d.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Room Code (optional)</Label>
-                    <Input
-                      placeholder="e.g. A-204"
-                      value={manualRoomCode}
-                      onChange={(e) => setManualRoomCode(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2 xl:col-span-2">
-                    <Label>
-                      Override Reason (required for cross-gender assignment)
-                    </Label>
-                    <Textarea
-                      placeholder="Provide legal partner / approved exception context"
-                      value={manualOverride}
-                      onChange={(e) => setManualOverride(e.target.value)}
-                      rows={1}
-                    />
-                  </div>
-
-                  <div className="xl:col-span-5 flex justify-end">
-                    <Button
-                      size="sm"
-                      onClick={handleManualAssignment}
-                      disabled={!manualA || pairingBusy}
-                    >
-                      <BedDouble className="size-4" />
-                      Assign Room
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {assignments.map((assignment) => (
-                  <Card key={assignment.id} className="border-border">
-                    <CardContent className="pt-4">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <BedDouble className="size-4 text-[#C8A061]" />
-                          <p className="font-semibold text-sm">
-                            Room {assignment.roomCode}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">{assignment.status}</Badge>
-                      </div>
-                      <p className="text-sm font-medium leading-snug">
-                        {assignment.occupantA.name}
-                        {assignment.occupantB
-                          ? ` + ${assignment.occupantB.name}`
-                          : ""}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {assignment.occupantA.delegateCode || "N/A"}
-                        {assignment.occupantB
-                          ? ` / ${assignment.occupantB.delegateCode || "N/A"}`
-                          : ""}
-                        {!assignment.occupantB && (
-                          <span className="ml-1.5 italic">Single room</span>
-                        )}
-                      </p>
-                      {assignment.overrideReason && (
-                        <p className="mt-2 rounded bg-amber-50 border border-amber-200 px-2 py-1 text-xs text-amber-700">
-                          {assignment.overrideReason}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {assignments.length === 0 && (
-                <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center">
-                  <BedDouble className="mx-auto mb-2 size-8 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">No room assignments yet.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <RoomAssignmentWorkspace
+            confId={confId}
+            assignments={assignments}
+            delegates={delegates}
+            isAdminControl={isAdminControl}
+            busy={pairingBusy}
+            onRefresh={async () => {
+              if (confId) {
+                setPairingAvailable(await loadPairingData(confId));
+              }
+            }}
+            onError={setError}
+            onNotice={setNotice}
+          />
         </>
       ) : (
         <Card>

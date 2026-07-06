@@ -1,27 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/access";
-import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
-
-function isPairEligible(delegate: {
-  roomPref: "PAIR" | "SINGLE";
-  wantsSingleRoom: boolean;
-  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
-  feePackageId: string | null;
-}) {
-  const packageAccommodationMode = getConferenceFeeAccommodationMode(
-    delegate.feePackageId,
-  );
-  if (
-    packageAccommodationMode === "SINGLE" ||
-    packageAccommodationMode === "NONE"
-  ) {
-    return false;
-  }
-  if (delegate.accommodationNeeded === "NO") return false;
-  if (delegate.wantsSingleRoom) return false;
-  return delegate.roomPref === "PAIR";
-}
+import {
+  DELEGATE_PAIRING_SELECT,
+  fetchDelegateForPairing,
+  isDelegateAccommodationPairEligible,
+} from "@/lib/conf/room-assignments-server";
+import {
+  isDelegateEligibleForRoomPairing,
+  isDelegatePaymentConfirmedForPairing,
+} from "@/lib/conf/room-pairing-eligibility";
 
 // GET /api/conf/[confId]/pair-requests
 export async function GET(
@@ -69,8 +57,6 @@ export async function GET(
 }
 
 // POST /api/conf/[confId]/pair-requests
-// Any registered participant can submit a pair request on behalf of themselves.
-// Managers can submit on behalf of any delegate (by passing requesterId).
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
@@ -84,12 +70,9 @@ export async function POST(
 
     const body = await req.json();
 
-    // Managers can specify an arbitrary requesterId; participants can only request for themselves.
-    // We resolve the participant's own delegateId by matching userId on the ConfDelegate table.
     let requesterId = body.requesterId ? String(body.requesterId) : "";
 
     if (!requesterId || !auth.access.isManager) {
-      // Auto-resolve: find the calling user's own delegate record for this conference
       const selfDelegate = auth.access.user
         ? await prisma.confDelegate.findFirst({
             where: { confId, userId: auth.access.user.id },
@@ -107,6 +90,7 @@ export async function POST(
       }
       requesterId = selfDelegate.id;
     }
+
     const targetId = body.targetId ? String(body.targetId) : null;
     const requestType = String(body.requestType || "STANDARD_PAIR");
     const note = body.note ? String(body.note) : null;
@@ -127,19 +111,7 @@ export async function POST(
       );
     }
 
-    const requester = await prisma.confDelegate.findUnique({
-      where: { id: requesterId },
-      select: {
-        id: true,
-        confId: true,
-        gender: true,
-        roomPref: true,
-        wantsSingleRoom: true,
-        accommodationNeeded: true,
-        feePackageId: true,
-      },
-    });
-
+    const requester = await fetchDelegateForPairing(requesterId);
     if (!requester || requester.confId !== confId) {
       return NextResponse.json(
         { error: "Requester delegate not found" },
@@ -161,30 +133,9 @@ export async function POST(
       );
     }
 
-    let target: {
-      id: string;
-      confId: string;
-      gender: "MALE" | "FEMALE" | null;
-      roomPref: "PAIR" | "SINGLE";
-      wantsSingleRoom: boolean;
-      accommodationNeeded: "YES" | "NO" | "OTHER" | null;
-      feePackageId: string | null;
-    } | null = null;
-
+    let target = null;
     if (targetId) {
-      target = await prisma.confDelegate.findUnique({
-        where: { id: targetId },
-        select: {
-          id: true,
-          confId: true,
-          gender: true,
-          roomPref: true,
-          wantsSingleRoom: true,
-          accommodationNeeded: true,
-          feePackageId: true,
-        },
-      });
-
+      target = await fetchDelegateForPairing(targetId);
       if (!target || target.confId !== confId) {
         return NextResponse.json(
           { error: "Target delegate not found" },
@@ -208,30 +159,51 @@ export async function POST(
       );
     }
 
+    if (!auth.access.isManager && !isDelegatePaymentConfirmedForPairing(requester)) {
+      return NextResponse.json(
+        {
+          error:
+            "Payment must be confirmed before submitting a room pairing request.",
+        },
+        { status: 400 },
+      );
+    }
+
     if (requestType !== "SINGLE_ROOM") {
-      if (!isPairEligible(requester)) {
+      if (!isDelegateEligibleForRoomPairing(requester)) {
         return NextResponse.json(
           {
             error:
-              "Requester is not eligible for pairing (single-room or no-accommodation registration).",
+              "Requester is not eligible for pairing (payment, accommodation, or guest-package rules).",
           },
           { status: 400 },
         );
       }
-      if (target && !isPairEligible(target)) {
+      if (target && !isDelegateEligibleForRoomPairing(target)) {
         return NextResponse.json(
           {
             error:
-              "Target delegate is not eligible for pairing (single-room or no-accommodation registration).",
+              "Target delegate is not eligible for pairing (payment, accommodation, or guest-package rules).",
           },
           { status: 400 },
         );
       }
-    } else if (!isPairEligible(requester)) {
+    } else if (!isDelegateAccommodationPairEligible(requester)) {
       return NextResponse.json(
         {
           error:
             "Requester already has single-room/no-accommodation preference and does not need a single-room request.",
+        },
+        { status: 400 },
+      );
+    } else if (
+      !auth.access.isManager &&
+      !isDelegatePaymentConfirmedForPairing(requester)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Payment must be confirmed before submitting a single-room request.",
         },
         { status: 400 },
       );

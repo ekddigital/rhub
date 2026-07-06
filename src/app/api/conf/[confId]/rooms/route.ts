@@ -1,25 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import { getConferenceFeeAccommodationMode } from "@/lib/conf/fees";
+import { ROOM_ASSIGNMENT_INCLUDE } from "@/lib/conf/room-assignments-server";
+import { isDelegateEligibleForRoomPairing } from "@/lib/conf/room-pairing-eligibility";
 
 /**
  * GET /api/conf/[confId]/rooms
  *
- * Returns a unified snapshot for the room-pairing page:
- *   - myDelegate: the calling user's own delegate record (if any)
- *   - myAssignment: current active room assignment (if any)
- *   - sentRequests: pair requests this delegate sent
- *   - receivedRequests: pair requests this delegate received
- *   - eligibleDelegates: all same-gender delegates who are open to pairing
- *     (excludes already-assigned and self)
- *
- * Managers also receive:
- *   - allRequests: every pending/accepted request for the conference
- *   - allAssignments: all room assignments
+ * Returns a unified snapshot for the room-pairing page.
  */
 export async function GET(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ confId: string }> },
 ) {
   try {
@@ -27,7 +18,6 @@ export async function GET(
     const auth = await requireConferenceApiAccess(confId, "participant");
     if (!auth.ok) return auth.response;
 
-    // Resolve current user's delegate record
     const myDelegate = auth.access.user
       ? await prisma.confDelegate.findFirst({
           where: { confId, userId: auth.access.user.id },
@@ -42,43 +32,28 @@ export async function GET(
             accommodationNeeded: true,
             feePackageId: true,
             partnerClaimNote: true,
+            feePaid: true,
+            amountPaid: true,
+            feeAmount: true,
+            status: true,
+            guestCount: true,
+            bringingForeignGuest: true,
           },
         })
       : null;
 
     const myId = myDelegate?.id ?? null;
 
-    // Current room assignment
     const myAssignment = myId
       ? await prisma.confRoomAssignment.findFirst({
           where: {
             status: { not: "CANCELLED" },
             OR: [{ occupantAId: myId }, { occupantBId: myId }],
           },
-          include: {
-            occupantA: {
-              select: {
-                id: true,
-                name: true,
-                delegateCode: true,
-                gender: true,
-                city: true,
-              },
-            },
-            occupantB: {
-              select: {
-                id: true,
-                name: true,
-                delegateCode: true,
-                gender: true,
-                city: true,
-              },
-            },
-          },
+          include: ROOM_ASSIGNMENT_INCLUDE,
         })
       : null;
 
-    // Pair requests I sent
     const sentRequests = myId
       ? await prisma.confPairRequest.findMany({
           where: { confId, requesterId: myId },
@@ -97,7 +72,6 @@ export async function GET(
         })
       : [];
 
-    // Pair requests others sent to me
     const receivedRequests = myId
       ? await prisma.confPairRequest.findMany({
           where: { confId, targetId: myId },
@@ -116,12 +90,6 @@ export async function GET(
         })
       : [];
 
-    // Delegates available to pair with (same gender, pair-eligible, not already assigned)
-    // We fetch all delegates open to pairing; the client can further filter
-    const assignedIds = myAssignment
-      ? [myAssignment.occupantAId, myAssignment.occupantBId ?? "__none__"]
-      : [];
-
     const allAssignedDelegateIds = await prisma.confRoomAssignment
       .findMany({
         where: { confId, status: { not: "CANCELLED" } },
@@ -133,12 +101,9 @@ export async function GET(
         ),
       );
 
-    const eligibleDelegates = await prisma.confDelegate.findMany({
+    const candidateDelegates = await prisma.confDelegate.findMany({
       where: {
         confId,
-        roomPref: "PAIR",
-        wantsSingleRoom: false,
-        accommodationNeeded: { not: "NO" },
         id: {
           notIn: [...(myId ? [myId] : []), ...allAssignedDelegateIds],
         },
@@ -150,15 +115,23 @@ export async function GET(
         gender: true,
         city: true,
         feePackageId: true,
+        roomPref: true,
+        wantsSingleRoom: true,
+        accommodationNeeded: true,
+        feePaid: true,
+        amountPaid: true,
+        feeAmount: true,
+        status: true,
+        guestCount: true,
+        partnerClaimNote: true,
+        bringingForeignGuest: true,
       },
       orderBy: [{ gender: "asc" }, { name: "asc" }],
     });
 
-    // Filter out delegates on single-room packages
-    const pairableEligibleDelegates = eligibleDelegates.filter((d) => {
-      const mode = getConferenceFeeAccommodationMode(d.feePackageId);
-      return mode !== "SINGLE" && mode !== "NONE";
-    });
+    const pairableEligibleDelegates = candidateDelegates.filter((d) =>
+      isDelegateEligibleForRoomPairing(d),
+    );
 
     const payload: Record<string, unknown> = {
       myDelegate,
@@ -168,7 +141,6 @@ export async function GET(
       eligibleDelegates: pairableEligibleDelegates,
     };
 
-    // Managers get full conference view
     if (auth.access.isManager) {
       const [allRequests, allAssignments] = await Promise.all([
         prisma.confPairRequest.findMany({
@@ -197,26 +169,7 @@ export async function GET(
         }),
         prisma.confRoomAssignment.findMany({
           where: { confId },
-          include: {
-            occupantA: {
-              select: {
-                id: true,
-                name: true,
-                delegateCode: true,
-                gender: true,
-                city: true,
-              },
-            },
-            occupantB: {
-              select: {
-                id: true,
-                name: true,
-                delegateCode: true,
-                gender: true,
-                city: true,
-              },
-            },
-          },
+          include: ROOM_ASSIGNMENT_INCLUDE,
           orderBy: { createdAt: "desc" },
         }),
       ]);
