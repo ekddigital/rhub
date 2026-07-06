@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo, type ReactNode } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -675,6 +683,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [rejectReason, setRejectReason] = useState("");
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [printPortalReady, setPrintPortalReady] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -684,6 +693,10 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (stored.length > 0) {
       setActiveDraft(stored[0]);
     }
+  }, []);
+
+  useEffect(() => {
+    setPrintPortalReady(true);
   }, []);
 
   useEffect(() => {
@@ -1233,7 +1246,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   return (
     <div className="space-y-6">
-      {/* Print CSS — single off-screen root (logistics / letter pattern) */}
+      {/* Off-screen positioning for screen; @media print rules live in portaled root */}
       <style>{`
         #budget-print-root {
           position: fixed;
@@ -1242,67 +1255,6 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           width: 794px;
           pointer-events: none;
           z-index: -1;
-        }
-        @media print {
-          html,
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 100% !important;
-            height: auto !important;
-            overflow: visible !important;
-            background: white !important;
-          }
-          body * { visibility: hidden !important; }
-          #budget-print-root,
-          #budget-print-root * { visibility: visible !important; }
-          .budget-no-print { display: none !important; }
-          #budget-print-root {
-            position: static !important;
-            left: auto !important;
-            top: auto !important;
-            width: auto !important;
-            pointer-events: auto !important;
-            z-index: auto !important;
-          }
-          body:not([data-print-mode="combined"]) .budget-print-combined {
-            display: none !important;
-          }
-          body[data-print-mode="combined"] .budget-print-single {
-            display: none !important;
-          }
-          #budget-print-root .mt-4 {
-            margin-top: 0 !important;
-          }
-          .document-page {
-            width: 210mm !important;
-            min-height: 297mm !important;
-            height: auto !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            break-after: page;
-            page-break-after: always;
-          }
-          .combined-budget-export-block .document-page:last-child {
-            break-after: page;
-            page-break-after: always;
-          }
-          .combined-export-summary-page {
-            break-before: page;
-            page-break-before: always;
-            width: 210mm;
-            min-height: 297mm;
-            margin: 0;
-            padding: 20mm;
-            box-sizing: border-box;
-            background: #fff;
-          }
-          .budget-print-single .document-page:last-child,
-          .budget-print-combined .combined-export-summary-page {
-            break-after: auto;
-            page-break-after: auto;
-          }
-          @page { size: A4 portrait; margin: 0; }
         }
       `}</style>
       {/* Header */}
@@ -2108,48 +2060,121 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </CardContent>
       </Card>
 
-      <div id="budget-print-root">
-        <div className="budget-print-single">
-          <BudgetDocumentPreview
-            draft={activeDraft}
-            grandTotal={grandTotal}
-            confInfo={confInfo}
-            members={documentMembers}
-            preparedByName={preparedByName}
-            signatoryDraft={signatoryDraft}
-            forPrint
-          />
-        </div>
-        {selectedExportBudgets.length > 0 && (
-          <div className="budget-print-combined">
-            {selectedExportBudgets.map((entry) => (
-              <div
-                key={`combined-print-${entry.key}`}
-                className="combined-budget-export-block"
-              >
-                <BudgetDocumentPreview
-                  draft={entry.draft}
-                  grandTotal={entry.total}
-                  confInfo={confInfo}
-                  members={documentMembers}
-                  preparedByName={entry.preparedByName}
-                  signatoryDraft={signatoryDraft}
-                  instanceKey={entry.key}
-                  forPrint
-                />
-              </div>
-            ))}
-            <div className="combined-export-summary-page">
-              <CombinedExportSummary
-                budgets={selectedExportBudgets}
-                combinedGrandTotal={combinedExportGrandTotal}
-                exportComment={exportComment}
+      {printPortalReady &&
+        createPortal(
+          <div id="budget-print-root">
+            <style>{`
+              @media print {
+                html,
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  width: 100% !important;
+                  height: auto !important;
+                  overflow: visible !important;
+                  background: white !important;
+                }
+                body > :not(#budget-print-root) {
+                  display: none !important;
+                }
+                #budget-print-root {
+                  display: block !important;
+                  position: static !important;
+                  left: auto !important;
+                  top: auto !important;
+                  width: auto !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  pointer-events: auto !important;
+                  z-index: auto !important;
+                }
+                body:not([data-print-mode="combined"]) .budget-print-combined {
+                  display: none !important;
+                }
+                body[data-print-mode="combined"] .budget-print-single {
+                  display: none !important;
+                }
+                #budget-print-root .mt-4 {
+                  margin-top: 0 !important;
+                }
+                .document-page {
+                  width: 210mm !important;
+                  min-height: 297mm !important;
+                  height: auto !important;
+                  margin: 0 !important;
+                  box-shadow: none !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  break-after: page;
+                  page-break-after: always;
+                }
+                .budget-print-single .document-page:last-child {
+                  break-after: auto;
+                  page-break-after: auto;
+                }
+                .combined-budget-export-block .document-page:last-child {
+                  break-after: page;
+                  page-break-after: always;
+                }
+                .combined-export-summary-page {
+                  break-before: page;
+                  page-break-before: always;
+                  width: 210mm;
+                  margin: 0;
+                  padding: 20mm;
+                  box-sizing: border-box;
+                  background: #fff;
+                }
+                .budget-print-combined .combined-export-summary-page {
+                  break-after: auto;
+                  page-break-after: auto;
+                }
+                @page { size: A4 portrait; margin: 0; }
+              }
+            `}</style>
+            <div className="budget-print-single">
+              <BudgetDocumentPreview
+                draft={activeDraft}
+                grandTotal={grandTotal}
+                confInfo={confInfo}
+                members={documentMembers}
+                preparedByName={preparedByName}
+                signatoryDraft={signatoryDraft}
                 forPrint
               />
             </div>
-          </div>
+            {selectedExportBudgets.length > 0 && (
+              <div className="budget-print-combined">
+                {selectedExportBudgets.map((entry) => (
+                  <div
+                    key={`combined-print-${entry.key}`}
+                    className="combined-budget-export-block"
+                  >
+                    <BudgetDocumentPreview
+                      draft={entry.draft}
+                      grandTotal={entry.total}
+                      confInfo={confInfo}
+                      members={documentMembers}
+                      preparedByName={entry.preparedByName}
+                      signatoryDraft={signatoryDraft}
+                      instanceKey={entry.key}
+                      forPrint
+                    />
+                  </div>
+                ))}
+                <div className="combined-export-summary-page">
+                  <CombinedExportSummary
+                    budgets={selectedExportBudgets}
+                    combinedGrandTotal={combinedExportGrandTotal}
+                    exportComment={exportComment}
+                    forPrint
+                  />
+                </div>
+              </div>
+            )}
+          </div>,
+          document.body,
         )}
-      </div>
 
       {showCombinedExportPreview && selectedExportBudgets.length > 0 && (
         <BudgetPreviewModal
