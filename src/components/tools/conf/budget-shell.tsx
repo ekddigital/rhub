@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -18,6 +18,10 @@ import {
   Printer,
   ZoomIn,
   ZoomOut,
+  Eye,
+  Download,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import {
   Card,
@@ -38,6 +42,7 @@ import {
   fmtRmb,
   fmtDual,
 } from "@/lib/conf/currency";
+import { multiBudgetToCsv } from "@/lib/conf/export";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   DocumentLayout,
@@ -89,6 +94,13 @@ type AccessInfo = {
   committeeScope: string | null;
 };
 
+type ExportBudgetEntry = {
+  key: string;
+  draft: BudgetDraft;
+  total: number;
+  preparedByName: string;
+};
+
 type MemberOption = {
   id: string;
   name: string;
@@ -129,6 +141,7 @@ type ServerBudget = {
     qty: number;
     unit: string;
     unitPrice: number;
+    notes?: string | null;
   }>;
 };
 
@@ -186,6 +199,166 @@ function newDraft(): BudgetDraft {
 
 function unitLabel(item: BudgetItem) {
   return item.unit === "custom" ? item.customUnit || "—" : item.unit;
+}
+
+function draftExportKey(id: string) {
+  return `draft:${id}`;
+}
+
+function serverExportKey(id: string) {
+  return `server:${id}`;
+}
+
+function serverBudgetToDraft(budget: ServerBudget): BudgetDraft {
+  const knownUnits = new Set<string>(COMMON_UNITS);
+  return {
+    id: budget.id,
+    title: budget.title,
+    category: budget.category,
+    notes: budget.notes ?? "",
+    itemsHeading: "Line Item Breakdown",
+    items: budget.items.map((item) => {
+      const isCustom = !knownUnits.has(item.unit);
+      return {
+        id: item.id,
+        no: item.no,
+        name: item.name,
+        qty: item.qty,
+        unit: isCustom ? "custom" : item.unit,
+        customUnit: isCustom ? item.unit : "",
+        unitPrice: item.unitPrice,
+        notes: item.notes ?? "",
+      };
+    }),
+    savedAt: budget.createdAt,
+  };
+}
+
+function canPreviewSubmittedBudget(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo) return false;
+  if (accessInfo.isSuperAdmin || accessInfo.isChair || accessInfo.isManager) {
+    return true;
+  }
+  if (!accessInfo.canApprovePayments) return false;
+  if (!budget.creator.committeeScope || !accessInfo.committeeScope) return true;
+  return budget.creator.committeeScope === accessInfo.committeeScope;
+}
+
+function CombinedExportSummary({
+  budgets,
+  combinedGrandTotal,
+  exportComment,
+  forPrint = false,
+}: {
+  budgets: ExportBudgetEntry[];
+  combinedGrandTotal: number;
+  exportComment: string;
+  forPrint?: boolean;
+}) {
+  return (
+    <div
+      className={forPrint ? "" : "rounded-lg border border-[#C8A061]/40 bg-[#C8A061]/5 p-4"}
+      style={
+        forPrint
+          ? {
+              marginTop: 24,
+              padding: "16px 20px",
+              border: "1.5px solid #C8A061",
+              borderRadius: 8,
+            }
+          : undefined
+      }
+    >
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#002868" }}>
+        Combined Export Summary
+      </div>
+      <div style={{ marginTop: 8, fontSize: 11, color: "#555" }}>
+        {budgets.length} budget{budgets.length === 1 ? "" : "s"} selected
+      </div>
+      <ul style={{ marginTop: 10, paddingLeft: 18, fontSize: 11, color: "#444" }}>
+        {budgets.map((entry) => (
+          <li key={entry.key} style={{ marginBottom: 4 }}>
+            {entry.draft.title || "Untitled Budget"} — {fmtRmb(entry.total)}
+          </li>
+        ))}
+      </ul>
+      {exportComment.trim() && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "10px 12px",
+            border: "1px solid #d9dfeb",
+            borderRadius: 8,
+            fontSize: 10.5,
+            color: "#444",
+            fontStyle: "italic",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {exportComment}
+        </div>
+      )}
+      <div
+        style={{
+          marginTop: 14,
+          borderTop: "1.5px solid #002868",
+          paddingTop: 10,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 11, color: "#666" }}>Combined grand total</div>
+        <div style={{ fontSize: 16, fontWeight: 800, color: "#C8A061" }}>
+          {fmtRmb(combinedGrandTotal)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BudgetPreviewModal({
+  title,
+  onClose,
+  children,
+  footer,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center budget-no-print"
+      onClick={onClose}
+    >
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        className="relative z-10 flex max-h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Eye className="size-4 text-muted-foreground" />
+            {title}
+          </div>
+          <Button variant="ghost" size="icon" className="size-7" onClick={onClose}>
+            <X className="size-4" />
+          </Button>
+        </div>
+        <div className="flex-1 overflow-auto bg-muted/20 p-4">{children}</div>
+        {footer && (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function BudgetDocumentPreview({
@@ -379,6 +552,12 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedExportKeys, setSelectedExportKeys] = useState<string[]>([]);
+  const [exportComment, setExportComment] = useState("");
+  const [showCombinedExportPreview, setShowCombinedExportPreview] =
+    useState(false);
+  const [previewServerBudget, setPreviewServerBudget] =
+    useState<ServerBudget | null>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -563,6 +742,110 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     return scoped.length > 0 ? scoped : members;
   }, [creatorCommitteeScope, members]);
 
+  const selectedExportBudgets = useMemo((): ExportBudgetEntry[] => {
+    const entries: ExportBudgetEntry[] = [];
+    for (const key of selectedExportKeys) {
+      if (key.startsWith("draft:")) {
+        const draft = drafts.find((d) => draftExportKey(d.id) === key);
+        if (draft) {
+          entries.push({
+            key,
+            draft,
+            total: calcBudgetTotal(draft.items),
+            preparedByName,
+          });
+        }
+      } else if (key.startsWith("server:")) {
+        const budget = serverBudgets.find((b) => serverExportKey(b.id) === key);
+        if (budget) {
+          const draft = serverBudgetToDraft(budget);
+          entries.push({
+            key,
+            draft,
+            total: calcBudgetTotal(draft.items),
+            preparedByName: budget.creator.name,
+          });
+        }
+      }
+    }
+    return entries;
+  }, [drafts, preparedByName, selectedExportKeys, serverBudgets]);
+
+  const combinedExportGrandTotal = useMemo(
+    () => selectedExportBudgets.reduce((sum, entry) => sum + entry.total, 0),
+    [selectedExportBudgets],
+  );
+
+  const allDraftsSelected =
+    drafts.length > 0 &&
+    drafts.every((draft) => selectedExportKeys.includes(draftExportKey(draft.id)));
+
+  const toggleExportKey = useCallback((key: string) => {
+    setSelectedExportKeys((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
+  }, []);
+
+  const toggleSelectAllDrafts = useCallback(() => {
+    setSelectedExportKeys((prev) => {
+      const draftKeys = drafts.map((d) => draftExportKey(d.id));
+      const allSelected = draftKeys.every((key) => prev.includes(key));
+      if (allSelected) {
+        return prev.filter((key) => !draftKeys.includes(key));
+      }
+      return [...new Set([...prev, ...draftKeys])];
+    });
+  }, [drafts]);
+
+  const clearExportSelection = useCallback(() => {
+    setSelectedExportKeys([]);
+  }, []);
+
+  const handleCombinedExportCsv = useCallback(() => {
+    if (selectedExportBudgets.length === 0) return;
+    const csv = multiBudgetToCsv(
+      selectedExportBudgets.map((entry) => ({
+        title: entry.draft.title || "Budget",
+        items: entry.draft.items.map((item, idx) => ({
+          no: item.no || idx + 1,
+          name: item.name,
+          desc: null,
+          qty: item.qty,
+          unit: unitLabel(item),
+          unitPrice: item.unitPrice,
+          notes: item.notes || null,
+        })),
+      })),
+      7.2,
+      exportComment,
+    );
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `combined_budgets_${selectedExportBudgets.length}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [exportComment, selectedExportBudgets]);
+
+  const handleCombinedPrint = useCallback(() => {
+    if (selectedExportBudgets.length === 0) return;
+    setShowCombinedExportPreview(false);
+    document.body.setAttribute("data-print-mode", "combined");
+    requestAnimationFrame(() => {
+      window.print();
+      document.body.removeAttribute("data-print-mode");
+    });
+  }, [selectedExportBudgets.length]);
+
+  const handleSinglePrint = useCallback(() => {
+    document.body.setAttribute("data-print-mode", "single");
+    window.print();
+    document.body.removeAttribute("data-print-mode");
+  }, []);
+
   const handleExportCsv = useCallback(() => {
     const header = "No.,Item,Qty,Unit,Unit Price (¥),Total (¥),Notes";
     const rows = activeDraft.items.map((item) => {
@@ -693,7 +976,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     <div className="space-y-6">
       {/* Print CSS for full document output */}
       <style>{`
-        #budget-print-root {
+        #budget-print-root,
+        #budget-combined-print-root {
           position: fixed;
           left: -9999px;
           top: 0;
@@ -703,14 +987,24 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         @media print {
           body * { visibility: hidden; }
           #budget-print-root,
-          #budget-print-root * { visibility: visible !important; }
+          #budget-print-root *,
+          #budget-combined-print-root,
+          #budget-combined-print-root * { visibility: visible !important; }
           .budget-no-print { display: none !important; }
-          #budget-print-root {
+          #budget-print-root,
+          #budget-combined-print-root {
             position: static !important;
             left: auto !important;
             top: auto !important;
             width: auto !important;
             pointer-events: auto !important;
+          }
+          #budget-combined-print-root { display: block !important; }
+          body[data-print-mode="single"] #budget-combined-print-root {
+            display: none !important;
+          }
+          body[data-print-mode="combined"] #budget-print-root {
+            display: none !important;
           }
           .document-page {
             width: 210mm !important;
@@ -786,7 +1080,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.print()}
+            onClick={handleSinglePrint}
             title="Print or save as PDF"
           >
             <Printer className="size-4" />
@@ -813,7 +1107,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Saved Drafts</CardTitle>
             <CardDescription className="text-xs">
-              Click a draft to load it. Drafts are saved locally on this device.
+              Click a draft to load it. Select drafts to include in a combined
+              export.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -822,8 +1117,37 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 No saved drafts yet. Changes auto-save as you type.
               </p>
             ) : (
-              <div className="space-y-2">
-                {drafts.map((d) => (
+              <>
+                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-dashed px-3 py-2 text-xs">
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2"
+                    onClick={toggleSelectAllDrafts}
+                  >
+                    {allDraftsSelected ? (
+                      <CheckSquare className="size-3.5" />
+                    ) : (
+                      <Square className="size-3.5" />
+                    )}
+                    Select all drafts
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearExportSelection}
+                    disabled={selectedExportKeys.length === 0}
+                  >
+                    Clear selection
+                  </Button>
+                  <span className="text-muted-foreground">
+                    {selectedExportKeys.length} selected for export
+                  </span>
+                </div>
+                <div className="space-y-2">
+                {drafts.map((d) => {
+                  const exportKey = draftExportKey(d.id);
+                  const isSelected = selectedExportKeys.includes(exportKey);
+                  return (
                   <div
                     key={d.id}
                     className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
@@ -833,6 +1157,22 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     }`}
                     onClick={() => handleLoadDraft(d)}
                   >
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        className="mt-0.5 text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExportKey(exportKey);
+                        }}
+                        title={isSelected ? "Deselect for export" : "Select for export"}
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="size-4 text-[#C8A061]" />
+                        ) : (
+                          <Square className="size-4" />
+                        )}
+                      </button>
                     <div>
                       <p className="text-sm font-medium">
                         {d.title || "Untitled Budget"}
@@ -853,6 +1193,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           minute: "2-digit",
                         })}
                       </p>
+                    </div>
                     </div>
                     <div
                       className="flex items-center gap-1"
@@ -877,9 +1218,68 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+                })}
+                </div>
+              </>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedExportKeys.length > 0 && (
+        <Card className="budget-no-print border-[#C8A061]/30">
+          <CardHeader>
+            <CardTitle className="text-base">Combined Export</CardTitle>
+            <CardDescription>
+              Preview and download {selectedExportBudgets.length} selected
+              budget{selectedExportBudgets.length === 1 ? "" : "s"} · Combined
+              total:{" "}
+              <span className="font-semibold text-foreground">
+                {fmtDual(combinedExportGrandTotal)}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="exportComment">Export comment (optional)</Label>
+              <Textarea
+                id="exportComment"
+                placeholder="Notes to include on the combined export..."
+                value={exportComment}
+                onChange={(e) => setExportComment(e.target.value)}
+                rows={2}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCombinedExportPreview(true)}
+                disabled={selectedExportBudgets.length === 0}
+              >
+                <Eye className="size-4" />
+                Preview Export
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCombinedExportCsv}
+                disabled={selectedExportBudgets.length === 0}
+              >
+                <Download className="size-4" />
+                Download CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCombinedPrint}
+                disabled={selectedExportBudgets.length === 0}
+              >
+                <Printer className="size-4" />
+                Print / PDF
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -1183,7 +1583,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <CardHeader>
           <CardTitle className="text-base">Submitted Budgets</CardTitle>
           <CardDescription>
-            Committee review then conference chair final approval.
+            Committee review then conference chair final approval. Authorities
+            can preview before approving; select budgets for combined export.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -1220,10 +1621,30 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 (budget.status === "REVIEW" ||
                   canFinalApproveFromDraft(budget)) &&
                 (accessInfo?.isChair || accessInfo?.isSuperAdmin);
+              const showPreview = canPreviewSubmittedBudget(budget, accessInfo);
+              const serverKey = serverExportKey(budget.id);
+              const isExportSelected = selectedExportKeys.includes(serverKey);
 
               return (
                 <div key={budget.id} className="rounded-lg border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        className="mt-0.5 text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleExportKey(serverKey)}
+                        title={
+                          isExportSelected
+                            ? "Deselect for export"
+                            : "Select for export"
+                        }
+                      >
+                        {isExportSelected ? (
+                          <CheckSquare className="size-4 text-[#C8A061]" />
+                        ) : (
+                          <Square className="size-4" />
+                        )}
+                      </button>
                     <div>
                       <p className="font-medium">{budget.title}</p>
                       <p className="text-xs text-muted-foreground">
@@ -1238,6 +1659,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         {fmtRmb(budgetTotal)}
                       </p>
                     </div>
+                    </div>
                     <Badge variant="outline">
                       {budget.status === "REVIEW"
                         ? "Committee Approved"
@@ -1245,8 +1667,19 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     </Badge>
                   </div>
 
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {showPreview && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPreviewServerBudget(budget)}
+                      >
+                        <Eye className="size-3.5" />
+                        Preview
+                      </Button>
+                    )}
                   {(canCommitteeApprove || canFinalApprove) && (
-                    <div className="mt-2 flex flex-wrap gap-2">
+                    <>
                       {canCommitteeApprove && (
                         <Button
                           size="sm"
@@ -1270,8 +1703,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           Final Approve
                         </Button>
                       )}
-                    </div>
+                    </>
                   )}
+                  </div>
 
                   {budget.status === "DRAFT" &&
                     (accessInfo?.isChair || accessInfo?.isSuperAdmin) &&
@@ -1299,6 +1733,101 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           forPrint
         />
       </div>
+
+      <div id="budget-combined-print-root">
+        {selectedExportBudgets.map((entry) => (
+          <BudgetDocumentPreview
+            key={`combined-print-${entry.key}`}
+            draft={entry.draft}
+            grandTotal={entry.total}
+            confInfo={confInfo}
+            members={documentMembers}
+            preparedByName={entry.preparedByName}
+            signatoryDraft={signatoryDraft}
+            forPrint
+          />
+        ))}
+        {selectedExportBudgets.length > 0 && (
+          <CombinedExportSummary
+            budgets={selectedExportBudgets}
+            combinedGrandTotal={combinedExportGrandTotal}
+            exportComment={exportComment}
+            forPrint
+          />
+        )}
+      </div>
+
+      {showCombinedExportPreview && selectedExportBudgets.length > 0 && (
+        <BudgetPreviewModal
+          title="Combined Budget Export Preview"
+          onClose={() => setShowCombinedExportPreview(false)}
+          footer={
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCombinedExportCsv}
+              >
+                <Download className="size-4" />
+                Download CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleCombinedPrint}>
+                <Printer className="size-4" />
+                Print / PDF
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-6">
+            {selectedExportBudgets.map((entry) => (
+              <div key={`combined-preview-${entry.key}`}>
+                <BudgetDocumentPreview
+                  draft={entry.draft}
+                  grandTotal={entry.total}
+                  confInfo={confInfo}
+                  members={documentMembers}
+                  preparedByName={entry.preparedByName}
+                  signatoryDraft={signatoryDraft}
+                />
+              </div>
+            ))}
+            <CombinedExportSummary
+              budgets={selectedExportBudgets}
+              combinedGrandTotal={combinedExportGrandTotal}
+              exportComment={exportComment}
+            />
+          </div>
+        </BudgetPreviewModal>
+      )}
+
+      {previewServerBudget && (
+        <BudgetPreviewModal
+          title={`Submitted Budget — ${previewServerBudget.title}`}
+          onClose={() => setPreviewServerBudget(null)}
+        >
+          <div style={{ width: 794, margin: "0 auto" }}>
+            <BudgetDocumentPreview
+              draft={serverBudgetToDraft(previewServerBudget)}
+              grandTotal={calcBudgetTotal(
+                previewServerBudget.items.map((item) => ({
+                  id: item.id,
+                  no: item.no,
+                  name: item.name,
+                  qty: item.qty,
+                  unit: item.unit,
+                  customUnit: "",
+                  unitPrice: item.unitPrice,
+                  notes: item.notes ?? "",
+                })),
+              )}
+              confInfo={confInfo}
+              members={documentMembers}
+              preparedByName={previewServerBudget.creator.name}
+              signatoryDraft={signatoryDraft}
+            />
+          </div>
+        </BudgetPreviewModal>
+      )}
 
       {/* Summary / actions bar */}
       <Card className="budget-no-print border-[#C8A061]/30 bg-linear-to-r from-[#C8A061]/5 to-transparent">

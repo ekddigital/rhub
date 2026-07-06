@@ -1,10 +1,15 @@
 import type { ConfBudgetItem } from "./types";
 import { calcItemTotal, fmtRmb, fmtUsd, toUsd } from "./currency";
 
+type BudgetCsvItem = Pick<
+  ConfBudgetItem,
+  "no" | "name" | "desc" | "qty" | "unit" | "unitPrice" | "notes"
+>;
+
 /** Generate CSV string from budget items */
 export function budgetToCsv(
   title: string,
-  items: ConfBudgetItem[],
+  items: BudgetCsvItem[],
   xrRate: number = 7.2,
 ): string {
   const header = "No.,Item,Description,Qty,Unit,Unit Price (¥),Total (¥),Notes";
@@ -33,6 +38,42 @@ export function budgetToCsv(
   );
 
   return `${title}\n${header}\n${rows.join("\n")}\n`;
+}
+
+type BudgetCsvSection = {
+  title: string;
+  items: BudgetCsvItem[];
+};
+
+/** Generate CSV for multiple budgets with a combined grand total */
+export function multiBudgetToCsv(
+  budgets: BudgetCsvSection[],
+  xrRate: number = 7.2,
+  exportComment?: string | null,
+): string {
+  const sections = budgets.map((budget) =>
+    budgetToCsv(budget.title, budget.items, xrRate).trimEnd(),
+  );
+
+  const combinedGrandTotal = budgets.reduce(
+    (sum, budget) =>
+      sum +
+      budget.items.reduce(
+        (itemSum, item) => itemSum + calcItemTotal(item.qty, item.unitPrice),
+        0,
+      ),
+    0,
+  );
+
+  const lines = [...sections, ""];
+  if (exportComment?.trim()) {
+    lines.push(`Export Comment,"${exportComment.trim().replace(/"/g, '""')}"`, "");
+  }
+  lines.push(
+    `,,,,,COMBINED GRAND TOTAL,${fmtRmb(combinedGrandTotal)},${fmtUsd(toUsd(combinedGrandTotal, xrRate))}`,
+  );
+
+  return `${lines.join("\n")}\n`;
 }
 
 /** Convert budget data to a downloadable Response */
