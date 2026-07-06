@@ -436,10 +436,10 @@ function BudgetPreviewModal({
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
-        className="relative z-10 flex max-h-[92vh] w-[96vw] max-w-6xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
+        className="relative z-10 flex max-h-[92vh] min-h-0 w-[96vw] max-w-6xl flex-col overflow-hidden rounded-2xl bg-background shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Eye className="size-4 text-muted-foreground" />
             {title}
@@ -448,7 +448,9 @@ function BudgetPreviewModal({
             <X className="size-4" />
           </Button>
         </div>
-        <div className="flex-1 overflow-auto bg-muted/20 p-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 p-4">
+          {children}
+        </div>
         {footer && (
           <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-4 py-3">
             {footer}
@@ -530,7 +532,7 @@ function BudgetDocumentPreview({
       confInfo={normalizedConfInfo}
       officeLabel="Office of the Finance Secretary"
       members={sidebarMembers}
-      className={pageIndex > 0 ? "mt-4" : ""}
+      className={pageIndex > 0 && !forPrint ? "mt-4" : ""}
       pageNumber={pageIndex + 1}
       totalPages={rowChunks.length}
     >
@@ -672,6 +674,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   );
   const [rejectReason, setRejectReason] = useState("");
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [pdfExporting, setPdfExporting] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -681,6 +684,14 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (stored.length > 0) {
       setActiveDraft(stored[0]);
     }
+  }, []);
+
+  useEffect(() => {
+    const onAfterPrint = () => {
+      document.body.removeAttribute("data-print-mode");
+    };
+    window.addEventListener("afterprint", onAfterPrint);
+    return () => window.removeEventListener("afterprint", onAfterPrint);
   }, []);
 
   useEffect(() => {
@@ -962,21 +973,65 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     URL.revokeObjectURL(url);
   }, [exportComment, selectedExportBudgets]);
 
+  const triggerPrint = useCallback((mode: "single" | "combined") => {
+    document.body.setAttribute("data-print-mode", mode);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+      });
+    });
+  }, []);
+
   const handleCombinedPrint = useCallback(() => {
     if (selectedExportBudgets.length === 0) return;
     setShowCombinedExportPreview(false);
-    document.body.setAttribute("data-print-mode", "combined");
-    requestAnimationFrame(() => {
-      window.print();
-      document.body.removeAttribute("data-print-mode");
-    });
-  }, [selectedExportBudgets.length]);
+    triggerPrint("combined");
+  }, [selectedExportBudgets.length, triggerPrint]);
 
   const handleSinglePrint = useCallback(() => {
-    document.body.setAttribute("data-print-mode", "single");
-    window.print();
-    document.body.removeAttribute("data-print-mode");
-  }, []);
+    triggerPrint("single");
+  }, [triggerPrint]);
+
+  const handleExportPdf = useCallback(
+    async (mode: "single" | "combined") => {
+      if (pdfExporting) return;
+      if (mode === "combined" && selectedExportBudgets.length === 0) return;
+
+      setPdfExporting(true);
+      setShowCombinedExportPreview(false);
+      document.body.setAttribute("data-print-mode", mode);
+
+      try {
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+
+        const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+        const filename =
+          mode === "combined"
+            ? `combined_budgets_${selectedExportBudgets.length}`
+            : (activeDraft.title || "budget").replace(/\s+/g, "_");
+
+        await exportToPDF("budget-print-root", filename, undefined, {
+          pageSelector: ".document-page, .combined-export-summary-page",
+          pageWrapperSelector: null,
+          mode: "download",
+          canvasScale: 2,
+          jpegQuality: 0.85,
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "PDF export failed");
+      } finally {
+        document.body.removeAttribute("data-print-mode");
+        setPdfExporting(false);
+      }
+    },
+    [
+      activeDraft.title,
+      pdfExporting,
+      selectedExportBudgets.length,
+    ],
+  );
 
   const handleExportCsv = useCallback(() => {
     const header = "No.,Item,Qty,Unit,Unit Price (¥),Total (¥),Notes";
@@ -1178,37 +1233,46 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   return (
     <div className="space-y-6">
-      {/* Print CSS for full document output */}
+      {/* Print CSS — single off-screen root (logistics / letter pattern) */}
       <style>{`
-        #budget-print-root,
-        #budget-combined-print-root {
+        #budget-print-root {
           position: fixed;
           left: -9999px;
           top: 0;
           width: 794px;
           pointer-events: none;
+          z-index: -1;
         }
         @media print {
-          body * { visibility: hidden; }
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          body * { visibility: hidden !important; }
           #budget-print-root,
-          #budget-print-root *,
-          #budget-combined-print-root,
-          #budget-combined-print-root * { visibility: visible !important; }
+          #budget-print-root * { visibility: visible !important; }
           .budget-no-print { display: none !important; }
-          #budget-print-root,
-          #budget-combined-print-root {
+          #budget-print-root {
             position: static !important;
             left: auto !important;
             top: auto !important;
             width: auto !important;
             pointer-events: auto !important;
+            z-index: auto !important;
           }
-          #budget-combined-print-root { display: block !important; }
-          body[data-print-mode="single"] #budget-combined-print-root {
+          body:not([data-print-mode="combined"]) .budget-print-combined {
             display: none !important;
           }
-          body[data-print-mode="combined"] #budget-print-root {
+          body[data-print-mode="combined"] .budget-print-single {
             display: none !important;
+          }
+          #budget-print-root .mt-4 {
+            margin-top: 0 !important;
           }
           .document-page {
             width: 210mm !important;
@@ -1218,13 +1282,6 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             box-shadow: none !important;
             break-after: page;
             page-break-after: always;
-          }
-          body[data-print-mode="single"] .document-page:last-child {
-            break-after: auto;
-            page-break-after: auto;
-          }
-          .combined-budget-export-block {
-            display: block;
           }
           .combined-budget-export-block .document-page:last-child {
             break-after: page;
@@ -1239,6 +1296,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             padding: 20mm;
             box-sizing: border-box;
             background: #fff;
+          }
+          .budget-print-single .document-page:last-child,
+          .budget-print-combined .combined-export-summary-page {
+            break-after: auto;
+            page-break-after: auto;
           }
           @page { size: A4 portrait; margin: 0; }
         }
@@ -1305,7 +1367,17 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             title="Print or save as PDF"
           >
             <Printer className="size-4" />
-            Print / PDF
+            Print
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pdfExporting}
+            onClick={() => void handleExportPdf("single")}
+            title="Download PDF"
+          >
+            <Download className="size-4" />
+            {pdfExporting ? "Exporting…" : "Export PDF"}
           </Button>
         </div>
       </div>
@@ -1498,7 +1570,16 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 disabled={selectedExportBudgets.length === 0}
               >
                 <Printer className="size-4" />
-                Print / PDF
+                Print
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={selectedExportBudgets.length === 0 || pdfExporting}
+                onClick={() => void handleExportPdf("combined")}
+              >
+                <Download className="size-4" />
+                {pdfExporting ? "Exporting…" : "Export PDF"}
               </Button>
             </div>
           </CardContent>
@@ -2028,43 +2109,44 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       </Card>
 
       <div id="budget-print-root">
-        <BudgetDocumentPreview
-          draft={activeDraft}
-          grandTotal={grandTotal}
-          confInfo={confInfo}
-          members={documentMembers}
-          preparedByName={preparedByName}
-          signatoryDraft={signatoryDraft}
-          forPrint
-        />
-      </div>
-
-      <div id="budget-combined-print-root">
-        {selectedExportBudgets.map((entry) => (
-          <div
-            key={`combined-print-${entry.key}`}
-            className="combined-budget-export-block"
-          >
-            <BudgetDocumentPreview
-              draft={entry.draft}
-              grandTotal={entry.total}
-              confInfo={confInfo}
-              members={documentMembers}
-              preparedByName={entry.preparedByName}
-              signatoryDraft={signatoryDraft}
-              instanceKey={entry.key}
-              forPrint
-            />
-          </div>
-        ))}
+        <div className="budget-print-single">
+          <BudgetDocumentPreview
+            draft={activeDraft}
+            grandTotal={grandTotal}
+            confInfo={confInfo}
+            members={documentMembers}
+            preparedByName={preparedByName}
+            signatoryDraft={signatoryDraft}
+            forPrint
+          />
+        </div>
         {selectedExportBudgets.length > 0 && (
-          <div className="combined-export-summary-page">
-            <CombinedExportSummary
-              budgets={selectedExportBudgets}
-              combinedGrandTotal={combinedExportGrandTotal}
-              exportComment={exportComment}
-              forPrint
-            />
+          <div className="budget-print-combined">
+            {selectedExportBudgets.map((entry) => (
+              <div
+                key={`combined-print-${entry.key}`}
+                className="combined-budget-export-block"
+              >
+                <BudgetDocumentPreview
+                  draft={entry.draft}
+                  grandTotal={entry.total}
+                  confInfo={confInfo}
+                  members={documentMembers}
+                  preparedByName={entry.preparedByName}
+                  signatoryDraft={signatoryDraft}
+                  instanceKey={entry.key}
+                  forPrint
+                />
+              </div>
+            ))}
+            <div className="combined-export-summary-page">
+              <CombinedExportSummary
+                budgets={selectedExportBudgets}
+                combinedGrandTotal={combinedExportGrandTotal}
+                exportComment={exportComment}
+                forPrint
+              />
+            </div>
           </div>
         )}
       </div>
@@ -2085,7 +2167,16 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </Button>
               <Button variant="outline" size="sm" onClick={handleCombinedPrint}>
                 <Printer className="size-4" />
-                Print / PDF
+                Print
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pdfExporting}
+                onClick={() => void handleExportPdf("combined")}
+              >
+                <Download className="size-4" />
+                {pdfExporting ? "Exporting…" : "Export PDF"}
               </Button>
             </>
           }
