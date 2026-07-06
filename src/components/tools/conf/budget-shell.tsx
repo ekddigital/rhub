@@ -22,6 +22,7 @@ import {
   Download,
   CheckSquare,
   Square,
+  XCircle,
 } from "lucide-react";
 import {
   Card,
@@ -35,7 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { BUDGET_CATEGORIES, COMMON_UNITS } from "@/lib/conf/config";
+import { BUDGET_CATEGORIES, BUDGET_STATUS_LABELS, COMMON_UNITS } from "@/lib/conf/config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -129,6 +130,7 @@ type ServerBudget = {
   notes: string | null;
   createdAt: string;
   approvedAt: string | null;
+  rejectionNote?: string | null;
   creator: {
     id: string;
     name: string;
@@ -261,6 +263,12 @@ function mergeBudgetAccessInfo(
   };
 }
 
+function isBudgetOwner(budget: ServerBudget, accessInfo?: AccessInfo): boolean {
+  return Boolean(
+    accessInfo?.memberId && budget.creator.id === accessInfo.memberId,
+  );
+}
+
 function canPreviewSubmittedBudget(
   budget: ServerBudget,
   accessInfo?: AccessInfo,
@@ -271,12 +279,70 @@ function canPreviewSubmittedBudget(
 ): boolean {
   if (!accessInfo) return false;
   if (options?.canCommitteeApprove || options?.canFinalApprove) return true;
+  if (isBudgetOwner(budget, accessInfo)) return true;
   if (accessInfo.isSuperAdmin || accessInfo.isChair || accessInfo.isManager) {
     return true;
   }
   if (!accessInfo.canApprovePayments) return false;
   if (!budget.creator.committeeScope || !accessInfo.committeeScope) return true;
   return budget.creator.committeeScope === accessInfo.committeeScope;
+}
+
+function canSelectBudgetForExport(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo) return false;
+  if (isBudgetOwner(budget, accessInfo)) return true;
+  return canPreviewSubmittedBudget(budget, accessInfo);
+}
+
+function canRejectBudget(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo) return false;
+  if (budget.status === "APPROVED" || budget.status === "REJECTED") {
+    return false;
+  }
+  if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
+  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope) return false;
+  if (
+    budget.creator.committeeScope &&
+    budget.creator.committeeScope !== accessInfo.committeeScope
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function canDeleteBudget(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo) return false;
+  if (budget.status === "APPROVED") return false;
+  if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
+  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope) return false;
+  if (
+    budget.creator.committeeScope &&
+    budget.creator.committeeScope !== accessInfo.committeeScope
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function budgetStatusBadge(budget: ServerBudget) {
+  if (budget.status === "REVIEW") {
+    return { label: "Committee Approved", variant: "outline" as const };
+  }
+  return (
+    BUDGET_STATUS_LABELS[budget.status] ?? {
+      label: budget.status,
+      variant: "outline" as const,
+    }
+  );
 }
 
 function CombinedExportSummary({
@@ -401,6 +467,7 @@ function BudgetDocumentPreview({
   preparedByName,
   signatoryDraft,
   forPrint = false,
+  instanceKey,
 }: {
   draft: BudgetDraft;
   grandTotal: number;
@@ -409,7 +476,9 @@ function BudgetDocumentPreview({
   preparedByName: string;
   signatoryDraft: SignatoryDraft;
   forPrint?: boolean;
+  instanceKey?: string;
 }) {
+  const documentKey = instanceKey ?? draft.id;
   const createdAt = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -456,7 +525,7 @@ function BudgetDocumentPreview({
 
   return rowChunks.map((pageRows, pageIndex) => (
     <DocumentLayout
-      key={`budget-page-${pageIndex}`}
+      key={`${documentKey}-page-${pageIndex}`}
       forPrint={forPrint}
       confInfo={normalizedConfInfo}
       officeLabel="Office of the Finance Secretary"
@@ -598,6 +667,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     useState(false);
   const [previewServerBudget, setPreviewServerBudget] =
     useState<ServerBudget | null>(null);
+  const [rejectingBudgetId, setRejectingBudgetId] = useState<string | null>(
+    null,
+  );
+  const [rejectReason, setRejectReason] = useState("");
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -815,7 +889,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         }
       } else if (key.startsWith("server:")) {
         const budget = serverBudgets.find((b) => serverExportKey(b.id) === key);
-        if (budget) {
+        if (budget && canSelectBudgetForExport(budget, effectiveAccess)) {
           const draft = serverBudgetToDraft(budget);
           entries.push({
             key,
@@ -827,7 +901,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
     }
     return entries;
-  }, [drafts, preparedByName, selectedExportKeys, serverBudgets]);
+  }, [drafts, effectiveAccess, preparedByName, selectedExportKeys, serverBudgets]);
 
   const combinedExportGrandTotal = useMemo(
     () => selectedExportBudgets.reduce((sum, entry) => sum + entry.total, 0),
@@ -1028,6 +1102,78 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [actionLoading, confId, refreshConferenceBudgets],
   );
 
+  const handleRejectBudget = useCallback(
+    async (budgetId: string) => {
+      if (!confId || !rejectReason.trim() || actionLoading) return;
+      setActionLoading(`${budgetId}:reject`);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(
+          `/api/conf/${confId}/budgets/${budgetId}/reject`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reason: rejectReason.trim() }),
+          },
+        );
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to reject budget");
+        }
+        await refreshConferenceBudgets(confId);
+        setRejectingBudgetId(null);
+        setRejectReason("");
+        setNotice("Budget rejected.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to reject budget");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, refreshConferenceBudgets, rejectReason],
+  );
+
+  const handleDeleteBudget = useCallback(
+    async (budgetId: string, title: string) => {
+      if (!confId || deleteLoadingId) return;
+      const confirmed = window.confirm(
+        `Delete "${title}"? This action cannot be undone.`,
+      );
+      if (!confirmed) return;
+
+      setDeleteLoadingId(budgetId);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(`/api/conf/${confId}/budgets/${budgetId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to delete budget");
+        }
+        await refreshConferenceBudgets(confId);
+        setSelectedExportKeys((prev) =>
+          prev.filter((key) => key !== serverExportKey(budgetId)),
+        );
+        if (previewServerBudget?.id === budgetId) {
+          setPreviewServerBudget(null);
+        }
+        setNotice("Budget deleted.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to delete budget");
+      } finally {
+        setDeleteLoadingId(null);
+      }
+    },
+    [confId, deleteLoadingId, previewServerBudget?.id, refreshConferenceBudgets],
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -1073,9 +1219,26 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             break-after: page;
             page-break-after: always;
           }
-          .document-page:last-child {
+          body[data-print-mode="single"] .document-page:last-child {
             break-after: auto;
             page-break-after: auto;
+          }
+          .combined-budget-export-block {
+            display: block;
+          }
+          .combined-budget-export-block .document-page:last-child {
+            break-after: page;
+            page-break-after: always;
+          }
+          .combined-export-summary-page {
+            break-before: page;
+            page-break-before: always;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0;
+            padding: 20mm;
+            box-sizing: border-box;
+            background: #fff;
           }
           @page { size: A4 portrait; margin: 0; }
         }
@@ -1642,8 +1805,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <CardHeader>
           <CardTitle className="text-base">Submitted Budgets</CardTitle>
           <CardDescription>
-            Committee review then conference chair final approval. Authorities
-            can preview before approving; select budgets for combined export.
+            Committee review then conference chair final approval. Budget owners
+            and authorities can preview and select budgets for combined export.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -1685,13 +1848,26 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 effectiveAccess,
                 { canCommitteeApprove, canFinalApprove },
               );
+              const canExport = canSelectBudgetForExport(budget, effectiveAccess);
+              const showReject = canRejectBudget(budget, effectiveAccess);
+              const showDelete = canDeleteBudget(budget, effectiveAccess);
+              const isRejecting = rejectingBudgetId === budget.id;
+              const statusMeta = budgetStatusBadge(budget);
               const serverKey = serverExportKey(budget.id);
               const isExportSelected = selectedExportKeys.includes(serverKey);
 
               return (
-                <div key={budget.id} className="rounded-lg border p-3">
+                <div
+                  key={budget.id}
+                  className={`rounded-lg border p-3 ${
+                    budget.status === "REJECTED"
+                      ? "border-red-500/30 bg-red-500/5"
+                      : ""
+                  }`}
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-start gap-3">
+                      {canExport && (
                       <button
                         type="button"
                         className="mt-0.5 text-muted-foreground hover:text-foreground"
@@ -1708,6 +1884,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           <Square className="size-4" />
                         )}
                       </button>
+                      )}
                     <div>
                       <p className="font-medium">{budget.title}</p>
                       <p className="text-xs text-muted-foreground">
@@ -1723,12 +1900,21 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </p>
                     </div>
                     </div>
-                    <Badge variant="outline">
-                      {budget.status === "REVIEW"
-                        ? "Committee Approved"
-                        : budget.status}
-                    </Badge>
+                    <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
                   </div>
+
+                  {budget.status === "REJECTED" && budget.rejectionNote && (
+                    <p className="mt-2 text-xs text-red-700">
+                      Rejection reason: {budget.rejectionNote}
+                    </p>
+                  )}
+                  {budget.status === "REJECTED" &&
+                    isBudgetOwner(budget, effectiveAccess) &&
+                    !budget.rejectionNote && (
+                      <p className="mt-2 text-xs text-red-700">
+                        Your budget was rejected during review.
+                      </p>
+                    )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     {showPreview && (
@@ -1768,6 +1954,62 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       )}
                     </>
                   )}
+                    {showReject &&
+                      (!isRejecting ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-red-500/40 text-red-600 hover:bg-red-500/10"
+                          onClick={() => {
+                            setRejectingBudgetId(budget.id);
+                            setRejectReason("");
+                          }}
+                        >
+                          <XCircle className="size-3.5" />
+                          Reject
+                        </Button>
+                      ) : (
+                        <div className="flex w-full flex-wrap items-center gap-2">
+                          <Input
+                            className="h-8 min-w-48 flex-1 text-sm"
+                            placeholder="Rejection reason (required)"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={
+                              !rejectReason.trim() ||
+                              actionLoading === `${budget.id}:reject`
+                            }
+                            onClick={() => void handleRejectBudget(budget.id)}
+                          >
+                            Confirm Reject
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setRejectingBudgetId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ))}
+                    {showDelete && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500/40 text-red-600 hover:bg-red-500/10"
+                        disabled={deleteLoadingId === budget.id}
+                        onClick={() =>
+                          void handleDeleteBudget(budget.id, budget.title)
+                        }
+                      >
+                        <Trash2 className="size-3.5" />
+                        {deleteLoadingId === budget.id ? "Deleting..." : "Delete"}
+                      </Button>
+                    )}
                   </div>
 
                   {budget.status === "DRAFT" &&
@@ -1799,24 +2041,31 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <div id="budget-combined-print-root">
         {selectedExportBudgets.map((entry) => (
-          <BudgetDocumentPreview
+          <div
             key={`combined-print-${entry.key}`}
-            draft={entry.draft}
-            grandTotal={entry.total}
-            confInfo={confInfo}
-            members={documentMembers}
-            preparedByName={entry.preparedByName}
-            signatoryDraft={signatoryDraft}
-            forPrint
-          />
+            className="combined-budget-export-block"
+          >
+            <BudgetDocumentPreview
+              draft={entry.draft}
+              grandTotal={entry.total}
+              confInfo={confInfo}
+              members={documentMembers}
+              preparedByName={entry.preparedByName}
+              signatoryDraft={signatoryDraft}
+              instanceKey={entry.key}
+              forPrint
+            />
+          </div>
         ))}
         {selectedExportBudgets.length > 0 && (
-          <CombinedExportSummary
-            budgets={selectedExportBudgets}
-            combinedGrandTotal={combinedExportGrandTotal}
-            exportComment={exportComment}
-            forPrint
-          />
+          <div className="combined-export-summary-page">
+            <CombinedExportSummary
+              budgets={selectedExportBudgets}
+              combinedGrandTotal={combinedExportGrandTotal}
+              exportComment={exportComment}
+              forPrint
+            />
+          </div>
         )}
       </div>
 
@@ -1843,7 +2092,10 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         >
           <div className="space-y-6">
             {selectedExportBudgets.map((entry) => (
-              <div key={`combined-preview-${entry.key}`}>
+              <div
+                key={`combined-preview-${entry.key}`}
+                className="combined-budget-export-block"
+              >
                 <BudgetDocumentPreview
                   draft={entry.draft}
                   grandTotal={entry.total}
@@ -1851,6 +2103,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   members={documentMembers}
                   preparedByName={entry.preparedByName}
                   signatoryDraft={signatoryDraft}
+                  instanceKey={entry.key}
                 />
               </div>
             ))}

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function BudgetPage() {
   const access = await requireConferencePageAccess(
     "/tools/conf/budget",
-    "manager",
+    "participant",
   );
 
   const accessInfo = {

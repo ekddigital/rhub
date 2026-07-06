@@ -181,7 +181,11 @@ export async function DELETE(_req: Request, { params }: Params) {
 
     const existing = await prisma.confBudget.findUnique({
       where: { id: budgetId },
-      select: { confId: true, status: true },
+      include: {
+        creator: {
+          select: { committeeScope: true },
+        },
+      },
     });
 
     if (!existing || existing.confId !== confId) {
@@ -193,6 +197,29 @@ export async function DELETE(_req: Request, { params }: Params) {
         { error: "Approved budgets are locked and cannot be deleted" },
         { status: 409 },
       );
+    }
+
+    const hasGlobalDeleteRights =
+      auth.access.isChair || auth.access.isSuperAdmin;
+    if (!hasGlobalDeleteRights) {
+      if (!auth.access.canApprovePayments || !auth.access.committeeScope) {
+        return NextResponse.json(
+          { error: "Chair, Super Admin, or committee approval rights required" },
+          { status: 403 },
+        );
+      }
+
+      if (
+        existing.creator.committeeScope &&
+        existing.creator.committeeScope !== auth.access.committeeScope
+      ) {
+        return NextResponse.json(
+          {
+            error: "You can only delete budgets in your committee scope",
+          },
+          { status: 403 },
+        );
+      }
     }
 
     await prisma.confBudget.delete({ where: { id: budgetId } });

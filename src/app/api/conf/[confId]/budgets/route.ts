@@ -21,7 +21,53 @@ export async function GET(
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(budgets);
+
+    const rejectedIds = budgets
+      .filter((budget) => budget.status === "REJECTED")
+      .map((budget) => budget.id);
+    const rejectionNotesByBudgetId: Record<string, string> = {};
+
+    if (rejectedIds.length > 0) {
+      const rejectionLogs = await prisma.confFinanceAuditLog.findMany({
+        where: {
+          confId,
+          entityType: "budget",
+          entityId: { in: rejectedIds },
+          action: "BUDGET_REJECTED",
+        },
+        orderBy: { createdAt: "desc" },
+        select: { entityId: true, note: true },
+      });
+
+      for (const log of rejectionLogs) {
+        if (!rejectionNotesByBudgetId[log.entityId] && log.note) {
+          rejectionNotesByBudgetId[log.entityId] = log.note;
+        }
+      }
+    }
+
+    const canSeeRejectionNote = (budget: (typeof budgets)[number]) => {
+      if (auth.access.isChair || auth.access.isSuperAdmin) return true;
+      if (auth.access.memberId === budget.createdBy) return true;
+      if (
+        auth.access.canApprovePayments &&
+        budget.creator.committeeScope &&
+        budget.creator.committeeScope === auth.access.committeeScope
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    return NextResponse.json(
+      budgets.map((budget) => ({
+        ...budget,
+        rejectionNote:
+          budget.status === "REJECTED" && canSeeRejectionNote(budget)
+            ? (rejectionNotesByBudgetId[budget.id] ?? null)
+            : null,
+      })),
+    );
   } catch (error) {
     console.error("Failed to fetch budgets:", error);
     return NextResponse.json(
