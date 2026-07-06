@@ -44,6 +44,7 @@ import {
 } from "@/lib/conf/currency";
 import { multiBudgetToCsv } from "@/lib/conf/export";
 import { fetchDefaultConference } from "@/lib/conf/client";
+import { resolveConferenceAccessFlags } from "@/lib/conf/client-access";
 import {
   DocumentLayout,
   DocumentTable,
@@ -234,11 +235,42 @@ function serverBudgetToDraft(budget: ServerBudget): BudgetDraft {
   };
 }
 
+function mergeBudgetAccessInfo(
+  serverAccess?: AccessInfo,
+  clientFlags?: {
+    isManager: boolean;
+    isSuperAdmin: boolean;
+  },
+): AccessInfo | undefined {
+  if (!serverAccess && !clientFlags) return undefined;
+  return {
+    isManager: Boolean(
+      serverAccess?.isManager ||
+        clientFlags?.isManager ||
+        clientFlags?.isSuperAdmin,
+    ),
+    isChair: Boolean(serverAccess?.isChair || clientFlags?.isSuperAdmin),
+    isSuperAdmin: Boolean(
+      serverAccess?.isSuperAdmin || clientFlags?.isSuperAdmin,
+    ),
+    canApprovePayments: Boolean(
+      serverAccess?.canApprovePayments || clientFlags?.isSuperAdmin,
+    ),
+    memberId: serverAccess?.memberId ?? null,
+    committeeScope: serverAccess?.committeeScope ?? null,
+  };
+}
+
 function canPreviewSubmittedBudget(
   budget: ServerBudget,
   accessInfo?: AccessInfo,
+  options?: {
+    canCommitteeApprove?: boolean;
+    canFinalApprove?: boolean;
+  },
 ): boolean {
   if (!accessInfo) return false;
+  if (options?.canCommitteeApprove || options?.canFinalApprove) return true;
   if (accessInfo.isSuperAdmin || accessInfo.isChair || accessInfo.isManager) {
     return true;
   }
@@ -534,6 +566,14 @@ function BudgetDocumentPreview({
 // ── Component ────────────────────────────────────────────────────────────────
 
 export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
+  const [clientAccessFlags, setClientAccessFlags] = useState<{
+    isManager: boolean;
+    isSuperAdmin: boolean;
+  } | null>(null);
+  const effectiveAccess = useMemo(
+    () => mergeBudgetAccessInfo(accessInfo, clientAccessFlags ?? undefined),
+    [accessInfo, clientAccessFlags],
+  );
   const [drafts, setDrafts] = useState<BudgetDraft[]>([]);
   const [activeDraft, setActiveDraft] = useState<BudgetDraft>(newDraft());
   const [showList, setShowList] = useState(false);
@@ -569,6 +609,24 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     }
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    void resolveConferenceAccessFlags()
+      .then((flags) => {
+        if (!mounted) return;
+        setClientAccessFlags({
+          isManager: flags.isManager,
+          isSuperAdmin: flags.isSuperAdmin,
+        });
+      })
+      .catch(() => {
+        // Keep server-provided access when client lookup fails.
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const refreshConferenceBudgets = useCallback(async (conferenceId: string) => {
     const res = await fetch(`/api/conf/${conferenceId}/budgets`, {
       cache: "no-store",
@@ -596,8 +654,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         if (membersRes.ok) {
           const memberPayload = (await membersRes.json()) as MemberOption[];
           setMembers(memberPayload);
-          if (accessInfo?.memberId) {
-            setCreatorMemberId(accessInfo.memberId);
+          if (effectiveAccess?.memberId) {
+            setCreatorMemberId(effectiveAccess.memberId);
           } else if (memberPayload.length > 0) {
             setCreatorMemberId(memberPayload[0].id);
           }
@@ -619,7 +677,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     };
 
     void init();
-  }, [accessInfo?.memberId, refreshConferenceBudgets]);
+  }, [effectiveAccess?.memberId, refreshConferenceBudgets]);
 
   // Auto-save whenever activeDraft changes (debounced 800ms)
   useEffect(() => {
@@ -1342,7 +1400,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               value={creatorMemberId}
               onChange={(e) => setCreatorMemberId(e.target.value)}
               disabled={
-                Boolean(accessInfo?.memberId) && !accessInfo?.isSuperAdmin
+                Boolean(effectiveAccess?.memberId) &&
+                !effectiveAccess?.isSuperAdmin
               }
             >
               <option value="">Select member profile...</option>
@@ -1612,16 +1671,20 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               );
               const canCommitteeApprove =
                 budget.status === "DRAFT" &&
-                (accessInfo?.isSuperAdmin ||
-                  (Boolean(accessInfo?.canApprovePayments) &&
-                    Boolean(accessInfo?.committeeScope) &&
+                (effectiveAccess?.isSuperAdmin ||
+                  (Boolean(effectiveAccess?.canApprovePayments) &&
+                    Boolean(effectiveAccess?.committeeScope) &&
                     budget.creator.committeeScope ===
-                      accessInfo?.committeeScope));
+                      effectiveAccess?.committeeScope));
               const canFinalApprove =
                 (budget.status === "REVIEW" ||
                   canFinalApproveFromDraft(budget)) &&
-                (accessInfo?.isChair || accessInfo?.isSuperAdmin);
-              const showPreview = canPreviewSubmittedBudget(budget, accessInfo);
+                (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin);
+              const showPreview = canPreviewSubmittedBudget(
+                budget,
+                effectiveAccess,
+                { canCommitteeApprove, canFinalApprove },
+              );
               const serverKey = serverExportKey(budget.id);
               const isExportSelected = selectedExportKeys.includes(serverKey);
 
@@ -1667,15 +1730,15 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                     </Badge>
                   </div>
 
-                  <div className="mt-2 flex flex-wrap gap-2">
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
                     {showPreview && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        className="border-[#002868]/30 bg-[#002868] text-white hover:bg-[#002868]/90"
                         onClick={() => setPreviewServerBudget(budget)}
                       >
                         <Eye className="size-3.5" />
-                        Preview
+                        View Budget
                       </Button>
                     )}
                   {(canCommitteeApprove || canFinalApprove) && (
@@ -1708,7 +1771,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   </div>
 
                   {budget.status === "DRAFT" &&
-                    (accessInfo?.isChair || accessInfo?.isSuperAdmin) &&
+                    (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) &&
                     !canFinalApproveFromDraft(budget) && (
                       <p className="mt-2 text-xs text-amber-700">
                         Committee chair approval is required before final
