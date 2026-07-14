@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 import { C } from "../booklet/constants";
+import {
+  HOTEL_DIDI_TIP,
+  HOTEL_MAP_TIP,
+  NAV_GUIDE_META,
+} from "./content-data";
 
 export function SectionHeading({
   id,
@@ -19,7 +24,7 @@ export function SectionHeading({
         fontSize: sizes[level],
         fontWeight: 800,
         color: C.blue,
-        margin: level === 1 ? "0 0 10px" : "14px 0 8px",
+        margin: level === 1 ? "0 0 6px" : "10px 0 5px",
         lineHeight: 1.3,
       }}
     >
@@ -35,7 +40,7 @@ export function SubHeading({ children }: { children: ReactNode }) {
         fontSize: "12px",
         fontWeight: 700,
         color: C.red,
-        margin: "10px 0 6px",
+        margin: "6px 0 4px",
         letterSpacing: "0.04em",
         textTransform: "uppercase",
       }}
@@ -52,7 +57,7 @@ export function BodyText({ children }: { children: ReactNode }) {
         fontSize: "10.5px",
         color: C.text,
         lineHeight: 1.55,
-        margin: "0 0 8px",
+        margin: "0 0 5px",
       }}
     >
       {children}
@@ -64,11 +69,11 @@ export function StepList({ steps }: { steps: string[] }) {
   return (
     <ol
       style={{
-        margin: "0 0 10px",
-        paddingLeft: "18px",
+        margin: "0 0 6px",
+        paddingLeft: "16px",
         display: "flex",
         flexDirection: "column",
-        gap: "5px",
+        gap: "3px",
       }}
     >
       {steps.map((step, i) => (
@@ -91,11 +96,11 @@ export function BulletList({ items }: { items: string[] }) {
   return (
     <ul
       style={{
-        margin: "0 0 10px",
-        paddingLeft: "16px",
+        margin: "0 0 6px",
+        paddingLeft: "14px",
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
+        gap: "2px",
       }}
     >
       {items.map((item, i) => (
@@ -118,8 +123,8 @@ export function WarningCallout({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        margin: "10px 0",
-        padding: "10px 12px",
+        margin: "5px 0",
+        padding: "7px 10px",
         borderRadius: "8px",
         border: `2px solid ${C.red}`,
         background: `${C.red}10`,
@@ -143,8 +148,8 @@ export function InfoCallout({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        margin: "8px 0",
-        padding: "8px 10px",
+        margin: "5px 0",
+        padding: "6px 8px",
         borderRadius: "6px",
         border: `1px solid ${C.gold}60`,
         background: `${C.gold}12`,
@@ -162,27 +167,43 @@ export function NavImage({
   src,
   alt,
   caption,
-  maxHeight = 220,
+  maxHeight = 200,
+  fillSpace = false,
 }: {
   src: string;
   alt: string;
   caption?: string;
   maxHeight?: number;
+  fillSpace?: boolean;
 }) {
   return (
-    <figure style={{ margin: "8px 0 10px", textAlign: "center" }}>
+    <figure
+      style={{
+        margin: fillSpace ? "4px 0 0" : "4px 0 6px",
+        textAlign: "center",
+        ...(fillSpace
+          ? {
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+            }
+          : {}),
+      }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt={alt}
         style={{
           maxWidth: "100%",
-          maxHeight: `${maxHeight}px`,
+          maxHeight: fillSpace ? "100%" : `${maxHeight}px`,
           width: "auto",
-          height: "auto",
+          height: fillSpace ? "100%" : "auto",
           objectFit: "contain",
           borderRadius: "6px",
           border: `1px solid ${C.border}`,
+          ...(fillSpace ? { flex: 1, minHeight: 0 } : {}),
         }}
       />
       {caption && (
@@ -190,8 +211,9 @@ export function NavImage({
           style={{
             fontSize: "8.5px",
             color: C.muted,
-            marginTop: "4px",
+            marginTop: "3px",
             fontStyle: "italic",
+            flexShrink: 0,
           }}
         >
           {caption}
@@ -213,12 +235,12 @@ export function TwoColImages({
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: "10px",
-        margin: "8px 0",
+        gap: "8px",
+        margin: "4px 0",
       }}
     >
-      <NavImage {...left} maxHeight={200} />
-      <NavImage {...right} maxHeight={200} />
+      <NavImage {...left} maxHeight={170} />
+      <NavImage {...right} maxHeight={170} />
     </div>
   );
 }
@@ -254,7 +276,7 @@ export function HubTable() {
         width: "100%",
         borderCollapse: "collapse",
         fontSize: "9.5px",
-        margin: "8px 0 12px",
+        margin: "4px 0 6px",
       }}
     >
       <thead>
@@ -262,7 +284,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "6px 8px",
+              padding: "4px 6px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -272,7 +294,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "6px 8px",
+              padding: "4px 6px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -282,7 +304,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "6px 8px",
+              padding: "4px 6px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -292,7 +314,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "6px 8px",
+              padding: "4px 6px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -306,7 +328,7 @@ export function HubTable() {
           <tr key={row.station}>
             <td
               style={{
-                padding: "6px 8px",
+                padding: "4px 6px",
                 border: `1px solid ${C.border}`,
                 fontWeight: 600,
               }}
@@ -332,7 +354,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "6px 8px",
+                padding: "4px 6px",
                 border: `1px solid ${C.border}`,
               }}
             >
@@ -340,7 +362,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "6px 8px",
+                padding: "4px 6px",
                 border: `1px solid ${C.border}`,
               }}
             >
@@ -348,7 +370,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "6px 8px",
+                padding: "4px 6px",
                 border: `1px solid ${C.border}`,
                 color: C.muted,
               }}
@@ -362,15 +384,36 @@ export function HubTable() {
   );
 }
 
+export function HotelMapCallout({ compact = false }: { compact?: boolean }) {
+  return (
+    <InfoCallout>
+      <strong>Conference Hotel:</strong> {NAV_GUIDE_META.venueZh}
+      <br />
+      <strong>English:</strong> {NAV_GUIDE_META.venueEn}
+      <br />
+      <strong>Address:</strong> {NAV_GUIDE_META.addressZh}
+      {!compact && (
+        <>
+          <br />
+          <br />
+          <strong>DiDi (滴滴):</strong> {HOTEL_DIDI_TIP}
+          <br />
+          <strong>Map apps:</strong> {HOTEL_MAP_TIP}
+        </>
+      )}
+    </InfoCallout>
+  );
+}
+
 export function CheatSheetBox() {
   return (
     <div
       style={{
         border: `2px dashed ${C.blue}`,
-        borderRadius: "10px",
-        padding: "12px 14px",
+        borderRadius: "8px",
+        padding: "8px 10px",
         background: C.lightBlue,
-        marginTop: "8px",
+        marginTop: "4px",
       }}
     >
       <SectionHeading level={3}>Attendee Quick Reference Cheat Sheet</SectionHeading>
@@ -390,11 +433,18 @@ export function CheatSheetBox() {
         reach the hotel.
       </WarningCallout>
 
-      <SubHeading>Hotel Name for Drivers (Save this text)</SubHeading>
+      <SubHeading>Hotel &amp; DiDi / Map Search</SubHeading>
       <InfoCallout>
-        <strong>Chinese:</strong> 齐河阿尔卡迪亚温泉高尔夫国际酒店
+        <strong>Chinese:</strong> {NAV_GUIDE_META.venueZh}
         <br />
-        <strong>English:</strong> Arcadia Spa Golf International Hotel
+        <strong>English:</strong> {NAV_GUIDE_META.venueEn}
+        <br />
+        <strong>Address:</strong> {NAV_GUIDE_META.addressZh}
+        <br />
+        <br />
+        <strong>DiDi (滴滴):</strong> {HOTEL_DIDI_TIP}
+        <br />
+        <strong>Map apps:</strong> {HOTEL_MAP_TIP}
       </InfoCallout>
 
       <SubHeading>Total Public Transit Cost Breakdown</SubHeading>
@@ -413,8 +463,8 @@ export function ContactSupportBlock() {
   return (
     <div
       style={{
-        marginTop: "12px",
-        padding: "12px 14px",
+        marginTop: "8px",
+        padding: "8px 10px",
         borderRadius: "8px",
         border: `1.5px solid ${C.blue}30`,
         background: `${C.blue}06`,

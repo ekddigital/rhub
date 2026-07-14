@@ -323,11 +323,21 @@ export function NavigationCoverPage() {
             style={{
               fontSize: `${T.venue.fontSize - 2}px`,
               color: `${C.gold}`,
-              marginTop: "4px",
+              marginTop: "3px",
               letterSpacing: "0.02em",
             }}
           >
             {NAV_GUIDE_META.venueZh}
+          </div>
+          <div
+            style={{
+              fontSize: `${T.location.fontSize}px`,
+              color: `${C.white}75`,
+              marginTop: "5px",
+              lineHeight: 1.4,
+            }}
+          >
+            {NAV_GUIDE_META.addressZh}
           </div>
           <div
             style={{

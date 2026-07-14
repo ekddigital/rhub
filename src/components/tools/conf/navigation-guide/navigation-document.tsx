@@ -18,6 +18,7 @@ import {
   HubTable,
   CheatSheetBox,
   ContactSupportBlock,
+  HotelMapCallout,
 } from "./ui-blocks";
 
 export const NAV_GUIDE_TOTAL_PAGES = 10;
@@ -56,8 +57,9 @@ function NavA4Page({
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          padding: "24px 40px 16px",
+          padding: "20px 40px 12px",
           overflow: "hidden",
+          gap: 0,
         }}
       >
         {children}
@@ -83,8 +85,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "3px",
-            marginBottom: "14px",
+            gap: "2px",
+            marginBottom: "10px",
           }}
         >
           {NAV_TOC.map((entry) => (
@@ -121,7 +123,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           style={{
             height: "2px",
             background: `linear-gradient(90deg, ${C.red}, ${C.blue})`,
-            margin: "10px 0",
+            margin: "8px 0",
             borderRadius: "1px",
           }}
         />
@@ -145,6 +147,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           travel distance &amp; time varies drastically:
         </BodyText>
         <HubTable />
+        <HotelMapCallout compact />
         <BodyText>
           All public transit routes end with taking Bus K904 to reach the hotel.
         </BodyText>
@@ -152,7 +155,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.metroStationEntrance}
           alt="Jinan metro station entrance"
           caption="Jinan metro station entrance — follow signage for Line transfers"
-          maxHeight={280}
+          fillSpace
         />
       </NavA4Page>
 
@@ -207,7 +210,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.westDrivingRoutes}
           alt="Jinan West driving routes to hotel"
           caption="Driving routes from Jinan West Railway Station"
-          maxHeight={200}
+          maxHeight={165}
         />
 
         <SectionHeading id="route2-transit" level={1}>
@@ -253,7 +256,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationDrivingMap}
           alt="Jinan Railway Station driving map"
           caption="Driving route from Jinan Railway Station to hotel"
-          maxHeight={220}
+          maxHeight={175}
         />
 
         <SectionHeading id="route3-transit" level={1}>
@@ -280,7 +283,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastMetroLine3ToLine2}
           alt="Jinan East metro Line 3 to Line 2"
           caption="Line 3 → Line 2 transfer from Jinan East"
-          maxHeight={200}
+          maxHeight={165}
         />
       </NavA4Page>
 
@@ -289,7 +292,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastK904Transfer}
           alt="Jinan East K904 transfer"
           caption="K904 bus connection from Jinan East route"
-          maxHeight={200}
+          maxHeight={165}
         />
 
         <SubHeading>
@@ -305,7 +308,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastDrivingRoutes}
           alt="Jinan East driving routes"
           caption="Driving routes from Jinan East Railway Station"
-          maxHeight={200}
+          fillSpace
         />
       </NavA4Page>
 
@@ -339,7 +342,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.k904StopWalkToHotel}
           alt="Walk from K904 bus stop to hotel"
           caption="Final walk from Guoke Guoji bus stop to hotel"
-          maxHeight={180}
+          fillSpace
         />
       </NavA4Page>
 
@@ -359,6 +362,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           ]}
         />
 
+        <HotelMapCallout compact />
+
         <SectionHeading id="cheat-sheet" level={1}>
           7. Attendee Quick Reference Cheat Sheet
         </SectionHeading>
@@ -373,14 +378,15 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         </BodyText>
         <ContactSupportBlock />
 
-        <div style={{ marginTop: "20px", textAlign: "center" }}>
+        <div style={{ marginTop: "8px", textAlign: "center", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/conf/assets/hotel/main_entrance_view.png"
             alt="Arcadia Spa Golf International Hotel entrance"
             style={{
               maxWidth: "100%",
-              maxHeight: "240px",
+              flex: 1,
+              minHeight: 0,
               objectFit: "cover",
               borderRadius: "8px",
               border: `1px solid ${C.border}`,
@@ -390,8 +396,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             style={{
               fontSize: "9px",
               color: C.muted,
-              marginTop: "6px",
+              marginTop: "4px",
               fontStyle: "italic",
+              flexShrink: 0,
             }}
           >
             Arcadia Spa Golf International Hotel — Conference Venue

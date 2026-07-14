@@ -2,12 +2,19 @@ export const NAV_GUIDE_META = {
   title: "LSUIC 20th Annual Conference Navigation Guide",
   venueEn: "Arcadia Spa Golf International Hotel",
   venueZh: "齐河阿尔卡迪亚温泉高尔夫国际酒店",
+  addressZh: "山东省德州市齐河县308国道国科球类中心旁",
   dates: "July 24–27, 2026",
   theme: "Jinan 2026: Legacy and Influence",
   confName: "LSUIC 20th Annual Conference",
   confYear: 2026,
   city: "Jinan",
 } as const;
+
+export const HOTEL_DIDI_TIP =
+  "In DiDi (滴滴), paste the Chinese hotel name or full address above into the destination search.";
+
+export const HOTEL_MAP_TIP =
+  "Same address works in Amap (高德), Baidu Maps, Apple Maps, and Google Maps.";
 
 export const NAV_PREFACE =
   "Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel in Qihe County. Two travel options are provided for every arrival hub: affordable public transit (subway + local bus) and fast direct taxi/private car routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel – please review the critical bus operating hours to avoid travel delays after dark.";
