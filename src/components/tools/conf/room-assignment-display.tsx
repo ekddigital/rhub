@@ -243,12 +243,6 @@ export function RoomOccupantPhotoThumb({
   );
 }
 
-export function logisticsPairingOccupantToRoomOccupant(
-  occupant: RoomAssignmentOccupant & RoomOccupantPhoto,
-): RoomAssignmentOccupant & RoomOccupantPhoto {
-  return occupant;
-}
-
 export function toRoomAssignmentRowFromLogisticsPairing(input: {
   id: string;
   roomCode: string;
