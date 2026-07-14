@@ -17,12 +17,21 @@ import {
   Trash2,
   ShieldCheck,
   ShieldOff,
+  MoreVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleMeta } from "@/lib/roles";
 import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { RoleChangeBanner } from "@/components/role-change-banner";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/creative/ui/dropdown-menu";
 
 interface UserRow {
   id: string;
@@ -825,6 +834,15 @@ function UsersContent() {
                     const selectable = canEdit && !isMe;
                     const saving = savingId === u.id;
                     const fb = feedback?.id === u.id;
+                    const canToggleActive = canEdit && !isMe;
+                    const canImpersonate =
+                      canUseImpersonation &&
+                      !isMe &&
+                      u.role !== "SUPER_ADMIN";
+                    const canDelete = isSuperAdmin && !isMe;
+                    const hasRowActions =
+                      canToggleActive || canImpersonate || canDelete;
+                    const actionsDisabled = saving || bulkLoading;
 
                     return (
                       <tr
@@ -1088,58 +1106,81 @@ function UsersContent() {
 
                         {/* Actions */}
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-1.5 justify-end">
-                            {/* Toggle active */}
-                            {canEdit && !isMe && (
-                              <button
-                                onClick={() =>
-                                  handleToggleActive(u.id, u.isActive)
-                                }
-                                disabled={saving || bulkLoading}
-                                title={
-                                  u.isActive
-                                    ? "Disable account"
-                                    : "Enable account"
-                                }
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                              >
-                                {u.isActive ? (
-                                  <ShieldOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <ShieldCheck className="h-3.5 w-3.5" />
-                                )}
-                              </button>
-                            )}
-                            {canUseImpersonation &&
-                              !isMe &&
-                              u.role !== "SUPER_ADMIN" && (
-                                <button
-                                  onClick={() => void handleImpersonate(u)}
-                                  disabled={
-                                    impersonatingId === u.id ||
-                                    saving ||
-                                    bulkLoading
-                                  }
-                                  title="View as this user"
-                                  className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors"
+                          <div className="flex items-center justify-end">
+                            {hasRowActions ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    disabled={actionsDisabled}
+                                    className="text-muted-foreground hover:text-foreground"
+                                    aria-label={`Actions for ${u.name}`}
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-52 bg-background border-border"
                                 >
-                                  {impersonatingId === u.id ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                  ) : (
-                                    <Eye className="h-3.5 w-3.5" />
+                                  {canImpersonate && (
+                                    <DropdownMenuItem
+                                      onClick={() => void handleImpersonate(u)}
+                                      disabled={
+                                        impersonatingId === u.id ||
+                                        actionsDisabled
+                                      }
+                                      className="text-amber-700 focus:text-amber-700 dark:text-amber-400 dark:focus:text-amber-400"
+                                    >
+                                      {impersonatingId === u.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Eye className="h-4 w-4" />
+                                      )}
+                                      View as this user
+                                    </DropdownMenuItem>
                                   )}
-                                </button>
-                              )}
-                            {/* Delete — SUPER_ADMIN only */}
-                            {isSuperAdmin && !isMe && (
-                              <button
-                                onClick={() => handleDeleteUser(u.id, u.name)}
-                                disabled={saving || bulkLoading}
-                                title="Delete user"
-                                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                                  {canToggleActive && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleToggleActive(u.id, u.isActive)
+                                      }
+                                      disabled={actionsDisabled}
+                                    >
+                                      {u.isActive ? (
+                                        <ShieldOff className="h-4 w-4" />
+                                      ) : (
+                                        <ShieldCheck className="h-4 w-4" />
+                                      )}
+                                      {u.isActive
+                                        ? "Deactivate"
+                                        : "Enable account"}
+                                    </DropdownMenuItem>
+                                  )}
+                                  {canDelete && (
+                                    <>
+                                      {(canImpersonate || canToggleActive) && (
+                                        <DropdownMenuSeparator />
+                                      )}
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          handleDeleteUser(u.id, u.name)
+                                        }
+                                        disabled={actionsDisabled}
+                                        className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                —
+                              </span>
                             )}
                           </div>
                         </td>
