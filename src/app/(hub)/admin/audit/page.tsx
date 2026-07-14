@@ -32,6 +32,21 @@ type AdminUser = {
   sessionCreatedAt?: string;
 };
 
+type AuditListResponse = {
+  entries?: AuditEntry[];
+  total?: number;
+  error?: string;
+};
+
+type AuthMeResponse = {
+  id?: string;
+  name?: string;
+  role?: string;
+  canAccessAdmin?: boolean | null;
+  roleChangedAt?: string | null;
+  sessionCreatedAt?: string;
+};
+
 const ACTION_FILTERS = [
   "USER_CREATED",
   "USER_DELETED",
@@ -69,7 +84,7 @@ function AuditPageContent() {
       if (search) params.set("q", search);
       if (actionFilter) params.set("action", actionFilter);
       const res = await fetch(`/api/admin/audit?${params.toString()}`);
-      const data = await res.json();
+      const data = (await res.json()) as AuditListResponse;
       if (res.ok) {
         setEntries(data.entries || []);
         setTotal(data.total || 0);
@@ -84,9 +99,11 @@ function AuditPageContent() {
   useEffect(() => {
     fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => {
+      .then((raw) => {
+        const data = raw as AuthMeResponse;
         if (
           !data.id ||
+          !data.role ||
           !["SUPER_ADMIN", "ADMIN"].includes(data.role) ||
           data.canAccessAdmin === false
         ) {
@@ -98,7 +115,7 @@ function AuditPageContent() {
 
         setAdminUser({
           id: data.id,
-          name: data.name,
+          name: data.name ?? "",
           role: data.role,
           canAccessAdmin: data.canAccessAdmin,
           roleChangedAt: data.roleChangedAt,

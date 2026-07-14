@@ -50,6 +50,28 @@ interface AdminUser {
   sessionCreatedAt?: string;
 }
 
+type UsersListResponse = {
+  users?: UserRow[];
+  total?: number;
+  error?: string;
+};
+
+type UserMutationResponse = {
+  user?: Partial<UserRow>;
+  error?: string;
+};
+
+type ApiErrorResponse = {
+  error?: string;
+};
+
+type AuthMeResponse = {
+  id?: string;
+  name?: string;
+  role?: string;
+  canAccessAdmin?: boolean | null;
+};
+
 const ALL_ROLES = [
   { value: "USER", label: "User" },
   { value: "JUDGE", label: "Judge" },
@@ -137,11 +159,11 @@ function UsersContent() {
       if (roleFilter) params.set("role", roleFilter);
       if (statusFilter) params.set("accessStatus", statusFilter);
       const res = await fetch(`/api/admin/users?${params.toString()}`);
-      const data = await res.json();
+      const data = (await res.json()) as UsersListResponse;
       if (res.ok) {
-        const nextUsers = (data.users || []) as UserRow[];
+        const nextUsers = data.users || [];
         setUsers(nextUsers);
-        setTotal(data.total);
+        setTotal(data.total ?? 0);
         setSelectedUserIds((prev) => {
           const validIds = new Set(nextUsers.map((u) => u.id));
           const next = new Set<string>();
@@ -161,9 +183,11 @@ function UsersContent() {
   useEffect(() => {
     fetch("/api/auth/me", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => {
+      .then((raw) => {
+        const data = raw as AuthMeResponse;
         if (
           !data.id ||
+          !data.role ||
           !["SUPER_ADMIN", "ADMIN"].includes(data.role) ||
           data.canAccessAdmin === false
         ) {
@@ -174,7 +198,7 @@ function UsersContent() {
         }
         setAdminUser({
           id: data.id,
-          name: data.name,
+          name: data.name ?? "",
           role: data.role,
           canAccessAdmin: data.canAccessAdmin,
         });
@@ -213,7 +237,7 @@ function UsersContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       });
-      const data = await res.json();
+      const data = (await res.json()) as UserMutationResponse;
       if (res.ok) {
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, ...data.user } : u)),
@@ -248,7 +272,7 @@ function UsersContent() {
           role: createRole,
         }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as ApiErrorResponse;
       if (!res.ok) {
         setCreateError(data.error || "Failed to create user");
         return;
@@ -295,7 +319,7 @@ function UsersContent() {
         setFeedback({ id: userId, ok: true });
         setTimeout(() => setFeedback(null), 2000);
       } else {
-        const data = await res.json().catch(() => ({}));
+        const data = (await res.json().catch(() => ({}))) as ApiErrorResponse;
         alert(data.error || "Failed to delete user.");
         setFeedback({ id: userId, ok: false });
         setTimeout(() => setFeedback(null), 2000);
@@ -377,7 +401,7 @@ function UsersContent() {
             body: JSON.stringify(patch),
           });
 
-          const data = await res.json().catch(() => ({}));
+          const data = (await res.json().catch(() => ({}))) as UserMutationResponse;
           if (!res.ok) {
             return {
               id: user.id,

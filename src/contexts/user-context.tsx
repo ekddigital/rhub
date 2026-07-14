@@ -67,7 +67,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         headers: { "Cache-Control": "no-cache" },
         credentials: "include",
       });
-      const data = await res.json();
+      const data = (await res.json()) as Partial<AuthUser> & { id?: string };
       setUser(data.id ? (data as AuthUser) : null);
     } catch (err) {
       console.error("Failed to fetch current user:", err);
