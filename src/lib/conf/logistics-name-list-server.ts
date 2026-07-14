@@ -85,6 +85,8 @@ type RoomPairingOccupantRow = {
   feeAmount: number | null;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
   bookletPhotoPath: string | null;
   guests: Array<{
     id: string;
@@ -98,6 +100,8 @@ type RoomPairingGuestRow = {
   name: string;
   sortOrder: number;
   passportPhotoPath: string | null;
+  lastEntryStampPath: string | null;
+  currentVisaPath: string | null;
   delegateId: string;
 };
 
@@ -117,6 +121,8 @@ export const LOGISTICS_ROOM_PAIRING_INCLUDE = {
       ...ROOM_ASSIGNMENT_OCCUPANT_SELECT,
       passportNo: true,
       passportPhotoPath: true,
+      lastEntryStampPath: true,
+      currentVisaPath: true,
       bookletPhotoPath: true,
       feePaid: true,
       amountPaid: true,
@@ -129,6 +135,8 @@ export const LOGISTICS_ROOM_PAIRING_INCLUDE = {
       ...ROOM_ASSIGNMENT_OCCUPANT_SELECT,
       passportNo: true,
       passportPhotoPath: true,
+      lastEntryStampPath: true,
+      currentVisaPath: true,
       bookletPhotoPath: true,
       feePaid: true,
       amountPaid: true,
@@ -142,10 +150,114 @@ export const LOGISTICS_ROOM_PAIRING_INCLUDE = {
       name: true,
       sortOrder: true,
       passportPhotoPath: true,
+      lastEntryStampPath: true,
+      currentVisaPath: true,
       delegateId: true,
     },
   },
 } as const;
+
+function mapRoomPairingOccupantDocs(
+  confId: string,
+  occupant: RoomPairingOccupantRow,
+  pdfByPath: Map<string, boolean>,
+): Pick<
+  LogisticsRoomPairingOccupant,
+  | "passportPhotoPath"
+  | "passportPhotoIsPdf"
+  | "lastEntryStampPath"
+  | "lastEntryStampIsPdf"
+  | "currentVisaPath"
+  | "currentVisaIsPdf"
+  | "passportDocUrl"
+  | "entryStampDocUrl"
+  | "visaDocUrl"
+> {
+  const passportStored = occupant.passportPhotoPath;
+  const entryStampStored = occupant.lastEntryStampPath;
+  const visaStored = occupant.currentVisaPath;
+
+  const passportPhotoPath = resolveDelegatePassportPhotoForClient(
+    confId,
+    occupant.id,
+    passportStored,
+  );
+  const lastEntryStampPath = resolveDelegateEntryStampForClient(
+    confId,
+    occupant.id,
+    entryStampStored,
+  );
+  const currentVisaPath = resolveDelegateVisaForClient(
+    confId,
+    occupant.id,
+    visaStored,
+  );
+
+  return {
+    passportPhotoPath,
+    passportPhotoIsPdf: resolveDocIsPdf(passportStored, pdfByPath),
+    lastEntryStampPath,
+    lastEntryStampIsPdf: resolveDocIsPdf(entryStampStored, pdfByPath),
+    currentVisaPath,
+    currentVisaIsPdf: resolveDocIsPdf(visaStored, pdfByPath),
+    passportDocUrl: passportPhotoPath,
+    entryStampDocUrl: lastEntryStampPath,
+    visaDocUrl: currentVisaPath,
+  };
+}
+
+function mapRoomPairingGuestDocs(
+  confId: string,
+  host: RoomPairingOccupantRow,
+  guest: RoomPairingGuestRow,
+  pdfByPath: Map<string, boolean>,
+): Pick<
+  LogisticsRoomPairingGuest,
+  | "passportPhotoPath"
+  | "passportPhotoIsPdf"
+  | "lastEntryStampPath"
+  | "lastEntryStampIsPdf"
+  | "currentVisaPath"
+  | "currentVisaIsPdf"
+  | "passportDocUrl"
+  | "entryStampDocUrl"
+  | "visaDocUrl"
+> {
+  const passportStored = guest.passportPhotoPath;
+  const entryStampStored = guest.lastEntryStampPath;
+  const visaStored = guest.currentVisaPath;
+
+  const passportPhotoPath = resolveGuestPassportPhotoForClient(
+    confId,
+    host.id,
+    guest.id,
+    passportStored,
+  );
+  const lastEntryStampPath = resolveGuestEntryStampForClient(
+    confId,
+    host.id,
+    guest.id,
+    entryStampStored,
+  );
+  const currentVisaPath = resolveGuestVisaForClient(
+    confId,
+    host.id,
+    guest.id,
+    visaStored,
+  );
+
+  return {
+    passportPhotoPath,
+    passportPhotoIsPdf: resolveDocIsPdf(passportStored, pdfByPath),
+    lastEntryStampPath,
+    lastEntryStampIsPdf: resolveDocIsPdf(entryStampStored, pdfByPath),
+    currentVisaPath,
+    currentVisaIsPdf: resolveDocIsPdf(visaStored, pdfByPath),
+    passportDocUrl: passportPhotoPath,
+    entryStampDocUrl: lastEntryStampPath,
+    visaDocUrl: currentVisaPath,
+  };
+}
 
 function mapRoomPairingOccupant(
   confId: string,
@@ -157,19 +269,11 @@ function mapRoomPairingOccupant(
     occupant.id,
     occupant.bookletPhotoPath,
   );
-  const passportPhotoPath = resolveDelegatePassportPhotoForClient(
-    confId,
-    occupant.id,
-    occupant.passportPhotoPath,
-  );
-  const passportPhotoIsPdf = resolveDocIsPdf(
-    occupant.passportPhotoPath,
-    pdfByPath,
-  );
+  const travelDocs = mapRoomPairingOccupantDocs(confId, occupant, pdfByPath);
   const profilePhoto = resolveLogisticsProfilePhoto({
     bookletPhotoPath,
-    passportPhotoPath,
-    passportPhotoIsPdf,
+    passportPhotoPath: travelDocs.passportPhotoPath,
+    passportPhotoIsPdf: travelDocs.passportPhotoIsPdf,
   });
 
   return {
@@ -186,8 +290,7 @@ function mapRoomPairingOccupant(
     accommodationNeeded: occupant.accommodationNeeded,
     guests: occupant.guests,
     bookletPhotoPath,
-    passportPhotoPath,
-    passportPhotoIsPdf,
+    ...travelDocs,
     profilePhotoUrl: profilePhoto.url,
     profilePhotoIsPdf: profilePhoto.isPdf,
     profileHref: occupant.passportNo
@@ -202,17 +305,11 @@ function mapRoomPairingCompanionGuest(
   guest: RoomPairingGuestRow,
   pdfByPath: Map<string, boolean>,
 ): LogisticsRoomPairingGuest {
-  const passportPhotoPath = resolveGuestPassportPhotoForClient(
-    confId,
-    host.id,
-    guest.id,
-    guest.passportPhotoPath,
-  );
-  const passportPhotoIsPdf = resolveDocIsPdf(guest.passportPhotoPath, pdfByPath);
+  const travelDocs = mapRoomPairingGuestDocs(confId, host, guest, pdfByPath);
   const profilePhoto = resolveLogisticsProfilePhoto({
     bookletPhotoPath: null,
-    passportPhotoPath,
-    passportPhotoIsPdf,
+    passportPhotoPath: travelDocs.passportPhotoPath,
+    passportPhotoIsPdf: travelDocs.passportPhotoIsPdf,
   });
 
   return {
@@ -220,8 +317,7 @@ function mapRoomPairingCompanionGuest(
     name: guest.name,
     hostDelegateId: host.id,
     hostDelegateName: host.name,
-    passportPhotoPath,
-    passportPhotoIsPdf,
+    ...travelDocs,
     profilePhotoUrl: profilePhoto.url,
     profileHref: `/tools/conf/delegates/${host.id}?guest=${encodeURIComponent(guest.id)}`,
   };
@@ -265,8 +361,14 @@ export async function buildLogisticsRoomPairings(input: {
 
   const allDocPaths = assignments.flatMap((assignment) => [
     assignment.occupantA.passportPhotoPath,
+    assignment.occupantA.lastEntryStampPath,
+    assignment.occupantA.currentVisaPath,
     assignment.occupantB?.passportPhotoPath ?? null,
+    assignment.occupantB?.lastEntryStampPath ?? null,
+    assignment.occupantB?.currentVisaPath ?? null,
     assignment.companionGuest?.passportPhotoPath ?? null,
+    assignment.companionGuest?.lastEntryStampPath ?? null,
+    assignment.companionGuest?.currentVisaPath ?? null,
   ]);
   const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
     allDocPaths,

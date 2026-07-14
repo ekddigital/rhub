@@ -40,6 +40,18 @@ export type LogisticsNameListEntry = LogisticsNameListDelegate & {
   roomAssignment: LogisticsNameListRoomSummary | null;
 };
 
+export type LogisticsTravelDocuments = {
+  passportPhotoPath: string | null;
+  passportPhotoIsPdf: boolean;
+  lastEntryStampPath: string | null;
+  lastEntryStampIsPdf: boolean;
+  currentVisaPath: string | null;
+  currentVisaIsPdf: boolean;
+  passportDocUrl: string | null;
+  entryStampDocUrl: string | null;
+  visaDocUrl: string | null;
+};
+
 export type LogisticsRoomPairingOccupant = {
   id: string;
   name: string;
@@ -54,23 +66,19 @@ export type LogisticsRoomPairingOccupant = {
   accommodationNeeded: "YES" | "NO" | "OTHER" | null;
   guests: Array<{ id: string; name: string; sortOrder: number }>;
   bookletPhotoPath: string | null;
-  passportPhotoPath: string | null;
-  passportPhotoIsPdf: boolean;
   profilePhotoUrl: string | null;
   profilePhotoIsPdf: boolean;
   profileHref: string;
-};
+} & LogisticsTravelDocuments;
 
 export type LogisticsRoomPairingGuest = {
   id: string;
   name: string;
   hostDelegateId: string;
   hostDelegateName: string;
-  passportPhotoPath: string | null;
-  passportPhotoIsPdf: boolean;
   profilePhotoUrl: string | null;
   profileHref: string;
-};
+} & LogisticsTravelDocuments;
 
 export type LogisticsRoomPairingAssignmentType =
   | "PAIR"

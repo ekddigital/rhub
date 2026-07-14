@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Download,
   Eye,
-  FileUp,
   Loader2,
   Printer,
   RefreshCw,
@@ -23,11 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
+import { LogisticsDocCell } from "@/components/tools/conf/logistics-doc-cell";
 import { LogisticsNameListDocument } from "@/components/tools/conf/logistics-name-list-document";
 import { LogisticsRoomPairingsPanel } from "@/components/tools/conf/logistics-room-pairings-panel";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { delegateDocumentAcceptAttribute } from "@/lib/conf/file-upload-client";
 import {
   formatUploadError,
   parseUploadErrorPayload,
@@ -65,62 +63,16 @@ function DocCell({
   readOnly?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-start gap-1.5">
-      <div className="h-[92px] w-[132px] overflow-hidden rounded-md border border-border bg-muted">
-        {previewUrl ? (
-          isPdf ? (
-            <iframe
-              src={proxyUrl}
-              title={label}
-              className="h-full w-full border-0 bg-white"
-            />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={proxyUrl}
-              alt={label}
-              className="h-full w-full object-cover object-top"
-              loading="lazy"
-              decoding="async"
-            />
-          )
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center px-1 text-center text-[9px] leading-tight text-muted-foreground">
-            {label} — missing
-          </div>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1">
-        {previewUrl && (
-          <PassportViewerModal
-            proxyUrl={proxyUrl}
-            isPdf={isPdf}
-            label="View"
-            title={label}
-            triggerClassName="px-1.5 py-0.5 text-[10px] leading-none"
-          />
-        )}
-        {!readOnly && (
-          <label
-          className={`inline-flex cursor-pointer items-center gap-0.5 rounded-md border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-accent ${
-            uploading ? "pointer-events-none opacity-60" : ""
-          }`}
-        >
-          <FileUp className="size-3" />
-          {uploading ? "…" : "Upload"}
-          <input
-            type="file"
-            className="hidden"
-            accept={delegateDocumentAcceptAttribute(kind)}
-            onChange={(e) => {
-              onUpload(e.target.files?.[0] || null);
-              e.currentTarget.value = "";
-            }}
-          />
-        </label>
-        )}
-      </div>
-    </div>
+    <LogisticsDocCell
+      kind={kind}
+      previewUrl={previewUrl}
+      proxyUrl={proxyUrl}
+      isPdf={isPdf}
+      label={label}
+      uploading={uploading}
+      onUpload={onUpload}
+      readOnly={readOnly}
+    />
   );
 }
 

@@ -3,13 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { BedDouble } from "lucide-react";
-import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
+import { LogisticsTravelDocStrip } from "@/components/tools/conf/logistics-travel-doc-strip";
 import {
   OccupantGuestLines,
   OccupantsCell,
   RoomAssignmentStatusBadge,
   RoomAssignmentViewModeToggle,
-  RoomOccupantPhotoThumb,
   companionGuestNamesForAssignment,
   roomAssignmentTypeLabel,
   toRoomAssignmentRowFromLogisticsPairing,
@@ -27,54 +26,87 @@ import type {
   LogisticsRoomPairing,
   LogisticsRoomPairingGuest,
   LogisticsRoomPairingOccupant,
+  LogisticsTravelDocuments,
 } from "@/lib/conf/logistics-name-list";
 
-function logisticsOccupantPhoto(occupant: LogisticsRoomPairingOccupant) {
+function occupantTravelDocs(
+  occupant: LogisticsRoomPairingOccupant,
+): LogisticsTravelDocuments {
   return {
-    name: occupant.name,
-    profilePhotoUrl: occupant.profilePhotoUrl,
-    profilePhotoIsPdf: occupant.profilePhotoIsPdf,
+    passportPhotoPath: occupant.passportPhotoPath,
+    passportPhotoIsPdf: occupant.passportPhotoIsPdf,
+    lastEntryStampPath: occupant.lastEntryStampPath,
+    lastEntryStampIsPdf: occupant.lastEntryStampIsPdf,
+    currentVisaPath: occupant.currentVisaPath,
+    currentVisaIsPdf: occupant.currentVisaIsPdf,
+    passportDocUrl: occupant.passportDocUrl,
+    entryStampDocUrl: occupant.entryStampDocUrl,
+    visaDocUrl: occupant.visaDocUrl,
   };
 }
 
-function LogisticsCompanionGuestWithPhoto({
+function guestTravelDocs(guest: LogisticsRoomPairingGuest): LogisticsTravelDocuments {
+  return {
+    passportPhotoPath: guest.passportPhotoPath,
+    passportPhotoIsPdf: guest.passportPhotoIsPdf,
+    lastEntryStampPath: guest.lastEntryStampPath,
+    lastEntryStampIsPdf: guest.lastEntryStampIsPdf,
+    currentVisaPath: guest.currentVisaPath,
+    currentVisaIsPdf: guest.currentVisaIsPdf,
+    passportDocUrl: guest.passportDocUrl,
+    entryStampDocUrl: guest.entryStampDocUrl,
+    visaDocUrl: guest.visaDocUrl,
+  };
+}
+
+function RoomPairingTravelDocs({
+  pairing,
+}: {
+  pairing: LogisticsRoomPairing;
+}) {
+  return (
+    <div className="space-y-4">
+      <LogisticsTravelDocStrip
+        name={pairing.occupantA.name}
+        docs={occupantTravelDocs(pairing.occupantA)}
+      />
+      {pairing.occupantB ? (
+        <LogisticsTravelDocStrip
+          name={pairing.occupantB.name}
+          docs={occupantTravelDocs(pairing.occupantB)}
+        />
+      ) : null}
+      {pairing.companionGuest ? (
+        <LogisticsCompanionGuestTravelDocs guest={pairing.companionGuest} />
+      ) : null}
+    </div>
+  );
+}
+
+function LogisticsCompanionGuestTravelDocs({
   guest,
 }: {
   guest: LogisticsRoomPairingGuest;
 }) {
   return (
-    <div className="flex items-start gap-2">
-      <RoomOccupantPhotoThumb
-        photo={{
-          name: guest.name,
-          profilePhotoUrl: guest.profilePhotoUrl,
-          profilePhotoIsPdf: guest.passportPhotoIsPdf,
-        }}
-        sizeClass="h-11 w-11"
+    <div className="space-y-1.5 rounded-md border border-violet-200 bg-violet-50/40 p-2">
+      <p className="text-[10px] font-medium uppercase tracking-wide text-violet-700">
+        Companion guest
+      </p>
+      <Link
+        href={guest.profileHref}
+        className="block text-xs font-medium leading-snug text-violet-900 hover:underline"
+      >
+        {guest.name}
+      </Link>
+      <p className="text-[11px] text-violet-800/80">
+        Guest of {guest.hostDelegateName}
+      </p>
+      <LogisticsTravelDocStrip
+        name={guest.name}
+        docs={guestTravelDocs(guest)}
+        nameClassName="sr-only"
       />
-      <div className="min-w-0 space-y-1">
-        <p className="text-[10px] font-medium uppercase tracking-wide text-violet-700">
-          Companion guest
-        </p>
-        <Link
-          href={guest.profileHref}
-          className="block font-medium leading-snug text-violet-900 hover:underline"
-        >
-          {guest.name}
-        </Link>
-        <p className="text-xs text-violet-800/80">
-          Guest of {guest.hostDelegateName}
-        </p>
-        {guest.profilePhotoUrl ? (
-          <PassportViewerModal
-            proxyUrl={guest.profilePhotoUrl}
-            isPdf={guest.passportPhotoIsPdf}
-            label="View photo"
-            title={`${guest.name} — passport`}
-            triggerClassName="px-2 py-1 text-[11px] leading-none"
-          />
-        ) : null}
-      </div>
     </div>
   );
 }
@@ -128,11 +160,11 @@ export function LogisticsRoomPairingsPanel({
           </div>
         ) : viewMode === "table" ? (
           <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[960px] text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-xs text-muted-foreground">
                   <th className="px-3 py-2 font-medium">Room</th>
-                  <th className="px-3 py-2 font-medium">Photos</th>
+                  <th className="px-3 py-2 font-medium">Travel documents</th>
                   <th className="px-3 py-2 font-medium">Occupant(s)</th>
                   <th className="px-3 py-2 font-medium">Guests</th>
                   <th className="px-3 py-2 font-medium">Type</th>
@@ -159,27 +191,7 @@ export function LogisticsRoomPairingsPanel({
                         {pairing.roomCode}
                       </td>
                       <td className="px-3 py-2">
-                        <div className="flex flex-wrap gap-2">
-                          <RoomOccupantPhotoThumb
-                            photo={logisticsOccupantPhoto(pairing.occupantA)}
-                          />
-                          {pairing.occupantB ? (
-                            <RoomOccupantPhotoThumb
-                              photo={logisticsOccupantPhoto(pairing.occupantB)}
-                            />
-                          ) : null}
-                          {pairing.companionGuest ? (
-                            <RoomOccupantPhotoThumb
-                              photo={{
-                                name: pairing.companionGuest.name,
-                                profilePhotoUrl:
-                                  pairing.companionGuest.profilePhotoUrl,
-                                profilePhotoIsPdf:
-                                  pairing.companionGuest.passportPhotoIsPdf,
-                              }}
-                            />
-                          ) : null}
-                        </div>
+                        <RoomPairingTravelDocs pairing={pairing} />
                       </td>
                       <td className="px-3 py-2">
                         <OccupantsCell assignment={assignment} />
@@ -229,27 +241,7 @@ export function LogisticsRoomPairingsPanel({
                       </div>
                       <RoomAssignmentStatusBadge status={pairing.status} />
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      <RoomOccupantPhotoThumb
-                        photo={logisticsOccupantPhoto(pairing.occupantA)}
-                      />
-                      {pairing.occupantB ? (
-                        <RoomOccupantPhotoThumb
-                          photo={logisticsOccupantPhoto(pairing.occupantB)}
-                        />
-                      ) : null}
-                      {pairing.companionGuest ? (
-                        <RoomOccupantPhotoThumb
-                          photo={{
-                            name: pairing.companionGuest.name,
-                            profilePhotoUrl:
-                              pairing.companionGuest.profilePhotoUrl,
-                            profilePhotoIsPdf:
-                              pairing.companionGuest.passportPhotoIsPdf,
-                          }}
-                        />
-                      ) : null}
-                    </div>
+                    <RoomPairingTravelDocs pairing={pairing} />
                     <p className="text-sm font-medium leading-snug">
                       {pairing.occupantA.name}
                       {pairing.occupantB ? ` + ${pairing.occupantB.name}` : ""}
@@ -274,11 +266,6 @@ export function LogisticsRoomPairingsPanel({
                     />
                     {pairing.occupantB ? (
                       <OccupantGuestLines occupant={pairing.occupantB} />
-                    ) : null}
-                    {pairing.companionGuest ? (
-                      <LogisticsCompanionGuestWithPhoto
-                        guest={pairing.companionGuest}
-                      />
                     ) : null}
                   </CardContent>
                 </Card>
