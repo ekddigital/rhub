@@ -30,7 +30,7 @@ export async function GET() {
       return noCache({ user: null });
     }
 
-    const { user, sessionCreatedAt } = result;
+    const { user, realUser, isImpersonating, sessionCreatedAt } = result;
 
     return noCache({
       id: user.id,
@@ -41,8 +41,13 @@ export async function GET() {
       canAccessHub: user.canAccessHub,
       canAccessConference: user.canAccessConference,
       canAccessAdmin: user.canAccessAdmin,
-      // roleChangedAt lets the client show a "please re-login" banner
-      roleChangedAt: user.roleChangedAt ?? null,
+      canImpersonate: realUser.canImpersonate,
+      isImpersonating,
+      realAdmin: isImpersonating
+        ? { id: realUser.id, name: realUser.name }
+        : null,
+      // Use the real session user for role-change detection while impersonating.
+      roleChangedAt: (isImpersonating ? realUser : user).roleChangedAt ?? null,
       sessionCreatedAt: sessionCreatedAt.toISOString(),
     });
   } catch (error) {

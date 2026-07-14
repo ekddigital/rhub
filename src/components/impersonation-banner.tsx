@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { UserRound, X, LogOut, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/user-context";
 
 type ImpersonationState = {
   impersonating: {
@@ -18,6 +19,7 @@ export function ImpersonationBanner() {
   const [state, setState] = useState<ImpersonationState | null>(null);
   const [stopping, setStopping] = useState(false);
   const router = useRouter();
+  const { refresh } = useUser();
 
   const fetchState = useCallback(async () => {
     try {
@@ -41,6 +43,7 @@ export function ImpersonationBanner() {
     setStopping(true);
     try {
       await fetch("/api/admin/impersonate", { method: "DELETE" });
+      await refresh();
       router.refresh();
     } finally {
       setStopping(false);

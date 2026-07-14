@@ -9,6 +9,8 @@ interface RoleChangeBannerProps {
   roleChangedAt: string | null;
   /** ISO string of when the current session was created (from API) */
   sessionCreatedAt: string | null;
+  /** Hide while viewing as another user */
+  isImpersonating?: boolean;
 }
 
 /**
@@ -18,8 +20,11 @@ interface RoleChangeBannerProps {
 export function RoleChangeBanner({
   roleChangedAt,
   sessionCreatedAt,
+  isImpersonating = false,
 }: RoleChangeBannerProps) {
   const [dismissed, setDismissed] = useState(false);
+
+  if (isImpersonating) return null;
 
   if (dismissed) return null;
   if (!roleChangedAt || !sessionCreatedAt) return null;

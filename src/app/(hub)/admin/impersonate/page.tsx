@@ -37,6 +37,8 @@ type CurrentUser = {
   name: string;
   role: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -67,9 +69,15 @@ export default function ImpersonatePage() {
           router.replace("/login");
           return;
         }
-        const data = (await res.json()) as { user: CurrentUser };
-        const u = data.user;
-        if (u.role !== "SUPER_ADMIN" && !u.canAccessAdmin) {
+        const u = (await res.json()) as CurrentUser & { id?: string };
+        if (!u.id) {
+          router.replace("/login");
+          return;
+        }
+        if (
+          u.isImpersonating ||
+          (u.role !== "SUPER_ADMIN" && !u.canImpersonate)
+        ) {
           router.replace("/dashboard");
           return;
         }
@@ -85,7 +93,7 @@ export default function ImpersonatePage() {
     setSearching(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ search: q, limit: "20" });
+      const params = new URLSearchParams({ q: q, limit: "20" });
       const res = await fetch(`/api/admin/users?${params}`);
       if (!res.ok) throw new Error("Failed to search users");
       const data = (await res.json()) as { users: UserResult[] };

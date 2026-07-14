@@ -19,6 +19,9 @@ export interface AuthUser {
   canAccessHub?: boolean;
   canAccessConference?: boolean | null;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
+  realAdmin?: { id: string; name: string } | null;
   roleChangedAt: string | null;
   sessionCreatedAt: string;
 }

@@ -8,6 +8,8 @@ interface ShellUser {
   name: string;
   role: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
 }
 
 interface AppShellProps {

@@ -15,6 +15,7 @@ import {
   UserCog,
   Settings,
   History,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
@@ -26,6 +27,8 @@ interface UserData {
   email: string;
   role: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
   roleChangedAt: string | null;
   sessionCreatedAt: string;
 }
@@ -94,6 +97,9 @@ function AdminContent() {
   if (!user) return null;
 
   const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const canUseImpersonation =
+    !user.isImpersonating &&
+    (isSuperAdmin || Boolean(user.canImpersonate));
 
   const statCards = [
     {
@@ -166,6 +172,15 @@ function AdminContent() {
       bg: "bg-blue-500/10",
     },
     {
+      icon: Eye,
+      label: "User Impersonation",
+      description: "View the platform as another user for support and debugging",
+      href: "/admin/impersonate",
+      show: canUseImpersonation,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+    },
+    {
       icon: Settings,
       label: "System Settings",
       description: "Configure platform-wide settings",
@@ -182,6 +197,7 @@ function AdminContent() {
         <RoleChangeBanner
           roleChangedAt={user.roleChangedAt}
           sessionCreatedAt={user.sessionCreatedAt}
+          isImpersonating={user.isImpersonating}
         />
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">

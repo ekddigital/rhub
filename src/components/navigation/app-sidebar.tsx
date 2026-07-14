@@ -16,6 +16,7 @@ import {
   Wrench,
   Video,
   Download,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleMeta } from "@/lib/roles";
@@ -30,6 +31,8 @@ interface SidebarUser {
   name: string;
   role: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
 }
 
 interface NavItem {
@@ -55,6 +58,9 @@ function buildNav(user: SidebarUser): NavSection[] {
   const isAdmin =
     ["SUPER_ADMIN", "ADMIN"].includes(role) && user.canAccessAdmin !== false;
   const isSuperAdmin = role === "SUPER_ADMIN";
+  const canUseImpersonation =
+    !user.isImpersonating &&
+    (isSuperAdmin || Boolean(user.canImpersonate));
 
   const sections: NavSection[] = [
     {
@@ -91,6 +97,13 @@ function buildNav(user: SidebarUser): NavSection[] {
         icon: Settings,
         label: "System Settings",
         href: "/admin/settings",
+      });
+    }
+    if (canUseImpersonation) {
+      adminItems.push({
+        icon: Eye,
+        label: "User Impersonation",
+        href: "/admin/impersonate",
       });
     }
     sections.push({ heading: "Administration", items: adminItems });

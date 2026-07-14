@@ -2,10 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateSessionWithContext } from "@/lib/auth";
-
-function canImpersonate(user: { role: string; canImpersonate: boolean }) {
-  return user.role === "SUPER_ADMIN" || user.canImpersonate;
-}
+import {
+  canImpersonate,
+  isImpersonationTargetAllowed,
+} from "@/lib/auth/impersonation";
 
 /**
  * POST /api/admin/impersonate
@@ -64,10 +64,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // Super admins cannot be impersonated — security guard
-  if (target.role === "SUPER_ADMIN") {
+  if (
+    !isImpersonationTargetAllowed({
+      id: target.id,
+      role: target.role,
+      actorId: ctx.realUser.id,
+    })
+  ) {
     return NextResponse.json(
-      { error: "Super Admin accounts cannot be impersonated" },
+      { error: "This account cannot be impersonated" },
       { status: 403 },
     );
   }
@@ -107,14 +112,13 @@ export async function DELETE() {
 
   const session = await prisma.session.findUnique({
     where: { token },
-    select: { impersonatingUserId: true },
+    select: { impersonatingUserId: true, userId: true },
   });
 
   if (!session)
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
 
   if (session.impersonatingUserId) {
-    // Mark the log as ended
     await prisma.$transaction([
       prisma.session.update({
         where: { token },
@@ -122,6 +126,7 @@ export async function DELETE() {
       }),
       prisma.impersonationLog.updateMany({
         where: {
+          actorUserId: session.userId,
           targetUserId: session.impersonatingUserId,
           endedAt: null,
         },

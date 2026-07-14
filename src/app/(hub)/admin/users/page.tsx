@@ -46,6 +46,8 @@ interface AdminUser {
   name: string;
   role: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
   roleChangedAt?: string | null;
   sessionCreatedAt?: string;
 }
@@ -70,6 +72,8 @@ type AuthMeResponse = {
   name?: string;
   role?: string;
   canAccessAdmin?: boolean | null;
+  canImpersonate?: boolean | null;
+  isImpersonating?: boolean;
 };
 
 const ALL_ROLES = [
@@ -135,8 +139,13 @@ function UsersContent() {
   const [feedback, setFeedback] = useState<{ id: string; ok: boolean } | null>(
     null,
   );
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
 
   const isSuperAdmin = adminUser?.role === "SUPER_ADMIN";
+  const canUseImpersonation =
+    Boolean(adminUser) &&
+    !adminUser?.isImpersonating &&
+    (isSuperAdmin || Boolean(adminUser?.canImpersonate));
 
   const canEditUser = useCallback(
     (user: UserRow) => {
@@ -201,6 +210,8 @@ function UsersContent() {
           name: data.name ?? "",
           role: data.role,
           canAccessAdmin: data.canAccessAdmin,
+          canImpersonate: data.canImpersonate,
+          isImpersonating: data.isImpersonating,
         });
         setLoading(false);
       })
@@ -328,6 +339,31 @@ function UsersContent() {
       alert("Network error. Please try again.");
     } finally {
       setSavingId(null);
+    }
+  };
+
+  const handleImpersonate = async (user: UserRow) => {
+    if (!canUseImpersonation || user.role === "SUPER_ADMIN") return;
+    if (user.id === adminUser?.id) return;
+
+    setImpersonatingId(user.id);
+    try {
+      const res = await fetch("/api/admin/impersonate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId: user.id }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        alert(data.error ?? "Failed to start impersonation");
+        return;
+      }
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setImpersonatingId(null);
     }
   };
 
@@ -1074,6 +1110,26 @@ function UsersContent() {
                                 )}
                               </button>
                             )}
+                            {canUseImpersonation &&
+                              !isMe &&
+                              u.role !== "SUPER_ADMIN" && (
+                                <button
+                                  onClick={() => void handleImpersonate(u)}
+                                  disabled={
+                                    impersonatingId === u.id ||
+                                    saving ||
+                                    bulkLoading
+                                  }
+                                  title="View as this user"
+                                  className="p-1.5 rounded-lg text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors"
+                                >
+                                  {impersonatingId === u.id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Eye className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              )}
                             {/* Delete — SUPER_ADMIN only */}
                             {isSuperAdmin && !isMe && (
                               <button

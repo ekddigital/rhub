@@ -194,7 +194,15 @@ export async function validateSessionWithContext(token: string) {
 /** Same as validateSession but also returns the session's createdAt timestamp,
  *  used by /api/auth/me to detect role changes that occurred after login. */
 export async function validateSessionFull(token: string) {
-  const session = await findSessionWithUser(token);
+  let session;
+  try {
+    session = await findSessionWithUser(token);
+  } catch (error) {
+    if (isAuthDatabaseUnavailableError(error)) {
+      return null;
+    }
+    throw error;
+  }
 
   if (!session || session.expiresAt < new Date()) {
     return null;
@@ -204,7 +212,24 @@ export async function validateSessionFull(token: string) {
     return null;
   }
 
-  return { user: session.user, sessionCreatedAt: session.createdAt };
+  const realUser = session.user;
+  let effectiveUser = session.user;
+
+  if (session.impersonatingUserId) {
+    const targetUser = await prisma.user.findUnique({
+      where: { id: session.impersonatingUserId },
+    });
+    if (targetUser && hasApprovedHubAccess(targetUser)) {
+      effectiveUser = targetUser;
+    }
+  }
+
+  return {
+    user: effectiveUser,
+    realUser,
+    isImpersonating: effectiveUser.id !== realUser.id,
+    sessionCreatedAt: session.createdAt,
+  };
 }
 
 export async function deleteSession(token: string): Promise<void> {

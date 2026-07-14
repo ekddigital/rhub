@@ -53,6 +53,7 @@ function DashboardContent() {
         <RoleChangeBanner
           roleChangedAt={user.roleChangedAt}
           sessionCreatedAt={user.sessionCreatedAt}
+          isImpersonating={user.isImpersonating}
         />
 
         {/* Welcome header */}

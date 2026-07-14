@@ -15,6 +15,7 @@ import {
   BookOpen,
   Crown,
   History,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getRoleMeta } from "@/lib/roles";
@@ -69,6 +70,10 @@ export function UserMenu() {
     ["SUPER_ADMIN", "ADMIN"].includes(user.role) &&
     user.canAccessAdmin !== false;
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+  const canUseImpersonation =
+    user &&
+    !user.isImpersonating &&
+    (isSuperAdmin || Boolean(user.canImpersonate));
   const isJudgeRole =
     user &&
     ["SUPER_ADMIN", "ADMIN", "JUDGE_ADMIN", "HEAD_JUDGE", "JUDGE"].includes(
@@ -269,6 +274,16 @@ export function UserMenu() {
                 >
                   <Settings className="h-4 w-4 text-purple-400" />
                   System Settings
+                </Link>
+              )}
+              {canUseImpersonation && (
+                <Link
+                  href="/admin/impersonate"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 w-full rounded-lg px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors"
+                >
+                  <Eye className="h-4 w-4 text-amber-500" />
+                  User Impersonation
                 </Link>
               )}
             </div>
