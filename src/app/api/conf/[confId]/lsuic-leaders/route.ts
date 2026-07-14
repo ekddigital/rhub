@@ -135,12 +135,17 @@ export async function GET(
           built?.photoPath ?? (row.leader_photo_url || null),
         ),
         mappingStatus,
+        includeAddressPage: Boolean(storedLink?.includeAddressPage),
+        addressText: storedLink?.addressText ?? built?.bookletBio ?? null,
+        memberId: built?.id.startsWith("roster-") ? null : (built?.id ?? null),
         link: storedLink
           ? {
               delegateId: storedLink.delegateId,
               userId: storedLink.userId,
               linkSource: storedLink.linkSource,
               confirmed: storedLink.confirmed,
+              includeAddressPage: Boolean(storedLink.includeAddressPage),
+              addressText: storedLink.addressText ?? null,
             }
           : autoMatch
             ? {
@@ -148,6 +153,8 @@ export async function GET(
                 userId: autoMatch.userId,
                 linkSource: "AUTO_SUGGESTED",
                 confirmed: false,
+                includeAddressPage: false,
+                addressText: null,
               }
             : null,
         linkedDelegateName: linkedDelegate?.name ?? null,

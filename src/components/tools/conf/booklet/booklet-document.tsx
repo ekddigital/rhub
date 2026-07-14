@@ -1,4 +1,11 @@
 import { type ReactNode } from "react";
+import {
+  resolveChairmanAddress,
+  resolveGuestBioAddress,
+  resolvePresidentAddress,
+  resolveRosterAddressPages,
+  shouldRenderTextSection,
+} from "@/lib/conf/resolve-booklet-section-content";
 import { C } from "./constants";
 import type { BookletData, BookletSection } from "./types";
 import {
@@ -126,14 +133,7 @@ function renderSection(
     sectionIndex?: number;
   },
 ) {
-  const {
-    event,
-    leaders,
-    necMembers,
-    committeeMembers,
-    conferenceChair,
-    delegates,
-  } = data;
+  const { event, leaders, necMembers, delegates } = data;
   const confName = event.name;
   const confYear = event.year;
   const key = section.id;
@@ -146,7 +146,6 @@ function renderSection(
   }
 
   const leaderNames = new Set(leaders.map((l) => normalizeName(l.name)));
-  const nationalPresident = necMembers.find((m) => m.role === "CHAIR") ?? null;
   const nextSection =
     options?.allSections && options.sectionIndex != null
       ? options.allSections[options.sectionIndex + 1]
@@ -163,6 +162,8 @@ function renderSection(
         }
       : undefined;
 
+  const rosterLinks = data.rosterAddressLinks ?? [];
+
   switch (section.type) {
     case "LEADER":
       return (
@@ -178,38 +179,70 @@ function renderSection(
         />
       );
 
-    case "PRESIDENT_ADDRESS":
-      return (
-        <AddressSection
-          key={key}
-          section={section}
-          speaker={nationalPresident}
-          content={nationalPresident?.bookletBio ?? section.bodyText}
-          {...commonSingle}
-        />
-      );
+    case "PRESIDENT_ADDRESS": {
+      const resolved = resolvePresidentAddress(section, data, rosterLinks);
+      const extraPages = resolveRosterAddressPages(data, rosterLinks);
+      if (!resolved && extraPages.length === 0) return null;
 
-    case "GUEST_BIO":
+      let pageCursor = pageNum;
       return (
-        <AddressSection
-          key={key}
-          section={section}
-          speaker={null}
-          content={section.bodyText}
-          {...commonSingle}
-        />
+        <>
+          {resolved ? (
+            <AddressSection
+              key={key}
+              section={section}
+              speaker={resolved.speaker}
+              content={resolved.content}
+              pageNum={pageCursor++}
+              totalPages={totalPages}
+              confName={confName}
+              confYear={confYear}
+            />
+          ) : null}
+          {extraPages.map((page) => (
+            <AddressSection
+              key={`${key}-${page.rosterKey}`}
+              section={section}
+              sectionLabel={page.title}
+              speaker={page.speaker}
+              content={page.content}
+              pageNum={pageCursor++}
+              totalPages={totalPages}
+              confName={confName}
+              confYear={confYear}
+            />
+          ))}
+        </>
       );
+    }
 
-    case "CHAIRMAN_ADDRESS":
+    case "GUEST_BIO": {
+      const resolved = resolveGuestBioAddress(section);
+      if (!resolved) return null;
       return (
         <AddressSection
           key={key}
           section={section}
-          speaker={conferenceChair}
-          content={conferenceChair?.bookletBio ?? section.bodyText}
+          speaker={resolved.speaker}
+          content={resolved.content}
           {...commonSingle}
         />
       );
+    }
+
+    case "CHAIRMAN_ADDRESS": {
+      const resolved = resolveChairmanAddress(section, data);
+      if (!resolved) return null;
+      return (
+        <AddressSection
+          key={key}
+          section={section}
+          speaker={resolved.speaker}
+          content={resolved.content}
+          {...commonSingle}
+        />
+      );
+    }
 
     case "NEC":
       return (
@@ -273,6 +306,7 @@ function renderSection(
     }
 
     default:
+      if (!shouldRenderTextSection(section)) return null;
       return <TextSection key={key} section={section} {...commonSingle} />;
   }
 }

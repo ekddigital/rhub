@@ -1267,6 +1267,10 @@ model ConfLsuicLeaderLink {
     linkSource String?  // "AUTO_NAME" | "AUTO_PHONE" | "MANUAL"
     /// Auto-links start unconfirmed; booklet photo override uses confirmed links only.
     confirmed  Boolean  @default(false)
+    /// When true, roster leader may appear on a dedicated booklet address page.
+    includeAddressPage Boolean @default(false)
+    /// Address / message text for the roster leader's booklet page.
+    addressText        String?  @db.Text
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 

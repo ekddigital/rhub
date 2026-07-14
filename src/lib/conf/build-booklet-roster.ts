@@ -62,6 +62,8 @@ type LeaderLinkLike = {
   userId: string | null;
   linkSource: string | null;
   confirmed?: boolean;
+  includeAddressPage?: boolean;
+  addressText?: string | null;
 };
 
 function normalizeName(value: string | null | undefined): string {

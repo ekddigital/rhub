@@ -214,10 +214,17 @@ export async function GET(
       membersByScope[scope].push(member);
     }
 
+    const rosterAddressLinks = leaderLinks.map((l) => ({
+      rosterKey: l.rosterKey,
+      includeAddressPage: Boolean(l.includeAddressPage),
+      addressText: l.addressText ?? null,
+    }));
+
     return NextResponse.json({
       event,
       booklet,
       leaders: dedupedLeaders,
+      rosterAddressLinks,
       necMembers: resolvedNecMembers,
       committeeMembers: resolvedCommitteeMembers,
       conferenceChair,

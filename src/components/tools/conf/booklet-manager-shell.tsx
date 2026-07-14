@@ -79,6 +79,7 @@ export type LeaderProfile = {
 
 export type NecMember = {
   id: string;
+  rosterKey?: string;
   name: string;
   role: string;
   title: string | null;
@@ -92,6 +93,12 @@ export type NecMember = {
   photoPath: string | null;
   bookletBio: string | null;
   hasRegistered?: boolean;
+};
+
+export type RosterAddressLink = {
+  rosterKey: string;
+  includeAddressPage: boolean;
+  addressText: string | null;
 };
 
 const COMMITTEE_ROLE_LABELS: Record<string, string> = {
@@ -121,6 +128,7 @@ export type BookletData = {
   };
   booklet: (BookletConfig & { sections: BookletSection[] }) | null;
   leaders: LeaderProfile[];
+  rosterAddressLinks: RosterAddressLink[];
   necMembers: NecMember[];
   committeeMembers: NecMember[];
   conferenceChair: NecMember | null;
@@ -1150,11 +1158,11 @@ export function BookletManagerShell() {
                 </label>
                 <label className="space-y-1.5 text-sm">
                   <span className="text-muted-foreground">
-                    Biography (optional)
+                    Booklet Address / Message (optional)
                   </span>
                   <Textarea
                     rows={4}
-                    placeholder="Brief biography or message..."
+                    placeholder="Address or message shown in the booklet when this leader has a dedicated page..."
                     value={leaderForm.bio}
                     onChange={(e) =>
                       setLeaderForm((p) => ({ ...p, bio: e.target.value }))

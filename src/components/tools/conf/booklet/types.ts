@@ -7,6 +7,7 @@ export type {
   BookletStatus,
   LeaderProfile,
   NecMember,
+  RosterAddressLink,
 } from "@/components/tools/conf/booklet-manager-shell";
 
 // Convenience local aliases

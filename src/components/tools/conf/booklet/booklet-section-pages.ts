@@ -1,4 +1,13 @@
 import {
+  resolveChairmanAddress,
+  resolveGuestBioAddress,
+  resolveLeaderSectionAddress,
+  resolvePresidentAddress,
+  resolveRosterAddressPages,
+  shouldRenderTextSection,
+  type RosterAddressLink,
+} from "@/lib/conf/resolve-booklet-section-content";
+import {
   committeeSectionPageCountFromMembers,
   isCocMembersContinuation,
   paginateTocEntries,
@@ -91,6 +100,10 @@ function committeeSectionPageCount(
   );
 }
 
+function rosterLinksFromData(data: BookletData): RosterAddressLink[] {
+  return data.rosterAddressLinks ?? [];
+}
+
 /** Pages consumed by one enabled booklet section (matches render order). */
 export function sectionPageSpan(
   s: BookletSection,
@@ -104,7 +117,29 @@ export function sectionPageSpan(
     }
   }
 
-  if (s.type === "LEADER") return 1;
+  if (s.type === "LEADER") {
+    return resolveLeaderSectionAddress(s, data) ? 1 : 0;
+  }
+
+  if (s.type === "PRESIDENT_ADDRESS") {
+    const links = rosterLinksFromData(data);
+    const base = resolvePresidentAddress(s, data, links) ? 1 : 0;
+    // Extra selected roster leaders with address text render after this section.
+    return base + resolveRosterAddressPages(data, links).length;
+  }
+
+  if (s.type === "CHAIRMAN_ADDRESS") {
+    return resolveChairmanAddress(s, data) ? 1 : 0;
+  }
+
+  if (s.type === "GUEST_BIO") {
+    return resolveGuestBioAddress(s) ? 1 : 0;
+  }
+
+  if (s.type === "SPONSORS" || s.type === "ABBREVIATIONS") {
+    return shouldRenderTextSection(s) ? 1 : 0;
+  }
+
   if (s.type === "NEC") {
     return committeeSectionPageCount(s, data, context);
   }
@@ -113,7 +148,7 @@ export function sectionPageSpan(
   }
   if (s.type === "DELEGATES")
     return delegatesSectionPageCount(data.delegates.length);
-  return 1;
+  return shouldRenderTextSection(s) ? 1 : 0;
 }
 
 export function bookletBodyPageCount(
@@ -156,6 +191,8 @@ export function buildTocRenderableEntries(
   if (hasCover) entries.push({ kind: "cover" });
 
   for (const { section, startPage, pageSpan } of sectionRows) {
+    if (pageSpan <= 0) continue;
+
     const isKey =
       section.type === "LEADER" ||
       section.type === "NEC" ||

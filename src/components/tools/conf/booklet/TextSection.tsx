@@ -15,6 +15,9 @@ export function TextSection({
   pageNum: number;
   totalPages: number;
 }) {
+  const trimmed = (section.bodyText ?? "").trim();
+  if (!trimmed) return null;
+
   return (
     <A4Page
       pageNum={pageNum}
@@ -60,28 +63,13 @@ export function TextSection({
         )}
       </div>
 
-      {section.bodyText ? (
-        <div style={{ fontSize: "11.5px", lineHeight: 1.8, color: C.text }}>
-          {section.bodyText.split("\n").map((line, i) => (
-            <p key={i} style={{ marginBottom: "10px" }}>
-              {line || <br />}
-            </p>
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            padding: "32px",
-            textAlign: "center",
-            border: `2px dashed ${C.border}`,
-            borderRadius: "10px",
-            color: C.muted,
-            fontSize: "11px",
-          }}
-        >
-          No content yet. Add text in the Section Manager.
-        </div>
-      )}
+      <div style={{ fontSize: "11.5px", lineHeight: 1.8, color: C.text }}>
+        {trimmed.split("\n").map((line, i) => (
+          <p key={i} style={{ marginBottom: "10px" }}>
+            {line || <br />}
+          </p>
+        ))}
+      </div>
     </A4Page>
   );
 }

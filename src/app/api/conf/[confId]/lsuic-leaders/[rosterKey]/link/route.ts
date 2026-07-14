@@ -23,20 +23,27 @@ export async function PATCH(
       delegateId?: string | null;
       userId?: string | null;
       confirmed?: boolean;
+      includeAddressPage?: boolean;
+      addressText?: string | null;
     };
 
-    if (body.delegateId === null && body.userId === null) {
+    const hasAddressPatch =
+      body.includeAddressPage !== undefined || body.addressText !== undefined;
+    const isUnlink = body.delegateId === null && body.userId === null;
+    const isConfirmOnly =
+      body.confirmed === true &&
+      body.delegateId === undefined &&
+      body.userId === undefined &&
+      !hasAddressPatch;
+
+    if (isUnlink && !hasAddressPatch) {
       await prisma.confLsuicLeaderLink.deleteMany({
         where: { confId, rosterKey },
       });
       return NextResponse.json({ cleared: true });
     }
 
-    if (
-      body.confirmed === true &&
-      body.delegateId === undefined &&
-      body.userId === undefined
-    ) {
+    if (isConfirmOnly) {
       const existing = await prisma.confLsuicLeaderLink.findUnique({
         where: { confId_rosterKey: { confId, rosterKey } },
       });
@@ -49,6 +56,45 @@ export async function PATCH(
       const link = await prisma.confLsuicLeaderLink.update({
         where: { confId_rosterKey: { confId, rosterKey } },
         data: { confirmed: true },
+      });
+      return NextResponse.json({ link });
+    }
+
+    // Address-only update (include in booklet / message text) without remapping.
+    if (
+      hasAddressPatch &&
+      body.delegateId === undefined &&
+      body.userId === undefined &&
+      body.confirmed === undefined
+    ) {
+      const addressData = {
+        ...(body.includeAddressPage !== undefined && {
+          includeAddressPage: Boolean(body.includeAddressPage),
+        }),
+        ...(body.addressText !== undefined && {
+          addressText:
+            typeof body.addressText === "string"
+              ? body.addressText.trim() || null
+              : null,
+        }),
+      };
+
+      const link = await prisma.confLsuicLeaderLink.upsert({
+        where: { confId_rosterKey: { confId, rosterKey } },
+        create: {
+          confId,
+          rosterKey,
+          delegateId: null,
+          userId: null,
+          linkSource: "ADDRESS_ONLY",
+          confirmed: false,
+          includeAddressPage: Boolean(body.includeAddressPage),
+          addressText:
+            typeof body.addressText === "string"
+              ? body.addressText.trim() || null
+              : null,
+        },
+        update: addressData,
       });
       return NextResponse.json({ link });
     }
@@ -84,12 +130,26 @@ export async function PATCH(
         userId,
         linkSource: "MANUAL",
         confirmed,
+        includeAddressPage: Boolean(body.includeAddressPage),
+        addressText:
+          typeof body.addressText === "string"
+            ? body.addressText.trim() || null
+            : null,
       },
       update: {
         delegateId,
         userId,
         linkSource: "MANUAL",
         confirmed,
+        ...(body.includeAddressPage !== undefined && {
+          includeAddressPage: Boolean(body.includeAddressPage),
+        }),
+        ...(body.addressText !== undefined && {
+          addressText:
+            typeof body.addressText === "string"
+              ? body.addressText.trim() || null
+              : null,
+        }),
       },
     });
 

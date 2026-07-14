@@ -4,6 +4,15 @@ import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
 import type { BookletSection, NecMember } from "./types";
 
+export type AddressSpeaker = Pick<
+  NecMember,
+  "id" | "name" | "role" | "title" | "city" | "photoPath" | "committeeScope"
+>;
+
+/**
+ * Shared booklet address template (National President Address design):
+ * section badge, profile card with photo/name/role, quote + message body.
+ */
 export function AddressSection({
   section,
   speaker,
@@ -12,20 +21,26 @@ export function AddressSection({
   confYear,
   pageNum,
   totalPages,
+  sectionLabel,
 }: {
   section: BookletSection;
-  speaker: NecMember | null;
+  speaker: AddressSpeaker | null;
   content: string | null | undefined;
   confName: string;
   confYear: number;
   pageNum: number;
   totalPages: number;
+  /** Optional override for page header / badge (roster address pages). */
+  sectionLabel?: string;
 }) {
+  const label = sectionLabel ?? section.title;
+  const trimmed = (content ?? "").trim();
+
   return (
     <A4Page
       pageNum={pageNum}
       totalPages={totalPages}
-      sectionLabel={section.title}
+      sectionLabel={label}
       confName={confName}
       confYear={confYear}
     >
@@ -45,7 +60,7 @@ export function AddressSection({
             marginBottom: "10px",
           }}
         >
-          {section.title}
+          {label}
         </div>
         <div
           style={{
@@ -75,7 +90,7 @@ export function AddressSection({
               {speaker.name}
             </div>
             <div style={{ fontSize: "10px", color: C.muted }}>
-              {roleLabel(speaker)}
+              {roleLabel(speaker as NecMember)}
               {speaker.city ? ` · ${speaker.city}` : ""}
             </div>
           </div>
@@ -96,7 +111,7 @@ export function AddressSection({
         &ldquo;
       </div>
 
-      {content ? (
+      {trimmed ? (
         <div
           style={{
             fontSize: "11.5px",
@@ -106,30 +121,15 @@ export function AddressSection({
             overflow: "hidden",
           }}
         >
-          {content.split("\n").map((line, i) => (
+          {trimmed.split("\n").map((line, i) => (
             <p key={i} style={{ marginBottom: "8px" }}>
               {line || <br />}
             </p>
           ))}
         </div>
-      ) : (
-        <div
-          style={{
-            padding: "32px",
-            textAlign: "center",
-            border: `2px dashed ${C.border}`,
-            borderRadius: "10px",
-          }}
-        >
-          <div style={{ fontSize: "11px", color: C.muted }}>
-            {section.type === "CHAIRMAN_ADDRESS"
-              ? 'The Chairman\'s address will appear here. Click "Write Address" in the Overview tab.'
-              : "Content not yet written. Use the Section Manager to add this text."}
-          </div>
-        </div>
-      )}
+      ) : null}
 
-      {speaker && content && (
+      {speaker && trimmed && (
         <div
           style={{
             marginTop: "24px",
@@ -144,7 +144,7 @@ export function AddressSection({
           <div
             style={{ fontSize: "10px", color: C.muted, fontStyle: "italic" }}
           >
-            {speaker.name} · {roleLabel(speaker)}
+            {speaker.name} · {roleLabel(speaker as NecMember)}
           </div>
         </div>
       )}
