@@ -185,12 +185,16 @@ export function buildBookletCoverSvg(ctx: BookletAssetContext): string {
 
   <rect x="${W / 2 - 230}" y="628" width="460" height="112" rx="14" fill="${C.white}18" stroke="${C.white}40"/>
   <text x="${W / 2}" y="668" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.date.fontSize}" font-weight="800" fill="${C.white}">${escapeXml(ctx.dateRange)}</text>
-  <text x="${W / 2}" y="696" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.venue.fontSize}" fill="${C.white}" opacity="0.9">${escapeXml(ctx.venue ?? "Conference Venue")}</text>
-  <text x="${W / 2}" y="718" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.location.fontSize}" fill="${C.white}" opacity="0.7">${escapeXml(buildCityRegionLine(ctx.city))}</text>
+  <text x="${W / 2}" y="696" text-anchor="middle" font-family="S,Arial,sans-serif" font-size="${T.venue.fontSize}" font-weight="600" fill="${C.white}">${escapeXml(ctx.venue ?? "Conference Venue")}</text>
+  <text x="${W / 2}" y="718" text-anchor="middle" font-family="B,Arial,sans-serif" font-size="${T.location.fontSize}" fill="${C.white}" opacity="0.9">${escapeXml(buildCityRegionLine(ctx.city))}</text>
+
+  <line x1="${W / 2 - 52}" y1="748" x2="${W / 2 - 18}" y2="748" stroke="${C.gold}" stroke-opacity="0.8"/>
+  <text x="${W / 2}" y="752" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.taglineMeta.fontSize}" font-weight="800" fill="${C.gold}" letter-spacing="1.4">EST. JULY 2006</text>
+  <line x1="${W / 2 + 18}" y1="748" x2="${W / 2 + 52}" y2="748" stroke="${C.gold}" stroke-opacity="0.8"/>
 
   ${flagStripes(W, 20, FLAG_7, H - 36)}
   <rect y="${H - 16}" width="${W}" height="16" fill="rgba(0,10,32,0.92)"/>
-  <text x="${W / 2}" y="${H - 5}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.footer.fontSize}" font-weight="700" fill="${C.white}" opacity="0.4" letter-spacing="1.4">OFFICIAL CONFERENCE BOOKLET · PAGE 1</text>
+  <text x="${W / 2}" y="${H - 5}" text-anchor="middle" font-family="H,Arial,sans-serif" font-size="${T.footer.fontSize}" font-weight="600" fill="${C.white}" opacity="0.7" letter-spacing="1.4">OFFICIAL CONFERENCE BOOKLET · PAGE 1</text>
 </svg>`;
 }
 

@@ -20,6 +20,7 @@ import {
   BookletDocument,
   computeBookletLayout,
 } from "./booklet-document";
+import { BOOKLET_FONT_STACK, bookletFont } from "./booklet-fonts";
 
 function bookletExportBasename(data: BookletData): string {
   const slug = (data.event.name || "conference-booklet")
@@ -131,6 +132,12 @@ export function BookletPreview({
           width: ${BOOKLET_A4.width}px;
           pointer-events: none;
           z-index: -1;
+          font-family: ${BOOKLET_FONT_STACK};
+        }
+        #booklet-print-root,
+        #booklet-print-root * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         @media print {
           html,
@@ -141,6 +148,7 @@ export function BookletPreview({
             height: auto !important;
             overflow: visible !important;
             background: white !important;
+            font-family: ${BOOKLET_FONT_STACK} !important;
           }
           /* Portal keeps print root on body; hide all other top-level nodes */
           body > :not(#booklet-print-root) {
@@ -160,6 +168,11 @@ export function BookletPreview({
             transform: none !important;
             pointer-events: auto !important;
             z-index: auto !important;
+            font-family: ${BOOKLET_FONT_STACK} !important;
+          }
+          #booklet-print-root,
+          #booklet-print-root * {
+            font-family: inherit !important;
           }
           #booklet-print-root > div {
             display: block !important;
@@ -341,7 +354,9 @@ export function BookletPreview({
             margin: "0 auto",
             marginBottom:
               zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
+            fontFamily: BOOKLET_FONT_STACK,
           }}
+          className={bookletFont.className}
         >
           <BookletDocument data={data} layout={layout} gap={16} />
         </div>
@@ -350,7 +365,7 @@ export function BookletPreview({
       {/* Off-screen print / PDF capture root — portaled to body to escape app chrome */}
       {portalReady &&
         createPortal(
-          <div id="booklet-print-root">
+          <div id="booklet-print-root" className={bookletFont.className}>
             <BookletDocument data={data} layout={layout} gap={0} />
           </div>,
           document.body,

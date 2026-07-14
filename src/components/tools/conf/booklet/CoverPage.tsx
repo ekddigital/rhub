@@ -226,6 +226,7 @@ export function CoverPage({
             textTransform: "uppercase",
             color: C.gold,
             marginBottom: `${S.orgNameMarginBottom}px`,
+            textShadow: "0 1px 12px rgba(0,0,0,0.55)",
           }}
         >
           Liberian Student Union in China
@@ -265,6 +266,7 @@ export function CoverPage({
               color: C.gold,
               marginBottom: `${S.subtitleMarginBottom}px`,
               letterSpacing: T.subtitle.letterSpacing,
+              textShadow: "0 1px 10px rgba(0,0,0,0.5)",
             }}
           >
             {bookletSubtitle}
@@ -301,6 +303,7 @@ export function CoverPage({
                 fontWeight: T.themeText.fontWeight,
                 color: C.white,
                 lineHeight: T.themeText.lineHeight,
+                textShadow: "0 1px 8px rgba(0,0,0,0.45)",
               }}
             >
               &ldquo;{theme}&rdquo;
@@ -337,6 +340,7 @@ export function CoverPage({
               color: C.white,
               marginBottom: `${S.dateMarginBottom}px`,
               letterSpacing: T.date.letterSpacing,
+              textShadow: "0 1px 10px rgba(0,0,0,0.55)",
             }}
           >
             {fmtRange(event.startsAt, event.endsAt)}
@@ -344,17 +348,21 @@ export function CoverPage({
           <div
             style={{
               fontSize: `${T.venue.fontSize}px`,
-              color: `${C.white}90`,
+              fontWeight: T.venue.fontWeight,
+              color: C.white,
               letterSpacing: T.venue.letterSpacing,
+              textShadow: "0 1px 8px rgba(0,0,0,0.45)",
             }}
+            lang="zh-Hans"
           >
             {event.venue}
           </div>
           <div
             style={{
               fontSize: `${T.location.fontSize}px`,
-              color: `${C.white}70`,
+              color: `${C.white}90`,
               marginTop: `${S.locationMarginTop}px`,
+              textShadow: "0 1px 6px rgba(0,0,0,0.4)",
             }}
           >
             {event.city}, People&apos;s Republic of China
@@ -366,26 +374,30 @@ export function CoverPage({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            gap: "12px",
             fontSize: `${T.tagline.fontSize}px`,
-            color: `${C.white}40`,
+            color: `${C.white}70`,
             letterSpacing: T.tagline.letterSpacing,
           }}
         >
           <span>🇱🇷</span>
           <span
-            style={{ height: "1px", width: "44px", background: `${C.white}18` }}
+            style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
           />
           <span
             style={{
               textTransform: "uppercase",
               fontSize: `${T.taglineMeta.fontSize}px`,
+              fontWeight: T.taglineMeta.fontWeight,
+              color: C.gold,
+              letterSpacing: T.taglineMeta.letterSpacing,
+              textShadow: "0 1px 8px rgba(0,0,0,0.55)",
             }}
           >
             Est. July 2006
           </span>
           <span
-            style={{ height: "1px", width: "44px", background: `${C.white}18` }}
+            style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
           />
           <span>🇨🇳</span>
         </div>
@@ -414,7 +426,8 @@ export function CoverPage({
             padding: "8px",
             background: "rgba(0,10,32,0.92)",
             fontSize: `${T.footer.fontSize}px`,
-            color: `${C.white}40`,
+            fontWeight: T.footer.fontWeight,
+            color: `${C.white}70`,
             letterSpacing: T.footer.letterSpacing,
             textTransform: "uppercase",
           }}

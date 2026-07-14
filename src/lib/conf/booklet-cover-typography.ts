@@ -23,7 +23,7 @@ export const COVER_TYPOGRAPHY = {
     letterSpacing: "0.04em",
   },
   themeLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 800,
     letterSpacing: "0.22em",
   },
@@ -38,21 +38,25 @@ export const COVER_TYPOGRAPHY = {
     letterSpacing: "0.02em",
   },
   venue: {
-    fontSize: 17,
+    fontSize: 18,
+    fontWeight: 600,
     letterSpacing: "0.05em",
   },
   location: {
-    fontSize: 15,
+    fontSize: 16,
   },
   tagline: {
     fontSize: 11,
     letterSpacing: "0.08em",
   },
   taglineMeta: {
-    fontSize: 10,
+    fontSize: 14,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
   },
   footer: {
-    fontSize: 9,
+    fontSize: 10,
+    fontWeight: 600,
     letterSpacing: "0.14em",
   },
   /** Decorative elements (not part of the text hierarchy). */
