@@ -165,7 +165,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           caption="Jinan metro station entrance — follow signage for Line transfers"
           minHeight={280}
           maxHeight={420}
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -228,7 +227,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.westDrivingRoutes}
           alt="Jinan West driving routes to hotel"
           caption="Driving routes from Jinan West Railway Station"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -255,7 +253,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationK904Bus}
           alt="Jinan Railway Station K904 bus route"
           caption="Direct K904 from downtown Jinan Railway Station"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -267,8 +264,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationTransitDetails}
           alt="Jinan Railway Station transit details"
           caption="Full transit details screenshot — downtown station to hotel"
-          objectFit="cover"
-          flex
         />
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan Railway Station)
@@ -282,7 +277,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationDrivingMap}
           alt="Jinan Railway Station driving map"
           caption="Driving route from Jinan Railway Station to hotel"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -317,7 +311,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastMetroLine3ToLine2}
           alt="Jinan East metro Line 3 to Line 2"
           caption="Line 3 → Line 2 transfer from Jinan East"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -338,7 +331,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             src: NAV_ASSETS.eastK904Transfer,
             alt: "Jinan East K904 transfer",
             caption: "K904 bus connection from Jinan East route",
-            objectFit: "cover",
           }}
         />
       </NavA4Page>
@@ -358,7 +350,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastDrivingRoutes}
           alt="Jinan East driving routes"
           caption="Driving routes from Jinan East Railway Station"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -394,7 +385,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.k904StopWalkToHotel}
           alt="Walk from K904 bus stop to hotel"
           caption="Final walk from Guoke Guoji bus stop to hotel"
-          objectFit="cover"
           flex
         />
       </NavA4Page>
@@ -436,7 +426,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src="/conf/assets/hotel/main_entrance_view.png"
           alt="Arcadia Spa Golf International Hotel entrance"
           caption="Arcadia Spa Golf International Hotel — Conference Venue"
-          objectFit="cover"
           flex
         />
       </NavA4Page>

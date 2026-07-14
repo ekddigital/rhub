@@ -13,7 +13,7 @@ export type NavImageSpec = {
   src: string;
   alt: string;
   caption?: string;
-  /** Default `contain`; use `cover` for portrait photos that should span full width. */
+  /** Default `contain` — mobile screenshots must stay fully visible. */
   objectFit?: "contain" | "cover";
 };
 
@@ -54,6 +54,7 @@ export function SectionHeading({
         color: C.blue,
         margin: level === 1 ? "0 0 6px" : "10px 0 5px",
         lineHeight: 1.3,
+        flexShrink: 0,
       }}
     >
       {children}
@@ -71,6 +72,7 @@ export function SubHeading({ children }: { children: ReactNode }) {
         margin: "6px 0 4px",
         letterSpacing: "0.04em",
         textTransform: "uppercase",
+        flexShrink: 0,
       }}
     >
       {children}
@@ -86,6 +88,7 @@ export function BodyText({ children }: { children: ReactNode }) {
         color: C.text,
         lineHeight: 1.55,
         margin: "0 0 5px",
+        flexShrink: 0,
       }}
     >
       {children}
@@ -102,6 +105,7 @@ export function StepList({ steps }: { steps: string[] }) {
         display: "flex",
         flexDirection: "column",
         gap: "3px",
+        flexShrink: 0,
       }}
     >
       {steps.map((step, i) => (
@@ -129,6 +133,7 @@ export function BulletList({ items }: { items: string[] }) {
         display: "flex",
         flexDirection: "column",
         gap: "2px",
+        flexShrink: 0,
       }}
     >
       {items.map((item, i) => (
@@ -156,6 +161,7 @@ export function WarningCallout({ children }: { children: ReactNode }) {
         borderRadius: "8px",
         border: `2px solid ${C.red}`,
         background: `${C.red}10`,
+        flexShrink: 0,
       }}
     >
       <div
@@ -184,6 +190,7 @@ export function InfoCallout({ children }: { children: ReactNode }) {
         fontSize: "9.5px",
         color: C.text,
         lineHeight: 1.5,
+        flexShrink: 0,
       }}
     >
       {children}
@@ -212,12 +219,11 @@ export function NavSingleImage({
         maxWidth: "100%",
         margin: flex ? "4px 0 0" : "4px 0 6px",
         textAlign: "center",
-        flex: flex ? 1 : undefined,
+        flex: flex ? "1 1 0" : undefined,
         minHeight: flex ? 0 : undefined,
-        height: flex ? "100%" : undefined,
         display: flex ? "flex" : undefined,
         flexDirection: flex ? "column" : undefined,
-        overflow: flex ? "hidden" : undefined,
+        justifyContent: flex ? "center" : undefined,
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -229,9 +235,9 @@ export function NavSingleImage({
           width: "100%",
           maxWidth: "100%",
           height: flex ? "100%" : "auto",
-          flex: flex ? 1 : undefined,
-          minHeight: flex ? (minHeight ? `${minHeight}px` : 0) : minHeight ? `${minHeight}px` : undefined,
-          maxHeight: flex ? undefined : `${maxHeight}px`,
+          flex: flex ? "1 1 auto" : undefined,
+          minHeight: flex ? (minHeight ? `${minHeight}px` : undefined) : minHeight ? `${minHeight}px` : undefined,
+          maxHeight: flex ? "100%" : `${maxHeight}px`,
           objectFit,
           borderRadius: "6px",
           border: `1px solid ${C.border}`,
@@ -307,14 +313,14 @@ export function NavDualImagesFull({
     >
       <NavSingleImage
         {...left}
-        objectFit={left.objectFit ?? "cover"}
+        objectFit={left.objectFit ?? "contain"}
         minHeight={minHeight}
         maxHeight={maxHeight}
         flex={flex}
       />
       <NavSingleImage
         {...right}
-        objectFit={right.objectFit ?? "cover"}
+        objectFit={right.objectFit ?? "contain"}
         minHeight={minHeight}
         maxHeight={maxHeight}
         flex={flex}
@@ -351,7 +357,7 @@ export function NavImageStackFull({
         <NavSingleImage
           key={i}
           {...img}
-          objectFit={img.objectFit ?? "cover"}
+          objectFit={img.objectFit ?? "contain"}
           minHeight={minHeight}
           maxHeight={maxHeight}
           flex={flex}
