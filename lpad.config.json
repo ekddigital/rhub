@@ -1,0 +1,13 @@
+{
+  "name": "rhub",
+  "type": "ssr",
+  "installCommand": "rm -rf node_modules && npm ci --prefer-offline --no-audit",
+  "buildCommand": "npm run build",
+  "env": {
+    "NEXT_PUBLIC_SITE_URL": "https://rhub.ekddigital.com",
+    "NEXTAUTH_URL": "https://rhub.ekddigital.com",
+    "PUPPETEER_SKIP_DOWNLOAD": "true",
+    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+    "NODE_OPTIONS": "--max-old-space-size=1536"
+  }
+}

@@ -21,7 +21,7 @@ export type BookletDownloadPart = {
   kind: BookletAssetKind;
   /** API `mode` for generated assets */
   mode?: string;
-  /** Static asset key (see BOOKLET_STATIC_ASSETS in route) */
+  /** Static asset key (see BOOKLET_STATIC_ASSETS) */
   assetKey?: string;
   /** File extension for static asset downloads */
   staticExt?: string;
@@ -191,6 +191,47 @@ export const BOOKLET_DOWNLOAD_PARTS: BookletDownloadPart[] = [
     formats: ["source"],
   },
 ];
+
+export const BOOKLET_STATIC_ASSETS: Record<
+  string,
+  { publicPath: string; mime: string; ext: string }
+> = {
+  "lsuic-logo": {
+    publicPath: "conf/lsuic_logo.png",
+    mime: "image/png",
+    ext: "png",
+  },
+  "liberia-seal": {
+    publicPath: "conf/liberia-seal.svg",
+    mime: "image/svg+xml",
+    ext: "svg",
+  },
+  "placeholder-delegate": {
+    publicPath: "conf/placeholder-delegate.svg",
+    mime: "image/svg+xml",
+    ext: "svg",
+  },
+  "city-evening": {
+    publicPath: "conf/assets/jinan_city/evening_view_portrait.png",
+    mime: "image/png",
+    ext: "png",
+  },
+  "hotel-entrance": {
+    publicPath: "conf/assets/hotel/main_entrance_view.png",
+    mime: "image/png",
+    ext: "png",
+  },
+  "hotel-conference-hall": {
+    publicPath: "conf/assets/hotel/conference_hall.jpg",
+    mime: "image/jpeg",
+    ext: "jpg",
+  },
+  "city-day": {
+    publicPath: "conf/assets/jinan_city/day_view_landscape.png",
+    mime: "image/png",
+    ext: "png",
+  },
+};
 
 export const BOOKLET_PART_GROUP_LABELS: Record<BookletPartGroup, string> = {
   "cover-pages": "Cover & back cover",

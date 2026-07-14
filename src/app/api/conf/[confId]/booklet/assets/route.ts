@@ -5,6 +5,7 @@ import path from "node:path";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
   BOOKLET_DOWNLOAD_PARTS,
+  BOOKLET_STATIC_ASSETS,
   type BookletDownloadPart,
 } from "@/lib/conf/booklet-download-catalog";
 import {
@@ -29,47 +30,6 @@ import {
 //   ?format=svg|png|source
 //   ?download=1
 //   ?scale=4                      — PNG raster scale (generated assets)
-
-export const BOOKLET_STATIC_ASSETS: Record<
-  string,
-  { publicPath: string; mime: string; ext: string }
-> = {
-  "lsuic-logo": {
-    publicPath: "conf/lsuic_logo.png",
-    mime: "image/png",
-    ext: "png",
-  },
-  "liberia-seal": {
-    publicPath: "conf/liberia-seal.svg",
-    mime: "image/svg+xml",
-    ext: "svg",
-  },
-  "placeholder-delegate": {
-    publicPath: "conf/placeholder-delegate.svg",
-    mime: "image/svg+xml",
-    ext: "svg",
-  },
-  "city-evening": {
-    publicPath: "conf/assets/jinan_city/evening_view_portrait.png",
-    mime: "image/png",
-    ext: "png",
-  },
-  "hotel-entrance": {
-    publicPath: "conf/assets/hotel/main_entrance_view.png",
-    mime: "image/png",
-    ext: "png",
-  },
-  "hotel-conference-hall": {
-    publicPath: "conf/assets/hotel/conference_hall.jpg",
-    mime: "image/jpeg",
-    ext: "jpg",
-  },
-  "city-day": {
-    publicPath: "conf/assets/jinan_city/day_view_landscape.png",
-    mime: "image/png",
-    ext: "png",
-  },
-};
 
 function toDataUri(data: Buffer, mime: string) {
   return `data:${mime};base64,${data.toString("base64")}`;
