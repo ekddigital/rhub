@@ -31,6 +31,8 @@ import {
   CheckSquare,
   Square,
   XCircle,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import {
   Card,
@@ -44,7 +46,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { BUDGET_CATEGORIES, BUDGET_STATUS_LABELS, COMMON_UNITS } from "@/lib/conf/config";
+import { BUDGET_CATEGORIES, BUDGET_STATUS_LABELS, BUDGET_EDIT_UNLOCK_LABELS, COMMON_UNITS } from "@/lib/conf/config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -138,6 +140,10 @@ type ServerBudget = {
   notes: string | null;
   createdAt: string;
   approvedAt: string | null;
+  isLocked: boolean;
+  editUnlockStatus: "NONE" | "PENDING" | "GRANTED";
+  editUnlockRequestedAt: string | null;
+  editUnlockRequestNote: string | null;
   rejectionNote?: string | null;
   creator: {
     id: string;
@@ -329,8 +335,14 @@ function canDeleteBudget(
   accessInfo?: AccessInfo,
 ): boolean {
   if (!accessInfo) return false;
-  if (budget.status === "APPROVED") return false;
+  if (budget.status === "APPROVED" || budget.isLocked) return false;
+
   if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
+
+  if (isBudgetOwner(budget, accessInfo)) {
+    return budget.status === "DRAFT" || budget.status === "REJECTED";
+  }
+
   if (!accessInfo.canApprovePayments || !accessInfo.committeeScope) return false;
   if (
     budget.creator.committeeScope &&
@@ -339,6 +351,55 @@ function canDeleteBudget(
     return false;
   }
   return true;
+}
+
+function canEditBudget(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo) return false;
+  if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
+  if (!isBudgetOwner(budget, accessInfo)) return false;
+  if (budget.status === "DRAFT" || budget.status === "REJECTED") return true;
+  if (budget.editUnlockStatus === "GRANTED") return true;
+  return false;
+}
+
+function canRequestEditAccess(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo || !isBudgetOwner(budget, accessInfo)) return false;
+  if (budget.status !== "REVIEW" && budget.status !== "APPROVED") return false;
+  if (budget.editUnlockStatus === "PENDING" || budget.editUnlockStatus === "GRANTED") {
+    return false;
+  }
+  return true;
+}
+
+function canGrantEditAccess(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo?.isChair && !accessInfo?.isSuperAdmin) return false;
+  if (budget.editUnlockStatus === "GRANTED") return false;
+  return budget.status === "REVIEW" || budget.status === "APPROVED";
+}
+
+function canRejectEditRequest(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo?.isChair && !accessInfo?.isSuperAdmin) return false;
+  return budget.editUnlockStatus === "PENDING";
+}
+
+function canRelockBudget(
+  budget: ServerBudget,
+  accessInfo?: AccessInfo,
+): boolean {
+  if (!accessInfo?.isChair && !accessInfo?.isSuperAdmin) return false;
+  return budget.editUnlockStatus === "GRANTED";
 }
 
 function budgetStatusBadge(budget: ServerBudget) {
@@ -682,6 +743,13 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   );
   const [rejectReason, setRejectReason] = useState("");
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [editingServerBudgetId, setEditingServerBudgetId] = useState<
+    string | null
+  >(null);
+  const [editRequestBudgetId, setEditRequestBudgetId] = useState<string | null>(
+    null,
+  );
+  const [editRequestNote, setEditRequestNote] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
   const [printPortalReady, setPrintPortalReady] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -815,12 +883,29 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const handleNewBudget = useCallback(() => {
     const draft = newDraft();
     setActiveDraft(draft);
+    setEditingServerBudgetId(null);
     setShowList(false);
   }, []);
 
   const handleLoadDraft = useCallback((draft: BudgetDraft) => {
     setActiveDraft(draft);
+    setEditingServerBudgetId(null);
     setShowList(false);
+  }, []);
+
+  const handleEditServerBudget = useCallback((budget: ServerBudget) => {
+    setActiveDraft(serverBudgetToDraft(budget));
+    setCreatorMemberId(budget.creator.id);
+    setEditingServerBudgetId(budget.id);
+    setShowList(false);
+    setNotice(null);
+    setError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const handleCancelServerEdit = useCallback(() => {
+    setEditingServerBudgetId(null);
+    setActiveDraft(newDraft());
   }, []);
 
   const handleDeleteDraft = useCallback(
@@ -1089,32 +1174,54 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setError(null);
     setNotice(null);
     try {
-      const res = await fetch(`/api/conf/${confId}/budgets`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: activeDraft.title.trim(),
-          category: activeDraft.category,
-          notes: activeDraft.notes.trim() || null,
-          createdBy: creatorMemberId,
-          items: validItems.map((item) => ({
-            name: item.name.trim(),
-            qty: item.qty,
-            unit: unitLabel(item),
-            unitPrice: item.unitPrice,
-            notes: item.notes.trim() || null,
-          })),
-        }),
-      });
+      const payload = {
+        title: activeDraft.title.trim(),
+        category: activeDraft.category,
+        notes: activeDraft.notes.trim() || null,
+        items: validItems.map((item) => ({
+          name: item.name.trim(),
+          qty: item.qty,
+          unit: unitLabel(item),
+          unitPrice: item.unitPrice,
+          notes: item.notes.trim() || null,
+        })),
+      };
+
+      const isUpdate = Boolean(editingServerBudgetId);
+      const res = await fetch(
+        isUpdate
+          ? `/api/conf/${confId}/budgets/${editingServerBudgetId}`
+          : `/api/conf/${confId}/budgets`,
+        {
+          method: isUpdate ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            isUpdate
+              ? payload
+              : {
+                  ...payload,
+                  createdBy: creatorMemberId,
+                },
+          ),
+        },
+      );
       if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as {
+        const responsePayload = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(payload.error ?? "Failed to submit budget");
+        throw new Error(
+          responsePayload.error ??
+            (isUpdate ? "Failed to update budget" : "Failed to submit budget"),
+        );
       }
 
       await refreshConferenceBudgets(confId);
-      setNotice("Budget submitted successfully.");
+      if (isUpdate) {
+        setNotice("Budget updated successfully.");
+      } else {
+        setNotice("Budget submitted successfully.");
+        setEditingServerBudgetId(null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to submit budget");
     } finally {
@@ -1127,6 +1234,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     activeDraft.title,
     confId,
     creatorMemberId,
+    editingServerBudgetId,
     refreshConferenceBudgets,
     submitLoading,
   ]);
@@ -1242,6 +1350,136 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [confId, deleteLoadingId, previewServerBudget?.id, refreshConferenceBudgets],
   );
 
+  const handleRequestEditAccess = useCallback(
+    async (budgetId: string) => {
+      if (!confId || !editRequestNote.trim() || actionLoading) return;
+      setActionLoading(`${budgetId}:request-edit`);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(
+          `/api/conf/${confId}/budgets/${budgetId}/request-edit`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ note: editRequestNote.trim() }),
+          },
+        );
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to request edit access");
+        }
+        await refreshConferenceBudgets(confId);
+        setEditRequestBudgetId(null);
+        setEditRequestNote("");
+        setNotice("Edit access request submitted.");
+      } catch (e) {
+        setError(
+          e instanceof Error ? e.message : "Failed to request edit access",
+        );
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, editRequestNote, refreshConferenceBudgets],
+  );
+
+  const handleUnlockBudget = useCallback(
+    async (budgetId: string) => {
+      if (!confId || actionLoading) return;
+      setActionLoading(`${budgetId}:unlock`);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(
+          `/api/conf/${confId}/budgets/${budgetId}/unlock-edit`,
+          { method: "POST" },
+        );
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to unlock budget");
+        }
+        await refreshConferenceBudgets(confId);
+        setNotice("Budget unlocked for editing.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to unlock budget");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, refreshConferenceBudgets],
+  );
+
+  const handleRejectEditRequest = useCallback(
+    async (budgetId: string) => {
+      if (!confId || actionLoading) return;
+      setActionLoading(`${budgetId}:reject-edit`);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(
+          `/api/conf/${confId}/budgets/${budgetId}/reject-edit-request`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "reject" }),
+          },
+        );
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to reject edit request");
+        }
+        await refreshConferenceBudgets(confId);
+        setNotice("Edit request rejected.");
+      } catch (e) {
+        setError(
+          e instanceof Error ? e.message : "Failed to reject edit request",
+        );
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, refreshConferenceBudgets],
+  );
+
+  const handleRelockBudget = useCallback(
+    async (budgetId: string) => {
+      if (!confId || actionLoading) return;
+      setActionLoading(`${budgetId}:relock`);
+      setError(null);
+      setNotice(null);
+      try {
+        const res = await fetch(
+          `/api/conf/${confId}/budgets/${budgetId}/reject-edit-request`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "relock" }),
+          },
+        );
+        if (!res.ok) {
+          const payload = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(payload.error ?? "Failed to re-lock budget");
+        }
+        await refreshConferenceBudgets(confId);
+        setNotice("Budget re-locked.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to re-lock budget");
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [actionLoading, confId, refreshConferenceBudgets],
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
@@ -1343,6 +1581,22 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {editingServerBudgetId && (
+        <div className="budget-no-print flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#002868]/30 bg-[#002868]/5 px-4 py-3">
+          <div className="text-sm">
+            <span className="font-medium text-[#002868]">
+              Editing submitted budget
+            </span>
+            <span className="ml-2 text-muted-foreground">
+              Changes save back to the server when you click Save Changes.
+            </span>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleCancelServerEdit}>
+            Cancel Edit
+          </Button>
         </div>
       )}
 
@@ -1884,8 +2138,21 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               const canExport = canSelectBudgetForExport(budget, effectiveAccess);
               const showReject = canRejectBudget(budget, effectiveAccess);
               const showDelete = canDeleteBudget(budget, effectiveAccess);
+              const showEdit = canEditBudget(budget, effectiveAccess);
+              const showRequestEdit = canRequestEditAccess(budget, effectiveAccess);
+              const showUnlock = canGrantEditAccess(budget, effectiveAccess);
+              const showRejectEditRequest = canRejectEditRequest(
+                budget,
+                effectiveAccess,
+              );
+              const showRelock = canRelockBudget(budget, effectiveAccess);
               const isRejecting = rejectingBudgetId === budget.id;
+              const isRequestingEdit = editRequestBudgetId === budget.id;
               const statusMeta = budgetStatusBadge(budget);
+              const unlockMeta =
+                budget.editUnlockStatus !== "NONE"
+                  ? BUDGET_EDIT_UNLOCK_LABELS[budget.editUnlockStatus]
+                  : null;
               const serverKey = serverExportKey(budget.id);
               const isExportSelected = selectedExportKeys.includes(serverKey);
 
@@ -1933,8 +2200,31 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </p>
                     </div>
                     </div>
-                    <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+                      {unlockMeta?.label && (
+                        <Badge variant={unlockMeta.variant}>
+                          {unlockMeta.label}
+                        </Badge>
+                      )}
+                      {(budget.isLocked ||
+                        (budget.status === "REVIEW" &&
+                          budget.editUnlockStatus !== "GRANTED")) && (
+                        <Badge variant="outline" className="gap-1">
+                          <Lock className="size-3" />
+                          Locked
+                        </Badge>
+                      )}
+                    </div>
                   </div>
+
+                  {budget.editUnlockStatus === "PENDING" &&
+                    budget.editUnlockRequestNote &&
+                    (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) && (
+                      <p className="mt-2 text-xs text-amber-800">
+                        Edit request: {budget.editUnlockRequestNote}
+                      </p>
+                    )}
 
                   {budget.status === "REJECTED" && budget.rejectionNote && (
                     <p className="mt-2 text-xs text-red-700">
@@ -1958,6 +2248,19 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       >
                         <Eye className="size-3.5" />
                         View Budget
+                      </Button>
+                    )}
+                    {showEdit && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditServerBudget(budget)}
+                        disabled={editingServerBudgetId === budget.id}
+                      >
+                        <Pencil className="size-3.5" />
+                        {editingServerBudgetId === budget.id
+                          ? "Editing…"
+                          : "Edit"}
                       </Button>
                     )}
                   {(canCommitteeApprove || canFinalApprove) && (
@@ -2029,6 +2332,84 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           </Button>
                         </div>
                       ))}
+                    {showRequestEdit &&
+                      (!isRequestingEdit ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditRequestBudgetId(budget.id);
+                            setEditRequestNote("");
+                          }}
+                        >
+                          <Lock className="size-3.5" />
+                          Request Edit Access
+                        </Button>
+                      ) : (
+                        <div className="flex w-full flex-wrap items-center gap-2">
+                          <Input
+                            className="h-8 min-w-48 flex-1 text-sm"
+                            placeholder="Why do you need to edit? (required)"
+                            value={editRequestNote}
+                            onChange={(e) => setEditRequestNote(e.target.value)}
+                          />
+                          <Button
+                            size="sm"
+                            disabled={
+                              !editRequestNote.trim() ||
+                              actionLoading === `${budget.id}:request-edit`
+                            }
+                            onClick={() =>
+                              void handleRequestEditAccess(budget.id)
+                            }
+                          >
+                            Submit Request
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditRequestBudgetId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ))}
+                    {showUnlock && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10"
+                        disabled={actionLoading === `${budget.id}:unlock`}
+                        onClick={() => void handleUnlockBudget(budget.id)}
+                      >
+                        <Unlock className="size-3.5" />
+                        {budget.editUnlockStatus === "PENDING"
+                          ? "Approve Edit Request"
+                          : "Unlock for Editing"}
+                      </Button>
+                    )}
+                    {showRejectEditRequest && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-red-500/40 text-red-600 hover:bg-red-500/10"
+                        disabled={actionLoading === `${budget.id}:reject-edit`}
+                        onClick={() => void handleRejectEditRequest(budget.id)}
+                      >
+                        Reject Edit Request
+                      </Button>
+                    )}
+                    {showRelock && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={actionLoading === `${budget.id}:relock`}
+                        onClick={() => void handleRelockBudget(budget.id)}
+                      >
+                        <Lock className="size-3.5" />
+                        Re-lock
+                      </Button>
+                    )}
                     {showDelete && (
                       <Button
                         size="sm"
@@ -2297,7 +2678,13 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               onClick={() => void handleSubmitToConference()}
               disabled={!creatorMemberId || submitLoading}
             >
-              {submitLoading ? "Submitting..." : "Submit Budget"}
+              {submitLoading
+                ? editingServerBudgetId
+                  ? "Saving..."
+                  : "Submitting..."
+                : editingServerBudgetId
+                  ? "Save Changes"
+                  : "Submit Budget"}
             </Button>
           </div>
         </CardContent>

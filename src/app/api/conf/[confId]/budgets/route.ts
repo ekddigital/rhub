@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { logFinanceAction } from "@/lib/conf/audit";
 
 // GET /api/conf/[confId]/budgets — list all budgets for a conference
 export async function GET(
@@ -194,6 +195,20 @@ export async function POST(
       include: {
         items: { orderBy: { no: "asc" } },
         creator: true,
+      },
+    });
+
+    await logFinanceAction({
+      confId,
+      actorUserId: auth.access.user?.id,
+      actorName: auth.access.user?.name ?? "System",
+      action: "BUDGET_CREATED",
+      entityType: "budget",
+      entityId: budget.id,
+      details: {
+        title: budget.title,
+        category: budget.category,
+        createdBy: creatorMember.id,
       },
     });
 

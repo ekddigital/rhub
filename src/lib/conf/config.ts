@@ -68,6 +68,18 @@ export const BUDGET_STATUS_LABELS: Record<
   REJECTED: { label: "Rejected", variant: "destructive" },
 };
 
+export const BUDGET_EDIT_UNLOCK_LABELS: Record<
+  string,
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline";
+  }
+> = {
+  NONE: { label: "", variant: "outline" },
+  PENDING: { label: "Edit Requested", variant: "outline" },
+  GRANTED: { label: "Unlocked for Editing", variant: "secondary" },
+};
+
 export const COMMON_UNITS = [
   "pcs",
   "KG",

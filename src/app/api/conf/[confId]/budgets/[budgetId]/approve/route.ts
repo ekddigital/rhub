@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { logFinanceAction } from "@/lib/conf/audit";
 
 // POST /api/conf/[confId]/budgets/[budgetId]/approve
 // Level-1 committee chair approval for budgets.
@@ -76,6 +77,21 @@ export async function POST(
       include: {
         items: { orderBy: { no: "asc" } },
         creator: true,
+      },
+    });
+
+    await logFinanceAction({
+      confId,
+      actorUserId: auth.access.user?.id,
+      actorName: auth.access.user?.name ?? "System",
+      action: "BUDGET_APPROVED",
+      entityType: "budget",
+      entityId: budgetId,
+      details: {
+        title: budget.title,
+        previousStatus: budget.status,
+        nextStatus: "REVIEW",
+        approvalLevel: "committee",
       },
     });
 

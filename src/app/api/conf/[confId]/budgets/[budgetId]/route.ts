@@ -1,8 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import {
+  canEditBudgetContent,
+  canDeleteBudget,
+  hasBudgetAdminRights,
+  isBudgetOwner,
+  resolveBudgetStatusAfterOwnerEdit,
+} from "@/lib/conf/budget-access";
+import { logFinanceAction } from "@/lib/conf/audit";
+import type { BudgetStatus } from "@prisma/client";
 
 type Params = { params: Promise<{ confId: string; budgetId: string }> };
+
+const budgetInclude = {
+  items: { orderBy: { no: "asc" as const } },
+  creator: true,
+};
 
 // GET /api/conf/[confId]/budgets/[budgetId] — single budget with items
 export async function GET(_req: Request, { params }: Params) {
@@ -14,8 +28,7 @@ export async function GET(_req: Request, { params }: Params) {
     const budget = await prisma.confBudget.findUnique({
       where: { id: budgetId },
       include: {
-        items: { orderBy: { no: "asc" } },
-        creator: true,
+        ...budgetInclude,
         payments: {
           include: { proofs: true },
           orderBy: { createdAt: "desc" },
@@ -46,7 +59,11 @@ export async function PUT(req: Request, { params }: Params) {
 
     const existing = await prisma.confBudget.findUnique({
       where: { id: budgetId },
-      select: { confId: true, status: true, createdBy: true },
+      include: {
+        creator: {
+          select: { committeeScope: true, canApprovePayments: true },
+        },
+      },
     });
 
     if (!existing || existing.confId !== confId) {
@@ -56,15 +73,23 @@ export async function PUT(req: Request, { params }: Params) {
     const body = await req.json();
     const { title, category, status, notes, items } = body;
 
-    const creator = await prisma.confMember.findUnique({
-      where: { id: existing.createdBy },
-      select: { committeeScope: true, canApprovePayments: true },
-    });
+    if (!canEditBudgetContent(existing, auth.access)) {
+      return NextResponse.json(
+        {
+          error:
+            "You do not have permission to edit this budget. Request edit access from the Conference Chair or Super Admin.",
+        },
+        { status: 403 },
+      );
+    }
+
+    const isAdmin = hasBudgetAdminRights(auth.access);
+    const isOwner = isBudgetOwner(existing, auth.access);
 
     if (
       status !== undefined &&
       (status === "APPROVED" || status === "REJECTED") &&
-      !(auth.access.isChair || auth.access.isSuperAdmin)
+      !isAdmin
     ) {
       return NextResponse.json(
         {
@@ -75,8 +100,12 @@ export async function PUT(req: Request, { params }: Params) {
       );
     }
 
-    if (status === "APPROVED" && existing.status === "DRAFT" && creator?.committeeScope) {
-      if (!creator.canApprovePayments) {
+    if (
+      status === "APPROVED" &&
+      existing.status === "DRAFT" &&
+      existing.creator.committeeScope
+    ) {
+      if (!existing.creator.canApprovePayments) {
         return NextResponse.json(
           {
             error:
@@ -87,30 +116,58 @@ export async function PUT(req: Request, { params }: Params) {
       }
     }
 
-    if (
-      existing.status === "APPROVED" &&
-      (title !== undefined || category !== undefined || notes !== undefined || Array.isArray(items))
-    ) {
-      return NextResponse.json(
-        { error: "Approved budgets are locked from edits" },
-        { status: 409 },
-      );
-    }
-
-    // Update the budget
     const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
     if (category !== undefined) updateData.category = category;
-    if (status !== undefined) updateData.status = status;
     if (notes !== undefined) updateData.notes = notes;
+
+    if (status !== undefined) {
+      updateData.status = status;
+    } else if (
+      isOwner &&
+      !isAdmin &&
+      (existing.status === "REJECTED" ||
+        existing.status === "APPROVED" ||
+        existing.editUnlockStatus === "GRANTED")
+    ) {
+      updateData.status = resolveBudgetStatusAfterOwnerEdit(existing.status);
+    }
 
     if (status === "APPROVED") {
       updateData.approvedAt = new Date();
       updateData.approvedBy =
         auth.access.memberId || auth.access.user?.id || null;
+      updateData.isLocked = true;
+      updateData.editUnlockStatus = "NONE";
+      updateData.editUnlockRequestedAt = null;
+      updateData.editUnlockRequestNote = null;
+      updateData.editUnlockedAt = null;
+      updateData.editUnlockedBy = null;
     }
 
-    // If items are provided, replace all items
+    if (isOwner && !isAdmin && existing.editUnlockStatus === "GRANTED") {
+      updateData.editUnlockStatus = "NONE";
+      updateData.editUnlockedAt = null;
+      updateData.editUnlockedBy = null;
+    }
+
+    if (
+      isOwner &&
+      !isAdmin &&
+      resolveBudgetStatusAfterOwnerEdit(existing.status) === "DRAFT" &&
+      (existing.status === "REJECTED" || existing.status === "APPROVED")
+    ) {
+      updateData.isLocked = false;
+      updateData.approvedAt = null;
+      updateData.approvedBy = null;
+    }
+
+    const contentChanged =
+      title !== undefined ||
+      category !== undefined ||
+      notes !== undefined ||
+      Array.isArray(items);
+
     if (Array.isArray(items)) {
       await prisma.$transaction(async (tx) => {
         await tx.confBudget.update({
@@ -118,7 +175,6 @@ export async function PUT(req: Request, { params }: Params) {
           data: updateData,
         });
 
-        // Delete existing items and recreate
         await tx.confBudgetItem.deleteMany({ where: { budgetId } });
         await tx.confBudgetItem.createMany({
           data: items.map(
@@ -147,19 +203,32 @@ export async function PUT(req: Request, { params }: Params) {
           ),
         });
       });
-    } else {
+    } else if (Object.keys(updateData).length > 0) {
       await prisma.confBudget.update({
         where: { id: budgetId },
         data: updateData,
       });
     }
 
+    if (contentChanged) {
+      await logFinanceAction({
+        confId,
+        actorUserId: auth.access.user?.id,
+        actorName: auth.access.user?.name ?? "System",
+        action: "BUDGET_UPDATED",
+        entityType: "budget",
+        entityId: budgetId,
+        details: {
+          previousStatus: existing.status,
+          nextStatus: (updateData.status as BudgetStatus | undefined) ?? existing.status,
+          title: title ?? existing.title,
+        },
+      });
+    }
+
     const updated = await prisma.confBudget.findUnique({
       where: { id: budgetId },
-      include: {
-        items: { orderBy: { no: "asc" } },
-        creator: true,
-      },
+      include: budgetInclude,
     });
 
     return NextResponse.json(updated);
@@ -192,37 +261,28 @@ export async function DELETE(_req: Request, { params }: Params) {
       return NextResponse.json({ error: "Budget not found" }, { status: 404 });
     }
 
-    if (existing.status === "APPROVED") {
+    if (!canDeleteBudget(existing, auth.access)) {
       return NextResponse.json(
-        { error: "Approved budgets are locked and cannot be deleted" },
-        { status: 409 },
+        { error: "You do not have permission to delete this budget" },
+        { status: 403 },
       );
     }
 
-    const hasGlobalDeleteRights =
-      auth.access.isChair || auth.access.isSuperAdmin;
-    if (!hasGlobalDeleteRights) {
-      if (!auth.access.canApprovePayments || !auth.access.committeeScope) {
-        return NextResponse.json(
-          { error: "Chair, Super Admin, or committee approval rights required" },
-          { status: 403 },
-        );
-      }
-
-      if (
-        existing.creator.committeeScope &&
-        existing.creator.committeeScope !== auth.access.committeeScope
-      ) {
-        return NextResponse.json(
-          {
-            error: "You can only delete budgets in your committee scope",
-          },
-          { status: 403 },
-        );
-      }
-    }
-
     await prisma.confBudget.delete({ where: { id: budgetId } });
+
+    await logFinanceAction({
+      confId,
+      actorUserId: auth.access.user?.id,
+      actorName: auth.access.user?.name ?? "System",
+      action: "BUDGET_DELETED",
+      entityType: "budget",
+      entityId: budgetId,
+      details: {
+        title: existing.title,
+        status: existing.status,
+      },
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("Failed to delete budget:", error);

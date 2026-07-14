@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { canGrantBudgetEditUnlock } from "@/lib/conf/budget-access";
 import { logFinanceAction } from "@/lib/conf/audit";
 
-// POST /api/conf/[confId]/budgets/[budgetId]/final-approve
-// Level-2 conference chair / super admin final approval.
+// POST /api/conf/[confId]/budgets/[budgetId]/unlock-edit
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ confId: string; budgetId: string }> },
@@ -18,11 +18,7 @@ export async function POST(
       where: { id: budgetId },
       include: {
         creator: {
-          select: {
-            id: true,
-            committeeScope: true,
-            canApprovePayments: true,
-          },
+          select: { committeeScope: true },
         },
       },
     });
@@ -31,38 +27,20 @@ export async function POST(
       return NextResponse.json({ error: "Budget not found" }, { status: 404 });
     }
 
-    if (budget.status !== "DRAFT" && budget.status !== "REVIEW") {
+    if (!canGrantBudgetEditUnlock(budget, auth.access)) {
       return NextResponse.json(
-        { error: `Cannot final-approve budget with status: ${budget.status}` },
+        { error: "This budget cannot be unlocked for editing" },
         { status: 409 },
       );
-    }
-
-    if (budget.status === "DRAFT" && budget.creator.committeeScope) {
-      const creatorIsCommitteeChair = Boolean(budget.creator.canApprovePayments);
-      if (!creatorIsCommitteeChair) {
-        return NextResponse.json(
-          {
-            error:
-              "Committee approval is required before final approval for committee-scoped budgets.",
-          },
-          { status: 409 },
-        );
-      }
     }
 
     const updated = await prisma.confBudget.update({
       where: { id: budgetId },
       data: {
-        status: "APPROVED",
-        approvedAt: new Date(),
-        approvedBy: auth.access.memberId || auth.access.user?.id || null,
-        isLocked: true,
-        editUnlockStatus: "NONE",
-        editUnlockRequestedAt: null,
-        editUnlockRequestNote: null,
-        editUnlockedAt: null,
-        editUnlockedBy: null,
+        editUnlockStatus: "GRANTED",
+        editUnlockedAt: new Date(),
+        editUnlockedBy: auth.access.user?.id ?? null,
+        isLocked: false,
       },
       include: {
         items: { orderBy: { no: "asc" } },
@@ -74,24 +52,22 @@ export async function POST(
       confId,
       actorUserId: auth.access.user?.id,
       actorName: auth.access.user?.name ?? "System",
-      action: "BUDGET_APPROVED",
+      action: "BUDGET_EDIT_UNLOCK_GRANTED",
       entityType: "budget",
       entityId: budgetId,
       details: {
         title: budget.title,
-        previousStatus: budget.status,
-        nextStatus: "APPROVED",
-        approvalLevel: "final",
+        status: budget.status,
+        requestNote: budget.editUnlockRequestNote,
       },
     });
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Failed to final-approve budget:", error);
+    console.error("Failed to grant budget edit access:", error);
     return NextResponse.json(
-      { error: "Failed to final-approve budget" },
+      { error: "Failed to grant edit access" },
       { status: 500 },
     );
   }
 }
-

@@ -603,6 +603,12 @@ enum BudgetStatus {
     REJECTED
 }
 
+enum BudgetEditUnlockStatus {
+    NONE
+    PENDING
+    GRANTED
+}
+
 enum PayMethod {
     WECHAT
     ALIPAY
@@ -799,6 +805,12 @@ model ConfBudget {
     notes      String?      @db.Text
     approvedBy String?
     approvedAt DateTime?
+    isLocked   Boolean      @default(false)
+    editUnlockStatus      BudgetEditUnlockStatus @default(NONE)
+    editUnlockRequestedAt DateTime?
+    editUnlockRequestNote String?                @db.Text
+    editUnlockedAt        DateTime?
+    editUnlockedBy        String? // User id of admin who granted unlock
     createdAt  DateTime     @default(now())
     updatedAt  DateTime     @updatedAt
 
@@ -810,6 +822,8 @@ model ConfBudget {
     @@index([confId])
     @@index([createdBy])
     @@index([status])
+    @@index([isLocked])
+    @@index([editUnlockStatus])
 }
 
 model ConfBudgetItem {
