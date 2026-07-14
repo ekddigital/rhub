@@ -6,6 +6,32 @@ import {
   NAV_GUIDE_META,
 } from "./content-data";
 
+/** Usable horizontal space inside NavA4Page (794px page − 40px side padding × 2). */
+export const NAV_CONTENT_WIDTH = 714;
+
+export type NavImageSpec = {
+  src: string;
+  alt: string;
+  caption?: string;
+};
+
+export function PageContent({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "100%",
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function SectionHeading({
   id,
   children,
@@ -163,32 +189,23 @@ export function InfoCallout({ children }: { children: ReactNode }) {
   );
 }
 
-export function NavImage({
+export function NavSingleImage({
   src,
   alt,
   caption,
-  maxHeight = 200,
-  fillSpace = false,
-}: {
-  src: string;
-  alt: string;
-  caption?: string;
+  maxHeight = 360,
+  minHeight,
+}: NavImageSpec & {
   maxHeight?: number;
-  fillSpace?: boolean;
+  minHeight?: number;
 }) {
   return (
     <figure
       style={{
-        margin: fillSpace ? "4px 0 0" : "4px 0 6px",
+        width: "100%",
+        maxWidth: "100%",
+        margin: "4px 0 6px",
         textAlign: "center",
-        ...(fillSpace
-          ? {
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-            }
-          : {}),
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -196,14 +213,16 @@ export function NavImage({
         src={src}
         alt={alt}
         style={{
+          display: "block",
+          width: "100%",
           maxWidth: "100%",
-          maxHeight: fillSpace ? "100%" : `${maxHeight}px`,
-          width: "auto",
-          height: fillSpace ? "100%" : "auto",
+          height: "auto",
+          minHeight: minHeight ? `${minHeight}px` : undefined,
+          maxHeight: `${maxHeight}px`,
           objectFit: "contain",
           borderRadius: "6px",
           border: `1px solid ${C.border}`,
-          ...(fillSpace ? { flex: 1, minHeight: 0 } : {}),
+          margin: "0 auto",
         }}
       />
       {caption && (
@@ -213,7 +232,6 @@ export function NavImage({
             color: C.muted,
             marginTop: "3px",
             fontStyle: "italic",
-            flexShrink: 0,
           }}
         >
           {caption}
@@ -223,26 +241,119 @@ export function NavImage({
   );
 }
 
-export function TwoColImages({
+/** Side-by-side route screenshots — each column ~45% of content width. */
+export function NavTwoColImages({
   left,
   right,
+  minHeight = 240,
+  maxHeight = 320,
 }: {
-  left: { src: string; alt: string; caption?: string };
-  right: { src: string; alt: string; caption?: string };
+  left: NavImageSpec;
+  right: NavImageSpec;
+  minHeight?: number;
+  maxHeight?: number;
 }) {
   return (
     <div
       style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
-        gap: "8px",
-        margin: "4px 0",
+        gap: "12px",
+        width: "100%",
+        maxWidth: "100%",
+        margin: "4px 0 6px",
       }}
     >
-      <NavImage {...left} maxHeight={170} />
-      <NavImage {...right} maxHeight={170} />
+      <NavSingleImage {...left} minHeight={minHeight} maxHeight={maxHeight} />
+      <NavSingleImage {...right} minHeight={minHeight} maxHeight={maxHeight} />
     </div>
   );
+}
+
+/** Vertical stack of images (e.g. in a split-column aside). */
+export function NavImageStack({
+  images,
+  minHeight = 200,
+  maxHeight = 240,
+}: {
+  images: NavImageSpec[];
+  minHeight?: number;
+  maxHeight?: number;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        width: "100%",
+      }}
+    >
+      {images.map((img, i) => (
+        <NavSingleImage
+          key={i}
+          {...img}
+          minHeight={minHeight}
+          maxHeight={maxHeight}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Text left + image(s) right — uses empty horizontal space on route pages. */
+export function TextImageSplit({
+  text,
+  aside,
+  ratio = "55fr 45fr",
+}: {
+  text: ReactNode;
+  aside: ReactNode;
+  ratio?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: ratio,
+        gap: "14px",
+        width: "100%",
+        maxWidth: "100%",
+        alignItems: "start",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>{text}</div>
+      <div style={{ minWidth: 0, width: "100%" }}>{aside}</div>
+    </div>
+  );
+}
+
+/** @deprecated Use NavSingleImage — kept for backward compatibility. */
+export function NavImage({
+  src,
+  alt,
+  caption,
+  maxHeight = 360,
+}: NavImageSpec & { maxHeight?: number; fillSpace?: boolean }) {
+  return (
+    <NavSingleImage
+      src={src}
+      alt={alt}
+      caption={caption}
+      maxHeight={maxHeight}
+    />
+  );
+}
+
+/** @deprecated Use NavTwoColImages */
+export function TwoColImages({
+  left,
+  right,
+}: {
+  left: NavImageSpec;
+  right: NavImageSpec;
+}) {
+  return <NavTwoColImages left={left} right={right} />;
 }
 
 export function HubTable() {
@@ -414,6 +525,7 @@ export function CheatSheetBox() {
         padding: "8px 10px",
         background: C.lightBlue,
         marginTop: "4px",
+        width: "100%",
       }}
     >
       <SectionHeading level={3}>Attendee Quick Reference Cheat Sheet</SectionHeading>
@@ -463,11 +575,12 @@ export function ContactSupportBlock() {
   return (
     <div
       style={{
-        marginTop: "8px",
+        marginTop: "4px",
         padding: "8px 10px",
         borderRadius: "8px",
         border: `1.5px solid ${C.blue}30`,
         background: `${C.blue}06`,
+        width: "100%",
       }}
     >
       <SectionHeading level={3}>Conference Travel Support Contact</SectionHeading>
