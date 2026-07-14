@@ -23,7 +23,7 @@ import {
   HotelMapCallout,
 } from "./ui-blocks";
 
-export const NAV_GUIDE_TOTAL_PAGES = 15;
+export const NAV_GUIDE_TOTAL_PAGES = 13;
 
 function NavA4Page({
   children,
@@ -170,7 +170,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         />
       </NavA4Page>
 
-      {/* Page 4 — Route 1 West transit: steps only */}
+      {/* Page 4 — Route 1 West transit: steps + metro route maps */}
       <NavA4Page pageNum={4} sectionLabel="Route 1 · Transit">
         <SectionHeading id="route1-transit" level={1}>
           2. Route 1: Jinan West Railway Station (Recommended)
@@ -193,10 +193,6 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel",
           ]}
         />
-      </NavA4Page>
-
-      {/* Page 5 — Route 1 West transit: metro route maps */}
-      <NavA4Page pageNum={5} sectionLabel="Route 1 · Metro Maps">
         <SubHeading>Route 1 Metro Route Maps (Jinan West)</SubHeading>
         <BodyText>
           Reference screenshots for the Line 4 → Line 2 transfer and the Line 2
@@ -213,13 +209,11 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             alt: "Jinan West Line 2 to K904 bus",
             caption: "Line 2 → K904 bus connection",
           }}
-          minHeight={300}
-          maxHeight={360}
         />
       </NavA4Page>
 
-      {/* Page 6 — Route 1 West taxi */}
-      <NavA4Page pageNum={6} sectionLabel="Route 1 · Taxi">
+      {/* Page 5 — Route 1 West taxi */}
+      <NavA4Page pageNum={5} sectionLabel="Route 1 · Taxi">
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan West)
         </SubHeading>
@@ -234,14 +228,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.westDrivingRoutes}
           alt="Jinan West driving routes to hotel"
           caption="Driving routes from Jinan West Railway Station"
-          minHeight={300}
-          maxHeight={420}
+          objectFit="cover"
           flex
         />
       </NavA4Page>
 
-      {/* Page 7 — Route 2 transit steps + K904 bus */}
-      <NavA4Page pageNum={7} sectionLabel="Route 2 · Transit">
+      {/* Page 6 — Route 2 transit steps + K904 bus */}
+      <NavA4Page pageNum={6} sectionLabel="Route 2 · Transit">
         <SectionHeading id="route2-transit" level={1}>
           3. Route 2: Jinan Railway Station (Downtown Jinan)
         </SectionHeading>
@@ -262,21 +255,20 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationK904Bus}
           alt="Jinan Railway Station K904 bus route"
           caption="Direct K904 from downtown Jinan Railway Station"
-          minHeight={300}
-          maxHeight={400}
+          objectFit="cover"
           flex
         />
       </NavA4Page>
 
-      {/* Page 8 — Route 2 transit details + taxi + driving */}
-      <NavA4Page pageNum={8} sectionLabel="Route 2 · Details">
+      {/* Page 7 — Route 2 transit details + taxi + driving */}
+      <NavA4Page pageNum={7} sectionLabel="Route 2 · Details">
         <SubHeading>Route 2 Full Transit Details (Reference)</SubHeading>
         <NavFullWidthImage
           src={NAV_ASSETS.railwayStationTransitDetails}
           alt="Jinan Railway Station transit details"
           caption="Full transit details screenshot — downtown station to hotel"
-          minHeight={260}
-          maxHeight={300}
+          objectFit="cover"
+          flex
         />
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan Railway Station)
@@ -290,13 +282,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.railwayStationDrivingMap}
           alt="Jinan Railway Station driving map"
           caption="Driving route from Jinan Railway Station to hotel"
-          minHeight={280}
-          maxHeight={340}
+          objectFit="cover"
+          flex
         />
       </NavA4Page>
 
-      {/* Page 9 — Route 3 East transit steps */}
-      <NavA4Page pageNum={9} sectionLabel="Route 3 · Transit">
+      {/* Page 8 — Route 3 East transit steps + metro map */}
+      <NavA4Page pageNum={8} sectionLabel="Route 3 · Transit">
         <SectionHeading id="route3-transit" level={1}>
           4. Route 3: Jinan East Railway Station (Farthest Hub)
         </SectionHeading>
@@ -317,31 +309,21 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "8-minute walk to hotel",
           ]}
         />
-      </NavA4Page>
-
-      {/* Page 10 — Route 3 East metro map */}
-      <NavA4Page pageNum={10} sectionLabel="Route 3 · Metro Map">
-        <NavImagePage
-          title={
-            <SubHeading>Route 3 Metro Route Map (Jinan East)</SubHeading>
-          }
-          subtitle={
-            <BodyText>
-              Line 3 → Line 2 transfer from Jinan East Railway Station.
-            </BodyText>
-          }
-          image={{
-            src: NAV_ASSETS.eastMetroLine3ToLine2,
-            alt: "Jinan East metro Line 3 to Line 2",
-            caption: "Line 3 → Line 2 transfer from Jinan East",
-          }}
-          minHeight={300}
-          maxHeight={420}
+        <SubHeading>Route 3 Metro Route Map (Jinan East)</SubHeading>
+        <BodyText>
+          Line 3 → Line 2 transfer from Jinan East Railway Station.
+        </BodyText>
+        <NavFullWidthImage
+          src={NAV_ASSETS.eastMetroLine3ToLine2}
+          alt="Jinan East metro Line 3 to Line 2"
+          caption="Line 3 → Line 2 transfer from Jinan East"
+          objectFit="cover"
+          flex
         />
       </NavA4Page>
 
-      {/* Page 11 — Route 3 East K904 transfer */}
-      <NavA4Page pageNum={11} sectionLabel="Route 3 · K904">
+      {/* Page 9 — Route 3 East K904 transfer */}
+      <NavA4Page pageNum={9} sectionLabel="Route 3 · K904">
         <NavImagePage
           title={
             <SubHeading>Route 3 K904 Bus Connection (Jinan East)</SubHeading>
@@ -356,14 +338,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             src: NAV_ASSETS.eastK904Transfer,
             alt: "Jinan East K904 transfer",
             caption: "K904 bus connection from Jinan East route",
+            objectFit: "cover",
           }}
-          minHeight={300}
-          maxHeight={420}
         />
       </NavA4Page>
 
-      {/* Page 12 — Route 3 East taxi + driving */}
-      <NavA4Page pageNum={12} sectionLabel="Route 3 · Taxi">
+      {/* Page 10 — Route 3 East taxi + driving */}
+      <NavA4Page pageNum={10} sectionLabel="Route 3 · Taxi">
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan East)
         </SubHeading>
@@ -377,14 +358,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.eastDrivingRoutes}
           alt="Jinan East driving routes"
           caption="Driving routes from Jinan East Railway Station"
-          minHeight={320}
-          maxHeight={440}
+          objectFit="cover"
           flex
         />
       </NavA4Page>
 
-      {/* Page 13 — K904 Rules */}
-      <NavA4Page pageNum={13} sectionLabel="K904 Rules">
+      {/* Page 11 — K904 Rules */}
+      <NavA4Page pageNum={11} sectionLabel="K904 Rules">
         <SectionHeading id="k904-rules" level={1}>
           5. Critical Bus K904 Rules for All Attendees
         </SectionHeading>
@@ -414,13 +394,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src={NAV_ASSETS.k904StopWalkToHotel}
           alt="Walk from K904 bus stop to hotel"
           caption="Final walk from Guoke Guoji bus stop to hotel"
-          minHeight={280}
-          maxHeight={320}
+          objectFit="cover"
+          flex
         />
       </NavA4Page>
 
-      {/* Page 14 — Walking + Cheat Sheet */}
-      <NavA4Page pageNum={14} sectionLabel="Walking & Cheat Sheet">
+      {/* Page 12 — Walking + Cheat Sheet */}
+      <NavA4Page pageNum={12} sectionLabel="Walking & Cheat Sheet">
         <SectionHeading id="walking" level={1}>
           6. Hotel Final Walking Directions (From Guoke Guoji Bus Stop)
         </SectionHeading>
@@ -443,8 +423,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <CheatSheetBox />
       </NavA4Page>
 
-      {/* Page 15 — Support Contacts + hotel photo */}
-      <NavA4Page pageNum={15} sectionLabel="Support Contacts">
+      {/* Page 13 — Support Contacts + hotel photo */}
+      <NavA4Page pageNum={13} sectionLabel="Support Contacts">
         <SectionHeading level={1}>Conference Travel Support</SectionHeading>
         <BodyText>
           For travel assistance before or during the conference, contact the
@@ -456,8 +436,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           src="/conf/assets/hotel/main_entrance_view.png"
           alt="Arcadia Spa Golf International Hotel entrance"
           caption="Arcadia Spa Golf International Hotel — Conference Venue"
-          minHeight={300}
-          maxHeight={400}
+          objectFit="cover"
           flex
         />
       </NavA4Page>

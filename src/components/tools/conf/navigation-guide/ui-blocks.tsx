@@ -214,8 +214,10 @@ export function NavSingleImage({
         textAlign: "center",
         flex: flex ? 1 : undefined,
         minHeight: flex ? 0 : undefined,
+        height: flex ? "100%" : undefined,
         display: flex ? "flex" : undefined,
         flexDirection: flex ? "column" : undefined,
+        overflow: flex ? "hidden" : undefined,
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -228,7 +230,7 @@ export function NavSingleImage({
           maxWidth: "100%",
           height: flex ? "100%" : "auto",
           flex: flex ? 1 : undefined,
-          minHeight: minHeight ? `${minHeight}px` : undefined,
+          minHeight: flex ? (minHeight ? `${minHeight}px` : 0) : minHeight ? `${minHeight}px` : undefined,
           maxHeight: flex ? undefined : `${maxHeight}px`,
           objectFit,
           borderRadius: "6px",
@@ -274,17 +276,20 @@ export function NavFullWidthImage({
   );
 }
 
-/** Two route screenshots side-by-side at ~48% width each, full content width. */
+/** Two route screenshots side-by-side at ~48% width each, filling remaining page height. */
 export function NavDualImagesFull({
   left,
   right,
-  minHeight = 300,
-  maxHeight = 360,
+  minHeight = 200,
+  maxHeight,
+  flex = true,
 }: {
   left: NavImageSpec;
   right: NavImageSpec;
   minHeight?: number;
   maxHeight?: number;
+  /** When true (default), images expand to fill remaining vertical space. */
+  flex?: boolean;
 }) {
   return (
     <div
@@ -294,46 +299,62 @@ export function NavDualImagesFull({
         gap: "12px",
         width: "100%",
         maxWidth: "100%",
-        margin: "4px 0 6px",
-        flex: 1,
-        minHeight: 0,
+        margin: flex ? "4px 0 0" : "4px 0 6px",
+        flex: flex ? 1 : undefined,
+        minHeight: flex ? 0 : undefined,
         alignItems: "stretch",
       }}
     >
-      <NavSingleImage {...left} minHeight={minHeight} maxHeight={maxHeight} />
-      <NavSingleImage {...right} minHeight={minHeight} maxHeight={maxHeight} />
+      <NavSingleImage
+        {...left}
+        objectFit={left.objectFit ?? "cover"}
+        minHeight={minHeight}
+        maxHeight={maxHeight}
+        flex={flex}
+      />
+      <NavSingleImage
+        {...right}
+        objectFit={right.objectFit ?? "cover"}
+        minHeight={minHeight}
+        maxHeight={maxHeight}
+        flex={flex}
+      />
     </div>
   );
 }
 
-/** Two full-width images stacked vertically — each at readable size. */
+/** Two full-width images stacked vertically — each shares remaining page height equally. */
 export function NavImageStackFull({
   images,
-  minHeight = 300,
-  maxHeight = 360,
+  minHeight = 200,
+  maxHeight,
+  flex = true,
 }: {
   images: NavImageSpec[];
   minHeight?: number;
   maxHeight?: number;
+  /** When true (default), stack expands to fill remaining vertical space. */
+  flex?: boolean;
 }) {
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "8px",
         width: "100%",
-        flex: 1,
-        minHeight: 0,
+        flex: flex ? 1 : undefined,
+        minHeight: flex ? 0 : undefined,
       }}
     >
       {images.map((img, i) => (
         <NavSingleImage
           key={i}
           {...img}
+          objectFit={img.objectFit ?? "cover"}
           minHeight={minHeight}
           maxHeight={maxHeight}
-          flex={images.length === 1}
+          flex={flex}
         />
       ))}
     </div>
