@@ -164,7 +164,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           alt="Jinan metro station entrance"
           caption="Jinan metro station entrance — follow signage for Line transfers"
           minHeight={280}
-          maxHeight={320}
+          maxHeight={420}
+          objectFit="cover"
+          flex
         />
       </NavA4Page>
 

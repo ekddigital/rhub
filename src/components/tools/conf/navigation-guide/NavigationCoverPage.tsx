@@ -354,26 +354,30 @@ export function NavigationCoverPage() {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "10px",
+            gap: "12px",
             fontSize: `${T.tagline.fontSize}px`,
-            color: `${C.white}40`,
+            color: `${C.white}70`,
             letterSpacing: T.tagline.letterSpacing,
           }}
         >
           <span>🇱🇷</span>
           <span
-            style={{ height: "1px", width: "44px", background: `${C.white}18` }}
+            style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
           />
           <span
             style={{
               textTransform: "uppercase",
-              fontSize: `${T.taglineMeta.fontSize}px`,
+              fontSize: "14px",
+              fontWeight: 800,
+              color: C.gold,
+              letterSpacing: "0.14em",
+              textShadow: "0 1px 8px rgba(0,0,0,0.55)",
             }}
           >
             Section A: Transit · Section B: Taxi
           </span>
           <span
-            style={{ height: "1px", width: "44px", background: `${C.white}18` }}
+            style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
           />
           <span>🇨🇳</span>
         </div>

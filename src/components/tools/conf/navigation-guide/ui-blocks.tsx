@@ -13,6 +13,8 @@ export type NavImageSpec = {
   src: string;
   alt: string;
   caption?: string;
+  /** Default `contain`; use `cover` for portrait photos that should span full width. */
+  objectFit?: "contain" | "cover";
 };
 
 export function PageContent({ children }: { children: ReactNode }) {
@@ -196,6 +198,7 @@ export function NavSingleImage({
   maxHeight = 360,
   minHeight,
   flex,
+  objectFit = "contain",
 }: NavImageSpec & {
   maxHeight?: number;
   minHeight?: number;
@@ -227,7 +230,7 @@ export function NavSingleImage({
           flex: flex ? 1 : undefined,
           minHeight: minHeight ? `${minHeight}px` : undefined,
           maxHeight: flex ? undefined : `${maxHeight}px`,
-          objectFit: "contain",
+          objectFit,
           borderRadius: "6px",
           border: `1px solid ${C.border}`,
           margin: "0 auto",
