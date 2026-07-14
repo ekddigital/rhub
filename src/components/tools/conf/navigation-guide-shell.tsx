@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { NavigationGuidePreview } from "@/components/tools/conf/navigation-guide/NavigationGuidePreview";
-import { NAV_GUIDE_META } from "@/components/tools/conf/navigation-guide/content-data";
+import { HOTEL_ADDRESS_LABEL, NAV_GUIDE_META } from "@/components/tools/conf/navigation-guide/content-data";
 
 export function NavigationGuideShell() {
   return (
@@ -48,10 +48,15 @@ export function NavigationGuideShell() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="text-xs text-muted-foreground">
-          Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; — Includes public transit
-          (Section A) and taxi/private car routes (Section B) from all three
-          Jinan railway stations.
+        <CardContent className="space-y-1 text-xs text-muted-foreground">
+          <p>
+            Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; — Includes public transit
+            (Section A) and taxi/private car routes (Section B) from all three
+            Jinan railway stations.
+          </p>
+          <p>
+            {HOTEL_ADDRESS_LABEL}: {NAV_GUIDE_META.addressZh}
+          </p>
         </CardContent>
       </Card>
 

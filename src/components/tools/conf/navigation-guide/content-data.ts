@@ -10,11 +10,49 @@ export const NAV_GUIDE_META = {
   city: "Jinan",
 } as const;
 
-export const HOTEL_DIDI_TIP =
-  "In DiDi (滴滴), paste the Chinese hotel name or full address above into the destination search.";
+export const HOTEL_ADDRESS_LABEL =
+  "Hotel address (DiDi / maps / bus apps)";
 
-export const HOTEL_MAP_TIP =
-  "Same address works in Amap (高德), Baidu Maps, Apple Maps, and Google Maps.";
+export const HOTEL_APP_SEARCH_TIP =
+  "Copy the Chinese hotel name or full address above into DiDi (滴滴), Amap (高德), Baidu Maps, Apple Maps, Google Maps, or local bus apps.";
+
+export const JINAN_TRAIN_HUBS = [
+  {
+    id: "west",
+    en: "Jinan West Railway Station",
+    zh: "济南西站",
+    badge: "Recommended" as const,
+    drive: "23–32 mins",
+    toll: "¥10–20",
+    note: "Closest to the hotel",
+    cheatTag: "Best",
+    transitCost: "¥10 total",
+  },
+  {
+    id: "central",
+    en: "Jinan Railway Station",
+    zh: "济南站",
+    badge: null,
+    drive: "~36 mins",
+    toll: "¥10",
+    note: "Downtown hub",
+    cheatTag: "Downtown",
+    transitCost: "¥6 total",
+  },
+  {
+    id: "east",
+    en: "Jinan East Railway Station",
+    zh: "济南东站",
+    badge: "Farthest" as const,
+    drive: "38–50 mins",
+    toll: "¥10–22",
+    note: "Far east station",
+    cheatTag: "Far",
+    transitCost: "¥11 total",
+  },
+] as const;
+
+export const HOTEL_DRIVER_NOTE = `Pre-save for taxi / ride-hail drivers: ${NAV_GUIDE_META.venueZh} · ${NAV_GUIDE_META.addressZh}`;
 
 export const NAV_PREFACE =
   "Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel in Qihe County. Two travel options are provided for every arrival hub: affordable public transit (subway + local bus) and fast direct taxi/private car routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel – please review the critical bus operating hours to avoid travel delays after dark.";

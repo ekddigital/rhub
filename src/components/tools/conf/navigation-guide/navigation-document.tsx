@@ -3,7 +3,7 @@ import { BOOKLET_A4, C } from "../booklet/constants";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import { NAV_ASSETS } from "./assets";
-import { NAV_GUIDE_META, NAV_PREFACE, NAV_TOC } from "./content-data";
+import { NAV_GUIDE_META, NAV_PREFACE, NAV_TOC, HOTEL_DRIVER_NOTE } from "./content-data";
 import { NavigationCoverPage } from "./NavigationCoverPage";
 import {
   SectionHeading,
@@ -220,7 +220,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           items={[
             "Fastest Route: 23 minutes, 13 miles | Highway toll ¥20",
             "Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10",
-            "Note: Taxis accept WeChat/Alipay cashless payment; pre-save hotel Chinese name for drivers: 齐河阿尔卡迪亚温泉高尔夫国际酒店",
+            "Note: Taxis accept WeChat/Alipay cashless payment; " + HOTEL_DRIVER_NOTE,
           ]}
         />
         <NavFullWidthImage
@@ -271,6 +271,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <BulletList
           items={[
             "Estimated drive time: 36 minutes, 15 miles | Highway toll ¥10",
+            HOTEL_DRIVER_NOTE,
           ]}
         />
         <NavFullWidthImage
@@ -344,6 +345,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           items={[
             "Fastest Route: 38 minutes, 28 miles | Toll ¥22",
             "Standard Suggested Route: 50 minutes, 23 miles | Toll ¥10",
+            HOTEL_DRIVER_NOTE,
           ]}
         />
         <NavFullWidthImage

@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { C } from "../booklet/constants";
 import {
-  HOTEL_DIDI_TIP,
-  HOTEL_MAP_TIP,
+  HOTEL_ADDRESS_LABEL,
+  HOTEL_APP_SEARCH_TIP,
+  JINAN_TRAIN_HUBS,
   NAV_GUIDE_META,
+  TRAVEL_CONTACTS,
 } from "./content-data";
 
 /** Usable horizontal space inside NavA4Page (794px page − 40px side padding × 2). */
@@ -499,30 +501,6 @@ export function TwoColImages({
 }
 
 export function HubTable() {
-  const rows = [
-    {
-      station: "Jinan West Railway Station (济南西站)",
-      badge: "Recommended",
-      drive: "23–32 mins",
-      toll: "¥10–20",
-      note: "Closest to the hotel",
-    },
-    {
-      station: "Jinan Railway Station (济南站, City Center)",
-      badge: null,
-      drive: "~36 mins",
-      toll: "¥10",
-      note: "Downtown hub",
-    },
-    {
-      station: "Jinan East Railway Station (济南东站)",
-      badge: "Farthest",
-      drive: "38–50 mins",
-      toll: "¥10–22",
-      note: "Far east station",
-    },
-  ];
-
   return (
     <table
       style={{
@@ -577,8 +555,8 @@ export function HubTable() {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => (
-          <tr key={row.station}>
+        {JINAN_TRAIN_HUBS.map((row) => (
+          <tr key={row.id}>
             <td
               style={{
                 padding: "4px 6px",
@@ -586,7 +564,7 @@ export function HubTable() {
                 fontWeight: 600,
               }}
             >
-              {row.station}
+              {row.en} ({row.zh})
               {row.badge && (
                 <span
                   style={{
@@ -640,18 +618,16 @@ export function HubTable() {
 export function HotelMapCallout({ compact = false }: { compact?: boolean }) {
   return (
     <InfoCallout>
-      <strong>Conference Hotel:</strong> {NAV_GUIDE_META.venueZh}
+      <strong>Hotel name (Chinese):</strong> {NAV_GUIDE_META.venueZh}
       <br />
-      <strong>English:</strong> {NAV_GUIDE_META.venueEn}
+      <strong>Hotel name (English):</strong> {NAV_GUIDE_META.venueEn}
       <br />
-      <strong>Address:</strong> {NAV_GUIDE_META.addressZh}
+      <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
       {!compact && (
         <>
           <br />
           <br />
-          <strong>DiDi (滴滴):</strong> {HOTEL_DIDI_TIP}
-          <br />
-          <strong>Map apps:</strong> {HOTEL_MAP_TIP}
+          {HOTEL_APP_SEARCH_TIP}
         </>
       )}
     </InfoCallout>
@@ -674,11 +650,15 @@ export function CheatSheetBox() {
 
       <SubHeading>Arrival Station Quick Pick</SubHeading>
       <BulletList
-        items={[
-          "Jinan West Railway Station (Best): 23–32 min taxi / ~75 min subway+bus",
-          "Jinan Railway Station (Downtown): 36 min taxi / ~55 min direct K904 bus",
-          "Jinan East Railway Station (Far): 38–50 min taxi / ~95 min subway+bus",
-        ]}
+        items={JINAN_TRAIN_HUBS.map((hub) => {
+          const times =
+            hub.id === "west"
+              ? "23–32 min taxi / ~75 min subway+bus"
+              : hub.id === "central"
+                ? "36 min taxi / ~55 min direct K904 bus"
+                : "38–50 min taxi / ~95 min subway+bus";
+          return `${hub.en} (${hub.zh}, ${hub.cheatTag}): ${times}`;
+        })}
       />
 
       <SubHeading>Non-Negotiable Bus Rule</SubHeading>
@@ -687,27 +667,23 @@ export function CheatSheetBox() {
         reach the hotel.
       </WarningCallout>
 
-      <SubHeading>Hotel &amp; DiDi / Map Search</SubHeading>
+      <SubHeading>Hotel Name &amp; Address (DiDi / maps / bus apps)</SubHeading>
       <InfoCallout>
-        <strong>Chinese:</strong> {NAV_GUIDE_META.venueZh}
+        <strong>Hotel name (Chinese):</strong> {NAV_GUIDE_META.venueZh}
         <br />
-        <strong>English:</strong> {NAV_GUIDE_META.venueEn}
+        <strong>Hotel name (English):</strong> {NAV_GUIDE_META.venueEn}
         <br />
-        <strong>Address:</strong> {NAV_GUIDE_META.addressZh}
+        <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
         <br />
         <br />
-        <strong>DiDi (滴滴):</strong> {HOTEL_DIDI_TIP}
-        <br />
-        <strong>Map apps:</strong> {HOTEL_MAP_TIP}
+        {HOTEL_APP_SEARCH_TIP}
       </InfoCallout>
 
       <SubHeading>Total Public Transit Cost Breakdown</SubHeading>
       <BulletList
-        items={[
-          "Jinan West Station: ¥10 total",
-          "Jinan Railway Station: ¥6 total",
-          "Jinan East Station: ¥11 total",
-        ]}
+        items={JINAN_TRAIN_HUBS.map(
+          (hub) => `${hub.en} (${hub.zh}): ${hub.transitCost}`,
+        )}
       />
     </div>
   );
@@ -726,27 +702,15 @@ export function ContactSupportBlock() {
       }}
     >
       <SectionHeading level={3}>Conference Travel Support Contact</SectionHeading>
+      <InfoCallout>
+        <strong>Conference hotel (Chinese):</strong> {NAV_GUIDE_META.venueZh}
+        <br />
+        <strong>Conference hotel (English):</strong> {NAV_GUIDE_META.venueEn}
+        <br />
+        <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
+      </InfoCallout>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {[
-          {
-            name: "Robert D. Molley",
-            role: "Chair on Logistics",
-            phone: "18662966349",
-            wechat: "wxid_32k7ikgo33ax22",
-          },
-          {
-            name: "Harris M Bowulo",
-            role: "Conference General Secretary",
-            phone: "18514556295",
-            wechat: "Bowulo2019",
-          },
-          {
-            name: "Enoch Kwateh Dongbo",
-            role: "Conference Chair",
-            phone: "18506832159",
-            wechat: "EKD231777285010",
-          },
-        ].map((c) => (
+        {TRAVEL_CONTACTS.map((c) => (
           <div
             key={c.name}
             style={{

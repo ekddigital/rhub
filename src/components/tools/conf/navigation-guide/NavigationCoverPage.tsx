@@ -9,7 +9,7 @@ import {
   FLAG_STRIPES_11,
   FLAG_STRIPES_7,
 } from "../booklet/constants";
-import { NAV_GUIDE_META } from "./content-data";
+import { HOTEL_ADDRESS_LABEL, NAV_GUIDE_META } from "./content-data";
 
 const T = COVER_TYPOGRAPHY;
 const S = COVER_SPACING;
@@ -337,7 +337,7 @@ export function NavigationCoverPage() {
               lineHeight: 1.4,
             }}
           >
-            {NAV_GUIDE_META.addressZh}
+            {HOTEL_ADDRESS_LABEL}: {NAV_GUIDE_META.addressZh}
           </div>
           <div
             style={{
