@@ -129,11 +129,12 @@ export function delegateOptedOutOfGuestRooming(
   // Guest packages without an explicit accommodation label (e.g. veteran guest).
   if (hasGuestPackage && packageMode === null) return false;
 
-  // Shared-room + guest package: SINGLE preference means pairing with another delegate instead.
+  // Shared-room + guest package: single-room request still rooms with registered guest(s).
   if (packageMode === "PAIR" && hasGuestPackage) {
-    return delegate.wantsSingleRoom || delegate.roomPref === "SINGLE";
+    return false;
   }
 
+  // Non-guest packages with single-room preference have no companion guests.
   if (delegate.wantsSingleRoom || delegate.roomPref === "SINGLE") return true;
   return false;
 }
@@ -144,7 +145,6 @@ export function isDelegateEligibleForGuestSelfRoom(
 ): boolean {
   if (!isDelegateEligibleForRoomAssignment(delegate)) return false;
   if ((delegate.guestCount ?? 0) < 1) return false;
-  if (!conferencePackageIncludesGuest(delegate.feePackageId)) return false;
   if (delegateOptedOutOfGuestRooming(delegate)) return false;
   return true;
 }
@@ -159,7 +159,6 @@ export function getCompanionGuestsForRoomDisplay(
   options?: { hasPairPartner?: boolean },
 ): RoomAssignmentGuest[] {
   if (options?.hasPairPartner) return [];
-  if (!conferencePackageIncludesGuest(delegate.feePackageId)) return [];
   if (delegate.guestCount < 1) return [];
   if (!delegate.guests?.length) return [];
   if (delegateOptedOutOfGuestRooming(delegate)) return [];

@@ -27,7 +27,6 @@ import {
   isDelegateEligibleForRoomPairing,
   type RoomAssignmentGuest,
 } from "@/lib/conf/room-pairing-eligibility";
-import { conferencePackageIncludesGuest } from "@/lib/conf/delegate-guests";
 
 export type RoomAssignmentOccupant = {
   id: string;
@@ -232,6 +231,47 @@ function OccupantsCell({ assignment }: { assignment: RoomAssignmentRow }) {
   );
 }
 
+function resolveOccupantBId(occupantBValue: string) {
+  if (!occupantBValue || isGuestOccupantValue(occupantBValue)) return null;
+  return occupantBValue;
+}
+
+function OccupantBSelectOptions({
+  guestOptions,
+  delegateOptions,
+}: {
+  guestOptions: Array<{ value: string; label: string }>;
+  delegateOptions: Array<{
+    id: string;
+    name: string;
+    delegateCode: string | null;
+  }>;
+}) {
+  return (
+    <>
+      <option value="">Single room</option>
+      {guestOptions.length > 0 ? (
+        <optgroup label="Guests">
+          {guestOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+      {delegateOptions.length > 0 ? (
+        <optgroup label="Delegates">
+          {delegateOptions.map((delegate) => (
+            <option key={delegate.id} value={delegate.id}>
+              {delegate.name} ({delegate.delegateCode || "N/A"})
+            </option>
+          ))}
+        </optgroup>
+      ) : null}
+    </>
+  );
+}
+
 export function RoomAssignmentWorkspace({
   confId,
   assignments,
@@ -280,12 +320,6 @@ export function RoomAssignmentWorkspace({
       isDelegateEligibleForGuestSelfRoom(selectedManualDelegate),
   );
 
-  const showManualAssignmentMode = Boolean(
-    selectedManualDelegate &&
-      conferencePackageIncludesGuest(selectedManualDelegate.feePackageId) &&
-      (selectedManualDelegate.guestCount ?? 0) > 0,
-  );
-
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRoomCode, setEditRoomCode] = useState("");
   const [editA, setEditA] = useState("");
@@ -319,6 +353,13 @@ export function RoomAssignmentWorkspace({
           !assignedDelegateIds.has(d.id),
       ),
     [delegates, assignedDelegateIds],
+  );
+
+  const showManualAssignmentMode = Boolean(
+    selectedManualDelegate &&
+      (selectedManualDelegate.guestCount ?? 0) > 0 &&
+      (canAssignWithGuest ||
+        pairingEligibleDelegates.some((d) => d.id !== selectedManualDelegate.id)),
   );
 
   const activeAssignments = useMemo(
@@ -391,11 +432,6 @@ export function RoomAssignmentWorkspace({
     }
 
     return options;
-  };
-
-  const resolveOccupantBId = (occupantBValue: string) => {
-    if (!occupantBValue || isGuestOccupantValue(occupantBValue)) return null;
-    return occupantBValue;
   };
 
   const startEdit = (assignment: RoomAssignmentRow) => {
@@ -690,19 +726,12 @@ export function RoomAssignmentWorkspace({
                   }
                 }}
               >
-                <option value="">Single room</option>
-                {manualGuestOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-                {pairingEligibleDelegates
-                  .filter((d) => d.id !== manualA)
-                  .map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.delegateCode || "N/A"})
-                    </option>
-                  ))}
+                <OccupantBSelectOptions
+                  guestOptions={manualGuestOptions}
+                  delegateOptions={pairingEligibleDelegates.filter(
+                    (d) => d.id !== manualA,
+                  )}
+                />
               </select>
             </div>
 
@@ -789,21 +818,13 @@ export function RoomAssignmentWorkspace({
                                 value={editB}
                                 onChange={(e) => setEditB(e.target.value)}
                               >
-                                <option value="">Single room</option>
-                                {guestOptionsForPrimary(editA, editB).map(
-                                  (option) => (
-                                    <option key={option.value} value={option.value}>
-                                      {option.label}
-                                    </option>
-                                  ),
-                                )}
-                                {occupantOptionsForEdit(assignment, "B").map(
-                                  (d) => (
-                                    <option key={d.id} value={d.id}>
-                                      {d.name}
-                                    </option>
-                                  ),
-                                )}
+                                <OccupantBSelectOptions
+                                  guestOptions={guestOptionsForPrimary(editA, editB)}
+                                  delegateOptions={occupantOptionsForEdit(
+                                    assignment,
+                                    "B",
+                                  )}
+                                />
                               </select>
                               <Textarea
                                 placeholder="Override reason (if cross-gender)"
@@ -973,21 +994,13 @@ export function RoomAssignmentWorkspace({
                               value={editB}
                               onChange={(e) => setEditB(e.target.value)}
                             >
-                              <option value="">Single room</option>
-                              {guestOptionsForPrimary(editA, editB).map(
-                                (option) => (
-                                  <option key={option.value} value={option.value}>
-                                    {option.label}
-                                  </option>
-                                ),
-                              )}
-                              {occupantOptionsForEdit(assignment, "B").map(
-                                (d) => (
-                                  <option key={d.id} value={d.id}>
-                                    {d.name}
-                                  </option>
-                                ),
-                              )}
+                              <OccupantBSelectOptions
+                                guestOptions={guestOptionsForPrimary(editA, editB)}
+                                delegateOptions={occupantOptionsForEdit(
+                                  assignment,
+                                  "B",
+                                )}
+                              />
                             </select>
                           </div>
                           <Textarea
