@@ -22,6 +22,7 @@ import {
   Award,
   ListChecks,
   Download,
+  MapPinned,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/contexts/user-context";
@@ -70,6 +71,12 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/booklet",
     label: "Booklet",
     icon: FileText,
+    minAccess: "delegate",
+  },
+  {
+    href: "/tools/conf/navigation-guide",
+    label: "Navigation Guide",
+    icon: MapPinned,
     minAccess: "delegate",
   },
   {
