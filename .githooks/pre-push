@@ -1,0 +1,23 @@
+#!/bin/sh
+# Pre-push: TypeScript check + production build before every push.
+#
+# Install:  npm run hooks:install
+# Skip:     SKIP_VERIFY_BUILD=1 git push
+#           git push --no-verify
+
+if [ "$SKIP_VERIFY_BUILD" = "1" ]; then
+  echo "⚠️  SKIP_VERIFY_BUILD=1 — skipping build verification"
+  exit 0
+fi
+
+set -e
+
+echo ""
+echo "🔒 Pre-push: running npm run verify (tsc + build)…"
+echo ""
+
+npm run verify
+
+echo ""
+echo "✅ Pre-push verification passed."
+echo ""

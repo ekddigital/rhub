@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && NODE_OPTIONS='--max-old-space-size=1536' next build --webpack",
+    "verify": "npx tsc --noEmit && npm run build",
+    "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-push",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
