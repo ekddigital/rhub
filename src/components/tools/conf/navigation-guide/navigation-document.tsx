@@ -13,10 +13,9 @@ import {
   BulletList,
   WarningCallout,
   InfoCallout,
-  NavSingleImage,
-  NavTwoColImages,
-  NavImageStack,
-  TextImageSplit,
+  NavFullWidthImage,
+  NavDualImagesFull,
+  NavImagePage,
   PageContent,
   HubTable,
   CheatSheetBox,
@@ -24,7 +23,7 @@ import {
   HotelMapCallout,
 } from "./ui-blocks";
 
-export const NAV_GUIDE_TOTAL_PAGES = 10;
+export const NAV_GUIDE_TOTAL_PAGES = 15;
 
 function NavA4Page({
   children,
@@ -160,16 +159,16 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <BodyText>
           All public transit routes end with taking Bus K904 to reach the hotel.
         </BodyText>
-        <NavSingleImage
+        <NavFullWidthImage
           src={NAV_ASSETS.metroStationEntrance}
           alt="Jinan metro station entrance"
           caption="Jinan metro station entrance — follow signage for Line transfers"
-          maxHeight={300}
-          minHeight={240}
+          minHeight={280}
+          maxHeight={320}
         />
       </NavA4Page>
 
-      {/* Page 4 — Route 1 West transit: steps left, route maps right */}
+      {/* Page 4 — Route 1 West transit: steps only */}
       <NavA4Page pageNum={4} sectionLabel="Route 1 · Transit">
         <SectionHeading id="route1-transit" level={1}>
           2. Route 1: Jinan West Railway Station (Recommended)
@@ -177,75 +176,70 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <SubHeading>
           Section A — Public Transit (Subway Line 4 → Line 2 → K904 Bus)
         </SubHeading>
-        <TextImageSplit
-          ratio="50fr 50fr"
-          text={
-            <>
-              <InfoCallout>
-                Total estimated time: ~70–80 mins · Total transit fare: ¥10
-                (Subway ¥4 + Bus K904 ¥6)
-              </InfoCallout>
-              <StepList
-                steps={[
-                  "Walk 4 minutes (900ft) from station exit to Jinanxi Railway Station West Square Subway Station",
-                  "Board Metro Line 4, direction Pengjiazhuang — Operating Hours: 6:05 AM – 10:35 PM | Trains every 12 mins — Ride 3 stops (8 mins), exit at Lashan Station",
-                  "1-minute indoor transfer to Metro Line 2",
-                  "Board Metro Line 2, direction Pengjiazhuang — Operating Hours: 6:06 AM – 10:26 PM | Trains every 10 mins | Free subway transfer — Ride 5 stops (11 mins), exit at Jinan Railway Station North (Exit B)",
-                  "Walk 5 minutes (0.2 miles) to Jinan Long-distance Transport Center Bus Stop (Dikou Lu)",
-                  "Board Bus K904, direction Qihe Jiakao Zhongxin — Operating Hours: 6:00 AM – 7:20 PM | Buses every 20 mins | Fare ¥6 — Ride 9 stops (43 mins), exit at Guoke Guoji Bus Stop",
-                  "8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel",
-                ]}
-              />
-            </>
-          }
-          aside={
-            <NavImageStack
-              minHeight={210}
-              maxHeight={250}
-              images={[
-                {
-                  src: NAV_ASSETS.westMetroLine4ToLine2,
-                  alt: "Jinan West metro Line 4 to Line 2",
-                  caption: "Line 4 → Line 2 transfer at Lashan",
-                },
-                {
-                  src: NAV_ASSETS.westLine2K904Transit,
-                  alt: "Jinan West Line 2 to K904 bus",
-                  caption: "Line 2 → K904 bus connection",
-                },
-              ]}
-            />
-          }
+        <InfoCallout>
+          Total estimated time: ~70–80 mins · Total transit fare: ¥10 (Subway
+          ¥4 + Bus K904 ¥6)
+        </InfoCallout>
+        <StepList
+          steps={[
+            "Walk 4 minutes (900ft) from station exit to Jinanxi Railway Station West Square Subway Station",
+            "Board Metro Line 4, direction Pengjiazhuang — Operating Hours: 6:05 AM – 10:35 PM | Trains every 12 mins — Ride 3 stops (8 mins), exit at Lashan Station",
+            "1-minute indoor transfer to Metro Line 2",
+            "Board Metro Line 2, direction Pengjiazhuang — Operating Hours: 6:06 AM – 10:26 PM | Trains every 10 mins | Free subway transfer — Ride 5 stops (11 mins), exit at Jinan Railway Station North (Exit B)",
+            "Walk 5 minutes (0.2 miles) to Jinan Long-distance Transport Center Bus Stop (Dikou Lu)",
+            "Board Bus K904, direction Qihe Jiakao Zhongxin — Operating Hours: 6:00 AM – 7:20 PM | Buses every 20 mins | Fare ¥6 — Ride 9 stops (43 mins), exit at Guoke Guoji Bus Stop",
+            "8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel",
+          ]}
         />
       </NavA4Page>
 
-      {/* Page 5 — Route 1 taxi + Route 2 transit */}
-      <NavA4Page pageNum={5} sectionLabel="Route 1 · Taxi">
+      {/* Page 5 — Route 1 West transit: metro route maps */}
+      <NavA4Page pageNum={5} sectionLabel="Route 1 · Metro Maps">
+        <SubHeading>Route 1 Metro Route Maps (Jinan West)</SubHeading>
+        <BodyText>
+          Reference screenshots for the Line 4 → Line 2 transfer and the Line 2
+          → K904 bus connection on the Jinan West route.
+        </BodyText>
+        <NavDualImagesFull
+          left={{
+            src: NAV_ASSETS.westMetroLine4ToLine2,
+            alt: "Jinan West metro Line 4 to Line 2",
+            caption: "Line 4 → Line 2 transfer at Lashan",
+          }}
+          right={{
+            src: NAV_ASSETS.westLine2K904Transit,
+            alt: "Jinan West Line 2 to K904 bus",
+            caption: "Line 2 → K904 bus connection",
+          }}
+          minHeight={300}
+          maxHeight={360}
+        />
+      </NavA4Page>
+
+      {/* Page 6 — Route 1 West taxi */}
+      <NavA4Page pageNum={6} sectionLabel="Route 1 · Taxi">
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan West)
         </SubHeading>
-        <TextImageSplit
-          ratio="48fr 52fr"
-          text={
-            <BulletList
-              items={[
-                "Fastest Route: 23 minutes, 13 miles | Highway toll ¥20",
-                "Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10",
-                "Note: Taxis accept WeChat/Alipay cashless payment; pre-save hotel Chinese name for drivers: 齐河阿尔卡迪亚温泉高尔夫国际酒店",
-              ]}
-            />
-          }
-          aside={
-            <NavSingleImage
-              src={NAV_ASSETS.westDrivingRoutes}
-              alt="Jinan West driving routes to hotel"
-              caption="Driving routes from Jinan West Railway Station"
-              maxHeight={200}
-              minHeight={180}
-            />
-          }
+        <BulletList
+          items={[
+            "Fastest Route: 23 minutes, 13 miles | Highway toll ¥20",
+            "Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10",
+            "Note: Taxis accept WeChat/Alipay cashless payment; pre-save hotel Chinese name for drivers: 齐河阿尔卡迪亚温泉高尔夫国际酒店",
+          ]}
         />
+        <NavFullWidthImage
+          src={NAV_ASSETS.westDrivingRoutes}
+          alt="Jinan West driving routes to hotel"
+          caption="Driving routes from Jinan West Railway Station"
+          minHeight={300}
+          maxHeight={420}
+          flex
+        />
+      </NavA4Page>
 
+      {/* Page 7 — Route 2 transit steps + K904 bus */}
+      <NavA4Page pageNum={7} sectionLabel="Route 2 · Transit">
         <SectionHeading id="route2-transit" level={1}>
           3. Route 2: Jinan Railway Station (Downtown Jinan)
         </SectionHeading>
@@ -262,24 +256,26 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "8-minute walk to hotel",
           ]}
         />
-        <NavTwoColImages
-          left={{
-            src: NAV_ASSETS.railwayStationK904Bus,
-            alt: "Jinan Railway Station K904 bus route",
-            caption: "Direct K904 from downtown station",
-          }}
-          right={{
-            src: NAV_ASSETS.railwayStationTransitDetails,
-            alt: "Jinan Railway Station transit details",
-            caption: "Full transit details screenshot",
-          }}
-          minHeight={220}
-          maxHeight={280}
+        <NavFullWidthImage
+          src={NAV_ASSETS.railwayStationK904Bus}
+          alt="Jinan Railway Station K904 bus route"
+          caption="Direct K904 from downtown Jinan Railway Station"
+          minHeight={300}
+          maxHeight={400}
+          flex
         />
       </NavA4Page>
 
-      {/* Page 6 — Route 2 taxi + Route 3 transit */}
-      <NavA4Page pageNum={6} sectionLabel="Route 2 · Taxi">
+      {/* Page 8 — Route 2 transit details + taxi + driving */}
+      <NavA4Page pageNum={8} sectionLabel="Route 2 · Details">
+        <SubHeading>Route 2 Full Transit Details (Reference)</SubHeading>
+        <NavFullWidthImage
+          src={NAV_ASSETS.railwayStationTransitDetails}
+          alt="Jinan Railway Station transit details"
+          caption="Full transit details screenshot — downtown station to hotel"
+          minHeight={260}
+          maxHeight={300}
+        />
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan Railway Station)
         </SubHeading>
@@ -288,62 +284,84 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "Estimated drive time: 36 minutes, 15 miles | Highway toll ¥10",
           ]}
         />
-        <NavSingleImage
+        <NavFullWidthImage
           src={NAV_ASSETS.railwayStationDrivingMap}
           alt="Jinan Railway Station driving map"
           caption="Driving route from Jinan Railway Station to hotel"
-          maxHeight={220}
-          minHeight={200}
+          minHeight={280}
+          maxHeight={340}
         />
+      </NavA4Page>
 
+      {/* Page 9 — Route 3 East transit steps */}
+      <NavA4Page pageNum={9} sectionLabel="Route 3 · Transit">
         <SectionHeading id="route3-transit" level={1}>
           4. Route 3: Jinan East Railway Station (Farthest Hub)
         </SectionHeading>
         <SubHeading>
           Section A — Public Transit (Subway Line 3 → Line 2 → K904 Bus)
         </SubHeading>
-        <TextImageSplit
-          ratio="52fr 48fr"
-          text={
-            <>
-              <InfoCallout>
-                Total estimated time: ~90–100 mins · Total fare: ¥11 (Subway
-                ¥5 + Bus K904 ¥6)
-              </InfoCallout>
-              <StepList
-                steps={[
-                  "Enter Metro Line 3 at Jinandong Railway Station, direction Longdong — Operating Hours: 6:03 AM – 10:21 PM | Trains every 10 mins | Fare ¥5 — Ride 4 stops (12 mins), exit at Bajianpu Station",
-                  "2-minute transfer to Metro Line 2",
-                  "Board Metro Line 2, direction Wangfuzhuang — Operating Hours: 6:00 AM – 10:36 PM | Trains every 10 mins | Free transfer — Ride 6 stops (15 mins), exit at Jiluolu Station (Exit C)",
-                  "Walk to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop",
-                  "Board Bus K904 (¥6), ride 8 stops, exit at Guoke Guoji Bus Stop",
-                  "8-minute walk to hotel",
-                ]}
-              />
-            </>
-          }
-          aside={
-            <NavSingleImage
-              src={NAV_ASSETS.eastMetroLine3ToLine2}
-              alt="Jinan East metro Line 3 to Line 2"
-              caption="Line 3 → Line 2 transfer from Jinan East"
-              maxHeight={320}
-              minHeight={260}
-            />
-          }
+        <InfoCallout>
+          Total estimated time: ~90–100 mins · Total fare: ¥11 (Subway ¥5 +
+          Bus K904 ¥6)
+        </InfoCallout>
+        <StepList
+          steps={[
+            "Enter Metro Line 3 at Jinandong Railway Station, direction Longdong — Operating Hours: 6:03 AM – 10:21 PM | Trains every 10 mins | Fare ¥5 — Ride 4 stops (12 mins), exit at Bajianpu Station",
+            "2-minute transfer to Metro Line 2",
+            "Board Metro Line 2, direction Wangfuzhuang — Operating Hours: 6:00 AM – 10:36 PM | Trains every 10 mins | Free transfer — Ride 6 stops (15 mins), exit at Jiluolu Station (Exit C)",
+            "Walk to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop",
+            "Board Bus K904 (¥6), ride 8 stops, exit at Guoke Guoji Bus Stop",
+            "8-minute walk to hotel",
+          ]}
         />
       </NavA4Page>
 
-      {/* Page 7 — Route 3 taxi */}
-      <NavA4Page pageNum={7} sectionLabel="Route 3 · Taxi">
-        <NavSingleImage
-          src={NAV_ASSETS.eastK904Transfer}
-          alt="Jinan East K904 transfer"
-          caption="K904 bus connection from Jinan East route"
-          maxHeight={260}
-          minHeight={220}
+      {/* Page 10 — Route 3 East metro map */}
+      <NavA4Page pageNum={10} sectionLabel="Route 3 · Metro Map">
+        <NavImagePage
+          title={
+            <SubHeading>Route 3 Metro Route Map (Jinan East)</SubHeading>
+          }
+          subtitle={
+            <BodyText>
+              Line 3 → Line 2 transfer from Jinan East Railway Station.
+            </BodyText>
+          }
+          image={{
+            src: NAV_ASSETS.eastMetroLine3ToLine2,
+            alt: "Jinan East metro Line 3 to Line 2",
+            caption: "Line 3 → Line 2 transfer from Jinan East",
+          }}
+          minHeight={300}
+          maxHeight={420}
         />
+      </NavA4Page>
 
+      {/* Page 11 — Route 3 East K904 transfer */}
+      <NavA4Page pageNum={11} sectionLabel="Route 3 · K904">
+        <NavImagePage
+          title={
+            <SubHeading>Route 3 K904 Bus Connection (Jinan East)</SubHeading>
+          }
+          subtitle={
+            <BodyText>
+              After exiting Metro Line 2, walk to the K904 bus stop and board
+              toward Qihe Jiakao Zhongxin.
+            </BodyText>
+          }
+          image={{
+            src: NAV_ASSETS.eastK904Transfer,
+            alt: "Jinan East K904 transfer",
+            caption: "K904 bus connection from Jinan East route",
+          }}
+          minHeight={300}
+          maxHeight={420}
+        />
+      </NavA4Page>
+
+      {/* Page 12 — Route 3 East taxi + driving */}
+      <NavA4Page pageNum={12} sectionLabel="Route 3 · Taxi">
         <SubHeading>
           Section B — Taxi / Private Car Direct Drive (Jinan East)
         </SubHeading>
@@ -353,17 +371,18 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "Standard Suggested Route: 50 minutes, 23 miles | Toll ¥10",
           ]}
         />
-        <NavSingleImage
+        <NavFullWidthImage
           src={NAV_ASSETS.eastDrivingRoutes}
           alt="Jinan East driving routes"
           caption="Driving routes from Jinan East Railway Station"
-          maxHeight={400}
           minHeight={320}
+          maxHeight={440}
+          flex
         />
       </NavA4Page>
 
-      {/* Page 8 — K904 Rules */}
-      <NavA4Page pageNum={8} sectionLabel="K904 Rules">
+      {/* Page 13 — K904 Rules */}
+      <NavA4Page pageNum={13} sectionLabel="K904 Rules">
         <SectionHeading id="k904-rules" level={1}>
           5. Critical Bus K904 Rules for All Attendees
         </SectionHeading>
@@ -389,17 +408,17 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           ]}
         />
 
-        <NavSingleImage
+        <NavFullWidthImage
           src={NAV_ASSETS.k904StopWalkToHotel}
           alt="Walk from K904 bus stop to hotel"
           caption="Final walk from Guoke Guoji bus stop to hotel"
+          minHeight={280}
           maxHeight={320}
-          minHeight={260}
         />
       </NavA4Page>
 
-      {/* Page 9 — Walking + Cheat Sheet */}
-      <NavA4Page pageNum={9} sectionLabel="Walking & Cheat Sheet">
+      {/* Page 14 — Walking + Cheat Sheet */}
+      <NavA4Page pageNum={14} sectionLabel="Walking & Cheat Sheet">
         <SectionHeading id="walking" level={1}>
           6. Hotel Final Walking Directions (From Guoke Guoji Bus Stop)
         </SectionHeading>
@@ -422,8 +441,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <CheatSheetBox />
       </NavA4Page>
 
-      {/* Page 10 — Support Contacts + hotel photo */}
-      <NavA4Page pageNum={10} sectionLabel="Support Contacts">
+      {/* Page 15 — Support Contacts + hotel photo */}
+      <NavA4Page pageNum={15} sectionLabel="Support Contacts">
         <SectionHeading level={1}>Conference Travel Support</SectionHeading>
         <BodyText>
           For travel assistance before or during the conference, contact the
@@ -431,12 +450,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         </BodyText>
         <ContactSupportBlock />
 
-        <NavSingleImage
+        <NavFullWidthImage
           src="/conf/assets/hotel/main_entrance_view.png"
           alt="Arcadia Spa Golf International Hotel entrance"
           caption="Arcadia Spa Golf International Hotel — Conference Venue"
-          maxHeight={400}
           minHeight={300}
+          maxHeight={400}
+          flex
         />
       </NavA4Page>
     </div>

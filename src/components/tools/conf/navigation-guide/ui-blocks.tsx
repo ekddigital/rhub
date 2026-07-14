@@ -195,17 +195,24 @@ export function NavSingleImage({
   caption,
   maxHeight = 360,
   minHeight,
+  flex,
 }: NavImageSpec & {
   maxHeight?: number;
   minHeight?: number;
+  /** When true, image grows to fill remaining vertical space on the page. */
+  flex?: boolean;
 }) {
   return (
     <figure
       style={{
         width: "100%",
         maxWidth: "100%",
-        margin: "4px 0 6px",
+        margin: flex ? "4px 0 0" : "4px 0 6px",
         textAlign: "center",
+        flex: flex ? 1 : undefined,
+        minHeight: flex ? 0 : undefined,
+        display: flex ? "flex" : undefined,
+        flexDirection: flex ? "column" : undefined,
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -216,9 +223,10 @@ export function NavSingleImage({
           display: "block",
           width: "100%",
           maxWidth: "100%",
-          height: "auto",
+          height: flex ? "100%" : "auto",
+          flex: flex ? 1 : undefined,
           minHeight: minHeight ? `${minHeight}px` : undefined,
-          maxHeight: `${maxHeight}px`,
+          maxHeight: flex ? undefined : `${maxHeight}px`,
           objectFit: "contain",
           borderRadius: "6px",
           border: `1px solid ${C.border}`,
@@ -232,6 +240,7 @@ export function NavSingleImage({
             color: C.muted,
             marginTop: "3px",
             fontStyle: "italic",
+            flexShrink: 0,
           }}
         >
           {caption}
@@ -241,12 +250,33 @@ export function NavSingleImage({
   );
 }
 
-/** Side-by-side route screenshots — each column ~45% of content width. */
-export function NavTwoColImages({
+/** Full content-width hero image — matches readable metro / K904 walk pages. */
+export function NavFullWidthImage({
+  minHeight = 280,
+  maxHeight = 360,
+  flex,
+  ...spec
+}: NavImageSpec & {
+  minHeight?: number;
+  maxHeight?: number;
+  flex?: boolean;
+}) {
+  return (
+    <NavSingleImage
+      {...spec}
+      minHeight={minHeight}
+      maxHeight={maxHeight}
+      flex={flex}
+    />
+  );
+}
+
+/** Two route screenshots side-by-side at ~48% width each, full content width. */
+export function NavDualImagesFull({
   left,
   right,
-  minHeight = 240,
-  maxHeight = 320,
+  minHeight = 300,
+  maxHeight = 360,
 }: {
   left: NavImageSpec;
   right: NavImageSpec;
@@ -262,6 +292,9 @@ export function NavTwoColImages({
         width: "100%",
         maxWidth: "100%",
         margin: "4px 0 6px",
+        flex: 1,
+        minHeight: 0,
+        alignItems: "stretch",
       }}
     >
       <NavSingleImage {...left} minHeight={minHeight} maxHeight={maxHeight} />
@@ -270,11 +303,11 @@ export function NavTwoColImages({
   );
 }
 
-/** Vertical stack of images (e.g. in a split-column aside). */
-export function NavImageStack({
+/** Two full-width images stacked vertically — each at readable size. */
+export function NavImageStackFull({
   images,
-  minHeight = 200,
-  maxHeight = 240,
+  minHeight = 300,
+  maxHeight = 360,
 }: {
   images: NavImageSpec[];
   minHeight?: number;
@@ -285,8 +318,10 @@ export function NavImageStack({
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "10px",
         width: "100%",
+        flex: 1,
+        minHeight: 0,
       }}
     >
       {images.map((img, i) => (
@@ -295,13 +330,91 @@ export function NavImageStack({
           {...img}
           minHeight={minHeight}
           maxHeight={maxHeight}
+          flex={images.length === 1}
         />
       ))}
     </div>
   );
 }
 
-/** Text left + image(s) right — uses empty horizontal space on route pages. */
+/** Dedicated image page block — title area + one large centered hero image. */
+export function NavImagePage({
+  title,
+  subtitle,
+  image,
+  minHeight = 300,
+  maxHeight = 420,
+}: {
+  title?: ReactNode;
+  subtitle?: ReactNode;
+  image: NavImageSpec;
+  minHeight?: number;
+  maxHeight?: number;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+      }}
+    >
+      {title}
+      {subtitle}
+      <NavFullWidthImage
+        {...image}
+        minHeight={minHeight}
+        maxHeight={maxHeight}
+        flex
+      />
+    </div>
+  );
+}
+
+/** Side-by-side route screenshots — each column ~48% of content width. */
+export function NavTwoColImages({
+  left,
+  right,
+  minHeight = 300,
+  maxHeight = 360,
+}: {
+  left: NavImageSpec;
+  right: NavImageSpec;
+  minHeight?: number;
+  maxHeight?: number;
+}) {
+  return (
+    <NavDualImagesFull
+      left={left}
+      right={right}
+      minHeight={minHeight}
+      maxHeight={maxHeight}
+    />
+  );
+}
+
+/** @deprecated Prefer NavImageStackFull — vertical stack at full content width. */
+export function NavImageStack({
+  images,
+  minHeight = 300,
+  maxHeight = 360,
+}: {
+  images: NavImageSpec[];
+  minHeight?: number;
+  maxHeight?: number;
+}) {
+  return (
+    <NavImageStackFull
+      images={images}
+      minHeight={minHeight}
+      maxHeight={maxHeight}
+    />
+  );
+}
+
+/** @deprecated Use full-width layouts below text or dedicated image pages. */
 export function TextImageSplit({
   text,
   aside,
@@ -314,12 +427,11 @@ export function TextImageSplit({
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: ratio,
-        gap: "14px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
         width: "100%",
         maxWidth: "100%",
-        alignItems: "start",
       }}
     >
       <div style={{ minWidth: 0 }}>{text}</div>
