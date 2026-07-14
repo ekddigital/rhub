@@ -22,9 +22,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getCompanionGuestsForRoomDisplay,
+  guestOccupantValue,
   isDelegateEligibleForGuestSelfRoom,
   isDelegateEligibleForRoomAssignment,
   isDelegateEligibleForRoomPairing,
+  isGuestOccupantValue,
+  parseGuestOccupantValue,
+  requiresCrossGenderOverrideReason,
+  resolveOccupantBSelection,
   type RoomAssignmentGuest,
 } from "@/lib/conf/room-pairing-eligibility";
 
@@ -80,22 +85,13 @@ type Props = {
   isAdminControl: boolean;
   busy: boolean;
   onRefresh: () => Promise<void>;
-  onError: (message: string) => void;
-  onNotice: (message: string) => void;
+  onError: (message: string | null) => void;
+  onNotice: (message: string | null) => void;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 type ViewMode = "cards" | "table";
 type ManualAssignmentMode = "with-guest" | "with-delegate";
-
-const GUEST_OCCUPANT_VALUE_PREFIX = "guest:";
-
-function guestOccupantValue(guestId: string) {
-  return `${GUEST_OCCUPANT_VALUE_PREFIX}${guestId}`;
-}
-
-function isGuestOccupantValue(value: string) {
-  return value.startsWith(GUEST_OCCUPANT_VALUE_PREFIX);
-}
 
 function companionGuestsForDelegate(
   delegate: Pick<
@@ -231,9 +227,77 @@ function OccupantsCell({ assignment }: { assignment: RoomAssignmentRow }) {
   );
 }
 
-function resolveOccupantBId(occupantBValue: string) {
-  if (!occupantBValue || isGuestOccupantValue(occupantBValue)) return null;
-  return occupantBValue;
+function validateManualAssignmentInput({
+  occupantA,
+  occupantBValue,
+  overrideReason,
+  delegates,
+  assignedDelegateIds,
+}: {
+  occupantA: RoomAssignmentDelegate | null;
+  occupantBValue: string;
+  overrideReason: string;
+  delegates: RoomAssignmentDelegate[];
+  assignedDelegateIds: Set<string>;
+}): string | null {
+  if (!occupantA) {
+    return "Select a primary delegate (Occupant A).";
+  }
+
+  if (assignedDelegateIds.has(occupantA.id)) {
+    return `${occupantA.name} already has an active room assignment. Edit that row instead of creating a new one.`;
+  }
+
+  const { occupantBId, companionGuestId } =
+    resolveOccupantBSelection(occupantBValue);
+
+  if (companionGuestId) {
+    if (!isDelegateEligibleForGuestSelfRoom(occupantA)) {
+      return `${occupantA.name} is not eligible for a single room with guest(s).`;
+    }
+
+    const knownGuestIds = new Set((occupantA.guests ?? []).map((guest) => guest.id));
+    if (knownGuestIds.size > 0 && !knownGuestIds.has(companionGuestId)) {
+      return "Selected guest does not belong to the primary delegate.";
+    }
+
+    return null;
+  }
+
+  if (occupantBId) {
+    if (assignedDelegateIds.has(occupantBId)) {
+      const occupantB = delegates.find((delegate) => delegate.id === occupantBId);
+      return `${occupantB?.name ?? "The selected delegate"} already has an active room assignment.`;
+    }
+
+    if (!isDelegateEligibleForRoomPairing(occupantA)) {
+      return `${occupantA.name} is not eligible for delegate pairing.`;
+    }
+
+    const occupantB = delegates.find((delegate) => delegate.id === occupantBId);
+    if (!occupantB) {
+      return "Second delegate not found.";
+    }
+
+    if (!isDelegateEligibleForRoomPairing(occupantB)) {
+      return `${occupantB.name} is not eligible for delegate pairing.`;
+    }
+
+    if (
+      requiresCrossGenderOverrideReason(occupantA, occupantB) &&
+      !overrideReason.trim()
+    ) {
+      return "Cross-gender delegate pairing requires an override reason.";
+    }
+
+    return null;
+  }
+
+  if (!isDelegateEligibleForRoomAssignment(occupantA)) {
+    return `${occupantA.name} is not eligible for room assignment (payment or accommodation rules).`;
+  }
+
+  return null;
 }
 
 function OccupantBSelectOptions({
@@ -281,10 +345,13 @@ export function RoomAssignmentWorkspace({
   onRefresh,
   onError,
   onNotice,
+  onBusyChange,
 }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [manualA, setManualA] = useState("");
   const [manualB, setManualB] = useState("");
@@ -421,8 +488,10 @@ export function RoomAssignmentWorkspace({
       isGuestOccupantValue(currentGuestValue) &&
       !options.some((option) => option.value === currentGuestValue)
     ) {
-      const guestId = currentGuestValue.slice(GUEST_OCCUPANT_VALUE_PREFIX.length);
-      const guest = primary.guests?.find((item) => item.id === guestId);
+      const guestId = parseGuestOccupantValue(currentGuestValue);
+      const guest = guestId
+        ? primary.guests?.find((item) => item.id === guestId)
+        : undefined;
       if (guest) {
         options.unshift({
           value: currentGuestValue,
@@ -451,8 +520,30 @@ export function RoomAssignmentWorkspace({
   };
 
   const handleCreate = async () => {
-    if (!manualA) return;
-    const occupantBId = resolveOccupantBId(manualB);
+    if (busy || submitting) return;
+
+    const validationError = validateManualAssignmentInput({
+      occupantA: selectedManualDelegate,
+      occupantBValue: manualB,
+      overrideReason: manualOverride,
+      delegates,
+      assignedDelegateIds,
+    });
+
+    if (validationError) {
+      setFormError(validationError);
+      onError(validationError);
+      return;
+    }
+
+    const { occupantBId, companionGuestId } =
+      resolveOccupantBSelection(manualB);
+
+    setSubmitting(true);
+    onBusyChange?.(true);
+    setFormError(null);
+    onError(null);
+    onNotice(null);
 
     try {
       const res = await fetch(`/api/conf/${confId}/room-assignments`, {
@@ -461,6 +552,7 @@ export function RoomAssignmentWorkspace({
         body: JSON.stringify({
           occupantAId: manualA,
           occupantBId,
+          companionGuestId,
           roomCode: manualRoomCode.trim() || null,
           overrideReason: manualOverride.trim() || null,
         }),
@@ -476,15 +568,49 @@ export function RoomAssignmentWorkspace({
       setManualRoomCode("");
       setManualOverride("");
       setManualAssignmentMode("with-guest");
+      setFormError(null);
       await onRefresh();
       onNotice("Room assignment created.");
     } catch (e) {
-      onError(e instanceof Error ? e.message : "Failed to assign room");
+      const message =
+        e instanceof Error ? e.message : "Failed to assign room";
+      setFormError(message);
+      onError(message);
+    } finally {
+      setSubmitting(false);
+      onBusyChange?.(false);
     }
   };
 
   const handleSaveEdit = async (assignmentId: string) => {
-    if (!editA || !editRoomCode.trim()) return;
+    if (busy || submitting || !editA || !editRoomCode.trim()) return;
+
+    const editDelegateA = delegates.find((delegate) => delegate.id === editA) ?? null;
+    const validationError = validateManualAssignmentInput({
+      occupantA: editDelegateA,
+      occupantBValue: editB,
+      overrideReason: editOverride,
+      delegates,
+      assignedDelegateIds: new Set(
+        [...assignedDelegateIds].filter((id) => {
+          const assignment = assignments.find((item) => item.id === assignmentId);
+          if (!assignment || assignment.status === "CANCELLED") return true;
+          return id !== assignment.occupantA.id && id !== assignment.occupantB?.id;
+        }),
+      ),
+    });
+
+    if (validationError) {
+      onError(validationError);
+      return;
+    }
+
+    const { occupantBId, companionGuestId } = resolveOccupantBSelection(editB);
+
+    setSubmitting(true);
+    onBusyChange?.(true);
+    onError(null);
+    onNotice(null);
 
     try {
       const res = await fetch(
@@ -495,7 +621,8 @@ export function RoomAssignmentWorkspace({
           body: JSON.stringify({
             roomCode: editRoomCode.trim(),
             occupantAId: editA,
-            occupantBId: resolveOccupantBId(editB),
+            occupantBId,
+            companionGuestId,
             overrideReason: editOverride.trim() || null,
           }),
         },
@@ -513,6 +640,9 @@ export function RoomAssignmentWorkspace({
       onError(
         e instanceof Error ? e.message : "Failed to update room assignment",
       );
+    } finally {
+      setSubmitting(false);
+      onBusyChange?.(false);
     }
   };
 
@@ -746,21 +876,36 @@ export function RoomAssignmentWorkspace({
 
             <div className="space-y-2 xl:col-span-2">
               <Label>
-                Override Reason (required for cross-gender assignment)
+                Override Reason (required for cross-gender delegate pairing)
               </Label>
               <Textarea
-                placeholder="Provide legal partner / approved exception context"
+                placeholder="Required only when pairing two delegates of different genders"
                 value={manualOverride}
-                onChange={(e) => setManualOverride(e.target.value)}
+                onChange={(e) => {
+                  setManualOverride(e.target.value);
+                  if (formError) setFormError(null);
+                }}
                 rows={1}
               />
             </div>
 
-            <div className="xl:col-span-5 flex justify-end">
-              <Button size="sm" onClick={handleCreate} disabled={!manualA || busy}>
-                <BedDouble className="size-4" />
-                Assign Room
-              </Button>
+            <div className="xl:col-span-5 space-y-2">
+              {formError ? (
+                <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-600">
+                  {formError}
+                </p>
+              ) : null}
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCreate}
+                  disabled={!manualA || busy || submitting}
+                >
+                  <BedDouble className="size-4" />
+                  {submitting ? "Assigning..." : "Assign Room"}
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -856,7 +1001,7 @@ export function RoomAssignmentWorkspace({
                                   size="sm"
                                   className="h-7 text-xs"
                                   onClick={() => handleSaveEdit(assignment.id)}
-                                  disabled={busy || !editRoomCode.trim()}
+                                  disabled={busy || submitting || !editRoomCode.trim()}
                                 >
                                   Save
                                 </Button>

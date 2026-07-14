@@ -5,6 +5,7 @@ import {
   fetchDelegateForPairing,
   generateRoomCode,
   hasActiveAssignment,
+  parseRoomAssignmentOccupantBInput,
   ROOM_ASSIGNMENT_INCLUDE,
   validateOccupantPairing,
 } from "@/lib/conf/room-assignments-server";
@@ -49,10 +50,11 @@ export async function POST(
     const body = await req.json();
 
     const occupantAId = String(body.occupantAId || "");
-    const occupantBId = body.occupantBId ? String(body.occupantBId) : null;
+    const { occupantBId, companionGuestId } =
+      parseRoomAssignmentOccupantBInput(body);
     const roomCode = body.roomCode ? String(body.roomCode).trim() : null;
     const overrideReason = body.overrideReason
-      ? String(body.overrideReason)
+      ? String(body.overrideReason).trim() || null
       : null;
 
     if (!occupantAId) {
@@ -67,6 +69,23 @@ export async function POST(
         { error: "A delegate cannot be paired with themselves" },
         { status: 400 },
       );
+    }
+
+    if (companionGuestId) {
+      const guest = await prisma.confDelegateGuest.findFirst({
+        where: {
+          id: companionGuestId,
+          delegateId: occupantAId,
+          confId,
+        },
+        select: { id: true },
+      });
+      if (!guest) {
+        return NextResponse.json(
+          { error: "Selected guest does not belong to the primary delegate" },
+          { status: 400 },
+        );
+      }
     }
 
     const occupantA = await fetchDelegateForPairing(occupantAId);
@@ -92,6 +111,7 @@ export async function POST(
       occupantA,
       occupantB,
       overrideReason,
+      { companionGuestId },
     );
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });

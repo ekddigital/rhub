@@ -4,6 +4,7 @@ import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
   fetchDelegateForPairing,
   hasActiveAssignment,
+  parseRoomAssignmentOccupantBInput,
   ROOM_ASSIGNMENT_INCLUDE,
   validateOccupantPairing,
 } from "@/lib/conf/room-assignments-server";
@@ -41,12 +42,18 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       typeof body.occupantAId === "string"
         ? body.occupantAId
         : existing.occupantAId;
-    const occupantBId =
-      body.occupantBId === null
-        ? null
-        : typeof body.occupantBId === "string"
-          ? body.occupantBId
-          : existing.occupantBId;
+
+    const parsedOccupantB =
+      body.occupantBId === undefined &&
+      body.companionGuestId === undefined
+        ? {
+            occupantBId: existing.occupantBId,
+            companionGuestId: null as string | null,
+          }
+        : parseRoomAssignmentOccupantBInput(body);
+
+    const occupantBId = parsedOccupantB.occupantBId;
+    const companionGuestId = parsedOccupantB.companionGuestId;
     const roomCode =
       typeof body.roomCode === "string" && body.roomCode.trim()
         ? body.roomCode.trim()
@@ -76,6 +83,23 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       );
     }
 
+    if (companionGuestId) {
+      const guest = await prisma.confDelegateGuest.findFirst({
+        where: {
+          id: companionGuestId,
+          delegateId: occupantAId,
+          confId,
+        },
+        select: { id: true },
+      });
+      if (!guest) {
+        return NextResponse.json(
+          { error: "Selected guest does not belong to the primary delegate" },
+          { status: 400 },
+        );
+      }
+    }
+
     const occupantA = await fetchDelegateForPairing(occupantAId);
     if (!occupantA || occupantA.confId !== confId) {
       return NextResponse.json(
@@ -99,6 +123,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       occupantA,
       occupantB,
       overrideReason,
+      { companionGuestId },
     );
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });

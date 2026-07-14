@@ -1354,9 +1354,11 @@ export function DelegatesShell() {
               busy={pairingBusy}
               onRefresh={async () => {
                 if (confId) {
+                  await loadDelegates(confId);
                   setPairingAvailable(await loadPairingData(confId));
                 }
               }}
+              onBusyChange={setPairingBusy}
               onError={setError}
               onNotice={setNotice}
             />

@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import {
   isDelegateAccommodationPairEligible,
+  isDelegateEligibleForGuestSelfRoom,
   isDelegateEligibleForRoomAssignment,
   isDelegateEligibleForRoomPairing,
+  isGuestOccupantValue,
   type RoomPairingDelegate,
 } from "@/lib/conf/room-pairing-eligibility";
 
@@ -82,11 +84,43 @@ export async function fetchDelegateForPairing(delegateId: string) {
   });
 }
 
+export function parseRoomAssignmentOccupantBInput(body: {
+  occupantBId?: unknown;
+  companionGuestId?: unknown;
+}): {
+  occupantBId: string | null;
+  companionGuestId: string | null;
+} {
+  const rawOccupantBId =
+    typeof body.occupantBId === "string" ? body.occupantBId.trim() : "";
+  const rawCompanionGuestId =
+    typeof body.companionGuestId === "string"
+      ? body.companionGuestId.trim()
+      : "";
+
+  if (rawOccupantBId && isGuestOccupantValue(rawOccupantBId)) {
+    const guestId = rawOccupantBId.slice("guest:".length).trim();
+    return {
+      occupantBId: null,
+      companionGuestId: rawCompanionGuestId || guestId || null,
+    };
+  }
+
+  return {
+    occupantBId: rawOccupantBId || null,
+    companionGuestId: rawCompanionGuestId || null,
+  };
+}
+
 export function validateOccupantPairing(
   occupantA: DelegatePairingRecord,
   occupantB: DelegatePairingRecord | null,
   overrideReason: string | null,
-  options?: { allowExistingOccupants?: boolean; isPairedAssignment?: boolean },
+  options?: {
+    allowExistingOccupants?: boolean;
+    isPairedAssignment?: boolean;
+    companionGuestId?: string | null;
+  },
 ) {
   if (occupantB) {
     if (!isDelegateEligibleForRoomPairing(occupantA)) {
@@ -110,6 +144,14 @@ export function validateOccupantPairing(
     !overrideReason
   ) {
     return "Cross-gender room assignment requires an override reason (legal partner exception).";
+  }
+
+  if (
+    !occupantB &&
+    options?.companionGuestId &&
+    !isDelegateEligibleForGuestSelfRoom(occupantA)
+  ) {
+    return "Delegate is not eligible for a single room with guest(s).";
   }
 
   return null;

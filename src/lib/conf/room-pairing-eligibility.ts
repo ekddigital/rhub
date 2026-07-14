@@ -106,6 +106,50 @@ export type RoomAssignmentGuest = {
   sortOrder: number;
 };
 
+export const GUEST_OCCUPANT_VALUE_PREFIX = "guest:";
+
+export function guestOccupantValue(guestId: string) {
+  return `${GUEST_OCCUPANT_VALUE_PREFIX}${guestId}`;
+}
+
+export function isGuestOccupantValue(value: string) {
+  return value.startsWith(GUEST_OCCUPANT_VALUE_PREFIX);
+}
+
+export function parseGuestOccupantValue(value: string): string | null {
+  if (!isGuestOccupantValue(value)) return null;
+  const guestId = value.slice(GUEST_OCCUPANT_VALUE_PREFIX.length).trim();
+  return guestId || null;
+}
+
+/** Map Occupant B dropdown value to API fields (guest selections become companionGuestId). */
+export function resolveOccupantBSelection(occupantBValue: string): {
+  occupantBId: string | null;
+  companionGuestId: string | null;
+} {
+  if (!occupantBValue) {
+    return { occupantBId: null, companionGuestId: null };
+  }
+
+  const companionGuestId = parseGuestOccupantValue(occupantBValue);
+  if (companionGuestId) {
+    return { occupantBId: null, companionGuestId };
+  }
+
+  return { occupantBId: occupantBValue, companionGuestId: null };
+}
+
+export function requiresCrossGenderOverrideReason(
+  occupantA: { gender: "MALE" | "FEMALE" | null },
+  occupantB: { gender: "MALE" | "FEMALE" | null },
+): boolean {
+  return Boolean(
+    occupantA.gender &&
+      occupantB.gender &&
+      occupantA.gender !== occupantB.gender,
+  );
+}
+
 /** Delegate chose not to share a room with their registered guest. */
 export function delegateOptedOutOfGuestRooming(
   delegate: Pick<
