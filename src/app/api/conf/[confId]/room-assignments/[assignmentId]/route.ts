@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
+  buildRoomAssignmentWriteData,
   fetchDelegateForPairing,
+  formatRoomAssignmentWriteError,
   hasActiveAssignment,
   parseRoomAssignmentOccupantBInput,
   ROOM_ASSIGNMENT_INCLUDE,
@@ -165,10 +167,14 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       where: { id: assignmentId },
       data: {
         roomCode,
-        occupantAId,
-        occupantBId,
-        overrideReason,
-        status,
+        ...buildRoomAssignmentWriteData({
+          occupantAId,
+          occupantBId,
+          companionGuestId,
+          overrideReason,
+          status,
+          isManual: existing.isManual,
+        }),
       },
       include: ROOM_ASSIGNMENT_INCLUDE,
     });
@@ -176,9 +182,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     return NextResponse.json(assignment);
   } catch (error) {
     console.error("Failed to update room assignment:", error);
+    const specificError = formatRoomAssignmentWriteError(error);
     return NextResponse.json(
-      { error: "Failed to update room assignment" },
-      { status: 500 },
+      { error: specificError || "Failed to update room assignment" },
+      { status: specificError ? 409 : 500 },
     );
   }
 }

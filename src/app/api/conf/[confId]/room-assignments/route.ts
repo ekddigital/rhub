@@ -2,7 +2,10 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
+  buildRoomAssignmentWriteData,
   fetchDelegateForPairing,
+  findCancelledRoomAssignmentSlot,
+  formatRoomAssignmentWriteError,
   generateRoomCode,
   hasActiveAssignment,
   parseRoomAssignmentOccupantBInput,
@@ -150,25 +153,40 @@ export async function POST(
       }
     }
 
-    const assignment = await prisma.confRoomAssignment.create({
-      data: {
-        confId,
-        roomCode: resolvedRoomCode,
-        occupantAId,
-        occupantBId,
-        status: "ASSIGNED",
-        isManual: true,
-        overrideReason: overrideReason || null,
-      },
-      include: ROOM_ASSIGNMENT_INCLUDE,
+    const assignmentData = buildRoomAssignmentWriteData({
+      occupantAId,
+      occupantBId,
+      companionGuestId,
+      overrideReason,
     });
+
+    const cancelledSlot = await findCancelledRoomAssignmentSlot(
+      confId,
+      resolvedRoomCode,
+    );
+
+    const assignment = cancelledSlot
+      ? await prisma.confRoomAssignment.update({
+          where: { id: cancelledSlot.id },
+          data: assignmentData,
+          include: ROOM_ASSIGNMENT_INCLUDE,
+        })
+      : await prisma.confRoomAssignment.create({
+          data: {
+            confId,
+            roomCode: resolvedRoomCode,
+            ...assignmentData,
+          },
+          include: ROOM_ASSIGNMENT_INCLUDE,
+        });
 
     return NextResponse.json(assignment, { status: 201 });
   } catch (error) {
     console.error("Failed to create room assignment:", error);
+    const specificError = formatRoomAssignmentWriteError(error);
     return NextResponse.json(
-      { error: "Failed to create room assignment" },
-      { status: 500 },
+      { error: specificError || "Failed to create room assignment" },
+      { status: specificError ? 409 : 500 },
     );
   }
 }

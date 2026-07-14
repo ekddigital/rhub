@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import {
   isDelegateAccommodationPairEligible,
   isDelegateEligibleForGuestSelfRoom,
@@ -32,6 +33,13 @@ export const ROOM_ASSIGNMENT_OCCUPANT_SELECT = {
 export const ROOM_ASSIGNMENT_INCLUDE = {
   occupantA: { select: ROOM_ASSIGNMENT_OCCUPANT_SELECT },
   occupantB: { select: ROOM_ASSIGNMENT_OCCUPANT_SELECT },
+  companionGuest: {
+    select: {
+      id: true,
+      name: true,
+      sortOrder: true,
+    },
+  },
 } as const;
 
 export const DELEGATE_PAIRING_SELECT = {
@@ -155,6 +163,84 @@ export function validateOccupantPairing(
   }
 
   return null;
+}
+
+export function buildRoomAssignmentWriteData(args: {
+  occupantAId: string;
+  occupantBId: string | null;
+  companionGuestId?: string | null;
+  overrideReason?: string | null;
+  status?: "PENDING" | "ASSIGNED" | "CANCELLED";
+  isManual?: boolean;
+}) {
+  return {
+    occupantAId: args.occupantAId,
+    occupantBId: args.occupantBId,
+    companionGuestId: args.occupantBId
+      ? null
+      : args.companionGuestId || null,
+    status: args.status ?? ("ASSIGNED" as const),
+    isManual: args.isManual ?? true,
+    overrideReason: args.overrideReason ?? null,
+  };
+}
+
+export async function findCancelledRoomAssignmentSlot(
+  confId: string,
+  roomCode: string,
+) {
+  return prisma.confRoomAssignment.findFirst({
+    where: {
+      confId,
+      roomCode,
+      status: "CANCELLED",
+    },
+    select: { id: true },
+  });
+}
+
+export function formatRoomAssignmentWriteError(error: unknown): string | null {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError)) return null;
+  if (error.code !== "P2002") return null;
+
+  const target = error.meta?.target;
+  const fields = Array.isArray(target)
+    ? target.map(String)
+    : typeof target === "string"
+      ? [target]
+      : [];
+
+  if (
+    fields.some(
+      (field) =>
+        field.includes("roomCode") ||
+        field === "ConfRoomAssignment_confId_roomCode_key",
+    )
+  ) {
+    return "Room code is already reserved by another assignment (including a cancelled one). Choose a different code or edit the existing assignment.";
+  }
+
+  if (
+    fields.some(
+      (field) =>
+        field.includes("occupantAId") ||
+        field === "ConfRoomAssignment_occupantAId_key",
+    )
+  ) {
+    return "Primary delegate already has a room assignment record.";
+  }
+
+  if (
+    fields.some(
+      (field) =>
+        field.includes("occupantBId") ||
+        field === "ConfRoomAssignment_occupantBId_key",
+    )
+  ) {
+    return "Second delegate already has a room assignment record.";
+  }
+
+  return "Room assignment conflicts with an existing record.";
 }
 
 export { isDelegateAccommodationPairEligible, isDelegateEligibleForRoomPairing };

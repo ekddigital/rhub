@@ -985,8 +985,9 @@ model ConfDelegateGuest {
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt
 
-    conf     ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
-    delegate ConfDelegate @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+    conf                     ConfEvent            @relation(fields: [confId], references: [id], onDelete: Cascade)
+    delegate                 ConfDelegate         @relation(fields: [delegateId], references: [id], onDelete: Cascade)
+    companionRoomAssignments ConfRoomAssignment[]
 
     @@index([confId])
     @@index([delegateId])
@@ -1033,25 +1034,28 @@ model ConfPairRequest {
 }
 
 model ConfRoomAssignment {
-    id          String           @id @default(cuid())
-    confId      String
-    roomCode    String
-    occupantAId String
-    occupantBId String?
-    status      RoomAssignStatus @default(PENDING)
-    isManual    Boolean          @default(false)
-    overrideReason String?       @db.Text
-    createdAt   DateTime         @default(now())
-    updatedAt   DateTime         @updatedAt
+    id               String           @id @default(cuid())
+    confId           String
+    roomCode         String
+    occupantAId      String
+    occupantBId      String?
+    companionGuestId String?
+    status           RoomAssignStatus @default(PENDING)
+    isManual         Boolean          @default(false)
+    overrideReason   String?          @db.Text
+    createdAt        DateTime         @default(now())
+    updatedAt        DateTime         @updatedAt
 
-    conf      ConfEvent    @relation(fields: [confId], references: [id], onDelete: Cascade)
-    occupantA ConfDelegate @relation("RoomOccupantA", fields: [occupantAId], references: [id], onDelete: Cascade)
-    occupantB ConfDelegate? @relation("RoomOccupantB", fields: [occupantBId], references: [id], onDelete: SetNull)
+    conf           ConfEvent          @relation(fields: [confId], references: [id], onDelete: Cascade)
+    occupantA      ConfDelegate       @relation("RoomOccupantA", fields: [occupantAId], references: [id], onDelete: Cascade)
+    occupantB      ConfDelegate?      @relation("RoomOccupantB", fields: [occupantBId], references: [id], onDelete: SetNull)
+    companionGuest ConfDelegateGuest? @relation(fields: [companionGuestId], references: [id], onDelete: SetNull)
 
     @@unique([confId, roomCode])
     @@unique([occupantAId])
     @@unique([occupantBId])
     @@index([confId, status])
+    @@index([companionGuestId])
 }
 
 model ConfMeeting {
