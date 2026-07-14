@@ -10,6 +10,7 @@ import {
   NAV_GUIDE_TOTAL_PAGES,
 } from "./navigation-document";
 import { NAV_GUIDE_META } from "./content-data";
+import { NAV_GUIDE_FONT_STACK, navigationGuideFont } from "./navigation-guide-fonts";
 import { warmupNavigationPdfExport } from "@/lib/conf/navigation-pdf-export-support";
 
 const PRINT_ROOT_ID = "navigation-guide-print-root";
@@ -103,6 +104,12 @@ export function NavigationGuidePreview() {
           width: ${BOOKLET_A4.width}px;
           pointer-events: none;
           z-index: -1;
+          font-family: ${NAV_GUIDE_FONT_STACK};
+        }
+        #${PRINT_ROOT_ID},
+        #${PRINT_ROOT_ID} * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         @media print {
           html, body {
@@ -112,6 +119,7 @@ export function NavigationGuidePreview() {
             height: auto !important;
             overflow: visible !important;
             background: white !important;
+            font-family: ${NAV_GUIDE_FONT_STACK} !important;
           }
           body > :not(#${PRINT_ROOT_ID}) {
             display: none !important;
@@ -130,6 +138,11 @@ export function NavigationGuidePreview() {
             transform: none !important;
             pointer-events: auto !important;
             z-index: auto !important;
+            font-family: ${NAV_GUIDE_FONT_STACK} !important;
+          }
+          #${PRINT_ROOT_ID},
+          #${PRINT_ROOT_ID} * {
+            font-family: inherit !important;
           }
           #${PRINT_ROOT_ID} > div {
             display: block !important;
@@ -281,7 +294,9 @@ export function NavigationGuidePreview() {
             margin: "0 auto",
             marginBottom:
               zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
+            fontFamily: NAV_GUIDE_FONT_STACK,
           }}
+          className={navigationGuideFont.className}
         >
           <NavigationDocument gap={16} />
         </div>
@@ -289,7 +304,7 @@ export function NavigationGuidePreview() {
 
       {portalReady &&
         createPortal(
-          <div id={PRINT_ROOT_ID}>
+          <div id={PRINT_ROOT_ID} className={navigationGuideFont.className}>
             <NavigationDocument gap={0} />
           </div>,
           document.body,

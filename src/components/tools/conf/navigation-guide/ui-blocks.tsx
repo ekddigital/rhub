@@ -564,7 +564,7 @@ export function HubTable() {
                 fontWeight: 600,
               }}
             >
-              {row.en} ({row.zh})
+              {row.en} ({<span lang="zh-Hans">{row.zh}</span>})
               {row.badge && (
                 <span
                   style={{
@@ -618,11 +618,15 @@ export function HubTable() {
 export function HotelMapCallout({ compact = false }: { compact?: boolean }) {
   return (
     <InfoCallout>
-      <strong>Hotel name (Chinese):</strong> {NAV_GUIDE_META.venueZh}
+      <strong>Hotel name (Chinese):</strong>{" "}
+      <span lang="zh-Hans">{NAV_GUIDE_META.venueZh}</span>
       <br />
       <strong>Hotel name (English):</strong> {NAV_GUIDE_META.venueEn}
       <br />
-      <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
+      <strong>{HOTEL_ADDRESS_LABEL}:</strong>{" "}
+      <span lang="zh-Hans" style={{ wordBreak: "break-word" }}>
+        {NAV_GUIDE_META.addressZh}
+      </span>
       {!compact && (
         <>
           <br />
@@ -669,11 +673,15 @@ export function CheatSheetBox() {
 
       <SubHeading>Hotel Name &amp; Address (DiDi / maps / bus apps)</SubHeading>
       <InfoCallout>
-        <strong>Hotel name (Chinese):</strong> {NAV_GUIDE_META.venueZh}
+        <strong>Hotel name (Chinese):</strong>{" "}
+        <span lang="zh-Hans">{NAV_GUIDE_META.venueZh}</span>
         <br />
         <strong>Hotel name (English):</strong> {NAV_GUIDE_META.venueEn}
         <br />
-        <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
+        <strong>{HOTEL_ADDRESS_LABEL}:</strong>{" "}
+        <span lang="zh-Hans" style={{ wordBreak: "break-word" }}>
+          {NAV_GUIDE_META.addressZh}
+        </span>
         <br />
         <br />
         {HOTEL_APP_SEARCH_TIP}
@@ -703,11 +711,15 @@ export function ContactSupportBlock() {
     >
       <SectionHeading level={3}>Conference Travel Support Contact</SectionHeading>
       <InfoCallout>
-        <strong>Conference hotel (Chinese):</strong> {NAV_GUIDE_META.venueZh}
+        <strong>Conference hotel (Chinese):</strong>{" "}
+        <span lang="zh-Hans">{NAV_GUIDE_META.venueZh}</span>
         <br />
         <strong>Conference hotel (English):</strong> {NAV_GUIDE_META.venueEn}
         <br />
-        <strong>{HOTEL_ADDRESS_LABEL}:</strong> {NAV_GUIDE_META.addressZh}
+        <strong>{HOTEL_ADDRESS_LABEL}:</strong>{" "}
+        <span lang="zh-Hans" style={{ wordBreak: "break-word" }}>
+          {NAV_GUIDE_META.addressZh}
+        </span>
       </InfoCallout>
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         {TRAVEL_CONTACTS.map((c) => (

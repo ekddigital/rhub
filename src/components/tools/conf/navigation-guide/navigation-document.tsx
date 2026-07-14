@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { BOOKLET_A4, C } from "../booklet/constants";
+import { navigationGuideFont } from "./navigation-guide-fonts";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import { NAV_ASSETS } from "./assets";
@@ -79,7 +80,15 @@ function NavA4Page({
 
 export function NavigationDocument({ gap = 0 }: { gap?: number }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: `${gap}px` }}>
+    <div
+      className={navigationGuideFont.className}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: `${gap}px`,
+        fontFamily: "inherit",
+      }}
+    >
       {/* Page 1 — Cover */}
       <NavigationCoverPage />
 
