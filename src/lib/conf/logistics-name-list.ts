@@ -25,12 +25,68 @@ export type LogisticsNameListDelegate = {
   guestNationality?: string | null;
 };
 
+export type LogisticsNameListRoomSummary = {
+  roomCode: string;
+  assignmentType: "PAIR" | "SINGLE" | "SINGLE_WITH_GUEST";
+  pairPartnerName: string | null;
+};
+
 export type LogisticsNameListEntry = LogisticsNameListDelegate & {
   rosterSource: LogisticsRosterSource;
   entryId: string | null;
   isAutoPaid: boolean;
   isManual: boolean;
   canRemove: boolean;
+  roomAssignment: LogisticsNameListRoomSummary | null;
+};
+
+export type LogisticsRoomPairingOccupant = {
+  id: string;
+  name: string;
+  delegateCode: string | null;
+  gender: "MALE" | "FEMALE" | null;
+  city: string;
+  passportNo: string | null;
+  feePackageId: string | null;
+  guestCount: number;
+  roomPref: "PAIR" | "SINGLE";
+  wantsSingleRoom: boolean;
+  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+  guests: Array<{ id: string; name: string; sortOrder: number }>;
+  bookletPhotoPath: string | null;
+  passportPhotoPath: string | null;
+  passportPhotoIsPdf: boolean;
+  profilePhotoUrl: string | null;
+  profilePhotoIsPdf: boolean;
+  profileHref: string;
+};
+
+export type LogisticsRoomPairingGuest = {
+  id: string;
+  name: string;
+  hostDelegateId: string;
+  hostDelegateName: string;
+  passportPhotoPath: string | null;
+  passportPhotoIsPdf: boolean;
+  profilePhotoUrl: string | null;
+  profileHref: string;
+};
+
+export type LogisticsRoomPairingAssignmentType =
+  | "PAIR"
+  | "SINGLE"
+  | "SINGLE_WITH_GUEST";
+
+export type LogisticsRoomPairing = {
+  id: string;
+  roomCode: string;
+  status: "PENDING" | "ASSIGNED" | "CANCELLED";
+  assignmentType: LogisticsRoomPairingAssignmentType;
+  occupantA: LogisticsRoomPairingOccupant;
+  occupantB: LogisticsRoomPairingOccupant | null;
+  companionGuest: LogisticsRoomPairingGuest | null;
+  companionGuests: Array<{ id: string; name: string }>;
+  overrideReason: string | null;
 };
 
 export type LogisticsNameListResponse = {
@@ -43,6 +99,7 @@ export type LogisticsNameListResponse = {
     endsAt: string;
   };
   entries: LogisticsNameListEntry[];
+  roomPairings: LogisticsRoomPairing[];
   availableDelegates: Array<{
     id: string;
     name: string;
@@ -50,6 +107,24 @@ export type LogisticsNameListResponse = {
     city: string;
   }>;
 };
+
+/** Prefer booklet headshot; fall back to passport image when booklet is missing. */
+export function resolveLogisticsProfilePhoto(input: {
+  bookletPhotoPath: string | null;
+  passportPhotoPath: string | null;
+  passportPhotoIsPdf: boolean;
+}): { url: string | null; isPdf: boolean } {
+  if (input.bookletPhotoPath) {
+    return { url: input.bookletPhotoPath, isPdf: false };
+  }
+  if (input.passportPhotoPath && !input.passportPhotoIsPdf) {
+    return { url: input.passportPhotoPath, isPdf: false };
+  }
+  if (input.passportPhotoPath) {
+    return { url: input.passportPhotoPath, isPdf: input.passportPhotoIsPdf };
+  }
+  return { url: null, isPdf: false };
+}
 
 /** Extract ConfDelegateGuest id from logistics roster row id (`guest:<id>`). */
 export function parseLogisticsGuestId(rowId: string): string | null {

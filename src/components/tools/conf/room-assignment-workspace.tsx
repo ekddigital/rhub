@@ -3,9 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   BedDouble,
-  LayoutGrid,
   Pencil,
-  Table2,
   UserMinus,
 } from "lucide-react";
 import {
@@ -32,31 +30,21 @@ import {
   resolveOccupantBSelection,
   type RoomAssignmentGuest,
 } from "@/lib/conf/room-pairing-eligibility";
+import {
+  OccupantGuestLines,
+  OccupantsCell,
+  ROOM_ASSIGNMENT_STATUS_COLOR,
+  RoomAssignmentViewModeToggle,
+  companionGuestNamesForAssignment,
+  companionGuestsForOccupant,
+  roomAssignmentTypeLabel,
+  roomOccupantSummary,
+  type RoomAssignmentOccupant,
+  type RoomAssignmentRow,
+  type RoomAssignmentViewMode,
+} from "@/components/tools/conf/room-assignment-display";
 
-export type RoomAssignmentOccupant = {
-  id: string;
-  name: string;
-  delegateCode: string | null;
-  gender: "MALE" | "FEMALE" | null;
-  city: string;
-  feePackageId?: string | null;
-  guestCount?: number;
-  roomPref?: "PAIR" | "SINGLE";
-  wantsSingleRoom?: boolean;
-  accommodationNeeded?: "YES" | "NO" | "OTHER" | null;
-  guests?: RoomAssignmentGuest[];
-};
-
-export type RoomAssignmentRow = {
-  id: string;
-  roomCode: string;
-  status: "PENDING" | "ASSIGNED" | "CANCELLED";
-  isManual: boolean;
-  overrideReason: string | null;
-  createdAt: string;
-  occupantA: RoomAssignmentOccupant;
-  occupantB: RoomAssignmentOccupant | null;
-};
+export type { RoomAssignmentOccupant, RoomAssignmentRow };
 
 export type RoomAssignmentDelegate = {
   id: string;
@@ -90,7 +78,7 @@ type Props = {
   onBusyChange?: (busy: boolean) => void;
 };
 
-type ViewMode = "cards" | "table";
+type ViewMode = RoomAssignmentViewMode;
 type ManualAssignmentMode = "with-guest" | "with-delegate";
 
 function companionGuestsForDelegate(
@@ -123,107 +111,6 @@ function companionGuestsForDelegate(
       guests: delegate.guests,
     },
     { hasPairPartner },
-  );
-}
-
-const STATUS_COLOR: Record<RoomAssignmentRow["status"], string> = {
-  PENDING: "text-yellow-600",
-  ASSIGNED: "text-emerald-600",
-  CANCELLED: "text-gray-500",
-};
-
-function assignmentTypeLabel(assignment: RoomAssignmentRow) {
-  return assignment.occupantB ? "Pair" : "Single";
-}
-
-function occupantSummary(assignment: RoomAssignmentRow) {
-  if (assignment.occupantB) {
-    return `${assignment.occupantA.name} + ${assignment.occupantB.name}`;
-  }
-  return assignment.occupantA.name;
-}
-
-function companionGuestsForOccupant(
-  occupant: RoomAssignmentOccupant,
-  hasPairPartner = false,
-) {
-  if (
-    occupant.feePackageId == null ||
-    occupant.guestCount == null ||
-    occupant.roomPref == null ||
-    occupant.wantsSingleRoom == null
-  ) {
-    return [];
-  }
-  return getCompanionGuestsForRoomDisplay(
-    {
-      feePackageId: occupant.feePackageId,
-      guestCount: occupant.guestCount,
-      roomPref: occupant.roomPref,
-      wantsSingleRoom: occupant.wantsSingleRoom,
-      accommodationNeeded: occupant.accommodationNeeded ?? null,
-      feePaid: true,
-      amountPaid: null,
-      feeAmount: null,
-      status: "CONFIRMED",
-      guests: occupant.guests,
-    },
-    { hasPairPartner },
-  );
-}
-
-function OccupantGuestLines({
-  occupant,
-  hasPairPartner = false,
-}: {
-  occupant: RoomAssignmentOccupant;
-  hasPairPartner?: boolean;
-}) {
-  const guests = companionGuestsForOccupant(occupant, hasPairPartner);
-  if (!guests.length) return null;
-
-  return (
-    <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-      {guests.map((guest) => (
-        <li key={guest.id}>
-          Guest: {guest.name}
-          <span className="ml-1 italic">(companion guest)</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function OccupantsCell({ assignment }: { assignment: RoomAssignmentRow }) {
-  const hasPairPartner = Boolean(assignment.occupantB);
-  return (
-    <div className="space-y-2">
-      <div>
-        <p className="font-medium">{assignment.occupantA.name}</p>
-        <p className="text-xs text-muted-foreground">
-          {assignment.occupantA.delegateCode || "N/A"}
-        </p>
-        <OccupantGuestLines
-          occupant={assignment.occupantA}
-          hasPairPartner={hasPairPartner}
-        />
-      </div>
-      {assignment.occupantB && (
-        <div>
-          <p className="font-medium">{assignment.occupantB.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {assignment.occupantB.delegateCode || "N/A"}
-          </p>
-          <OccupantGuestLines occupant={assignment.occupantB} />
-        </div>
-      )}
-      {!assignment.occupantB && (
-        <p className="text-xs italic text-muted-foreground">Single room</p>
-      )}
-      {assignment.overrideReason && (
-        <p className="text-xs text-amber-700">{assignment.overrideReason}</p>
-      )}
-    </div>
   );
 }
 
@@ -647,7 +534,7 @@ export function RoomAssignmentWorkspace({
   };
 
   const handleUnassign = async (assignment: RoomAssignmentRow) => {
-    const label = occupantSummary(assignment);
+    const label = roomOccupantSummary(assignment);
     if (
       !window.confirm(
         `Unassign ${label} from room ${assignment.roomCode}? They will be free for re-pairing.`,
@@ -733,28 +620,10 @@ export function RoomAssignmentWorkspace({
               guest-package delegates (single room with guest).
             </CardDescription>
           </div>
-          <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
-            <Button
-              type="button"
-              variant={viewMode === "table" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => setViewMode("table")}
-            >
-              <Table2 className="size-3.5" />
-              Table
-            </Button>
-            <Button
-              type="button"
-              variant={viewMode === "cards" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={() => setViewMode("cards")}
-            >
-              <LayoutGrid className="size-3.5" />
-              Cards
-            </Button>
-          </div>
+          <RoomAssignmentViewModeToggle
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -989,7 +858,7 @@ export function RoomAssignmentWorkspace({
                           <td className="px-3 py-2 align-top">
                             <Badge
                               variant="outline"
-                              className={`text-xs ${STATUS_COLOR[assignment.status]}`}
+                              className={`text-xs ${ROOM_ASSIGNMENT_STATUS_COLOR[assignment.status]}`}
                             >
                               {assignment.status}
                             </Badge>
@@ -1046,12 +915,12 @@ export function RoomAssignmentWorkspace({
                             .join(", ") || "—"}
                         </td>
                         <td className="px-3 py-2">
-                          {assignmentTypeLabel(assignment)}
+                          {roomAssignmentTypeLabel(assignment)}
                         </td>
                         <td className="px-3 py-2">
                           <Badge
                             variant="outline"
-                            className={`text-xs ${STATUS_COLOR[assignment.status]}`}
+                            className={`text-xs ${ROOM_ASSIGNMENT_STATUS_COLOR[assignment.status]}`}
                           >
                             {assignment.status}
                           </Badge>
@@ -1184,7 +1053,7 @@ export function RoomAssignmentWorkspace({
                             </div>
                             <Badge
                               variant="outline"
-                              className={`text-xs ${STATUS_COLOR[assignment.status]}`}
+                              className={`text-xs ${ROOM_ASSIGNMENT_STATUS_COLOR[assignment.status]}`}
                             >
                               {assignment.status}
                             </Badge>
@@ -1196,7 +1065,7 @@ export function RoomAssignmentWorkspace({
                               : ""}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {assignmentTypeLabel(assignment)} ·{" "}
+                            {roomAssignmentTypeLabel(assignment)} ·{" "}
                             {assignment.occupantA.delegateCode || "N/A"}
                             {assignment.occupantB
                               ? ` / ${assignment.occupantB.delegateCode || "N/A"}`

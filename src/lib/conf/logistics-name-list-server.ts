@@ -2,19 +2,28 @@ import type { ConfDelegate } from "@prisma/client";
 import {
   hasStoredDelegateDocumentPath,
   isDelegateFullyPaid,
+  resolveLogisticsProfilePhoto,
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
+  type LogisticsNameListRoomSummary,
+  type LogisticsRoomPairing,
+  type LogisticsRoomPairingAssignmentType,
+  type LogisticsRoomPairingGuest,
+  type LogisticsRoomPairingOccupant,
 } from "@/lib/conf/logistics-name-list";
 import {
   resolveDelegateEntryStampForClient,
   resolveDelegatePassportPhotoForClient,
   resolveDelegateVisaForClient,
+  resolveDelegateBookletPhotoForClient,
   resolveGuestEntryStampForClient,
   resolveGuestPassportPhotoForClient,
   resolveGuestVisaForClient,
   isStoredDelegateDocumentPdf,
   probeManyStoredDelegateDocumentsIsPdf,
 } from "@/lib/conf/delegate-document-urls";
+import { getCompanionGuestsForRoomDisplay } from "@/lib/conf/room-pairing-eligibility";
+import { ROOM_ASSIGNMENT_OCCUPANT_SELECT } from "@/lib/conf/room-assignments-server";
 
 type GuestRow = {
   id: string;
@@ -58,6 +67,282 @@ type ConfRow = {
   startsAt: Date;
   endsAt: Date;
 };
+
+type RoomPairingOccupantRow = {
+  id: string;
+  name: string;
+  delegateCode: string | null;
+  gender: "MALE" | "FEMALE" | null;
+  city: string;
+  passportNo: string | null;
+  feePackageId: string | null;
+  guestCount: number;
+  roomPref: "PAIR" | "SINGLE";
+  wantsSingleRoom: boolean;
+  accommodationNeeded: "YES" | "NO" | "OTHER" | null;
+  feePaid: boolean;
+  amountPaid: number | null;
+  feeAmount: number | null;
+  status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
+  passportPhotoPath: string | null;
+  bookletPhotoPath: string | null;
+  guests: Array<{
+    id: string;
+    name: string;
+    sortOrder: number;
+  }>;
+};
+
+type RoomPairingGuestRow = {
+  id: string;
+  name: string;
+  sortOrder: number;
+  passportPhotoPath: string | null;
+  delegateId: string;
+};
+
+type RoomPairingAssignmentRow = {
+  id: string;
+  roomCode: string;
+  status: "PENDING" | "ASSIGNED" | "CANCELLED";
+  overrideReason: string | null;
+  occupantA: RoomPairingOccupantRow;
+  occupantB: RoomPairingOccupantRow | null;
+  companionGuest: RoomPairingGuestRow | null;
+};
+
+export const LOGISTICS_ROOM_PAIRING_INCLUDE = {
+  occupantA: {
+    select: {
+      ...ROOM_ASSIGNMENT_OCCUPANT_SELECT,
+      passportNo: true,
+      passportPhotoPath: true,
+      bookletPhotoPath: true,
+      feePaid: true,
+      amountPaid: true,
+      feeAmount: true,
+      status: true,
+    },
+  },
+  occupantB: {
+    select: {
+      ...ROOM_ASSIGNMENT_OCCUPANT_SELECT,
+      passportNo: true,
+      passportPhotoPath: true,
+      bookletPhotoPath: true,
+      feePaid: true,
+      amountPaid: true,
+      feeAmount: true,
+      status: true,
+    },
+  },
+  companionGuest: {
+    select: {
+      id: true,
+      name: true,
+      sortOrder: true,
+      passportPhotoPath: true,
+      delegateId: true,
+    },
+  },
+} as const;
+
+function mapRoomPairingOccupant(
+  confId: string,
+  occupant: RoomPairingOccupantRow,
+  pdfByPath: Map<string, boolean>,
+): LogisticsRoomPairingOccupant {
+  const bookletPhotoPath = resolveDelegateBookletPhotoForClient(
+    confId,
+    occupant.id,
+    occupant.bookletPhotoPath,
+  );
+  const passportPhotoPath = resolveDelegatePassportPhotoForClient(
+    confId,
+    occupant.id,
+    occupant.passportPhotoPath,
+  );
+  const passportPhotoIsPdf = resolveDocIsPdf(
+    occupant.passportPhotoPath,
+    pdfByPath,
+  );
+  const profilePhoto = resolveLogisticsProfilePhoto({
+    bookletPhotoPath,
+    passportPhotoPath,
+    passportPhotoIsPdf,
+  });
+
+  return {
+    id: occupant.id,
+    name: occupant.name,
+    delegateCode: occupant.delegateCode,
+    gender: occupant.gender,
+    city: occupant.city,
+    passportNo: occupant.passportNo,
+    feePackageId: occupant.feePackageId,
+    guestCount: occupant.guestCount,
+    roomPref: occupant.roomPref,
+    wantsSingleRoom: occupant.wantsSingleRoom,
+    accommodationNeeded: occupant.accommodationNeeded,
+    guests: occupant.guests,
+    bookletPhotoPath,
+    passportPhotoPath,
+    passportPhotoIsPdf,
+    profilePhotoUrl: profilePhoto.url,
+    profilePhotoIsPdf: profilePhoto.isPdf,
+    profileHref: occupant.passportNo
+      ? `/tools/conf/delegates/p/${encodeURIComponent(occupant.passportNo)}`
+      : `/tools/conf/delegates/${occupant.id}`,
+  };
+}
+
+function mapRoomPairingCompanionGuest(
+  confId: string,
+  host: RoomPairingOccupantRow,
+  guest: RoomPairingGuestRow,
+  pdfByPath: Map<string, boolean>,
+): LogisticsRoomPairingGuest {
+  const passportPhotoPath = resolveGuestPassportPhotoForClient(
+    confId,
+    host.id,
+    guest.id,
+    guest.passportPhotoPath,
+  );
+  const passportPhotoIsPdf = resolveDocIsPdf(guest.passportPhotoPath, pdfByPath);
+  const profilePhoto = resolveLogisticsProfilePhoto({
+    bookletPhotoPath: null,
+    passportPhotoPath,
+    passportPhotoIsPdf,
+  });
+
+  return {
+    id: guest.id,
+    name: guest.name,
+    hostDelegateId: host.id,
+    hostDelegateName: host.name,
+    passportPhotoPath,
+    passportPhotoIsPdf,
+    profilePhotoUrl: profilePhoto.url,
+    profileHref: `/tools/conf/delegates/${host.id}?guest=${encodeURIComponent(guest.id)}`,
+  };
+}
+
+function resolveRoomPairingAssignmentType(
+  assignment: RoomPairingAssignmentRow,
+): LogisticsRoomPairingAssignmentType {
+  if (assignment.occupantB) return "PAIR";
+  if (assignment.companionGuest) return "SINGLE_WITH_GUEST";
+  return "SINGLE";
+}
+
+function companionGuestsForOccupant(
+  occupant: RoomPairingOccupantRow,
+  hasPairPartner: boolean,
+) {
+  return getCompanionGuestsForRoomDisplay(
+    {
+      feePackageId: occupant.feePackageId,
+      guestCount: occupant.guestCount,
+      roomPref: occupant.roomPref,
+      wantsSingleRoom: occupant.wantsSingleRoom,
+      accommodationNeeded: occupant.accommodationNeeded,
+      feePaid: occupant.feePaid,
+      amountPaid: occupant.amountPaid,
+      feeAmount: occupant.feeAmount,
+      status: occupant.status,
+      guests: occupant.guests,
+    },
+    { hasPairPartner },
+  );
+}
+
+export async function buildLogisticsRoomPairings(input: {
+  confId: string;
+  assignments: RoomPairingAssignmentRow[];
+  origin: string;
+}): Promise<LogisticsRoomPairing[]> {
+  const { confId, assignments, origin } = input;
+
+  const allDocPaths = assignments.flatMap((assignment) => [
+    assignment.occupantA.passportPhotoPath,
+    assignment.occupantB?.passportPhotoPath ?? null,
+    assignment.companionGuest?.passportPhotoPath ?? null,
+  ]);
+  const pdfByPath = await probeManyStoredDelegateDocumentsIsPdf(
+    allDocPaths,
+    origin,
+  );
+
+  return assignments
+    .slice()
+    .sort((a, b) => a.roomCode.localeCompare(b.roomCode))
+    .map((assignment) => {
+      const hasPairPartner = Boolean(assignment.occupantB);
+      const occupantA = mapRoomPairingOccupant(
+        confId,
+        assignment.occupantA,
+        pdfByPath,
+      );
+      const occupantB = assignment.occupantB
+        ? mapRoomPairingOccupant(confId, assignment.occupantB, pdfByPath)
+        : null;
+      const companionGuest = assignment.companionGuest
+        ? mapRoomPairingCompanionGuest(
+            confId,
+            assignment.occupantA,
+            assignment.companionGuest,
+            pdfByPath,
+          )
+        : null;
+
+      const companionGuests = [
+        ...companionGuestsForOccupant(assignment.occupantA, hasPairPartner),
+        ...(assignment.occupantB
+          ? companionGuestsForOccupant(assignment.occupantB, false)
+          : []),
+      ].map((guest) => ({ id: guest.id, name: guest.name }));
+
+      return {
+        id: assignment.id,
+        roomCode: assignment.roomCode,
+        status: assignment.status,
+        assignmentType: resolveRoomPairingAssignmentType(assignment),
+        occupantA,
+        occupantB,
+        companionGuest,
+        companionGuests,
+        overrideReason: assignment.overrideReason,
+      };
+    });
+}
+
+function buildRoomSummaryByDelegateId(
+  pairings: LogisticsRoomPairing[],
+): Map<string, LogisticsNameListRoomSummary> {
+  const byDelegateId = new Map<string, LogisticsNameListRoomSummary>();
+
+  for (const pairing of pairings) {
+    const summary: LogisticsNameListRoomSummary = {
+      roomCode: pairing.roomCode,
+      assignmentType: pairing.assignmentType,
+      pairPartnerName: pairing.occupantB?.name ?? null,
+    };
+
+    byDelegateId.set(pairing.occupantA.id, {
+      ...summary,
+      pairPartnerName: pairing.occupantB?.name ?? null,
+    });
+
+    if (pairing.occupantB) {
+      byDelegateId.set(pairing.occupantB.id, {
+        ...summary,
+        pairPartnerName: pairing.occupantA.name,
+      });
+    }
+  }
+
+  return byDelegateId;
+}
 
 function mapDelegateDocs(
   confId: string,
@@ -124,7 +409,12 @@ function toEntryBase(
   pdfByPath: Map<string, boolean>,
 ): Omit<
   LogisticsNameListEntry,
-  "rosterSource" | "entryId" | "isAutoPaid" | "isManual" | "canRemove"
+  | "rosterSource"
+  | "entryId"
+  | "isAutoPaid"
+  | "isManual"
+  | "canRemove"
+  | "roomAssignment"
 > {
   return {
     id: delegate.id,
@@ -215,6 +505,7 @@ function toGuestEntry(
     isAutoPaid: true,
     isManual: false,
     canRemove: false,
+    roomAssignment: null,
   };
 }
 
@@ -224,6 +515,7 @@ export async function buildLogisticsNameListResponse(input: {
   manualEntries: ManualEntryRow[];
   allDelegates: DelegateRow[];
   paidDelegateGuests?: GuestRow[];
+  roomAssignments?: RoomPairingAssignmentRow[];
   origin: string;
 }): Promise<LogisticsNameListResponse> {
   const {
@@ -232,9 +524,27 @@ export async function buildLogisticsNameListResponse(input: {
     manualEntries,
     allDelegates,
     paidDelegateGuests = [],
+    roomAssignments = [],
     origin,
   } = input;
   const confId = conf.id;
+
+  const roomPairings = await buildLogisticsRoomPairings({
+    confId,
+    assignments: roomAssignments,
+    origin,
+  });
+  const roomSummaryByDelegateId = buildRoomSummaryByDelegateId(roomPairings);
+  const roomSummaryByGuestId = new Map<string, LogisticsNameListRoomSummary>();
+  for (const pairing of roomPairings) {
+    if (pairing.companionGuest) {
+      roomSummaryByGuestId.set(pairing.companionGuest.id, {
+        roomCode: pairing.roomCode,
+        assignmentType: pairing.assignmentType,
+        pairPartnerName: pairing.occupantA.name,
+      });
+    }
+  }
 
   const allDocPaths = [
     ...paidDelegates.flatMap((d) => [
@@ -269,6 +579,7 @@ export async function buildLogisticsNameListResponse(input: {
       isAutoPaid: true,
       isManual: false,
       canRemove: false,
+      roomAssignment: roomSummaryByDelegateId.get(delegate.id) ?? null,
     });
   }
 
@@ -285,6 +596,7 @@ export async function buildLogisticsNameListResponse(input: {
         isManual: true,
         rosterSource: existing.isAutoPaid ? "AUTO_PAID" : "MANUAL",
         canRemove: !existing.isAutoPaid,
+        roomAssignment: roomSummaryByDelegateId.get(delegate.id) ?? null,
       });
       continue;
     }
@@ -296,6 +608,7 @@ export async function buildLogisticsNameListResponse(input: {
       isAutoPaid: false,
       isManual: true,
       canRemove: true,
+      roomAssignment: roomSummaryByDelegateId.get(delegate.id) ?? null,
     });
   }
 
@@ -306,7 +619,10 @@ export async function buildLogisticsNameListResponse(input: {
     const host = hostById.get(guest.delegateId);
     if (!host || host.status === "CANCELLED") continue;
     if (!rosterIds.has(host.id)) continue;
-    merged.set(`guest:${guest.id}`, toGuestEntry(confId, host, guest, pdfByPath));
+    merged.set(`guest:${guest.id}`, {
+      ...toGuestEntry(confId, host, guest, pdfByPath),
+      roomAssignment: roomSummaryByGuestId.get(guest.id) ?? null,
+    });
   }
 
   const entries = Array.from(merged.values()).sort((a, b) =>
@@ -337,6 +653,7 @@ export async function buildLogisticsNameListResponse(input: {
       endsAt: conf.endsAt.toISOString(),
     },
     entries,
+    roomPairings,
     availableDelegates,
   };
 }

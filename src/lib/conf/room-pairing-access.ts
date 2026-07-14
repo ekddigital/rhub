@@ -1,4 +1,5 @@
 import type { ConferenceAccess } from "@/lib/conf/access";
+import { canViewLogisticsNameList } from "@/lib/conf/conference-hotel-access";
 
 /** Chair, committee, platform admins, and other conference managers. */
 export function canViewAllPairingData(
@@ -53,6 +54,21 @@ export function buildRoomAssignmentVisibilityWhere(
       { occupantBId: access.delegateId },
     ],
   };
+}
+
+/** Logistics name list viewers (managers / hotel staff) see every active assignment. */
+export function buildLogisticsRoomAssignmentVisibilityWhere(
+  confId: string,
+  access: ConferenceAccess,
+) {
+  if (canViewLogisticsNameList(access)) {
+    return {
+      confId,
+      status: { not: "CANCELLED" as const },
+    };
+  }
+
+  return buildRoomAssignmentVisibilityWhere(confId, access);
 }
 
 export function pairingParticipantCanActOnRequest(

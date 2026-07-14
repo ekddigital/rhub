@@ -5,7 +5,9 @@ import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/
 import {
   buildLogisticsNameListResponse,
   filterFullyPaidDelegates,
+  LOGISTICS_ROOM_PAIRING_INCLUDE,
 } from "@/lib/conf/logistics-name-list-server";
+import { buildLogisticsRoomAssignmentVisibilityWhere } from "@/lib/conf/room-pairing-access";
 
 const delegateSelect = {
   id: true,
@@ -31,7 +33,7 @@ export async function GET(
     const auth = await requireConferenceApiAccess(confId, "logistics-viewer");
     if (!auth.ok) return auth.response;
 
-    const [conf, allDelegates, manualEntries] = await Promise.all([
+    const [conf, allDelegates, manualEntries, roomAssignments] = await Promise.all([
       prisma.confEvent.findUnique({
         where: { id: confId },
         select: {
@@ -53,6 +55,11 @@ export async function GET(
           delegate: { select: delegateSelect },
         },
         orderBy: { createdAt: "asc" },
+      }),
+      prisma.confRoomAssignment.findMany({
+        where: buildLogisticsRoomAssignmentVisibilityWhere(confId, auth.access),
+        include: LOGISTICS_ROOM_PAIRING_INCLUDE,
+        orderBy: { roomCode: "asc" },
       }),
     ]);
 
@@ -96,6 +103,7 @@ export async function GET(
         manualEntries,
         allDelegates,
         paidDelegateGuests,
+        roomAssignments,
         origin,
       }),
     );

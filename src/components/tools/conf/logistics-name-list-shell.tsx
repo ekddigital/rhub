@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PassportViewerModal } from "@/components/tools/conf/passport-viewer-modal";
 import { LogisticsNameListDocument } from "@/components/tools/conf/logistics-name-list-document";
+import { LogisticsRoomPairingsPanel } from "@/components/tools/conf/logistics-room-pairings-panel";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import { delegateDocumentAcceptAttribute } from "@/lib/conf/file-upload-client";
 import {
@@ -341,6 +342,20 @@ export function LogisticsNameListShell() {
   }
 
   const entries = data?.entries ?? [];
+  const roomPairings = data?.roomPairings ?? [];
+
+  const roomAssignmentLabel = (
+    assignment: LogisticsNameListEntry["roomAssignment"],
+  ) => {
+    if (!assignment) return null;
+    if (assignment.assignmentType === "PAIR") {
+      return `Pair · ${assignment.pairPartnerName ?? "partner"}`;
+    }
+    if (assignment.assignmentType === "SINGLE_WITH_GUEST") {
+      return "Single + guest";
+    }
+    return "Single";
+  };
 
   return (
     <div className="space-y-6">
@@ -392,7 +407,8 @@ export function LogisticsNameListShell() {
             Logistics Name List
           </h1>
           <p className="text-sm text-muted-foreground">
-            Paid delegates and manual additions for visa / travel document review
+            Paid delegates, room pairings, and travel document review for hotel
+            logistics
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -470,6 +486,8 @@ export function LogisticsNameListShell() {
       </Card>
       )}
 
+      <LogisticsRoomPairingsPanel pairings={roomPairings} />
+
       <Card className="logistics-no-print border-[#C8A061]/30">
         <CardHeader>
           <CardTitle className="text-base">
@@ -481,11 +499,12 @@ export function LogisticsNameListShell() {
           </CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
-          <table className="w-full min-w-[820px] text-sm">
+          <table className="w-full min-w-[920px] text-sm">
             <thead>
               <tr className="border-b bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="px-3 py-3">#</th>
                 <th className="px-3 py-3">Name</th>
+                <th className="px-3 py-3">Room</th>
                 <th className="px-3 py-3">Payment</th>
                 <th className="px-3 py-3">Passport</th>
                 <th className="px-3 py-3">Visa</th>
@@ -497,7 +516,7 @@ export function LogisticsNameListShell() {
               {entries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-3 py-10 text-center text-muted-foreground"
                   >
                     No delegates on the logistics name list yet.
@@ -549,6 +568,20 @@ export function LogisticsNameListShell() {
                               : ""}
                           </p>
                         ) : null}
+                      </td>
+                      <td className="px-3 py-4">
+                        {row.roomAssignment ? (
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">
+                              {row.roomAssignment.roomCode}
+                            </p>
+                            <Badge variant="outline" className="text-[10px]">
+                              {roomAssignmentLabel(row.roomAssignment)}
+                            </Badge>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </td>
                       <td className="px-3 py-4">
                         <p className="text-xs text-muted-foreground">
