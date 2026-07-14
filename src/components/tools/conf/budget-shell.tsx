@@ -33,7 +33,18 @@ import {
   XCircle,
   Lock,
   Unlock,
+  LayoutGrid,
+  List,
+  MoreVertical,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/creative/ui/dropdown-menu";
 import {
   Card,
   CardContent,
@@ -165,6 +176,9 @@ type ServerBudget = {
 // ── localStorage helpers ─────────────────────────────────────────────────────
 
 const LS_KEY = "conf_budget_drafts";
+const SUBMITTED_VIEW_LS_KEY = "conf_budget_submitted_view";
+
+type SubmittedBudgetViewMode = "list" | "cards";
 
 function loadDrafts(): BudgetDraft[] {
   try {
@@ -411,6 +425,387 @@ function budgetStatusBadge(budget: ServerBudget) {
       label: budget.status,
       variant: "outline" as const,
     }
+  );
+}
+
+function loadSubmittedViewMode(): SubmittedBudgetViewMode {
+  try {
+    const stored = localStorage.getItem(SUBMITTED_VIEW_LS_KEY);
+    if (stored === "list" || stored === "cards") return stored;
+  } catch {
+    // ignore
+  }
+  return "list";
+}
+
+function saveSubmittedViewMode(mode: SubmittedBudgetViewMode) {
+  try {
+    localStorage.setItem(SUBMITTED_VIEW_LS_KEY, mode);
+  } catch {
+    // ignore
+  }
+}
+
+type SubmittedBudgetPermissions = {
+  canCommitteeApprove: boolean;
+  canFinalApprove: boolean;
+  showPreview: boolean;
+  canExport: boolean;
+  showReject: boolean;
+  showDelete: boolean;
+  showEdit: boolean;
+  showRequestEdit: boolean;
+  showUnlock: boolean;
+  showRejectEditRequest: boolean;
+  showRelock: boolean;
+};
+
+function getSubmittedBudgetPermissions(
+  budget: ServerBudget,
+  accessInfo: AccessInfo | undefined,
+  canFinalApproveFromDraft: (budget: ServerBudget) => boolean,
+): SubmittedBudgetPermissions {
+  const canCommitteeApprove = Boolean(
+    budget.status === "DRAFT" &&
+      (accessInfo?.isSuperAdmin ||
+        (Boolean(accessInfo?.canApprovePayments) &&
+          Boolean(accessInfo?.committeeScope) &&
+          budget.creator.committeeScope === accessInfo?.committeeScope)),
+  );
+  const canFinalApprove = Boolean(
+    (budget.status === "REVIEW" || canFinalApproveFromDraft(budget)) &&
+      (accessInfo?.isChair || accessInfo?.isSuperAdmin),
+  );
+
+  return {
+    canCommitteeApprove,
+    canFinalApprove,
+    showPreview: canPreviewSubmittedBudget(budget, accessInfo, {
+      canCommitteeApprove,
+      canFinalApprove,
+    }),
+    canExport: canSelectBudgetForExport(budget, accessInfo),
+    showReject: canRejectBudget(budget, accessInfo),
+    showDelete: canDeleteBudget(budget, accessInfo),
+    showEdit: canEditBudget(budget, accessInfo),
+    showRequestEdit: canRequestEditAccess(budget, accessInfo),
+    showUnlock: canGrantEditAccess(budget, accessInfo),
+    showRejectEditRequest: canRejectEditRequest(budget, accessInfo),
+    showRelock: canRelockBudget(budget, accessInfo),
+  };
+}
+
+type SubmittedBudgetActionHandlers = {
+  onView: () => void;
+  onEdit: () => void;
+  onCommitteeApprove: () => void;
+  onFinalApprove: () => void;
+  onReject: () => void;
+  onRequestEdit: () => void;
+  onUnlock: () => void;
+  onRejectEditRequest: () => void;
+  onRelock: () => void;
+  onDelete: () => void;
+};
+
+function SubmittedBudgetActionsMenu({
+  budget,
+  permissions,
+  handlers,
+  actionLoading,
+  deleteLoadingId,
+  isEditing,
+}: {
+  budget: ServerBudget;
+  permissions: SubmittedBudgetPermissions;
+  handlers: SubmittedBudgetActionHandlers;
+  actionLoading: string | null;
+  deleteLoadingId: string | null;
+  isEditing: boolean;
+}) {
+  const {
+    showPreview,
+    showEdit,
+    canCommitteeApprove,
+    canFinalApprove,
+    showReject,
+    showRequestEdit,
+    showUnlock,
+    showRejectEditRequest,
+    showRelock,
+    showDelete,
+  } = permissions;
+
+  const hasActions =
+    showPreview ||
+    showEdit ||
+    canCommitteeApprove ||
+    canFinalApprove ||
+    showReject ||
+    showRequestEdit ||
+    showUnlock ||
+    showRejectEditRequest ||
+    showRelock ||
+    showDelete;
+
+  if (!hasActions) {
+    return <span className="text-xs text-muted-foreground">—</span>;
+  }
+
+  const committeeLoading = actionLoading === `${budget.id}:committee`;
+  const finalLoading = actionLoading === `${budget.id}:final`;
+  const unlockLoading = actionLoading === `${budget.id}:unlock`;
+  const rejectEditLoading = actionLoading === `${budget.id}:reject-edit`;
+  const relockLoading = actionLoading === `${budget.id}:relock`;
+  const deleteLoading = deleteLoadingId === budget.id;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-muted-foreground hover:text-foreground"
+          aria-label={`Actions for ${budget.title}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreVertical className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-52 bg-background border-border"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {showPreview && (
+          <DropdownMenuItem onClick={handlers.onView}>
+            <Eye className="size-4" />
+            View Budget
+          </DropdownMenuItem>
+        )}
+        {showEdit && (
+          <DropdownMenuItem onClick={handlers.onEdit} disabled={isEditing}>
+            <Pencil className="size-4" />
+            {isEditing ? "Editing…" : "Edit"}
+          </DropdownMenuItem>
+        )}
+        {(canCommitteeApprove || canFinalApprove) && (
+          <>
+            {(showPreview || showEdit) && <DropdownMenuSeparator />}
+            {canCommitteeApprove && (
+              <DropdownMenuItem
+                onClick={handlers.onCommitteeApprove}
+                disabled={committeeLoading}
+              >
+                <CheckCircle2 className="size-4" />
+                Committee Approve
+              </DropdownMenuItem>
+            )}
+            {canFinalApprove && (
+              <DropdownMenuItem
+                onClick={handlers.onFinalApprove}
+                disabled={finalLoading}
+              >
+                <CheckCircle2 className="size-4" />
+                Final Approve
+              </DropdownMenuItem>
+            )}
+          </>
+        )}
+        {showReject && (
+          <DropdownMenuItem onClick={handlers.onReject}>
+            <XCircle className="size-4" />
+            Reject
+          </DropdownMenuItem>
+        )}
+        {showRequestEdit && (
+          <DropdownMenuItem onClick={handlers.onRequestEdit}>
+            <Lock className="size-4" />
+            Request Edit Access
+          </DropdownMenuItem>
+        )}
+        {showUnlock && (
+          <DropdownMenuItem onClick={handlers.onUnlock} disabled={unlockLoading}>
+            <Unlock className="size-4" />
+            {budget.editUnlockStatus === "PENDING"
+              ? "Approve Edit Request"
+              : "Unlock for Editing"}
+          </DropdownMenuItem>
+        )}
+        {showRejectEditRequest && (
+          <DropdownMenuItem
+            onClick={handlers.onRejectEditRequest}
+            disabled={rejectEditLoading}
+          >
+            <XCircle className="size-4" />
+            Reject Edit Request
+          </DropdownMenuItem>
+        )}
+        {showRelock && (
+          <DropdownMenuItem onClick={handlers.onRelock} disabled={relockLoading}>
+            <Lock className="size-4" />
+            Re-lock
+          </DropdownMenuItem>
+        )}
+        {showDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handlers.onDelete}
+              disabled={deleteLoading}
+              className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+            >
+              <Trash2 className="size-4" />
+              {deleteLoading ? "Deleting…" : "Delete"}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function SubmittedBudgetStatusBadges({ budget }: { budget: ServerBudget }) {
+  const statusMeta = budgetStatusBadge(budget);
+  const unlockMeta =
+    budget.editUnlockStatus !== "NONE"
+      ? BUDGET_EDIT_UNLOCK_LABELS[budget.editUnlockStatus]
+      : null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
+      {unlockMeta?.label && (
+        <Badge variant={unlockMeta.variant}>{unlockMeta.label}</Badge>
+      )}
+      {(budget.isLocked ||
+        (budget.status === "REVIEW" &&
+          budget.editUnlockStatus !== "GRANTED")) && (
+        <Badge variant="outline" className="gap-1">
+          <Lock className="size-3" />
+          Locked
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function SubmittedBudgetInlineForms({
+  budget,
+  effectiveAccess,
+  canFinalApproveFromDraft,
+  isRejecting,
+  isRequestingEdit,
+  rejectReason,
+  editRequestNote,
+  actionLoading,
+  onRejectReasonChange,
+  onEditRequestNoteChange,
+  onConfirmReject,
+  onCancelReject,
+  onConfirmEditRequest,
+  onCancelEditRequest,
+}: {
+  budget: ServerBudget;
+  effectiveAccess?: AccessInfo;
+  canFinalApproveFromDraft: (budget: ServerBudget) => boolean;
+  isRejecting: boolean;
+  isRequestingEdit: boolean;
+  rejectReason: string;
+  editRequestNote: string;
+  actionLoading: string | null;
+  onRejectReasonChange: (value: string) => void;
+  onEditRequestNoteChange: (value: string) => void;
+  onConfirmReject: () => void;
+  onCancelReject: () => void;
+  onConfirmEditRequest: () => void;
+  onCancelEditRequest: () => void;
+}) {
+  return (
+    <>
+      {budget.editUnlockStatus === "PENDING" &&
+        budget.editUnlockRequestNote &&
+        (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) && (
+          <p className="mt-2 text-xs text-amber-800">
+            Edit request: {budget.editUnlockRequestNote}
+          </p>
+        )}
+
+      {budget.status === "REJECTED" && budget.rejectionNote && (
+        <p className="mt-2 text-xs text-red-700">
+          Rejection reason: {budget.rejectionNote}
+        </p>
+      )}
+      {budget.status === "REJECTED" &&
+        isBudgetOwner(budget, effectiveAccess) &&
+        !budget.rejectionNote && (
+          <p className="mt-2 text-xs text-red-700">
+            Your budget was rejected during review.
+          </p>
+        )}
+
+      {isRejecting && (
+        <div
+          className="mt-2 flex flex-wrap items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Input
+            className="h-8 min-w-48 flex-1 text-sm"
+            placeholder="Rejection reason (required)"
+            value={rejectReason}
+            onChange={(e) => onRejectReasonChange(e.target.value)}
+          />
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={
+              !rejectReason.trim() || actionLoading === `${budget.id}:reject`
+            }
+            onClick={onConfirmReject}
+          >
+            Confirm Reject
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onCancelReject}>
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {isRequestingEdit && (
+        <div
+          className="mt-2 flex flex-wrap items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Input
+            className="h-8 min-w-48 flex-1 text-sm"
+            placeholder="Why do you need to edit? (required)"
+            value={editRequestNote}
+            onChange={(e) => onEditRequestNoteChange(e.target.value)}
+          />
+          <Button
+            size="sm"
+            disabled={
+              !editRequestNote.trim() ||
+              actionLoading === `${budget.id}:request-edit`
+            }
+            onClick={onConfirmEditRequest}
+          >
+            Submit Request
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onCancelEditRequest}>
+            Cancel
+          </Button>
+        </div>
+      )}
+
+      {budget.status === "DRAFT" &&
+        (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) &&
+        !canFinalApproveFromDraft(budget) && (
+          <p className="mt-2 text-xs text-amber-700">
+            Committee chair approval is required before final approval.
+          </p>
+        )}
+    </>
   );
 }
 
@@ -746,6 +1141,11 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [editingServerBudgetId, setEditingServerBudgetId] = useState<
     string | null
   >(null);
+  const [selectedServerBudgetId, setSelectedServerBudgetId] = useState<
+    string | null
+  >(null);
+  const [submittedBudgetViewMode, setSubmittedBudgetViewMode] =
+    useState<SubmittedBudgetViewMode>("list");
   const [editRequestBudgetId, setEditRequestBudgetId] = useState<string | null>(
     null,
   );
@@ -761,6 +1161,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (stored.length > 0) {
       setActiveDraft(stored[0]);
     }
+    setSubmittedBudgetViewMode(loadSubmittedViewMode());
   }, []);
 
   useEffect(() => {
@@ -884,12 +1285,14 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     const draft = newDraft();
     setActiveDraft(draft);
     setEditingServerBudgetId(null);
+    setSelectedServerBudgetId(null);
     setShowList(false);
   }, []);
 
   const handleLoadDraft = useCallback((draft: BudgetDraft) => {
     setActiveDraft(draft);
     setEditingServerBudgetId(null);
+    setSelectedServerBudgetId(null);
     setShowList(false);
   }, []);
 
@@ -897,16 +1300,36 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setActiveDraft(serverBudgetToDraft(budget));
     setCreatorMemberId(budget.creator.id);
     setEditingServerBudgetId(budget.id);
+    setSelectedServerBudgetId(budget.id);
     setShowList(false);
     setNotice(null);
     setError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const handleSelectServerBudget = useCallback(
+    (budget: ServerBudget) => {
+      setSelectedServerBudgetId(budget.id);
+      if (canEditBudget(budget, effectiveAccess)) {
+        handleEditServerBudget(budget);
+      }
+    },
+    [effectiveAccess, handleEditServerBudget],
+  );
+
   const handleCancelServerEdit = useCallback(() => {
     setEditingServerBudgetId(null);
+    setSelectedServerBudgetId(null);
     setActiveDraft(newDraft());
   }, []);
+
+  const handleSubmittedViewModeChange = useCallback(
+    (mode: SubmittedBudgetViewMode) => {
+      setSubmittedBudgetViewMode(mode);
+      saveSubmittedViewMode(mode);
+    },
+    [],
+  );
 
   const handleDeleteDraft = useCallback(
     (id: string) => {
@@ -1340,6 +1763,13 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         if (previewServerBudget?.id === budgetId) {
           setPreviewServerBudget(null);
         }
+        if (editingServerBudgetId === budgetId) {
+          setEditingServerBudgetId(null);
+          setSelectedServerBudgetId(null);
+          setActiveDraft(newDraft());
+        } else if (selectedServerBudgetId === budgetId) {
+          setSelectedServerBudgetId(null);
+        }
         setNotice("Budget deleted.");
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to delete budget");
@@ -1347,7 +1777,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setDeleteLoadingId(null);
       }
     },
-    [confId, deleteLoadingId, previewServerBudget?.id, refreshConferenceBudgets],
+    [confId, deleteLoadingId, editingServerBudgetId, previewServerBudget?.id, refreshConferenceBudgets, selectedServerBudgetId],
   );
 
   const handleRequestEditAccess = useCallback(
@@ -1588,17 +2018,47 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         <div className="budget-no-print flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#002868]/30 bg-[#002868]/5 px-4 py-3">
           <div className="text-sm">
             <span className="font-medium text-[#002868]">
-              Editing submitted budget
+              Editing: {activeDraft.title?.trim() || "Untitled Budget"}
             </span>
             <span className="ml-2 text-muted-foreground">
               Changes save back to the server when you click Save Changes.
             </span>
           </div>
           <Button variant="outline" size="sm" onClick={handleCancelServerEdit}>
+            <X className="size-3.5" />
             Cancel Edit
           </Button>
         </div>
       )}
+
+      {selectedServerBudgetId &&
+        !editingServerBudgetId &&
+        (() => {
+          const selected = serverBudgets.find(
+            (b) => b.id === selectedServerBudgetId,
+          );
+          if (!selected) return null;
+          return (
+            <div className="budget-no-print flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#C8A061]/40 bg-[#C8A061]/5 px-4 py-3">
+              <div className="text-sm">
+                <span className="font-medium text-[#002868]">
+                  Selected: {selected.title}
+                </span>
+                <span className="ml-2 text-muted-foreground">
+                  Use the actions menu to view or manage this budget.
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedServerBudgetId(null)}
+              >
+                <X className="size-3.5" />
+                Clear Selection
+              </Button>
+            </div>
+          );
+        })()}
 
       {/* Drafts list */}
       {showList && (
@@ -2090,11 +2550,41 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <Card className="budget-no-print border-[#C8A061]/30">
         <CardHeader>
-          <CardTitle className="text-base">Submitted Budgets</CardTitle>
-          <CardDescription>
-            Committee review then conference chair final approval. Budget owners
-            and authorities can preview and select budgets for combined export.
-          </CardDescription>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">Submitted Budgets</CardTitle>
+              <CardDescription>
+                Committee review then conference chair final approval. Click a
+                budget to edit (when permitted) or use the actions menu.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+              <Button
+                type="button"
+                variant={
+                  submittedBudgetViewMode === "list" ? "secondary" : "ghost"
+                }
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => handleSubmittedViewModeChange("list")}
+              >
+                <List className="size-3.5" />
+                List
+              </Button>
+              <Button
+                type="button"
+                variant={
+                  submittedBudgetViewMode === "cards" ? "secondary" : "ghost"
+                }
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => handleSubmittedViewModeChange("cards")}
+              >
+                <LayoutGrid className="size-3.5" />
+                Cards
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {loadingServer ? (
@@ -2105,6 +2595,172 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             <p className="text-sm text-muted-foreground">
               No submitted budgets yet.
             </p>
+          ) : submittedBudgetViewMode === "cards" ? (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {serverBudgets.map((budget) => {
+                const budgetTotal = calcBudgetTotal(
+                  budget.items.map((item) => ({
+                    id: item.id,
+                    no: item.no,
+                    name: item.name,
+                    qty: item.qty,
+                    unit: item.unit,
+                    customUnit: "",
+                    unitPrice: item.unitPrice,
+                    notes: "",
+                  })),
+                );
+                const permissions = getSubmittedBudgetPermissions(
+                  budget,
+                  effectiveAccess,
+                  canFinalApproveFromDraft,
+                );
+                const isRejecting = rejectingBudgetId === budget.id;
+                const isRequestingEdit = editRequestBudgetId === budget.id;
+                const serverKey = serverExportKey(budget.id);
+                const isExportSelected = selectedExportKeys.includes(serverKey);
+                const isSelected =
+                  selectedServerBudgetId === budget.id ||
+                  editingServerBudgetId === budget.id;
+                const isEditing = editingServerBudgetId === budget.id;
+                const actionHandlers: SubmittedBudgetActionHandlers = {
+                  onView: () => setPreviewServerBudget(budget),
+                  onEdit: () => handleEditServerBudget(budget),
+                  onCommitteeApprove: () =>
+                    void handleBudgetAction(budget.id, "committee"),
+                  onFinalApprove: () =>
+                    void handleBudgetAction(budget.id, "final"),
+                  onReject: () => {
+                    setRejectingBudgetId(budget.id);
+                    setRejectReason("");
+                  },
+                  onRequestEdit: () => {
+                    setEditRequestBudgetId(budget.id);
+                    setEditRequestNote("");
+                  },
+                  onUnlock: () => void handleUnlockBudget(budget.id),
+                  onRejectEditRequest: () =>
+                    void handleRejectEditRequest(budget.id),
+                  onRelock: () => void handleRelockBudget(budget.id),
+                  onDelete: () =>
+                    void handleDeleteBudget(budget.id, budget.title),
+                };
+
+                return (
+                  <div
+                    key={budget.id}
+                    role="button"
+                    tabIndex={0}
+                    className={cn(
+                      "flex flex-col rounded-lg border p-4 transition-colors",
+                      isSelected
+                        ? "border-[#002868]/50 bg-[#002868]/5 ring-1 ring-[#002868]/20"
+                        : budget.status === "REJECTED"
+                          ? "border-red-500/30 bg-red-500/5 hover:bg-red-500/10"
+                          : "hover:border-[#C8A061]/40 hover:bg-muted/30",
+                      permissions.showEdit && "cursor-pointer",
+                    )}
+                    onClick={() => handleSelectServerBudget(budget)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSelectServerBudget(budget);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-start gap-2">
+                        {permissions.canExport && (
+                          <button
+                            type="button"
+                            className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExportKey(serverKey);
+                            }}
+                            title={
+                              isExportSelected
+                                ? "Deselect for export"
+                                : "Select for export"
+                            }
+                          >
+                            {isExportSelected ? (
+                              <CheckSquare className="size-4 text-[#C8A061]" />
+                            ) : (
+                              <Square className="size-4" />
+                            )}
+                          </button>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{budget.title}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {budget.creator.name}
+                          </p>
+                        </div>
+                      </div>
+                      <SubmittedBudgetActionsMenu
+                        budget={budget}
+                        permissions={permissions}
+                        handlers={actionHandlers}
+                        actionLoading={actionLoading}
+                        deleteLoadingId={deleteLoadingId}
+                        isEditing={isEditing}
+                      />
+                    </div>
+
+                    <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between gap-2">
+                        <span>
+                          {BUDGET_CATEGORIES[budget.category]?.label ||
+                            budget.category}
+                        </span>
+                        <span className="font-mono font-medium text-foreground">
+                          {fmtRmb(budgetTotal)}
+                        </span>
+                      </div>
+                      {budget.creator.committeeScope && (
+                        <p className="truncate">{budget.creator.committeeScope}</p>
+                      )}
+                      <p>
+                        {budget.items.length} item
+                        {budget.items.length === 1 ? "" : "s"}
+                        {budget.approvedAt &&
+                          ` · approved ${new Date(budget.approvedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                      </p>
+                    </div>
+
+                    <div className="mt-3">
+                      <SubmittedBudgetStatusBadges budget={budget} />
+                    </div>
+
+                    {isEditing && (
+                      <p className="mt-2 text-xs font-medium text-[#002868]">
+                        Currently editing
+                      </p>
+                    )}
+
+                    <SubmittedBudgetInlineForms
+                      budget={budget}
+                      effectiveAccess={effectiveAccess}
+                      canFinalApproveFromDraft={canFinalApproveFromDraft}
+                      isRejecting={isRejecting}
+                      isRequestingEdit={isRequestingEdit}
+                      rejectReason={rejectReason}
+                      editRequestNote={editRequestNote}
+                      actionLoading={actionLoading}
+                      onRejectReasonChange={setRejectReason}
+                      onEditRequestNoteChange={setEditRequestNote}
+                      onConfirmReject={() => void handleRejectBudget(budget.id)}
+                      onCancelReject={() => setRejectingBudgetId(null)}
+                      onConfirmEditRequest={() =>
+                        void handleRequestEditAccess(budget.id)
+                      }
+                      onCancelEditRequest={() => setEditRequestBudgetId(null)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           ) : (
             serverBudgets.map((budget) => {
               const budgetTotal = calcBudgetTotal(
@@ -2119,321 +2775,143 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   notes: "",
                 })),
               );
-              const canCommitteeApprove =
-                budget.status === "DRAFT" &&
-                (effectiveAccess?.isSuperAdmin ||
-                  (Boolean(effectiveAccess?.canApprovePayments) &&
-                    Boolean(effectiveAccess?.committeeScope) &&
-                    budget.creator.committeeScope ===
-                      effectiveAccess?.committeeScope));
-              const canFinalApprove =
-                (budget.status === "REVIEW" ||
-                  canFinalApproveFromDraft(budget)) &&
-                (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin);
-              const showPreview = canPreviewSubmittedBudget(
+              const permissions = getSubmittedBudgetPermissions(
                 budget,
                 effectiveAccess,
-                { canCommitteeApprove, canFinalApprove },
+                canFinalApproveFromDraft,
               );
-              const canExport = canSelectBudgetForExport(budget, effectiveAccess);
-              const showReject = canRejectBudget(budget, effectiveAccess);
-              const showDelete = canDeleteBudget(budget, effectiveAccess);
-              const showEdit = canEditBudget(budget, effectiveAccess);
-              const showRequestEdit = canRequestEditAccess(budget, effectiveAccess);
-              const showUnlock = canGrantEditAccess(budget, effectiveAccess);
-              const showRejectEditRequest = canRejectEditRequest(
-                budget,
-                effectiveAccess,
-              );
-              const showRelock = canRelockBudget(budget, effectiveAccess);
               const isRejecting = rejectingBudgetId === budget.id;
               const isRequestingEdit = editRequestBudgetId === budget.id;
-              const statusMeta = budgetStatusBadge(budget);
-              const unlockMeta =
-                budget.editUnlockStatus !== "NONE"
-                  ? BUDGET_EDIT_UNLOCK_LABELS[budget.editUnlockStatus]
-                  : null;
               const serverKey = serverExportKey(budget.id);
               const isExportSelected = selectedExportKeys.includes(serverKey);
+              const isSelected =
+                selectedServerBudgetId === budget.id ||
+                editingServerBudgetId === budget.id;
+              const isEditing = editingServerBudgetId === budget.id;
+              const actionHandlers: SubmittedBudgetActionHandlers = {
+                onView: () => setPreviewServerBudget(budget),
+                onEdit: () => handleEditServerBudget(budget),
+                onCommitteeApprove: () =>
+                  void handleBudgetAction(budget.id, "committee"),
+                onFinalApprove: () =>
+                  void handleBudgetAction(budget.id, "final"),
+                onReject: () => {
+                  setRejectingBudgetId(budget.id);
+                  setRejectReason("");
+                },
+                onRequestEdit: () => {
+                  setEditRequestBudgetId(budget.id);
+                  setEditRequestNote("");
+                },
+                onUnlock: () => void handleUnlockBudget(budget.id),
+                onRejectEditRequest: () =>
+                  void handleRejectEditRequest(budget.id),
+                onRelock: () => void handleRelockBudget(budget.id),
+                onDelete: () =>
+                  void handleDeleteBudget(budget.id, budget.title),
+              };
 
               return (
                 <div
                   key={budget.id}
-                  className={`rounded-lg border p-3 ${
-                    budget.status === "REJECTED"
-                      ? "border-red-500/30 bg-red-500/5"
-                      : ""
-                  }`}
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    "rounded-lg border p-3 transition-colors",
+                    isSelected
+                      ? "border-[#002868]/50 bg-[#002868]/5 ring-1 ring-[#002868]/20"
+                      : budget.status === "REJECTED"
+                        ? "border-red-500/30 bg-red-500/5 hover:bg-red-500/10"
+                        : "hover:bg-muted/40",
+                    permissions.showEdit && "cursor-pointer",
+                  )}
+                  onClick={() => handleSelectServerBudget(budget)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleSelectServerBudget(budget);
+                    }
+                  }}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-start gap-3">
-                      {canExport && (
-                      <button
-                        type="button"
-                        className="mt-0.5 text-muted-foreground hover:text-foreground"
-                        onClick={() => toggleExportKey(serverKey)}
-                        title={
-                          isExportSelected
-                            ? "Deselect for export"
-                            : "Select for export"
-                        }
-                      >
-                        {isExportSelected ? (
-                          <CheckSquare className="size-4 text-[#C8A061]" />
-                        ) : (
-                          <Square className="size-4" />
-                        )}
-                      </button>
+                    <div className="flex min-w-0 items-start gap-3">
+                      {permissions.canExport && (
+                        <button
+                          type="button"
+                          className="mt-0.5 shrink-0 text-muted-foreground hover:text-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExportKey(serverKey);
+                          }}
+                          title={
+                            isExportSelected
+                              ? "Deselect for export"
+                              : "Select for export"
+                          }
+                        >
+                          {isExportSelected ? (
+                            <CheckSquare className="size-4 text-[#C8A061]" />
+                          ) : (
+                            <Square className="size-4" />
+                          )}
+                        </button>
                       )}
-                    <div>
-                      <p className="font-medium">{budget.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {budget.creator.name}
-                        {budget.creator.committeeScope
-                          ? ` · ${budget.creator.committeeScope}`
-                          : ""}
-                        {" · "}
-                        {BUDGET_CATEGORIES[budget.category]?.label ||
-                          budget.category}
-                        {" · "}
-                        {fmtRmb(budgetTotal)}
-                      </p>
+                      <div className="min-w-0">
+                        <p className="font-medium">
+                          {budget.title}
+                          {isEditing && (
+                            <span className="ml-2 text-xs font-normal text-[#002868]">
+                              editing
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {budget.creator.name}
+                          {budget.creator.committeeScope
+                            ? ` · ${budget.creator.committeeScope}`
+                            : ""}
+                          {" · "}
+                          {BUDGET_CATEGORIES[budget.category]?.label ||
+                            budget.category}
+                          {" · "}
+                          {fmtRmb(budgetTotal)}
+                          {" · "}
+                          {budget.items.length} item
+                          {budget.items.length === 1 ? "" : "s"}
+                        </p>
+                      </div>
                     </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant={statusMeta.variant}>{statusMeta.label}</Badge>
-                      {unlockMeta?.label && (
-                        <Badge variant={unlockMeta.variant}>
-                          {unlockMeta.label}
-                        </Badge>
-                      )}
-                      {(budget.isLocked ||
-                        (budget.status === "REVIEW" &&
-                          budget.editUnlockStatus !== "GRANTED")) && (
-                        <Badge variant="outline" className="gap-1">
-                          <Lock className="size-3" />
-                          Locked
-                        </Badge>
-                      )}
+                    <div className="flex items-center gap-2">
+                      <SubmittedBudgetStatusBadges budget={budget} />
+                      <SubmittedBudgetActionsMenu
+                        budget={budget}
+                        permissions={permissions}
+                        handlers={actionHandlers}
+                        actionLoading={actionLoading}
+                        deleteLoadingId={deleteLoadingId}
+                        isEditing={isEditing}
+                      />
                     </div>
                   </div>
 
-                  {budget.editUnlockStatus === "PENDING" &&
-                    budget.editUnlockRequestNote &&
-                    (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) && (
-                      <p className="mt-2 text-xs text-amber-800">
-                        Edit request: {budget.editUnlockRequestNote}
-                      </p>
-                    )}
-
-                  {budget.status === "REJECTED" && budget.rejectionNote && (
-                    <p className="mt-2 text-xs text-red-700">
-                      Rejection reason: {budget.rejectionNote}
-                    </p>
-                  )}
-                  {budget.status === "REJECTED" &&
-                    isBudgetOwner(budget, effectiveAccess) &&
-                    !budget.rejectionNote && (
-                      <p className="mt-2 text-xs text-red-700">
-                        Your budget was rejected during review.
-                      </p>
-                    )}
-
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {showPreview && (
-                      <Button
-                        size="sm"
-                        className="border-[#002868]/30 bg-[#002868] text-white hover:bg-[#002868]/90"
-                        onClick={() => setPreviewServerBudget(budget)}
-                      >
-                        <Eye className="size-3.5" />
-                        View Budget
-                      </Button>
-                    )}
-                    {showEdit && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditServerBudget(budget)}
-                        disabled={editingServerBudgetId === budget.id}
-                      >
-                        <Pencil className="size-3.5" />
-                        {editingServerBudgetId === budget.id
-                          ? "Editing…"
-                          : "Edit"}
-                      </Button>
-                    )}
-                  {(canCommitteeApprove || canFinalApprove) && (
-                    <>
-                      {canCommitteeApprove && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            void handleBudgetAction(budget.id, "committee")
-                          }
-                          disabled={actionLoading === `${budget.id}:committee`}
-                        >
-                          Committee Approve
-                        </Button>
-                      )}
-                      {canFinalApprove && (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            void handleBudgetAction(budget.id, "final")
-                          }
-                          disabled={actionLoading === `${budget.id}:final`}
-                        >
-                          Final Approve
-                        </Button>
-                      )}
-                    </>
-                  )}
-                    {showReject &&
-                      (!isRejecting ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-500/40 text-red-600 hover:bg-red-500/10"
-                          onClick={() => {
-                            setRejectingBudgetId(budget.id);
-                            setRejectReason("");
-                          }}
-                        >
-                          <XCircle className="size-3.5" />
-                          Reject
-                        </Button>
-                      ) : (
-                        <div className="flex w-full flex-wrap items-center gap-2">
-                          <Input
-                            className="h-8 min-w-48 flex-1 text-sm"
-                            placeholder="Rejection reason (required)"
-                            value={rejectReason}
-                            onChange={(e) => setRejectReason(e.target.value)}
-                          />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={
-                              !rejectReason.trim() ||
-                              actionLoading === `${budget.id}:reject`
-                            }
-                            onClick={() => void handleRejectBudget(budget.id)}
-                          >
-                            Confirm Reject
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setRejectingBudgetId(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      ))}
-                    {showRequestEdit &&
-                      (!isRequestingEdit ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditRequestBudgetId(budget.id);
-                            setEditRequestNote("");
-                          }}
-                        >
-                          <Lock className="size-3.5" />
-                          Request Edit Access
-                        </Button>
-                      ) : (
-                        <div className="flex w-full flex-wrap items-center gap-2">
-                          <Input
-                            className="h-8 min-w-48 flex-1 text-sm"
-                            placeholder="Why do you need to edit? (required)"
-                            value={editRequestNote}
-                            onChange={(e) => setEditRequestNote(e.target.value)}
-                          />
-                          <Button
-                            size="sm"
-                            disabled={
-                              !editRequestNote.trim() ||
-                              actionLoading === `${budget.id}:request-edit`
-                            }
-                            onClick={() =>
-                              void handleRequestEditAccess(budget.id)
-                            }
-                          >
-                            Submit Request
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setEditRequestBudgetId(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      ))}
-                    {showUnlock && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10"
-                        disabled={actionLoading === `${budget.id}:unlock`}
-                        onClick={() => void handleUnlockBudget(budget.id)}
-                      >
-                        <Unlock className="size-3.5" />
-                        {budget.editUnlockStatus === "PENDING"
-                          ? "Approve Edit Request"
-                          : "Unlock for Editing"}
-                      </Button>
-                    )}
-                    {showRejectEditRequest && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-red-500/40 text-red-600 hover:bg-red-500/10"
-                        disabled={actionLoading === `${budget.id}:reject-edit`}
-                        onClick={() => void handleRejectEditRequest(budget.id)}
-                      >
-                        Reject Edit Request
-                      </Button>
-                    )}
-                    {showRelock && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={actionLoading === `${budget.id}:relock`}
-                        onClick={() => void handleRelockBudget(budget.id)}
-                      >
-                        <Lock className="size-3.5" />
-                        Re-lock
-                      </Button>
-                    )}
-                    {showDelete && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-red-500/40 text-red-600 hover:bg-red-500/10"
-                        disabled={deleteLoadingId === budget.id}
-                        onClick={() =>
-                          void handleDeleteBudget(budget.id, budget.title)
-                        }
-                      >
-                        <Trash2 className="size-3.5" />
-                        {deleteLoadingId === budget.id ? "Deleting..." : "Delete"}
-                      </Button>
-                    )}
-                  </div>
-
-                  {budget.status === "DRAFT" &&
-                    (effectiveAccess?.isChair || effectiveAccess?.isSuperAdmin) &&
-                    !canFinalApproveFromDraft(budget) && (
-                      <p className="mt-2 text-xs text-amber-700">
-                        Committee chair approval is required before final
-                        approval.
-                      </p>
-                    )}
+                  <SubmittedBudgetInlineForms
+                    budget={budget}
+                    effectiveAccess={effectiveAccess}
+                    canFinalApproveFromDraft={canFinalApproveFromDraft}
+                    isRejecting={isRejecting}
+                    isRequestingEdit={isRequestingEdit}
+                    rejectReason={rejectReason}
+                    editRequestNote={editRequestNote}
+                    actionLoading={actionLoading}
+                    onRejectReasonChange={setRejectReason}
+                    onEditRequestNoteChange={setEditRequestNote}
+                    onConfirmReject={() => void handleRejectBudget(budget.id)}
+                    onCancelReject={() => setRejectingBudgetId(null)}
+                    onConfirmEditRequest={() =>
+                      void handleRequestEditAccess(budget.id)
+                    }
+                    onCancelEditRequest={() => setEditRequestBudgetId(null)}
+                  />
                 </div>
               );
             })
