@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { denyIfHotelCheckinWrite, requireConferenceApiAccess } from "@/lib/conf/access";
+import {
+  canManagePairingData,
+  pairingParticipantCanActOnRequest,
+} from "@/lib/conf/room-pairing-access";
 
 type Action =
   | "accept"
@@ -195,6 +199,16 @@ export async function PATCH(
     }
 
     if (action === "cancel") {
+      if (
+        !canManagePairingData(auth.access) &&
+        !pairingParticipantCanActOnRequest(auth.access, pairRequest)
+      ) {
+        return NextResponse.json(
+          { error: "You can only cancel your own pairing requests" },
+          { status: 403 },
+        );
+      }
+
       const updated = await prisma.confPairRequest.update({
         where: { id: requestId },
         data: {
@@ -282,6 +296,46 @@ export async function PATCH(
     console.error("Failed to update pair request:", error);
     return NextResponse.json(
       { error: "Failed to update pair request" },
+      { status: 500 },
+    );
+  }
+}
+
+// DELETE /api/conf/[confId]/pair-requests/[requestId]
+// Managers can permanently remove a pairing request record.
+export async function DELETE(
+  _req: Request,
+  {
+    params,
+  }: {
+    params: Promise<{ confId: string; requestId: string }>;
+  },
+) {
+  try {
+    const { confId, requestId } = await params;
+    const auth = await requireConferenceApiAccess(confId, "manager");
+    if (!auth.ok) return auth.response;
+    const writeDenied = denyIfHotelCheckinWrite(auth.access);
+    if (writeDenied) return writeDenied;
+
+    const pairRequest = await prisma.confPairRequest.findUnique({
+      where: { id: requestId },
+      select: { id: true, confId: true },
+    });
+
+    if (!pairRequest || pairRequest.confId !== confId) {
+      return NextResponse.json(
+        { error: "Pair request not found" },
+        { status: 404 },
+      );
+    }
+
+    await prisma.confPairRequest.delete({ where: { id: requestId } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Failed to delete pair request:", error);
+    return NextResponse.json(
+      { error: "Failed to delete pair request" },
       { status: 500 },
     );
   }

@@ -110,12 +110,43 @@ export type RoomAssignmentGuest = {
 export function delegateOptedOutOfGuestRooming(
   delegate: Pick<
     RoomPairingDelegate,
-    "roomPref" | "wantsSingleRoom" | "accommodationNeeded"
+    | "roomPref"
+    | "wantsSingleRoom"
+    | "accommodationNeeded"
+    | "feePackageId"
+    | "guestCount"
   >,
 ): boolean {
   if (delegate.accommodationNeeded === "NO") return true;
+  if ((delegate.guestCount ?? 0) < 1) return true;
+
+  const packageMode = getConferenceFeeAccommodationMode(delegate.feePackageId);
+  const hasGuestPackage = conferencePackageIncludesGuest(delegate.feePackageId);
+
+  // Single-room packages: delegate rooms with their guest(s) in the same room.
+  if (packageMode === "SINGLE") return false;
+
+  // Guest packages without an explicit accommodation label (e.g. veteran guest).
+  if (hasGuestPackage && packageMode === null) return false;
+
+  // Shared-room + guest package: SINGLE preference means pairing with another delegate instead.
+  if (packageMode === "PAIR" && hasGuestPackage) {
+    return delegate.wantsSingleRoom || delegate.roomPref === "SINGLE";
+  }
+
   if (delegate.wantsSingleRoom || delegate.roomPref === "SINGLE") return true;
   return false;
+}
+
+/** Delegate can be assigned a single room that includes their registered guest(s). */
+export function isDelegateEligibleForGuestSelfRoom(
+  delegate: RoomPairingDelegate,
+): boolean {
+  if (!isDelegateEligibleForRoomAssignment(delegate)) return false;
+  if ((delegate.guestCount ?? 0) < 1) return false;
+  if (!conferencePackageIncludesGuest(delegate.feePackageId)) return false;
+  if (delegateOptedOutOfGuestRooming(delegate)) return false;
+  return true;
 }
 
 /**
@@ -125,7 +156,9 @@ export function delegateOptedOutOfGuestRooming(
  */
 export function getCompanionGuestsForRoomDisplay(
   delegate: RoomPairingDelegate & { guests?: RoomAssignmentGuest[] },
+  options?: { hasPairPartner?: boolean },
 ): RoomAssignmentGuest[] {
+  if (options?.hasPairPartner) return [];
   if (!conferencePackageIncludesGuest(delegate.feePackageId)) return [];
   if (delegate.guestCount < 1) return [];
   if (!delegate.guests?.length) return [];

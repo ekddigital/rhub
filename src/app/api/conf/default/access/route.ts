@@ -22,6 +22,8 @@ export async function GET() {
       isSuperAdmin: access.isSuperAdmin,
       isHotelCheckin: access.isHotelCheckin,
       isHotelCheckinOnly: isConferenceHotelCheckinOnly(access),
+      delegateId: access.delegateId,
+      canManagePairing: access.isManager || access.isChair,
     });
   } catch (error) {
     if (isConferenceDatabaseUnavailableError(error)) {

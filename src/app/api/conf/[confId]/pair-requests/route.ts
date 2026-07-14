@@ -10,6 +10,7 @@ import {
   isDelegateEligibleForRoomPairing,
   isDelegatePaymentConfirmedForPairing,
 } from "@/lib/conf/room-pairing-eligibility";
+import { buildPairRequestVisibilityWhere } from "@/lib/conf/room-pairing-access";
 
 // GET /api/conf/[confId]/pair-requests
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
     if (!auth.ok) return auth.response;
 
     const requests = await prisma.confPairRequest.findMany({
-      where: { confId },
+      where: buildPairRequestVisibilityWhere(confId, auth.access),
       include: {
         requester: {
           select: {

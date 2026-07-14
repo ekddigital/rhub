@@ -29,7 +29,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
-import { isDelegateEligibleForRoomPairing } from "@/lib/conf/room-pairing-eligibility";
+import {
+  getCompanionGuestsForRoomDisplay,
+  isDelegateEligibleForGuestSelfRoom,
+  isDelegateEligibleForRoomPairing,
+} from "@/lib/conf/room-pairing-eligibility";
+import { conferencePackageIncludesGuest } from "@/lib/conf/delegate-guests";
 import {
   RoomAssignmentWorkspace,
   type RoomAssignmentRow,
@@ -155,7 +160,12 @@ export function DelegatesShell() {
   const [delegates, setDelegates] = useState<Delegate[]>([]);
   const [pairRequests, setPairRequests] = useState<PairRequest[]>([]);
   const [assignments, setAssignments] = useState<RoomAssignment[]>([]);
+  const [canManagePairing, setCanManagePairing] = useState(false);
+  const [currentDelegateId, setCurrentDelegateId] = useState<string | null>(null);
   const [pairingAvailable, setPairingAvailable] = useState(false);
+  const [selfPairingMode, setSelfPairingMode] = useState<
+    "with-guest" | "with-delegate" | "single-room"
+  >("with-delegate");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -239,10 +249,16 @@ export function DelegatesShell() {
           const accessPayload = (await accessRes.json()) as {
             isManager?: boolean;
             isHotelCheckin?: boolean;
+            canManagePairing?: boolean;
+            delegateId?: string | null;
           };
           const canManageConference = Boolean(accessPayload.isManager);
           setCanDeleteDelegates(canManageConference);
           setCanViewPaymentStats(canManageConference);
+          setCanManagePairing(
+            Boolean(accessPayload.canManagePairing || isAdminControl),
+          );
+          setCurrentDelegateId(accessPayload.delegateId ?? null);
           setCanViewDelegateDetails(
             canManageConference || Boolean(accessPayload.isHotelCheckin),
           );
@@ -276,6 +292,59 @@ export function DelegatesShell() {
   const pairEligibleDelegates = delegates.filter(
     (d) =>
       isDelegateEligibleForRoomPairing(d) && !assignedDelegateIds.has(d.id),
+  );
+
+  const myDelegate = currentDelegateId
+    ? delegates.find((d) => d.id === currentDelegateId) ?? null
+    : null;
+
+  const myAssignment =
+    currentDelegateId && !canManagePairing
+      ? assignments.find(
+          (a) =>
+            a.status !== "CANCELLED" &&
+            (a.occupantA.id === currentDelegateId ||
+              a.occupantB?.id === currentDelegateId),
+        ) ?? null
+      : null;
+
+  const myRoommate = myAssignment
+    ? myAssignment.occupantA.id === currentDelegateId
+      ? myAssignment.occupantB
+      : myAssignment.occupantA
+    : null;
+
+  const myOccupantRecord = myAssignment
+    ? myAssignment.occupantA.id === currentDelegateId
+      ? myAssignment.occupantA
+      : myAssignment.occupantB
+    : null;
+
+  const myCompanionGuests =
+    myAssignment && myDelegate
+      ? getCompanionGuestsForRoomDisplay(
+          {
+            feePackageId: myDelegate.feePackageId,
+            guestCount: myDelegate.guestCount,
+            roomPref: myDelegate.roomPref,
+            wantsSingleRoom: myDelegate.wantsSingleRoom,
+            accommodationNeeded: myDelegate.accommodationNeeded,
+            feePaid: myDelegate.feePaid,
+            amountPaid: myDelegate.amountPaid,
+            feeAmount: myDelegate.feeAmount,
+            status: myDelegate.status,
+            guests: myOccupantRecord?.guests,
+          },
+          { hasPairPartner: Boolean(myRoommate) },
+        )
+      : [];
+
+  const canSelfAssignWithGuest = Boolean(
+    myDelegate && isDelegateEligibleForGuestSelfRoom(myDelegate),
+  );
+
+  const selfPairingEligibleTargets = pairEligibleDelegates.filter(
+    (d) => d.id !== currentDelegateId,
   );
 
   const handleCopyRegistrationLink = async () => {
@@ -544,8 +613,30 @@ export function DelegatesShell() {
   };
 
   const handleCreatePairRequest = async () => {
-    if (!confId || !requesterId || pairingBusy) return;
-    if (requestType !== "SINGLE_ROOM" && !targetId) return;
+    if (!confId || pairingBusy) return;
+
+    const effectiveRequesterId = canManagePairing
+      ? requesterId
+      : currentDelegateId ?? "";
+    if (!effectiveRequesterId) return;
+
+    let effectiveRequestType = requestType;
+    let effectiveTargetId = targetId;
+
+    if (!canManagePairing) {
+      if (selfPairingMode === "with-guest") {
+        effectiveRequestType = "SINGLE_ROOM";
+        effectiveTargetId = "";
+      } else if (selfPairingMode === "single-room") {
+        effectiveRequestType = "SINGLE_ROOM";
+        effectiveTargetId = "";
+      } else {
+        effectiveRequestType = "STANDARD_PAIR";
+        if (!effectiveTargetId) return;
+      }
+    }
+
+    if (effectiveRequestType !== "SINGLE_ROOM" && !effectiveTargetId) return;
 
     setPairingBusy(true);
     setError(null);
@@ -555,9 +646,10 @@ export function DelegatesShell() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          requesterId,
-          targetId: requestType === "SINGLE_ROOM" ? null : targetId,
-          requestType,
+          requesterId: effectiveRequesterId,
+          targetId:
+            effectiveRequestType === "SINGLE_ROOM" ? null : effectiveTargetId,
+          requestType: effectiveRequestType,
           note: requestNote,
         }),
       });
@@ -575,6 +667,39 @@ export function DelegatesShell() {
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Failed to create pair request",
+      );
+    } finally {
+      setPairingBusy(false);
+    }
+  };
+
+  const handleDeletePairRequest = async (request: PairRequest) => {
+    if (!confId || pairingBusy || !canManagePairing) return;
+    if (
+      !window.confirm(
+        `Delete pairing request from ${request.requester.name}?`,
+      )
+    ) {
+      return;
+    }
+
+    setPairingBusy(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `/api/conf/${confId}/pair-requests/${request.id}`,
+        { method: "DELETE" },
+      );
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload.error || "Failed to delete pair request");
+      }
+      setPairingAvailable(await loadPairingData(confId));
+      setNotice("Pairing request deleted.");
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Failed to delete pair request",
       );
     } finally {
       setPairingBusy(false);
@@ -821,7 +946,6 @@ export function DelegatesShell() {
 
       {pairingAvailable ? (
         <>
-          {/* ── Room Pairing ─────────────────────────────────────────────── */}
           <div className="flex items-center gap-2 pt-2">
             <div className="rounded-lg bg-[#C8A061]/10 p-2">
               <BedDouble className="size-5 text-[#C8A061]" />
@@ -829,220 +953,409 @@ export function DelegatesShell() {
             <div>
               <h3 className="font-semibold leading-none">Room Pairing</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Manage roommate pairing requests and room assignments. Same-gender by default — legal partner exceptions require chair approval.
+                {canManagePairing
+                  ? "Manage roommate pairing requests and room assignments. Same-gender by default — legal partner exceptions require chair approval."
+                  : "View your room assignment and manage your own pairing requests. Other delegates' pairings are private."}
               </p>
             </div>
           </div>
 
+          {!canManagePairing && myDelegate && (
+            <Card className="border-emerald-500/30">
+              <CardHeader>
+                <CardTitle className="text-base">My Room</CardTitle>
+                <CardDescription>
+                  Your room assignment and companion guests (if any).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {myAssignment ? (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="font-mono">
+                        Room {myAssignment.roomCode}
+                      </Badge>
+                      <Badge variant="outline">{myAssignment.status}</Badge>
+                    </div>
+                    {myRoommate ? (
+                      <p className="text-sm">
+                        Roommate:{" "}
+                        <span className="font-medium">{myRoommate.name}</span>
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {myRoommate.delegateCode || "N/A"}
+                        </span>
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Single room assignment
+                      </p>
+                    )}
+                    {myCompanionGuests.length > 0 && (
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        {myCompanionGuests.map((guest) => (
+                          <li key={guest.id}>
+                            Guest: {guest.name}
+                            <span className="ml-1 italic">(companion guest)</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {myAssignment.overrideReason && (
+                      <p className="text-xs text-amber-700">
+                        {myAssignment.overrideReason}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    You do not have a room assignment yet. Submit a pairing
+                    request below or wait for committee assignment.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Pairing Requests</CardTitle>
+              <CardTitle className="text-base">
+                {canManagePairing ? "Pairing Requests" : "My Pairing Requests"}
+              </CardTitle>
               <CardDescription>
-                Submit and review pairing requests. Only fully paid delegates
-                appear in requester and target lists.
+                {canManagePairing
+                  ? "Submit and review pairing requests. Only fully paid delegates appear in requester and target lists."
+                  : "Send and track your own pairing requests. You cannot see other delegates' requests."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="space-y-2">
-                  <Label>Requester</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                    value={requesterId}
-                    onChange={(e) => setRequesterId(e.target.value)}
-                  >
-                    <option value="">Select delegate</option>
-                    {pairEligibleDelegates.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.delegateCode || "N/A"})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Request Type</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                    value={requestType}
-                    onChange={(e) =>
-                      setRequestType(
-                        e.target.value as
-                          | "STANDARD_PAIR"
-                          | "LEGAL_PARTNER"
-                          | "SINGLE_ROOM",
-                      )
-                    }
-                  >
-                    <option value="STANDARD_PAIR">Standard Pair</option>
-                    <option value="LEGAL_PARTNER">
-                      Legal Partner Exception
-                    </option>
-                    <option value="SINGLE_ROOM">Single Room Request</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Target Delegate</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
-                    value={targetId}
-                    onChange={(e) => setTargetId(e.target.value)}
-                    disabled={requestType === "SINGLE_ROOM"}
-                  >
-                    <option value="">
-                      {requestType === "SINGLE_ROOM"
-                        ? "Not needed"
-                        : "Select delegate"}
-                    </option>
-                    {pairEligibleDelegates
-                      .filter((d) => d.id !== requesterId)
-                      .map((d) => (
+              {canManagePairing ? (
+                <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label>Requester</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                      value={requesterId}
+                      onChange={(e) => setRequesterId(e.target.value)}
+                    >
+                      <option value="">Select delegate</option>
+                      {pairEligibleDelegates.map((d) => (
                         <option key={d.id} value={d.id}>
                           {d.name} ({d.delegateCode || "N/A"})
                         </option>
                       ))}
-                  </select>
-                </div>
+                    </select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Note</Label>
-                  <Input
-                    placeholder="Optional context"
-                    value={requestNote}
-                    onChange={(e) => setRequestNote(e.target.value)}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label>Request Type</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                      value={requestType}
+                      onChange={(e) =>
+                        setRequestType(
+                          e.target.value as
+                            | "STANDARD_PAIR"
+                            | "LEGAL_PARTNER"
+                            | "SINGLE_ROOM",
+                        )
+                      }
+                    >
+                      <option value="STANDARD_PAIR">Standard Pair</option>
+                      <option value="LEGAL_PARTNER">
+                        Legal Partner Exception
+                      </option>
+                      <option value="SINGLE_ROOM">Single Room Request</option>
+                    </select>
+                  </div>
 
-              <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  onClick={handleCreatePairRequest}
-                  disabled={pairingBusy || !requesterId}
-                >
-                  <Shuffle className="size-4" />
-                  Submit Pair Request
-                </Button>
-              </div>
+                  <div className="space-y-2">
+                    <Label>Target Delegate</Label>
+                    <select
+                      className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                      value={targetId}
+                      onChange={(e) => setTargetId(e.target.value)}
+                      disabled={requestType === "SINGLE_ROOM"}
+                    >
+                      <option value="">
+                        {requestType === "SINGLE_ROOM"
+                          ? "Not needed"
+                          : "Select delegate"}
+                      </option>
+                      {pairEligibleDelegates
+                        .filter((d) => d.id !== requesterId)
+                        .map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name} ({d.delegateCode || "N/A"})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Note</Label>
+                    <Input
+                      placeholder="Optional context"
+                      value={requestNote}
+                      onChange={(e) => setRequestNote(e.target.value)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                myDelegate && (
+                  <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>What do you need?</Label>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                        value={selfPairingMode}
+                        onChange={(e) =>
+                          setSelfPairingMode(
+                            e.target.value as typeof selfPairingMode,
+                          )
+                        }
+                      >
+                        {canSelfAssignWithGuest && (
+                          <option value="with-guest">
+                            Single room with my guest(s)
+                          </option>
+                        )}
+                        <option value="with-delegate">
+                          Pair with another delegate
+                        </option>
+                        <option value="single-room">Single room request</option>
+                      </select>
+                      {selfPairingMode === "with-guest" &&
+                        myDelegate &&
+                        conferencePackageIncludesGuest(myDelegate.feePackageId) && (
+                          <p className="text-xs text-muted-foreground">
+                            Your registered guest
+                            {myDelegate.guestCount === 1 ? "" : "s"} will share
+                            your room once assigned.
+                          </p>
+                        )}
+                    </div>
+
+                    {selfPairingMode === "with-delegate" && (
+                      <div className="space-y-2">
+                        <Label>Choose a roommate</Label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                          value={targetId}
+                          onChange={(e) => setTargetId(e.target.value)}
+                        >
+                          <option value="">Select delegate</option>
+                          {selfPairingEligibleTargets.map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.name} ({d.delegateCode || "N/A"})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>Note</Label>
+                      <Input
+                        placeholder="Optional context for the committee"
+                        value={requestNote}
+                        onChange={(e) => setRequestNote(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )
+              )}
+
+              {(canManagePairing || myDelegate) && (
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    onClick={handleCreatePairRequest}
+                    disabled={
+                      pairingBusy ||
+                      (canManagePairing
+                        ? !requesterId
+                        : selfPairingMode === "with-delegate" && !targetId)
+                    }
+                  >
+                    <Shuffle className="size-4" />
+                    Submit Pair Request
+                  </Button>
+                </div>
+              )}
 
               <div className="space-y-2">
                 {pairRequests.length === 0 && (
                   <div className="rounded-lg border border-dashed border-border bg-muted/30 py-8 text-center">
                     <BedDouble className="mx-auto mb-2 size-8 text-muted-foreground/40" />
                     <p className="text-sm text-muted-foreground">
-                      No pairing requests yet.
+                      {canManagePairing
+                        ? "No pairing requests yet."
+                        : "You have no pairing requests yet."}
                     </p>
                   </div>
                 )}
 
-                {pairRequests.map((request) => (
-                  <div
-                    key={request.id}
-                    className="rounded-lg border border-border bg-card p-3 text-sm transition-colors hover:bg-muted/30"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium leading-snug">
-                          {request.requester.name}
-                          {request.target
-                            ? (
+                {pairRequests.map((request) => {
+                  const isRequester =
+                    currentDelegateId === request.requesterId;
+                  const isTarget = currentDelegateId === request.targetId;
+
+                  return (
+                    <div
+                      key={request.id}
+                      className="rounded-lg border border-border bg-card p-3 text-sm transition-colors hover:bg-muted/30"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium leading-snug">
+                            {canManagePairing ? (
                               <>
-                                <span className="mx-1.5 text-muted-foreground">→</span>
-                                {request.target.name}
+                                {request.requester.name}
+                                {request.target ? (
+                                  <>
+                                    <span className="mx-1.5 text-muted-foreground">
+                                      →
+                                    </span>
+                                    {request.target.name}
+                                  </>
+                                ) : (
+                                  <span className="ml-1.5 text-muted-foreground text-xs">
+                                    (Single room request)
+                                  </span>
+                                )}
                               </>
-                            )
-                            : (
-                              <span className="ml-1.5 text-muted-foreground text-xs">(Single room request)</span>
+                            ) : isRequester ? (
+                              request.target ? (
+                                <>
+                                  To: {request.target.name}
+                                </>
+                              ) : (
+                                "Single room request"
+                              )
+                            ) : (
+                              <>From: {request.requester.name}</>
                             )}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          <span className="capitalize">{request.requestType.replace(/_/g, " ").toLowerCase()}</span>
-                          {" · "}
-                          {new Date(request.createdAt).toLocaleString()}
-                        </p>
-                        {request.note && (
-                          <p className="mt-1 text-xs text-muted-foreground italic">
-                            &ldquo;{request.note}&rdquo;
                           </p>
-                        )}
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            <span className="capitalize">
+                              {request.requestType.replace(/_/g, " ").toLowerCase()}
+                            </span>
+                            {" · "}
+                            {new Date(request.createdAt).toLocaleString()}
+                          </p>
+                          {request.note && (
+                            <p className="mt-1 text-xs text-muted-foreground italic">
+                              &ldquo;{request.note}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={`shrink-0 ${PAIR_STATUS_COLOR[request.status]}`}
+                        >
+                          {request.status}
+                        </Badge>
                       </div>
-                      <Badge
-                        variant="outline"
-                        className={`shrink-0 ${PAIR_STATUS_COLOR[request.status]}`}
-                      >
-                        {request.status}
-                      </Badge>
-                    </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {request.status === "PENDING" && request.targetId && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePairAction(request, "accept")}
-                            disabled={pairingBusy}
-                          >
-                            Target Accept
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePairAction(request, "decline")}
-                            disabled={pairingBusy}
-                          >
-                            Target Decline
-                          </Button>
-                        </>
-                      )}
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {request.status === "PENDING" &&
+                          request.targetId &&
+                          (canManagePairing || isTarget) && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handlePairAction(request, "accept")
+                                }
+                                disabled={pairingBusy}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  handlePairAction(request, "decline")
+                                }
+                                disabled={pairingBusy}
+                              >
+                                Decline
+                              </Button>
+                            </>
+                          )}
 
-                      {(request.status === "PENDING" ||
-                        request.status === "ACCEPTED") &&
-                        isAdminControl && (
-                          <>
+                        {request.status === "PENDING" &&
+                          (canManagePairing || isRequester) && (
                             <Button
                               size="sm"
+                              variant="outline"
                               onClick={() =>
-                                handlePairAction(request, "chair-approve")
+                                handlePairAction(request, "cancel")
                               }
                               disabled={pairingBusy}
                             >
-                              Chair Approve
+                              Cancel
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() =>
-                                handlePairAction(request, "chair-reject")
-                              }
-                              disabled={pairingBusy}
-                            >
-                              Chair Reject
-                            </Button>
-                          </>
-                        )}
+                          )}
+
+                        {(request.status === "PENDING" ||
+                          request.status === "ACCEPTED") &&
+                          canManagePairing && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  handlePairAction(request, "chair-approve")
+                                }
+                                disabled={pairingBusy}
+                              >
+                                Chair Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() =>
+                                  handlePairAction(request, "chair-reject")
+                                }
+                                disabled={pairingBusy}
+                              >
+                                Chair Reject
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeletePairRequest(request)}
+                                disabled={pairingBusy}
+                              >
+                                Delete
+                              </Button>
+                            </>
+                          )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
 
-          <RoomAssignmentWorkspace
-            confId={confId}
-            assignments={assignments}
-            delegates={delegates}
-            isAdminControl={isAdminControl}
-            busy={pairingBusy}
-            onRefresh={async () => {
-              if (confId) {
-                setPairingAvailable(await loadPairingData(confId));
-              }
-            }}
-            onError={setError}
-            onNotice={setNotice}
-          />
+          {canManagePairing ? (
+            <RoomAssignmentWorkspace
+              confId={confId}
+              assignments={assignments}
+              delegates={delegates}
+              isAdminControl={canManagePairing}
+              busy={pairingBusy}
+              onRefresh={async () => {
+                if (confId) {
+                  setPairingAvailable(await loadPairingData(confId));
+                }
+              }}
+              onError={setError}
+              onNotice={setNotice}
+            />
+          ) : null}
         </>
       ) : (
         <Card>

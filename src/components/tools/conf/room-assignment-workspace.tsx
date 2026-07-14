@@ -22,10 +22,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getCompanionGuestsForRoomDisplay,
+  isDelegateEligibleForGuestSelfRoom,
   isDelegateEligibleForRoomAssignment,
   isDelegateEligibleForRoomPairing,
   type RoomAssignmentGuest,
 } from "@/lib/conf/room-pairing-eligibility";
+import { conferencePackageIncludesGuest } from "@/lib/conf/delegate-guests";
 
 export type RoomAssignmentOccupant = {
   id: string;
@@ -83,6 +85,7 @@ type Props = {
 };
 
 type ViewMode = "cards" | "table";
+type ManualAssignmentMode = "with-guest" | "with-delegate";
 
 const STATUS_COLOR: Record<RoomAssignmentRow["status"], string> = {
   PENDING: "text-yellow-600",
@@ -101,7 +104,10 @@ function occupantSummary(assignment: RoomAssignmentRow) {
   return assignment.occupantA.name;
 }
 
-function companionGuestsForOccupant(occupant: RoomAssignmentOccupant) {
+function companionGuestsForOccupant(
+  occupant: RoomAssignmentOccupant,
+  hasPairPartner = false,
+) {
   if (
     occupant.feePackageId == null ||
     occupant.guestCount == null ||
@@ -110,22 +116,31 @@ function companionGuestsForOccupant(occupant: RoomAssignmentOccupant) {
   ) {
     return [];
   }
-  return getCompanionGuestsForRoomDisplay({
-    feePackageId: occupant.feePackageId,
-    guestCount: occupant.guestCount,
-    roomPref: occupant.roomPref,
-    wantsSingleRoom: occupant.wantsSingleRoom,
-    accommodationNeeded: occupant.accommodationNeeded ?? null,
-    feePaid: true,
-    amountPaid: null,
-    feeAmount: null,
-    status: "CONFIRMED",
-    guests: occupant.guests,
-  });
+  return getCompanionGuestsForRoomDisplay(
+    {
+      feePackageId: occupant.feePackageId,
+      guestCount: occupant.guestCount,
+      roomPref: occupant.roomPref,
+      wantsSingleRoom: occupant.wantsSingleRoom,
+      accommodationNeeded: occupant.accommodationNeeded ?? null,
+      feePaid: true,
+      amountPaid: null,
+      feeAmount: null,
+      status: "CONFIRMED",
+      guests: occupant.guests,
+    },
+    { hasPairPartner },
+  );
 }
 
-function OccupantGuestLines({ occupant }: { occupant: RoomAssignmentOccupant }) {
-  const guests = companionGuestsForOccupant(occupant);
+function OccupantGuestLines({
+  occupant,
+  hasPairPartner = false,
+}: {
+  occupant: RoomAssignmentOccupant;
+  hasPairPartner?: boolean;
+}) {
+  const guests = companionGuestsForOccupant(occupant, hasPairPartner);
   if (!guests.length) return null;
 
   return (
@@ -141,6 +156,7 @@ function OccupantGuestLines({ occupant }: { occupant: RoomAssignmentOccupant }) 
 }
 
 function OccupantsCell({ assignment }: { assignment: RoomAssignmentRow }) {
+  const hasPairPartner = Boolean(assignment.occupantB);
   return (
     <div className="space-y-2">
       <div>
@@ -148,7 +164,10 @@ function OccupantsCell({ assignment }: { assignment: RoomAssignmentRow }) {
         <p className="text-xs text-muted-foreground">
           {assignment.occupantA.delegateCode || "N/A"}
         </p>
-        <OccupantGuestLines occupant={assignment.occupantA} />
+        <OccupantGuestLines
+          occupant={assignment.occupantA}
+          hasPairPartner={hasPairPartner}
+        />
       </div>
       {assignment.occupantB && (
         <div>
@@ -187,6 +206,44 @@ export function RoomAssignmentWorkspace({
   const [manualB, setManualB] = useState("");
   const [manualRoomCode, setManualRoomCode] = useState("");
   const [manualOverride, setManualOverride] = useState("");
+  const [manualAssignmentMode, setManualAssignmentMode] =
+    useState<ManualAssignmentMode>("with-guest");
+
+  const selectedManualDelegate = useMemo(
+    () => delegates.find((d) => d.id === manualA) ?? null,
+    [delegates, manualA],
+  );
+
+  const manualGuestPreview = useMemo(() => {
+    if (!selectedManualDelegate) return [];
+    const occupantLike: RoomAssignmentOccupant = {
+      id: selectedManualDelegate.id,
+      name: selectedManualDelegate.name,
+      delegateCode: selectedManualDelegate.delegateCode,
+      gender: selectedManualDelegate.gender,
+      city: selectedManualDelegate.city,
+      feePackageId: selectedManualDelegate.feePackageId,
+      guestCount: selectedManualDelegate.guestCount,
+      roomPref: selectedManualDelegate.roomPref,
+      wantsSingleRoom: selectedManualDelegate.wantsSingleRoom,
+      accommodationNeeded: selectedManualDelegate.accommodationNeeded,
+    };
+    return companionGuestsForOccupant(
+      occupantLike,
+      manualAssignmentMode === "with-delegate",
+    );
+  }, [selectedManualDelegate, manualAssignmentMode]);
+
+  const canAssignWithGuest = Boolean(
+    selectedManualDelegate &&
+      isDelegateEligibleForGuestSelfRoom(selectedManualDelegate),
+  );
+
+  const showManualAssignmentMode = Boolean(
+    selectedManualDelegate &&
+      conferencePackageIncludesGuest(selectedManualDelegate.feePackageId) &&
+      (selectedManualDelegate.guestCount ?? 0) > 0,
+  );
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRoomCode, setEditRoomCode] = useState("");
@@ -283,6 +340,10 @@ export function RoomAssignmentWorkspace({
 
   const handleCreate = async () => {
     if (!manualA) return;
+    const occupantBId =
+      showManualAssignmentMode && manualAssignmentMode === "with-guest"
+        ? null
+        : manualB || null;
 
     try {
       const res = await fetch(`/api/conf/${confId}/room-assignments`, {
@@ -290,7 +351,7 @@ export function RoomAssignmentWorkspace({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           occupantAId: manualA,
-          occupantBId: manualB || null,
+          occupantBId,
           roomCode: manualRoomCode.trim() || null,
           overrideReason: manualOverride.trim() || null,
         }),
@@ -305,6 +366,7 @@ export function RoomAssignmentWorkspace({
       setManualB("");
       setManualRoomCode("");
       setManualOverride("");
+      setManualAssignmentMode("with-guest");
       await onRefresh();
       onNotice("Room assignment created.");
     } catch (e) {
@@ -464,7 +526,11 @@ export function RoomAssignmentWorkspace({
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={manualA}
-                onChange={(e) => setManualA(e.target.value)}
+                onChange={(e) => {
+                  setManualA(e.target.value);
+                  setManualB("");
+                  setManualAssignmentMode("with-guest");
+                }}
               >
                 <option value="">Select delegate</option>
                 {assignmentEligibleDelegates.map((d) => (
@@ -475,14 +541,62 @@ export function RoomAssignmentWorkspace({
               </select>
             </div>
 
+            {showManualAssignmentMode && (
+              <div className="space-y-2 xl:col-span-2">
+                <Label>Assignment Type</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
+                  value={manualAssignmentMode}
+                  onChange={(e) => {
+                    const mode = e.target.value as ManualAssignmentMode;
+                    setManualAssignmentMode(mode);
+                    if (mode === "with-guest") setManualB("");
+                  }}
+                >
+                  <option value="with-guest" disabled={!canAssignWithGuest}>
+                    Single room with guest(s)
+                  </option>
+                  <option value="with-delegate">
+                    Pair with another delegate
+                  </option>
+                </select>
+                {manualAssignmentMode === "with-guest" &&
+                  (manualGuestPreview.length > 0 ? (
+                    <ul className="space-y-0.5 text-xs text-muted-foreground">
+                      {manualGuestPreview.map((guest) => (
+                        <li key={guest.id}>
+                          Guest: {guest.name}
+                          <span className="ml-1 italic">(companion guest)</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : canAssignWithGuest ? (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedManualDelegate?.guestCount ?? 0} registered guest
+                      {(selectedManualDelegate?.guestCount ?? 0) === 1
+                        ? ""
+                        : "s"}{" "}
+                      will share this room.
+                    </p>
+                  ) : null)}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Occupant B (optional)</Label>
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={manualB}
                 onChange={(e) => setManualB(e.target.value)}
+                disabled={
+                  showManualAssignmentMode && manualAssignmentMode === "with-guest"
+                }
               >
-                <option value="">Single room</option>
+                <option value="">
+                  {showManualAssignmentMode && manualAssignmentMode === "with-guest"
+                    ? "Room with guest(s)"
+                    : "Single room"}
+                </option>
                 {pairingEligibleDelegates
                   .filter((d) => d.id !== manualA)
                   .map((d) => (
@@ -648,7 +762,10 @@ export function RoomAssignmentWorkspace({
                         </td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">
                           {[
-                            ...companionGuestsForOccupant(assignment.occupantA),
+                            ...companionGuestsForOccupant(
+                              assignment.occupantA,
+                              Boolean(assignment.occupantB),
+                            ),
                             ...(assignment.occupantB
                               ? companionGuestsForOccupant(assignment.occupantB)
                               : []),
@@ -814,7 +931,10 @@ export function RoomAssignmentWorkspace({
                               ? ` / ${assignment.occupantB.delegateCode || "N/A"}`
                               : ""}
                           </p>
-                          <OccupantGuestLines occupant={assignment.occupantA} />
+                          <OccupantGuestLines
+                            occupant={assignment.occupantA}
+                            hasPairPartner={Boolean(assignment.occupantB)}
+                          />
                           {assignment.occupantB && (
                             <OccupantGuestLines occupant={assignment.occupantB} />
                           )}

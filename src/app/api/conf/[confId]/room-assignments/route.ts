@@ -8,6 +8,7 @@ import {
   ROOM_ASSIGNMENT_INCLUDE,
   validateOccupantPairing,
 } from "@/lib/conf/room-assignments-server";
+import { buildRoomAssignmentVisibilityWhere } from "@/lib/conf/room-pairing-access";
 
 // GET /api/conf/[confId]/room-assignments
 export async function GET(
@@ -20,7 +21,7 @@ export async function GET(
     if (!auth.ok) return auth.response;
 
     const assignments = await prisma.confRoomAssignment.findMany({
-      where: { confId },
+      where: buildRoomAssignmentVisibilityWhere(confId, auth.access),
       include: ROOM_ASSIGNMENT_INCLUDE,
       orderBy: { createdAt: "desc" },
     });
