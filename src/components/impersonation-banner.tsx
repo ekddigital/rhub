@@ -1,31 +1,33 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { UserRound, X, LogOut, AlertTriangle } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { LogOut, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/user-context";
 
+type ImpersonationDetails = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
+
 type ImpersonationState = {
-  impersonating: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  } | null;
+  impersonating: ImpersonationDetails | null;
   realAdmin?: { id: string; name: string };
 };
 
 export function ImpersonationBanner() {
-  const [state, setState] = useState<ImpersonationState | null>(null);
+  const [apiState, setApiState] = useState<ImpersonationState | null>(null);
   const [stopping, setStopping] = useState(false);
   const router = useRouter();
-  const { refresh } = useUser();
+  const { user, loading, refresh } = useUser();
 
   const fetchState = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/impersonate");
       if (res.ok) {
-        setState((await res.json()) as ImpersonationState);
+        setApiState((await res.json()) as ImpersonationState);
       }
     } catch {
       // Silent fail — banner is non-critical
@@ -34,7 +36,6 @@ export function ImpersonationBanner() {
 
   useEffect(() => {
     void fetchState();
-    // Poll every 60s to stay in sync
     const id = setInterval(() => void fetchState(), 60_000);
     return () => clearInterval(id);
   }, [fetchState]);
@@ -42,24 +43,34 @@ export function ImpersonationBanner() {
   const stopImpersonating = async () => {
     setStopping(true);
     try {
-      await fetch("/api/admin/impersonate", { method: "DELETE" });
+      const res = await fetch("/api/admin/impersonate", { method: "DELETE" });
+      if (!res.ok) return;
+      setApiState(null);
       await refresh();
       router.refresh();
     } finally {
       setStopping(false);
-      setState(null);
     }
   };
 
-  if (!state?.impersonating) return null;
+  const impersonating = user?.isImpersonating
+    ? {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      }
+    : apiState?.impersonating;
 
-  const { impersonating, realAdmin } = state;
+  const realAdmin = user?.realAdmin ?? apiState?.realAdmin;
+
+  if (loading && !impersonating) return null;
+  if (!impersonating) return null;
 
   return (
-    <div className="sticky top-0 z-50 flex items-center justify-between gap-3 bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950 shadow-md">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-3 bg-amber-500 px-4 py-2 text-sm font-medium text-amber-950 shadow-md">
+      <div className="flex min-w-0 items-center gap-2">
         <AlertTriangle className="size-4 shrink-0" />
-        <span>
+        <span className="min-w-0">
           Viewing as{" "}
           <strong>
             {impersonating.name} ({impersonating.email})
@@ -78,7 +89,7 @@ export function ImpersonationBanner() {
       <button
         onClick={() => void stopImpersonating()}
         disabled={stopping}
-        className="flex items-center gap-1.5 rounded-md bg-amber-900/20 px-3 py-1 text-xs font-semibold transition-colors hover:bg-amber-900/40 disabled:opacity-60"
+        className="flex shrink-0 items-center gap-1.5 rounded-md bg-amber-900/20 px-3 py-1 text-xs font-semibold transition-colors hover:bg-amber-900/40 disabled:opacity-60"
       >
         <LogOut className="size-3.5" />
         {stopping ? "Stopping..." : "Stop Impersonating"}

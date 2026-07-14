@@ -39,11 +39,21 @@ const mobileLinks = [
   { label: "API", href: "/api", icon: Code2 },
 ];
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  /** When false, parent layout owns sticky positioning (e.g. with impersonation banner). */
+  sticky?: boolean;
+}
+
+export function SiteHeader({ sticky = true }: SiteHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-lg supports-backdrop-filter:bg-background/75">
+    <header
+      className={cn(
+        "w-full border-b border-border/40 bg-background/95 backdrop-blur-lg supports-backdrop-filter:bg-background/75",
+        sticky && "sticky top-0 z-50",
+      )}
+    >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6 lg:px-8">
         {/* Left: Logo + Desktop Nav */}
         <div className="flex items-center gap-6">
