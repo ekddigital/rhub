@@ -90,8 +90,38 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
+    const guestRows = await prisma.confDelegateGuest.findMany({
+      where: { confId },
+      select: {
+        id: true,
+        delegateId: true,
+        name: true,
+        sortOrder: true,
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+
+    const guestsByDelegateId = new Map<
+      string,
+      Array<{ id: string; name: string; sortOrder: number }>
+    >();
+    for (const guest of guestRows) {
+      const existing = guestsByDelegateId.get(guest.delegateId) ?? [];
+      existing.push({
+        id: guest.id,
+        name: guest.name,
+        sortOrder: guest.sortOrder,
+      });
+      guestsByDelegateId.set(guest.delegateId, existing);
+    }
+
     const origin = new URL(req.url).origin;
-    const normalized = await mapDelegatesForApiResponse(delegates, viewer, origin);
+    const normalized = await mapDelegatesForApiResponse(
+      delegates,
+      viewer,
+      origin,
+      guestsByDelegateId,
+    );
 
     return NextResponse.json(normalized);
   } catch (error) {

@@ -95,6 +95,11 @@ type Delegate = {
   wantsSingleRoom: boolean;
   partnerClaimNote: string | null;
   guestCount: number;
+  guests?: Array<{
+    id: string;
+    name: string;
+    sortOrder: number;
+  }>;
   passportPhotoPath: string | null;
   passportPhotoIsPdf?: boolean;
   lastEntryStampPath: string | null;
@@ -333,7 +338,7 @@ export function DelegatesShell() {
             amountPaid: myDelegate.amountPaid,
             feeAmount: myDelegate.feeAmount,
             status: myDelegate.status,
-            guests: myOccupantRecord?.guests,
+            guests: myOccupantRecord?.guests ?? myDelegate.guests,
           },
           { hasPairPartner: Boolean(myRoommate) },
         )

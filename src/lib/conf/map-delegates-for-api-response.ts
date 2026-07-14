@@ -11,6 +11,12 @@ import {
 import { parseDelegateCommentsWithAddOns } from "@/lib/conf/delegate-fee-addons";
 import { mapDelegateJerseyDetailsForClient } from "@/lib/conf/delegate-jersey-details";
 
+export type DelegateListGuestSummary = {
+  id: string;
+  name: string;
+  sortOrder: number;
+};
+
 type AccessLike = {
   isManager: boolean;
   isHotelCheckin?: boolean;
@@ -29,10 +35,19 @@ export function buildDelegateListViewerContext(
   });
 }
 
+function canViewDelegateGuests(
+  delegate: ConfDelegate,
+  viewer: DelegateViewerContext,
+): boolean {
+  if (viewer.isManager || viewer.isHotelCheckin) return true;
+  return canViewDelegateSensitiveData(delegate, viewer);
+}
+
 export async function mapDelegatesForApiResponse(
   delegates: ConfDelegate[],
   viewer: DelegateViewerContext,
   origin: string,
+  guestsByDelegateId?: Map<string, DelegateListGuestSummary[]>,
 ) {
   const allDocPaths = delegates.flatMap((delegate) => [
     delegate.passportPhotoPath,
@@ -72,6 +87,8 @@ export async function mapDelegatesForApiResponse(
           bookletPhotoPath: null,
         };
 
+    const canViewGuests = canViewDelegateGuests(delegateWithDocs, viewer);
+
     return {
       ...delegateWithDocs,
       userId: canViewSensitive ? delegate.userId : null,
@@ -83,6 +100,9 @@ export async function mapDelegatesForApiResponse(
       jerseyDetails: mapDelegateJerseyDetailsForClient(
         delegateWithDocs.jerseyDetails,
       ),
+      guests: canViewGuests
+        ? (guestsByDelegateId?.get(delegate.id) ?? [])
+        : undefined,
       ...mapDelegateDocumentsForClient(
         delegate.confId,
         delegate.id,
