@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import { resolveMemberPhotoForClient } from "@/lib/conf/delegate-document-urls";
-import { getBootstrapMemberContactFallback } from "@/lib/conf/bootstrap";
+import { hydrateCommitteeMembersForClient } from "@/lib/conf/hydrate-committee-members";
 
 async function ensureUniqueCommitteeApprover(input: {
   confId: string;
@@ -42,35 +41,7 @@ export async function GET(
       orderBy: { joinedAt: "asc" },
     });
 
-    const linkedUserIds = [
-      ...new Set(members.map((member) => member.userId).filter(Boolean)),
-    ] as string[];
-    const linkedUsers = linkedUserIds.length
-      ? await prisma.user.findMany({
-          where: { id: { in: linkedUserIds } },
-          select: { id: true, name: true, email: true },
-        })
-      : [];
-    const userById = new Map(linkedUsers.map((user) => [user.id, user]));
-
-    const normalized = members.map((member) => {
-      const fb = getBootstrapMemberContactFallback(member.name);
-      const phone = (member.phone ?? "").trim() || fb?.phone || null;
-      const city = (member.city ?? "").trim() || fb?.city || null;
-      return {
-        ...member,
-        phone,
-        city,
-        email: member.email || userById.get(member.userId || "")?.email || null,
-        linkedUserName: userById.get(member.userId || "")?.name || null,
-        linkedUserEmail: userById.get(member.userId || "")?.email || null,
-        photoPath: resolveMemberPhotoForClient(
-          confId,
-          member.id,
-          member.photoPath,
-        ),
-      };
-    });
+    const normalized = await hydrateCommitteeMembersForClient(members);
 
     return NextResponse.json(normalized);
   } catch (error) {
@@ -341,9 +312,7 @@ export async function POST(
       },
     });
 
-    const member = await prisma.confMember.findUnique({
-      where: { id: created.id },
-    });
+    const [member] = await hydrateCommitteeMembersForClient([created]);
 
     if (!member) {
       return NextResponse.json(
@@ -352,27 +321,7 @@ export async function POST(
       );
     }
 
-    const linkedUser = member.userId
-      ? await prisma.user.findUnique({
-          where: { id: member.userId },
-          select: { id: true, name: true, email: true },
-        })
-      : null;
-
-    return NextResponse.json(
-      {
-        ...member,
-        email: member.email || linkedUser?.email || null,
-        linkedUserName: linkedUser?.name || null,
-        linkedUserEmail: linkedUser?.email || null,
-        photoPath: resolveMemberPhotoForClient(
-          confId,
-          member.id,
-          member.photoPath,
-        ),
-      },
-      { status: 201 },
-    );
+    return NextResponse.json(member, { status: 201 });
   } catch (error) {
     console.error("Failed to create member:", error);
     return NextResponse.json(

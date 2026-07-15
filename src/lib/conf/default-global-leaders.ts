@@ -7,9 +7,6 @@ export const AMBASSADOR_THOMAS_BIO = [
   "At his commissioning, Ambassador Thomas pledged to strengthen Liberia–China economic and political ties and to advance economic and development diplomacy throughout his tour of duty. He noted China's role as a global partner to Africa and to Liberia, and expressed commitment to deepening cooperation in support of Liberia's development goals and the enduring friendship between the two nations.",
 ].join("\n\n");
 
-export const LIBERIA_PRESIDENT_BOAKAI_BIO =
-  "His Excellency Joseph Nyuma Boakai Sr. serves as President of the Republic of Liberia, leading the nation's governance and its engagement with partners abroad. Liberian students in China remain an important part of that diaspora bridge — studying, serving, and representing Liberia with dignity across provinces and cities.";
-
 export const CHINA_PRESIDENT_XI_BIO =
   "His Excellency Xi Jinping serves as President of the People's Republic of China. Under his leadership, China continues to deepen friendship and practical cooperation with African nations, including Liberia, through education, development partnership, and people-to-people exchange.";
 
@@ -24,7 +21,7 @@ export const DEFAULT_GLOBAL_LEADERS = [
     title: "President of the Republic of Liberia",
     country: "Liberia",
     photoPath: "/conf/president_boakai_Liberia.png",
-    bio: LIBERIA_PRESIDENT_BOAKAI_BIO,
+    bio: null,
     sortOrder: 1,
     kind: "liberia-president" as const,
   },
@@ -104,6 +101,13 @@ function shouldRefreshSeedBio(
   return match.bio.length < def.bio.length;
 }
 
+function shouldClearSeedBio(
+  match: { bio: string | null },
+  def: (typeof DEFAULT_GLOBAL_LEADERS)[number],
+): boolean {
+  return !def.bio && Boolean(match.bio?.trim());
+}
+
 /**
  * Ensure the three default global dignitary profiles exist.
  * Safe to call on booklet load — creates missing rows and upgrades placeholder
@@ -155,8 +159,9 @@ export async function ensureDefaultGlobalLeaders(): Promise<void> {
 
     const needsPhoto = !match.photoPath && Boolean(def.photoPath);
     const needsBioRefresh = shouldRefreshSeedBio(match, def);
+    const needsBioClear = shouldClearSeedBio(match, def);
 
-    if (needsUpgrade || needsPhoto || needsBioRefresh) {
+    if (needsUpgrade || needsPhoto || needsBioRefresh || needsBioClear) {
       await prisma.confLeaderProfile.update({
         where: { id: match.id },
         data: {
@@ -165,7 +170,11 @@ export async function ensureDefaultGlobalLeaders(): Promise<void> {
           title: def.title,
           country: def.country,
           photoPath: match.photoPath || def.photoPath,
-          bio: needsBioRefresh ? def.bio : match.bio || def.bio,
+          bio: needsBioClear
+            ? null
+            : needsBioRefresh
+              ? def.bio
+              : match.bio || def.bio,
           sortOrder: def.sortOrder,
         },
       });

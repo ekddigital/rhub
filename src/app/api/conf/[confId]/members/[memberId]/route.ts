@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
+import { hydrateCommitteeMembersForClient } from "@/lib/conf/hydrate-committee-members";
 
 async function ensureUniqueCommitteeApprover(input: {
   confId: string;
@@ -305,19 +306,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Member not found" }, { status: 404 });
     }
 
-    const linkedUser = hydrated.userId
-      ? await prisma.user.findUnique({
-          where: { id: hydrated.userId },
-          select: { id: true, name: true, email: true },
-        })
-      : null;
+    const [member] = await hydrateCommitteeMembersForClient([hydrated]);
 
-    return NextResponse.json({
-      ...hydrated,
-      email: hydrated.email || linkedUser?.email || null,
-      linkedUserName: linkedUser?.name || null,
-      linkedUserEmail: linkedUser?.email || null,
-    });
+    return NextResponse.json(member);
   } catch (error) {
     console.error("Failed to update member:", error);
     return NextResponse.json(

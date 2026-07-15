@@ -1,3 +1,8 @@
+import {
+  resolveDelegateBookletPhotoForClient,
+  resolveMemberPhotoForClient,
+} from "@/lib/conf/delegate-document-urls";
+
 /**
  * Booklet photo precedence (highest → lowest):
  * 1. ConfMember photo when the roster row has a confirmed leader link
@@ -21,4 +26,34 @@ export function resolveBookletMemberPhotoPath(input: {
   }
 
   return delegateBookletPhoto ?? confMemberPhoto ?? csvPhoto;
+}
+
+/** Committee UI photo precedence: manual member upload → linked delegate booklet photo. */
+export function resolveCommitteeMemberPhotoForClient(input: {
+  confId: string;
+  memberId: string;
+  memberPhotoPath: string | null | undefined;
+  linkedDelegateId?: string | null;
+  linkedDelegateBookletPhotoPath?: string | null | undefined;
+}): string | null {
+  if (input.memberPhotoPath?.trim()) {
+    return resolveMemberPhotoForClient(
+      input.confId,
+      input.memberId,
+      input.memberPhotoPath,
+    );
+  }
+
+  if (
+    input.linkedDelegateId &&
+    input.linkedDelegateBookletPhotoPath?.trim()
+  ) {
+    return resolveDelegateBookletPhotoForClient(
+      input.confId,
+      input.linkedDelegateId,
+      input.linkedDelegateBookletPhotoPath,
+    );
+  }
+
+  return null;
 }
