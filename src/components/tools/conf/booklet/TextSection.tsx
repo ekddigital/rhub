@@ -1,4 +1,9 @@
 import { C } from "./constants";
+import {
+  BOOKLET_BODY,
+  BOOKLET_BODY_PARAGRAPH,
+  splitBookletParagraphs,
+} from "@/lib/conf/booklet-body-typography";
 import { resolveTextSectionBody } from "@/lib/conf/resolve-booklet-section-content";
 import { A4Page } from "./A4Page";
 import type { BookletSection } from "./types";
@@ -64,10 +69,16 @@ export function TextSection({
         )}
       </div>
 
-      <div style={{ fontSize: "11.5px", lineHeight: 1.8, color: C.text }}>
-        {trimmed.split("\n").map((line, i) => (
-          <p key={i} style={{ marginBottom: "10px" }}>
-            {line || <br />}
+      <div
+        style={{
+          fontSize: `${BOOKLET_BODY.fontSize}px`,
+          lineHeight: BOOKLET_BODY.lineHeight,
+          color: C.text,
+        }}
+      >
+        {splitBookletParagraphs(trimmed).map((paragraph, i) => (
+          <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
+            {paragraph}
           </p>
         ))}
       </div>

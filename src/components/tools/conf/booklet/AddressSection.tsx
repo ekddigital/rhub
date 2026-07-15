@@ -1,5 +1,10 @@
 import { C } from "./constants";
 import { roleLabel } from "./utils";
+import {
+  BOOKLET_BODY,
+  BOOKLET_BODY_PARAGRAPH,
+  splitBookletParagraphs,
+} from "@/lib/conf/booklet-body-typography";
 import { A4Page } from "./A4Page";
 import { Avatar } from "./Avatar";
 import type { BookletSection, NecMember } from "./types";
@@ -114,16 +119,16 @@ export function AddressSection({
       {trimmed ? (
         <div
           style={{
-            fontSize: "11.5px",
-            lineHeight: 1.85,
+            fontSize: `${BOOKLET_BODY.fontSize}px`,
+            lineHeight: BOOKLET_BODY.lineHeight,
             color: C.text,
             maxHeight: "520px",
             overflow: "hidden",
           }}
         >
-          {trimmed.split("\n").map((line, i) => (
-            <p key={i} style={{ marginBottom: "8px" }}>
-              {line || <br />}
+          {splitBookletParagraphs(trimmed).map((paragraph, i) => (
+            <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
+              {paragraph}
             </p>
           ))}
         </div>

@@ -1,5 +1,7 @@
 import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
-import { DEFAULT_CONFERENCE_INTRO } from "@/lib/conf/booklet-conference-copy";
+import {
+  resolveConferenceIntroBody,
+} from "@/lib/conf/booklet-conference-copy";
 import type {
   BookletData,
   BookletSection,
@@ -39,7 +41,11 @@ function normalizeLabel(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-export { DEFAULT_CONFERENCE_INTRO } from "@/lib/conf/booklet-conference-copy";
+export {
+  DEFAULT_CONFERENCE_INTRO,
+  isStaleConferenceIntroBody,
+  resolveConferenceIntroBody,
+} from "@/lib/conf/booklet-conference-copy";
 
 export function isConferenceIntroductionSection(section: BookletSection): boolean {
   const title = normalizeLabel(section.title);
@@ -128,6 +134,16 @@ export function shouldRenderLeaderSection(
   return rosterLeaders.length > 0;
 }
 
+export function leaderBioWarrantsMessagePage(
+  bio: string | null | undefined,
+): boolean {
+  const trimmed = trimContent(bio);
+  if (!trimmed) return false;
+  if (trimmed.includes("\n\n")) return true;
+  if ((trimmed.match(/\.\s+/g) ?? []).length >= 2) return true;
+  return trimmed.length >= 320;
+}
+
 export function leaderSectionPageCount(
   section: BookletSection,
   data: BookletData,
@@ -137,7 +153,11 @@ export function leaderSectionPageCount(
     section.title,
     data.leaders,
     data.event.id,
-  ).length;
+  ).reduce(
+    (sum, leader) =>
+      sum + (leaderBioWarrantsMessagePage(leader.bio) ? 2 : 1),
+    0,
+  );
 }
 
 export function resolvePresidentAddress(
@@ -250,10 +270,10 @@ export function resolveRosterAddressPages(
 }
 
 export function resolveTextSectionBody(section: BookletSection): string {
-  const trimmed = trimContent(section.bodyText);
-  if (trimmed) return trimmed;
-  if (isConferenceIntroductionSection(section)) return DEFAULT_CONFERENCE_INTRO;
-  return "";
+  if (isConferenceIntroductionSection(section)) {
+    return resolveConferenceIntroBody(section.bodyText);
+  }
+  return trimContent(section.bodyText);
 }
 
 export function shouldRenderTextSection(section: BookletSection): boolean {

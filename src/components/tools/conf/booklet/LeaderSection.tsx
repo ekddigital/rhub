@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { ASSETS, C } from "./constants";
 import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
+import {
+  leaderBioWarrantsMessagePage,
+  leaderProfileToSpeaker,
+} from "@/lib/conf/resolve-booklet-section-content";
+import { AddressSection } from "./AddressSection";
 import { A4Page } from "./A4Page";
 import type { BookletSection, LeaderProfile } from "./types";
 
@@ -22,6 +27,18 @@ function resolvePhoto(leader: LeaderProfile): string | null {
     if (country.includes(key)) return path;
   }
   return null;
+}
+
+function leaderMessageTitle(leader: LeaderProfile): string {
+  const title = (leader.title ?? "").toLowerCase();
+  const role = (leader.role ?? "").toLowerCase();
+  if (title.includes("ambassador") || role.includes("ambassador")) {
+    return "Ambassador's Message";
+  }
+  if (title.includes("president")) {
+    return "Presidential Message";
+  }
+  return `${leader.name} — Message`;
 }
 
 // ─── Single full-page portrait ─────────────────────────────────────────────
@@ -208,6 +225,21 @@ function LeaderPortraitPage({
             {leader.name}
           </div>
 
+          {leader.title && (
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: C.text,
+                lineHeight: 1.45,
+                maxWidth: "460px",
+                margin: "0 auto",
+              }}
+            >
+              {leader.title}
+            </div>
+          )}
+
           {(flagEmoji ?? leader.country) && (
             <div
               style={{
@@ -224,23 +256,6 @@ function LeaderPortraitPage({
               {leader.country && (
                 <span style={{ fontWeight: 500 }}>{leader.country}</span>
               )}
-            </div>
-          )}
-
-          {leader.bio && (
-            <div
-              style={{
-                marginTop: "18px",
-                paddingTop: "14px",
-                borderTop: `1px solid ${C.border}`,
-                maxWidth: "460px",
-                fontSize: "10.5px",
-                lineHeight: 1.8,
-                color: C.text,
-                textAlign: "left",
-              }}
-            >
-              {leader.bio}
             </div>
           )}
         </div>
@@ -274,18 +289,39 @@ export function LeaderSection({
 
   if (rosterLeaders.length === 0) return null;
 
+  let pageCursor = startPageNum;
+
   return (
     <>
-      {rosterLeaders.map((l, idx) => (
-        <LeaderPortraitPage
-          key={l.id}
-          leader={l}
-          confName={confName}
-          confYear={confYear}
-          pageNum={startPageNum + idx}
-          totalPages={totalPages}
-        />
-      ))}
+      {rosterLeaders.map((leader) => {
+        const portraitPage = pageCursor++;
+        const hasMessage = leaderBioWarrantsMessagePage(leader.bio);
+        const messagePage = hasMessage ? pageCursor++ : null;
+
+        return (
+          <Fragment key={leader.id}>
+            <LeaderPortraitPage
+              leader={leader}
+              confName={confName}
+              confYear={confYear}
+              pageNum={portraitPage}
+              totalPages={totalPages}
+            />
+            {hasMessage && messagePage != null && leader.bio ? (
+              <AddressSection
+                section={section}
+                sectionLabel={leaderMessageTitle(leader)}
+                speaker={leaderProfileToSpeaker(leader)}
+                content={leader.bio}
+                pageNum={messagePage}
+                totalPages={totalPages}
+                confName={confName}
+                confYear={confYear}
+              />
+            ) : null}
+          </Fragment>
+        );
+      })}
     </>
   );
 }

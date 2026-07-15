@@ -5,7 +5,7 @@ export const AMBASSADOR_THOMAS_BIO = [
   "His Excellency Dudley McKinley Thomas was commissioned on 25 June 2014 as Liberia's Ambassador Extraordinary and Plenipotentiary to the People's Republic of China, accredited near Beijing with a mandate to represent the Republic of Liberia and to advance the nation's interests in the PRC.",
   "A seasoned diplomat with more than sixteen years in Liberia's Foreign Service, Ambassador Thomas served with distinction for approximately ten years as Liberia's Ambassador near Paris, France, where he was recognized for productive state visits and strong representation of Liberia's interests in Europe. His prior service included appointment as Commercial Counselor in Brussels, Belgium.",
   "At his commissioning, Ambassador Thomas pledged to strengthen Liberia–China economic and political ties and to advance economic and development diplomacy throughout his tour of duty. He noted China's role as a global partner to Africa and to Liberia, and expressed commitment to deepening cooperation in support of Liberia's development goals and the enduring friendship between the two nations.",
-].join(" ");
+].join("\n\n");
 
 export const LIBERIA_PRESIDENT_BOAKAI_BIO =
   "His Excellency Joseph Nyuma Boakai Sr. serves as President of the Republic of Liberia, leading the nation's governance and its engagement with partners abroad. Liberian students in China remain an important part of that diaspora bridge — studying, serving, and representing Liberia with dignity across provinces and cities.";

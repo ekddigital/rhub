@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { DEFAULT_CONFERENCE_INTRO } from "@/lib/conf/resolve-booklet-section-content";
+import {
+  isStaleConferenceIntroBody,
+  resolveConferenceIntroBody,
+} from "@/lib/conf/booklet-conference-copy";
 
 const DEFAULT_ABBREVIATIONS_BODY = [
   "NEC — National Executive Committee",
@@ -533,6 +537,27 @@ export async function GET(
             title: "Ways, Means & Finance (Legacy)",
           },
         });
+
+        // Upgrade stale Conference Introduction copy saved before expanded Jinan 2026 prose.
+        const introSection = (
+          await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id },
+            orderBy: { sortOrder: "asc" },
+          })
+        ).find(
+          (s) =>
+            s.type === "TEXT" &&
+            normalizeLabel(s.title).includes("conference introduction"),
+        );
+        if (
+          introSection &&
+          isStaleConferenceIntroBody(introSection.bodyText)
+        ) {
+          await tx.confBookletSection.update({
+            where: { id: introSection.id },
+            data: { bodyText: resolveConferenceIntroBody(introSection.bodyText) },
+          });
+        }
       });
 
       booklet = await prisma.confBooklet.findUnique({

@@ -1,4 +1,9 @@
 import { C } from "./constants";
+import {
+  BOOKLET_BODY,
+  BOOKLET_BODY_PARAGRAPH,
+  splitBookletParagraphs,
+} from "@/lib/conf/booklet-body-typography";
 import { A4Page } from "./A4Page";
 import type { ProgramOutlineDay } from "@/lib/conf/booklet-program-outline";
 import type { BookletSection } from "./types";
@@ -182,14 +187,14 @@ export function ProgramOutlineSection({
 
           <div
             style={{
-              fontSize: "10.5px",
-              lineHeight: 1.75,
+              fontSize: `${BOOKLET_BODY.fontSize}px`,
+              lineHeight: BOOKLET_BODY.lineHeight,
               color: C.text,
               marginBottom: "18px",
             }}
           >
-            {intro.split("\n\n").map((paragraph, i) => (
-              <p key={i} style={{ marginBottom: "10px" }}>
+            {splitBookletParagraphs(intro).map((paragraph, i) => (
+              <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
                 {paragraph}
               </p>
             ))}
