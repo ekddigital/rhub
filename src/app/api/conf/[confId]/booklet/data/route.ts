@@ -9,6 +9,7 @@ import {
 } from "@/lib/conf/delegate-document-urls";
 import type { BookletRosterMember } from "@/lib/conf/build-booklet-roster";
 import { dedupeLeaderProfilesForConference } from "@/lib/conf/dedupe-leader-profiles";
+import { ensureDefaultGlobalLeaders } from "@/lib/conf/default-global-leaders";
 import { buildBookletRosterMembers } from "@/lib/conf/build-booklet-roster";
 import { findLsuicLeaderLinks } from "@/lib/conf/lsuic-leader-links";
 
@@ -27,6 +28,9 @@ export async function GET(
     if (!auth.ok) return auth.response;
 
     const origin = new URL(req.url).origin;
+
+    // Ensure presidents + ambassador exist before assembling booklet payload.
+    await ensureDefaultGlobalLeaders();
 
     const [
       event,

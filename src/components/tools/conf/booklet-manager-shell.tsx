@@ -531,55 +531,22 @@ export function BookletManagerShell() {
     if (!confId) return;
     if (
       !confirm(
-        "This will add the Liberian President, Chinese President, and Liberian Ambassador profile entries. Continue?",
+        "This will add or update the Liberian President, Chinese President, and Liberian Ambassador profiles. Continue?",
       )
     )
       return;
 
     setSeedingLeaders(true);
     try {
-      const defaults = [
-        {
-          role: "Head of State",
-          name: "H.E. Joseph Nyuma Boakai Sr.",
-          title: "President of the Republic of Liberia",
-          country: "Liberia",
-          photoPath: "/conf/president_boakai_Liberia.png",
-          sortOrder: 1,
-        },
-        {
-          role: "Head of State",
-          name: "H.E. Xi Jinping",
-          title: "President of the People's Republic of China",
-          country: "China",
-          photoPath: "/conf/president_xi_China.png",
-          sortOrder: 2,
-        },
-        {
-          role: "Ambassador",
-          name: "H.E. Ambassador",
-          title: "Ambassador of Liberia to China",
-          country: "Liberia",
-          photoPath: null,
-          sortOrder: 3,
-        },
-      ];
-
-      for (const leader of defaults) {
-        const res = await fetch(`/api/conf/${confId}/booklet/leaders`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...leader, isGlobal: false }),
-        });
-        if (!res.ok) {
-          const j = (await res.json().catch(() => ({}))) as Record<
-            string,
-            unknown
-          >;
-          throw new Error(
-            (j.error as string) || `Failed to seed "${leader.name}"`,
-          );
-        }
+      const res = await fetch(`/api/conf/${confId}/booklet/leaders/seed`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as Record<
+          string,
+          unknown
+        >;
+        throw new Error((j.error as string) || "Failed to seed leader profiles");
       }
       await refresh();
     } catch (e) {

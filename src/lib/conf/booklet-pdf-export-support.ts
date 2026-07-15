@@ -20,6 +20,7 @@ const BOOKLET_PDF_STATIC_ASSETS = [
   "/conf/assets/hotel/main_entrance_view.png",
   "/conf/president_boakai_Liberia.png",
   "/conf/president_xi_China.png",
+  "/conf/ambassador.jpg",
   "/conf/placeholder-delegate.svg",
 ] as const;
 

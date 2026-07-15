@@ -12,6 +12,11 @@ const COUNTRY_PHOTO_MAP: Record<string, string> = {
 
 function resolvePhoto(leader: LeaderProfile): string | null {
   if (leader.photoPath) return leader.photoPath;
+  const title = (leader.title ?? "").toLowerCase();
+  const role = (leader.role ?? "").toLowerCase();
+  if (title.includes("ambassador") || role.includes("ambassador")) {
+    return ASSETS.ambassadorThomas;
+  }
   const country = leader.country?.toLowerCase() ?? "";
   for (const [key, path] of Object.entries(COUNTRY_PHOTO_MAP)) {
     if (country.includes(key)) return path;

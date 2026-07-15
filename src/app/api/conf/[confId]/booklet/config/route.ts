@@ -320,18 +320,100 @@ export async function GET(
           }
         }
 
-        const hasProgramOutline = existingSections.some(
-          (s) => s.type === "PROGRAM_OUTLINE",
+        // Backfill missing LEADER dignitary sections (president / ambassador pages).
+        const DEFAULT_LEADER_SECTIONS = [
+          { title: "President of Liberia", sortHint: 3 },
+          { title: "President of China", sortHint: 4 },
+          { title: "Liberian Ambassador to China", sortHint: 5 },
+        ] as const;
+
+        const leaderSections = existingSections.filter(
+          (s) => s.type === "LEADER",
         );
-        if (!hasProgramOutline) {
-          const sponsorsSort =
-            existingSections.find((s) => s.type === "SPONSORS")?.sortOrder ??
-            existingSections.length + 1;
+        const hasLeaderTitle = (wanted: string) =>
+          leaderSections.some((s) => {
+            const t = normalizeLabel(s.title);
+            const w = normalizeLabel(wanted);
+            if (w.includes("ambassador")) return t.includes("ambassador");
+            if (w.includes("liberia")) {
+              return (
+                t.includes("liberia") &&
+                t.includes("president") &&
+                !t.includes("ambassador")
+              );
+            }
+            if (w.includes("china")) {
+              return (
+                t.includes("china") &&
+                t.includes("president") &&
+                !t.includes("ambassador")
+              );
+            }
+            return t === w;
+          });
+
+        const missingLeaders = DEFAULT_LEADER_SECTIONS.filter(
+          (def) => !hasLeaderTitle(def.title),
+        );
+        if (missingLeaders.length > 0) {
+          const insertAfter =
+            existingSections.find(
+              (s) =>
+                s.type === "TEXT" &&
+                normalizeLabel(s.title).includes("conference introduction"),
+            )?.sortOrder ??
+            existingSections.find((s) => s.type === "COVER")?.sortOrder ??
+            1;
+          const insertSort = insertAfter + 1;
 
           await tx.confBookletSection.updateMany({
             where: {
               bookletId: existingBooklet.id,
-              sortOrder: { gte: sponsorsSort },
+              sortOrder: { gte: insertSort },
+            },
+            data: { sortOrder: { increment: missingLeaders.length } },
+          });
+
+          for (let i = 0; i < missingLeaders.length; i++) {
+            await tx.confBookletSection.create({
+              data: {
+                bookletId: existingBooklet.id,
+                type: "LEADER",
+                title: missingLeaders[i].title,
+                subtitle: null,
+                bodyText: null,
+                isEnabled: true,
+                sortOrder: insertSort + i,
+                committeeScope: null,
+              },
+            });
+          }
+        }
+
+        // Re-read after LEADER inserts so PROGRAM_OUTLINE lands after Delegates.
+        const sectionsForProgram = await tx.confBookletSection.findMany({
+          where: { bookletId: existingBooklet.id },
+          orderBy: { sortOrder: "asc" },
+        });
+
+        const hasProgramOutline = sectionsForProgram.some(
+          (s) => s.type === "PROGRAM_OUTLINE",
+        );
+        if (!hasProgramOutline) {
+          // Prefer immediately after Delegate Roster; fall back before Sponsors.
+          const delegatesSort = sectionsForProgram.find(
+            (s) => s.type === "DELEGATES",
+          )?.sortOrder;
+          const insertSort =
+            delegatesSort != null
+              ? delegatesSort + 1
+              : (sectionsForProgram.find((s) => s.type === "SPONSORS")
+                  ?.sortOrder ?? sectionsForProgram.length + 1);
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: insertSort },
             },
             data: { sortOrder: { increment: 1 } },
           });
@@ -344,13 +426,108 @@ export async function GET(
               subtitle: "Welcome to Jinan",
               bodyText: null,
               isEnabled: true,
-              sortOrder: sponsorsSort,
+              sortOrder: insertSort,
               committeeScope: null,
             },
           });
+        } else {
+          // Recover if the unscoped WMF updateMany bug disabled/renamed it.
+          const programOutline = sectionsForProgram.find(
+            (s) => s.type === "PROGRAM_OUTLINE",
+          );
+          if (
+            programOutline &&
+            (!programOutline.isEnabled ||
+              normalizeLabel(programOutline.title).includes("ways, means"))
+          ) {
+            await tx.confBookletSection.update({
+              where: { id: programOutline.id },
+              data: {
+                isEnabled: true,
+                title: "Program Outline",
+                subtitle: programOutline.subtitle || "Welcome to Jinan",
+              },
+            });
+          }
         }
 
+        // Recover titles wiped by unscoped updateMany
+        // (50301af accidentally dropped the WMF where clause).
+        const sectionsForRecovery = await tx.confBookletSection.findMany({
+          where: { bookletId: existingBooklet.id },
+          orderBy: { sortOrder: "asc" },
+        });
+        const wipedSections = sectionsForRecovery.filter(
+          (s) =>
+            normalizeLabel(s.title) ===
+              normalizeLabel("Ways, Means & Finance (Legacy)") &&
+            !(s.type === "COMMITTEE" && s.committeeScope === "WMF"),
+        );
+        if (wipedSections.length > 0) {
+          const TYPE_DEFAULT_TITLE: Record<string, string> = {
+            COVER: "Cover Page",
+            TEXT: "Conference Introduction",
+            NEC: "NEC Leadership",
+            PRESIDENT_ADDRESS: "National President Address",
+            CHAIRMAN_ADDRESS: "Chairman's Address",
+            GUEST_BIO: "Guest Speaker Biography",
+            COC: "Council of Coordinators — Leadership",
+            COC_MEMBERS: "Council of Coordinators — Members",
+            CITY_PRESIDENTS: "City Presidents",
+            JUDICIAL: "Judicial Board",
+            COMMITTEE: "Conference Committee",
+            ABBREVIATIONS: "Abbreviations",
+            DELEGATES: "Delegate Roster",
+            PROGRAM_OUTLINE: "Program Outline",
+            SPONSORS: "Sponsors & Partners",
+            BACK_COVER: "Back Cover",
+            SCHEDULE: "Schedule",
+          };
+
+          const wipedLeaders = wipedSections
+            .filter((s) => s.type === "LEADER")
+            .sort((a, b) => a.sortOrder - b.sortOrder);
+          const leaderTitles = [
+            "President of Liberia",
+            "President of China",
+            "Liberian Ambassador to China",
+          ];
+
+          for (const section of wipedSections) {
+            let restoredTitle =
+              TYPE_DEFAULT_TITLE[section.type] ?? section.title;
+            if (section.type === "LEADER") {
+              const idx = wipedLeaders.findIndex((s) => s.id === section.id);
+              restoredTitle =
+                leaderTitles[idx] ?? `Leadership Profile ${idx + 1}`;
+            }
+            await tx.confBookletSection.update({
+              where: { id: section.id },
+              data: {
+                title: restoredTitle,
+                isEnabled: section.type !== "SCHEDULE",
+                ...(section.type === "PROGRAM_OUTLINE"
+                  ? { subtitle: "Welcome to Jinan" }
+                  : {}),
+                ...(section.type === "TEXT" &&
+                restoredTitle === "Conference Introduction"
+                  ? {
+                      bodyText:
+                        section.bodyText || DEFAULT_CONFERENCE_INTRO_BODY,
+                    }
+                  : {}),
+              },
+            });
+          }
+        }
+
+        // Disable legacy Ways, Means & Finance committee only — never all sections.
         await tx.confBookletSection.updateMany({
+          where: {
+            bookletId: existingBooklet.id,
+            type: "COMMITTEE",
+            committeeScope: "WMF",
+          },
           data: {
             isEnabled: false,
             title: "Ways, Means & Finance (Legacy)",

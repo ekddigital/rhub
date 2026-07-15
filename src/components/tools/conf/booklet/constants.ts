@@ -85,9 +85,10 @@ export const ASSETS = {
   cityMorning: "/conf/assets/jinan_city/morning_view_landscape.png",
   hotelEntrance: "/conf/assets/hotel/main_entrance_view.png",
   hotelConferenceHall: "/conf/assets/hotel/conference_hall.jpg",
-  // State dignitaries — shown on booklet cover
+  // State dignitaries — shown on booklet cover / LEADER pages
   presidentBoakai: "/conf/president_boakai_Liberia.png",
   presidentXi: "/conf/president_xi_China.png",
+  ambassadorThomas: "/conf/ambassador.jpg",
   // Placeholder for delegates who have not yet uploaded a photo
   placeholderDelegate: "/conf/placeholder-delegate.svg",
 } as const;
