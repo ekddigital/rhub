@@ -32,15 +32,22 @@ Gather everyone
 
 **Venue:** Arcadia Spa Golf International Hotel, Qihe County, Jinan  
 **Dates:** 24–27 July 2026  
-**Theme:** Jinan 2026: Legacy and Influence
+**Theme:** Jinan 2026: Legacy and Influence  
+**Sub-theme:** Honoring Our Past, Engaging Our Present, and Inspiring Our Future
 
 ### Welcome to Jinan
 
 Welcome to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026: Legacy and Influence.
 
-As delegates of the Liberian Student Union in China, we gather in Jinan for our twentieth annual conference — a milestone that celebrates unity, leadership, academic excellence, and the enduring legacy of our community across China. From Friday, 24 July through Monday, 27 July 2026, we meet at the Arcadia Spa Golf International Hotel in Qihe County, Shandong.
+As delegates of the Liberian Student Union in China, we gather in Jinan for our twentieth annual conference — a milestone that celebrates unity, leadership, academic excellence, and the enduring legacy of our community across China. Two decades of annual conferences have built a record of service, fellowship, and responsible student leadership; this gathering marks both that history and our shared responsibility to carry it forward.
 
-The program below balances conference business, fellowship, recreation, and celebration across four days: arrival and meet-and-greet, plenary sessions and elections, pool party and football, and departure. Please review the daily schedule carefully, arrive on time for each activity, and participate actively in sessions, sports, and social events. Consult the Navigation Guide for step-by-step travel directions from Jinan railway stations (including Bus K904); see the Conference Introduction in the booklet for delegate expectations, transportation responsibility, and dress code.
+Our theme, *Jinan 2026: Legacy and Influence*, invites us to reflect on the foundations laid by past leaders and alumni, to strengthen the bonds that unite Liberian students in every city and province, and to extend our influence through disciplined study, civic responsibility, and constructive engagement with Liberia and with our host nation. The sub-theme — *Honoring Our Past, Engaging Our Present, and Inspiring Our Future* — calls us to honor what has been achieved, to participate fully in the work of this conference, and to leave Jinan with renewed purpose for the year ahead. These ideals are grounded in LSUIC's core values: Peace, Togetherness, Love, Support, Willingness, Passion, and Service.
+
+Jinan, the capital of Shandong Province, is widely known as the City of Springs for its historic artesian wells and long cultural heritage. Shandong is the birthplace of Confucian thought and one of China's great provincial centers of learning and industry. We meet at the Arcadia Spa Golf International Hotel in Qihe County — a dedicated conference setting with plenary facilities, spa amenities, and golf grounds that will host several of our fellowship and sporting programs — from Friday, 24 July through Monday, 27 July 2026.
+
+The four-day program below moves from arrival and meet-and-greet through plenary business, elections, and constitution review; an afternoon of rest and pool activities; conference sessions, football, and an evening celebration; and final departure on Monday morning. Please review the daily schedule carefully, arrive on time for each activity, and participate actively in sessions, sports, and social events.
+
+Travel to and from Jinan, and local transport other than conference-arranged transfers for sporting activities, is the responsibility of each delegate. Consult the Navigation Guide for step-by-step travel directions from Jinan's major railway stations, including Bus K904 (operating until 7:20 PM). Formal or business attire is expected for conference room sessions and official business; casual dress — and Liberia's national colors (red, white, and blue) — are encouraged for the meet and greet, pool party, football, and evening celebrations. See the Conference Introduction in the booklet for full delegate expectations and dress code guidance.
 
 ---
 

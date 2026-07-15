@@ -1,4 +1,5 @@
 import type { BookletSection } from "@/components/tools/conf/booklet/types";
+import { DEFAULT_PROGRAM_OUTLINE_INTRO } from "@/lib/conf/booklet-conference-copy";
 
 export type ProgramOutlineActivity = {
   time: string;
@@ -21,11 +22,7 @@ export type ResolvedProgramOutline = {
 
 const DEFAULT_WELCOME_TITLE = "Welcome to Jinan";
 
-const DEFAULT_INTRO = [
-  "As delegates of the Liberian Student Union in China, we gather in Jinan for our 20th Annual Conference under the theme Jinan 2026: Legacy and Influence — four days that balance conference business, fellowship, recreation, and celebration.",
-  "From Friday, 24 July through Monday, 27 July 2026, we meet at the Arcadia Spa Golf International Hotel in Qihe County. The schedule below outlines each day's activities from arrival and meet-and-greet through plenary sessions, elections, pool party, football, and evening celebrations.",
-  "Please review the program carefully, arrive on time for every session, and take part actively in meetings, elections, sports, and social events. Consult the Navigation Guide in this booklet for travel directions to the venue, and the Conference Introduction for delegate expectations, transportation, and dress code.",
-].join("\n\n");
+const DEFAULT_INTRO = DEFAULT_PROGRAM_OUTLINE_INTRO;
 
 /** Jinan 2026 conference program — public booklet schedule. */
 export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
