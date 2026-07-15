@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
-import { DEFAULT_CONFERENCE_INTRO } from "@/lib/conf/resolve-booklet-section-content";
+import {
+  DEFAULT_CHAIRMAN_ADDRESS,
+  DEFAULT_CONFERENCE_INTRO,
+} from "@/lib/conf/resolve-booklet-section-content";
 import {
   isStaleConferenceIntroBody,
   resolveConferenceIntroBody,
@@ -23,6 +26,8 @@ const DEFAULT_ABBREVIATIONS_BODY = [
   "GS — Guest Speaker",
   "LSUIC — Liberian Student Union in China",
 ].join("\n");
+
+const DEFAULT_CHAIRMAN_ADDRESS_BODY = DEFAULT_CHAIRMAN_ADDRESS;
 
 const SCOPED_COMMITTEE_SECTIONS = [
   { type: "COMMITTEE", title: "Program and Planning Committee", subtitle: "PPC", committeeScope: "PPC" },
@@ -54,7 +59,12 @@ const DEFAULT_SECTIONS = [
     title: "National President Address",
     sortOrder: 7,
   },
-  { type: "CHAIRMAN_ADDRESS", title: "Chairman's Address", sortOrder: 8 },
+  {
+    type: "CHAIRMAN_ADDRESS",
+    title: "Message from the Conference Chair",
+    sortOrder: 8,
+    bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
+  },
   { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 9 },
   {
     type: "COC",
@@ -168,6 +178,59 @@ export async function GET(
           await tx.confBookletSection.update({
             where: { id: presidentAddress.id },
             data: { title: "National President Address" },
+          });
+        }
+
+        const chairmanAddress = existingSections.find(
+          (s) => s.type === "CHAIRMAN_ADDRESS",
+        );
+        if (chairmanAddress) {
+          const needsTitle =
+            normalizeLabel(chairmanAddress.title) ===
+              normalizeLabel("Chairman's Address") ||
+            !chairmanAddress.title?.trim();
+          const needsBody = !(chairmanAddress.bodyText ?? "").trim();
+          if (needsTitle || needsBody) {
+            await tx.confBookletSection.update({
+              where: { id: chairmanAddress.id },
+              data: {
+                ...(needsTitle
+                  ? { title: "Message from the Conference Chair" }
+                  : {}),
+                ...(needsBody
+                  ? { bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY }
+                  : {}),
+                isEnabled: true,
+              },
+            });
+          }
+        } else {
+          const insertAfter =
+            existingSections.find((s) => s.type === "PRESIDENT_ADDRESS")
+              ?.sortOrder ??
+            existingSections.find((s) => s.type === "NEC")?.sortOrder ??
+            7;
+          const insertSort = insertAfter + 1;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: insertSort },
+            },
+            data: { sortOrder: { increment: 1 } },
+          });
+
+          await tx.confBookletSection.create({
+            data: {
+              bookletId: existingBooklet.id,
+              type: "CHAIRMAN_ADDRESS",
+              title: "Message from the Conference Chair",
+              subtitle: null,
+              bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
+              isEnabled: true,
+              sortOrder: insertSort,
+              committeeScope: null,
+            },
           });
         }
 
@@ -473,7 +536,7 @@ export async function GET(
             TEXT: "Conference Introduction",
             NEC: "NEC Leadership",
             PRESIDENT_ADDRESS: "National President Address",
-            CHAIRMAN_ADDRESS: "Chairman's Address",
+            CHAIRMAN_ADDRESS: "Message from the Conference Chair",
             GUEST_BIO: "Guest Speaker Biography",
             COC: "Council of Coordinators — Leadership",
             COC_MEMBERS: "Council of Coordinators — Members",

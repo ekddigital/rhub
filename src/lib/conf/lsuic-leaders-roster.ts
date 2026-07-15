@@ -51,6 +51,15 @@ export function inferLsuicMemberRole(leaderRole: string): LsuicMemberRole {
   ) {
     return "CHAIR";
   }
+  // Co-Chair / vice must be checked before chair patterns — "co-chair:" contains "chair:".
+  if (
+    role.includes("vice president") ||
+    role.includes("co-chair") ||
+    (role.includes("deputy") && !role.includes("secretary")) ||
+    role.includes("associate adjudicator")
+  ) {
+    return "VICE_CHAIR";
+  }
   if (
     role.includes("national president") ||
     role.includes("general chairman") ||
@@ -62,20 +71,31 @@ export function inferLsuicMemberRole(leaderRole: string): LsuicMemberRole {
   ) {
     return "CHAIR";
   }
-  if (
-    role.includes("vice president") ||
-    role.includes("co-chair") ||
-    (role.includes("deputy") && !role.includes("secretary")) ||
-    role.includes("associate adjudicator")
-  ) {
-    return "VICE_CHAIR";
-  }
   if (role.includes("financial secretary")) return "FINANCIAL_SECRETARY";
   if (role.includes("treasurer")) return "TREASURER";
   if (role.includes("secretary") || role.includes("general secretary")) {
     return "SECRETARY";
   }
   return "COMMITTEE";
+}
+
+/** Strip NT-/NEC prefixes so dual-listed names match across scopes. */
+export function normalizeLeaderNameForMatch(
+  value: string | null | undefined,
+): string {
+  return normalizeLeaderName(value)
+    .replace(/^nt[-\s]+/i, "")
+    .replace(/^nec[-\s]+/i, "")
+    .trim();
+}
+
+/** National Treasurer dual-listed on Welfare — keep NEC only in booklet. */
+export function shouldExcludeFromWelfareRoster(
+  row: Pick<LsuicLeaderRosterRow, "committee_short_name" | "leader_name">,
+): boolean {
+  if (row.committee_short_name !== "WC") return false;
+  const name = normalizeLeaderNameForMatch(row.leader_name);
+  return name === "jenneh bonah" || name.endsWith(" jenneh bonah");
 }
 
 /** Map CSV committee short code to booklet `committeeScope`. */

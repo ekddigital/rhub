@@ -204,7 +204,7 @@ function ChairHeroCard({
           <ProfileContactDetails
             member={chair}
             tone="hero"
-            fontSize={isNec ? "15px" : "10px"}
+            fontSize={isNec ? "15px" : "12px"}
             showIcons
           />
           <ProfileDelegateCodeBadge
@@ -273,7 +273,7 @@ function OfficerCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: "12.5px",
+              fontSize: "14px",
               fontWeight: 700,
               color: textColor,
               marginBottom: "3px",
@@ -286,7 +286,7 @@ function OfficerCard({
           </div>
           <div
             style={{
-              fontSize: "9.5px",
+              fontSize: "10.5px",
               fontWeight: 600,
               color: `${textColor}90`,
               textTransform: "uppercase",
@@ -300,7 +300,7 @@ function OfficerCard({
           </div>
         </div>
       </div>
-      <ProfileContactDetails member={member} tone="light" fontSize="9px" />
+      <ProfileContactDetails member={member} tone="light" fontSize="10.5px" />
       <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
@@ -315,9 +315,9 @@ function MemberCard({
 }) {
   const avatarSize = dense ? 48 : 66;
   const padding = dense ? "8px 6px" : "12px 10px";
-  const nameSize = dense ? "10.5px" : "12px";
-  const titleSize = dense ? "8.5px" : "9.5px";
-  const contactSize = dense ? "8px" : "9px";
+  const nameSize = dense ? "12px" : "13.5px";
+  const titleSize = dense ? "9.5px" : "10.5px";
+  const contactSize = dense ? "9.5px" : "10.5px";
 
   return (
     <div

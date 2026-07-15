@@ -61,6 +61,15 @@ export function hasAddressContent(value: string | null | undefined): boolean {
   return trimContent(value).length > 0;
 }
 
+/** Default Message from the Conference Chair (Enoch Kwateh Dongbo). */
+export const DEFAULT_CHAIRMAN_ADDRESS = [
+  "It is with deep gratitude and sincere humility that I welcome you to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026: Legacy and Influence. To serve as Conference Chair for an assembly that represents the entire Liberian student body in China is both an honor and a sacred trust, and I thank you for the confidence placed in this Conference Committee.",
+  "I extend my highest esteem and warmest welcome to His Excellency the Ambassador of the Republic of Liberia to the People's Republic of China, to our distinguished guests, and to every delegate who has traveled to Jinan. Your presence affirms the unity of our union and the dignity of the occasion we share.",
+  "Our theme, Jinan 2026: Legacy and Influence, and our sub-theme — Honoring Our Past, Engaging Our Present, and Inspiring Our Future — call us to remember the founders and leaders who built LSUIC, to engage fully in the work before us this week, and to leave Jinan determined to strengthen the years ahead. As a student of Computer Science from Jinan, I love the craft of building systems that make complex work simpler. I envision conference management that is clearer, faster, and more reliable through thoughtful technology and automation, applying the skills of our generation so that service to the union is lighter and more effective.",
+  "In an age of rapid technological change, it is necessary that we apply technology thoughtfully to all we do — in how we organize, communicate, elect, and remember. Yet technology serves a deeper purpose: each year we gather to celebrate our independence, to vote new leadership into office, and to create shared memories that bind Liberian students across China. May this conference deepen those bonds, renew our willingness to serve, and inspire influence worthy of our legacy.",
+  "Welcome to Jinan. May peace, togetherness, and purpose guide every session of LSUIC 2026.",
+].join("\n\n");
+
 export function leaderProfileToSpeaker(leader: LeaderProfile): BookletAddressSpeaker {
   return {
     id: leader.id,

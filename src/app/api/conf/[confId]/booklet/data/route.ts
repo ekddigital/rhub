@@ -204,8 +204,17 @@ export async function GET(
     const resolvedCommitteeMembers =
       committeeMembers.map(resolveRosterMemberPhoto);
 
+    // Prefer Conference Committee (null scope) General Chairman — not first
+    // scoped committee chair (e.g. PPC Chairman).
     const conferenceChair =
-      resolvedCommitteeMembers.find((m) => m.role === "CHAIR") ??
+      resolvedCommitteeMembers.find(
+        (m) =>
+          m.committeeScope === null &&
+          normalizePosition(m.title).includes("general chairman"),
+      ) ??
+      resolvedCommitteeMembers.find(
+        (m) => m.committeeScope === null && m.role === "CHAIR",
+      ) ??
       resolvedCommitteeMembers.find((m) =>
         normalizePosition(m.title).includes("general chairman"),
       ) ??

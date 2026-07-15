@@ -5,6 +5,7 @@ import {
   loadLsuicLeadersRoster,
   lsuicLeaderRosterKey,
   normalizeLeaderName,
+  shouldExcludeFromWelfareRoster,
   stripHonorificDisplayName,
   type LsuicLeaderRosterRow,
 } from "@/lib/conf/lsuic-leaders-roster";
@@ -213,6 +214,8 @@ export function buildBookletRosterMembers(input: {
   const committeeMembers: BookletRosterMember[] = [];
 
   roster.forEach((row, idx) => {
+    if (shouldExcludeFromWelfareRoster(row)) return;
+
     const rosterKey = lsuicLeaderRosterKey(row);
     const link = linkByKey.get(rosterKey);
     const linked = resolveLinkedDelegate(row, link, indexes);

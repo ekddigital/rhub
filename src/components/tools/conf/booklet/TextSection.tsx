@@ -2,6 +2,8 @@ import { C } from "./constants";
 import {
   BOOKLET_BODY,
   BOOKLET_BODY_PARAGRAPH,
+  BOOKLET_GLOSSARY_ROW,
+  splitBookletGlossaryLines,
   splitBookletParagraphs,
 } from "@/lib/conf/booklet-body-typography";
 import { resolveTextSectionBody } from "@/lib/conf/resolve-booklet-section-content";
@@ -23,6 +25,8 @@ export function TextSection({
 }) {
   const trimmed = resolveTextSectionBody(section);
   if (!trimmed) return null;
+
+  const isGlossary = section.type === "ABBREVIATIONS";
 
   return (
     <A4Page
@@ -76,11 +80,17 @@ export function TextSection({
           color: C.text,
         }}
       >
-        {splitBookletParagraphs(trimmed).map((paragraph, i) => (
-          <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
-            {paragraph}
-          </p>
-        ))}
+        {isGlossary
+          ? splitBookletGlossaryLines(trimmed).map((line, i) => (
+              <div key={i} style={BOOKLET_GLOSSARY_ROW}>
+                {line}
+              </div>
+            ))
+          : splitBookletParagraphs(trimmed).map((paragraph, i) => (
+              <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
+                {paragraph}
+              </p>
+            ))}
       </div>
     </A4Page>
   );

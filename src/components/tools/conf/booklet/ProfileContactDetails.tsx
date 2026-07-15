@@ -7,20 +7,17 @@ function toneColors(tone: ContactTone) {
   if (tone === "dark") {
     return {
       muted: `${C.white}80`,
-      phone: `${C.white}95`,
       university: `${C.white}7A`,
     };
   }
   if (tone === "hero") {
     return {
       muted: `${C.white}80`,
-      phone: `${C.white}95`,
       university: `${C.white}7A`,
     };
   }
   return {
     muted: C.muted,
-    phone: C.blue,
     university: C.muted,
   };
 }
@@ -43,15 +40,14 @@ export function ProfileContactDetails({
   const location =
     (member.city ?? "Member") +
     (member.province ? `, ${member.province}` : "");
-  const university = member.university?.trim() || "Member";
-  const phone = member.phone ?? "Phone pending";
+  const university = member.university?.trim() || null;
 
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        gap: "3px",
         width: "100%",
         minWidth: 0,
       }}
@@ -60,35 +56,26 @@ export function ProfileContactDetails({
         style={{
           fontSize,
           color: colors.muted,
-          lineHeight: 1.35,
+          lineHeight: 1.4,
           overflowWrap: "break-word",
           wordBreak: "normal",
         }}
       >
         {showIcons ? `📍 ${location}` : location}
       </div>
-      <div
-        style={{
-          fontSize,
-          color: colors.phone,
-          lineHeight: 1.35,
-          fontWeight: 600,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {showIcons ? `Phone: ${phone}` : phone}
-      </div>
-      <div
-        style={{
-          fontSize,
-          color: colors.university,
-          lineHeight: 1.35,
-          overflowWrap: "break-word",
-          wordBreak: "normal",
-        }}
-      >
-        {showIcons ? `🎓 ${university}` : university}
-      </div>
+      {university ? (
+        <div
+          style={{
+            fontSize,
+            color: colors.university,
+            lineHeight: 1.4,
+            overflowWrap: "break-word",
+            wordBreak: "normal",
+          }}
+        >
+          {showIcons ? `🎓 ${university}` : university}
+        </div>
+      ) : null}
     </div>
   );
 }
