@@ -61,6 +61,8 @@ As delegates of the Liberian Student Union in China, we gather in Jinan for our 
 
 **Notes:** The morning plenary runs in the conference room through 2:00 PM. After a rest period, delegates reassemble from approximately 4:00 PM for the pool party and swimming.
 
+---
+
 ### Day 3 — Sunday, 26 July 2026 · Conference, Sports & Evening Party
 
 | Time | Activities | Location |
