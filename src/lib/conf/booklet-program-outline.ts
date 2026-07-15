@@ -48,17 +48,23 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
   },
   {
     dayNumber: 2,
-    label: "Day 2 — Conference & Recreation",
+    label: "Day 2 — Conference Business & Pool Party",
     dateLabel: "Saturday, 25 July 2026",
     activities: [
       {
-        time: "Morning",
-        activity: "Conference room sessions",
+        time: "Morning – 2:00 PM",
+        activity:
+          "Reports, elections, resolutions, voting on the new constitution, and other conference business",
         location: "Hotel conference room",
       },
       {
-        time: "Afternoon",
-        activity: "Swimming and leisure",
+        time: "2:00 – ~4:00 PM",
+        activity: "Rest — delegates may relax at the hotel",
+        location: "Hotel / personal time",
+      },
+      {
+        time: "From ~4:00 PM",
+        activity: "Pool party and swimming",
         location: "Hotel pool / spa area",
       },
     ],

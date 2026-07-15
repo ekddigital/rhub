@@ -51,14 +51,15 @@ As delegates of the Liberian Student Union in China, we gather in Jinan for our 
 
 ---
 
-### Day 2 — Saturday, 25 July 2026 · Conference & Recreation
+### Day 2 — Saturday, 25 July 2026 · Conference Business & Pool Party
 
 | Time | Activities | Location |
 |------|------------|----------|
-| Morning | Conference room sessions | Hotel conference room |
-| Afternoon | Swimming and leisure | Hotel pool / spa area |
+| Morning – 2:00 PM | Reports, elections, resolutions, voting on the new constitution, and other conference business | Hotel conference room |
+| 2:00 – ~4:00 PM | Rest — delegates may relax at the hotel | Hotel / personal time |
+| From ~4:00 PM | Pool party and swimming | Hotel pool / spa area |
 
----
+**Notes:** The morning plenary runs in the conference room through 2:00 PM. After a rest period, delegates reassemble from approximately 4:00 PM for the pool party and swimming.
 
 ### Day 3 — Sunday, 26 July 2026 · Conference, Sports & Evening Party
 
