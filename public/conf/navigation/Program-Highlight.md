@@ -36,7 +36,11 @@ Gather everyone
 
 ### Welcome to Jinan
 
-As delegates of the Liberian Student Union in China, we gather in Jinan for our 20th Annual Conference — a milestone that celebrates unity, leadership, and the enduring bonds of our community across China. From July 24–27, 2026, we will meet at the Arcadia Spa Golf International Hotel in Qihe County. The program below balances conference business, fellowship, recreation, and celebration. Please arrive on time for each activity and consult the Navigation Guide for travel directions to the venue.
+Welcome to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026: Legacy and Influence.
+
+As delegates of the Liberian Student Union in China, we gather in Jinan for our twentieth annual conference — a milestone that celebrates unity, leadership, academic excellence, and the enduring legacy of our community across China. From Friday, 24 July through Monday, 27 July 2026, we meet at the Arcadia Spa Golf International Hotel in Qihe County, Shandong.
+
+The program below balances conference business, fellowship, recreation, and celebration across four days: arrival and meet-and-greet, plenary sessions and elections, pool party and football, and departure. Please review the daily schedule carefully, arrive on time for each activity, and participate actively in sessions, sports, and social events. Consult the Navigation Guide for step-by-step travel directions from Jinan railway stations (including Bus K904); see the Conference Introduction in the booklet for delegate expectations, transportation responsibility, and dress code.
 
 ---
 

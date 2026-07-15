@@ -39,10 +39,14 @@ function normalizeLabel(value: string | null | undefined): string {
 }
 
 export const DEFAULT_CONFERENCE_INTRO = [
-  "Welcome to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026.",
-  "As delegates of the Liberian Student Union in China, we gather in Jinan for a milestone celebration of unity, leadership, and the enduring bonds of our community across China.",
-  "From July 24–27, 2026, we will meet at the Arcadia Spa Golf International Hotel in Qihe County. This booklet contains the conference program, leadership profiles, committee roster, and essential information for delegates.",
-  "We extend our deepest gratitude to the Liberian and Chinese governments for their continued support of Liberian students in China.",
+  "Welcome to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026: Legacy and Influence.",
+  "As delegates of the Liberian Student Union in China, we gather in Jinan for our twentieth annual conference — a milestone that celebrates unity, leadership, academic excellence, and the enduring legacy of our community across China. Under this year's theme, we honor our past, engage our present, and inspire our future as one Liberian student family in the diaspora.",
+  "The conference takes place from Friday, 24 July through Monday, 27 July 2026 at the Arcadia Spa Golf International Hotel in Qihe County, Shandong. This booklet contains the conference program, leadership profiles, committee roster, navigation guide, and essential information to help you navigate the days ahead.",
+  "We ask every delegate to arrive on time for each scheduled activity, to participate actively in plenary sessions, elections, resolutions, and fellowship events, and to conduct themselves with respect toward fellow delegates, conference officials, and hotel staff. Please review the daily program outline in this booklet and plan your day accordingly — punctuality and full engagement ensure that business sessions, recreation, and celebrations run smoothly for everyone.",
+  "Travel to and from Jinan, and local transport other than conference-arranged transfers for sporting activities, is the responsibility of each delegate. Step-by-step directions from Jinan's major railway stations to the hotel — including subway, Bus K904, and taxi options — are provided in the Navigation Guide section of this booklet. Please note that Bus K904 operates only until 7:20 PM; delegates arriving after that hour must use a taxi or ride-hail service to reach the hotel.",
+  "Dress appropriately for each occasion: formal or business attire is expected for conference room sessions, reports, elections, and other official business; casual dress is welcome for the meet and greet, pool party, football, and evening celebrations — and we encourage wearing Liberia's national colors (red, white, and blue) during sporting and social events.",
+  "We extend our deepest gratitude to the Liberian and Chinese governments for their continued support of Liberian students in China, and to the National Executive Committee, Conference Committee, and all volunteers whose dedication makes this gathering possible.",
+  "The detailed daily program follows in the Program Outline section of this booklet. We look forward to welcoming you to Jinan and to four days of fellowship, purpose, and lasting memories.",
 ].join("\n\n");
 
 export function isConferenceIntroductionSection(section: BookletSection): boolean {

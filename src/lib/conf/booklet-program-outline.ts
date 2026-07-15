@@ -22,8 +22,9 @@ export type ResolvedProgramOutline = {
 const DEFAULT_WELCOME_TITLE = "Welcome to Jinan";
 
 const DEFAULT_INTRO = [
-  "As delegates of the Liberian Student Union in China, we gather in Jinan for our 20th Annual Conference — a milestone that celebrates unity, leadership, and the enduring bonds of our community across China.",
-  "From July 24–27, 2026, we will meet at the Arcadia Spa Golf International Hotel in Qihe County. The program below balances conference business, fellowship, recreation, and celebration. Please arrive on time for each activity and consult the Navigation Guide in this booklet for travel directions to the venue.",
+  "As delegates of the Liberian Student Union in China, we gather in Jinan for our 20th Annual Conference under the theme Jinan 2026: Legacy and Influence — four days that balance conference business, fellowship, recreation, and celebration.",
+  "From Friday, 24 July through Monday, 27 July 2026, we meet at the Arcadia Spa Golf International Hotel in Qihe County. The schedule below outlines each day's activities from arrival and meet-and-greet through plenary sessions, elections, pool party, football, and evening celebrations.",
+  "Please review the program carefully, arrive on time for every session, and take part actively in meetings, elections, sports, and social events. Consult the Navigation Guide in this booklet for travel directions to the venue, and the Conference Introduction for delegate expectations, transportation, and dress code.",
 ].join("\n\n");
 
 /** Jinan 2026 conference program — public booklet schedule. */
