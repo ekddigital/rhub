@@ -1,5 +1,9 @@
 import { type ReactNode } from "react";
 import {
+  paginateProgramOutlineDays,
+  resolveProgramOutline,
+} from "@/lib/conf/booklet-program-outline";
+import {
   resolveChairmanAddress,
   resolveGuestBioAddress,
   resolvePresidentAddress,
@@ -29,6 +33,7 @@ import { AddressSection } from "./AddressSection";
 import { CommitteeSection } from "./CommitteeSection";
 import { DelegatesSection } from "./DelegatesSection";
 import { TextSection } from "./TextSection";
+import { ProgramOutlineSection } from "./ProgramOutlineSection";
 import { BOOKLET_A4, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 
 export type BookletLayout = {
@@ -295,6 +300,30 @@ function renderSection(
               totalDelegateCount={sortedDelegates.length}
               rosterPageIndex={idx}
               rosterPageCount={rosterChunks.length}
+              pageNum={startPageNum + idx}
+              totalPages={totalPages}
+              confName={confName}
+              confYear={confYear}
+            />
+          ))}
+        </>
+      );
+    }
+
+    case "PROGRAM_OUTLINE": {
+      const resolved = resolveProgramOutline(section);
+      if (!resolved) return null;
+      const dayPages = paginateProgramOutlineDays(resolved.days);
+      return (
+        <>
+          {dayPages.map((pageDays, idx) => (
+            <ProgramOutlineSection
+              key={`${key}-${idx}`}
+              section={section}
+              welcomeTitle={resolved.welcomeTitle}
+              intro={resolved.intro}
+              days={pageDays}
+              showIntro={idx === 0}
               pageNum={startPageNum + idx}
               totalPages={totalPages}
               confName={confName}

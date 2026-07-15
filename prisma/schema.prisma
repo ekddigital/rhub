@@ -1241,7 +1241,7 @@ model ConfBookletSection {
     bookletId      String
     /// "COVER"|"LEADER"|"NEC"|"PRESIDENT_ADDRESS"|"GUEST_BIO"
     /// |"COC"|"COC_MEMBERS"|"CITY_PRESIDENTS"|"JUDICIAL"
-    /// |"COMMITTEE"|"SCHEDULE"|"DELEGATES"|"SPONSORS"|"BACK_COVER"
+    /// |"COMMITTEE"|"SCHEDULE"|"DELEGATES"|"PROGRAM_OUTLINE"|"SPONSORS"|"BACK_COVER"
     type           String
     title          String
     subtitle       String?

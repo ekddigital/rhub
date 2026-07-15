@@ -1350,7 +1350,8 @@ export function BookletManagerShell() {
                 {(sectionEdit.section.type === "PRESIDENT_ADDRESS" ||
                   sectionEdit.section.type === "GUEST_BIO" ||
                   sectionEdit.section.type === "SPONSORS" ||
-                  sectionEdit.section.type === "ABBREVIATIONS") && (
+                  sectionEdit.section.type === "ABBREVIATIONS" ||
+                  sectionEdit.section.type === "PROGRAM_OUTLINE") && (
                   <label className="space-y-1.5 text-sm">
                     <span className="text-muted-foreground">Body Text</span>
                     <Textarea
@@ -1362,6 +1363,8 @@ export function BookletManagerShell() {
                             ? "Enter guest speaker biography..."
                             : sectionEdit.section.type === "ABBREVIATIONS"
                               ? "Enter abbreviation list, one per line (e.g. NEC — National Executive Committee)"
+                              : sectionEdit.section.type === "PROGRAM_OUTLINE"
+                                ? "Optional welcome intro paragraph (leave blank for default Jinan 2026 text). Daily schedule is managed in booklet-program-outline.ts."
                             : "Enter sponsor names, logos, or acknowledgements..."
                       }
                       value={sectionEdit.bodyText}

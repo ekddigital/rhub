@@ -85,8 +85,14 @@ const DEFAULT_SECTIONS = [
     bodyText: DEFAULT_ABBREVIATIONS_BODY,
   },
   { type: "DELEGATES", title: "Delegate Roster", sortOrder: 15 + SCOPED_COMMITTEE_SECTIONS.length },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length },
+  {
+    type: "PROGRAM_OUTLINE",
+    title: "Program Outline",
+    subtitle: "Welcome to Jinan",
+    sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length,
+  },
+  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "BACK_COVER", title: "Back Cover", sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length },
 ];
 
 function normalizeLabel(value: string | null | undefined): string {
@@ -271,12 +277,37 @@ export async function GET(
           }
         }
 
+        const hasProgramOutline = existingSections.some(
+          (s) => s.type === "PROGRAM_OUTLINE",
+        );
+        if (!hasProgramOutline) {
+          const sponsorsSort =
+            existingSections.find((s) => s.type === "SPONSORS")?.sortOrder ??
+            existingSections.length + 1;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: sponsorsSort },
+            },
+            data: { sortOrder: { increment: 1 } },
+          });
+
+          await tx.confBookletSection.create({
+            data: {
+              bookletId: existingBooklet.id,
+              type: "PROGRAM_OUTLINE",
+              title: "Program Outline",
+              subtitle: "Welcome to Jinan",
+              bodyText: null,
+              isEnabled: true,
+              sortOrder: sponsorsSort,
+              committeeScope: null,
+            },
+          });
+        }
+
         await tx.confBookletSection.updateMany({
-          where: {
-            bookletId: existingBooklet.id,
-            type: "COMMITTEE",
-            committeeScope: "WMF",
-          },
           data: {
             isEnabled: false,
             title: "Ways, Means & Finance (Legacy)",

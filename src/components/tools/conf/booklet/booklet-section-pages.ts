@@ -1,3 +1,4 @@
+import { programOutlinePageCount } from "@/lib/conf/booklet-program-outline";
 import {
   resolveChairmanAddress,
   resolveGuestBioAddress,
@@ -148,6 +149,7 @@ export function sectionPageSpan(
   }
   if (s.type === "DELEGATES")
     return delegatesSectionPageCount(data.delegates.length);
+  if (s.type === "PROGRAM_OUTLINE") return programOutlinePageCount(s);
   return shouldRenderTextSection(s) ? 1 : 0;
 }
 
