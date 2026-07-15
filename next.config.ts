@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  // Silence Next.js 16 Turbopack/webpack coexistence check so `next dev`
+  // can use Turbopack (default) while production still builds with webpack.
+  turbopack: {},
   // Typecheck runs via `npx tsc --noEmit` / `npm run verify` so the Next
   // build worker does not pay a second ~1GB heap spike (fatal on ~2GB VPS).
   typescript: {
@@ -24,8 +27,12 @@ const nextConfig: NextConfig = {
       "public/conf/assets/**/*.mp4",
     ],
   },
-  webpack: (config) => {
-    config.parallelism = 1;
+  // Webpack memory knobs only for production builds (`next build --webpack`).
+  // Local `next dev` uses Turbopack; these opts are not needed there.
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.parallelism = 1;
+    }
     return config;
   },
   serverExternalPackages: ["@resvg/resvg-js", "adm-zip"],
