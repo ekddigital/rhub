@@ -59,36 +59,36 @@ const DEFAULT_SECTIONS = [
     title: "National President Address",
     sortOrder: 7,
   },
-  {
-    type: "CHAIRMAN_ADDRESS",
-    title: "Message from the Conference Chair",
-    sortOrder: 8,
-    bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
-  },
-  { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 9 },
+  { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 8 },
   {
     type: "COC",
     title: "Council of Coordinators — Leadership",
-    sortOrder: 10,
+    sortOrder: 9,
     committeeScope: "CoC",
   },
   {
     type: "COC_MEMBERS",
     title: "Council of Coordinators — Members",
-    sortOrder: 11,
+    sortOrder: 10,
     committeeScope: "CoC Province",
   },
   {
     type: "CITY_PRESIDENTS",
     title: "City Presidents",
-    sortOrder: 12,
+    sortOrder: 11,
     committeeScope: "City",
   },
   {
     type: "JUDICIAL",
     title: "Judicial Board",
-    sortOrder: 13,
+    sortOrder: 12,
     committeeScope: "Judicial",
+  },
+  {
+    type: "CHAIRMAN_ADDRESS",
+    title: "Message from the Conference Chair",
+    sortOrder: 13,
+    bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
   },
   {
     type: "COMMITTEE",
@@ -118,6 +118,18 @@ const DEFAULT_SECTIONS = [
   { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length },
   { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length },
 ];
+
+function isConferenceCommitteeSection(section: {
+  type: string;
+  title: string | null;
+  committeeScope: string | null;
+}): boolean {
+  return (
+    section.type === "COMMITTEE" &&
+    normalizeLabel(section.title) === normalizeLabel("Conference Committee") &&
+    !section.committeeScope
+  );
+}
 
 function normalizeLabel(value: string | null | undefined): string {
   return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -204,35 +216,9 @@ export async function GET(
               },
             });
           }
-        } else {
-          const insertAfter =
-            existingSections.find((s) => s.type === "PRESIDENT_ADDRESS")
-              ?.sortOrder ??
-            existingSections.find((s) => s.type === "NEC")?.sortOrder ??
-            7;
-          const insertSort = insertAfter + 1;
-
-          await tx.confBookletSection.updateMany({
-            where: {
-              bookletId: existingBooklet.id,
-              sortOrder: { gte: insertSort },
-            },
-            data: { sortOrder: { increment: 1 } },
-          });
-
-          await tx.confBookletSection.create({
-            data: {
-              bookletId: existingBooklet.id,
-              type: "CHAIRMAN_ADDRESS",
-              title: "Message from the Conference Chair",
-              subtitle: null,
-              bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
-              isEnabled: true,
-              sortOrder: insertSort,
-              committeeScope: null,
-            },
-          });
         }
+        // Create/reorder CHAIRMAN_ADDRESS after Conference Committee is ensured
+        // (see below) so it sits with the committee, not after NEC.
 
         const hasConferenceIntro = existingSections.some(
           (s) =>
@@ -268,10 +254,7 @@ export async function GET(
         }
 
         const hasConferenceCommittee = existingSections.some(
-          (s) =>
-            s.type === "COMMITTEE" &&
-            normalizeLabel(s.title) === normalizeLabel("Conference Committee") &&
-            !s.committeeScope,
+          isConferenceCommitteeSection,
         );
 
         if (!hasConferenceCommittee) {
@@ -304,6 +287,93 @@ export async function GET(
               committeeScope: null,
             },
           });
+        }
+
+        // Place Message from the Conference Chair immediately before Conference
+        // Committee. National President Address stays after NEC; Chair must not
+        // occupy that slot.
+        {
+          const sectionsForChair = await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id },
+            orderBy: { sortOrder: "asc" },
+          });
+          const chairman = sectionsForChair.find(
+            (s) => s.type === "CHAIRMAN_ADDRESS",
+          );
+          const conferenceCommittee = sectionsForChair.find(
+            isConferenceCommitteeSection,
+          );
+
+          if (!chairman) {
+            const judicialSort = sectionsForChair.find(
+              (s) => s.type === "JUDICIAL",
+            )?.sortOrder;
+            const insertSort =
+              conferenceCommittee?.sortOrder ??
+              (judicialSort != null
+                ? judicialSort + 1
+                : (sectionsForChair.find((s) => s.type === "PRESIDENT_ADDRESS")
+                    ?.sortOrder ?? 7) + 1);
+
+            await tx.confBookletSection.updateMany({
+              where: {
+                bookletId: existingBooklet.id,
+                sortOrder: { gte: insertSort },
+              },
+              data: { sortOrder: { increment: 1 } },
+            });
+
+            await tx.confBookletSection.create({
+              data: {
+                bookletId: existingBooklet.id,
+                type: "CHAIRMAN_ADDRESS",
+                title: "Message from the Conference Chair",
+                subtitle: null,
+                bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY,
+                isEnabled: true,
+                sortOrder: insertSort,
+                committeeScope: null,
+              },
+            });
+          } else if (conferenceCommittee) {
+            const chairIdx = sectionsForChair.findIndex(
+              (s) => s.id === chairman.id,
+            );
+            const ccIdx = sectionsForChair.findIndex(
+              (s) => s.id === conferenceCommittee.id,
+            );
+            if (chairIdx !== ccIdx - 1) {
+              const chairSort = chairman.sortOrder;
+              const ccSort = conferenceCommittee.sortOrder;
+
+              // Lift chairman out of the sequence.
+              await tx.confBookletSection.updateMany({
+                where: {
+                  bookletId: existingBooklet.id,
+                  id: { not: chairman.id },
+                  sortOrder: { gt: chairSort },
+                },
+                data: { sortOrder: { decrement: 1 } },
+              });
+
+              const targetSort =
+                ccSort > chairSort ? ccSort - 1 : ccSort;
+
+              await tx.confBookletSection.updateMany({
+                where: {
+                  bookletId: existingBooklet.id,
+                  id: { not: chairman.id },
+                  sortOrder: { gte: targetSort },
+                },
+                data: { sortOrder: { increment: 1 } },
+              });
+
+              await tx.confBookletSection.update({
+                where: { id: chairman.id },
+                data: { sortOrder: targetSort, isEnabled: true },
+              });
+            }
+          }
         }
 
         await tx.confBookletSection.updateMany({
