@@ -1351,7 +1351,8 @@ export function BookletManagerShell() {
                   sectionEdit.section.type === "GUEST_BIO" ||
                   sectionEdit.section.type === "SPONSORS" ||
                   sectionEdit.section.type === "ABBREVIATIONS" ||
-                  sectionEdit.section.type === "PROGRAM_OUTLINE") && (
+                  sectionEdit.section.type === "PROGRAM_OUTLINE" ||
+                  sectionEdit.section.type === "TEXT") && (
                   <label className="space-y-1.5 text-sm">
                     <span className="text-muted-foreground">Body Text</span>
                     <Textarea
@@ -1365,7 +1366,9 @@ export function BookletManagerShell() {
                               ? "Enter abbreviation list, one per line (e.g. NEC — National Executive Committee)"
                               : sectionEdit.section.type === "PROGRAM_OUTLINE"
                                 ? "Optional welcome intro paragraph (leave blank for default Jinan 2026 text). Daily schedule is managed in booklet-program-outline.ts."
-                            : "Enter sponsor names, logos, or acknowledgements..."
+                                : sectionEdit.section.type === "TEXT"
+                                  ? "Conference welcome introduction (leave blank for default Jinan 2026 text)."
+                                  : "Enter sponsor names, logos, or acknowledgements..."
                       }
                       value={sectionEdit.bodyText}
                       onChange={(e) =>

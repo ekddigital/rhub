@@ -1,8 +1,8 @@
 import { programOutlinePageCount } from "@/lib/conf/booklet-program-outline";
 import {
+  leaderSectionPageCount,
   resolveChairmanAddress,
   resolveGuestBioAddress,
-  resolveLeaderSectionAddress,
   resolvePresidentAddress,
   resolveRosterAddressPages,
   shouldRenderTextSection,
@@ -119,7 +119,7 @@ export function sectionPageSpan(
   }
 
   if (s.type === "LEADER") {
-    return resolveLeaderSectionAddress(s, data) ? 1 : 0;
+    return leaderSectionPageCount(s, data);
   }
 
   if (s.type === "PRESIDENT_ADDRESS") {

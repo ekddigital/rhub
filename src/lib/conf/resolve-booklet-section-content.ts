@@ -34,6 +34,27 @@ function trimContent(value: string | null | undefined): string {
   return (value ?? "").trim();
 }
 
+function normalizeLabel(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+export const DEFAULT_CONFERENCE_INTRO = [
+  "Welcome to the LSUIC 20th Annual Conference & Anniversary — Jinan 2026.",
+  "As delegates of the Liberian Student Union in China, we gather in Jinan for a milestone celebration of unity, leadership, and the enduring bonds of our community across China.",
+  "From July 24–27, 2026, we will meet at the Arcadia Spa Golf International Hotel in Qihe County. This booklet contains the conference program, leadership profiles, committee roster, and essential information for delegates.",
+  "We extend our deepest gratitude to the Liberian and Chinese governments for their continued support of Liberian students in China.",
+].join("\n\n");
+
+export function isConferenceIntroductionSection(section: BookletSection): boolean {
+  const title = normalizeLabel(section.title);
+  return (
+    section.type === "TEXT" &&
+    (title.includes("conference introduction") ||
+      title.includes("conference intro") ||
+      title === "introduction")
+  );
+}
+
 export function hasAddressContent(value: string | null | undefined): boolean {
   return trimContent(value).length > 0;
 }
@@ -98,25 +119,29 @@ export function resolveMemberAddressContent(
   );
 }
 
-export function resolveLeaderSectionAddress(
+/** True when a LEADER section has a stored profile (photo/name render without bio). */
+export function shouldRenderLeaderSection(
   section: BookletSection,
   data: BookletData,
-): ResolvedLeaderAddress | null {
+): boolean {
   const rosterLeaders = resolveLeadersForBookletSection(
     section.title,
     data.leaders,
     data.event.id,
   );
-  const leader = rosterLeaders[0];
-  if (!leader) return null;
+  return rosterLeaders.length > 0;
+}
 
-  const content = trimContent(leader.bio);
-  if (!content) return null;
-
-  return {
-    speaker: leaderProfileToSpeaker(leader),
-    content,
-  };
+export function leaderSectionPageCount(
+  section: BookletSection,
+  data: BookletData,
+): number {
+  if (!shouldRenderLeaderSection(section, data)) return 0;
+  return resolveLeadersForBookletSection(
+    section.title,
+    data.leaders,
+    data.event.id,
+  ).length;
 }
 
 export function resolvePresidentAddress(
@@ -228,6 +253,14 @@ export function resolveRosterAddressPages(
   return pages;
 }
 
+export function resolveTextSectionBody(section: BookletSection): string {
+  const trimmed = trimContent(section.bodyText);
+  if (trimmed) return trimmed;
+  if (isConferenceIntroductionSection(section)) return DEFAULT_CONFERENCE_INTRO;
+  return "";
+}
+
 export function shouldRenderTextSection(section: BookletSection): boolean {
+  if (isConferenceIntroductionSection(section)) return true;
   return hasAddressContent(section.bodyText);
 }

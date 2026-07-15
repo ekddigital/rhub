@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
+import { DEFAULT_CONFERENCE_INTRO } from "@/lib/conf/resolve-booklet-section-content";
 
 const DEFAULT_ABBREVIATIONS_BODY = [
   "NEC — National Executive Committee",
@@ -29,70 +30,79 @@ const SCOPED_COMMITTEE_SECTIONS = [
   { type: "COMMITTEE", title: "Audit Committee", subtitle: "AC", committeeScope: "AC" },
 ] as const;
 
+const DEFAULT_CONFERENCE_INTRO_BODY = DEFAULT_CONFERENCE_INTRO;
+
 const DEFAULT_SECTIONS = [
   { type: "COVER", title: "Cover Page", sortOrder: 1 },
-  { type: "LEADER", title: "President of Liberia", sortOrder: 2 },
-  { type: "LEADER", title: "President of China", sortOrder: 3 },
-  { type: "LEADER", title: "Liberian Ambassador to China", sortOrder: 4 },
-  { type: "NEC", title: "NEC Leadership", sortOrder: 5 },
+  {
+    type: "TEXT",
+    title: "Conference Introduction",
+    subtitle: "Welcome",
+    sortOrder: 2,
+    bodyText: DEFAULT_CONFERENCE_INTRO_BODY,
+  },
+  { type: "LEADER", title: "President of Liberia", sortOrder: 3 },
+  { type: "LEADER", title: "President of China", sortOrder: 4 },
+  { type: "LEADER", title: "Liberian Ambassador to China", sortOrder: 5 },
+  { type: "NEC", title: "NEC Leadership", sortOrder: 6 },
   {
     type: "PRESIDENT_ADDRESS",
     title: "National President Address",
-    sortOrder: 6,
+    sortOrder: 7,
   },
-  { type: "CHAIRMAN_ADDRESS", title: "Chairman's Address", sortOrder: 7 },
-  { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 8 },
+  { type: "CHAIRMAN_ADDRESS", title: "Chairman's Address", sortOrder: 8 },
+  { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 9 },
   {
     type: "COC",
     title: "Council of Coordinators — Leadership",
-    sortOrder: 9,
+    sortOrder: 10,
     committeeScope: "CoC",
   },
   {
     type: "COC_MEMBERS",
     title: "Council of Coordinators — Members",
-    sortOrder: 10,
+    sortOrder: 11,
     committeeScope: "CoC Province",
   },
   {
     type: "CITY_PRESIDENTS",
     title: "City Presidents",
-    sortOrder: 11,
+    sortOrder: 12,
     committeeScope: "City",
   },
   {
     type: "JUDICIAL",
     title: "Judicial Board",
-    sortOrder: 12,
+    sortOrder: 13,
     committeeScope: "Judicial",
   },
   {
     type: "COMMITTEE",
     title: "Conference Committee",
     subtitle: "CC",
-    sortOrder: 13,
+    sortOrder: 14,
     committeeScope: null,
   },
   ...SCOPED_COMMITTEE_SECTIONS.map((section, index) => ({
     ...section,
-    sortOrder: 14 + index,
+    sortOrder: 15 + index,
   })),
   {
     type: "ABBREVIATIONS",
     title: "Abbreviations",
     subtitle: "Glossary",
-    sortOrder: 14 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 15 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_ABBREVIATIONS_BODY,
   },
-  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 15 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length },
   {
     type: "PROGRAM_OUTLINE",
     title: "Program Outline",
     subtitle: "Welcome to Jinan",
-    sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length,
   },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length },
+  { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length },
 ];
 
 function normalizeLabel(value: string | null | undefined): string {
@@ -154,6 +164,39 @@ export async function GET(
           await tx.confBookletSection.update({
             where: { id: presidentAddress.id },
             data: { title: "National President Address" },
+          });
+        }
+
+        const hasConferenceIntro = existingSections.some(
+          (s) =>
+            s.type === "TEXT" &&
+            normalizeLabel(s.title).includes("conference introduction"),
+        );
+        if (!hasConferenceIntro) {
+          const firstLeaderSort =
+            existingSections.find((s) => s.type === "LEADER")?.sortOrder ??
+            existingSections.find((s) => s.type === "NEC")?.sortOrder ??
+            2;
+
+          await tx.confBookletSection.updateMany({
+            where: {
+              bookletId: existingBooklet.id,
+              sortOrder: { gte: firstLeaderSort },
+            },
+            data: { sortOrder: { increment: 1 } },
+          });
+
+          await tx.confBookletSection.create({
+            data: {
+              bookletId: existingBooklet.id,
+              type: "TEXT",
+              title: "Conference Introduction",
+              subtitle: "Welcome",
+              bodyText: DEFAULT_CONFERENCE_INTRO_BODY,
+              isEnabled: true,
+              sortOrder: firstLeaderSort,
+              committeeScope: null,
+            },
           });
         }
 

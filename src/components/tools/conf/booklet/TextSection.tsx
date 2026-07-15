@@ -1,4 +1,5 @@
 import { C } from "./constants";
+import { resolveTextSectionBody } from "@/lib/conf/resolve-booklet-section-content";
 import { A4Page } from "./A4Page";
 import type { BookletSection } from "./types";
 
@@ -15,7 +16,7 @@ export function TextSection({
   pageNum: number;
   totalPages: number;
 }) {
-  const trimmed = (section.bodyText ?? "").trim();
+  const trimmed = resolveTextSectionBody(section);
   if (!trimmed) return null;
 
   return (
