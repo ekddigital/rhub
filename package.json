@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && NODE_OPTIONS='--max-old-space-size=1024' next build --webpack",
-    "verify": "npx tsc --noEmit && npm run build",
+    "typecheck": "NODE_OPTIONS='--max-old-space-size=3072' tsc --noEmit",
+    "build": "prisma generate && next build",
+    "verify": "npm run typecheck && npm run build",
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/pre-push",
     "start": "next start",
     "lint": "eslint",
