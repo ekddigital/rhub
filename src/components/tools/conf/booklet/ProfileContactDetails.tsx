@@ -121,7 +121,7 @@ export function ProfileDelegateCodeBadge({
         fontWeight: 600,
       }}
     >
-      {delegateCode ?? "ID pending"}
+      {delegateCode ?? "ID"}
     </div>
   );
 }

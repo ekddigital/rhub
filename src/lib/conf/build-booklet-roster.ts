@@ -161,10 +161,21 @@ function memberFromRosterRow(
   const delegateBookletPhoto = photoDelegate?.bookletPhotoPath ?? null;
   const confMemberPhoto = dbMember?.photoPath ?? null;
 
+  const rawName = stripHonorificDisplayName(
+    linked?.name ?? dbMember?.name ?? row.leader_name,
+  );
+  const normalizedDisplayName = normalizeLeaderName(rawName);
+  const displayName =
+    normalizedDisplayName === "aaron s. pittman"
+      ? "Dr. Aaron S. Pittman"
+      : normalizedDisplayName === "christian mulbah"
+        ? "Dr. Christian Mulbah"
+        : rawName;
+
   return {
     id: dbMember?.id ?? `roster-${rosterKey}`,
     rosterKey,
-    name: stripHonorificDisplayName(linked?.name ?? dbMember?.name ?? row.leader_name),
+    name: displayName,
     role: dbMember?.role ?? inferLsuicMemberRole(row.leader_role),
     title: row.leader_role?.trim() || dbMember?.title || null,
     city: linked?.city ?? dbMember?.city ?? (city || null),
@@ -215,6 +226,15 @@ export function buildBookletRosterMembers(input: {
 
   roster.forEach((row, idx) => {
     if (shouldExcludeFromWelfareRoster(row)) return;
+
+    const normalizedLeader = normalizeLeaderName(row.leader_name);
+    if (
+      normalizedLeader === "edwin hena dawolo" ||
+      normalizedLeader === "amina k. garwoloquoi" ||
+      normalizedLeader === "cheson terrence slojue"
+    ) {
+      return;
+    }
 
     const rosterKey = lsuicLeaderRosterKey(row);
     const link = linkByKey.get(rosterKey);

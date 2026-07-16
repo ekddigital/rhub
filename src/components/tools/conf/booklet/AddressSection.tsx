@@ -58,7 +58,7 @@ export function AddressSection({
             borderRadius: "4px",
             background: C.red,
             color: C.white,
-            fontSize: "8.5px",
+            fontSize: "9.5px",
             fontWeight: 800,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
@@ -94,7 +94,7 @@ export function AddressSection({
             <div style={{ fontSize: "14px", fontWeight: 700, color: C.blue }}>
               {speaker.name}
             </div>
-            <div style={{ fontSize: "10px", color: C.muted }}>
+            <div style={{ fontSize: "11px", color: "#111111" }}>
               {roleLabel(speaker as NecMember)}
               {speaker.city ? ` · ${speaker.city}` : ""}
             </div>
@@ -121,7 +121,7 @@ export function AddressSection({
           style={{
             fontSize: `${BOOKLET_BODY.fontSize}px`,
             lineHeight: BOOKLET_BODY.lineHeight,
-            color: C.text,
+            color: "#000000",
             maxHeight: "520px",
             overflow: "hidden",
           }}

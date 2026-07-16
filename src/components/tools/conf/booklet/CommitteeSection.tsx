@@ -54,8 +54,8 @@ function SectionHeading({ section }: { section: BookletSection }) {
       {section.subtitle && (
         <div
           style={{
-            fontSize: "10px",
-            color: C.red,
+            fontSize: "11px",
+            color: "#000000",
             fontWeight: 600,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
@@ -68,8 +68,8 @@ function SectionHeading({ section }: { section: BookletSection }) {
       {section.bodyText && (
         <div
           style={{
-            fontSize: "10.5px",
-            color: C.muted,
+            fontSize: "11.5px",
+            color: "#111111",
             lineHeight: 1.6,
             marginTop: "8px",
             marginLeft: "14px",
@@ -266,14 +266,14 @@ function OfficerCard({
         <Avatar
           src={member.photoPath}
           name={member.name}
-          size={74}
+          size={84}
           silhouette={!member.photoPath}
           borderColor={textColor}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: 700,
               color: textColor,
               marginBottom: "3px",
@@ -286,7 +286,7 @@ function OfficerCard({
           </div>
           <div
             style={{
-              fontSize: "10.5px",
+              fontSize: "11.5px",
               fontWeight: 600,
               color: `${textColor}90`,
               textTransform: "uppercase",
@@ -300,7 +300,7 @@ function OfficerCard({
           </div>
         </div>
       </div>
-      <ProfileContactDetails member={member} tone="light" fontSize="10.5px" />
+      <ProfileContactDetails member={member} tone="light" fontSize="11.5px" />
       <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
@@ -313,11 +313,11 @@ function MemberCard({
   member: NecMember;
   dense?: boolean;
 }) {
-  const avatarSize = dense ? 48 : 66;
+  const avatarSize = dense ? 62 : 78;
   const padding = dense ? "8px 6px" : "12px 10px";
-  const nameSize = dense ? "12px" : "13.5px";
-  const titleSize = dense ? "9.5px" : "10.5px";
-  const contactSize = dense ? "9.5px" : "10.5px";
+  const nameSize = dense ? "13px" : "15px";
+  const titleSize = dense ? "10.5px" : "11.5px";
+  const contactSize = dense ? "10.5px" : "11.5px";
 
   return (
     <div
@@ -352,7 +352,7 @@ function MemberCard({
             style={{
               fontSize: nameSize,
               fontWeight: 700,
-              color: C.blue,
+              color: "#000000",
               lineHeight: 1.25,
               marginBottom: "3px",
               overflowWrap: "break-word",
@@ -364,7 +364,7 @@ function MemberCard({
           <div
             style={{
               fontSize: titleSize,
-              color: C.muted,
+              color: "#111111",
               lineHeight: 1.35,
               fontWeight: 500,
               overflowWrap: "break-word",
@@ -385,13 +385,22 @@ function MemberCard({
   );
 }
 
-function MembersSubheading({ isNec }: { isNec: boolean }) {
+function MembersSubheading({
+  isNec,
+  sectionTitle,
+}: {
+  isNec: boolean;
+  sectionTitle: string;
+}) {
+  const sectionLower = sectionTitle.toLowerCase();
+  const isJudicial = sectionLower.includes("judicial board");
+  const isCity = sectionLower.includes("city president");
   return (
     <div
       style={{
         fontSize: "12px",
         fontWeight: 700,
-        color: C.blue,
+        color: "#000000",
         textTransform: "uppercase",
         letterSpacing: "0.12em",
         marginBottom: "20px",
@@ -408,7 +417,13 @@ function MembersSubheading({ isNec }: { isNec: boolean }) {
           background: `linear-gradient(${C.blue}, ${C.red})`,
         }}
       />
-      {isNec ? "NEC Board Members" : "Committee Members"}
+      {isNec
+        ? "NEC Board Members"
+        : isJudicial
+          ? "Board Members"
+          : isCity
+            ? "City Presidents"
+            : "Committee Members"}
     </div>
   );
 }
@@ -520,7 +535,7 @@ export function CommitteeSection({
               key={`officers-row-${rowIndex}`}
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${BOOKLET_OFFICER_GRID_COLS}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${Math.max(1, row.length)}, minmax(0, 1fr))`,
                 gap: "12px",
                 marginBottom:
                   rowIndex < page.officerRows.length - 1 ||
@@ -548,7 +563,7 @@ export function CommitteeSection({
           ))}
 
           {page.showMembersHeading && (
-            <MembersSubheading isNec={isNecSection} />
+            <MembersSubheading isNec={isNecSection} sectionTitle={section.title} />
           )}
 
           {page.showSubsectionHeading && page.subsectionTitle && (

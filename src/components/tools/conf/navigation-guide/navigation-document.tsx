@@ -148,9 +148,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <BodyText>{NAV_PREFACE}</BodyText>
 
         <InfoCallout>
-          <strong>Document Structure:</strong> Section A covers train + public
-          transit routes. Section B covers private car and taxi driving options
-          for each arrival station.
+          <strong>Document Structure:</strong> Section A covers train +
+          metro/subway routes. Section B covers DiDi/Taxi for each arrival
+          stations.
         </InfoCallout>
       </NavA4Page>
 
@@ -160,13 +160,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           1. Key Travel Hub Overview
         </SectionHeading>
         <BodyText>
-          All conference attendees will arrive at one of 3 Jinan train stations;
+          All conference attendees will arrive at one of the 3 Jinan train stations;
           travel distance &amp; time varies drastically:
         </BodyText>
         <HubTable />
         <HotelMapCallout compact />
         <BodyText>
-          All public transit routes end with taking Bus K904 to reach the hotel.
+          All public transport routes end at the last bus-stop transfer point before boarding Bus K904 to reach the hotel.
         </BodyText>
         <NavFullWidthImage
           src={NAV_ASSETS.metroStationEntrance}
@@ -184,7 +184,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           2. Route 1: Jinan West Railway Station (Recommended)
         </SectionHeading>
         <SubHeading>
-          Section A — Public Transit (Subway Line 4 → Line 2 → K904 Bus)
+          Section A — Public Transport (Subway Line 4 → Line 2 → K904 Bus)
         </SubHeading>
         <InfoCallout>
           Total estimated time: ~70–80 mins · Total transit fare: ¥10 (Subway
@@ -221,15 +221,15 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
       </NavA4Page>
 
       {/* Page 5 — Route 1 West taxi */}
-      <NavA4Page pageNum={5} sectionLabel="Route 1 · Taxi">
+      <NavA4Page pageNum={5} sectionLabel="Route 1 · DiDi/Taxi">
         <SubHeading>
-          Section B — Taxi / Private Car Direct Drive (Jinan West)
+          Section B — DiDi/Taxi Routes (Jinan West)
         </SubHeading>
         <BulletList
           items={[
             "Fastest Route: 23 minutes, 13 miles | Highway toll ¥20",
             "Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10",
-            "Note: Taxis accept WeChat/Alipay cashless payment; " + HOTEL_DRIVER_NOTE,
+            "Note: Taxi accepts WeChat/Alipay cashless payment; " + HOTEL_DRIVER_NOTE,
           ]}
         />
         <NavFullWidthImage
@@ -246,7 +246,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           3. Route 2: Jinan Railway Station (Downtown Jinan)
         </SectionHeading>
         <SubHeading>
-          Section A — Direct Bus Only Route (Simplest Public Transit)
+          Section A — Public Transport (Direct Bus Route)
         </SubHeading>
         <InfoCallout>
           Total estimated time: ~50–60 mins · Fare: ¥6
@@ -275,7 +275,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           caption="Full transit details screenshot — downtown station to hotel"
         />
         <SubHeading>
-          Section B — Taxi / Private Car Direct Drive (Jinan Railway Station)
+          Section B — DiDi/Taxi Routes (Jinan Railway Station)
         </SubHeading>
         <BulletList
           items={[
@@ -297,7 +297,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           4. Route 3: Jinan East Railway Station (Farthest Hub)
         </SectionHeading>
         <SubHeading>
-          Section A — Public Transit (Subway Line 3 → Line 2 → K904 Bus)
+          Section A — Public Transport (Subway Line 3 → Line 2 → K904 Bus)
         </SubHeading>
         <InfoCallout>
           Total estimated time: ~90–100 mins · Total fare: ¥11 (Subway ¥5 +
@@ -346,9 +346,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
       </NavA4Page>
 
       {/* Page 10 — Route 3 East taxi + driving */}
-      <NavA4Page pageNum={10} sectionLabel="Route 3 · Taxi">
+      <NavA4Page pageNum={10} sectionLabel="Route 3 · DiDi/Taxi">
         <SubHeading>
-          Section B — Taxi / Private Car Direct Drive (Jinan East)
+          Section B — DiDi/Taxi Routes (Jinan East)
         </SubHeading>
         <BulletList
           items={[
@@ -371,19 +371,19 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           5. Critical Bus K904 Rules for All Attendees
         </SectionHeading>
         <BodyText>
-          This bus is mandatory for all public transit routes to the hotel; read
+          This bus is mandatory for all public transport routes to the hotel; read
           carefully:
         </BodyText>
 
         <WarningCallout>
           ⚠ CRITICAL: Bus K904 operates ONLY from 6:00 AM – 7:20 PM. If you
           arrive after 7:20 PM, NO public bus service is available — you must
-          take a taxi or private car to the hotel.
+          take a DiDi/Taxi to the hotel.
         </WarningCallout>
 
         <BulletList
           items={[
-            "Operating Window: Only runs 6:00 AM – 7:20 PM. If you arrive after 7:20 PM, NO public bus service available – you must take a taxi/car to the hotel.",
+            "Operating Window: Only runs 6:00 AM – 7:20 PM. If you arrive after 7:20 PM, NO public bus service available – you must take a DiDi/Taxi to the hotel.",
             "Frequency: Departs every 20 minutes (plan arrival at bus stop ahead of time to avoid long waits)",
             "Fare: Fixed ¥6 cash / mobile pay accepted",
             "Destination Direction Confirmation: Always board K904 marked Toward Qihe Jiakao Zhongxin",
@@ -403,7 +403,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
       {/* Page 12 — Walking + Cheat Sheet */}
       <NavA4Page pageNum={12} sectionLabel="Walking & Cheat Sheet">
         <SectionHeading id="walking" level={1}>
-          6. Hotel Final Walking Directions (From Guoke Guoji Bus Stop)
+          6. Walking Directions: From the Bus Stop to Hotel
         </SectionHeading>
         <BodyText>
           After stepping off K904 at Guoke Guoji Bus Stop:

@@ -1,12 +1,13 @@
 /** Shared body typography for A4 delegate booklet interior pages. */
 export const BOOKLET_BODY = {
-  fontSize: 12,
-  lineHeight: 1.8,
+  fontSize: 13.5,
+  lineHeight: 1.72,
 } as const;
 
 export const BOOKLET_BODY_PARAGRAPH = {
-  marginBottom: 12,
-  textIndent: "1.5em",
+  marginBottom: 8,
+  textIndent: 0,
+  textAlign: "justify" as const,
 } as const;
 
 /** Glossary / abbreviation rows — no prose indent. */

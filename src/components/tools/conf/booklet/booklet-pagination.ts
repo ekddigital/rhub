@@ -36,15 +36,15 @@ const SECTION_HEADING_BASE = 66;
 const SECTION_SUBTITLE_EXTRA = 18;
 const SECTION_BODY_LINE_H = 17;
 const CHAIR_HERO_NON_NEC = 196;
-const CHAIR_HERO_NEC = 232;
+const CHAIR_HERO_NEC = 250;
 const CHAIR_HERO_BOTTOM_MARGIN = 18;
 const CHAIR_BIO_LINE_H = 17;
 /** Officer card: avatar row + contact block + delegate badge + padding. */
-const OFFICER_CARD_H = 188;
+const OFFICER_CARD_H = 208;
 /** Member card at 3 cols. */
-const MEMBER_CARD_H_3COL = 168;
+const MEMBER_CARD_H_3COL = 188;
 /** Member card at 4 cols — slightly wider than 5-col, shorter than 3-col. */
-const MEMBER_CARD_H_4COL = 148;
+const MEMBER_CARD_H_4COL = 168;
 const MEMBERS_SUBHEADING_H = 38;
 const MEMBERS_SUBHEADING_TOP_GAP = 12;
 const SUBSECTION_HEADING_H = 52;
@@ -57,7 +57,7 @@ export function getMemberGridCols(
     section.type === "CITY_PRESIDENTS" ||
     section.type === "COC_MEMBERS"
   ) {
-    return BOOKLET_DENSE_GRID_COLS;
+    return BOOKLET_GRID_COLS;
   }
   return BOOKLET_GRID_COLS;
 }
@@ -260,7 +260,9 @@ function buildCommitteeRows(
     rows.push({ kind: "chair", member: chair, h: estimateChairH(chair, isNec) });
   }
 
-  for (const officerRow of chunk(keyOfficers, OFFICER_GRID_COLS)) {
+  const officerChunkSize =
+    section.type === "COC" || section.type === "CITY_PRESIDENTS" ? 3 : OFFICER_GRID_COLS;
+  for (const officerRow of chunk(keyOfficers, officerChunkSize)) {
     rows.push({
       kind: "officers",
       members: officerRow,

@@ -103,7 +103,7 @@ function DelegateCard({
         fontWeight: 600,
       }}
     >
-      ID pending
+      ID
     </div>
   );
 
@@ -162,9 +162,9 @@ function DelegateCard({
         >
           <div
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               fontWeight: 700,
-              color: C.blue,
+              color: "#000000",
               width: "100%",
               wordBreak: "break-word",
               ...linesBlock(2, 14),
@@ -176,8 +176,8 @@ function DelegateCard({
           <div
             style={{
               marginTop: "4px",
-              fontSize: "9px",
-              color: C.blue,
+              fontSize: "10px",
+              color: "#111111",
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.04em",
@@ -199,7 +199,7 @@ function DelegateCard({
               gap: "3px",
               width: "100%",
               fontSize: "8.5px",
-              color: C.muted,
+              color: "#111111",
               lineHeight: "11px",
             }}
           >
@@ -226,7 +226,7 @@ function DelegateCard({
               gap: "3px",
               width: "100%",
               fontSize: "8.5px",
-              color: C.muted,
+              color: "#111111",
               lineHeight: "11px",
             }}
           >
@@ -353,7 +353,7 @@ export function DelegatesSection({
                 borderRadius: "20px",
                 background: C.blue,
                 color: C.white,
-                fontSize: "9px",
+                fontSize: "10px",
                 fontWeight: 700,
                 maxWidth: "52%",
                 textAlign: "right",
@@ -364,7 +364,7 @@ export function DelegatesSection({
             </div>
           </div>
           {section.bodyText && (
-            <div style={{ fontSize: "10px", color: C.muted, marginLeft: "14px" }}>
+            <div style={{ fontSize: "11px", color: "#111111", marginLeft: "14px" }}>
               {section.bodyText}
             </div>
           )}
@@ -426,6 +426,9 @@ export function DelegatesSection({
               day: "numeric",
               year: "numeric",
             })}
+            <div style={{ marginTop: "6px", color: "#111111" }}>
+              Delegates who have not registered will not be assigned a room.
+            </div>
           </div>
         )}
       </div>

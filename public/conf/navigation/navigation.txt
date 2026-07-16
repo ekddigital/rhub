@@ -2,7 +2,7 @@ From Jinan Railway Station to the hotel. Both Didi and bus.
 
 From Jinan West Railway Station to the hotel. Both Didi and bus. 
 
-LSUIC 20th Annual Conference Navigation Guide
+Travel Guide to The Conference Venue
  
 Venue: Arcadia Spa Golf International Hotel (齐河阿尔卡迪亚温泉高尔夫国际酒店)
 Hotel address (DiDi / maps / bus apps): 山东省德州市齐河县308国道国科球类中心旁
@@ -13,23 +13,23 @@ Table of Contents
  
 1. Key Travel Hub Overview (3 Major Jinan Train Stations)
 2. Option 1: Jinan West Railway Station (Closest Station to Hotel – Recommended Route)
-- Subway + Bus Public Transit Step-by-Step
-- Private Car/Taxi Driving Details
+- Public Transport
+- DiDi/Taxi Routes
 3. Option 2: Jinan Railway Station (City Center Station)
-- Subway + Bus Public Transit Step-by-Step
-- Private Car/Taxi Driving Details
+- Public Transport
+- DiDi/Taxi Routes
 4. Option 3: Jinan East Railway Station (Far East Station)
-- Subway + Bus Public Transit Step-by-Step
-- Private Car/Taxi Driving Details
-5. Critical Bus K904 Important Rules (All transit routes rely on this bus)
-6. Final Walking Directions from Bus Stop to Hotel
+- Public Transport
+- DiDi/Taxi Routes
+5. Critical Bus K904 Important Rules (All sub-way/metro routes rely on this bus)
+6. Walking Directions: From the Bus Stop to Hotel
 7. Quick Reference Cheat Sheet for Conference Attendees
  
  
  
 1. Key Travel Hub Overview
  
-All conference attendees will arrive at one of 3 Jinan train stations; travel distance & time varies drastically:
+All conference attendees will arrive at one of the 3 Jinan train stations; travel distance & time varies drastically:
  
 1. Jinan West Railway Station (济南西站) – TOP RECOMMENDED ARRIVAL STATION
 Driving time: 23–32 mins | Toll fee: ¥10–20 | Closest to the hotel
@@ -38,11 +38,11 @@ Driving time: ~36 mins | Toll fee: ¥10
 3. Jinan East Railway Station (济南东站) – Farthest station
 Driving time: 38–50 mins | Toll fee: ¥10–22
  
-All public transit routes end with taking Bus K904 to reach the hotel.
+All public transport routes end at the last bus-stop transfer point before boarding Bus K904 to reach the hotel.
  
 2. Route 1: Jinan West Railway Station (Recommended)
  
-Public Transit (Subway Line 4 → Line 2 → K904 Bus)
+Public Transport (Subway Line 4 → Line 2 → K904 Bus)
  
 Total estimated time: ~70–80 mins | Total transit fare: ¥10 (Subway ¥4 + Bus K904 ¥6)
 Step 1: Walk 4 minutes (900ft) from station exit to Jinanxi Railway Station West Square Subway Station
@@ -59,15 +59,15 @@ Step 6: Board Bus K904, direction Qihe Jiakao Zhongxin
 - Ride 9 stops (43 mins), exit at Guoke Guoji Bus Stop
 Step 7: 8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel
  
-Taxi / Private Car Direct Drive
+DiDi/Taxi Routes
  
 - Fastest Route: 23 minutes, 13 miles | Highway toll ¥20
 - Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10
-- Note: Taxis accept WeChat/Alipay cashless payment; pre-save for drivers — Chinese name: 齐河阿尔卡迪亚温泉高尔夫国际酒店 · Hotel address (DiDi / maps / bus apps): 山东省德州市齐河县308国道国科球类中心旁
+- Note: Taxi accepts WeChat/Alipay cashless payment; pre-save for drivers — Chinese name: 齐河阿尔卡迪亚温泉高尔夫国际酒店 · Hotel address (DiDi / maps / bus apps): 山东省德州市齐河县308国道国科球类中心旁
  
 3. Route 2: Jinan Railway Station (Downtown Jinan)
  
-Direct Bus Only Route (Simplest Public Transit, No Subway Transfers)
+Public Transport (Direct Bus Route)
  
 Total estimated time: ~50–60 mins | Fare: ¥6
 Step 1: Walk 9 minutes (0.3 miles) from station to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop
@@ -75,14 +75,14 @@ Step 2: Board Bus K904, direction Qihe Jiakao Zhongxin
 - Ride 8 stops (38–39 mins), exit at Guoke Guoji Bus Stop
 Step 3: 8-minute walk to hotel
  
-Taxi / Private Car Direct Drive
+DiDi/Taxi Routes
  
 - Estimated drive time: 36 minutes, 15 miles | Highway toll ¥10
 - Pre-save for drivers — Chinese name: 齐河阿尔卡迪亚温泉高尔夫国际酒店 · Hotel address (DiDi / maps / bus apps): 山东省德州市齐河县308国道国科球类中心旁
  
 4. Route 3: Jinan East Railway Station (Farthest Hub)
  
-Public Transit (Subway Line 3 → Line 2 → K904 Bus)
+Public Transport (Subway Line 3 → Line 2 → K904 Bus)
  
 Total estimated time: ~90–100 mins | Total fare: ¥11 (Subway ¥5 + Bus K904 ¥6)
 Step 1: Enter Metro Line 3 at Jinandong Railway Station, direction Longdong
@@ -96,7 +96,7 @@ Step 4: Walk to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop
 Step 5: Board Bus K904 (¥6), ride 8 stops, exit at Guoke Guoji Bus Stop
 Step 6: 8-minute walk to hotel
  
-Taxi / Private Car Direct Drive
+DiDi/Taxi Routes
  
 - Fastest Route: 38 minutes, 28 miles | Toll ¥22
 - Standard Suggested Route: 50 minutes, 23 miles | Toll ¥10
@@ -104,17 +104,17 @@ Taxi / Private Car Direct Drive
  
 5. Critical Bus K904 Rules for All Attendees
  
-This bus is mandatory for all public transit routes to the hotel; read carefully:
+This bus is mandatory for all public transport routes to the hotel; read carefully:
  
 1. Operating Window: Only runs 6:00 AM – 7:20 PM.
-If you arrive after 7:20 PM, NO public bus service available – you must take a taxi/car to the hotel.
+If you arrive after 7:20 PM, NO public bus service available – you must take a DiDi/Taxi to the hotel.
 2. Frequency: Departs every 20 minutes (plan arrival at bus stop ahead of time to avoid long waits)
 3. Fare: Fixed ¥6 cash / mobile pay accepted
 4. Destination Direction Confirmation: Always board K904 marked Toward Qihe Jiakao Zhongxin
 5. Drop-off Stop: Alight at Guoke Guoji (stop after YuanLinChang) – do not miss this stop
 6. Last Leg Walk: After exiting Guoke Guoji stop, 8-minute flat walk straight to hotel entrance (0.3 miles)
  
-6. Hotel Final Walking Directions (From Guoke Guoji Bus Stop)
+6. Walking Directions: From the Bus Stop to Hotel
  
 After stepping off K904 at Guoke Guoji Bus Stop:
  
@@ -127,13 +127,13 @@ After stepping off K904 at Guoke Guoji Bus Stop:
  
 Arrival Station Quick Pick
  
-1. Jinan West Railway Station (济南西站, Best): 23–32 min taxi / ~75 min subway+bus
-2. Jinan Railway Station (济南站, Downtown): 36 min taxi / ~55 min direct K904 bus
-3. Jinan East Railway Station (济南东站, Far): 38–50 min taxi / ~95 min subway+bus
+1. Jinan West Railway Station (济南西站, Best): 23–32 min DiDi/Taxi / ~75 min subway+bus
+2. Jinan Railway Station (济南站, Downtown): 36 min DiDi/Taxi / ~55 min direct K904 bus
+3. Jinan East Railway Station (济南东站, Far): 38–50 min DiDi/Taxi / ~95 min subway+bus
  
 Non-Negotiable Bus Rule
  
-K904 last departure: 7:20 PM. After 7:20 PM, only taxis are available to reach the hotel.
+K904 last departure: 7:20 PM. After 7:20 PM, only DiDi/Taxi options are available to reach the hotel.
  
 Hotel Name & Address for Drivers / DiDi / Maps / Bus Apps (Save this text):
 
@@ -141,7 +141,7 @@ Hotel name (Chinese): 齐河阿尔卡迪亚温泉高尔夫国际酒店
 Hotel name (English): Arcadia Spa Golf International Hotel
 Hotel address (DiDi / maps / bus apps): 山东省德州市齐河县308国道国科球类中心旁
  
-Total Public Transit Cost Breakdown
+Total Public Transport Cost Breakdown
  
 - Jinan West Railway Station (济南西站): ¥10 total
 - Jinan Railway Station (济南站): ¥6 total
@@ -152,12 +152,12 @@ Total Public Transit Cost Breakdown
 Additional Formatting Tips for Your Official Conference Guide
  
 1. Split the document into two sections:
-A) For Attendees Taking Trains + Public Transit (main transit guide above)
-B) For Attendees with Private Cars / Ride-Hail Taxis (simplified driving section)
+A) For Attendees Taking Trains + Public Transport (main transit guide above)
+B) For Attendees Using DiDi/Taxi (simplified driving section)
 2. Add warning callouts in bold red text for the K904 7:20 PM cutoff – this is the most important travel risk for late arrivals
 3. Add a one-paragraph opening preface for the navigation guide to place under your conference title banner:
  
-Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel in Qihe County. Two travel options are provided for every arrival hub: affordable public transit (subway + local bus) and fast direct taxi/private car routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel – please review the critical bus operating hours to avoid travel delays after dark.
+Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel. Two travel options are provided for every arrival hub: public transport (subway + local bus) and direct DiDi/Taxi routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel; please review the critical bus operating hours to avoid travel delays.
  
 4. Add a footer note for conference support:
  

@@ -13,9 +13,9 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
     <div style={{ marginBottom: "14px" }}>
       <div
         style={{
-          fontSize: "10px",
+          fontSize: "11px",
           fontWeight: 700,
-          color: C.blue,
+          color: "#000000",
           marginBottom: "4px",
         }}
       >
@@ -23,8 +23,8 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
       </div>
       <div
         style={{
-          fontSize: "8.5px",
-          color: C.muted,
+          fontSize: "9.5px",
+          color: "#111111",
           marginBottom: "6px",
         }}
       >
@@ -32,11 +32,11 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
       </div>
       <div
         style={{
-          fontSize: "8px",
+          fontSize: "9px",
           fontWeight: 700,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
-          color: C.gold,
+          color: "#000000",
           marginBottom: "4px",
         }}
       >
@@ -46,7 +46,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          fontSize: "9px",
+          fontSize: "10px",
           lineHeight: 1.45,
         }}
       >
@@ -78,7 +78,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                   border: `1px solid ${C.border}`,
                   verticalAlign: "top",
                   fontWeight: 600,
-                  color: C.red,
+                  color: "#000000",
                   whiteSpace: "nowrap",
                   width: "18%",
                 }}
@@ -101,7 +101,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                   padding: "5px 8px",
                   border: `1px solid ${C.border}`,
                   verticalAlign: "top",
-                  color: C.muted,
+                  color: "#111111",
                   width: "36%",
                 }}
               >

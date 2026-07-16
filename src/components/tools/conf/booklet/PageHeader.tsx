@@ -47,11 +47,11 @@ export function PageHeader({
           <div>
             <div
               style={{
-                fontSize: "8px",
+                fontSize: "9px",
                 fontWeight: 800,
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                color: C.blue,
+                color: "#000000",
                 lineHeight: 1.2,
               }}
             >
@@ -59,8 +59,8 @@ export function PageHeader({
             </div>
             <div
               style={{
-                fontSize: "7.5px",
-                color: C.muted,
+                fontSize: "8.5px",
+                color: "#000000",
                 lineHeight: 1.3,
                 marginTop: "1px",
               }}
@@ -74,11 +74,11 @@ export function PageHeader({
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
-              fontSize: "8px",
+              fontSize: "9px",
               fontWeight: 700,
               letterSpacing: "0.14em",
               textTransform: "uppercase",
-              color: C.red,
+              color: "#000000",
               textAlign: "right",
             }}
           >

@@ -7,55 +7,55 @@
  */
 export const COVER_TYPOGRAPHY = {
   orgName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 800,
     letterSpacing: "0.22em",
   },
   title: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: 900,
     lineHeight: 1.12,
     letterSpacing: "-0.01em",
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 600,
     letterSpacing: "0.04em",
   },
   themeLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 800,
     letterSpacing: "0.22em",
   },
   themeText: {
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: 600,
     lineHeight: 1.55,
   },
   date: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 800,
     letterSpacing: "0.02em",
   },
   venue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 600,
     letterSpacing: "0.05em",
   },
   location: {
-    fontSize: 16,
+    fontSize: 18,
   },
   tagline: {
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: "0.08em",
   },
   taglineMeta: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 800,
     letterSpacing: "0.14em",
   },
   footer: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 600,
     letterSpacing: "0.14em",
   },

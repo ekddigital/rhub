@@ -1,10 +1,11 @@
 export const NAV_GUIDE_META = {
-  title: "LSUIC 20th Annual Conference Navigation Guide",
+  title: "Travel Guide to The Conference Venue",
   venueEn: "Arcadia Spa Golf International Hotel",
   venueZh: "齐河阿尔卡迪亚温泉高尔夫国际酒店",
   addressZh: "山东省德州市齐河县308国道国科球类中心旁",
   dates: "July 24–27, 2026",
   theme: "Jinan 2026: Legacy and Influence",
+  subTheme: "Honoring Our Past, Engaging Our Present, and Inspiring Our Future",
   confName: "LSUIC 20th Annual Conference",
   confYear: 2026,
   city: "Jinan",
@@ -55,7 +56,7 @@ export const JINAN_TRAIN_HUBS = [
 export const HOTEL_DRIVER_NOTE = `Pre-save for taxi / ride-hail drivers: ${NAV_GUIDE_META.venueZh} · ${NAV_GUIDE_META.addressZh}`;
 
 export const NAV_PREFACE =
-  "Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel in Qihe County. Two travel options are provided for every arrival hub: affordable public transit (subway + local bus) and fast direct taxi/private car routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel – please review the critical bus operating hours to avoid travel delays after dark.";
+  "Welcome to the LSUIC 20th Annual Conference Navigation Guide! This document provides full, step-by-step travel directions from all three major Jinan railway stations to our conference venue: Arcadia Spa Golf International Hotel. Two travel options are provided for every arrival hub: public transport (subway + local bus) and direct DiDi/Taxi routes. All attendees traveling via public transport will rely on Bus K904 to reach the hotel; please review the critical bus operating hours to avoid travel delays.";
 
 export const NAV_TOC = [
   {
@@ -65,25 +66,25 @@ export const NAV_TOC = [
   {
     num: 2,
     title: "Option 1: Jinan West Railway Station (Closest Station to Hotel – Recommended Route)",
-    subs: ["Subway + Bus Public Transit Step-by-Step", "Private Car/Taxi Driving Details"],
+    subs: ["Public Transport", "DiDi/Taxi Routes"],
   },
   {
     num: 3,
     title: "Option 2: Jinan Railway Station (City Center Station)",
-    subs: ["Subway + Bus Public Transit Step-by-Step", "Private Car/Taxi Driving Details"],
+    subs: ["Public Transport", "DiDi/Taxi Routes"],
   },
   {
     num: 4,
     title: "Option 3: Jinan East Railway Station (Far East Station)",
-    subs: ["Subway + Bus Public Transit Step-by-Step", "Private Car/Taxi Driving Details"],
+    subs: ["Public Transport", "DiDi/Taxi Routes"],
   },
   {
     num: 5,
-    title: "Critical Bus K904 Important Rules (All transit routes rely on this bus)",
+    title: "Critical Bus K904 Important Rules (All sub-way/metro routes rely on this bus)",
   },
   {
     num: 6,
-    title: "Final Walking Directions from Bus Stop to Hotel",
+    title: "Walking Directions: From the Bus Stop to Hotel",
   },
   {
     num: 7,

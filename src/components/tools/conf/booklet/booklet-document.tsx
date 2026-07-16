@@ -35,6 +35,7 @@ import { DelegatesSection } from "./DelegatesSection";
 import { TextSection } from "./TextSection";
 import { ProgramOutlineSection } from "./ProgramOutlineSection";
 import { BOOKLET_A4, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
+import { CONF_2026 } from "@/lib/conf/config";
 
 export type BookletLayout = {
   enabledSections: BookletSection[];
@@ -397,9 +398,15 @@ export function BookletDocument({
       {hasCover && (
         <CoverPage
           event={data.event}
-          bookletTitle={data.booklet?.title ?? data.event.name}
-          bookletSubtitle={data.booklet?.subtitle ?? null}
+          bookletTitle={
+            data.booklet?.title ??
+            "20th Annual Conference & 179th Independence Day Celebration of Liberia"
+          }
+          bookletSubtitle={
+            data.booklet?.subtitle ?? "Held in Jinan City, Shandong Province"
+          }
           theme={data.booklet?.theme ?? null}
+          subTheme={CONF_2026.subTheme}
         />
       )}
 

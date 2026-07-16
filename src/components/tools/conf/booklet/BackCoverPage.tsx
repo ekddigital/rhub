@@ -125,8 +125,8 @@ export function BackCoverPage({
           src={ASSETS.lsuicLogo}
           alt="LSUIC"
           style={{
-            width: "88px",
-            height: "88px",
+            width: "104px",
+            height: "104px",
             objectFit: "contain",
             marginBottom: "18px",
           }}
@@ -134,11 +134,11 @@ export function BackCoverPage({
 
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "13px",
             fontWeight: 800,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: C.blue,
+            color: "#000000",
             marginBottom: "5px",
           }}
         >
@@ -146,8 +146,8 @@ export function BackCoverPage({
         </div>
         <div
           style={{
-            fontSize: "10px",
-            color: C.muted,
+            fontSize: "11px",
+            color: "#111111",
             fontStyle: "italic",
             marginBottom: "24px",
           }}
@@ -172,18 +172,18 @@ export function BackCoverPage({
 
         <div
           style={{
-            fontSize: "17px",
+            fontSize: "20px",
             fontWeight: 700,
-            color: C.blue,
+            color: "#000000",
             marginBottom: "7px",
           }}
         >
           {event.name}
         </div>
-        <div style={{ fontSize: "11px", color: C.muted, marginBottom: "3px" }}>
+        <div style={{ fontSize: "12px", color: "#111111", marginBottom: "3px" }}>
           {event.venue} · {event.city}, China
         </div>
-        <div style={{ fontSize: "11px", color: C.muted, marginBottom: "28px" }}>
+        <div style={{ fontSize: "12px", color: "#111111", marginBottom: "28px" }}>
           {fmtRange(event.startsAt, event.endsAt)}
         </div>
 
@@ -199,15 +199,15 @@ export function BackCoverPage({
         >
           <div
             style={{
-              fontSize: "13px",
+              fontSize: "15px",
               fontWeight: 700,
-              color: C.blue,
+              color: "#000000",
               marginBottom: "8px",
             }}
           >
             Thank You for Attending
           </div>
-          <div style={{ fontSize: "11px", lineHeight: 1.8, color: C.muted }}>
+          <div style={{ fontSize: "12px", lineHeight: 1.8, color: "#111111" }}>
             Your participation makes LSUIC stronger. Together we advance
             education, unity, and development for Liberian students across
             China.

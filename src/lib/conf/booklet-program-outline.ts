@@ -50,7 +50,7 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     dateLabel: "Saturday, 25 July 2026",
     activities: [
       {
-        time: "Morning – 2:00 PM",
+        time: "8:30 - 2:00",
         activity:
           "Reports, elections, resolutions, voting on the new constitution, and other conference business",
         location: "Hotel conference room",

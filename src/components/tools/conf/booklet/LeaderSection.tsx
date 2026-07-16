@@ -33,7 +33,7 @@ function leaderMessageTitle(leader: LeaderProfile): string {
   const title = (leader.title ?? "").toLowerCase();
   const role = (leader.role ?? "").toLowerCase();
   if (title.includes("ambassador") || role.includes("ambassador")) {
-    return "Ambassador's Message";
+    return "About the Ambassador";
   }
   if (title.includes("president")) {
     return "Presidential Message";
@@ -200,7 +200,7 @@ function LeaderPortraitPage({
           {leader.role && (
             <div
               style={{
-                fontSize: "14px",
+                fontSize: "16px",
                 fontWeight: 800,
                 color: C.darkBlue,
                 letterSpacing: "0.04em",
@@ -214,7 +214,7 @@ function LeaderPortraitPage({
 
           <div
             style={{
-              fontSize: "28px",
+                fontSize: "32px",
               fontWeight: 900,
               color: C.darkBlue,
               lineHeight: 1.1,
@@ -228,7 +228,7 @@ function LeaderPortraitPage({
           {leader.title && (
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "15px",
                 fontWeight: 600,
                 color: C.text,
                 lineHeight: 1.45,

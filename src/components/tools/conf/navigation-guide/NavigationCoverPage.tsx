@@ -229,7 +229,7 @@ export function NavigationCoverPage() {
             letterSpacing: T.title.letterSpacing,
           }}
         >
-          20th Annual Conference Navigation Guide
+          Travel Guide to The Conference Venue
         </div>
 
         <div
@@ -241,7 +241,7 @@ export function NavigationCoverPage() {
             letterSpacing: T.subtitle.letterSpacing,
           }}
         >
-          Travel Directions to Conference Venue
+          Travel Guide to The Conference Venue
         </div>
 
         <div
@@ -276,6 +276,10 @@ export function NavigationCoverPage() {
             }}
           >
             &ldquo;{NAV_GUIDE_META.theme}&rdquo;
+            <br />
+            <span style={{ fontSize: "15px", fontStyle: "normal", color: `${C.gold}` }}>
+              {NAV_GUIDE_META.subTheme}
+            </span>
           </div>
         </div>
 
@@ -365,7 +369,7 @@ export function NavigationCoverPage() {
               textShadow: "0 1px 8px rgba(0,0,0,0.55)",
             }}
           >
-            Section A: Transit · Section B: Taxi
+            Section A: Metro/Subway · Section B: Taxi
           </span>
           <span
             style={{ height: "1px", width: "52px", background: `${C.gold}80` }}

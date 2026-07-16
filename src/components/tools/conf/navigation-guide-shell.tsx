@@ -50,9 +50,8 @@ export function NavigationGuideShell() {
         </CardHeader>
         <CardContent className="space-y-1 text-xs text-muted-foreground">
           <p>
-            Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; — Includes public transit
-            (Section A) and taxi/private car routes (Section B) from all three
-            Jinan railway stations.
+            Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; · Sub-theme: &ldquo;{NAV_GUIDE_META.subTheme}&rdquo; — Includes public transport
+            (Section A) and DiDi/Taxi routes (Section B) from all three Jinan railway stations.
           </p>
           <p>
             {HOTEL_ADDRESS_LABEL}: {NAV_GUIDE_META.addressZh}

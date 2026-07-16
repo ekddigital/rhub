@@ -20,11 +20,13 @@ export function CoverPage({
   bookletTitle,
   bookletSubtitle,
   theme,
+  subTheme,
 }: {
   event: BookletData["event"];
   bookletTitle: string;
   bookletSubtitle: string | null;
   theme: string | null;
+  subTheme?: string | null;
 }) {
   return (
     <div
@@ -307,6 +309,21 @@ export function CoverPage({
               }}
             >
               &ldquo;{theme}&rdquo;
+              {subTheme ? (
+                <>
+                  <br />
+                  <span
+                    style={{
+                      fontSize: "16px",
+                      fontStyle: "normal",
+                      color: C.gold,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {subTheme}
+                  </span>
+                </>
+              ) : null}
             </div>
           </div>
         )}
@@ -394,7 +411,7 @@ export function CoverPage({
               textShadow: "0 1px 8px rgba(0,0,0,0.55)",
             }}
           >
-            Est. July 2006
+            {theme ?? "Jinan 2026: Legacy and Influence"}
           </span>
           <span
             style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
@@ -432,7 +449,7 @@ export function CoverPage({
             textTransform: "uppercase",
           }}
         >
-          Official Conference Booklet · Page 1
+          20th Annual Conference & 179th Independence Day Celebration of Liberia · Page 1
         </div>
       </div>
     </div>

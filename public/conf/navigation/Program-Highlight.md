@@ -30,7 +30,7 @@ Gather everyone
 
 ## LSUIC 20th Annual Conference — Jinan 2026 Program Outline
 
-**Venue:** Arcadia Spa Golf International Hotel, Qihe County, Jinan  
+**Venue:** Arcadia Spa Golf International Hotel, Jinan  
 **Dates:** 24–27 July 2026  
 **Theme:** Jinan 2026: Legacy and Influence  
 **Sub-theme:** Honoring Our Past, Engaging Our Present, and Inspiring Our Future
@@ -43,7 +43,7 @@ As delegates of the Liberian Student Union in China, we gather in Jinan for our 
 
 Our theme, *Jinan 2026: Legacy and Influence*, invites us to reflect on the foundations laid by past leaders and alumni, to strengthen the bonds that unite Liberian students in every city and province, and to extend our influence through disciplined study, civic responsibility, and constructive engagement with Liberia and with our host nation. The sub-theme — *Honoring Our Past, Engaging Our Present, and Inspiring Our Future* — calls us to honor what has been achieved, to participate fully in the work of this conference, and to leave Jinan with renewed purpose for the year ahead. These ideals are grounded in LSUIC's core values: Peace, Togetherness, Love, Support, Willingness, Passion, and Service.
 
-Jinan, the capital of Shandong Province, is widely known as the City of Springs for its historic artesian wells and long cultural heritage. Shandong is the birthplace of Confucian thought and one of China's great provincial centers of learning and industry. We meet at the Arcadia Spa Golf International Hotel in Qihe County — a dedicated conference setting with plenary facilities, spa amenities, and golf grounds that will host several of our fellowship and sporting programs — from Friday, 24 July through Monday, 27 July 2026.
+Jinan, the capital of Shandong Province, is widely known as the City of Springs for its historic artesian wells and long cultural heritage. Shandong is the birthplace of Confucian thought and one of China's great provincial centers of learning and industry. We meet at the Arcadia Spa Golf International Hotel — a dedicated conference setting with plenary facilities, spa amenities, and golf grounds that will host several of our fellowship and sporting programs — from Friday, 24 July through Monday, 27 July 2026.
 
 The four-day program below moves from arrival and meet-and-greet through plenary business, elections, and constitution review; an afternoon of rest and pool activities; conference sessions, football, and an evening celebration; and final departure on Monday morning. Please review the daily schedule carefully, arrive on time for each activity, and participate actively in sessions, sports, and social events.
 
@@ -66,7 +66,7 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 | Time | Activities | Location |
 |------|------------|----------|
-| Morning – 2:00 PM | Reports, elections, resolutions, voting on the new constitution, and other conference business | Hotel conference room |
+| 8:30 - 2:00 | Reports, elections, resolutions, voting on the new constitution, and other conference business | Hotel conference room |
 | 2:00 – ~4:00 PM | Rest — delegates may relax at the hotel | Hotel / personal time |
 | From ~4:00 PM | Pool party and swimming | Hotel pool / spa area |
 

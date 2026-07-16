@@ -540,7 +540,7 @@ export function HubTable() {
               color: C.blue,
             }}
           >
-            Toll
+            Cost
           </th>
           <th
             style={{
@@ -687,7 +687,7 @@ export function CheatSheetBox() {
         {HOTEL_APP_SEARCH_TIP}
       </InfoCallout>
 
-      <SubHeading>Total Public Transit Cost Breakdown</SubHeading>
+      <SubHeading>Total Public Transport Cost Breakdown</SubHeading>
       <BulletList
         items={JINAN_TRAIN_HUBS.map(
           (hub) => `${hub.en} (${hub.zh}): ${hub.transitCost}`,
