@@ -269,6 +269,16 @@ async function bootstrapDefaultConference() {
     });
   }
 
+  // Idempotent title corrections — fixes known wrong roles on every bootstrap run.
+  await prisma.confMember.updateMany({
+    where: {
+      confId: event.id,
+      name: "Jefferson T Banquando",
+      title: "Member, Cooking Team",
+    },
+    data: { title: "Chair on Sports" },
+  });
+
   // Backfill phone/title/city on existing committee records where legacy rows are missing fields.
   for (const member of DEFAULT_MEMBERS) {
     await prisma.confMember.updateMany({
