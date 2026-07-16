@@ -12,18 +12,22 @@ import type { BookletSection } from "./types";
 
 export function TextSection({
   section,
+  bodyText,
+  showSectionHeading = true,
   confName,
   confYear,
   pageNum,
   totalPages,
 }: {
   section: BookletSection;
+  bodyText?: string;
+  showSectionHeading?: boolean;
   confName: string;
   confYear: number;
   pageNum: number;
   totalPages: number;
 }) {
-  const trimmed = resolveTextSectionBody(section);
+  const trimmed = (bodyText ?? resolveTextSectionBody(section)).trim();
   if (!trimmed) return null;
 
   const isGlossary = section.type === "ABBREVIATIONS";
@@ -36,6 +40,7 @@ export function TextSection({
       confName={confName}
       confYear={confYear}
     >
+      {showSectionHeading ? (
       <div style={{ marginBottom: "20px" }}>
         <div
           style={{
@@ -53,15 +58,15 @@ export function TextSection({
               background: `linear-gradient(${C.blue}, ${C.gold})`,
             }}
           />
-          <div style={{ fontSize: "16px", fontWeight: 800, color: C.blue }}>
+          <div style={{ fontSize: "18px", fontWeight: 800, color: "#000000" }}>
             {section.title}
           </div>
         </div>
         {section.subtitle && (
           <div
             style={{
-              fontSize: "10px",
-              color: C.gold,
+              fontSize: "11px",
+              color: "#000000",
               fontWeight: 600,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
@@ -72,12 +77,13 @@ export function TextSection({
           </div>
         )}
       </div>
+      ) : null}
 
       <div
         style={{
           fontSize: `${BOOKLET_BODY.fontSize}px`,
           lineHeight: BOOKLET_BODY.lineHeight,
-          color: C.text,
+          color: "#000000",
         }}
       >
         {isGlossary

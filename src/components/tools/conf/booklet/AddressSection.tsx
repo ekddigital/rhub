@@ -22,6 +22,10 @@ export function AddressSection({
   section,
   speaker,
   content,
+  showSpeaker = true,
+  showQuote = true,
+  showSignature = true,
+  contentFontSize,
   confName,
   confYear,
   pageNum,
@@ -31,6 +35,10 @@ export function AddressSection({
   section: BookletSection;
   speaker: AddressSpeaker | null;
   content: string | null | undefined;
+  showSpeaker?: boolean;
+  showQuote?: boolean;
+  showSignature?: boolean;
+  contentFontSize?: number;
   confName: string;
   confYear: number;
   pageNum: number;
@@ -76,7 +84,7 @@ export function AddressSection({
       </div>
 
       {/* Speaker card */}
-      {speaker && (
+      {speaker && showSpeaker && (
         <div
           style={{
             display: "flex",
@@ -91,7 +99,7 @@ export function AddressSection({
         >
           <Avatar src={speaker.photoPath} name={speaker.name} size={52} />
           <div>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: C.blue }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: "#000000" }}>
               {speaker.name}
             </div>
             <div style={{ fontSize: "11px", color: "#111111" }}>
@@ -103,6 +111,7 @@ export function AddressSection({
       )}
 
       {/* Decorative open quote */}
+      {showQuote ? (
       <div
         style={{
           fontSize: "64px",
@@ -115,15 +124,14 @@ export function AddressSection({
       >
         &ldquo;
       </div>
+      ) : null}
 
       {trimmed ? (
         <div
           style={{
-            fontSize: `${BOOKLET_BODY.fontSize}px`,
+            fontSize: `${contentFontSize ?? Math.max(BOOKLET_BODY.fontSize, 14)}px`,
             lineHeight: BOOKLET_BODY.lineHeight,
             color: "#000000",
-            maxHeight: "520px",
-            overflow: "hidden",
           }}
         >
           {splitBookletParagraphs(trimmed).map((paragraph, i) => (
@@ -134,7 +142,7 @@ export function AddressSection({
         </div>
       ) : null}
 
-      {speaker && trimmed && (
+      {speaker && trimmed && showSignature && (
         <div
           style={{
             marginTop: "24px",
@@ -147,7 +155,7 @@ export function AddressSection({
         >
           <div style={{ width: "40px", height: "2px", background: C.red }} />
           <div
-            style={{ fontSize: "10px", color: C.muted, fontStyle: "italic" }}
+            style={{ fontSize: "10px", color: "#111111", fontStyle: "italic" }}
           >
             {speaker.name} · {roleLabel(speaker as NecMember)}
           </div>

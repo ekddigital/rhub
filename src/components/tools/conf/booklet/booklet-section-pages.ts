@@ -1,6 +1,7 @@
 import { programOutlinePageCount } from "@/lib/conf/booklet-program-outline";
 import {
   leaderSectionPageCount,
+  resolveTextSectionBody,
   resolveChairmanAddress,
   resolveGuestBioAddress,
   resolvePresidentAddress,
@@ -8,6 +9,7 @@ import {
   shouldRenderTextSection,
   type RosterAddressLink,
 } from "@/lib/conf/resolve-booklet-section-content";
+import { paginateBookletBodyText } from "@/lib/conf/booklet-text-pagination";
 import {
   committeeSectionPageCountFromMembers,
   isCocMembersContinuation,
@@ -124,21 +126,38 @@ export function sectionPageSpan(
 
   if (s.type === "PRESIDENT_ADDRESS") {
     const links = rosterLinksFromData(data);
-    const base = resolvePresidentAddress(s, data, links) ? 1 : 0;
+    const resolved = resolvePresidentAddress(s, data, links);
+    const base = resolved
+      ? Math.max(1, paginateBookletBodyText(resolved.content, "address").length)
+      : 0;
     // Extra selected roster leaders with address text render after this section.
-    return base + resolveRosterAddressPages(data, links).length;
+    return (
+      base +
+      resolveRosterAddressPages(data, links).reduce(
+        (sum, page) =>
+          sum + Math.max(1, paginateBookletBodyText(page.content, "address").length),
+        0,
+      )
+    );
   }
 
   if (s.type === "CHAIRMAN_ADDRESS") {
-    return resolveChairmanAddress(s, data) ? 1 : 0;
+    const resolved = resolveChairmanAddress(s, data);
+    return resolved
+      ? Math.max(1, paginateBookletBodyText(resolved.content, "address").length)
+      : 0;
   }
 
   if (s.type === "GUEST_BIO") {
-    return resolveGuestBioAddress(s) ? 1 : 0;
+    const resolved = resolveGuestBioAddress(s);
+    return resolved
+      ? Math.max(1, paginateBookletBodyText(resolved.content, "address").length)
+      : 0;
   }
 
   if (s.type === "SPONSORS" || s.type === "ABBREVIATIONS") {
-    return shouldRenderTextSection(s) ? 1 : 0;
+    if (!shouldRenderTextSection(s)) return 0;
+    return Math.max(1, paginateBookletBodyText(resolveTextSectionBody(s), "text").length);
   }
 
   if (s.type === "NEC") {
@@ -150,7 +169,8 @@ export function sectionPageSpan(
   if (s.type === "DELEGATES")
     return delegatesSectionPageCount(data.delegates.length);
   if (s.type === "PROGRAM_OUTLINE") return programOutlinePageCount(s);
-  return shouldRenderTextSection(s) ? 1 : 0;
+  if (!shouldRenderTextSection(s)) return 0;
+  return Math.max(1, paginateBookletBodyText(resolveTextSectionBody(s), "text").length);
 }
 
 export function bookletBodyPageCount(

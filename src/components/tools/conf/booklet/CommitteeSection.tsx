@@ -237,10 +237,12 @@ function OfficerCard({
   member,
   bg,
   textColor,
+  featured = false,
 }: {
   member: NecMember;
   bg: string;
   textColor: string;
+  featured?: boolean;
 }) {
   return (
     <div
@@ -249,10 +251,11 @@ function OfficerCard({
         flexDirection: "column",
         minWidth: 0,
         gap: "8px",
-        padding: "14px 12px",
+        padding: featured ? "16px 14px" : "14px 12px",
         borderRadius: "10px",
-        background: bg,
+        background: featured ? `${C.blue}10` : bg,
         border: `1px solid ${C.border}`,
+        boxShadow: featured ? "0 2px 10px rgba(0,40,104,0.12)" : undefined,
       }}
     >
       <div
@@ -266,16 +269,16 @@ function OfficerCard({
         <Avatar
           src={member.photoPath}
           name={member.name}
-          size={84}
+          size={featured ? 102 : 84}
           silhouette={!member.photoPath}
           borderColor={textColor}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
-              fontSize: "15px",
+              fontSize: featured ? "17px" : "15px",
               fontWeight: 700,
-              color: textColor,
+              color: featured ? "#000000" : textColor,
               marginBottom: "3px",
               lineHeight: 1.25,
               overflowWrap: "break-word",
@@ -286,9 +289,9 @@ function OfficerCard({
           </div>
           <div
             style={{
-              fontSize: "11.5px",
+              fontSize: featured ? "12.5px" : "11.5px",
               fontWeight: 600,
-              color: `${textColor}90`,
+              color: featured ? "#111111" : `${textColor}90`,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
               lineHeight: 1.35,
@@ -300,7 +303,11 @@ function OfficerCard({
           </div>
         </div>
       </div>
-      <ProfileContactDetails member={member} tone="light" fontSize="11.5px" />
+      <ProfileContactDetails
+        member={member}
+        tone="light"
+        fontSize={featured ? "12.5px" : "11.5px"}
+      />
       <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
   );
@@ -556,6 +563,7 @@ export function CommitteeSection({
                     member={m}
                     bg={colors.bg}
                     textColor={colors.text}
+                    featured={isNecSection && m.role === "VICE_CHAIR"}
                   />
                 );
               })}

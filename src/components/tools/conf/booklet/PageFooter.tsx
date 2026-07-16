@@ -28,7 +28,7 @@ export function PageFooter({
           padding: "8px 40px",
         }}
       >
-        <div style={{ fontSize: "7.5px", color: C.muted }}>
+        <div style={{ fontSize: "8.5px", color: "#111111" }}>
           {confName} · {confYear}
         </div>
 
@@ -49,12 +49,12 @@ export function PageFooter({
           >
             {pageNum}
           </span>
-          <span style={{ fontSize: "8px", color: C.border }}>
+          <span style={{ fontSize: "9px", color: "#111111" }}>
             of {totalPages}
           </span>
         </div>
 
-        <div style={{ fontSize: "7.5px", color: C.muted, fontStyle: "italic" }}>
+        <div style={{ fontSize: "8.5px", color: "#111111", fontStyle: "italic" }}>
           Excellence Through Hard Work
         </div>
       </div>
