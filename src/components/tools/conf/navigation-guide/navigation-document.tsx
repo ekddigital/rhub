@@ -255,7 +255,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <StepList
           steps={[
             "Walk 9 minutes (0.3 miles) from station to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop",
-            "Board Bus K904, direction Qihe Jiakao Zhongxin — Ride 8 stops (38–39 mins), exit at Guoke Guoji Bus Stop",
+            "Board Bus K904, direction 齐河驾考中心 — Ride 8 stops (38–39 mins), exit at 国科国际 (Guoke Guoji) Bus Stop",
             "8-minute walk to hotel",
           ]}
         />
@@ -335,7 +335,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           subtitle={
             <BodyText>
               After exiting Metro Line 2, walk to the K904 bus stop and board
-              toward Qihe Jiakao Zhongxin.
+              toward 齐河驾考中心.
             </BodyText>
           }
           image={{
@@ -396,7 +396,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <NavFullWidthImage
           src={NAV_ASSETS.k904StopWalkToHotel}
           alt="Walk from K904 bus stop to hotel"
-          caption="Final walk from Guoke Guoji bus stop to hotel"
+          caption="Final walk from 国科国际 (Guoke Guoji) bus stop to hotel"
           flex
         />
       </NavA4Page>

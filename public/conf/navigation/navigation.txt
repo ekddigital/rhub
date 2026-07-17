@@ -52,11 +52,11 @@ Step 2: Board Metro Line 4, direction Pengjiazhuang
 Step 3: 1-minute indoor transfer to Metro Line 2
 Step 4: Board Metro Line 2, direction Pengjiazhuang
 - Operating Hours: 6:06 AM – 10:26 PM | Trains every 10 mins | Free subway transfer
-- Ride 5 stops (11 mins), exit at Jinan Railway Station North (Exit B)
-Step 5: Walk 5 minutes (0.2 miles) to Jinan Long-distance Transport Center Bus Stop (Dikou Lu)
-Step 6: Board Bus K904, direction Qihe Jiakao Zhongxin
-- Operating Hours: 6:00 AM – 7:20 PM | Buses every 20 mins | Fare ¥6
-- Ride 9 stops (43 mins), exit at Guoke Guoji Bus Stop
+- Ride 5 stops (11 mins), exit at Jile Road Metro Station (济泺路地铁站, Exit B)
+Step 5: Exit Jile Road Metro Station (Exit B), walk 381m / 6 minutes to 长途汽车站(长途总站北区)
+Step 6: Board Bus K904, direction 齐河驾考中心
+- Operating Hours: 6:00 AM – 19:20 | Buses every 20 mins | Fare ¥6
+- Ride 9 stops, exit at 国科国际 (Guoke Guoji) bus stop
 Step 7: 8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel
  
 DiDi/Taxi Routes
@@ -71,8 +71,8 @@ Public Transport (Direct Bus Route)
  
 Total estimated time: ~50–60 mins | Fare: ¥6
 Step 1: Walk 9 minutes (0.3 miles) from station to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop
-Step 2: Board Bus K904, direction Qihe Jiakao Zhongxin
-- Ride 8 stops (38–39 mins), exit at Guoke Guoji Bus Stop
+Step 2: Board Bus K904, direction 齐河驾考中心
+- Ride 8 stops (38–39 mins), exit at 国科国际 (Guoke Guoji) Bus Stop
 Step 3: 8-minute walk to hotel
  
 DiDi/Taxi Routes
@@ -91,9 +91,9 @@ Step 1: Enter Metro Line 3 at Jinandong Railway Station, direction Longdong
 Step 2: 2-minute transfer to Metro Line 2
 Step 3: Board Metro Line 2, direction Wangfuzhuang
 - Operating Hours: 6:00 AM – 10:36 PM | Trains every 10 mins | Free transfer
-- Ride 6 stops (15 mins), exit at Jiluolu Station (Exit C)
-Step 4: Walk to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop
-Step 5: Board Bus K904 (¥6), ride 8 stops, exit at Guoke Guoji Bus Stop
+- Ride 6 stops (15 mins), exit at Jile Road Metro Station (济泺路地铁站, Exit B)
+Step 4: Exit Jile Road Metro Station (Exit B), walk 381m / 6 minutes to 长途汽车站(长途总站北区)
+Step 5: Board Bus K904 (¥6), direction 齐河驾考中心, ride 9 stops, exit at 国科国际 (Guoke Guoji) Bus Stop
 Step 6: 8-minute walk to hotel
  
 DiDi/Taxi Routes
@@ -106,17 +106,19 @@ DiDi/Taxi Routes
  
 This bus is mandatory for all public transport routes to the hotel; read carefully:
  
-1. Operating Window: Only runs 6:00 AM – 7:20 PM.
-If you arrive after 7:20 PM, NO public bus service available – you must take a DiDi/Taxi to the hotel.
-2. Frequency: Departs every 20 minutes (plan arrival at bus stop ahead of time to avoid long waits)
-3. Fare: Fixed ¥6 cash / mobile pay accepted
-4. Destination Direction Confirmation: Always board K904 marked Toward Qihe Jiakao Zhongxin
-5. Drop-off Stop: Alight at Guoke Guoji (stop after YuanLinChang) – do not miss this stop
-6. Last Leg Walk: After exiting Guoke Guoji stop, 8-minute flat walk straight to hotel entrance (0.3 miles)
+1. Final metro stop before bus transfer: 济泺路地铁站 Jile Road Metro Station (Line 2, Exit B).
+2. Transfer flow: Exit Jile Road Metro Station Exit B, walk 381m / 6 minutes → 长途汽车站(长途总站北区) → Bus K904 toward 齐河驾考中心 → ride 9 stops → 国科国际 stop → short walk to hotel.
+3. Operating Window: K904 runs 6:00 AM – 19:20.
+If you arrive at Jile Road Metro Station later than around 19:10, you will miss the final K904 bus and must use DiDi/Taxi.
+4. Frequency: Departs every 20 minutes (plan arrival at bus stop ahead of time to avoid long waits)
+5. Fare: Fixed ¥6 cash / mobile pay accepted
+6. Destination Direction Confirmation: Always board K904 marked Toward 齐河驾考中心
+7. Drop-off Stop: Alight at 国科国际 (Guoke Guoji) – do not miss this stop
+8. Last Leg Walk: After exiting 国科国际 stop, short walk straight to hotel entrance
  
 6. Walking Directions: From the Bus Stop to Hotel
  
-After stepping off K904 at Guoke Guoji Bus Stop:
+After stepping off K904 at 国科国际 (Guoke Guoji) Bus Stop:
  
 1. Head north on the main roadside pedestrian walkway
 2. Pass the commercial plaza on your left
@@ -133,7 +135,7 @@ Arrival Station Quick Pick
  
 Non-Negotiable Bus Rule
  
-K904 last departure: 7:20 PM. After 7:20 PM, only DiDi/Taxi options are available to reach the hotel.
+K904 last departure: 19:20. If you arrive at Jile Road Metro Station around 19:10 or later, only DiDi/Taxi options are reliable to reach the hotel.
  
 Hotel Name & Address for Drivers / DiDi / Maps / Bus Apps (Save this text):
 
