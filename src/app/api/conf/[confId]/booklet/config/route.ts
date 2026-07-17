@@ -30,13 +30,48 @@ const DEFAULT_ABBREVIATIONS_BODY = [
 const DEFAULT_CHAIRMAN_ADDRESS_BODY = DEFAULT_CHAIRMAN_ADDRESS;
 
 const SCOPED_COMMITTEE_SECTIONS = [
-  { type: "COMMITTEE", title: "Program and Planning Committee", subtitle: "PPC", committeeScope: "PPC" },
-  { type: "COMMITTEE", title: "Academic Excellence Committee", subtitle: "AEC", committeeScope: "AEC" },
-  { type: "COMMITTEE", title: "Constitution Review Committee", subtitle: "CRC", committeeScope: "CRC" },
-  { type: "COMMITTEE", title: "Press and Public Affairs Committee", subtitle: "PPA", committeeScope: "PPA" },
-  { type: "COMMITTEE", title: "Independent Elections Commission", subtitle: "IEC", committeeScope: "IEC" },
-  { type: "COMMITTEE", title: "Welfare Committee", subtitle: "WC", committeeScope: "WC" },
-  { type: "COMMITTEE", title: "Audit Committee", subtitle: "AC", committeeScope: "AC" },
+  {
+    type: "COMMITTEE",
+    title: "Program and Planning Committee",
+    subtitle: "PPC",
+    committeeScope: "PPC",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Academic Excellence Committee",
+    subtitle: "AEC",
+    committeeScope: "AEC",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Constitution Review Committee",
+    subtitle: "CRC",
+    committeeScope: "CRC",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Press and Public Affairs Committee",
+    subtitle: "PPA",
+    committeeScope: "PPA",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Independent Elections Commission",
+    subtitle: "IEC",
+    committeeScope: "IEC",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Welfare Committee",
+    subtitle: "WC",
+    committeeScope: "WC",
+  },
+  {
+    type: "COMMITTEE",
+    title: "Audit Committee",
+    subtitle: "AC",
+    committeeScope: "AC",
+  },
 ] as const;
 
 const DEFAULT_CONFERENCE_INTRO_BODY = DEFAULT_CONFERENCE_INTRO;
@@ -108,15 +143,27 @@ const DEFAULT_SECTIONS = [
     sortOrder: 15 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_ABBREVIATIONS_BODY,
   },
-  { type: "DELEGATES", title: "Delegate Roster", sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length },
+  {
+    type: "DELEGATES",
+    title: "Delegate Roster",
+    sortOrder: 16 + SCOPED_COMMITTEE_SECTIONS.length,
+  },
   {
     type: "PROGRAM_OUTLINE",
     title: "Program Outline",
     subtitle: "Welcome to Jinan",
     sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length,
   },
-  { type: "SPONSORS", title: "Sponsors & Partners", sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length },
-  { type: "BACK_COVER", title: "Back Cover", sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length },
+  {
+    type: "SPONSORS",
+    title: "Sponsors & Partners",
+    sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length,
+  },
+  {
+    type: "BACK_COVER",
+    title: "Back Cover",
+    sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length,
+  },
 ];
 
 function isConferenceCommitteeSection(section: {
@@ -356,8 +403,7 @@ export async function GET(
                 data: { sortOrder: { decrement: 1 } },
               });
 
-              const targetSort =
-                ccSort > chairSort ? ccSort - 1 : ccSort;
+              const targetSort = ccSort > chairSort ? ccSort - 1 : ccSort;
 
               await tx.confBookletSection.updateMany({
                 where: {
@@ -682,13 +728,12 @@ export async function GET(
             s.type === "TEXT" &&
             normalizeLabel(s.title).includes("conference introduction"),
         );
-        if (
-          introSection &&
-          isStaleConferenceIntroBody(introSection.bodyText)
-        ) {
+        if (introSection && isStaleConferenceIntroBody(introSection.bodyText)) {
           await tx.confBookletSection.update({
             where: { id: introSection.id },
-            data: { bodyText: resolveConferenceIntroBody(introSection.bodyText) },
+            data: {
+              bodyText: resolveConferenceIntroBody(introSection.bodyText),
+            },
           });
         }
       });

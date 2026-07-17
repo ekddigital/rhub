@@ -201,9 +201,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             "Walk 4 minutes (900ft) from station exit to Jinanxi Railway Station West Square Subway Station",
             "Board Metro Line 4, direction Pengjiazhuang — Operating Hours: 6:05 AM – 10:35 PM | Trains every 12 mins — Ride 3 stops (8 mins), exit at Lashan Station",
             "1-minute indoor transfer to Metro Line 2",
-            "Board Metro Line 2, direction Pengjiazhuang — Operating Hours: 6:06 AM – 10:26 PM | Trains every 10 mins | Free subway transfer — Ride 5 stops (11 mins), exit at Jinan Railway Station North (Exit B)",
-            "Walk 5 minutes (0.2 miles) to Jinan Long-distance Transport Center Bus Stop (Dikou Lu)",
-            "Board Bus K904, direction Qihe Jiakao Zhongxin — Operating Hours: 6:00 AM – 7:20 PM | Buses every 20 mins | Fare ¥6 — Ride 9 stops (43 mins), exit at Guoke Guoji Bus Stop",
+            "Board Metro Line 2, direction Pengjiazhuang — Operating Hours: 6:06 AM – 10:26 PM | Trains every 10 mins | Free subway transfer — Ride 5 stops (11 mins), exit at Jile Road Metro Station (济泺路地铁站, Exit B)",
+            "Exit Jile Road Metro Station (Exit B), walk 381m / 6 minutes to 长途汽车站(长途总站北区)",
+            "Board Bus K904, direction 齐河驾考中心 — Operating Hours: 6:00 AM – 19:20 | Buses every 20 mins | Fare ¥6 — Ride 9 stops, exit at 国科国际 (Guoke Guoji) bus stop",
             "8-minute walk (0.3 miles) to Arcadia Spa Golf International Hotel",
           ]}
         />
@@ -308,9 +308,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           steps={[
             "Enter Metro Line 3 at Jinandong Railway Station, direction Longdong — Operating Hours: 6:03 AM – 10:21 PM | Trains every 10 mins | Fare ¥5 — Ride 4 stops (12 mins), exit at Bajianpu Station",
             "2-minute transfer to Metro Line 2",
-            "Board Metro Line 2, direction Wangfuzhuang — Operating Hours: 6:00 AM – 10:36 PM | Trains every 10 mins | Free transfer — Ride 6 stops (15 mins), exit at Jiluolu Station (Exit C)",
-            "Walk to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop",
-            "Board Bus K904 (¥6), ride 8 stops, exit at Guoke Guoji Bus Stop",
+            "Board Metro Line 2, direction Wangfuzhuang — Operating Hours: 6:00 AM – 10:36 PM | Trains every 10 mins | Free transfer — Ride 6 stops (15 mins), exit at Jile Road Metro Station (济泺路地铁站, Exit B)",
+            "Exit Jile Road Metro Station (Exit B), walk 381m / 6 minutes to 长途汽车站(长途总站北区)",
+            "Board Bus K904 (¥6), direction 齐河驾考中心 — Ride 9 stops, exit at 国科国际 (Guoke Guoji) bus stop",
             "8-minute walk to hotel",
           ]}
         />
@@ -375,19 +375,21 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         </BodyText>
 
         <WarningCallout>
-          ⚠ CRITICAL: Bus K904 operates ONLY from 6:00 AM – 7:20 PM. If you
-          arrive after 7:20 PM, NO public bus service is available — you must
-          take a DiDi/Taxi to the hotel.
+          ⚠ CRITICAL: Bus K904 operates ONLY from 6:00 AM – 19:20. If you arrive
+          at Jile Road Metro Station around 19:10 or later, you will likely miss
+          the final K904 bus and must take a DiDi/Taxi to the hotel.
         </WarningCallout>
 
         <BulletList
           items={[
-            "Operating Window: Only runs 6:00 AM – 7:20 PM. If you arrive after 7:20 PM, NO public bus service available – you must take a DiDi/Taxi to the hotel.",
+            "Final metro stop before bus transfer: Jile Road Metro Station (济泺路地铁站, Line 2, Exit B).",
+            "Transfer flow: Exit B → walk 381m / 6 minutes to 长途汽车站(长途总站北区) → board K904 toward 齐河驾考中心 → ride 9 stops → alight at 国科国际 → short walk to hotel.",
+            "Operating Window: K904 runs 6:00 AM – 19:20. If you reach Jile Road around 19:10 or later, you may miss the final K904 and must use DiDi/Taxi.",
             "Frequency: Departs every 20 minutes (plan arrival at bus stop ahead of time to avoid long waits)",
             "Fare: Fixed ¥6 cash / mobile pay accepted",
-            "Destination Direction Confirmation: Always board K904 marked Toward Qihe Jiakao Zhongxin",
-            "Drop-off Stop: Alight at Guoke Guoji (stop after YuanLinChang) – do not miss this stop",
-            "Last Leg Walk: After exiting Guoke Guoji stop, 8-minute flat walk straight to hotel entrance (0.3 miles)",
+            "Destination Direction Confirmation: Always board K904 marked toward 齐河驾考中心",
+            "Drop-off Stop: Alight at 国科国际 (Guoke Guoji) – do not miss this stop",
+            "Last Leg Walk: After exiting 国科国际 stop, short walk straight to hotel entrance",
           ]}
         />
 
@@ -404,7 +406,9 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <SectionHeading id="walking" level={1}>
           6. Walking Directions: From the Bus Stop to Hotel
         </SectionHeading>
-        <BodyText>After stepping off K904 at Guoke Guoji Bus Stop:</BodyText>
+        <BodyText>
+          After stepping off K904 at 国科国际 (Guoke Guoji) Bus Stop:
+        </BodyText>
         <StepList
           steps={[
             "Head north on the main roadside pedestrian walkway",

@@ -546,7 +546,9 @@ export function BookletManagerShell() {
           string,
           unknown
         >;
-        throw new Error((j.error as string) || "Failed to seed leader profiles");
+        throw new Error(
+          (j.error as string) || "Failed to seed leader profiles",
+        );
       }
       await refresh();
     } catch (e) {
@@ -980,8 +982,8 @@ export function BookletManagerShell() {
                   National President Address — Booklet Message
                 </CardTitle>
                 <p className="text-xs text-muted-foreground">
-                  This message will appear in the
-                  &quot;National President Address&quot; section of the booklet.
+                  This message will appear in the &quot;National President
+                  Address&quot; section of the booklet.
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
