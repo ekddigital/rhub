@@ -99,8 +99,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "2px",
-            marginBottom: "8px",
+            gap: "8px",
+            marginBottom: "14px",
             width: "100%",
           }}
         >
@@ -108,10 +108,10 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
             <div key={entry.num}>
               <div
                 style={{
-                  fontSize: "10px",
+                  fontSize: "16px",
                   fontWeight: 700,
                   color: C.blue,
-                  lineHeight: 1.4,
+                  lineHeight: 1.55,
                 }}
               >
                 {entry.num}. {entry.title}
@@ -121,10 +121,10 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
                   <div
                     key={sub}
                     style={{
-                      fontSize: "9px",
-                      color: C.muted,
-                      paddingLeft: "14px",
-                      lineHeight: 1.4,
+                      fontSize: "14px",
+                      color: C.text,
+                      paddingLeft: "20px",
+                      lineHeight: 1.55,
                     }}
                   >
                     – {sub}

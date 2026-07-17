@@ -46,7 +46,7 @@ export function SectionHeading({
   level?: 1 | 2 | 3;
 }) {
   const Tag = (`h${level}` as "h1" | "h2" | "h3");
-  const sizes = { 1: "20px", 2: "16px", 3: "13px" };
+  const sizes = { 1: "28px", 2: "22px", 3: "18px" };
   return (
     <Tag
       id={id}
@@ -68,7 +68,7 @@ export function SubHeading({ children }: { children: ReactNode }) {
   return (
     <h3
       style={{
-        fontSize: "12px",
+        fontSize: "18px",
         fontWeight: 700,
         color: C.red,
         margin: "6px 0 4px",
@@ -86,10 +86,10 @@ export function BodyText({ children }: { children: ReactNode }) {
   return (
     <p
       style={{
-        fontSize: "10.5px",
+        fontSize: "16px",
         color: C.text,
-        lineHeight: 1.55,
-        margin: "0 0 5px",
+        lineHeight: 1.65,
+        margin: "0 0 10px",
         flexShrink: 0,
       }}
     >
@@ -103,10 +103,10 @@ export function StepList({ steps }: { steps: string[] }) {
     <ol
       style={{
         margin: "0 0 6px",
-        paddingLeft: "16px",
+        paddingLeft: "22px",
         display: "flex",
         flexDirection: "column",
-        gap: "3px",
+        gap: "8px",
         flexShrink: 0,
       }}
     >
@@ -114,9 +114,9 @@ export function StepList({ steps }: { steps: string[] }) {
         <li
           key={i}
           style={{
-            fontSize: "10px",
+            fontSize: "15px",
             color: C.text,
-            lineHeight: 1.5,
+            lineHeight: 1.65,
           }}
         >
           {step}
@@ -131,10 +131,10 @@ export function BulletList({ items }: { items: string[] }) {
     <ul
       style={{
         margin: "0 0 6px",
-        paddingLeft: "14px",
+        paddingLeft: "20px",
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        gap: "7px",
         flexShrink: 0,
       }}
     >
@@ -142,9 +142,9 @@ export function BulletList({ items }: { items: string[] }) {
         <li
           key={i}
           style={{
-            fontSize: "10px",
+            fontSize: "15px",
             color: C.text,
-            lineHeight: 1.5,
+            lineHeight: 1.65,
           }}
         >
           {item}
@@ -158,8 +158,8 @@ export function WarningCallout({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        margin: "5px 0",
-        padding: "7px 10px",
+        margin: "10px 0",
+        padding: "12px 14px",
         borderRadius: "8px",
         border: `2px solid ${C.red}`,
         background: `${C.red}10`,
@@ -168,10 +168,10 @@ export function WarningCallout({ children }: { children: ReactNode }) {
     >
       <div
         style={{
-          fontSize: "10px",
+          fontSize: "16px",
           fontWeight: 800,
           color: C.red,
-          lineHeight: 1.5,
+          lineHeight: 1.6,
         }}
       >
         {children}
@@ -184,14 +184,14 @@ export function InfoCallout({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        margin: "5px 0",
-        padding: "6px 8px",
+        margin: "10px 0",
+        padding: "12px 14px",
         borderRadius: "6px",
         border: `1px solid ${C.gold}60`,
         background: `${C.gold}12`,
-        fontSize: "9.5px",
+        fontSize: "15px",
         color: C.text,
-        lineHeight: 1.5,
+        lineHeight: 1.65,
         flexShrink: 0,
       }}
     >
@@ -249,9 +249,9 @@ export function NavSingleImage({
       {caption && (
         <figcaption
           style={{
-            fontSize: "8.5px",
+            fontSize: "13px",
             color: C.muted,
-            marginTop: "3px",
+            marginTop: "6px",
             fontStyle: "italic",
             flexShrink: 0,
           }}
@@ -506,8 +506,8 @@ export function HubTable() {
       style={{
         width: "100%",
         borderCollapse: "collapse",
-        fontSize: "9.5px",
-        margin: "4px 0 6px",
+        fontSize: "14px",
+        margin: "8px 0 10px",
       }}
     >
       <thead>
@@ -515,7 +515,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "4px 6px",
+              padding: "8px 10px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -525,7 +525,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "4px 6px",
+              padding: "8px 10px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -535,7 +535,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "4px 6px",
+              padding: "8px 10px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -545,7 +545,7 @@ export function HubTable() {
           <th
             style={{
               textAlign: "left",
-              padding: "4px 6px",
+              padding: "8px 10px",
               border: `1px solid ${C.border}`,
               color: C.blue,
             }}
@@ -559,7 +559,7 @@ export function HubTable() {
           <tr key={row.id}>
             <td
               style={{
-                padding: "4px 6px",
+                padding: "8px 10px",
                 border: `1px solid ${C.border}`,
                 fontWeight: 600,
               }}
@@ -570,12 +570,12 @@ export function HubTable() {
                   style={{
                     display: "inline-block",
                     marginLeft: "6px",
-                    fontSize: "8px",
+                    fontSize: "12px",
                     fontWeight: 700,
                     color: row.badge === "Recommended" ? C.blue : C.muted,
                     background:
                       row.badge === "Recommended" ? `${C.blue}12` : `${C.muted}15`,
-                    padding: "1px 5px",
+                    padding: "3px 8px",
                     borderRadius: "4px",
                   }}
                 >
@@ -585,7 +585,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "4px 6px",
+                padding: "8px 10px",
                 border: `1px solid ${C.border}`,
               }}
             >
@@ -593,7 +593,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "4px 6px",
+                padding: "8px 10px",
                 border: `1px solid ${C.border}`,
               }}
             >
@@ -601,7 +601,7 @@ export function HubTable() {
             </td>
             <td
               style={{
-                padding: "4px 6px",
+                padding: "8px 10px",
                 border: `1px solid ${C.border}`,
                 color: C.muted,
               }}
@@ -644,7 +644,7 @@ export function CheatSheetBox() {
       style={{
         border: `2px dashed ${C.blue}`,
         borderRadius: "8px",
-        padding: "8px 10px",
+        padding: "14px 16px",
         background: C.lightBlue,
         marginTop: "4px",
         width: "100%",
@@ -726,9 +726,9 @@ export function ContactSupportBlock() {
           <div
             key={c.name}
             style={{
-              fontSize: "9.5px",
-              lineHeight: 1.5,
-              paddingBottom: "6px",
+              fontSize: "14px",
+              lineHeight: 1.7,
+              paddingBottom: "8px",
               borderBottom: `1px solid ${C.border}40`,
             }}
           >
@@ -741,9 +741,9 @@ export function ContactSupportBlock() {
       </div>
       <p
         style={{
-          fontSize: "9px",
+          fontSize: "13px",
           color: C.muted,
-          marginTop: "8px",
+          marginTop: "10px",
           fontStyle: "italic",
         }}
       >

@@ -232,17 +232,7 @@ export function NavigationCoverPage() {
           Travel Guide to The Conference Venue
         </div>
 
-        <div
-          style={{
-            fontSize: `${T.subtitle.fontSize}px`,
-            fontWeight: T.subtitle.fontWeight,
-            color: C.gold,
-            marginBottom: `${S.subtitleMarginBottom}px`,
-            letterSpacing: T.subtitle.letterSpacing,
-          }}
-        >
-          Travel Guide to The Conference Venue
-        </div>
+        <div style={{ marginBottom: `${S.subtitleMarginBottom}px` }} />
 
         <div
           style={{
