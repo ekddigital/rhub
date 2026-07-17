@@ -54,7 +54,9 @@ export function PageFooter({
           </span>
         </div>
 
-        <div style={{ fontSize: "8.5px", color: "#111111", fontStyle: "italic" }}>
+        <div
+          style={{ fontSize: "8.5px", color: "#111111", fontStyle: "italic" }}
+        >
           Excellence Through Hard Work
         </div>
       </div>

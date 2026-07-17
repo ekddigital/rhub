@@ -31,7 +31,7 @@ function MapPinIcon() {
       height="8"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={C.muted}
+      stroke={C.darkBlue}
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -51,7 +51,7 @@ function BuildingIcon() {
       height="8"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={C.muted}
+      stroke={C.darkBlue}
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -97,7 +97,7 @@ function DelegateCard({
         padding: "1px 6px",
         borderRadius: "4px",
         background: `${C.border}60`,
-        color: C.muted,
+        color: C.darkBlue,
         fontSize: "7px",
         fontFamily: "monospace",
         fontWeight: 600,
@@ -364,7 +364,9 @@ export function DelegatesSection({
             </div>
           </div>
           {section.bodyText && (
-            <div style={{ fontSize: "11px", color: "#111111", marginLeft: "14px" }}>
+            <div
+              style={{ fontSize: "11px", color: "#111111", marginLeft: "14px" }}
+            >
               {section.bodyText}
             </div>
           )}
@@ -381,7 +383,7 @@ export function DelegatesSection({
               textAlign: "center",
               border: `2px dashed ${C.border}`,
               borderRadius: "10px",
-              color: C.muted,
+              color: C.darkBlue,
               fontSize: "11px",
             }}
           >
@@ -415,7 +417,7 @@ export function DelegatesSection({
               marginTop: "12px",
               textAlign: "right",
               fontSize: "8.5px",
-              color: C.muted,
+              color: C.darkBlue,
               fontStyle: "italic",
             }}
           >

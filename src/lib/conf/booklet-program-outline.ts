@@ -114,8 +114,7 @@ export function resolveProgramOutline(
   if (days.length === 0) return null;
 
   const intro = trimContent(section.bodyText) || DEFAULT_INTRO;
-  const welcomeTitle =
-    trimContent(section.subtitle) || DEFAULT_WELCOME_TITLE;
+  const welcomeTitle = trimContent(section.subtitle) || DEFAULT_WELCOME_TITLE;
 
   return {
     welcomeTitle,

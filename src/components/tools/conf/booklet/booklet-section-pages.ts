@@ -57,12 +57,8 @@ function sectionMembersForPageCount(
   let members = data.committeeMembers;
 
   if (s.type === "CITY_PRESIDENTS") {
-    const leaderNames = new Set(
-      data.leaders.map((l) => normalizeName(l.name)),
-    );
-    members = members.filter(
-      (m) => !leaderNames.has(normalizeName(m.name)),
-    );
+    const leaderNames = new Set(data.leaders.map((l) => normalizeName(l.name)));
+    members = members.filter((m) => !leaderNames.has(normalizeName(m.name)));
   }
 
   if (s.committeeScope) {
@@ -135,7 +131,8 @@ export function sectionPageSpan(
       base +
       resolveRosterAddressPages(data, links).reduce(
         (sum, page) =>
-          sum + Math.max(1, paginateBookletBodyText(page.content, "address").length),
+          sum +
+          Math.max(1, paginateBookletBodyText(page.content, "address").length),
         0,
       )
     );
@@ -157,7 +154,10 @@ export function sectionPageSpan(
 
   if (s.type === "SPONSORS" || s.type === "ABBREVIATIONS") {
     if (!shouldRenderTextSection(s)) return 0;
-    return Math.max(1, paginateBookletBodyText(resolveTextSectionBody(s), "text").length);
+    return Math.max(
+      1,
+      paginateBookletBodyText(resolveTextSectionBody(s), "text").length,
+    );
   }
 
   if (s.type === "NEC") {
@@ -170,7 +170,10 @@ export function sectionPageSpan(
     return delegatesSectionPageCount(data.delegates.length);
   if (s.type === "PROGRAM_OUTLINE") return programOutlinePageCount(s);
   if (!shouldRenderTextSection(s)) return 0;
-  return Math.max(1, paginateBookletBodyText(resolveTextSectionBody(s), "text").length);
+  return Math.max(
+    1,
+    paginateBookletBodyText(resolveTextSectionBody(s), "text").length,
+  );
 }
 
 export function bookletBodyPageCount(
@@ -268,12 +271,7 @@ export function resolveBookletTocPages(
   const provisionalTotal =
     (hasCover ? 1 : 0) + 1 + bodyPageCount + (hasBackCover ? 1 : 0);
 
-  let sectionRows = computeSectionTocRows(
-    enabledSections,
-    data,
-    hasCover,
-    1,
-  );
+  let sectionRows = computeSectionTocRows(enabledSections, data, hasCover, 1);
   let entries = buildTocRenderableEntries(
     sectionRows,
     hasCover,
@@ -286,12 +284,7 @@ export function resolveBookletTocPages(
 
   const finalTotal =
     (hasCover ? 1 : 0) + pages + bodyPageCount + (hasBackCover ? 1 : 0);
-  sectionRows = computeSectionTocRows(
-    enabledSections,
-    data,
-    hasCover,
-    pages,
-  );
+  sectionRows = computeSectionTocRows(enabledSections, data, hasCover, pages);
   entries = buildTocRenderableEntries(
     sectionRows,
     hasCover,

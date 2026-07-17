@@ -41,49 +41,51 @@ export function TextSection({
       confYear={confYear}
     >
       {showSectionHeading ? (
-      <div style={{ marginBottom: "20px" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            marginBottom: "6px",
-          }}
-        >
+        <div style={{ marginBottom: "16px" }}>
           <div
             style={{
-              width: "4px",
-              height: "24px",
-              borderRadius: "2px",
-              background: `linear-gradient(${C.blue}, ${C.gold})`,
-            }}
-          />
-          <div style={{ fontSize: "18px", fontWeight: 800, color: "#000000" }}>
-            {section.title}
-          </div>
-        </div>
-        {section.subtitle && (
-          <div
-            style={{
-              fontSize: "11px",
-              color: "#000000",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              marginLeft: "14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "6px",
             }}
           >
-            {section.subtitle}
+            <div
+              style={{
+                width: "4px",
+                height: "24px",
+                borderRadius: "2px",
+                background: `linear-gradient(${C.blue}, ${C.gold})`,
+              }}
+            />
+            <div
+              style={{ fontSize: "20px", fontWeight: 800, color: "#000000" }}
+            >
+              {section.title}
+            </div>
           </div>
-        )}
-      </div>
+          {section.subtitle && (
+            <div
+              style={{
+                fontSize: "12px",
+                color: "#000000",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginLeft: "14px",
+              }}
+            >
+              {section.subtitle}
+            </div>
+          )}
+        </div>
       ) : null}
 
       <div
         style={{
           fontSize: `${BOOKLET_BODY.fontSize}px`,
           lineHeight: BOOKLET_BODY.lineHeight,
-          color: "#000000",
+          color: "#0A1328",
         }}
       >
         {isGlossary

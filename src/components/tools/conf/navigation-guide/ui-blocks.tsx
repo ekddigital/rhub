@@ -45,7 +45,7 @@ export function SectionHeading({
   children: ReactNode;
   level?: 1 | 2 | 3;
 }) {
-  const Tag = (`h${level}` as "h1" | "h2" | "h3");
+  const Tag = `h${level}` as "h1" | "h2" | "h3";
   const sizes = { 1: "28px", 2: "22px", 3: "18px" };
   return (
     <Tag
@@ -238,7 +238,13 @@ export function NavSingleImage({
           maxWidth: "100%",
           height: flex ? "100%" : "auto",
           flex: flex ? "1 1 auto" : undefined,
-          minHeight: flex ? (minHeight ? `${minHeight}px` : undefined) : minHeight ? `${minHeight}px` : undefined,
+          minHeight: flex
+            ? minHeight
+              ? `${minHeight}px`
+              : undefined
+            : minHeight
+              ? `${minHeight}px`
+              : undefined,
           maxHeight: flex ? "100%" : `${maxHeight}px`,
           objectFit,
           borderRadius: "6px",
@@ -574,7 +580,9 @@ export function HubTable() {
                     fontWeight: 700,
                     color: row.badge === "Recommended" ? C.blue : C.muted,
                     background:
-                      row.badge === "Recommended" ? `${C.blue}12` : `${C.muted}15`,
+                      row.badge === "Recommended"
+                        ? `${C.blue}12`
+                        : `${C.muted}15`,
                     padding: "3px 8px",
                     borderRadius: "4px",
                   }}
@@ -650,7 +658,9 @@ export function CheatSheetBox() {
         width: "100%",
       }}
     >
-      <SectionHeading level={3}>Attendee Quick Reference Cheat Sheet</SectionHeading>
+      <SectionHeading level={3}>
+        Attendee Quick Reference Cheat Sheet
+      </SectionHeading>
 
       <SubHeading>Arrival Station Quick Pick</SubHeading>
       <BulletList
@@ -709,7 +719,9 @@ export function ContactSupportBlock() {
         width: "100%",
       }}
     >
-      <SectionHeading level={3}>Conference Travel Support Contact</SectionHeading>
+      <SectionHeading level={3}>
+        Conference Travel Support Contact
+      </SectionHeading>
       <InfoCallout>
         <strong>Conference hotel (Chinese):</strong>{" "}
         <span lang="zh-Hans">{NAV_GUIDE_META.venueZh}</span>

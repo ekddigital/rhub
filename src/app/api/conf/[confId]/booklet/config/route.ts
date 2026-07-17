@@ -731,7 +731,10 @@ export async function PATCH(
       where: { confId },
       create: {
         confId,
-        title: typeof title === "string" ? title : "Conference Booklet",
+        title:
+          typeof title === "string"
+            ? title
+            : "20th Annaual Conference & 179th Independence Day Celebration of Liberia",
         subtitle: typeof subtitle === "string" ? subtitle : undefined,
         theme: typeof theme === "string" ? theme : undefined,
         coverImagePath:

@@ -1470,7 +1470,7 @@ export function BookletManagerShell() {
               <label className="space-y-1.5 text-sm">
                 <span className="text-muted-foreground">Booklet Title</span>
                 <Input
-                  placeholder="20th Annual Conference Booklet"
+                  placeholder="20th Annaual Conference & 179th Independence Day Celebration of Liberia"
                   value={configForm.title}
                   onChange={(e) =>
                     setConfigForm((p) => ({ ...p, title: e.target.value }))

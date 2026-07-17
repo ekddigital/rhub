@@ -10,21 +10,21 @@ type PaginationProfile = {
 };
 
 const TEXT_PROFILE: PaginationProfile = {
-  fontSize: 13.5,
-  lineHeight: 1.72,
-  paragraphMarginBottom: 8,
-  charsPerLine: 94,
-  firstPageMaxHeight: 790,
-  continuationPageMaxHeight: 890,
+  fontSize: 14.5,
+  lineHeight: 1.64,
+  paragraphMarginBottom: 6,
+  charsPerLine: 100,
+  firstPageMaxHeight: 860,
+  continuationPageMaxHeight: 930,
 };
 
 const ADDRESS_PROFILE: PaginationProfile = {
-  fontSize: 14.5,
-  lineHeight: 1.68,
-  paragraphMarginBottom: 8,
-  charsPerLine: 92,
-  firstPageMaxHeight: 560,
-  continuationPageMaxHeight: 840,
+  fontSize: 15,
+  lineHeight: 1.62,
+  paragraphMarginBottom: 6,
+  charsPerLine: 98,
+  firstPageMaxHeight: 700,
+  continuationPageMaxHeight: 900,
 };
 
 function splitParagraphs(text: string): string[] {
@@ -122,10 +122,7 @@ export function paginateBookletBodyText(
         ? profile.firstPageMaxHeight
         : profile.continuationPageMaxHeight;
 
-    if (
-      currentPage.length > 0 &&
-      currentHeight + paragraphHeight > maxHeight
-    ) {
+    if (currentPage.length > 0 && currentHeight + paragraphHeight > maxHeight) {
       pages.push(currentPage.join("\n\n"));
       currentPage = [];
       currentHeight = 0;

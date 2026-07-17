@@ -94,12 +94,14 @@ export function AddressSection({
             borderRadius: "8px",
             background: `linear-gradient(90deg, ${C.blue}10, ${C.lightBlue})`,
             border: `1px solid ${C.blue}20`,
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}
         >
           <Avatar src={speaker.photoPath} name={speaker.name} size={52} />
           <div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: "#000000" }}>
+            <div
+              style={{ fontSize: "15px", fontWeight: 700, color: "#000000" }}
+            >
               {speaker.name}
             </div>
             <div style={{ fontSize: "11px", color: "#111111" }}>
@@ -112,26 +114,26 @@ export function AddressSection({
 
       {/* Decorative open quote */}
       {showQuote ? (
-      <div
-        style={{
-          fontSize: "64px",
-          lineHeight: 0.8,
-          color: `${C.red}18`,
-          fontFamily: "Georgia, serif",
-          marginBottom: "14px",
-          userSelect: "none",
-        }}
-      >
-        &ldquo;
-      </div>
+        <div
+          style={{
+            fontSize: "64px",
+            lineHeight: 0.8,
+            color: `${C.red}18`,
+            fontFamily: "Georgia, serif",
+            marginBottom: "10px",
+            userSelect: "none",
+          }}
+        >
+          &ldquo;
+        </div>
       ) : null}
 
       {trimmed ? (
         <div
           style={{
-            fontSize: `${contentFontSize ?? Math.max(BOOKLET_BODY.fontSize, 14)}px`,
+            fontSize: `${contentFontSize ?? Math.max(BOOKLET_BODY.fontSize, 15)}px`,
             lineHeight: BOOKLET_BODY.lineHeight,
-            color: "#000000",
+            color: "#0A1328",
           }}
         >
           {splitBookletParagraphs(trimmed).map((paragraph, i) => (
@@ -145,7 +147,7 @@ export function AddressSection({
       {speaker && trimmed && showSignature && (
         <div
           style={{
-            marginTop: "24px",
+            marginTop: "18px",
             paddingTop: "14px",
             borderTop: `1px solid ${C.border}`,
             display: "flex",

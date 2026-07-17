@@ -53,10 +53,7 @@ export function getMemberGridCols(
   section: BookletSection,
   _generalMemberCount: number,
 ): number {
-  if (
-    section.type === "CITY_PRESIDENTS" ||
-    section.type === "COC_MEMBERS"
-  ) {
+  if (section.type === "CITY_PRESIDENTS" || section.type === "COC_MEMBERS") {
     return BOOKLET_GRID_COLS;
   }
   return BOOKLET_GRID_COLS;
@@ -125,7 +122,8 @@ function estimateSectionHeadingH(section: BookletSection): number {
 }
 
 function estimateChairH(chair: NecMember, isNec: boolean): number {
-  let h = (isNec ? CHAIR_HERO_NEC : CHAIR_HERO_NON_NEC) + CHAIR_HERO_BOTTOM_MARGIN;
+  let h =
+    (isNec ? CHAIR_HERO_NEC : CHAIR_HERO_NON_NEC) + CHAIR_HERO_BOTTOM_MARGIN;
   if (chair.bookletBio?.trim()) {
     const lines = Math.max(1, Math.ceil(chair.bookletBio.length / 72));
     h += 8 + lines * CHAIR_BIO_LINE_H;
@@ -257,11 +255,17 @@ function buildCommitteeRows(
   ];
 
   if (chair) {
-    rows.push({ kind: "chair", member: chair, h: estimateChairH(chair, isNec) });
+    rows.push({
+      kind: "chair",
+      member: chair,
+      h: estimateChairH(chair, isNec),
+    });
   }
 
   const officerChunkSize =
-    section.type === "COC" || section.type === "CITY_PRESIDENTS" ? 3 : OFFICER_GRID_COLS;
+    section.type === "COC" || section.type === "CITY_PRESIDENTS"
+      ? 3
+      : OFFICER_GRID_COLS;
   for (const officerRow of chunk(keyOfficers, officerChunkSize)) {
     rows.push({
       kind: "officers",
@@ -502,7 +506,15 @@ export function isCocMembersContinuation(
 
 export type TocRenderableEntry =
   | { kind: "cover" }
-  | { kind: "section"; sectionId: string; title: string; subtitle?: string | null; isKey: boolean; startPage: number; pageSpan: number }
+  | {
+      kind: "section";
+      sectionId: string;
+      title: string;
+      subtitle?: string | null;
+      isKey: boolean;
+      startPage: number;
+      pageSpan: number;
+    }
   | { kind: "back_cover"; page: number };
 
 function tocEntryHeight(entry: TocRenderableEntry): number {
@@ -512,9 +524,7 @@ function tocEntryHeight(entry: TocRenderableEntry): number {
     case "back_cover":
       return TOC_HIGHLIGHT_ENTRY_H;
     case "section":
-      return entry.subtitle?.trim()
-        ? TOC_ENTRY_WITH_SUBTITLE_H
-        : TOC_ENTRY_H;
+      return entry.subtitle?.trim() ? TOC_ENTRY_WITH_SUBTITLE_H : TOC_ENTRY_H;
     default:
       return TOC_ENTRY_H;
   }

@@ -4,7 +4,12 @@ import { navigationGuideFont } from "./navigation-guide-fonts";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import { NAV_ASSETS } from "./assets";
-import { NAV_GUIDE_META, NAV_PREFACE, NAV_TOC, HOTEL_DRIVER_NOTE } from "./content-data";
+import {
+  NAV_GUIDE_META,
+  NAV_PREFACE,
+  NAV_TOC,
+  HOTEL_DRIVER_NOTE,
+} from "./content-data";
 import { NavigationCoverPage } from "./NavigationCoverPage";
 import {
   SectionHeading,
@@ -160,13 +165,14 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           1. Key Travel Hub Overview
         </SectionHeading>
         <BodyText>
-          All conference attendees will arrive at one of the 3 Jinan train stations;
-          travel distance &amp; time varies drastically:
+          All conference attendees will arrive at one of the 3 Jinan train
+          stations; travel distance &amp; time varies drastically:
         </BodyText>
         <HubTable />
         <HotelMapCallout compact />
         <BodyText>
-          All public transport routes end at the last bus-stop transfer point before boarding Bus K904 to reach the hotel.
+          All public transport routes end at the last bus-stop transfer point
+          before boarding Bus K904 to reach the hotel.
         </BodyText>
         <NavFullWidthImage
           src={NAV_ASSETS.metroStationEntrance}
@@ -187,8 +193,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           Section A — Public Transport (Subway Line 4 → Line 2 → K904 Bus)
         </SubHeading>
         <InfoCallout>
-          Total estimated time: ~70–80 mins · Total transit fare: ¥10 (Subway
-          ¥4 + Bus K904 ¥6)
+          Total estimated time: ~70–80 mins · Total transit fare: ¥10 (Subway ¥4
+          + Bus K904 ¥6)
         </InfoCallout>
         <StepList
           steps={[
@@ -222,14 +228,13 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Page 5 — Route 1 West taxi */}
       <NavA4Page pageNum={5} sectionLabel="Route 1 · DiDi/Taxi">
-        <SubHeading>
-          Section B — DiDi/Taxi Routes (Jinan West)
-        </SubHeading>
+        <SubHeading>Section B — DiDi/Taxi Routes (Jinan West)</SubHeading>
         <BulletList
           items={[
             "Fastest Route: 23 minutes, 13 miles | Highway toll ¥20",
             "Budget Toll Route: 32 minutes, 12–15 miles | Highway toll ¥10",
-            "Note: Taxi accepts WeChat/Alipay cashless payment; " + HOTEL_DRIVER_NOTE,
+            "Note: Taxi accepts WeChat/Alipay cashless payment; " +
+              HOTEL_DRIVER_NOTE,
           ]}
         />
         <NavFullWidthImage
@@ -245,12 +250,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <SectionHeading id="route2-transit" level={1}>
           3. Route 2: Jinan Railway Station (Downtown Jinan)
         </SectionHeading>
-        <SubHeading>
-          Section A — Public Transport (Direct Bus Route)
-        </SubHeading>
-        <InfoCallout>
-          Total estimated time: ~50–60 mins · Fare: ¥6
-        </InfoCallout>
+        <SubHeading>Section A — Public Transport (Direct Bus Route)</SubHeading>
+        <InfoCallout>Total estimated time: ~50–60 mins · Fare: ¥6</InfoCallout>
         <StepList
           steps={[
             "Walk 9 minutes (0.3 miles) from station to Jinan Long-distance Bus Station (Zhige Jie) Bus Stop",
@@ -300,8 +301,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           Section A — Public Transport (Subway Line 3 → Line 2 → K904 Bus)
         </SubHeading>
         <InfoCallout>
-          Total estimated time: ~90–100 mins · Total fare: ¥11 (Subway ¥5 +
-          Bus K904 ¥6)
+          Total estimated time: ~90–100 mins · Total fare: ¥11 (Subway ¥5 + Bus
+          K904 ¥6)
         </InfoCallout>
         <StepList
           steps={[
@@ -347,9 +348,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Page 10 — Route 3 East taxi + driving */}
       <NavA4Page pageNum={10} sectionLabel="Route 3 · DiDi/Taxi">
-        <SubHeading>
-          Section B — DiDi/Taxi Routes (Jinan East)
-        </SubHeading>
+        <SubHeading>Section B — DiDi/Taxi Routes (Jinan East)</SubHeading>
         <BulletList
           items={[
             "Fastest Route: 38 minutes, 28 miles | Toll ¥22",
@@ -371,8 +370,8 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
           5. Critical Bus K904 Rules for All Attendees
         </SectionHeading>
         <BodyText>
-          This bus is mandatory for all public transport routes to the hotel; read
-          carefully:
+          This bus is mandatory for all public transport routes to the hotel;
+          read carefully:
         </BodyText>
 
         <WarningCallout>
@@ -405,9 +404,7 @@ export function NavigationDocument({ gap = 0 }: { gap?: number }) {
         <SectionHeading id="walking" level={1}>
           6. Walking Directions: From the Bus Stop to Hotel
         </SectionHeading>
-        <BodyText>
-          After stepping off K904 at Guoke Guoji Bus Stop:
-        </BodyText>
+        <BodyText>After stepping off K904 at Guoke Guoji Bus Stop:</BodyText>
         <StepList
           steps={[
             "Head north on the main roadside pedestrian walkway",

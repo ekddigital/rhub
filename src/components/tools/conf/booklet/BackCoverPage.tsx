@@ -180,10 +180,14 @@ export function BackCoverPage({
         >
           {event.name}
         </div>
-        <div style={{ fontSize: "12px", color: "#111111", marginBottom: "3px" }}>
+        <div
+          style={{ fontSize: "12px", color: "#111111", marginBottom: "3px" }}
+        >
           {event.venue} · {event.city}, China
         </div>
-        <div style={{ fontSize: "12px", color: "#111111", marginBottom: "28px" }}>
+        <div
+          style={{ fontSize: "12px", color: "#111111", marginBottom: "28px" }}
+        >
           {fmtRange(event.startsAt, event.endsAt)}
         </div>
 

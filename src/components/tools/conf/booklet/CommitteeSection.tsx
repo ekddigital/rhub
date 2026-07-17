@@ -306,7 +306,7 @@ function OfficerCard({
       <ProfileContactDetails
         member={member}
         tone="light"
-        fontSize={featured ? "12.5px" : "11.5px"}
+        fontSize={featured ? "13px" : "12.5px"}
       />
       <ProfileDelegateCodeBadge delegateCode={member.delegateCode} />
     </div>
@@ -323,8 +323,8 @@ function MemberCard({
   const avatarSize = dense ? 62 : 78;
   const padding = dense ? "8px 6px" : "12px 10px";
   const nameSize = dense ? "13px" : "15px";
-  const titleSize = dense ? "10.5px" : "11.5px";
-  const contactSize = dense ? "10.5px" : "11.5px";
+  const titleSize = dense ? "11.5px" : "12.5px";
+  const contactSize = dense ? "11.5px" : "12.5px";
 
   return (
     <div
@@ -371,7 +371,7 @@ function MemberCard({
           <div
             style={{
               fontSize: titleSize,
-              color: "#111111",
+              color: "#0F1E45",
               lineHeight: 1.35,
               fontWeight: 500,
               overflowWrap: "break-word",
@@ -571,7 +571,10 @@ export function CommitteeSection({
           ))}
 
           {page.showMembersHeading && (
-            <MembersSubheading isNec={isNecSection} sectionTitle={section.title} />
+            <MembersSubheading
+              isNec={isNecSection}
+              sectionTitle={section.title}
+            />
           )}
 
           {page.showSubsectionHeading && page.subsectionTitle && (
@@ -608,20 +611,20 @@ export function CommitteeSection({
           {page.memberRows.map((row, rowIndex) => {
             const dense = page.memberGridCols >= BOOKLET_DENSE_GRID_COLS;
             return (
-            <div
-              key={`members-row-${rowIndex}`}
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${page.memberGridCols}, minmax(0, 1fr))`,
-                gap: "12px",
-                marginBottom:
-                  rowIndex < page.memberRows.length - 1 ? "12px" : 0,
-              }}
-            >
-              {row.map((m) => (
-                <MemberCard key={m.id} member={m} dense={dense} />
-              ))}
-            </div>
+              <div
+                key={`members-row-${rowIndex}`}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${page.memberGridCols}, minmax(0, 1fr))`,
+                  gap: "12px",
+                  marginBottom:
+                    rowIndex < page.memberRows.length - 1 ? "12px" : 0,
+                }}
+              >
+                {row.map((m) => (
+                  <MemberCard key={m.id} member={m} dense={dense} />
+                ))}
+              </div>
             );
           })}
         </A4Page>

@@ -11,7 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { NavigationGuidePreview } from "@/components/tools/conf/navigation-guide/NavigationGuidePreview";
-import { HOTEL_ADDRESS_LABEL, NAV_GUIDE_META } from "@/components/tools/conf/navigation-guide/content-data";
+import {
+  HOTEL_ADDRESS_LABEL,
+  NAV_GUIDE_META,
+} from "@/components/tools/conf/navigation-guide/content-data";
 
 export function NavigationGuideShell() {
   return (
@@ -40,7 +43,9 @@ export function NavigationGuideShell() {
               <MapPinned className="size-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-base">{NAV_GUIDE_META.title}</CardTitle>
+              <CardTitle className="text-base">
+                {NAV_GUIDE_META.title}
+              </CardTitle>
               <CardDescription className="mt-1">
                 {NAV_GUIDE_META.venueEn} ({NAV_GUIDE_META.venueZh}) ·{" "}
                 {NAV_GUIDE_META.dates}
@@ -50,8 +55,10 @@ export function NavigationGuideShell() {
         </CardHeader>
         <CardContent className="space-y-1 text-xs text-muted-foreground">
           <p>
-            Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; · Sub-theme: &ldquo;{NAV_GUIDE_META.subTheme}&rdquo; — Includes public transport
-            (Section A) and DiDi/Taxi routes (Section B) from all three Jinan railway stations.
+            Theme: &ldquo;{NAV_GUIDE_META.theme}&rdquo; · Sub-theme: &ldquo;
+            {NAV_GUIDE_META.subTheme}&rdquo; — Includes public transport
+            (Section A) and DiDi/Taxi routes (Section B) from all three Jinan
+            railway stations.
           </p>
           <p>
             {HOTEL_ADDRESS_LABEL}: {NAV_GUIDE_META.addressZh}

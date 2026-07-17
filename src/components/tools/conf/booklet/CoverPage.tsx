@@ -183,7 +183,9 @@ export function CoverPage({
                 background: `${C.white}25`,
               }}
             />
-            <div style={{ fontSize: `${T.logoDivider}px`, color: `${C.white}40` }}>
+            <div
+              style={{ fontSize: `${T.logoDivider}px`, color: `${C.white}40` }}
+            >
               ×
             </div>
             <div
@@ -412,6 +414,21 @@ export function CoverPage({
             }}
           >
             {theme ?? "Jinan 2026: Legacy and Influence"}
+            {subTheme ? (
+              <>
+                <br />
+                <span
+                  style={{
+                    fontSize: `${Math.max(T.taglineMeta.fontSize - 1, 9)}px`,
+                    letterSpacing: "0.08em",
+                    color: `${C.white}CC`,
+                    textTransform: "none",
+                  }}
+                >
+                  {subTheme}
+                </span>
+              </>
+            ) : null}
           </span>
           <span
             style={{ height: "1px", width: "52px", background: `${C.gold}80` }}
@@ -449,7 +466,8 @@ export function CoverPage({
             textTransform: "uppercase",
           }}
         >
-          20th Annual Conference & 179th Independence Day Celebration of Liberia · Page 1
+          20th Annual Conference & 179th Independence Day Celebration of Liberia
+          · Page 1
         </div>
       </div>
     </div>

@@ -160,7 +160,9 @@ export function NavigationCoverPage() {
                 background: `${C.white}25`,
               }}
             />
-            <div style={{ fontSize: `${T.logoDivider}px`, color: `${C.white}40` }}>
+            <div
+              style={{ fontSize: `${T.logoDivider}px`, color: `${C.white}40` }}
+            >
               ×
             </div>
             <div
@@ -267,7 +269,13 @@ export function NavigationCoverPage() {
           >
             &ldquo;{NAV_GUIDE_META.theme}&rdquo;
             <br />
-            <span style={{ fontSize: "15px", fontStyle: "normal", color: `${C.gold}` }}>
+            <span
+              style={{
+                fontSize: "15px",
+                fontStyle: "normal",
+                color: `${C.gold}`,
+              }}
+            >
               {NAV_GUIDE_META.subTheme}
             </span>
           </div>

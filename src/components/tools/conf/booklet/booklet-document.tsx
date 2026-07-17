@@ -195,40 +195,44 @@ function renderSection(
       let pageCursor = pageNum;
       return (
         <>
-          {resolved ? (
-            paginateBookletBodyText(resolved.content, "address").map((pageBody, idx, arr) => (
-              <AddressSection
-                key={`${key}-pres-${idx}`}
-                section={section}
-                speaker={resolved.speaker}
-                content={pageBody}
-                showSpeaker={idx === 0}
-                showQuote={idx === 0}
-                showSignature={idx === arr.length - 1}
-                pageNum={pageCursor++}
-                totalPages={totalPages}
-                confName={confName}
-                confYear={confYear}
-              />
-            ))
-          ) : null}
+          {resolved
+            ? paginateBookletBodyText(resolved.content, "address").map(
+                (pageBody, idx, arr) => (
+                  <AddressSection
+                    key={`${key}-pres-${idx}`}
+                    section={section}
+                    speaker={resolved.speaker}
+                    content={pageBody}
+                    showSpeaker={idx === 0}
+                    showQuote={idx === 0}
+                    showSignature={idx === arr.length - 1}
+                    pageNum={pageCursor++}
+                    totalPages={totalPages}
+                    confName={confName}
+                    confYear={confYear}
+                  />
+                ),
+              )
+            : null}
           {extraPages.flatMap((page) =>
-            paginateBookletBodyText(page.content, "address").map((pageBody, idx, arr) => (
-              <AddressSection
-                key={`${key}-${page.rosterKey}-${idx}`}
-                section={section}
-                sectionLabel={page.title}
-                speaker={page.speaker}
-                content={pageBody}
-                showSpeaker={idx === 0}
-                showQuote={idx === 0}
-                showSignature={idx === arr.length - 1}
-                pageNum={pageCursor++}
-                totalPages={totalPages}
-                confName={confName}
-                confYear={confYear}
-              />
-            )),
+            paginateBookletBodyText(page.content, "address").map(
+              (pageBody, idx, arr) => (
+                <AddressSection
+                  key={`${key}-${page.rosterKey}-${idx}`}
+                  section={section}
+                  sectionLabel={page.title}
+                  speaker={page.speaker}
+                  content={pageBody}
+                  showSpeaker={idx === 0}
+                  showQuote={idx === 0}
+                  showSignature={idx === arr.length - 1}
+                  pageNum={pageCursor++}
+                  totalPages={totalPages}
+                  confName={confName}
+                  confYear={confYear}
+                />
+              ),
+            ),
           )}
         </>
       );
@@ -239,21 +243,23 @@ function renderSection(
       if (!resolved) return null;
       return (
         <>
-          {paginateBookletBodyText(resolved.content, "address").map((pageBody, idx, arr) => (
-            <AddressSection
-              key={`${key}-${idx}`}
-              section={section}
-              speaker={resolved.speaker}
-              content={pageBody}
-              showSpeaker={idx === 0}
-              showQuote={idx === 0}
-              showSignature={idx === arr.length - 1}
-              pageNum={startPageNum + idx}
-              totalPages={totalPages}
-              confName={confName}
-              confYear={confYear}
-            />
-          ))}
+          {paginateBookletBodyText(resolved.content, "address").map(
+            (pageBody, idx, arr) => (
+              <AddressSection
+                key={`${key}-${idx}`}
+                section={section}
+                speaker={resolved.speaker}
+                content={pageBody}
+                showSpeaker={idx === 0}
+                showQuote={idx === 0}
+                showSignature={idx === arr.length - 1}
+                pageNum={startPageNum + idx}
+                totalPages={totalPages}
+                confName={confName}
+                confYear={confYear}
+              />
+            ),
+          )}
         </>
       );
     }
@@ -263,21 +269,23 @@ function renderSection(
       if (!resolved) return null;
       return (
         <>
-          {paginateBookletBodyText(resolved.content, "address").map((pageBody, idx, arr) => (
-            <AddressSection
-              key={`${key}-${idx}`}
-              section={section}
-              speaker={resolved.speaker}
-              content={pageBody}
-              showSpeaker={idx === 0}
-              showQuote={idx === 0}
-              showSignature={idx === arr.length - 1}
-              pageNum={startPageNum + idx}
-              totalPages={totalPages}
-              confName={confName}
-              confYear={confYear}
-            />
-          ))}
+          {paginateBookletBodyText(resolved.content, "address").map(
+            (pageBody, idx, arr) => (
+              <AddressSection
+                key={`${key}-${idx}`}
+                section={section}
+                speaker={resolved.speaker}
+                content={pageBody}
+                showSpeaker={idx === 0}
+                showQuote={idx === 0}
+                showSignature={idx === arr.length - 1}
+                pageNum={startPageNum + idx}
+                totalPages={totalPages}
+                confName={confName}
+                confYear={confYear}
+              />
+            ),
+          )}
         </>
       );
     }
@@ -304,11 +312,7 @@ function renderSection(
         <CommitteeSection
           key={key}
           section={section}
-          members={filterCommitteeMembersForSection(
-            section,
-            data,
-            leaderNames,
-          )}
+          members={filterCommitteeMembersForSection(section, data, leaderNames)}
           continuation={cocContinuation}
           startPageNum={startPageNum}
           totalPages={totalPages}
@@ -410,7 +414,10 @@ export function BookletDocument({
     tocEntryPages,
   } = layout;
 
-  const sectionNodes = enabledSections.reduce<{ nodes: ReactNode[]; rp: number }>(
+  const sectionNodes = enabledSections.reduce<{
+    nodes: ReactNode[];
+    rp: number;
+  }>(
     ({ nodes, rp }, s, index) => {
       const prev = enabledSections[index - 1];
       if (prev && isCocMembersContinuation(prev, s)) {
@@ -449,7 +456,7 @@ export function BookletDocument({
           event={data.event}
           bookletTitle={
             data.booklet?.title ??
-            "20th Annual Conference & 179th Independence Day Celebration of Liberia"
+            "20th Annaual Conference & 179th Independence Day Celebration of Liberia"
           }
           bookletSubtitle={
             data.booklet?.subtitle ?? "Held in Jinan City, Shandong Province"

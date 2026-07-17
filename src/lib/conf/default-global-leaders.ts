@@ -28,7 +28,8 @@ export const DEFAULT_GLOBAL_LEADERS = [
   {
     role: "H.E.",
     name: "Xi Jinping",
-    title: "President of the People's Republic of China, General Secretary of the Communist Party of China, and Chairman of the Central Military Commission",
+    title:
+      "President of the People's Republic of China, General Secretary of the Communist Party of China, and Chairman of the Central Military Commission",
     country: "China",
     photoPath: "/conf/president_xi_China.png",
     bio: CHINA_PRESIDENT_XI_BIO,

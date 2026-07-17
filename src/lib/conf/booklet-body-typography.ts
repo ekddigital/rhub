@@ -1,11 +1,11 @@
 /** Shared body typography for A4 delegate booklet interior pages. */
 export const BOOKLET_BODY = {
-  fontSize: 13.5,
-  lineHeight: 1.72,
+  fontSize: 14.5,
+  lineHeight: 1.64,
 } as const;
 
 export const BOOKLET_BODY_PARAGRAPH = {
-  marginBottom: 8,
+  marginBottom: 6,
   textIndent: 0,
   textAlign: "justify" as const,
 } as const;

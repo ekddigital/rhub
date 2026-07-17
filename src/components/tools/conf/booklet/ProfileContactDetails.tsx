@@ -17,15 +17,15 @@ function toneColors(tone: ContactTone) {
     };
   }
   return {
-    muted: C.muted,
-    university: C.muted,
+    muted: C.darkBlue,
+    university: "#1A2F5E",
   };
 }
 
 export function ProfileContactDetails({
   member,
   tone = "light",
-  fontSize = "9px",
+  fontSize = "10.5px",
   showIcons = false,
 }: {
   member: Pick<
@@ -38,8 +38,7 @@ export function ProfileContactDetails({
 }) {
   const colors = toneColors(tone);
   const location =
-    (member.city ?? "Member") +
-    (member.province ? `, ${member.province}` : "");
+    (member.city ?? "Member") + (member.province ? `, ${member.province}` : "");
   const university = member.university?.trim() || null;
 
   return (
@@ -83,7 +82,7 @@ export function ProfileContactDetails({
 export function ProfileDelegateCodeBadge({
   delegateCode,
   tone = "light",
-  fontSize = "8px",
+  fontSize = "8.8px",
 }: {
   delegateCode: string | null | undefined;
   tone?: "light" | "dark" | "hero";

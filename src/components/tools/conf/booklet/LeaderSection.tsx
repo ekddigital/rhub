@@ -214,7 +214,7 @@ function LeaderPortraitPage({
 
           <div
             style={{
-                fontSize: "32px",
+              fontSize: "32px",
               fontWeight: 900,
               color: C.darkBlue,
               lineHeight: 1.1,

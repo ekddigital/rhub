@@ -71,10 +71,16 @@ function normalizeName(value: string | null | undefined): string {
   return normalizeLeaderName(value);
 }
 
-function parseCityArea(cityArea: string): { city: string; province: string | null } {
+function parseCityArea(cityArea: string): {
+  city: string;
+  province: string | null;
+} {
   const raw = (cityArea ?? "").trim();
   if (!raw) return { city: "", province: null };
-  const parts = raw.split(",").map((p) => p.trim()).filter(Boolean);
+  const parts = raw
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
   if (parts.length >= 2) {
     return { city: parts[0], province: parts[1] };
   }
@@ -182,8 +188,7 @@ function memberFromRosterRow(
     phone:
       linked?.phone ?? dbMember?.phone ?? (row.leader_phone?.trim() || null),
     province: linked?.province ?? province,
-    university:
-      linked?.university ?? (row.leader_university?.trim() || null),
+    university: linked?.university ?? (row.leader_university?.trim() || null),
     delegateCode: linked?.delegateCode ?? null,
     conferencePosition:
       linked?.conferencePosition ?? (row.leader_role?.trim() || null),
@@ -205,7 +210,10 @@ export function buildBookletRosterMembers(input: {
   delegates: DelegateLike[];
   leaderLinks: LeaderLinkLike[];
   signedUpUserIds: Set<string>;
-}): { necMembers: BookletRosterMember[]; committeeMembers: BookletRosterMember[] } {
+}): {
+  necMembers: BookletRosterMember[];
+  committeeMembers: BookletRosterMember[];
+} {
   const roster = loadLsuicLeadersRoster();
   const indexes = buildDelegateIndexes(input.delegates);
   const linkByKey = new Map(

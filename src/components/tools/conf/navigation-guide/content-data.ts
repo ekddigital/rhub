@@ -11,8 +11,7 @@ export const NAV_GUIDE_META = {
   city: "Jinan",
 } as const;
 
-export const HOTEL_ADDRESS_LABEL =
-  "Hotel address (DiDi / maps / bus apps)";
+export const HOTEL_ADDRESS_LABEL = "Hotel address (DiDi / maps / bus apps)";
 
 export const HOTEL_APP_SEARCH_TIP =
   "Copy the Chinese hotel name or full address above into DiDi (滴滴), Amap (高德), Baidu Maps, Apple Maps, Google Maps, or local bus apps.";
@@ -65,7 +64,8 @@ export const NAV_TOC = [
   },
   {
     num: 2,
-    title: "Option 1: Jinan West Railway Station (Closest Station to Hotel – Recommended Route)",
+    title:
+      "Option 1: Jinan West Railway Station (Closest Station to Hotel – Recommended Route)",
     subs: ["Public Transport", "DiDi/Taxi Routes"],
   },
   {
@@ -80,7 +80,8 @@ export const NAV_TOC = [
   },
   {
     num: 5,
-    title: "Critical Bus K904 Important Rules (All sub-way/metro routes rely on this bus)",
+    title:
+      "Critical Bus K904 Important Rules (All sub-way/metro routes rely on this bus)",
   },
   {
     num: 6,
