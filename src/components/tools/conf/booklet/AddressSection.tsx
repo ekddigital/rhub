@@ -37,6 +37,35 @@ function isHeaderCandidate(line: string): boolean {
   return true;
 }
 
+// Lines at the END of address body text that belong in the signature block,
+// not in the prose — strip them so they don't repeat when showSignature renders.
+const SIGN_OFF_PATTERNS: RegExp[] = [
+  /^fiscal year\s+\d{4}/i,
+  /^july\s+\d/i,
+  /^jinan,?\s+shandong/i,
+  /^people's republic of china$/i,
+  /^liberian student union in china$/i,
+  /^national president$/i,
+  // A standalone short name line at the very end (≤ 40 chars, no period)
+];
+
+function isSignOffParagraph(text: string): boolean {
+  const t = text.trim();
+  if (SIGN_OFF_PATTERNS.some((re) => re.test(t))) return true;
+  // Short standalone line (≤ 40 chars, no sentence terminator) at tail
+  if (t.length <= 40 && !/[.!?]$/.test(t) && !/\s/.test(t.slice(-1))) return true;
+  return false;
+}
+
+function stripTrailingSignOff(paragraphs: string[]): string[] {
+  const result = [...paragraphs];
+  // Walk backwards and drop sign-off lines until we hit real prose
+  while (result.length > 0 && isSignOffParagraph(result[result.length - 1])) {
+    result.pop();
+  }
+  return result;
+}
+
 function parseAddressContent(content: string): ParsedAddressContent {
   const paragraphs = splitParagraphs(content);
   let start = 0;
@@ -84,7 +113,7 @@ function parseAddressContent(content: string): ParsedAddressContent {
     titleLine,
     subtitleLine,
     tagLine,
-    bodyParagraphs: paragraphs.slice(start),
+    bodyParagraphs: stripTrailingSignOff(paragraphs.slice(start)),
   };
 }
 

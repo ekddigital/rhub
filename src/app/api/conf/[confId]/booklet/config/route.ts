@@ -1036,6 +1036,28 @@ export async function GET(
             },
           });
         }
+
+        // Strip legacy trailing sign-off lines (name / role / org / date) from
+        // president address bodyText — they are now rendered by the signature block.
+        const presidentSectionForClean = (
+          await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id, type: "PRESIDENT_ADDRESS" },
+          })
+        )[0];
+        if (presidentSectionForClean?.bodyText) {
+          const SIGN_OFF_RE =
+            /(?:\n{1,2}(?:Olano Teah Bloh|National President|Liberian Student Union in China|Fiscal Year[\s\S]{0,20}|July \d{1,2}, \d{4}|Jinan,[\s\S]{0,60}|People's Republic of China))+\s*$/i;
+          const cleaned = presidentSectionForClean.bodyText.replace(
+            SIGN_OFF_RE,
+            "",
+          );
+          if (cleaned !== presidentSectionForClean.bodyText) {
+            await tx.confBookletSection.update({
+              where: { id: presidentSectionForClean.id },
+              data: { bodyText: cleaned.trim() },
+            });
+          }
+        }
       });
 
       booklet = await prisma.confBooklet.findUnique({
