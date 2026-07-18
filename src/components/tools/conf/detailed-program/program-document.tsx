@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { BOOKLET_A4, C } from "../booklet/constants";
+import { BOOKLET_A4, C, ASSETS, FLAG_STRIPES_11 } from "../booklet/constants";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import {
@@ -260,40 +260,102 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         style={{
           width: `${BOOKLET_A4.width}px`,
           height: `${BOOKLET_A4.height}px`,
-          background: C.blue,
+          minHeight: `${BOOKLET_A4.height}px`,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
           position: "relative",
           overflow: "hidden",
+          background: C.darkBlue,
         }}
       >
-        {/* flag-stripe top */}
+        {/* Full-bleed city photo background */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={ASSETS.cityEvening}
+          alt="Jinan City"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center top",
+            zIndex: 0,
+          }}
+        />
+
+        {/* Dark gradient overlay */}
         <div
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "18px",
-            display: "flex",
+            inset: 0,
+            background: [
+              `linear-gradient(to bottom,`,
+              `  rgba(0,18,56,0.92) 0%,`,
+              `  rgba(0,28,80,0.78) 22%,`,
+              `  rgba(0,28,80,0.55) 45%,`,
+              `  rgba(0,0,0,0.60) 72%,`,
+              `  rgba(0,0,0,0.88) 100%`,
+              `)`,
+            ].join(" "),
+            zIndex: 1,
           }}
-        >
-          {[
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-          ].map((c, i) => (
-            <div key={i} style={{ flex: 1, background: c, opacity: 0.9 }} />
-          ))}
+        />
+
+        {/* Liberian flag stripes + canton — top */}
+        <div style={{ position: "relative", zIndex: 2, flexShrink: 0 }}>
+          <div style={{ display: "flex", height: "28px" }}>
+            {FLAG_STRIPES_11.map((color, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  background: color,
+                  opacity: color === C.white ? 0.85 : 1,
+                }}
+              />
+            ))}
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "140px",
+              height: "108px",
+              background: C.blue,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "52px",
+                color: C.white,
+                lineHeight: 1,
+                textShadow: `0 0 24px ${C.white}60`,
+              }}
+            >
+              &#9733;
+            </div>
+          </div>
         </div>
 
-        <div style={{ textAlign: "center", padding: "0 60px" }}>
+        {/* Centre content */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            padding: "0 60px",
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
           <div
             style={{
               fontSize: "12px",
@@ -338,10 +400,9 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               marginBottom: "28px",
             }}
           >
-            {PROGRAM_META.dates} · {PROGRAM_META.venue}
+            {PROGRAM_META.dates} &middot; {PROGRAM_META.venue}
           </div>
 
-          {/* divider */}
           <div
             style={{
               width: "260px",
@@ -373,13 +434,12 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
           </div>
         </div>
 
-        {/* day quick-reference strip */}
+        {/* Day quick-reference strip */}
         <div
           style={{
-            position: "absolute",
-            bottom: "40px",
-            left: "40px",
-            right: "40px",
+            position: "relative",
+            zIndex: 2,
+            padding: "0 40px 16px",
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: "8px",
@@ -430,28 +490,20 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
           ))}
         </div>
 
-        {/* flag-stripe bottom */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: "14px",
-            display: "flex",
-          }}
-        >
-          {[
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-            "#FFFFFF",
-            "#BF0A30",
-          ].map((c, i) => (
-            <div key={i} style={{ flex: 1, background: c, opacity: 0.9 }} />
-          ))}
+        {/* Liberian flag stripes — bottom */}
+        <div style={{ position: "relative", zIndex: 2, flexShrink: 0 }}>
+          <div style={{ display: "flex", height: "16px" }}>
+            {FLAG_STRIPES_11.map((color, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  background: color,
+                  opacity: color === C.white ? 0.85 : 1,
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
