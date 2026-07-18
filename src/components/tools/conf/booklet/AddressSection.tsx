@@ -120,11 +120,13 @@ export function AddressSection({
             alt="National President and Vice President"
             style={{
               width: "100%",
-              maxHeight: "255px",
-              objectFit: "cover",
+              height: "270px",
+              objectFit: "contain",
               objectPosition: "center",
+              background: "#f5f7fb",
               borderRadius: "8px",
               border: `1px solid ${C.border}`,
+              display: "block",
             }}
           />
         </div>
