@@ -124,6 +124,7 @@ export const LSUIC_PAST_CONFERENCES: Array<{
   { city: "Shanghai", year: "2023" },
   { city: "Wuhan", year: "2024" },
   { city: "Nanjing", year: "2025" },
+  { city: "Jinan, Shandong", year: "2026" },
 ];
 
 export const LSUIC_HISTORY_MILESTONES: Array<{
