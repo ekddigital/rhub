@@ -55,6 +55,7 @@ export function ProfileContactDetails({
         style={{
           fontSize,
           color: colors.muted,
+          fontWeight: 700,
           lineHeight: 1.4,
           overflowWrap: "break-word",
           wordBreak: "normal",
@@ -67,6 +68,7 @@ export function ProfileContactDetails({
           style={{
             fontSize,
             color: colors.university,
+            fontWeight: 700,
             lineHeight: 1.4,
             overflowWrap: "break-word",
             wordBreak: "normal",
@@ -121,7 +123,7 @@ export function ProfileDelegateCodeBadge({
         borderRadius: isHero ? "5px" : "4px",
         display: "inline-block",
         width: "fit-content",
-        fontWeight: 600,
+        fontWeight: 700,
       }}
     >
       {delegateCode}

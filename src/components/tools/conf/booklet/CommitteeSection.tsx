@@ -296,7 +296,7 @@ function OfficerCard({
           <div
             style={{
               fontSize: featured ? "12.5px" : "11.5px",
-              fontWeight: 600,
+              fontWeight: 700,
               color: featured ? "#111111" : `${textColor}90`,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
@@ -379,7 +379,7 @@ function MemberCard({
               fontSize: titleSize,
               color: "#0F1E45",
               lineHeight: 1.35,
-              fontWeight: 500,
+              fontWeight: 700,
               overflowWrap: "break-word",
               wordBreak: "normal",
             }}

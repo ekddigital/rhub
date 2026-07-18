@@ -154,6 +154,7 @@ export function MenuPage({
               style={{
                 fontSize: "11px",
                 color: "#444444",
+                fontWeight: 700,
                 marginBottom: "8px",
               }}
             >
@@ -165,6 +166,7 @@ export function MenuPage({
                 style={{
                   fontSize: "12px",
                   color: "#111111",
+                  fontWeight: 700,
                   lineHeight: 1.55,
                   borderTop: j > 0 ? `1px solid ${C.border}` : "none",
                   paddingTop: j > 0 ? "5px" : "0",

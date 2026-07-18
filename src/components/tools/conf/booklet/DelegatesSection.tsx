@@ -178,7 +178,7 @@ function DelegateCard({
               marginTop: "4px",
               fontSize: "10px",
               color: "#111111",
-              fontWeight: 600,
+              fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.04em",
               width: "100%",
@@ -200,6 +200,7 @@ function DelegateCard({
               width: "100%",
               fontSize: "8.5px",
               color: "#111111",
+              fontWeight: 700,
               lineHeight: "11px",
             }}
           >
@@ -227,6 +228,7 @@ function DelegateCard({
               width: "100%",
               fontSize: "8.5px",
               color: "#111111",
+              fontWeight: 700,
               lineHeight: "11px",
             }}
           >
