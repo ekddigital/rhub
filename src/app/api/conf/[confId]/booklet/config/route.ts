@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import {
   DEFAULT_CHAIRMAN_ADDRESS,
+  DEFAULT_PRESIDENT_ADDRESS,
   DEFAULT_CONFERENCE_INTRO,
 } from "@/lib/conf/resolve-booklet-section-content";
 import {
@@ -31,6 +32,7 @@ const DEFAULT_ABBREVIATIONS_BODY = [
 ].join("\n");
 
 const DEFAULT_CHAIRMAN_ADDRESS_BODY = DEFAULT_CHAIRMAN_ADDRESS;
+const DEFAULT_PRESIDENT_ADDRESS_BODY = DEFAULT_PRESIDENT_ADDRESS;
 
 const SCOPED_COMMITTEE_SECTIONS = [
   {
@@ -109,6 +111,7 @@ const DEFAULT_SECTIONS = [
   {
     type: "PRESIDENT_ADDRESS",
     title: "National President Address",
+    bodyText: DEFAULT_PRESIDENT_ADDRESS_BODY,
     sortOrder: 7,
   },
   { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 8 },
@@ -307,7 +310,7 @@ export async function GET(
                 type: "PRESIDENT_ADDRESS",
                 title: "National President Address",
                 subtitle: null,
-                bodyText: null,
+                bodyText: DEFAULT_PRESIDENT_ADDRESS_BODY,
                 isEnabled: true,
                 sortOrder: targetSort,
                 committeeScope: null,
@@ -328,6 +331,13 @@ export async function GET(
               await tx.confBookletSection.update({
                 where: { id: presidentSection.id },
                 data: { isEnabled: true },
+              });
+            }
+
+            if (!(presidentSection.bodyText ?? "").trim()) {
+              await tx.confBookletSection.update({
+                where: { id: presidentSection.id },
+                data: { bodyText: DEFAULT_PRESIDENT_ADDRESS_BODY },
               });
             }
 
@@ -767,7 +777,8 @@ export async function GET(
           const overviewExisting = sectionsForOverview.find(
             (s) =>
               s.type === "TEXT" &&
-              normalizeLabel(s.title) === normalizeLabel(OVERVIEW_SECTION_TITLE),
+              normalizeLabel(s.title) ===
+                normalizeLabel(OVERVIEW_SECTION_TITLE),
           );
           const historyExisting = sectionsForOverview.find(
             (s) =>
@@ -848,9 +859,11 @@ export async function GET(
               where: { id: overviewExisting.id },
               data: {
                 isEnabled: true,
-                subtitle: overviewExisting.subtitle || OVERVIEW_SECTION_SUBTITLE,
+                subtitle:
+                  overviewExisting.subtitle || OVERVIEW_SECTION_SUBTITLE,
                 bodyText:
-                  overviewExisting.bodyText?.trim() || DEFAULT_LSUIC_OVERVIEW_BODY,
+                  overviewExisting.bodyText?.trim() ||
+                  DEFAULT_LSUIC_OVERVIEW_BODY,
               },
             });
           }
@@ -862,7 +875,8 @@ export async function GET(
                 isEnabled: true,
                 subtitle: historyExisting.subtitle || HISTORY_SECTION_SUBTITLE,
                 bodyText:
-                  historyExisting.bodyText?.trim() || DEFAULT_LSUIC_HISTORY_BODY,
+                  historyExisting.bodyText?.trim() ||
+                  DEFAULT_LSUIC_HISTORY_BODY,
               },
             });
           }
@@ -873,7 +887,8 @@ export async function GET(
               data: {
                 isEnabled: true,
                 subtitle: anthemExisting.subtitle || ANTHEM_SECTION_SUBTITLE,
-                bodyText: anthemExisting.bodyText?.trim() || DEFAULT_ANTHEM_BODY,
+                bodyText:
+                  anthemExisting.bodyText?.trim() || DEFAULT_ANTHEM_BODY,
               },
             });
           }

@@ -70,6 +70,46 @@ export const DEFAULT_CHAIRMAN_ADDRESS = [
   "Welcome to Jinan. May peace, togetherness, and purpose guide every session of LSUIC 2026.",
 ].join("\n\n");
 
+/** Default National President Address (Olano Teah Bloh, FY 2025-2026). */
+export const DEFAULT_PRESIDENT_ADDRESS = [
+  "PRESIDENTIAL ADDRESS",
+  "A Message from National President Olano Teah Bloh",
+  "Building on Tradition, Creating a Legacy through Influence",
+  "",
+  "Fellow Liberian Scholars, Liberia's Ambassador Extraordinary and Plenipotentiary accredited to the People's Republic of China, His Excellency Dudley McKinley Thomas, and Diplomats of the Liberian Embassy in China, distinguished Veterans, esteemed Partners, and cherished friends of the Liberian Student Union in China:",
+  "When I reflect on this past year, I am reminded of a profound truth: institutions only survive if they document themselves. A union that builds and conducts programs but leaves no record of them must start over every year. A union that changes lives but tells no one is a union that cannot build the partnerships, alliances, and national credibility that its members deserve.",
+  "Today, as we stand at the threshold of our 20th Annual General Conference here in Jinan City, I am overwhelmed with gratitude, not just for what we have accomplished, but for who we have become. We inherited a Union with nineteen years of history, tradition, and institutional complexity. We built on that inheritance in ways that previous administrations, for whatever combination of reasons, had not been able to fully achieve. And we did so not for recognition, not for applause, but because we believed deeply and unshakably that our members deserved nothing less than excellence.",
+  "We initiated the nationwide pickup for new students. For many years, Liberian students have arrived in China without a leader to help them arrive safely and navigate their way around properly. With the help of the City Presidents, Coordinators, and many members, we were able to help many students arrange their travels and provided pickup services for them. Flyers were done for Cities with direct contact, and we later organized a virtual orientation for the 2025 intake. Hon. Esther Williams Kpogba from the Liberian Embassy graced the occasion and spoke.",
+  "We built the architecture of a transformed Union. We built a professional website (www.lsuic.org) and later developed the first online membership verification and registration system from scratch, creating a digital home where every scholar could find information, register their membership, and connect with the Union. We designed a 'Chat with the Constitution' system, making our governing document accessible to every member. We launched the LSUIC Echo with the Press and Public Affairs Committee, giving voice to our stories. We initiated the first analytical membership statistics in our quarterly reports, transforming untrustworthy understanding into data-driven insight.",
+  "We took leadership to the people. We visited over 13 cities: Beijing, Nantong, Yichang, Wuhan, Zhuzhou, Xuzhou, Ningbo, Hangzhou, Shanghai, Nanjing, Wuxi, Suzhou, Mianyang, and more, using our personal funds, not a single renminbi from the union's treasury. We did this not because we were required to, but because we believed that leadership must be seen, felt, and experienced. We did this while serving without pay, driven only by our commitment to the scholars we were elected to represent.",
+  "We built systems that will outlast us. We initiated the Live Dues and Financial Record System, ensuring that every member could see exactly how their contributions were being managed. We developed and had approved a comprehensive financial policy, establishing standards of accountability that will guide future administrations for years to come. We documented the Union's presidential history through eleven editions of the Legacy Hour series, capturing the wisdom of every living former president. We established a centralized digital archival system, ensuring that when this administration's tenure ends, the next will inherit a complete, organized digital record of everything that was done.",
+  "We expanded our reach. We expanded governance to over 35 cities and 20 provinces, bringing formal representation to cities that had previously been invisible within our structure. We signed international and national partnership agreements with Ghana, Cameroon, LINSU at home, and with the African Students' Confederation in China (ASCC), where we secured two leadership positions at the continental table. We branded the Union more powerfully than ever before, attracting over 1,600 new followers to our Facebook page, and a YouTube channel with over 115 high-quality and professional videos. Across the reporting periods, the Secretariat oversaw publication of twenty editions of the LSUIC Chronicle, each capturing committee activity, member features, and national announcements for a membership scattered across dozens of cities.",
+  "We invested in academic excellence. We trained 100 scholars in digital literacy through the Online Winter Computer Concepts workshop by Teah Innovative Tech (TIT). We conducted the most attended and well-organized presidential intercity winter debate, spanning 10 cities, with cash prizes, a customized judges' scoring system, and a real-time dashboard. We initiated the first Academic Excellence Awards (AEA-2026), creating a formal mechanism for recognizing scholarly achievement.",
+  "We honored our history and built for the future. We initiated the Homecoming program, bridging the gap between current students and distinguished Veterans. We conducted a comprehensive constitutional revision, produced an amended document worthy of an institution entering its third decade, initiated the first online voting system, and conducted an audit for the last two leaderships (2023-2025).",
+  "We celebrated our community. We wrote a book titled 'How Far We Have Come,' a 20-year chronicle of leadership, service, legacy, influence, and solidarity. We initiated the Miss LSUIC pageant, celebrated talent across our membership, and uploaded over 95 durable, high-quality videos of programs and meetings held under this leadership.",
+  "And we did all of this while managing the daily reality of serving a diverse, dispersed, and demanding membership, with limited resources and unlimited care.",
+  "Every visa processed, every student welcomed at the airport, every welfare disbursement, every prayer shared, and every cultural festival celebrated are moments that define who we are. LSUIC is not just an organization. It is a family. It is a home away from home.",
+  "To our members: you are the reason we exist. You are the ones who wake up each morning in cities far from home, studying in a language you are still mastering, carrying the dreams of your families on your shoulders. You are the ones who demonstrate, every day, that excellence is not a destination but a practice.",
+  "To our veterans and alumni: you built this Union. You laid the foundation upon which we stand today. The sacrifices you made, the risks you took, and the sleepless nights you endured were not in vain. Your legacy lives on in every program we run and every scholar we serve.",
+  "To our partners, the Liberian Embassy near Beijing, our Chinese host institutions, and all who have supported us along the way: thank you. Your trust in us has been invaluable, and your belief in the potential of Liberian students has not gone unnoticed.",
+  "To my fellow members of the National Executive Committee: it has been the honor of a lifetime to serve alongside you. To National Vice President Hon. Ruphine M. Harmon and all officers, committee members, city presidents, and provincial coordinators, I am forever grateful.",
+  "As we look to the future, let us not forget the lessons of the past. Let us remember that LSUIC was born not out of comfort but out of necessity, out of the recognition that Liberian students in China needed each other, needed to be organized, and needed to be heard.",
+  "How far have we come? We have come farther than those first students gathering in each other's rooms could have imagined. But we have farther still to go.",
+  "I leave you with this call to action: invest in your education, invest in your family, invest in yourself, invest in your community, and invest in your country.",
+  "If we do not write our history, someone else will do that for us, and the narratives will not reflect our reality. We have written our history. We have built our legacy. And we have shown what is possible when leaders choose to serve rather than to be served.",
+  "Twenty years ago, someone had a dream. Today, that dream is alive, thriving, and stronger than ever.",
+  "Long live the Liberian Student Union in China. Long live the spirit of excellence through hard work. And may God continue to bless the Republic of Liberia and the People's Republic of China.",
+  "",
+  "Olano Teah Bloh",
+  "National President",
+  "Liberian Student Union in China",
+  "Fiscal Year 2025-2026",
+  "",
+  "July 26, 2026",
+  "Jinan, Shandong Province",
+  "People's Republic of China",
+].join("\n\n");
+
 export function leaderProfileToSpeaker(leader: LeaderProfile): BookletAddressSpeaker {
   return {
     id: leader.id,
@@ -190,11 +230,11 @@ export function resolvePresidentAddress(
     return {
       speaker: {
         id: "national-president",
-        name: "National President",
+        name: "Olano Teah Bloh",
         role: "CHAIR",
         title: "National President",
         city: null,
-        photoPath: null,
+        photoPath: "/conf/national-president-olano.jpg",
         committeeScope: "NEC",
       },
       content,
@@ -202,7 +242,12 @@ export function resolvePresidentAddress(
   }
 
   return {
-    speaker: rosterMemberToSpeaker(president),
+    speaker: {
+      ...rosterMemberToSpeaker(president),
+      photoPath:
+        rosterMemberToSpeaker(president).photoPath ??
+        "/conf/national-president-olano.jpg",
+    },
     content,
   };
 }

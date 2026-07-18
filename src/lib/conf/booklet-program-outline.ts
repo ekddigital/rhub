@@ -69,7 +69,8 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     activities: [
       {
         time: "8:30 AM - 9:00 AM",
-        activity: "Opening prayer, call to order, and adoption of conference agenda",
+        activity:
+          "Opening prayer, call to order, and adoption of conference agenda",
         location: "Hotel conference room",
       },
       {

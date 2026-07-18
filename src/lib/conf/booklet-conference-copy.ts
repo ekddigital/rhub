@@ -98,6 +98,32 @@ export const LSUIC_PRESIDENT_HISTORY: Array<{ name: string; term: string }> = [
   { name: "Mr. Emmet A. Johee Greene", term: "2022-2023" },
   { name: "Mr. Jacob Cephus Johnson", term: "2023-2025" },
   { name: "Hon. Gideon F. B. Solre", term: "2025" },
+  { name: "Hon. Olano Teah Bloh", term: "2025-2026" },
+];
+
+export const LSUIC_PAST_CONFERENCES: Array<{
+  city: string;
+  year: string;
+}> = [
+  { city: "Beijing", year: "2006" },
+  { city: "Wuhan", year: "2008" },
+  { city: "Tianjin", year: "2009" },
+  { city: "Beijing", year: "2010" },
+  { city: "Shanghai", year: "2011" },
+  { city: "Guangzhou", year: "2012" },
+  { city: "Wuhan", year: "2013" },
+  { city: "Nanjing", year: "2014" },
+  { city: "Beijing", year: "2015" },
+  { city: "Changsha", year: "2016" },
+  { city: "Wuhan", year: "2017" },
+  { city: "Beijing", year: "2018" },
+  { city: "Xuzhou", year: "2019" },
+  { city: "Tianjin", year: "2020 (Online)" },
+  { city: "Hangzhou", year: "2021" },
+  { city: "Guangzhou", year: "2022" },
+  { city: "Shanghai", year: "2023" },
+  { city: "Wuhan", year: "2024" },
+  { city: "Nanjing", year: "2025" },
 ];
 
 export const LSUIC_HISTORY_MILESTONES: Array<{

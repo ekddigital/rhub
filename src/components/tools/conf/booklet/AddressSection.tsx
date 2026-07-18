@@ -112,6 +112,24 @@ export function AddressSection({
         </div>
       )}
 
+      {section.type === "PRESIDENT_ADDRESS" && showSpeaker && (
+        <div style={{ marginBottom: "14px" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/conf/national-pres-vice-pres.jpg"
+            alt="National President and Vice President"
+            style={{
+              width: "100%",
+              maxHeight: "255px",
+              objectFit: "cover",
+              objectPosition: "center",
+              borderRadius: "8px",
+              border: `1px solid ${C.border}`,
+            }}
+          />
+        </div>
+      )}
+
       {/* Decorative open quote */}
       {showQuote ? (
         <div
@@ -157,7 +175,11 @@ export function AddressSection({
         >
           <div style={{ width: "40px", height: "2px", background: C.red }} />
           <div
-            style={{ fontSize: "11.5px", color: "#111111", fontStyle: "italic" }}
+            style={{
+              fontSize: "11.5px",
+              color: "#111111",
+              fontStyle: "italic",
+            }}
           >
             {speaker.name} · {roleLabel(speaker as NecMember)}
           </div>
