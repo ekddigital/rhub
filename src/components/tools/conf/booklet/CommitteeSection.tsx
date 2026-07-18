@@ -89,10 +89,16 @@ function ChairHeroCard({
   chair: NecMember;
   isNec?: boolean;
 }) {
+  const PHOTO_POSITION_OVERRIDES: Record<string, string> = {
+    "robert borlay kaba": "center 46%",
+  };
   const photoWidth = isNec ? 140 : 118;
   const photoHeight = isNec ? 176 : 118;
   const title =
     chair.conferencePosition?.trim() ?? chair.title ?? roleLabel(chair);
+  const normalizedName = (chair.name ?? "").toLowerCase().trim();
+  const photoObjectPosition =
+    PHOTO_POSITION_OVERRIDES[normalizedName] ?? "center center";
 
   return (
     <div
@@ -124,7 +130,7 @@ function ChairHeroCard({
               height: `${photoHeight}px`,
               borderRadius: "8px",
               objectFit: "cover",
-              objectPosition: "top center",
+              objectPosition: photoObjectPosition,
               border: `2px solid ${C.gold}55`,
               display: "block",
             }}

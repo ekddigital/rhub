@@ -211,7 +211,9 @@ export function BackCoverPage({
           >
             Thank You for Attending
           </div>
-          <div style={{ fontSize: "13.8px", lineHeight: 1.8, color: "#111111" }}>
+          <div
+            style={{ fontSize: "13.8px", lineHeight: 1.8, color: "#111111" }}
+          >
             Your participation makes LSUIC stronger. Together we advance
             education, unity, and development for Liberian students across
             China.
