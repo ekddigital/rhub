@@ -88,6 +88,10 @@ export function ProfileDelegateCodeBadge({
   tone?: "light" | "dark" | "hero";
   fontSize?: string;
 }) {
+  if (!delegateCode?.trim()) {
+    return null;
+  }
+
   const isHero = tone === "hero";
   const isDark = tone === "dark" || isHero;
 
@@ -120,7 +124,7 @@ export function ProfileDelegateCodeBadge({
         fontWeight: 600,
       }}
     >
-      {delegateCode ?? "ID"}
+      {delegateCode}
     </div>
   );
 }

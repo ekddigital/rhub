@@ -19,10 +19,10 @@ const TEXT_PROFILE: PaginationProfile = {
 };
 
 const ADDRESS_PROFILE: PaginationProfile = {
-  fontSize: 15,
+  fontSize: 16,
   lineHeight: 1.62,
   paragraphMarginBottom: 6,
-  charsPerLine: 98,
+  charsPerLine: 92,
   firstPageMaxHeight: 700,
   continuationPageMaxHeight: 900,
 };

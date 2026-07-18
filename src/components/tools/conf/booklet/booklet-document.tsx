@@ -50,6 +50,18 @@ export type BookletLayout = {
   tocEntryPages: ReturnType<typeof paginateTocEntries>;
 };
 
+const COVER_TITLE_FALLBACK =
+  "20th Annaual Conference & 179th Independence Day Celebration of Liberia";
+
+function resolveCoverTitle(title: string | null | undefined): string {
+  const normalized = (title ?? "").trim();
+  if (!normalized) return COVER_TITLE_FALLBACK;
+  if (normalized.toLowerCase() === "conference booklet") {
+    return COVER_TITLE_FALLBACK;
+  }
+  return normalized;
+}
+
 export function computeBookletLayout(data: BookletData): BookletLayout {
   const enabledSections = [...(data.booklet?.sections ?? [])]
     .filter(
@@ -454,10 +466,7 @@ export function BookletDocument({
       {hasCover && (
         <CoverPage
           event={data.event}
-          bookletTitle={
-            data.booklet?.title ??
-            "20th Annaual Conference & 179th Independence Day Celebration of Liberia"
-          }
+          bookletTitle={resolveCoverTitle(data.booklet?.title)}
           bookletSubtitle={
             data.booklet?.subtitle ?? "Held in Jinan City, Shandong Province"
           }

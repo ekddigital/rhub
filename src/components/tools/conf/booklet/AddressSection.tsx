@@ -131,7 +131,7 @@ export function AddressSection({
       {trimmed ? (
         <div
           style={{
-            fontSize: `${contentFontSize ?? Math.max(BOOKLET_BODY.fontSize, 15)}px`,
+            fontSize: `${contentFontSize ?? Math.max(BOOKLET_BODY.fontSize, 16)}px`,
             lineHeight: BOOKLET_BODY.lineHeight,
             color: "#0A1328",
           }}
@@ -157,7 +157,7 @@ export function AddressSection({
         >
           <div style={{ width: "40px", height: "2px", background: C.red }} />
           <div
-            style={{ fontSize: "10px", color: "#111111", fontStyle: "italic" }}
+            style={{ fontSize: "11.5px", color: "#111111", fontStyle: "italic" }}
           >
             {speaker.name} · {roleLabel(speaker as NecMember)}
           </div>
