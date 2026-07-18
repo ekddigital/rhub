@@ -75,21 +75,21 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "130px 1fr",
+        gridTemplateColumns: "152px 1fr",
         gap: "8px",
-        padding: "7px 10px",
-        borderRadius: "5px",
+        padding: "9px 12px",
+        borderRadius: "6px",
         background: slot.highlight ? `${accent}0D` : "transparent",
         borderLeft: slot.highlight
           ? `3px solid ${accent}`
           : `3px solid transparent`,
-        marginBottom: "3px",
+        marginBottom: "4px",
       }}
     >
       {/* Time */}
       <div
         style={{
-          fontSize: "11.5px",
+          fontSize: "13px",
           fontWeight: 800,
           color: accent,
           lineHeight: 1.4,
@@ -104,10 +104,10 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: "12.5px",
+            fontSize: "14px",
             fontWeight: slot.highlight ? 800 : 700,
             color: "#000000",
-            lineHeight: 1.45,
+            lineHeight: 1.48,
           }}
         >
           {slot.activity}
@@ -116,8 +116,8 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
         {slot.meal && (
           <div
             style={{
-              marginTop: "2px",
-              fontSize: "11px",
+              marginTop: "3px",
+              fontSize: "12.5px",
               fontWeight: 700,
               color: C.red,
               display: "flex",
@@ -132,8 +132,8 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
         {slot.by && (
           <div
             style={{
-              marginTop: "2px",
-              fontSize: "11px",
+              marginTop: "3px",
+              fontSize: "12px",
               fontWeight: 600,
               color: "#3A5080",
               fontStyle: "italic",
@@ -157,10 +157,10 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
               <li
                 key={i}
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontWeight: 600,
                   color: "#1A2F5E",
-                  lineHeight: 1.45,
+                  lineHeight: 1.48,
                 }}
               >
                 {sub.label}
@@ -207,7 +207,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
         </div>
         <div
           style={{
-            fontSize: "13px",
+            fontSize: "15px",
             fontWeight: 700,
             color: "#555555",
           }}
@@ -218,7 +218,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
       <div
         style={{
           marginTop: "4px",
-          fontSize: "18px",
+          fontSize: "21px",
           fontWeight: 900,
           color: "#000000",
           lineHeight: 1.2,
@@ -230,7 +230,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
         <div
           style={{
             marginTop: "2px",
-            fontSize: "12px",
+            fontSize: "13.5px",
             fontWeight: 700,
             color: color.accent,
             fontStyle: "italic",
@@ -623,7 +623,13 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                   )}
 
                   {d.dressCodes.length > 0 && (
-                    <div style={{ marginTop: "7px", borderTop: `1px solid ${c.accent}22`, paddingTop: "6px" }}>
+                    <div
+                      style={{
+                        marginTop: "7px",
+                        borderTop: `1px solid ${c.accent}22`,
+                        paddingTop: "6px",
+                      }}
+                    >
                       <div
                         style={{
                           fontSize: "9px",
@@ -637,7 +643,15 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                         Dress Code
                       </div>
                       {d.dressCodes.map((dc, i) => (
-                        <div key={i} style={{ display: "flex", gap: "5px", marginBottom: "3px", alignItems: "flex-start" }}>
+                        <div
+                          key={i}
+                          style={{
+                            display: "flex",
+                            gap: "5px",
+                            marginBottom: "3px",
+                            alignItems: "flex-start",
+                          }}
+                        >
                           <div
                             style={{
                               flexShrink: 0,
@@ -649,10 +663,22 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                             }}
                           />
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: "9.5px", fontWeight: 700, color: "#000000" }}>
+                            <span
+                              style={{
+                                fontSize: "9.5px",
+                                fontWeight: 700,
+                                color: "#000000",
+                              }}
+                            >
                               {dc.session}:
                             </span>{" "}
-                            <span style={{ fontSize: "9.5px", fontWeight: 600, color: "#333333" }}>
+                            <span
+                              style={{
+                                fontSize: "9.5px",
+                                fontWeight: 600,
+                                color: "#333333",
+                              }}
+                            >
                               {dc.code}
                             </span>
                           </div>
