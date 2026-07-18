@@ -1037,6 +1037,22 @@ export async function GET(
           });
         }
 
+        // Upgrade chairman address if it lacks the NEC appreciation paragraph.
+        const chairSection = (
+          await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id, type: "CHAIRMAN_ADDRESS" },
+          })
+        )[0];
+        if (
+          chairSection?.bodyText &&
+          !chairSection.bodyText.includes("National President Hon. Olano Teah Bloh")
+        ) {
+          await tx.confBookletSection.update({
+            where: { id: chairSection.id },
+            data: { bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY },
+          });
+        }
+
         // Strip legacy trailing sign-off lines (name / role / org / date) from
         // president address bodyText — they are now rendered by the signature block.
         const presidentSectionForClean = (

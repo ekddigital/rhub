@@ -129,22 +129,22 @@ export function MenuPage({
                 display: "inline-block",
                 background: DAY_COLORS[i],
                 color: C.white,
-                fontSize: "9px",
+                fontSize: "11px",
                 fontWeight: 800,
                 letterSpacing: "0.12em",
-                padding: "2px 8px",
+                padding: "3px 10px",
                 borderRadius: "3px",
-                marginBottom: "4px",
+                marginBottom: "5px",
               }}
             >
               {day.label}
             </div>
             <div
               style={{
-                fontSize: "11.5px",
+                fontSize: "13.5px",
                 fontWeight: 700,
                 color: "#000000",
-                marginBottom: "2px",
+                marginBottom: "3px",
                 lineHeight: 1.3,
               }}
             >
@@ -152,9 +152,9 @@ export function MenuPage({
             </div>
             <div
               style={{
-                fontSize: "9.5px",
+                fontSize: "11px",
                 color: "#444444",
-                marginBottom: "6px",
+                marginBottom: "8px",
               }}
             >
               {day.date}
@@ -163,12 +163,12 @@ export function MenuPage({
               <div
                 key={j}
                 style={{
-                  fontSize: "10.5px",
+                  fontSize: "12px",
                   color: "#111111",
-                  lineHeight: 1.5,
+                  lineHeight: 1.55,
                   borderTop: j > 0 ? `1px solid ${C.border}` : "none",
-                  paddingTop: j > 0 ? "4px" : "0",
-                  marginTop: j > 0 ? "4px" : "0",
+                  paddingTop: j > 0 ? "5px" : "0",
+                  marginTop: j > 0 ? "5px" : "0",
                 }}
               >
                 {meal}

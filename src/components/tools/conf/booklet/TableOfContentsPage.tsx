@@ -134,16 +134,16 @@ export function TableOfContentsPage({
                       borderRadius: "50%",
                       background: entry.isKey ? C.red : C.border,
                       flexShrink: 0,
-                      marginTop: "5px",
+                      marginTop: "6px",
                     }}
                   />
                   <div style={{ minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: "11px",
+                        fontSize: "13px",
                         fontWeight: entry.isKey ? 700 : 500,
-                        color: entry.isKey ? C.blue : C.text,
-                        lineHeight: 1.35,
+                        color: entry.isKey ? C.blue : "#111111",
+                        lineHeight: 1.38,
                       }}
                     >
                       {entry.title}
@@ -151,8 +151,8 @@ export function TableOfContentsPage({
                     {entry.subtitle && (
                       <div
                         style={{
-                          fontSize: "9px",
-                          color: C.muted,
+                          fontSize: "10.5px",
+                          color: "#555555",
                           lineHeight: 1.35,
                         }}
                       >
@@ -211,7 +211,7 @@ function TocHighlightRow({
         flexShrink: 0,
       }}
     >
-      <div style={{ fontSize: "11px", fontWeight: 700, color: C.blue }}>
+      <div style={{ fontSize: "13px", fontWeight: 700, color: C.blue }}>
         {label}
       </div>
       <div style={{ justifySelf: "end" }}>{children}</div>
