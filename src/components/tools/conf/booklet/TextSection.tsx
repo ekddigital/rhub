@@ -32,6 +32,57 @@ function isAnthemSection(section: BookletSection): boolean {
   return title.includes("national anthem") || title.includes("anthem of liberia");
 }
 
+function splitInHalf<T>(items: T[]): [T[], T[]] {
+  const mid = Math.ceil(items.length / 2);
+  return [items.slice(0, mid), items.slice(mid)];
+}
+
+function PresidentsTable({ rows }: { rows: Array<{ name: string; term: string }> }) {
+  return (
+    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.6px" }}>
+      <thead>
+        <tr>
+          <th
+            style={{
+              textAlign: "left",
+              padding: "7px 9px",
+              background: C.blue,
+              color: C.white,
+              border: `1px solid ${C.blue}`,
+            }}
+          >
+            Name
+          </th>
+          <th
+            style={{
+              textAlign: "left",
+              padding: "7px 9px",
+              background: C.blue,
+              color: C.white,
+              border: `1px solid ${C.blue}`,
+              width: "112px",
+            }}
+          >
+            Term
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={`${row.name}-${row.term}`}>
+            <td style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}>
+              {row.name}
+            </td>
+            <td style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}>
+              {row.term}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 export function TextSection({
   section,
   bodyText,
@@ -57,6 +108,13 @@ export function TextSection({
   const historySection = isHistorySection(section);
   const anthemSection = isAnthemSection(section);
   const paragraphs = splitBookletParagraphs(trimmed);
+  const [presidentsLeft, presidentsRight] = splitInHalf(LSUIC_PRESIDENT_HISTORY);
+
+  const visibleParagraphs = anthemSection
+    ? []
+    : overviewSection
+      ? paragraphs.slice(0, 2)
+      : paragraphs;
 
   return (
     <A4Page
@@ -85,7 +143,11 @@ export function TextSection({
               }}
             />
             <div
-              style={{ fontSize: "20px", fontWeight: 800, color: "#000000" }}
+              style={{
+                fontSize: anthemSection ? "24px" : historySection ? "22px" : "21px",
+                fontWeight: 800,
+                color: "#000000",
+              }}
             >
               {section.title}
             </div>
@@ -93,7 +155,7 @@ export function TextSection({
           {section.subtitle && (
             <div
               style={{
-                fontSize: "12px",
+                fontSize: "12.8px",
                 color: "#000000",
                 fontWeight: 600,
                 letterSpacing: "0.1em",
@@ -109,8 +171,8 @@ export function TextSection({
 
       <div
         style={{
-          fontSize: `${historySection ? 15.2 : BOOKLET_BODY.fontSize}px`,
-          lineHeight: historySection ? 1.7 : BOOKLET_BODY.lineHeight,
+          fontSize: `${anthemSection ? 15.8 : historySection ? 15.6 : overviewSection ? 15.2 : BOOKLET_BODY.fontSize}px`,
+          lineHeight: anthemSection ? 1.72 : historySection ? 1.72 : overviewSection ? 1.68 : BOOKLET_BODY.lineHeight,
           color: "#0A1328",
         }}
       >
@@ -120,7 +182,7 @@ export function TextSection({
                 {line}
               </div>
             ))
-          : paragraphs.map((paragraph, i) => (
+          : visibleParagraphs.map((paragraph, i) => (
               <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
                 {paragraph}
               </p>
@@ -130,7 +192,7 @@ export function TextSection({
           <div style={{ marginTop: "14px" }}>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "13.8px",
                 fontWeight: 800,
                 color: "#0F1E45",
                 marginBottom: "8px",
@@ -140,49 +202,16 @@ export function TextSection({
             >
               Presidents of LSUIC (2006 - Present)
             </div>
-            <table
-              style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.2px" }}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
             >
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "6px 8px",
-                      background: C.blue,
-                      color: C.white,
-                      border: `1px solid ${C.blue}`,
-                    }}
-                  >
-                    Name
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: "6px 8px",
-                      background: C.blue,
-                      color: C.white,
-                      border: `1px solid ${C.blue}`,
-                      width: "160px",
-                    }}
-                  >
-                    Term
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {LSUIC_PRESIDENT_HISTORY.map((row) => (
-                  <tr key={`${row.name}-${row.term}`}>
-                    <td style={{ padding: "5px 8px", border: `1px solid ${C.border}` }}>
-                      {row.name}
-                    </td>
-                    <td style={{ padding: "5px 8px", border: `1px solid ${C.border}` }}>
-                      {row.term}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <PresidentsTable rows={presidentsLeft} />
+              <PresidentsTable rows={presidentsRight} />
+            </div>
           </div>
         )}
 
@@ -190,7 +219,7 @@ export function TextSection({
           <div style={{ marginTop: "14px" }}>
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "13.8px",
                 fontWeight: 800,
                 color: "#0F1E45",
                 marginBottom: "8px",
@@ -201,14 +230,14 @@ export function TextSection({
               Institutional Milestones
             </div>
             <table
-              style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.2px" }}
+              style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}
             >
               <thead>
                 <tr>
                   <th
                     style={{
                       textAlign: "left",
-                      padding: "6px 8px",
+                      padding: "7px 9px",
                       background: C.blue,
                       color: C.white,
                       border: `1px solid ${C.blue}`,
@@ -220,7 +249,7 @@ export function TextSection({
                   <th
                     style={{
                       textAlign: "left",
-                      padding: "6px 8px",
+                      padding: "7px 9px",
                       background: C.blue,
                       color: C.white,
                       border: `1px solid ${C.blue}`,
@@ -232,7 +261,7 @@ export function TextSection({
                   <th
                     style={{
                       textAlign: "left",
-                      padding: "6px 8px",
+                      padding: "7px 9px",
                       background: C.blue,
                       color: C.white,
                       border: `1px solid ${C.blue}`,
@@ -245,13 +274,13 @@ export function TextSection({
               <tbody>
                 {LSUIC_HISTORY_MILESTONES.map((row) => (
                   <tr key={row.period}>
-                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "7px 9px", border: `1px solid ${C.border}` }}>
                       {row.period}
                     </td>
-                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "7px 9px", border: `1px solid ${C.border}` }}>
                       {row.focus}
                     </td>
-                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "7px 9px", border: `1px solid ${C.border}` }}>
                       {row.outcomes}
                     </td>
                   </tr>
@@ -264,10 +293,10 @@ export function TextSection({
         {anthemSection && (
           <div
             style={{
-              marginTop: "10px",
+              marginTop: "16px",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: "16px",
+              gap: "18px",
             }}
           >
             {[LIBERIAN_NATIONAL_ANTHEM.verse1, LIBERIAN_NATIONAL_ANTHEM.verse2].map(
@@ -277,16 +306,17 @@ export function TextSection({
                   style={{
                     border: `1px solid ${C.border}`,
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: "16px 16px",
                     background: `${C.lightBlue}80`,
+                    minHeight: "560px",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "12px",
+                      fontSize: "13px",
                       fontWeight: 800,
                       color: C.blue,
-                      marginBottom: "6px",
+                      marginBottom: "10px",
                       textTransform: "uppercase",
                     }}
                   >
@@ -295,7 +325,7 @@ export function TextSection({
                   {verse.map((line, lineIndex) => (
                     <div
                       key={`${idx}-${lineIndex}`}
-                      style={{ fontSize: "13px", lineHeight: 1.52, marginBottom: "2px" }}
+                      style={{ fontSize: "17px", lineHeight: 1.62, marginBottom: "2px" }}
                     >
                       {line}
                     </div>

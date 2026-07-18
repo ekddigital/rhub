@@ -194,17 +194,26 @@ export function paginateProgramOutlineDays(
 }
 
 function estimateIntroHeight(intro: string): number {
-  const charsPerLine = 112;
-  const lineHeight = 24;
+  const charsPerLine = 102;
+  const lineHeight = 26;
   const lines = Math.max(2, Math.ceil(intro.length / charsPerLine));
-  return lines * lineHeight + 150;
+  return lines * lineHeight + 170;
 }
 
 function estimateDayTableHeight(day: ProgramOutlineDay): number {
-  const heading = 54;
-  const tableHeader = 34;
-  const rowHeight = 34;
-  return heading + tableHeader + day.activities.length * rowHeight + 12;
+  const heading = 62;
+  const tableHeader = 40;
+  const lineHeight = 18;
+
+  const rowHeight = day.activities.reduce((sum, row) => {
+    const timeLines = Math.max(1, Math.ceil(row.time.length / 20));
+    const activityLines = Math.max(1, Math.ceil(row.activity.length / 52));
+    const locationLines = Math.max(1, Math.ceil(row.location.length / 34));
+    const lines = Math.max(timeLines, activityLines, locationLines);
+    return sum + lines * lineHeight + 16;
+  }, 0);
+
+  return heading + tableHeader + rowHeight + 14;
 }
 
 /**
@@ -214,7 +223,7 @@ function estimateDayTableHeight(day: ProgramOutlineDay): number {
 export function paginateProgramOutlinePages(
   resolved: ResolvedProgramOutline,
 ): ProgramOutlinePageChunk[] {
-  const MAX_PAGE_HEIGHT = 980;
+  const MAX_PAGE_HEIGHT = 920;
 
   const pages: ProgramOutlinePageChunk[] = [];
   let current: ProgramOutlinePageChunk = { showIntro: true, days: [] };

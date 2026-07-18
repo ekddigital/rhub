@@ -13,7 +13,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
     <div style={{ marginBottom: "14px" }}>
       <div
         style={{
-          fontSize: "11px",
+          fontSize: "12.5px",
           fontWeight: 700,
           color: "#000000",
           marginBottom: "4px",
@@ -23,7 +23,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
       </div>
       <div
         style={{
-          fontSize: "9.5px",
+          fontSize: "11px",
           color: "#111111",
           marginBottom: "6px",
         }}
@@ -32,7 +32,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
       </div>
       <div
         style={{
-          fontSize: "9px",
+          fontSize: "10px",
           fontWeight: 700,
           letterSpacing: "0.12em",
           textTransform: "uppercase",
@@ -46,8 +46,8 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          fontSize: "10px",
-          lineHeight: 1.45,
+          fontSize: "11.5px",
+          lineHeight: 1.5,
         }}
       >
         <thead>
@@ -57,7 +57,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                 key={col}
                 style={{
                   textAlign: "left",
-                  padding: "5px 8px",
+                  padding: "7px 9px",
                   background: C.blue,
                   color: C.white,
                   fontWeight: 700,
@@ -74,7 +74,8 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
             <tr key={i}>
               <td
                 style={{
-                  padding: "5px 8px",
+                  padding: "7px 9px",
+                  lineHeight: 1.45,
                   border: `1px solid ${C.border}`,
                   verticalAlign: "top",
                   fontWeight: 600,
@@ -87,7 +88,8 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
               </td>
               <td
                 style={{
-                  padding: "5px 8px",
+                  padding: "7px 9px",
+                  lineHeight: 1.5,
                   border: `1px solid ${C.border}`,
                   verticalAlign: "top",
                   color: C.text,
@@ -98,7 +100,8 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
               </td>
               <td
                 style={{
-                  padding: "5px 8px",
+                  padding: "7px 9px",
+                  lineHeight: 1.5,
                   border: `1px solid ${C.border}`,
                   verticalAlign: "top",
                   color: "#111111",
