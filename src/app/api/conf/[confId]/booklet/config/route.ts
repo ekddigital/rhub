@@ -240,6 +240,90 @@ export async function GET(
           });
         }
 
+        // Ensure National President Address exists and is placed directly
+        // after NEC Leadership (same office holder context).
+        {
+          const sectionsForPresident = await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id },
+            orderBy: { sortOrder: "asc" },
+          });
+
+          const necSection = sectionsForPresident.find((s) => s.type === "NEC");
+          const presidentSection = sectionsForPresident.find(
+            (s) => s.type === "PRESIDENT_ADDRESS",
+          );
+          const targetSort = necSection ? necSection.sortOrder + 1 : 7;
+
+          if (!presidentSection) {
+            await tx.confBookletSection.updateMany({
+              where: {
+                bookletId: existingBooklet.id,
+                sortOrder: { gte: targetSort },
+              },
+              data: { sortOrder: { increment: 1 } },
+            });
+
+            await tx.confBookletSection.create({
+              data: {
+                bookletId: existingBooklet.id,
+                type: "PRESIDENT_ADDRESS",
+                title: "National President Address",
+                subtitle: null,
+                bodyText: null,
+                isEnabled: true,
+                sortOrder: targetSort,
+                committeeScope: null,
+              },
+            });
+          } else {
+            if (
+              normalizeLabel(presidentSection.title) !==
+              normalizeLabel("National President Address")
+            ) {
+              await tx.confBookletSection.update({
+                where: { id: presidentSection.id },
+                data: { title: "National President Address" },
+              });
+            }
+
+            if (!presidentSection.isEnabled) {
+              await tx.confBookletSection.update({
+                where: { id: presidentSection.id },
+                data: { isEnabled: true },
+              });
+            }
+
+            if (presidentSection.sortOrder !== targetSort) {
+              const currentSort = presidentSection.sortOrder;
+
+              if (currentSort < targetSort) {
+                await tx.confBookletSection.updateMany({
+                  where: {
+                    bookletId: existingBooklet.id,
+                    id: { not: presidentSection.id },
+                    sortOrder: { gt: currentSort, lte: targetSort },
+                  },
+                  data: { sortOrder: { decrement: 1 } },
+                });
+              } else {
+                await tx.confBookletSection.updateMany({
+                  where: {
+                    bookletId: existingBooklet.id,
+                    id: { not: presidentSection.id },
+                    sortOrder: { gte: targetSort, lt: currentSort },
+                  },
+                  data: { sortOrder: { increment: 1 } },
+                });
+              }
+
+              await tx.confBookletSection.update({
+                where: { id: presidentSection.id },
+                data: { sortOrder: targetSort },
+              });
+            }
+          }
+        }
+
         const chairmanAddress = existingSections.find(
           (s) => s.type === "CHAIRMAN_ADDRESS",
         );
