@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Download, Loader2, ZoomIn, ZoomOut } from "lucide-react";
+import { Download, Loader2, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BOOKLET_A4, C } from "../booklet/constants";
 import { ProgramDocument, PROGRAM_GUIDE_TOTAL_PAGES } from "./program-document";
@@ -50,9 +50,14 @@ export function DetailedProgramPreview() {
         PROGRAM_GUIDE_TOTAL_PAGES,
         { timeoutMs: 15_000 },
       );
-      if (!pagesReady) throw new Error("Program guide pages did not finish rendering.");
+      if (!pagesReady)
+        throw new Error("Program guide pages did not finish rendering.");
 
-      normalizeBookletPagesForCapture(PRINT_ROOT_ID, BOOKLET_A4.width, BOOKLET_A4.height);
+      normalizeBookletPagesForCapture(
+        PRINT_ROOT_ID,
+        BOOKLET_A4.width,
+        BOOKLET_A4.height,
+      );
 
       await waitForBookletImagesInDom(PRINT_ROOT_ID);
       if (printRoot) hideZeroSizeImages(printRoot);
@@ -63,6 +68,11 @@ export function DetailedProgramPreview() {
         pageWrapperSelector: null,
         mode: "download",
         canvasScale: 2,
+        jpegQuality: 0.9,
+        pageSizePx: {
+          width: BOOKLET_A4.width,
+          height: BOOKLET_A4.height,
+        },
       });
     } catch (err) {
       setExportError(err instanceof Error ? err.message : "Export failed");
@@ -74,62 +84,190 @@ export function DetailedProgramPreview() {
 
   return (
     <div className="space-y-4">
+      {/* Print CSS */}
+      <style>{`
+        #${PRINT_ROOT_ID} {
+          position: fixed;
+          left: -9999px;
+          top: 0;
+          width: ${BOOKLET_A4.width}px;
+          pointer-events: none;
+          z-index: -1;
+        }
+        #${PRINT_ROOT_ID},
+        #${PRINT_ROOT_ID} * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        @media print {
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          body > :not(#${PRINT_ROOT_ID}) {
+            display: none !important;
+          }
+          .program-guide-no-print {
+            display: none !important;
+          }
+          #${PRINT_ROOT_ID} {
+            display: block !important;
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
+            pointer-events: auto !important;
+            z-index: auto !important;
+          }
+          #${PRINT_ROOT_ID} > div {
+            display: block !important;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .booklet-page {
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 auto !important;
+            box-shadow: none !important;
+            transform: none !important;
+            break-after: page;
+            page-break-after: always;
+            page-break-inside: avoid;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+          }
+          .booklet-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+        }
+      `}</style>
+
       {/* Toolbar */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setZoom((z) => Math.max(40, z - 10))}
-        >
-          <ZoomOut className="size-4 mr-1" /> Zoom Out
-        </Button>
-        <span className="text-sm text-muted-foreground min-w-[50px] text-center">
-          {zoom}%
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setZoom((z) => Math.min(140, z + 10))}
-        >
-          <ZoomIn className="size-4 mr-1" /> Zoom In
-        </Button>
-        <div className="ml-auto flex items-center gap-2">
-          {exportError && (
-            <span className="text-sm text-destructive">{exportError}</span>
-          )}
-          <Button size="sm" onClick={handleExportPdf} disabled={exporting}>
+      <div
+        className="program-guide-no-print"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+          padding: "10px 16px",
+          borderRadius: "10px",
+          border: `1px solid ${C.blue}20`,
+          background: C.lightBlue,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <span style={{ fontSize: "12px", fontWeight: 600, color: C.blue }}>
+            Detailed Program Preview
+          </span>
+          <span style={{ fontSize: "10px", color: C.muted }}>
+            {PROGRAM_GUIDE_TOTAL_PAGES} pages · A4 printable
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Zoom controls */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #D1D5DB",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <button
+              onClick={() => setZoom((z) => Math.max(50, z - 10))}
+              style={{ padding: "4px 8px", cursor: "pointer", background: "transparent", border: "none" }}
+              title="Zoom out"
+            >
+              <ZoomOut className="size-3.5" />
+            </button>
+            <span
+              style={{
+                minWidth: "3rem",
+                textAlign: "center",
+                fontSize: "11px",
+                fontFamily: "monospace",
+              }}
+            >
+              {zoom}%
+            </span>
+            <button
+              onClick={() => setZoom((z) => Math.min(150, z + 10))}
+              style={{ padding: "4px 8px", cursor: "pointer", background: "transparent", border: "none" }}
+              title="Zoom in"
+            >
+              <ZoomIn className="size-3.5" />
+            </button>
+          </div>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            onClick={() => window.print()}
+          >
+            <Printer className="size-3.5" />
+            Print
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 text-xs"
+            disabled={exporting}
+            onClick={() => void handleExportPdf()}
+          >
             {exporting ? (
-              <Loader2 className="size-4 mr-2 animate-spin" />
+              <Loader2 className="size-3.5 animate-spin" />
             ) : (
-              <Download className="size-4 mr-2" />
+              <Download className="size-3.5" />
             )}
-            Download PDF
+            {exporting ? "Exporting…" : "Download PDF"}
           </Button>
         </div>
       </div>
 
+      {exportError && (
+        <div className="program-guide-no-print rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+          {exportError}
+        </div>
+      )}
+
       {/* Preview viewport */}
       <div
+        className="program-guide-no-print"
         style={{
           overflowX: "auto",
-          overflowY: "auto",
-          maxHeight: "80vh",
-          background: "#E0E0E0",
-          borderRadius: "8px",
-          padding: "20px",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "16px",
+          borderRadius: "16px",
+          background: "#D8D8D8",
+          padding: "24px",
         }}
       >
         <div
           style={{
             transform: `scale(${zoom / 100})`,
             transformOrigin: "top center",
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
+            width: `${BOOKLET_A4.width}px`,
+            margin: "0 auto",
+            marginBottom: zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
           }}
         >
           <ProgramDocument gap={16} />
@@ -139,17 +277,7 @@ export function DetailedProgramPreview() {
       {/* Hidden print root */}
       {portalReady &&
         createPortal(
-          <div
-            id={PRINT_ROOT_ID}
-            style={{
-              position: "fixed",
-              top: "-99999px",
-              left: "-99999px",
-              pointerEvents: "none",
-              zIndex: -1,
-              background: C.white,
-            }}
-          >
+          <div id={PRINT_ROOT_ID}>
             <ProgramDocument gap={0} />
           </div>,
           document.body,
@@ -157,3 +285,4 @@ export function DetailedProgramPreview() {
     </div>
   );
 }
+
