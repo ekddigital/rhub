@@ -50,7 +50,7 @@ const DAY_1: ProgramDay = {
   date: "July 24, 2026",
   dayOfWeek: "Friday",
   dressCodes: [
-    { session: "Meet & Greet / Welcome Dinner", code: "Smart Casual" },
+    { session: "Meet & Greet / Welcome Dinner", code: "Business Casual" },
     { session: "General (all day)", code: "Casual / Comfortable travel wear" },
   ],
   slots: [
@@ -139,9 +139,15 @@ const DAY_2: ProgramDay = {
   date: "July 25, 2026",
   dayOfWeek: "Saturday",
   dressCodes: [
-    { session: "Plenary / Conference Sessions", code: "Formal or Smart Business Attire" },
-    { session: "Pool Party", code: "Casual — Liberia's national colors (Red, White & Blue) encouraged" },
-    { session: "Evening Fellowship", code: "Smart Casual" },
+    {
+      session: "Plenary / Conference Sessions",
+      code: "Business Formal",
+    },
+    {
+      session: "Pool Party",
+      code: "Casual — Liberia's national colors (Red, White & Blue) encouraged",
+    },
+    { session: "Evening Fellowship", code: "Business Casual" },
   ],
   slots: [
     {
@@ -276,9 +282,18 @@ const DAY_3: ProgramDay = {
   date: "July 26, 2026",
   dayOfWeek: "Sunday",
   dressCodes: [
-    { session: "Morning Conference / Independence Ceremony", code: "Formal or Smart Business Attire" },
-    { session: "Football / Sports Activities", code: "Sports Wear — Liberia's national colors encouraged" },
-    { session: "Awards Night & Independence Ball", code: "Formal / Semi-Formal (Suit, Dress, or Traditional Attire)" },
+    {
+      session: "Morning Conference / Independence Ceremony",
+      code: "Business Formal",
+    },
+    {
+      session: "Football / Sports Activities",
+      code: "Sports Wear — Liberia's national colors encouraged",
+    },
+    {
+      session: "Awards Night & Independence Ball",
+      code: "Formal / Semi-Formal (Suit, Dress, or Traditional Attire)",
+    },
     { session: "LSUIC Pageant (if included)", code: "Formal Attire" },
   ],
   slots: [

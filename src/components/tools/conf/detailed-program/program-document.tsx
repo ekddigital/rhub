@@ -358,10 +358,10 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         >
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: 700,
-              color: `${C.white}AA`,
-              letterSpacing: "0.2em",
+              fontSize: "15px",
+              fontWeight: 800,
+              color: `${C.white}CC`,
+              letterSpacing: "0.22em",
               textTransform: "uppercase",
               marginBottom: "18px",
             }}
@@ -371,11 +371,11 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "42px",
+              fontSize: "52px",
               fontWeight: 900,
               color: C.white,
-              lineHeight: 1.15,
-              marginBottom: "10px",
+              lineHeight: 1.1,
+              marginBottom: "12px",
             }}
           >
             Detailed Program Guide
@@ -383,10 +383,10 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "20px",
-              fontWeight: 700,
+              fontSize: "24px",
+              fontWeight: 800,
               color: C.gold,
-              marginBottom: "6px",
+              marginBottom: "8px",
             }}
           >
             {PROGRAM_META.confName}
@@ -394,9 +394,9 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "14px",
-              fontWeight: 600,
-              color: `${C.white}CC`,
+              fontSize: "16px",
+              fontWeight: 700,
+              color: `${C.white}DD`,
               marginBottom: "28px",
             }}
           >
@@ -414,20 +414,20 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "17px",
               fontWeight: 700,
               color: C.white,
               fontStyle: "italic",
-              marginBottom: "4px",
+              marginBottom: "6px",
             }}
           >
             &ldquo;{PROGRAM_META.theme}&rdquo;
           </div>
           <div
             style={{
-              fontSize: "11.5px",
+              fontSize: "13.5px",
               fontWeight: 600,
-              color: `${C.white}99`,
+              color: `${C.white}BB`,
             }}
           >
             {PROGRAM_META.subTheme}
@@ -458,7 +458,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
             >
               <div
                 style={{
-                  fontSize: "9px",
+                  fontSize: "11px",
                   fontWeight: 800,
                   color: C.gold,
                   letterSpacing: "0.12em",
@@ -469,8 +469,8 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               </div>
               <div
                 style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
+                  fontSize: "13px",
+                  fontWeight: 800,
                   color: C.white,
                   lineHeight: 1.3,
                 }}
@@ -479,9 +479,10 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               </div>
               <div
                 style={{
-                  fontSize: "9.5px",
-                  color: `${C.white}99`,
-                  marginTop: "2px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: `${C.white}CC`,
+                  marginTop: "3px",
                 }}
               >
                 {d.date.replace(", 2026", "")}
