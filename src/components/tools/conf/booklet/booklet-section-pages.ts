@@ -163,6 +163,8 @@ export function sectionPageSpan(
       : 0;
   }
 
+  if (s.type === "EVENT_MENU") return 1;
+
   if (s.type === "SPONSORS" || s.type === "ABBREVIATIONS") {
     if (!shouldRenderTextSection(s)) return 0;
     return Math.max(

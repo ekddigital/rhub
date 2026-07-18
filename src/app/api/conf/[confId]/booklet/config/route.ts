@@ -175,35 +175,41 @@ const DEFAULT_SECTIONS = [
     sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length,
   },
   {
+    type: "EVENT_MENU",
+    title: "Conference Menu",
+    subtitle: "Cooking Committee",
+    sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length,
+  },
+  {
     type: "TEXT",
     title: OVERVIEW_SECTION_TITLE,
     subtitle: OVERVIEW_SECTION_SUBTITLE,
-    sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_LSUIC_OVERVIEW_BODY,
   },
   {
     type: "TEXT",
     title: HISTORY_SECTION_TITLE,
     subtitle: HISTORY_SECTION_SUBTITLE,
-    sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 20 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_LSUIC_HISTORY_BODY,
   },
   {
     type: "TEXT",
     title: ANTHEM_SECTION_TITLE,
     subtitle: ANTHEM_SECTION_SUBTITLE,
-    sortOrder: 20 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 21 + SCOPED_COMMITTEE_SECTIONS.length,
     bodyText: DEFAULT_ANTHEM_BODY,
   },
   {
     type: "SPONSORS",
     title: "Sponsors & Partners",
-    sortOrder: 21 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 22 + SCOPED_COMMITTEE_SECTIONS.length,
   },
   {
     type: "BACK_COVER",
     title: "Back Cover",
-    sortOrder: 22 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 23 + SCOPED_COMMITTEE_SECTIONS.length,
   },
 ];
 
@@ -889,6 +895,40 @@ export async function GET(
                 subtitle: anthemExisting.subtitle || ANTHEM_SECTION_SUBTITLE,
                 bodyText:
                   anthemExisting.bodyText?.trim() || DEFAULT_ANTHEM_BODY,
+              },
+            });
+          }
+
+          // Backfill Conference Menu section if not present.
+          const menuExisting = sectionsForOverview.find(
+            (s) => s.type === "EVENT_MENU",
+          );
+          if (!menuExisting) {
+            const programOutline = sectionsForOverview.find(
+              (s) => s.type === "PROGRAM_OUTLINE",
+            );
+            const menuSortOrder = programOutline
+              ? programOutline.sortOrder + 1
+              : 18;
+            // Shift everything at or above that sort order up by 1.
+            await tx.confBookletSection.updateMany({
+              where: {
+                bookletId: existingBooklet.id,
+                sortOrder: { gte: menuSortOrder },
+                type: { not: "PROGRAM_OUTLINE" },
+              },
+              data: { sortOrder: { increment: 1 } },
+            });
+            await tx.confBookletSection.create({
+              data: {
+                bookletId: existingBooklet.id,
+                type: "EVENT_MENU",
+                title: "Conference Menu",
+                subtitle: "Cooking Committee",
+                isEnabled: true,
+                sortOrder: menuSortOrder,
+                bodyText: null,
+                committeeScope: null,
               },
             });
           }

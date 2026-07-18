@@ -35,6 +35,7 @@ import { CommitteeSection } from "./CommitteeSection";
 import { DelegatesSection } from "./DelegatesSection";
 import { TextSection } from "./TextSection";
 import { ProgramOutlineSection } from "./ProgramOutlineSection";
+import { MenuPage } from "./MenuPage";
 import { BOOKLET_A4, DELEGATES_PER_BOOKLET_PAGE } from "./constants";
 import { CONF_2026 } from "@/lib/conf/config";
 import { paginateBookletBodyText } from "@/lib/conf/booklet-text-pagination";
@@ -369,6 +370,18 @@ function renderSection(
         </>
       );
     }
+
+    case "EVENT_MENU":
+      return (
+        <MenuPage
+          key={key}
+          section={section}
+          pageNum={pageNum}
+          totalPages={totalPages}
+          confName={confName}
+          confYear={confYear}
+        />
+      );
 
     case "PROGRAM_OUTLINE": {
       const resolved = resolveProgramOutline(section);
