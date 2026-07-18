@@ -62,7 +62,8 @@ export function DetailedProgramPreview() {
       await waitForBookletImagesInDom(PRINT_ROOT_ID);
       if (printRoot) hideZeroSizeImages(printRoot);
 
-      const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+      const { exportToPDF } =
+        await import("@/lib/creative/documents/pdfExport");
       await exportToPDF(PRINT_ROOT_ID, exportBasename(), undefined, {
         pageSelector: ".booklet-page",
         pageWrapperSelector: null,
@@ -194,7 +195,12 @@ export function DetailedProgramPreview() {
           >
             <button
               onClick={() => setZoom((z) => Math.max(50, z - 10))}
-              style={{ padding: "4px 8px", cursor: "pointer", background: "transparent", border: "none" }}
+              style={{
+                padding: "4px 8px",
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+              }}
               title="Zoom out"
             >
               <ZoomOut className="size-3.5" />
@@ -211,7 +217,12 @@ export function DetailedProgramPreview() {
             </span>
             <button
               onClick={() => setZoom((z) => Math.min(150, z + 10))}
-              style={{ padding: "4px 8px", cursor: "pointer", background: "transparent", border: "none" }}
+              style={{
+                padding: "4px 8px",
+                cursor: "pointer",
+                background: "transparent",
+                border: "none",
+              }}
               title="Zoom in"
             >
               <ZoomIn className="size-3.5" />
@@ -285,4 +296,3 @@ export function DetailedProgramPreview() {
     </div>
   );
 }
-

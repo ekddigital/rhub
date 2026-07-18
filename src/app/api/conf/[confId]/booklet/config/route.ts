@@ -1045,8 +1045,12 @@ export async function GET(
         )[0];
         if (
           chairSection?.bodyText &&
-          (!chairSection.bodyText.includes("National President Hon. Olano Teah Bloh") ||
-            !chairSection.bodyText.includes("To every member of the Conference Committee"))
+          (!chairSection.bodyText.includes(
+            "National President Hon. Olano Teah Bloh",
+          ) ||
+            !chairSection.bodyText.includes(
+              "To every member of the Conference Committee",
+            ))
         ) {
           await tx.confBookletSection.update({
             where: { id: chairSection.id },

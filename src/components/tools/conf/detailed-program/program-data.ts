@@ -294,7 +294,7 @@ const DAY_3: ProgramDay = {
       session: "Awards Night & Independence Ball",
       code: "Formal / Semi-Formal (Suit, Dress, or Traditional Attire)",
     },
-    { session: "LSUIC Pageant (if included)", code: "Formal Attire" },
+    { session: "LSUIC Pageant", code: "Formal Attire" },
   ],
   slots: [
     {

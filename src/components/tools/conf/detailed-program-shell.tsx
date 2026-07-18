@@ -27,8 +27,8 @@ export function DetailedProgramShell() {
             Detailed Conference Program
           </h1>
           <p className="text-sm text-muted-foreground">
-            Full day-by-day program flow with times, activities, and
-            responsible persons for the {PROGRAM_META.confName}.
+            Full day-by-day program flow with times, activities, and responsible
+            persons for the {PROGRAM_META.confName}.
           </p>
         </div>
       </div>
@@ -40,7 +40,9 @@ export function DetailedProgramShell() {
               <CalendarDays className="size-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-base">{PROGRAM_META.confName} — Detailed Program</CardTitle>
+              <CardTitle className="text-base">
+                {PROGRAM_META.confName} — Detailed Program
+              </CardTitle>
               <CardDescription className="mt-1">
                 {PROGRAM_META.venue} · {PROGRAM_META.dates}
               </CardDescription>
@@ -48,9 +50,7 @@ export function DetailedProgramShell() {
           </div>
         </CardHeader>
         <CardContent className="text-xs text-muted-foreground space-y-1">
-          <p>
-            Theme: &ldquo;{PROGRAM_META.theme}&rdquo;
-          </p>
+          <p>Theme: &ldquo;{PROGRAM_META.theme}&rdquo;</p>
           <p>Sub-theme: &ldquo;{PROGRAM_META.subTheme}&rdquo;</p>
           <p>
             This guide provides the complete detailed program for all four
