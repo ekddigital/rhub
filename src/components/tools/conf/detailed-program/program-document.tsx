@@ -80,7 +80,9 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
         padding: "7px 10px",
         borderRadius: "5px",
         background: slot.highlight ? `${accent}0D` : "transparent",
-        borderLeft: slot.highlight ? `3px solid ${accent}` : `3px solid transparent`,
+        borderLeft: slot.highlight
+          ? `3px solid ${accent}`
+          : `3px solid transparent`,
         marginBottom: "3px",
       }}
     >
@@ -164,7 +166,8 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
                 {sub.label}
                 {sub.by && (
                   <span style={{ color: "#3A5080", fontStyle: "italic" }}>
-                    {" "}— {sub.by}
+                    {" "}
+                    — {sub.by}
                   </span>
                 )}
               </li>
@@ -277,14 +280,17 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
             display: "flex",
           }}
         >
-          {["#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30"].map(
-            (c, i) => (
-              <div
-                key={i}
-                style={{ flex: 1, background: c, opacity: 0.9 }}
-              />
-            ),
-          )}
+          {[
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+          ].map((c, i) => (
+            <div key={i} style={{ flex: 1, background: c, opacity: 0.9 }} />
+          ))}
         </div>
 
         <div style={{ textAlign: "center", padding: "0 60px" }}>
@@ -435,11 +441,17 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
             display: "flex",
           }}
         >
-          {["#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30", "#FFFFFF", "#BF0A30"].map(
-            (c, i) => (
-              <div key={i} style={{ flex: 1, background: c, opacity: 0.9 }} />
-            ),
-          )}
+          {[
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+            "#FFFFFF",
+            "#BF0A30",
+          ].map((c, i) => (
+            <div key={i} style={{ flex: 1, background: c, opacity: 0.9 }} />
+          ))}
         </div>
       </div>
 
@@ -609,6 +621,45 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                       {d.theme}
                     </div>
                   )}
+
+                  {d.dressCodes.length > 0 && (
+                    <div style={{ marginTop: "7px", borderTop: `1px solid ${c.accent}22`, paddingTop: "6px" }}>
+                      <div
+                        style={{
+                          fontSize: "9px",
+                          fontWeight: 800,
+                          color: c.accent,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.1em",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Dress Code
+                      </div>
+                      {d.dressCodes.map((dc, i) => (
+                        <div key={i} style={{ display: "flex", gap: "5px", marginBottom: "3px", alignItems: "flex-start" }}>
+                          <div
+                            style={{
+                              flexShrink: 0,
+                              marginTop: "2px",
+                              width: "5px",
+                              height: "5px",
+                              borderRadius: "50%",
+                              background: c.accent,
+                            }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontSize: "9.5px", fontWeight: 700, color: "#000000" }}>
+                              {dc.session}:
+                            </span>{" "}
+                            <span style={{ fontSize: "9.5px", fontWeight: 600, color: "#333333" }}>
+                              {dc.code}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -617,16 +668,34 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
       </ProgramA4Page>
 
       {/* ── Day 1 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(DAY_1_SLOTS_PAGE1, DAY_1_SLOTS_PAGE2, DETAILED_PROGRAM_DAYS[0], 3)}
+      {renderDayPages(
+        DAY_1_SLOTS_PAGE1,
+        DAY_1_SLOTS_PAGE2,
+        DETAILED_PROGRAM_DAYS[0],
+        3,
+      )}
 
       {/* ── Day 2 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(DAY_2_SLOTS_PAGE1, DAY_2_SLOTS_PAGE2, DETAILED_PROGRAM_DAYS[1], 5)}
+      {renderDayPages(
+        DAY_2_SLOTS_PAGE1,
+        DAY_2_SLOTS_PAGE2,
+        DETAILED_PROGRAM_DAYS[1],
+        5,
+      )}
 
       {/* ── Day 3 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(DAY_3_SLOTS_PAGE1, DAY_3_SLOTS_PAGE2, DETAILED_PROGRAM_DAYS[2], 7)}
+      {renderDayPages(
+        DAY_3_SLOTS_PAGE1,
+        DAY_3_SLOTS_PAGE2,
+        DETAILED_PROGRAM_DAYS[2],
+        7,
+      )}
 
       {/* ── Day 4: 1 page ─────────────────────────────────────────────── */}
-      <ProgramA4Page pageNum={9} sectionLabel={`Day 4 — ${DETAILED_PROGRAM_DAYS[3].label}`}>
+      <ProgramA4Page
+        pageNum={9}
+        sectionLabel={`Day 4 — ${DETAILED_PROGRAM_DAYS[3].label}`}
+      >
         <DayHeader day={DETAILED_PROGRAM_DAYS[3]} />
         {DETAILED_PROGRAM_DAYS[3].slots.map((slot, i) => (
           <SlotRow

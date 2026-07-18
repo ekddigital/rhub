@@ -38,6 +38,8 @@ export type ProgramDay = {
   theme?: string;
   date: string;
   dayOfWeek: string;
+  /** Session name → dress code pairs, shown on the overview card. */
+  dressCodes: { session: string; code: string }[];
   slots: ProgramSlot[];
 };
 
@@ -47,6 +49,10 @@ const DAY_1: ProgramDay = {
   label: "Arrival Day",
   date: "July 24, 2026",
   dayOfWeek: "Friday",
+  dressCodes: [
+    { session: "Meet & Greet / Welcome Dinner", code: "Smart Casual" },
+    { session: "General (all day)", code: "Casual / Comfortable travel wear" },
+  ],
   slots: [
     {
       time: "All Day",
@@ -56,17 +62,20 @@ const DAY_1: ProgramDay = {
     },
     {
       time: "8:00 AM – 6:00 PM",
-      activity: "Arrival, check-in at hotel reception, room assignment, and welfare support desk",
+      activity:
+        "Arrival, check-in at hotel reception, room assignment, and welfare support desk",
       by: "Logistics Committee · Welfare Committee",
     },
     {
       time: "8:00 AM – 6:00 PM",
-      activity: "Conference registration desk — collect conference badge, booklet, and program guide",
+      activity:
+        "Conference registration desk — collect conference badge, booklet, and program guide",
       by: "Conference Committee Secretary",
     },
     {
       time: "Ongoing",
-      activity: "City arrival follow-up and late delegate reception / coordination",
+      activity:
+        "City arrival follow-up and late delegate reception / coordination",
       by: "Council of Coordinators (CoC)",
     },
     {
@@ -78,7 +87,8 @@ const DAY_1: ProgramDay = {
     },
     {
       time: "2:00 PM – 4:30 PM",
-      activity: "Rest window — delegates settle into rooms and explore the hotel grounds",
+      activity:
+        "Rest window — delegates settle into rooms and explore the hotel grounds",
       by: "All Delegates",
     },
     {
@@ -98,7 +108,8 @@ const DAY_1: ProgramDay = {
     },
     {
       time: "6:00 PM – 6:20 PM",
-      activity: "Conference orientation — overview of four-day program, hotel ground rules, and delegate expectations",
+      activity:
+        "Conference orientation — overview of four-day program, hotel ground rules, and delegate expectations",
       by: "Conference Chair — Enoch Kwateh Dongbo",
     },
     {
@@ -127,6 +138,11 @@ const DAY_2: ProgramDay = {
   label: "Conference Business & Pool Party",
   date: "July 25, 2026",
   dayOfWeek: "Saturday",
+  dressCodes: [
+    { session: "Plenary / Conference Sessions", code: "Formal or Smart Business Attire" },
+    { session: "Pool Party", code: "Casual — Liberia's national colors (Red, White & Blue) encouraged" },
+    { session: "Evening Fellowship", code: "Smart Casual" },
+  ],
   slots: [
     {
       time: "8:00 AM – 8:30 AM",
@@ -135,7 +151,8 @@ const DAY_2: ProgramDay = {
     },
     {
       time: "8:30 AM – 8:35 AM",
-      activity: "Call to Order — 20th Annual General Conference officially opened",
+      activity:
+        "Call to Order — 20th Annual General Conference officially opened",
       by: "Presiding Officer — Conference Chair / National President",
     },
     {
@@ -179,7 +196,8 @@ const DAY_2: ProgramDay = {
     },
     {
       time: "11:00 AM – 11:30 AM",
-      activity: "Committee Annual Reports (brief summaries — PPC, IEC, CRC, WC, AC)",
+      activity:
+        "Committee Annual Reports (brief summaries — PPC, IEC, CRC, WC, AC)",
       by: "Respective Committee Chairpersons",
     },
     {
@@ -196,12 +214,14 @@ const DAY_2: ProgramDay = {
     },
     {
       time: "1:00 PM – 1:15 PM",
-      activity: "Constitutional Business — amendments, submissions, and referrals",
+      activity:
+        "Constitutional Business — amendments, submissions, and referrals",
       by: "Constitution Review Committee (CRC)",
     },
     {
       time: "1:15 PM – 2:00 PM",
-      activity: "Elections — NEC Officer nominations, debate, voting, and results",
+      activity:
+        "Elections — NEC Officer nominations, debate, voting, and results",
       by: "Independent Elections Commission (IEC)",
       subs: [
         { label: "Debate period per candidate" },
@@ -211,7 +231,8 @@ const DAY_2: ProgramDay = {
     },
     {
       time: "2:00 PM – 2:15 PM",
-      activity: "Vote of Thanks · Announcements · Closing Prayer (Morning Session)",
+      activity:
+        "Vote of Thanks · Announcements · Closing Prayer (Morning Session)",
       by: "Conference Committee · National President",
     },
     {
@@ -235,7 +256,8 @@ const DAY_2: ProgramDay = {
     },
     {
       time: "7:30 PM – 9:00 PM",
-      activity: "Evening fellowship — city and province caucus check-ins, informal networking",
+      activity:
+        "Evening fellowship — city and province caucus check-ins, informal networking",
       by: "All Delegates",
     },
     {
@@ -253,6 +275,12 @@ const DAY_3: ProgramDay = {
   theme: "179th Independence Day of Liberia",
   date: "July 26, 2026",
   dayOfWeek: "Sunday",
+  dressCodes: [
+    { session: "Morning Conference / Independence Ceremony", code: "Formal or Smart Business Attire" },
+    { session: "Football / Sports Activities", code: "Sports Wear — Liberia's national colors encouraged" },
+    { session: "Awards Night & Independence Ball", code: "Formal / Semi-Formal (Suit, Dress, or Traditional Attire)" },
+    { session: "LSUIC Pageant (if included)", code: "Formal Attire" },
+  ],
   slots: [
     {
       time: "8:00 AM – 8:30 AM",
@@ -338,7 +366,8 @@ const DAY_3: ProgramDay = {
     },
     {
       time: "5:30 PM – 7:30 PM",
-      activity: "Return to hotel, freshening up, and preparation for Awards Night",
+      activity:
+        "Return to hotel, freshening up, and preparation for Awards Night",
       by: "All Delegates",
     },
     {
@@ -362,7 +391,10 @@ const DAY_3: ProgramDay = {
       by: "Master of Ceremony · Conference Committee",
       subs: [
         { label: "Musical Interlude" },
-        { label: "Recognition of Veterans — Graduates of the Class of 2025/2026" },
+        {
+          label:
+            "Recognition of Veterans — Graduates of the Class of 2025/2026",
+        },
         { label: "Recognition of Special Invitees" },
         { label: "Award: Most Dedicated Scholars (Male & Female)" },
         { label: "Award: Most Influential Scholars (Male & Female)" },
@@ -371,7 +403,10 @@ const DAY_3: ProgramDay = {
         { label: "Award: Most Generous Scholars (Male & Female)" },
         { label: "Award: Most Innovative Scholars (Male & Female)" },
         { label: "Award: Best Entrepreneurial Scholars (Male & Female)" },
-        { label: "LSUIC Financial Supporters Recognition — Highest Due-Paying City & Province" },
+        {
+          label:
+            "LSUIC Financial Supporters Recognition — Highest Due-Paying City & Province",
+        },
         { label: "Academic Excellence Awards (AEA-2026)" },
         { label: "Presidential Awards & Scholars of the Year" },
         { label: "LSUIC Special Honoree Award" },
@@ -394,6 +429,9 @@ const DAY_4: ProgramDay = {
   label: "Departure Day",
   date: "July 27, 2026",
   dayOfWeek: "Monday",
+  dressCodes: [
+    { session: "Checkout / Departure", code: "Casual / Travel Wear" },
+  ],
   slots: [
     {
       time: "6:30 AM – 7:30 AM",
@@ -415,7 +453,8 @@ const DAY_4: ProgramDay = {
     },
     {
       time: "As needed",
-      activity: "Conference-arranged group transfers to Jinan West Railway Station (for delegates requiring coordination)",
+      activity:
+        "Conference-arranged group transfers to Jinan West Railway Station (for delegates requiring coordination)",
       by: "Logistics Committee",
     },
     {
@@ -425,12 +464,14 @@ const DAY_4: ProgramDay = {
     },
     {
       time: "Ongoing",
-      activity: "City and provincial coordinator follow-up — confirm all delegates arrived safely",
+      activity:
+        "City and provincial coordinator follow-up — confirm all delegates arrived safely",
       by: "Council of Coordinators (CoC) · National Welfare Committee",
     },
     {
       time: "Note",
-      activity: "Bus K904 operates to the hotel stop only until 7:20 PM. Delegates arriving or departing after this time must use DiDi or a taxi. Please refer to the Travel Guide for directions.",
+      activity:
+        "Bus K904 operates to the hotel stop only until 7:20 PM. Delegates arriving or departing after this time must use DiDi or a taxi. Please refer to the Travel Guide for directions.",
       by: "Logistics Committee",
       highlight: false,
     },
