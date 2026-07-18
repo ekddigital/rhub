@@ -20,6 +20,11 @@ export type ResolvedProgramOutline = {
   days: ProgramOutlineDay[];
 };
 
+export type ProgramOutlinePageChunk = {
+  showIntro: boolean;
+  days: ProgramOutlineDay[];
+};
+
 const DEFAULT_WELCOME_TITLE = "Welcome to Jinan";
 
 const DEFAULT_INTRO = DEFAULT_PROGRAM_OUTLINE_INTRO;
@@ -188,8 +193,54 @@ export function paginateProgramOutlineDays(
   return [days.slice(0, mid), days.slice(mid)];
 }
 
+function estimateIntroHeight(intro: string): number {
+  const charsPerLine = 112;
+  const lineHeight = 24;
+  const lines = Math.max(2, Math.ceil(intro.length / charsPerLine));
+  return lines * lineHeight + 150;
+}
+
+function estimateDayTableHeight(day: ProgramOutlineDay): number {
+  const heading = 54;
+  const tableHeader = 34;
+  const rowHeight = 34;
+  return heading + tableHeader + day.activities.length * rowHeight + 12;
+}
+
+/**
+ * Program Outline pages are packed by estimated vertical height so rows do not
+ * clip at the bottom of the page when day tables get longer.
+ */
+export function paginateProgramOutlinePages(
+  resolved: ResolvedProgramOutline,
+): ProgramOutlinePageChunk[] {
+  const MAX_PAGE_HEIGHT = 980;
+
+  const pages: ProgramOutlinePageChunk[] = [];
+  let current: ProgramOutlinePageChunk = { showIntro: true, days: [] };
+  let used = estimateIntroHeight(resolved.intro);
+
+  for (const day of resolved.days) {
+    const dayHeight = estimateDayTableHeight(day);
+    if (current.days.length > 0 && used + dayHeight > MAX_PAGE_HEIGHT) {
+      pages.push(current);
+      current = { showIntro: false, days: [] };
+      used = 0;
+    }
+
+    current.days.push(day);
+    used += dayHeight;
+  }
+
+  if (current.days.length > 0 || current.showIntro) {
+    pages.push(current);
+  }
+
+  return pages;
+}
+
 export function programOutlinePageCount(section: BookletSection): number {
   const resolved = resolveProgramOutline(section);
   if (!resolved) return 0;
-  return paginateProgramOutlineDays(resolved.days).length;
+  return paginateProgramOutlinePages(resolved).length;
 }

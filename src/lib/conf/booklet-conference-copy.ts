@@ -81,3 +81,86 @@ export const LSUIC_HISTORY_PARAGRAPHS = [
   "The union's development has moved through key phases: foundation and city-level expansion, committee-based organization, broader conference participation, and modern digital operations for registration, communication, and reporting. Each phase reflects the same goal: to serve Liberian students with integrity, accountability, and practical support in their academic journey.",
   "As LSUIC enters its third decade, its institutional mission remains clear: honor past contributions, engage present responsibilities, and equip future leaders to carry the union forward. The annual conference is not only a celebration - it is the union's primary civic forum for collective reflection, constitutional engagement, and responsible transition.",
 ].join("\n\n");
+
+export const LSUIC_PRESIDENT_HISTORY: Array<{ name: string; term: string }> = [
+  { name: "Mr. Alexander Nuetah", term: "2006-2010" },
+  { name: "Mr. Augustine F. Tokpa", term: "2010-2011" },
+  { name: "Mr. Bernel S. Dennis", term: "2011-2012" },
+  { name: "Dr. Presley K. Wesseh, Jr.", term: "2012-2013" },
+  { name: "Ms. Patience M. Martor", term: "2013-2014" },
+  { name: "Dr. Edwin N. Sumowar", term: "2014-2015" },
+  { name: "Dr. Abimelech P. Gbatu", term: "2015-2016" },
+  { name: "Mr. Mulbah Gbozee", term: "2016-2017" },
+  { name: "Mr. Allen Bohr James", term: "2017-2018" },
+  { name: "Dr. Charles Gbolie", term: "2018-2019" },
+  { name: "Dr. Yamah Bavor King", term: "2019-2020" },
+  { name: "Mr. Hassan Francis Whitfield", term: "2020-2022" },
+  { name: "Mr. Emmet A. Johee Greene", term: "2022-2023" },
+  { name: "Mr. Jacob Cephus Johnson", term: "2023-2025" },
+  { name: "Hon. Gideon F. B. Solre", term: "2025" },
+];
+
+export const LSUIC_HISTORY_MILESTONES: Array<{
+  period: string;
+  focus: string;
+  outcomes: string;
+}> = [
+  {
+    period: "2006-2012",
+    focus: "Foundation & Expansion",
+    outcomes:
+      "City-level growth, delegate identity building, and annual conference continuity.",
+  },
+  {
+    period: "2013-2019",
+    focus: "Institutional Structuring",
+    outcomes:
+      "Committee systems, stronger leadership handover patterns, and policy consolidation.",
+  },
+  {
+    period: "2020-2023",
+    focus: "Adaptation & Hybrid Coordination",
+    outcomes:
+      "Online coordination, resilient annual programming, and broader member participation.",
+  },
+  {
+    period: "2024-2026",
+    focus: "Digital Governance",
+    outcomes:
+      "Platform-based registration, documentation workflows, and stronger historical archiving.",
+  },
+];
+
+export const LIBERIAN_NATIONAL_ANTHEM = {
+  title: "The National Anthem of Liberia",
+  verse1: [
+    "All hail, Liberia, hail! (All hail!)",
+    "This glorious land of liberty",
+    "Shall long be ours.",
+    "Though new her name,",
+    "Green be her fame,",
+    "And mighty be her powers.",
+    "In joy and gladness,",
+    "With our hearts united,",
+    "We'll shout the freedom",
+    "Of a race benighted,",
+    "Long live Liberia, happy land!",
+    "A home of glorious liberty,",
+    "By God's command!",
+  ],
+  verse2: [
+    "All hail, Liberia, hail! (All hail!)",
+    "In union strong success is sure.",
+    "We cannot fail!",
+    "With God above,",
+    "Our rights to prove,",
+    "We will o'er all prevail!",
+    "With heart and hand",
+    "Our country's cause defending,",
+    "We'll meet the foe",
+    "With valor unpretending.",
+    "Long live Liberia, happy land!",
+    "A home of glorious liberty,",
+    "By God's command!",
+  ],
+};

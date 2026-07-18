@@ -8,6 +8,7 @@ import {
 import {
   isStaleConferenceIntroBody,
   resolveConferenceIntroBody,
+  LIBERIAN_NATIONAL_ANTHEM,
   LSUIC_OVERVIEW_PARAGRAPHS,
   LSUIC_HISTORY_PARAGRAPHS,
 } from "@/lib/conf/booklet-conference-copy";
@@ -79,11 +80,18 @@ const SCOPED_COMMITTEE_SECTIONS = [
 const DEFAULT_CONFERENCE_INTRO_BODY = DEFAULT_CONFERENCE_INTRO;
 const DEFAULT_LSUIC_OVERVIEW_BODY = LSUIC_OVERVIEW_PARAGRAPHS;
 const DEFAULT_LSUIC_HISTORY_BODY = LSUIC_HISTORY_PARAGRAPHS;
+const DEFAULT_ANTHEM_BODY = [
+  ...LIBERIAN_NATIONAL_ANTHEM.verse1,
+  "",
+  ...LIBERIAN_NATIONAL_ANTHEM.verse2,
+].join("\n");
 
 const OVERVIEW_SECTION_TITLE = "Overview of LSUIC";
 const OVERVIEW_SECTION_SUBTITLE = "History, Past Presidents & Venues";
 const HISTORY_SECTION_TITLE = "History of the Union";
 const HISTORY_SECTION_SUBTITLE = "Institutional Growth & Continuity";
+const ANTHEM_SECTION_TITLE = "The National Anthem of Liberia";
+const ANTHEM_SECTION_SUBTITLE = "Official Lyrics";
 
 const DEFAULT_SECTIONS = [
   { type: "COVER", title: "Cover Page", sortOrder: 1 },
@@ -178,14 +186,21 @@ const DEFAULT_SECTIONS = [
     bodyText: DEFAULT_LSUIC_HISTORY_BODY,
   },
   {
+    type: "TEXT",
+    title: ANTHEM_SECTION_TITLE,
+    subtitle: ANTHEM_SECTION_SUBTITLE,
+    sortOrder: 20 + SCOPED_COMMITTEE_SECTIONS.length,
+    bodyText: DEFAULT_ANTHEM_BODY,
+  },
+  {
     type: "SPONSORS",
     title: "Sponsors & Partners",
-    sortOrder: 20 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 21 + SCOPED_COMMITTEE_SECTIONS.length,
   },
   {
     type: "BACK_COVER",
     title: "Back Cover",
-    sortOrder: 21 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 22 + SCOPED_COMMITTEE_SECTIONS.length,
   },
 ];
 
@@ -759,6 +774,11 @@ export async function GET(
               s.type === "TEXT" &&
               normalizeLabel(s.title) === normalizeLabel(HISTORY_SECTION_TITLE),
           );
+          const anthemExisting = sectionsForOverview.find(
+            (s) =>
+              s.type === "TEXT" &&
+              normalizeLabel(s.title) === normalizeLabel(ANTHEM_SECTION_TITLE),
+          );
 
           const missingNarrative = [
             overviewExisting
@@ -774,6 +794,13 @@ export async function GET(
                   title: HISTORY_SECTION_TITLE,
                   subtitle: HISTORY_SECTION_SUBTITLE,
                   bodyText: DEFAULT_LSUIC_HISTORY_BODY,
+                },
+            anthemExisting
+              ? null
+              : {
+                  title: ANTHEM_SECTION_TITLE,
+                  subtitle: ANTHEM_SECTION_SUBTITLE,
+                  bodyText: DEFAULT_ANTHEM_BODY,
                 },
           ].filter(Boolean) as Array<{
             title: string;
@@ -836,6 +863,17 @@ export async function GET(
                 subtitle: historyExisting.subtitle || HISTORY_SECTION_SUBTITLE,
                 bodyText:
                   historyExisting.bodyText?.trim() || DEFAULT_LSUIC_HISTORY_BODY,
+              },
+            });
+          }
+
+          if (anthemExisting) {
+            await tx.confBookletSection.update({
+              where: { id: anthemExisting.id },
+              data: {
+                isEnabled: true,
+                subtitle: anthemExisting.subtitle || ANTHEM_SECTION_SUBTITLE,
+                bodyText: anthemExisting.bodyText?.trim() || DEFAULT_ANTHEM_BODY,
               },
             });
           }

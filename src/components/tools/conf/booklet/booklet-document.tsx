@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import {
-  paginateProgramOutlineDays,
+  paginateProgramOutlinePages,
   resolveProgramOutline,
 } from "@/lib/conf/booklet-program-outline";
 import {
@@ -362,17 +362,17 @@ function renderSection(
     case "PROGRAM_OUTLINE": {
       const resolved = resolveProgramOutline(section);
       if (!resolved) return null;
-      const dayPages = paginateProgramOutlineDays(resolved.days);
+      const pageChunks = paginateProgramOutlinePages(resolved);
       return (
         <>
-          {dayPages.map((pageDays, idx) => (
+          {pageChunks.map((chunk, idx) => (
             <ProgramOutlineSection
               key={`${key}-${idx}`}
               section={section}
               welcomeTitle={resolved.welcomeTitle}
               intro={resolved.intro}
-              days={pageDays}
-              showIntro={idx === 0}
+              days={chunk.days}
+              showIntro={chunk.showIntro}
               pageNum={startPageNum + idx}
               totalPages={totalPages}
               confName={confName}

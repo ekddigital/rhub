@@ -6,9 +6,31 @@ import {
   splitBookletGlossaryLines,
   splitBookletParagraphs,
 } from "@/lib/conf/booklet-body-typography";
+import {
+  LIBERIAN_NATIONAL_ANTHEM,
+  LSUIC_HISTORY_MILESTONES,
+  LSUIC_PRESIDENT_HISTORY,
+} from "@/lib/conf/booklet-conference-copy";
 import { resolveTextSectionBody } from "@/lib/conf/resolve-booklet-section-content";
 import { A4Page } from "./A4Page";
 import type { BookletSection } from "./types";
+
+function normalizeLabel(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function isOverviewSection(section: BookletSection): boolean {
+  return normalizeLabel(section.title).includes("overview of lsuic");
+}
+
+function isHistorySection(section: BookletSection): boolean {
+  return normalizeLabel(section.title).includes("history of the union");
+}
+
+function isAnthemSection(section: BookletSection): boolean {
+  const title = normalizeLabel(section.title);
+  return title.includes("national anthem") || title.includes("anthem of liberia");
+}
 
 export function TextSection({
   section,
@@ -31,6 +53,10 @@ export function TextSection({
   if (!trimmed) return null;
 
   const isGlossary = section.type === "ABBREVIATIONS";
+  const overviewSection = isOverviewSection(section);
+  const historySection = isHistorySection(section);
+  const anthemSection = isAnthemSection(section);
+  const paragraphs = splitBookletParagraphs(trimmed);
 
   return (
     <A4Page
@@ -83,8 +109,8 @@ export function TextSection({
 
       <div
         style={{
-          fontSize: `${BOOKLET_BODY.fontSize}px`,
-          lineHeight: BOOKLET_BODY.lineHeight,
+          fontSize: `${historySection ? 15.2 : BOOKLET_BODY.fontSize}px`,
+          lineHeight: historySection ? 1.7 : BOOKLET_BODY.lineHeight,
           color: "#0A1328",
         }}
       >
@@ -94,11 +120,191 @@ export function TextSection({
                 {line}
               </div>
             ))
-          : splitBookletParagraphs(trimmed).map((paragraph, i) => (
+          : paragraphs.map((paragraph, i) => (
               <p key={i} style={BOOKLET_BODY_PARAGRAPH}>
                 {paragraph}
               </p>
             ))}
+
+        {overviewSection && (
+          <div style={{ marginTop: "14px" }}>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 800,
+                color: "#0F1E45",
+                marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              Presidents of LSUIC (2006 - Present)
+            </div>
+            <table
+              style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.2px" }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "6px 8px",
+                      background: C.blue,
+                      color: C.white,
+                      border: `1px solid ${C.blue}`,
+                    }}
+                  >
+                    Name
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "6px 8px",
+                      background: C.blue,
+                      color: C.white,
+                      border: `1px solid ${C.blue}`,
+                      width: "160px",
+                    }}
+                  >
+                    Term
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {LSUIC_PRESIDENT_HISTORY.map((row) => (
+                  <tr key={`${row.name}-${row.term}`}>
+                    <td style={{ padding: "5px 8px", border: `1px solid ${C.border}` }}>
+                      {row.name}
+                    </td>
+                    <td style={{ padding: "5px 8px", border: `1px solid ${C.border}` }}>
+                      {row.term}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {historySection && (
+          <div style={{ marginTop: "14px" }}>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 800,
+                color: "#0F1E45",
+                marginBottom: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              Institutional Milestones
+            </div>
+            <table
+              style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.2px" }}
+            >
+              <thead>
+                <tr>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "6px 8px",
+                      background: C.blue,
+                      color: C.white,
+                      border: `1px solid ${C.blue}`,
+                      width: "120px",
+                    }}
+                  >
+                    Period
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "6px 8px",
+                      background: C.blue,
+                      color: C.white,
+                      border: `1px solid ${C.blue}`,
+                      width: "180px",
+                    }}
+                  >
+                    Focus
+                  </th>
+                  <th
+                    style={{
+                      textAlign: "left",
+                      padding: "6px 8px",
+                      background: C.blue,
+                      color: C.white,
+                      border: `1px solid ${C.blue}`,
+                    }}
+                  >
+                    Outcomes
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {LSUIC_HISTORY_MILESTONES.map((row) => (
+                  <tr key={row.period}>
+                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                      {row.period}
+                    </td>
+                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                      {row.focus}
+                    </td>
+                    <td style={{ padding: "6px 8px", border: `1px solid ${C.border}` }}>
+                      {row.outcomes}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {anthemSection && (
+          <div
+            style={{
+              marginTop: "10px",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "16px",
+            }}
+          >
+            {[LIBERIAN_NATIONAL_ANTHEM.verse1, LIBERIAN_NATIONAL_ANTHEM.verse2].map(
+              (verse, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    border: `1px solid ${C.border}`,
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    background: `${C.lightBlue}80`,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 800,
+                      color: C.blue,
+                      marginBottom: "6px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Verse {idx + 1}
+                  </div>
+                  {verse.map((line, lineIndex) => (
+                    <div
+                      key={`${idx}-${lineIndex}`}
+                      style={{ fontSize: "13px", lineHeight: 1.52, marginBottom: "2px" }}
+                    >
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              ),
+            )}
+          </div>
+        )}
       </div>
     </A4Page>
   );
