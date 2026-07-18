@@ -8,6 +8,8 @@ import {
 import {
   isStaleConferenceIntroBody,
   resolveConferenceIntroBody,
+  LSUIC_OVERVIEW_PARAGRAPHS,
+  LSUIC_HISTORY_PARAGRAPHS,
 } from "@/lib/conf/booklet-conference-copy";
 
 const DEFAULT_ABBREVIATIONS_BODY = [
@@ -75,6 +77,13 @@ const SCOPED_COMMITTEE_SECTIONS = [
 ] as const;
 
 const DEFAULT_CONFERENCE_INTRO_BODY = DEFAULT_CONFERENCE_INTRO;
+const DEFAULT_LSUIC_OVERVIEW_BODY = LSUIC_OVERVIEW_PARAGRAPHS;
+const DEFAULT_LSUIC_HISTORY_BODY = LSUIC_HISTORY_PARAGRAPHS;
+
+const OVERVIEW_SECTION_TITLE = "Overview of LSUIC";
+const OVERVIEW_SECTION_SUBTITLE = "History, Past Presidents & Venues";
+const HISTORY_SECTION_TITLE = "History of the Union";
+const HISTORY_SECTION_SUBTITLE = "Institutional Growth & Continuity";
 
 const DEFAULT_SECTIONS = [
   { type: "COVER", title: "Cover Page", sortOrder: 1 },
@@ -155,14 +164,28 @@ const DEFAULT_SECTIONS = [
     sortOrder: 17 + SCOPED_COMMITTEE_SECTIONS.length,
   },
   {
+    type: "TEXT",
+    title: OVERVIEW_SECTION_TITLE,
+    subtitle: OVERVIEW_SECTION_SUBTITLE,
+    sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length,
+    bodyText: DEFAULT_LSUIC_OVERVIEW_BODY,
+  },
+  {
+    type: "TEXT",
+    title: HISTORY_SECTION_TITLE,
+    subtitle: HISTORY_SECTION_SUBTITLE,
+    sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length,
+    bodyText: DEFAULT_LSUIC_HISTORY_BODY,
+  },
+  {
     type: "SPONSORS",
     title: "Sponsors & Partners",
-    sortOrder: 18 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 20 + SCOPED_COMMITTEE_SECTIONS.length,
   },
   {
     type: "BACK_COVER",
     title: "Back Cover",
-    sortOrder: 19 + SCOPED_COMMITTEE_SECTIONS.length,
+    sortOrder: 21 + SCOPED_COMMITTEE_SECTIONS.length,
   },
 ];
 
@@ -713,6 +736,106 @@ export async function GET(
                 isEnabled: true,
                 title: "Program Outline",
                 subtitle: programOutline.subtitle || "Welcome to Jinan",
+              },
+            });
+          }
+        }
+
+        // Ensure LSUIC overview/history narrative pages exist after Program
+        // Outline while preserving current booklet template and custom ordering.
+        {
+          const sectionsForOverview = await tx.confBookletSection.findMany({
+            where: { bookletId: existingBooklet.id },
+            orderBy: { sortOrder: "asc" },
+          });
+
+          const overviewExisting = sectionsForOverview.find(
+            (s) =>
+              s.type === "TEXT" &&
+              normalizeLabel(s.title) === normalizeLabel(OVERVIEW_SECTION_TITLE),
+          );
+          const historyExisting = sectionsForOverview.find(
+            (s) =>
+              s.type === "TEXT" &&
+              normalizeLabel(s.title) === normalizeLabel(HISTORY_SECTION_TITLE),
+          );
+
+          const missingNarrative = [
+            overviewExisting
+              ? null
+              : {
+                  title: OVERVIEW_SECTION_TITLE,
+                  subtitle: OVERVIEW_SECTION_SUBTITLE,
+                  bodyText: DEFAULT_LSUIC_OVERVIEW_BODY,
+                },
+            historyExisting
+              ? null
+              : {
+                  title: HISTORY_SECTION_TITLE,
+                  subtitle: HISTORY_SECTION_SUBTITLE,
+                  bodyText: DEFAULT_LSUIC_HISTORY_BODY,
+                },
+          ].filter(Boolean) as Array<{
+            title: string;
+            subtitle: string;
+            bodyText: string;
+          }>;
+
+          const programSort = sectionsForOverview.find(
+            (s) => s.type === "PROGRAM_OUTLINE",
+          )?.sortOrder;
+          const fallbackInsertBefore =
+            sectionsForOverview.find((s) => s.type === "SPONSORS")?.sortOrder ??
+            sectionsForOverview.length + 1;
+          const insertSort =
+            programSort != null ? programSort + 1 : fallbackInsertBefore;
+
+          if (missingNarrative.length > 0) {
+            await tx.confBookletSection.updateMany({
+              where: {
+                bookletId: existingBooklet.id,
+                sortOrder: { gte: insertSort },
+              },
+              data: { sortOrder: { increment: missingNarrative.length } },
+            });
+
+            for (let i = 0; i < missingNarrative.length; i++) {
+              const section = missingNarrative[i];
+              await tx.confBookletSection.create({
+                data: {
+                  bookletId: existingBooklet.id,
+                  type: "TEXT",
+                  title: section.title,
+                  subtitle: section.subtitle,
+                  bodyText: section.bodyText,
+                  isEnabled: true,
+                  sortOrder: insertSort + i,
+                  committeeScope: null,
+                },
+              });
+            }
+          }
+
+          if (overviewExisting) {
+            await tx.confBookletSection.update({
+              where: { id: overviewExisting.id },
+              data: {
+                isEnabled: true,
+                subtitle: overviewExisting.subtitle || OVERVIEW_SECTION_SUBTITLE,
+                bodyText:
+                  overviewExisting.bodyText?.trim() || DEFAULT_LSUIC_OVERVIEW_BODY,
+              },
+            });
+          }
+
+          if (historyExisting) {
+            await tx.confBookletSection.update({
+              where: { id: historyExisting.id },
+              data: {
+                isEnabled: true,
+                subtitle: historyExisting.subtitle || HISTORY_SECTION_SUBTITLE,
+                bodyText:
+                  historyExisting.bodyText?.trim() || DEFAULT_LSUIC_HISTORY_BODY,
               },
             });
           }

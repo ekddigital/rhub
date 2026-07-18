@@ -32,15 +32,28 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     dateLabel: "Friday, 24 July 2026",
     activities: [
       {
-        time: "Before 11:00",
-        activity: "Arrival, hotel check-in, and rest",
+        time: "8:00 AM - 2:00 PM",
+        activity:
+          "Arrival, registration desk check-in, room assignment, and welfare support",
         location: "Arcadia Spa Golf International Hotel",
       },
       {
-        time: "5:00 PM",
+        time: "2:00 PM - 4:30 PM",
+        activity:
+          "Rest window, city arrivals follow-up, and late delegate reception",
+        location: "Hotel / logistics desk",
+      },
+      {
+        time: "5:00 PM - 6:30 PM",
         activity:
           "Meet and Greet — welcome remarks, self-introductions, and conference overview",
         location: "Hotel yard (near the golf course)",
+      },
+      {
+        time: "7:00 PM - 9:00 PM",
+        activity:
+          "Welcome dinner and fellowship briefing for Day 2 business sessions",
+        location: "Hotel dining area",
       },
     ],
   },
@@ -50,20 +63,41 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     dateLabel: "Saturday, 25 July 2026",
     activities: [
       {
-        time: "8:30 - 2:00",
-        activity:
-          "Reports, elections, resolutions, voting on the new constitution, and other conference business",
+        time: "8:30 AM - 9:00 AM",
+        activity: "Opening prayer, call to order, and adoption of conference agenda",
         location: "Hotel conference room",
       },
       {
-        time: "2:00 – ~4:00 PM",
+        time: "9:00 AM - 12:00 PM",
+        activity:
+          "Committee and NEC reports, floor interventions, and strategic resolutions",
+        location: "Hotel conference room",
+      },
+      {
+        time: "12:00 PM - 1:00 PM",
+        activity: "Lunch break",
+        location: "Hotel restaurant",
+      },
+      {
+        time: "1:00 PM - 2:00 PM",
+        activity:
+          "Elections, constitutional business, motions, and formal conference decisions",
+        location: "Hotel conference room",
+      },
+      {
+        time: "2:00 PM - 4:00 PM",
         activity: "Rest — delegates may relax at the hotel",
         location: "Hotel / personal time",
       },
       {
-        time: "From ~4:00 PM",
+        time: "4:00 PM - 6:00 PM",
         activity: "Pool party and swimming",
         location: "Hotel pool / spa area",
+      },
+      {
+        time: "7:00 PM - 9:00 PM",
+        activity: "Evening fellowship and city/province caucus check-ins",
+        location: "Hotel open space",
       },
     ],
   },
@@ -73,17 +107,29 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     dateLabel: "Sunday, 26 July 2026",
     activities: [
       {
-        time: "Morning",
-        activity: "Conference room sessions",
+        time: "8:30 AM - 10:30 AM",
+        activity:
+          "Conference continuation, invited remarks, and credentialing / certification segments",
         location: "Hotel conference room",
       },
       {
-        time: "Afternoon",
+        time: "10:30 AM - 12:00 PM",
+        activity:
+          "Independence Day oration, inaugural address segment, and formal acknowledgments",
+        location: "Hotel conference room",
+      },
+      {
+        time: "12:00 PM - 1:30 PM",
+        activity: "Lunch and group photos",
+        location: "Hotel / designated photo point",
+      },
+      {
+        time: "2:00 PM - 5:30 PM",
         activity: "Football",
         location: "Hotel sports grounds",
       },
       {
-        time: "Evening",
+        time: "7:00 PM - 10:00 PM",
         activity: "Conference evening party",
         location: "Hotel venue (to be announced)",
       },
@@ -95,9 +141,19 @@ export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] = [
     dateLabel: "Monday, 27 July 2026",
     activities: [
       {
-        time: "By 12:00 noon",
+        time: "6:30 AM - 8:30 AM",
+        activity: "Breakfast, room checks, and baggage coordination",
+        location: "Hotel / room floors",
+      },
+      {
+        time: "8:30 AM - 12:00 noon",
         activity: "Check-out and departure from the hotel",
         location: "Hotel reception",
+      },
+      {
+        time: "After 12:00 noon",
+        activity: "Delegates in transit and city follow-up confirmations",
+        location: "Railway stations / travel routes",
       },
     ],
   },

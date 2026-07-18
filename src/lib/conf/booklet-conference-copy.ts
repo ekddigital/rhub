@@ -66,3 +66,18 @@ export const PROGRAM_OUTLINE_INTRO_PARAGRAPHS = [
 
 export const DEFAULT_PROGRAM_OUTLINE_INTRO =
   PROGRAM_OUTLINE_INTRO_PARAGRAPHS.join("\n\n");
+
+/** Overview + historical reference section for LSUIC booklet pages. */
+export const LSUIC_OVERVIEW_PARAGRAPHS = [
+  "The Liberian Student Union in China (LSUIC) was established in July 2006 as a student-led organization committed to unity, academic excellence, leadership development, and welfare support for Liberian students across China. The union exists to strengthen communication among members, promote responsible representation, and build a constructive bridge between Liberian students, Chinese institutions, and Liberia's national interest.",
+  "Over the years, LSUIC has grown from a small student network into a structured union with an elected National Executive Committee, city and provincial coordination, specialized committees, and annual general conferences that guide policy, leadership transition, and collective action. Through these structures, members support one another academically, socially, and professionally while preserving shared identity and service values.",
+  "Presidents of LSUIC (2006 - Present): Mr. Alexander Nuetah (2006-2010); Mr. Augustine F. Tokpa (2010-2011); Mr. Bernel S. Dennis (2011-2012); Dr. Presley K. Wesseh, Jr. (2012-2013); Ms. Patience M. Martor (2013-2014); Dr. Edwin N. Sumowar (2014-2015); Dr. Abimelech P. Gbatu (2015-2016); Mr. Mulbah Gbozee (2016-2017); Mr. Allen Bohr James (2017-2018); Dr. Charles Gbolie (2018-2019); Dr. Yamah Bavor King (2019-2020); Mr. Hassan Francis Whitfield (2020-2022); Mr. Emmet A. Johee Greene (2022-2023); Jacob Cephus Johnson (2023-2025); Hon. Gideon F. B. Solre (2025).",
+  "Past conference venues include Beijing, Wuhan, Tianjin, Shanghai, Changsha, Xuzhou, Hangzhou, Guangzhou, Nanjing, and other host cities over multiple years, including online-era transitions during 2020 and 2021. These annual gatherings remain central to LSUIC's identity: they renew leadership, strengthen democratic participation, and sustain institutional memory across generations.",
+].join("\n\n");
+
+/** Union history section for booklet context and institutional continuity. */
+export const LSUIC_HISTORY_PARAGRAPHS = [
+  "LSUIC's history is defined by continuity through student transitions. Because members graduate and relocate, each leadership cycle must document decisions, preserve records, and hand over systems that the next team can improve rather than rebuild. This principle has shaped the union's long-term progress in governance, conference delivery, and member services.",
+  "The union's development has moved through key phases: foundation and city-level expansion, committee-based organization, broader conference participation, and modern digital operations for registration, communication, and reporting. Each phase reflects the same goal: to serve Liberian students with integrity, accountability, and practical support in their academic journey.",
+  "As LSUIC enters its third decade, its institutional mission remains clear: honor past contributions, engage present responsibilities, and equip future leaders to carry the union forward. The annual conference is not only a celebration - it is the union's primary civic forum for collective reflection, constitutional engagement, and responsible transition.",
+].join("\n\n");
