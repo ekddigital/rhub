@@ -116,7 +116,7 @@ export function BackCoverPage({
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "24px 60px",
+          padding: "18px 52px",
           textAlign: "center",
         }}
       >
@@ -125,16 +125,16 @@ export function BackCoverPage({
           src={ASSETS.lsuicLogo}
           alt="LSUIC"
           style={{
-            width: "104px",
-            height: "104px",
+            width: "148px",
+            height: "148px",
             objectFit: "contain",
-            marginBottom: "18px",
+            marginBottom: "14px",
           }}
         />
 
         <div
           style={{
-            fontSize: "13px",
+            fontSize: "15px",
             fontWeight: 800,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
@@ -146,10 +146,10 @@ export function BackCoverPage({
         </div>
         <div
           style={{
-            fontSize: "11px",
+            fontSize: "12.5px",
             color: "#111111",
             fontStyle: "italic",
-            marginBottom: "24px",
+            marginBottom: "20px",
           }}
         >
           Excellence Through Hard Work
@@ -161,8 +161,8 @@ export function BackCoverPage({
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            marginBottom: "24px",
-            width: "300px",
+            marginBottom: "20px",
+            width: "340px",
           }}
         >
           <div style={{ flex: 1, height: "1.5px", background: C.red }} />
@@ -172,7 +172,7 @@ export function BackCoverPage({
 
         <div
           style={{
-            fontSize: "20px",
+            fontSize: "30px",
             fontWeight: 700,
             color: "#000000",
             marginBottom: "7px",
@@ -181,12 +181,12 @@ export function BackCoverPage({
           {event.name}
         </div>
         <div
-          style={{ fontSize: "12px", color: "#111111", marginBottom: "3px" }}
+          style={{ fontSize: "13.2px", color: "#111111", marginBottom: "4px" }}
         >
           {event.venue} · {event.city}, China
         </div>
         <div
-          style={{ fontSize: "12px", color: "#111111", marginBottom: "28px" }}
+          style={{ fontSize: "13.2px", color: "#111111", marginBottom: "22px" }}
         >
           {fmtRange(event.startsAt, event.endsAt)}
         </div>
@@ -194,16 +194,16 @@ export function BackCoverPage({
         {/* Thank-you card */}
         <div
           style={{
-            padding: "20px 28px",
+            padding: "24px 28px",
             borderRadius: "14px",
             border: `1px solid ${C.blue}20`,
             background: C.lightBlue,
-            maxWidth: "440px",
+            maxWidth: "500px",
           }}
         >
           <div
             style={{
-              fontSize: "15px",
+              fontSize: "18px",
               fontWeight: 700,
               color: "#000000",
               marginBottom: "8px",
@@ -211,7 +211,7 @@ export function BackCoverPage({
           >
             Thank You for Attending
           </div>
-          <div style={{ fontSize: "12px", lineHeight: 1.8, color: "#111111" }}>
+          <div style={{ fontSize: "13.8px", lineHeight: 1.8, color: "#111111" }}>
             Your participation makes LSUIC stronger. Together we advance
             education, unity, and development for Liberian students across
             China.
@@ -220,8 +220,8 @@ export function BackCoverPage({
 
         <div
           style={{
-            marginTop: "24px",
-            fontSize: "26px",
+            marginTop: "18px",
+            fontSize: "30px",
             letterSpacing: "0.3em",
           }}
         >

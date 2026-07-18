@@ -143,6 +143,17 @@ function normalizeBookletName(name: string): string {
   return (name ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+function normalizeLabel(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function isOverviewTextSection(section: BookletSection): boolean {
+  return (
+    section.type === "TEXT" &&
+    normalizeLabel(section.title).includes("overview of lsuic")
+  );
+}
+
 function renderSection(
   section: BookletSection,
   data: BookletData,
@@ -385,24 +396,37 @@ function renderSection(
 
     default:
       if (!shouldRenderTextSection(section)) return null;
-      return (
-        <>
-          {paginateBookletBodyText(resolveTextSectionBody(section), "text").map(
-            (pageBody, idx) => (
+      {
+        const resolvedBody = resolveTextSectionBody(section);
+        const textPages = paginateBookletBodyText(resolvedBody, "text");
+        const isOverview = isOverviewTextSection(section);
+        const effectivePageCount = isOverview
+          ? Math.max(2, textPages.length)
+          : textPages.length;
+
+        const pageBodies = isOverview
+          ? Array.from({ length: effectivePageCount }, () => resolvedBody)
+          : textPages;
+
+        return (
+          <>
+            {pageBodies.map((pageBody, idx) => (
               <TextSection
                 key={`${key}-${idx}`}
                 section={section}
                 bodyText={pageBody}
                 showSectionHeading={idx === 0}
+                pageIndex={idx}
+                pageCount={effectivePageCount}
                 pageNum={startPageNum + idx}
                 totalPages={totalPages}
                 confName={confName}
                 confYear={confYear}
               />
-            ),
-          )}
-        </>
-      );
+            ))}
+          </>
+        );
+      }
   }
 }
 

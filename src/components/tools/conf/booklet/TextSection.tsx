@@ -96,6 +96,8 @@ export function TextSection({
   section,
   bodyText,
   showSectionHeading = true,
+  pageIndex = 0,
+  pageCount = 1,
   confName,
   confYear,
   pageNum,
@@ -104,6 +106,8 @@ export function TextSection({
   section: BookletSection;
   bodyText?: string;
   showSectionHeading?: boolean;
+  pageIndex?: number;
+  pageCount?: number;
   confName: string;
   confYear: number;
   pageNum: number;
@@ -121,10 +125,13 @@ export function TextSection({
     LSUIC_PRESIDENT_HISTORY,
   );
   const [venuesLeft, venuesRight] = splitInHalf(LSUIC_PAST_CONFERENCES);
+  const isOverviewContinuationPage = overviewSection && pageCount > 1 && pageIndex > 0;
+  const showOverviewPresidents = overviewSection && !isOverviewContinuationPage;
+  const showOverviewVenues = overviewSection && (isOverviewContinuationPage || pageCount === 1);
 
   const visibleParagraphs = anthemSection
     ? []
-    : overviewSection
+    : showOverviewPresidents
       ? paragraphs.slice(0, 2)
       : paragraphs;
 
@@ -210,7 +217,7 @@ export function TextSection({
               </p>
             ))}
 
-        {overviewSection && (
+        {showOverviewPresidents && (
           <div style={{ marginTop: "14px" }}>
             <div
               style={{
@@ -233,6 +240,47 @@ export function TextSection({
             >
               <PresidentsTable rows={presidentsLeft} />
               <PresidentsTable rows={presidentsRight} />
+            </div>
+
+            {pageCount > 1 && (
+              <p
+                style={{
+                  marginTop: "10px",
+                  marginBottom: 0,
+                  fontSize: "12.6px",
+                  lineHeight: 1.55,
+                  color: "#27395D",
+                }}
+              >
+                Past conference venues continue on the next page.
+              </p>
+            )}
+          </div>
+        )}
+
+        {showOverviewVenues && (
+          <div style={{ marginTop: showOverviewPresidents ? "14px" : "4px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "26px",
+                marginBottom: "10px",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/conf/flag-of-liberia.png"
+                alt="Flag of Liberia"
+                style={{ width: "82px", height: "52px", objectFit: "contain" }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/conf/liberia-seal.svg"
+                alt="Seal of Liberia"
+                style={{ width: "52px", height: "52px", objectFit: "contain" }}
+              />
             </div>
 
             <div
@@ -378,6 +426,28 @@ export function TextSection({
 
         {historySection && (
           <div style={{ marginTop: "14px" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "8px",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/conf/flag-of-liberia.png"
+                alt="Flag of Liberia"
+                style={{ width: "58px", height: "36px", objectFit: "contain" }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/conf/liberia-seal.svg"
+                alt="Seal of Liberia"
+                style={{ width: "36px", height: "36px", objectFit: "contain" }}
+              />
+            </div>
             <div
               style={{
                 fontSize: "13.8px",

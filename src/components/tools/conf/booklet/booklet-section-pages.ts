@@ -35,6 +35,17 @@ function isCommitteeBookletSection(type: BookletSection["type"]): boolean {
   );
 }
 
+function normalizeLabel(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function isOverviewTextSection(section: BookletSection): boolean {
+  return (
+    section.type === "TEXT" &&
+    normalizeLabel(section.title).includes("overview of lsuic")
+  );
+}
+
 export function chunkDelegates<T>(items: T[], chunkSize: number): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < items.length; i += chunkSize) {
@@ -170,10 +181,14 @@ export function sectionPageSpan(
     return delegatesSectionPageCount(data.delegates.length);
   if (s.type === "PROGRAM_OUTLINE") return programOutlinePageCount(s);
   if (!shouldRenderTextSection(s)) return 0;
-  return Math.max(
+  const baseTextPages = Math.max(
     1,
     paginateBookletBodyText(resolveTextSectionBody(s), "text").length,
   );
+  if (isOverviewTextSection(s)) {
+    return Math.max(2, baseTextPages);
+  }
+  return baseTextPages;
 }
 
 export function bookletBodyPageCount(
