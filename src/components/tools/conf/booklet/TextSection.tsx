@@ -125,15 +125,19 @@ export function TextSection({
     LSUIC_PRESIDENT_HISTORY,
   );
   const [venuesLeft, venuesRight] = splitInHalf(LSUIC_PAST_CONFERENCES);
-  const isOverviewContinuationPage = overviewSection && pageCount > 1 && pageIndex > 0;
+  const isOverviewContinuationPage =
+    overviewSection && pageCount > 1 && pageIndex > 0;
   const showOverviewPresidents = overviewSection && !isOverviewContinuationPage;
-  const showOverviewVenues = overviewSection && (isOverviewContinuationPage || pageCount === 1);
+  const showOverviewVenues =
+    overviewSection && (isOverviewContinuationPage || pageCount === 1);
 
   const visibleParagraphs = anthemSection
     ? []
-    : showOverviewPresidents
-      ? paragraphs.slice(0, 2)
-      : paragraphs;
+    : isOverviewContinuationPage
+      ? [] // continuation page: tables replace the prose
+      : showOverviewPresidents
+        ? paragraphs.slice(0, 2)
+        : paragraphs;
 
   return (
     <A4Page
@@ -341,12 +345,18 @@ export function TextSection({
                   {venuesLeft.map((row) => (
                     <tr key={`left-${row.city}-${row.year}`}>
                       <td
-                        style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}
+                        style={{
+                          padding: "6px 9px",
+                          border: `1px solid ${C.border}`,
+                        }}
                       >
                         {row.city}
                       </td>
                       <td
-                        style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}
+                        style={{
+                          padding: "6px 9px",
+                          border: `1px solid ${C.border}`,
+                        }}
                       >
                         {row.year}
                       </td>
@@ -393,12 +403,18 @@ export function TextSection({
                   {venuesRight.map((row) => (
                     <tr key={`right-${row.city}-${row.year}`}>
                       <td
-                        style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}
+                        style={{
+                          padding: "6px 9px",
+                          border: `1px solid ${C.border}`,
+                        }}
                       >
                         {row.city}
                       </td>
                       <td
-                        style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}
+                        style={{
+                          padding: "6px 9px",
+                          border: `1px solid ${C.border}`,
+                        }}
                       >
                         {row.year}
                       </td>

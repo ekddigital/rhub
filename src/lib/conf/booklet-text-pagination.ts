@@ -14,8 +14,8 @@ const TEXT_PROFILE: PaginationProfile = {
   lineHeight: 1.64,
   paragraphMarginBottom: 6,
   charsPerLine: 100,
-  firstPageMaxHeight: 860,
-  continuationPageMaxHeight: 930,
+  firstPageMaxHeight: 800,
+  continuationPageMaxHeight: 870,
 };
 
 const ADDRESS_PROFILE: PaginationProfile = {
@@ -23,8 +23,8 @@ const ADDRESS_PROFILE: PaginationProfile = {
   lineHeight: 1.62,
   paragraphMarginBottom: 6,
   charsPerLine: 92,
-  firstPageMaxHeight: 700,
-  continuationPageMaxHeight: 900,
+  firstPageMaxHeight: 620,
+  continuationPageMaxHeight: 840,
 };
 
 function splitParagraphs(text: string): string[] {

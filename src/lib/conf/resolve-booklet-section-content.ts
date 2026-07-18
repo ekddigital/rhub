@@ -1,7 +1,5 @@
 import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
-import {
-  resolveConferenceIntroBody,
-} from "@/lib/conf/booklet-conference-copy";
+import { resolveConferenceIntroBody } from "@/lib/conf/booklet-conference-copy";
 import type {
   BookletData,
   BookletSection,
@@ -47,7 +45,9 @@ export {
   resolveConferenceIntroBody,
 } from "@/lib/conf/booklet-conference-copy";
 
-export function isConferenceIntroductionSection(section: BookletSection): boolean {
+export function isConferenceIntroductionSection(
+  section: BookletSection,
+): boolean {
   const title = normalizeLabel(section.title);
   return (
     section.type === "TEXT" &&
@@ -99,18 +99,11 @@ export const DEFAULT_PRESIDENT_ADDRESS = [
   "If we do not write our history, someone else will do that for us, and the narratives will not reflect our reality. We have written our history. We have built our legacy. And we have shown what is possible when leaders choose to serve rather than to be served.",
   "Twenty years ago, someone had a dream. Today, that dream is alive, thriving, and stronger than ever.",
   "Long live the Liberian Student Union in China. Long live the spirit of excellence through hard work. And may God continue to bless the Republic of Liberia and the People's Republic of China.",
-  "",
-  "Olano Teah Bloh",
-  "National President",
-  "Liberian Student Union in China",
-  "Fiscal Year 2025-2026",
-  "",
-  "July 26, 2026",
-  "Jinan, Shandong Province",
-  "People's Republic of China",
 ].join("\n\n");
 
-export function leaderProfileToSpeaker(leader: LeaderProfile): BookletAddressSpeaker {
+export function leaderProfileToSpeaker(
+  leader: LeaderProfile,
+): BookletAddressSpeaker {
   return {
     id: leader.id,
     name: leader.name,
@@ -136,7 +129,9 @@ export function rosterMemberToSpeaker(
   };
 }
 
-export function isNationalPresidentRole(role: string | null | undefined): boolean {
+export function isNationalPresidentRole(
+  role: string | null | undefined,
+): boolean {
   return (role ?? "").toLowerCase().includes("national president");
 }
 
@@ -203,8 +198,7 @@ export function leaderSectionPageCount(
     data.leaders,
     data.event.id,
   ).reduce(
-    (sum, leader) =>
-      sum + (leaderBioWarrantsMessagePage(leader.bio) ? 2 : 1),
+    (sum, leader) => sum + (leaderBioWarrantsMessagePage(leader.bio) ? 2 : 1),
     0,
   );
 }

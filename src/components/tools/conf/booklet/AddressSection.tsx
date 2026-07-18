@@ -253,10 +253,14 @@ export function AddressSection({
         >
           <Avatar src={speaker.photoPath} name={speaker.name} size={50} />
           <div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: "#000000" }}>
+            <div
+              style={{ fontSize: "15px", fontWeight: 700, color: "#000000" }}
+            >
               {speaker.name}
             </div>
-            <div style={{ fontSize: "11.5px", color: "#222222", marginTop: "2px" }}>
+            <div
+              style={{ fontSize: "11.5px", color: "#222222", marginTop: "2px" }}
+            >
               {roleLabel(speaker as NecMember)}
               {speaker.city ? ` · ${speaker.city}` : ""}
             </div>
@@ -389,24 +393,57 @@ export function AddressSection({
       {speaker && trimmed && showSignature && (
         <div
           style={{
-            marginTop: "20px",
-            paddingTop: "14px",
-            borderTop: `1px solid ${C.border}`,
+            marginTop: "22px",
+            paddingTop: "16px",
+            borderTop: `2px solid ${C.border}`,
           }}
         >
-          <div
-            style={{
-              fontSize: "13px",
-              fontWeight: 700,
-              color: "#000000",
-              marginBottom: "2px",
-            }}
-          >
-            {speaker.name}
-          </div>
-          <div style={{ fontSize: "11.5px", color: "#333333" }}>
-            {roleLabel(speaker as NecMember)}
-          </div>
+          {/* Signature photo beside sign-off for president address */}
+          {section.type === "PRESIDENT_ADDRESS" ? (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
+              <Avatar src={speaker.photoPath} name={speaker.name} size={54} />
+              <div>
+                <div
+                  style={{
+                    fontSize: "14.5px",
+                    fontWeight: 800,
+                    color: "#000000",
+                    letterSpacing: "0.01em",
+                  }}
+                >
+                  {speaker.name}
+                </div>
+                <div style={{ fontSize: "12px", color: "#222222", marginTop: "1px" }}>
+                  {roleLabel(speaker as NecMember)}
+                </div>
+                <div style={{ fontSize: "12px", color: "#222222" }}>
+                  Liberian Student Union in China
+                </div>
+                <div style={{ fontSize: "11px", color: "#444444", marginTop: "3px" }}>
+                  Fiscal Year 2025–2026
+                </div>
+                <div style={{ fontSize: "11px", color: "#444444", marginTop: "6px" }}>
+                  July 26, 2026 · Jinan, Shandong Province, People's Republic of China
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  color: "#000000",
+                  marginBottom: "2px",
+                }}
+              >
+                {speaker.name}
+              </div>
+              <div style={{ fontSize: "11.5px", color: "#333333" }}>
+                {roleLabel(speaker as NecMember)}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </A4Page>
