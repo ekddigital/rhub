@@ -371,14 +371,14 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "52px",
+              fontSize: "50px",
               fontWeight: 900,
               color: C.white,
-              lineHeight: 1.1,
+              lineHeight: 1.08,
               marginBottom: "12px",
             }}
           >
-            Detailed Program Guide
+            Conference Daily Outline
           </div>
 
           <div
