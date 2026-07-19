@@ -52,7 +52,7 @@ export type BookletLayout = {
 };
 
 const COVER_TITLE_FALLBACK =
-  "20th Annaual Conference & 179th Independence Day Celebration of Liberia";
+  "20th Annual Conference & 179th Independence Day Celebration of Liberia";
 
 function resolveCoverTitle(title: string | null | undefined): string {
   const normalized = (title ?? "").trim();

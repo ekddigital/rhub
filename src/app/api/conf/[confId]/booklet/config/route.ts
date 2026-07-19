@@ -1122,7 +1122,7 @@ export async function PATCH(
         title:
           typeof title === "string"
             ? title
-            : "20th Annaual Conference & 179th Independence Day Celebration of Liberia",
+            : "20th Annual Conference & 179th Independence Day Celebration of Liberia",
         subtitle: typeof subtitle === "string" ? subtitle : undefined,
         theme: typeof theme === "string" ? theme : undefined,
         coverImagePath:

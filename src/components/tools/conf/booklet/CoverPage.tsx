@@ -19,11 +19,11 @@ function renderCoverTitle(bookletTitle: string) {
   const normalized = bookletTitle.trim().toLowerCase();
   if (
     normalized ===
-    "20th annaual conference & 179th independence day celebration of liberia"
+    "20th annual conference & 179th independence day celebration of liberia"
   ) {
     return (
       <>
-        20th Annaual Conference
+        20th Annual Conference
         <br />
         &amp;
         <br />
