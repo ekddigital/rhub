@@ -151,7 +151,7 @@ export const LSUIC_HISTORY_MILESTONES: Array<{
     period: "2020-2023",
     focus: "Adaptation & Hybrid Coordination",
     outcomes:
-      "Online coordination, resilient annual programming, and broader member participation.",
+      "Online coordination, resilient annual programs, and broader member participation.",
   },
   {
     period: "2024-2026",

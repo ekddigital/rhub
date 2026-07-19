@@ -40,6 +40,10 @@ function splitInHalf<T>(items: T[]): [T[], T[]] {
   return [items.slice(0, mid), items.slice(mid)];
 }
 
+function isMemorialPresident(name: string): boolean {
+  return name.trim().toLowerCase() === "dr. presley k. wesseh, jr.";
+}
+
 function PresidentsTable({
   rows,
 }: {
@@ -79,7 +83,14 @@ function PresidentsTable({
       <tbody>
         {rows.map((row) => (
           <tr key={`${row.name}-${row.term}`}>
-            <td style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}>
+            <td
+              style={{
+                padding: "6px 9px",
+                border: `1px solid ${C.border}`,
+                color: isMemorialPresident(row.name) ? C.red : "#111111",
+                fontWeight: isMemorialPresident(row.name) ? 700 : 500,
+              }}
+            >
               {row.name}
             </td>
             <td style={{ padding: "6px 9px", border: `1px solid ${C.border}` }}>
