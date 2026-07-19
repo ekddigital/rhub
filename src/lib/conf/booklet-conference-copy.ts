@@ -74,7 +74,7 @@ export const DEFAULT_PROGRAM_OUTLINE_INTRO =
 export const LSUIC_OVERVIEW_PARAGRAPHS = [
   "The Liberian Student Union in China (LSUIC) was established in July 2006 as a student-led organization committed to unity, academic excellence, leadership development, and welfare support for Liberian students across China. The union exists to strengthen communication among members, promote responsible representation, and build a constructive bridge between Liberian students, Chinese institutions, and Liberia's national interest.",
   "Over the years, LSUIC has grown from a small student network into a structured union with an elected National Executive Committee, city and provincial coordination, specialized committees, and annual general conferences that guide policy, leadership transition, and collective action. Through these structures, members support one another academically, socially, and professionally while preserving shared identity and service values.",
-  "Presidents of LSUIC (2006 - Present): Mr. Alexander Nuetah (2006-2010); Mr. Augustine F. Tokpa (2010-2011); Mr. Bernel S. Dennis (2011-2012); Dr. Presley K. Wesseh, Jr. (2012-2013); Ms. Patience M. Martor (2013-2014); Dr. Edwin N. Sumowar (2014-2015); Dr. Abimelech P. Gbatu (2015-2016); Mr. Mulbah Gbozee (2016-2017); Mr. Allen Bohr James (2017-2018); Dr. Charles Gbolie (2018-2019); Dr. Yamah Bavor King (2019-2020); Mr. Hassan Francis Whitfield (2020-2022); Mr. Emmet A. Johee Greene (2022-2023); Jacob Cephus Johnson (2023-2025); Hon. Gideon F. B. Solre (2025).",
+  "Presidents of LSUIC (2006 - Present): Mr. Alexander Nuetah (2006-2010); Mr. Augustine F. Tokpa (2010-2011); Mr. Bernel S. Dennis (2011-2012); Dr. Presley K. Wesseh, Jr. (2012-2013); Ms. Patience M. Martor (2013-2014); Dr. Edwin N. Sumowar (2014-2015); Dr. Abimelech P. Gbatu (2015-2016); Mr. Mulbah Gbozee (2016-2017); Mr. Allen Bohr James (2017-2018); Dr. Charles Gbolie (2018-2019); Dr. Yamah Bavor King (2019-2020); Mr. Hassan Francis Whitfield (2020-2022); Mr. Emmet A. Johee Greene (2022-2023); Jacob Cephus Johnson (2023-2025); Hon. Gideon F. B. Solre (2025, 2 Weeks).",
   "Past conference venues include Beijing, Wuhan, Tianjin, Shanghai, Changsha, Xuzhou, Hangzhou, Guangzhou, Nanjing, and other host cities over multiple years, including online-era transitions during 2020 and 2021. These annual gatherings remain central to LSUIC's identity: they renew leadership, strengthen democratic participation, and sustain institutional memory across generations.",
 ].join("\n\n");
 
@@ -100,7 +100,7 @@ export const LSUIC_PRESIDENT_HISTORY: Array<{ name: string; term: string }> = [
   { name: "Mr. Hassan Francis Whitfield", term: "2020-2022" },
   { name: "Mr. Emmet A. Johee Greene", term: "2022-2023" },
   { name: "Mr. Jacob Cephus Johnson", term: "2023-2025" },
-  { name: "Hon. Gideon F. B. Solre", term: "2025" },
+  { name: "Hon. Gideon F. B. Solre", term: "2025 (2 Weeks)" },
   { name: "Hon. Olano Teah Bloh", term: "2025-2026" },
 ];
 

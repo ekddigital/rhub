@@ -41,6 +41,39 @@ function leaderMessageTitle(leader: LeaderProfile): string {
   return `${leader.name} — Message`;
 }
 
+function resolveDisplayRole(leader: LeaderProfile): string | null {
+  const role = (leader.role ?? "").trim();
+  if (!role) return null;
+
+  const normalizedRole = role.toLowerCase().replace(/\./g, "").trim();
+  const normalizedTitle = (leader.title ?? "").toLowerCase();
+
+  if (normalizedRole === "he" || normalizedRole === "h e") {
+    return "His Excellency";
+  }
+
+  if (
+    normalizedRole === "ambassador" ||
+    normalizedTitle.includes("ambassador")
+  ) {
+    return "The Ambassador";
+  }
+
+  return role;
+}
+
+function isDignitaryProfile(leader: LeaderProfile): boolean {
+  const role = (leader.role ?? "").toLowerCase();
+  const title = (leader.title ?? "").toLowerCase();
+  return (
+    role.includes("h.e") ||
+    role.includes("excellency") ||
+    role.includes("ambassador") ||
+    title.includes("president") ||
+    title.includes("ambassador")
+  );
+}
+
 // ─── Single full-page portrait ─────────────────────────────────────────────
 // Design mirrors the LSUIC 18th Annual General Conference Booklet (pages 2–4):
 //   • White page
@@ -61,6 +94,8 @@ function LeaderPortraitPage({
   totalPages: number;
 }) {
   const [imgFailed, setImgFailed] = useState(false);
+  const displayRole = resolveDisplayRole(leader);
+  const dignitaryProfile = isDignitaryProfile(leader);
 
   const flagEmoji = leader.country?.toLowerCase().includes("liberia")
     ? "🇱🇷"
@@ -197,7 +232,7 @@ function LeaderPortraitPage({
             paddingBottom: "24px",
           }}
         >
-          {leader.role && (
+          {displayRole && (
             <div
               style={{
                 fontSize: "16px",
@@ -208,7 +243,7 @@ function LeaderPortraitPage({
                 marginBottom: "6px",
               }}
             >
-              {leader.role}
+              {displayRole}
             </div>
           )}
 
@@ -247,14 +282,32 @@ function LeaderPortraitPage({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "5px",
-                fontSize: "12px",
+                gap: dignitaryProfile ? "9px" : "5px",
+                fontSize: dignitaryProfile ? "15px" : "12px",
                 color: C.muted,
               }}
             >
-              {flagEmoji && <span>{flagEmoji}</span>}
+              {flagEmoji && (
+                <span
+                  style={{
+                    fontSize: dignitaryProfile ? "22px" : "12px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {flagEmoji}
+                </span>
+              )}
               {leader.country && (
-                <span style={{ fontWeight: 500 }}>{leader.country}</span>
+                <span
+                  style={{
+                    fontWeight: dignitaryProfile ? 700 : 500,
+                    fontSize: dignitaryProfile ? "17px" : "12px",
+                    color: dignitaryProfile ? C.darkBlue : C.muted,
+                    letterSpacing: dignitaryProfile ? "0.02em" : "normal",
+                  }}
+                >
+                  {leader.country}
+                </span>
               )}
             </div>
           )}
