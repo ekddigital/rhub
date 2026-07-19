@@ -10,8 +10,8 @@ import {
   type ProgramSlot,
 } from "./program-data";
 
-const FIRST_DAY_PAGE_CAPACITY = 78;
-const CONTINUED_DAY_PAGE_CAPACITY = 88;
+const FIRST_DAY_PAGE_CAPACITY = 96;
+const CONTINUED_DAY_PAGE_CAPACITY = 108;
 
 const DAY_COLORS: Record<number, { accent: string; badge: string }> = {
   1: { accent: C.blue, badge: "#E8EEF8" },
@@ -90,7 +90,7 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
       {/* Time */}
       <div
         style={{
-          fontSize: "13px",
+          fontSize: "14px",
           fontWeight: 800,
           color: accent,
           lineHeight: 1.4,
@@ -105,10 +105,10 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: "14px",
+            fontSize: "15px",
             fontWeight: slot.highlight ? 800 : 700,
             color: "#000000",
-            lineHeight: 1.48,
+            lineHeight: 1.5,
           }}
         >
           {slot.activity}
@@ -118,7 +118,7 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
           <div
             style={{
               marginTop: "3px",
-              fontSize: "12.5px",
+              fontSize: "13.5px",
               fontWeight: 700,
               color: C.red,
               display: "flex",
@@ -134,7 +134,7 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
           <div
             style={{
               marginTop: "3px",
-              fontSize: "12px",
+              fontSize: "13px",
               fontWeight: 600,
               color: "#3A5080",
               fontStyle: "italic",
@@ -158,10 +158,10 @@ function SlotRow({ slot, accent }: { slot: ProgramSlot; accent: string }) {
               <li
                 key={i}
                 style={{
-                  fontSize: "12px",
+                  fontSize: "13px",
                   fontWeight: 600,
                   color: "#1A2F5E",
-                  lineHeight: 1.48,
+                  lineHeight: 1.5,
                 }}
               >
                 {sub.label}
@@ -198,7 +198,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
             borderRadius: "14px",
             background: color.accent,
             color: C.white,
-            fontSize: "11px",
+            fontSize: "12px",
             fontWeight: 800,
             letterSpacing: "0.1em",
             textTransform: "uppercase",
@@ -208,7 +208,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
         </div>
         <div
           style={{
-            fontSize: "15px",
+            fontSize: "16px",
             fontWeight: 700,
             color: "#555555",
           }}
@@ -219,7 +219,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
       <div
         style={{
           marginTop: "4px",
-          fontSize: "21px",
+          fontSize: "23px",
           fontWeight: 900,
           color: "#000000",
           lineHeight: 1.2,
@@ -231,7 +231,7 @@ function DayHeader({ day }: { day: ProgramDay }) {
         <div
           style={{
             marginTop: "2px",
-            fontSize: "13.5px",
+            fontSize: "14.5px",
             fontWeight: 700,
             color: color.accent,
             fontStyle: "italic",
@@ -245,17 +245,17 @@ function DayHeader({ day }: { day: ProgramDay }) {
 }
 
 function estimateSlotUnits(slot: ProgramSlot): number {
-  const activityUnits = Math.ceil(slot.activity.length / 74) * 1.3;
-  const byUnits = slot.by ? Math.ceil(slot.by.length / 86) * 0.95 : 0;
-  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 72) * 0.95 : 0;
+  const activityUnits = Math.ceil(slot.activity.length / 68) * 1.6;
+  const byUnits = slot.by ? Math.ceil(slot.by.length / 80) * 1.1 : 0;
+  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 66) * 1.1 : 0;
   const subsUnits =
     slot.subs?.reduce((sum, sub) => {
-      const subLabelUnits = Math.ceil(sub.label.length / 82) * 0.9;
-      const subByUnits = sub.by ? Math.ceil(sub.by.length / 82) * 0.55 : 0;
+      const subLabelUnits = Math.ceil(sub.label.length / 76) * 1.05;
+      const subByUnits = sub.by ? Math.ceil(sub.by.length / 76) * 0.7 : 0;
       return sum + subLabelUnits + subByUnits;
     }, 0) ?? 0;
 
-  return 4.6 + activityUnits + byUnits + mealUnits + subsUnits;
+  return 5.2 + activityUnits + byUnits + mealUnits + subsUnits;
 }
 
 function splitDaySlots(slots: ProgramSlot[]): ProgramSlot[][] {
@@ -420,7 +420,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         >
           <div
             style={{
-              fontSize: "15px",
+              fontSize: "18px",
               fontWeight: 800,
               color: `${C.white}CC`,
               letterSpacing: "0.22em",
@@ -433,7 +433,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "50px",
+              fontSize: "58px",
               fontWeight: 900,
               color: C.white,
               lineHeight: 1.08,
@@ -445,7 +445,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "24px",
+              fontSize: "29px",
               fontWeight: 800,
               color: C.gold,
               marginBottom: "8px",
@@ -456,7 +456,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "16px",
+              fontSize: "20px",
               fontWeight: 700,
               color: `${C.white}DD`,
               marginBottom: "28px",
@@ -476,7 +476,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 
           <div
             style={{
-              fontSize: "17px",
+              fontSize: "21px",
               fontWeight: 700,
               color: C.white,
               fontStyle: "italic",
@@ -487,7 +487,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
           </div>
           <div
             style={{
-              fontSize: "13.5px",
+              fontSize: "16px",
               fontWeight: 600,
               color: `${C.white}BB`,
             }}
@@ -520,7 +520,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
             >
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontWeight: 800,
                   color: C.gold,
                   letterSpacing: "0.12em",
@@ -531,7 +531,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               </div>
               <div
                 style={{
-                  fontSize: "13px",
+                  fontSize: "14px",
                   fontWeight: 800,
                   color: C.white,
                   lineHeight: 1.3,
@@ -541,7 +541,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               </div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontWeight: 700,
                   color: `${C.white}CC`,
                   marginTop: "3px",
@@ -574,7 +574,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
       <ProgramA4Page pageNum={2} sectionLabel="Conference Notes">
         <div
           style={{
-            fontSize: "22px",
+            fontSize: "24px",
             fontWeight: 900,
             color: C.blue,
             marginBottom: "6px",
@@ -593,7 +593,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         <div style={{ marginBottom: "18px" }}>
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: 700,
               color: "#111111",
               marginBottom: "6px",
@@ -601,10 +601,10 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
           >
             Venue
           </div>
-          <div style={{ fontSize: "13.5px", fontWeight: 700, color: C.blue }}>
+          <div style={{ fontSize: "14.5px", fontWeight: 700, color: C.blue }}>
             {PROGRAM_META.venue}
           </div>
-          <div style={{ fontSize: "12px", fontWeight: 600, color: "#333333" }}>
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#333333" }}>
             {PROGRAM_META.location}
           </div>
         </div>
@@ -612,7 +612,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         <div style={{ marginBottom: "20px" }}>
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: 700,
               color: "#111111",
               marginBottom: "10px",
@@ -637,7 +637,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                   borderRadius: "50%",
                   background: C.blue,
                   color: C.white,
-                  fontSize: "10px",
+                  fontSize: "11px",
                   fontWeight: 800,
                   display: "flex",
                   alignItems: "center",
@@ -649,7 +649,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
               </div>
               <div
                 style={{
-                  fontSize: "13px",
+                  fontSize: "14px",
                   fontWeight: 700,
                   color: "#111111",
                   lineHeight: 1.55,
@@ -664,7 +664,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         <div>
           <div
             style={{
-              fontSize: "14px",
+              fontSize: "15px",
               fontWeight: 700,
               color: "#111111",
               marginBottom: "10px",
@@ -693,7 +693,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                 >
                   <div
                     style={{
-                      fontSize: "10px",
+                      fontSize: "11px",
                       fontWeight: 800,
                       color: c.accent,
                       textTransform: "uppercase",
@@ -705,7 +705,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                   </div>
                   <div
                     style={{
-                      fontSize: "14px",
+                      fontSize: "15px",
                       fontWeight: 800,
                       color: "#000000",
                       lineHeight: 1.2,
@@ -715,7 +715,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                   </div>
                   <div
                     style={{
-                      fontSize: "11px",
+                      fontSize: "12px",
                       fontWeight: 700,
                       color: "#555555",
                       marginTop: "2px",
@@ -726,7 +726,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                   {d.theme && (
                     <div
                       style={{
-                        fontSize: "10.5px",
+                        fontSize: "11.5px",
                         fontStyle: "italic",
                         color: c.accent,
                         marginTop: "2px",
@@ -747,7 +747,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                     >
                       <div
                         style={{
-                          fontSize: "9px",
+                          fontSize: "10px",
                           fontWeight: 800,
                           color: c.accent,
                           textTransform: "uppercase",
@@ -780,7 +780,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <span
                               style={{
-                                fontSize: "9.5px",
+                                fontSize: "10.5px",
                                 fontWeight: 700,
                                 color: "#000000",
                               }}
@@ -789,7 +789,7 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
                             </span>{" "}
                             <span
                               style={{
-                                fontSize: "9.5px",
+                                fontSize: "10.5px",
                                 fontWeight: 600,
                                 color: "#333333",
                               }}
@@ -838,7 +838,7 @@ function renderDayPages(
           ) : (
             <div
               style={{
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 700,
                 color: accent,
                 marginBottom: "8px",
