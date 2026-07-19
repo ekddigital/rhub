@@ -10,7 +10,8 @@ import {
   type ProgramSlot,
 } from "./program-data";
 
-export const PROGRAM_GUIDE_TOTAL_PAGES = 9;
+const FIRST_DAY_PAGE_CAPACITY = 78;
+const CONTINUED_DAY_PAGE_CAPACITY = 88;
 
 const DAY_COLORS: Record<number, { accent: string; badge: string }> = {
   1: { accent: C.blue, badge: "#E8EEF8" },
@@ -242,6 +243,67 @@ function DayHeader({ day }: { day: ProgramDay }) {
     </div>
   );
 }
+
+function estimateSlotUnits(slot: ProgramSlot): number {
+  const activityUnits = Math.ceil(slot.activity.length / 74) * 1.3;
+  const byUnits = slot.by ? Math.ceil(slot.by.length / 86) * 0.95 : 0;
+  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 72) * 0.95 : 0;
+  const subsUnits =
+    slot.subs?.reduce((sum, sub) => {
+      const subLabelUnits = Math.ceil(sub.label.length / 82) * 0.9;
+      const subByUnits = sub.by ? Math.ceil(sub.by.length / 82) * 0.55 : 0;
+      return sum + subLabelUnits + subByUnits;
+    }, 0) ?? 0;
+
+  return 4.6 + activityUnits + byUnits + mealUnits + subsUnits;
+}
+
+function splitDaySlots(slots: ProgramSlot[]): ProgramSlot[][] {
+  const pages: ProgramSlot[][] = [];
+  let currentPage: ProgramSlot[] = [];
+  let usedUnits = 0;
+
+  for (const slot of slots) {
+    const capacity =
+      pages.length === 0 ? FIRST_DAY_PAGE_CAPACITY : CONTINUED_DAY_PAGE_CAPACITY;
+    const slotUnits = estimateSlotUnits(slot);
+    const wouldOverflow = usedUnits + slotUnits > capacity;
+
+    if (wouldOverflow && currentPage.length > 0) {
+      pages.push(currentPage);
+      currentPage = [slot];
+      usedUnits = slotUnits;
+      continue;
+    }
+
+    currentPage.push(slot);
+    usedUnits += slotUnits;
+  }
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+
+  return pages;
+}
+
+const DAY_SLOT_PAGES = DETAILED_PROGRAM_DAYS.map((day) => splitDaySlots(day.slots));
+
+export const PROGRAM_GUIDE_TOTAL_PAGES =
+  2 + DAY_SLOT_PAGES.reduce((sum, pages) => sum + pages.length, 0);
+
+const DAY_PAGE_LAYOUTS = DETAILED_PROGRAM_DAYS.map((day, idx) => ({
+  day,
+  pages: DAY_SLOT_PAGES[idx] ?? [day.slots],
+})).reduce<Array<{ day: ProgramDay; pages: ProgramSlot[][]; startPageNum: number }>>(
+  (acc, entry) => {
+    const last = acc[acc.length - 1];
+    const startPageNum = last ? last.startPageNum + last.pages.length : 3;
+    acc.push({ ...entry, startPageNum });
+    return acc;
+  },
+  [],
+);
 
 export function ProgramDocument({ gap = 0 }: { gap?: number }) {
   const colors = DAY_COLORS;
@@ -746,98 +808,52 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
         </div>
       </ProgramA4Page>
 
-      {/* ── Day 1 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(
-        DAY_1_SLOTS_PAGE1,
-        DAY_1_SLOTS_PAGE2,
-        DETAILED_PROGRAM_DAYS[0],
-        3,
+      {/* ── Day pages (content-aware splits) ───────────────────────────── */}
+      {DAY_PAGE_LAYOUTS.map((layout) =>
+        renderDayPages(layout.pages, layout.day, layout.startPageNum),
       )}
-
-      {/* ── Day 2 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(
-        DAY_2_SLOTS_PAGE1,
-        DAY_2_SLOTS_PAGE2,
-        DETAILED_PROGRAM_DAYS[1],
-        5,
-      )}
-
-      {/* ── Day 3 across 2 pages ──────────────────────────────────────── */}
-      {renderDayPages(
-        DAY_3_SLOTS_PAGE1,
-        DAY_3_SLOTS_PAGE2,
-        DETAILED_PROGRAM_DAYS[2],
-        7,
-      )}
-
-      {/* ── Day 4: 1 page ─────────────────────────────────────────────── */}
-      <ProgramA4Page
-        pageNum={9}
-        sectionLabel={`Day 4 — ${DETAILED_PROGRAM_DAYS[3].label}`}
-      >
-        <DayHeader day={DETAILED_PROGRAM_DAYS[3]} />
-        {DETAILED_PROGRAM_DAYS[3].slots.map((slot, i) => (
-          <SlotRow
-            key={i}
-            slot={slot}
-            accent={DAY_COLORS[4]?.accent ?? C.blue}
-          />
-        ))}
-      </ProgramA4Page>
     </div>
   );
 }
-
-// ── Slot splits: each day split across two A4 pages ───────────────────────────
-const DAY_1_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[0].slots.slice(0, 9);
-const DAY_1_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[0].slots.slice(9);
-
-const DAY_2_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[1].slots.slice(0, 10);
-const DAY_2_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[1].slots.slice(10);
-
-const DAY_3_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[2].slots.slice(0, 12);
-const DAY_3_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[2].slots.slice(12);
-
 function renderDayPages(
-  page1Slots: ProgramSlot[],
-  page2Slots: ProgramSlot[],
+  pages: ProgramSlot[][],
   day: ProgramDay,
   startPageNum: number,
 ) {
   const accent = DAY_COLORS[day.day]?.accent ?? C.blue;
   return (
     <>
-      <ProgramA4Page
-        pageNum={startPageNum}
-        sectionLabel={`Day ${day.day} — ${day.label}`}
-      >
-        <DayHeader day={day} />
-        {page1Slots.map((slot, i) => (
-          <SlotRow key={i} slot={slot} accent={accent} />
-        ))}
-      </ProgramA4Page>
-
-      <ProgramA4Page
-        pageNum={startPageNum + 1}
-        sectionLabel={`Day ${day.day} — ${day.label} (cont.)`}
-      >
-        {/* continuation sub-heading */}
-        <div
-          style={{
-            fontSize: "13px",
-            fontWeight: 700,
-            color: accent,
-            marginBottom: "8px",
-            borderBottom: `1px solid ${accent}40`,
-            paddingBottom: "6px",
-          }}
+      {pages.map((pageSlots, pageIdx) => (
+        <ProgramA4Page
+          key={`day-${day.day}-page-${pageIdx}`}
+          pageNum={startPageNum + pageIdx}
+          sectionLabel={
+            pageIdx === 0
+              ? `Day ${day.day} — ${day.label}`
+              : `Day ${day.day} — ${day.label} (cont.)`
+          }
         >
-          Day {day.day} continued — {day.label}
-        </div>
-        {page2Slots.map((slot, i) => (
-          <SlotRow key={i} slot={slot} accent={accent} />
-        ))}
-      </ProgramA4Page>
+          {pageIdx === 0 ? (
+            <DayHeader day={day} />
+          ) : (
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 700,
+                color: accent,
+                marginBottom: "8px",
+                borderBottom: `1px solid ${accent}40`,
+                paddingBottom: "6px",
+              }}
+            >
+              Day {day.day} continued — {day.label}
+            </div>
+          )}
+          {pageSlots.map((slot, i) => (
+            <SlotRow key={i} slot={slot} accent={accent} />
+          ))}
+        </ProgramA4Page>
+      ))}
     </>
   );
 }
