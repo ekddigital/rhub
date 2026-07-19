@@ -1,4 +1,3 @@
-
 i need to make these modifications in the rhub/
 
 Change Travel Directions to Conference Venue
@@ -8,12 +7,12 @@ Travel Guide to The Conference Venue
 Under the Conference Theme, add the sub-theme.
 Honoring Our Past, Engaging Our Present, and Inspiring Our Future
 
-Change 
+Change
 S E CT I O N A : T RA N S I T · S E CT I O N B : TAX I
 
 S E CT I O N A : METRO/SUBWAY · S E CT I O N B : TAX I
 
-Change  – Su
+Change – Su
 b
 w
 a
@@ -25,12 +24,12 @@ y-Step
 
 to Public Transport
 
-change  Priv
+change Priv
 te C
 a
 ar/T
 a
-xi  
+xi
 
 to DiDi/Taxi and change Driving Detials to Routes
 
@@ -39,14 +38,13 @@ repeat the same to the others as well.
 change (All transit routes rely on this bus)
 to (All sub-way/metro routes rely on this bus)
 
-
-Change 
+Change
 
 Final Walking Directions from Bus Stop to Hotel
 
-to  Walking Directions: From the Bus Stop to Hotel
+to Walking Directions: From the Bus Stop to Hotel
 
- remove the in Qihe County in this
+remove the in Qihe County in this
 
 Arc
 a
@@ -58,12 +56,11 @@ a
 tion
 al Hotel in Qihe County
 
-
 Change all private cars to DiDi
 
 and for this
 
- ple
+ple
 ase review the critic
 al b
 us opera
@@ -77,7 +74,7 @@ ark.
 
 we can stoped at travels delays.
 
-and this can be updated to 
+and this can be updated to
 
 Section B covers priv
 te c
@@ -97,23 +94,20 @@ Section B covers DiDi/Taxi for each arrival stations.
 
 Make sure to increase the font sizes in this place
 
-
 on the second page where we have these
 
 All conference attendees will arrive at one of 3 Jinan train stations; travel distance & time varies drastically:
 
-lets fix it to 
+lets fix it to
 
 All conference attendees will arrive at one of the 3 Jinan train stations; travel distance & time varies drastically:
 
-
-and this 
-Drive Time	Toll	Notes
+and this
+Drive Time Toll Notes
 
 lets change the Toll to Cost
 
-
-Also for this 
+Also for this
 
 All public transit routes end with taking Bus K904 to reach the hotel.
 
@@ -137,25 +131,23 @@ Est. July 2006 we can have the theme
 
 remove the indentation for all the introduction and make sure that they are all justify and join some of the paragraphs so that they are very small and increase the font size too and the font color can be black
 
-
 for the president of China, we can also add his title like Chairman of the party or his actual title
 
 increase the font size for most wirting
 
-for this 
+for this
 
 Ambassador's Message
 
-we can change to 
+we can change to
 
 About the Ambassador
 
 Increase the font size as well and make things more big
 
-for the wirting on the NEC and ohters, it can be black and also 
+for the wirting on the NEC and ohters, it can be black and also
 
 if the pics can be more bigger and the formation for the NEC can either be 1 - 1 - 2 - 3
-
 
 for the pending on those who do not or haven't register yet, we can ignore the pending and just increase the font size for the others so that we dont just have pending
 
@@ -163,9 +155,9 @@ and for the C0C
 
 for this Committee Members
 
-on teh city president area, we cna remove the 
+on teh city president area, we cna remove the
 
-for the 
+for the
 Judicial Board
 instead of Committee Members we can have Board Members
 
@@ -177,26 +169,23 @@ remove Edwin Hena Dawolo from the AEC
 
 remove Amina K. Garwoloquoi as well from the entire booklet like edwin
 
-also add Dr. to Aaron S Pittman and also the AEC chair Christian Mulbah
-
+also add Dr. to Dr. Aaron S Pittman and also the AEC chair Christian Mulbah
 
 for the Audit committee lets remove Cheson Terrence from the entire booklet and
 
-for this 
+for this
 
 LSUIC 20th Anniversary National Conference which is in the header, let smake it all black
 
-make sure to always add the sub team to where the tehme is 
+make sure to always add the sub team to where the tehme is
 
 also for the schedule and program outline lets make sure that all writings that needs to be dark and increase font.
 
 People who haven;t register yet, can be informed and tagged that they won't be assign to a room if they haven';t register yet.
 
-
-we can change 
+we can change
 
 Morning – 2:00 PM to 8:30 - 2:00
-
 
 also mkae sure to increase all the font sizes and logo on the last page as well...
 
