@@ -15,6 +15,26 @@ import type { BookletData } from "./types";
 const T = COVER_TYPOGRAPHY;
 const S = COVER_SPACING;
 
+function renderCoverTitle(bookletTitle: string) {
+  const normalized = bookletTitle.trim().toLowerCase();
+  if (
+    normalized ===
+    "20th annaual conference & 179th independence day celebration of liberia"
+  ) {
+    return (
+      <>
+        20th Annaual Conference
+        <br />
+        &amp;
+        <br />
+        179th Independence Day Celebration of Liberia
+      </>
+    );
+  }
+
+  return bookletTitle;
+}
+
 export function CoverPage({
   event,
   bookletTitle,
@@ -233,7 +253,7 @@ export function CoverPage({
             textShadow: "0 1px 12px rgba(0,0,0,0.55)",
           }}
         >
-          Liberian Student Union in China
+          Liberian Student Union in China (LSUIC)
         </div>
 
         {/* Gold thin divider */}
@@ -259,7 +279,7 @@ export function CoverPage({
             letterSpacing: T.title.letterSpacing,
           }}
         >
-          {bookletTitle}
+          {renderCoverTitle(bookletTitle)}
         </div>
 
         {bookletSubtitle && (
@@ -285,6 +305,7 @@ export function CoverPage({
               background: `${C.gold}20`,
               border: `1.5px solid ${C.gold}50`,
               maxWidth: "500px",
+              marginTop: "14px",
               marginBottom: `${S.themeMarginBottom}px`,
             }}
           >
