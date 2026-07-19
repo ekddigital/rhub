@@ -63,7 +63,7 @@ export function A4Page({
           minHeight: 0,
           display: "flex",
           flexDirection: "column",
-          padding: "22px 26px 14px",
+          padding: "22px 32px 14px",
           position: "relative",
           zIndex: 1,
         }}

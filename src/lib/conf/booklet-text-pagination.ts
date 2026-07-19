@@ -13,7 +13,7 @@ const TEXT_PROFILE: PaginationProfile = {
   fontSize: 14.5,
   lineHeight: 1.64,
   paragraphMarginBottom: 6,
-  charsPerLine: 108,
+  charsPerLine: 98,
   firstPageMaxHeight: 860,
   continuationPageMaxHeight: 920,
 };

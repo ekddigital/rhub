@@ -130,6 +130,8 @@ export function TextSection({
   const showOverviewPresidents = overviewSection && !isOverviewContinuationPage;
   const showOverviewVenues =
     overviewSection && (isOverviewContinuationPage || pageCount === 1);
+  const proseMaxWidth =
+    anthemSection || historySection || overviewSection ? "700px" : "688px";
 
   const visibleParagraphs = anthemSection
     ? []
@@ -198,6 +200,9 @@ export function TextSection({
 
       <div
         style={{
+          width: "100%",
+          maxWidth: proseMaxWidth,
+          margin: "0 auto",
           fontSize: `${anthemSection ? 15.8 : historySection ? 15.6 : overviewSection ? 15.2 : BOOKLET_BODY.fontSize}px`,
           lineHeight: anthemSection
             ? 1.72

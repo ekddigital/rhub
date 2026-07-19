@@ -397,6 +397,9 @@ export function AddressSection({
       {trimmed ? (
         <div
           style={{
+            width: "100%",
+            maxWidth: "700px",
+            margin: "0 auto",
             fontSize: `${bodyFontSize}px`,
             lineHeight: 1.72,
             color: "#000000",
