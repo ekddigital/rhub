@@ -63,8 +63,7 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "11:00 AM - 8:00 PM",
-        activity:
-          "Arrival, check-in, room assignment, and welfare support",
+        activity: "Arrival, check-in, room assignment, and welfare support",
         location: "Arcadia Spa Golf International Hotel",
       },
       {
@@ -81,8 +80,7 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "7:00 PM - 9:10 PM",
-        activity:
-          "Games, fellowship, and closing prayer",
+        activity: "Games, fellowship, and closing prayer",
         location: "Hotel dining area",
       },
     ],
@@ -100,14 +98,12 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "11:00 AM - 12:45 PM",
-        activity:
-          "Strategic resolutions and lunch break",
+        activity: "Strategic resolutions and lunch break",
         location: "Hotel conference room",
       },
       {
         time: "12:47 PM - 2:15 PM",
-        activity:
-          "Constitution review and elections",
+        activity: "Constitution review and elections",
         location: "Hotel conference room",
       },
       {
@@ -117,8 +113,7 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "4:00 PM - 9:00 PM",
-        activity:
-          "Pool party, dinner, caucus check-ins, and closing prayer",
+        activity: "Pool party, dinner, caucus check-ins, and closing prayer",
         location: "Hotel pool / spa area",
       },
     ],
@@ -173,12 +168,14 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "7:30 AM - 12:00 noon",
-        activity: "Baggage coordination, welfare check, and official hotel check-out",
+        activity:
+          "Baggage coordination, welfare check, and official hotel check-out",
         location: "Hotel reception",
       },
       {
         time: "As needed",
-        activity: "Conference-arranged group transfers to Jinan West Railway Station",
+        activity:
+          "Conference-arranged group transfers to Jinan West Railway Station",
         location: "Hotel pickup point / transfer route",
       },
       {
@@ -249,43 +246,43 @@ export function paginateProgramOutlineDays(
 }
 
 function estimateIntroHeight(intro: string): number {
-  const charsPerLine = 102;
-  const lineHeight = 26;
+  const charsPerLine = 96;
+  const lineHeight = 28;
   const lines = Math.max(2, Math.ceil(intro.length / charsPerLine));
-  return lines * lineHeight + 170;
+  return lines * lineHeight + 190;
 }
 
 function estimateDayTableHeight(day: ProgramOutlineDay): number {
-  const heading = 78;
+  const heading = 90;
   const dressCodeBlock =
-    day.showDressCodes === false ? 0 : day.dressCodes.length * 20 + 32;
-  const tableHeader = day.showSummaryTable === false ? 0 : 40;
-  const summaryHeading = day.showSummaryTable === false ? 0 : 24;
-  const lineHeight = 18;
+    day.showDressCodes === false ? 0 : day.dressCodes.length * 24 + 36;
+  const tableHeader = day.showSummaryTable === false ? 0 : 46;
+  const summaryHeading = day.showSummaryTable === false ? 0 : 28;
+  const lineHeight = 20;
 
   const summaryRowHeight = day.activities.reduce((sum, row) => {
-    const timeLines = Math.max(1, Math.ceil(row.time.length / 20));
-    const activityLines = Math.max(1, Math.ceil(row.activity.length / 52));
-    const locationLines = Math.max(1, Math.ceil(row.location.length / 34));
+    const timeLines = Math.max(1, Math.ceil(row.time.length / 18));
+    const activityLines = Math.max(1, Math.ceil(row.activity.length / 46));
+    const locationLines = Math.max(1, Math.ceil(row.location.length / 30));
     const lines = Math.max(timeLines, activityLines, locationLines);
-    return sum + lines * lineHeight + 16;
+    return sum + lines * lineHeight + 18;
   }, 0);
 
-  const detailedHeading = day.detailedActivities.length > 0 ? 28 : 0;
+  const detailedHeading = day.detailedActivities.length > 0 ? 32 : 0;
   const detailedRowHeight = day.detailedActivities.reduce((sum, row) => {
-    const timeLines = Math.max(1, Math.ceil(row.time.length / 20));
-    const activityLines = Math.max(1, Math.ceil(row.activity.length / 52));
+    const timeLines = Math.max(1, Math.ceil(row.time.length / 18));
+    const activityLines = Math.max(1, Math.ceil(row.activity.length / 46));
     const responsibilityLines = row.responsible
-      ? Math.max(1, Math.ceil(row.responsible.length / 40))
+      ? Math.max(1, Math.ceil(row.responsible.length / 36))
       : 0;
-    const mealLines = row.meal ? Math.ceil(row.meal.length / 46) : 0;
+    const mealLines = row.meal ? Math.ceil(row.meal.length / 42) : 0;
     const subsLines = (row.subs ?? []).reduce(
-      (lines, sub) => lines + Math.max(1, Math.ceil(sub.length / 52)),
+      (lines, sub) => lines + Math.max(1, Math.ceil(sub.length / 46)),
       0,
     );
 
     const baseLines = Math.max(timeLines, activityLines + responsibilityLines);
-    return sum + (baseLines + mealLines + subsLines) * lineHeight + 20;
+    return sum + (baseLines + mealLines + subsLines) * lineHeight + 24;
   }, 0);
 
   return (
@@ -296,12 +293,12 @@ function estimateDayTableHeight(day: ProgramOutlineDay): number {
     summaryRowHeight +
     detailedHeading +
     detailedRowHeight +
-    14
+    18
   );
 }
 
 function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
-  const MAX_PAGE_HEIGHT = 920;
+  const MAX_PAGE_HEIGHT = 860;
   const chunks: ProgramOutlineDay[] = [];
   let cursor = 0;
   let isContinuation = false;
@@ -365,7 +362,7 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
 export function paginateProgramOutlinePages(
   resolved: ResolvedProgramOutline,
 ): ProgramOutlinePageChunk[] {
-  const MAX_PAGE_HEIGHT = 920;
+  const MAX_PAGE_HEIGHT = 860;
   const expandedDays = resolved.days.flatMap((day) => chunkDayActivities(day));
 
   const pages: ProgramOutlinePageChunk[] = [];

@@ -10,22 +10,22 @@ import type { BookletSection } from "./types";
 
 function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
   return (
-    <div style={{ marginBottom: "14px" }}>
+    <div style={{ marginBottom: "16px" }}>
       <div
         style={{
-          fontSize: "12.5px",
+          fontSize: "14px",
           fontWeight: 700,
           color: "#000000",
-          marginBottom: "4px",
+          marginBottom: "5px",
         }}
       >
         {day.label}
       </div>
       <div
         style={{
-          fontSize: "11px",
+          fontSize: "12.4px",
           color: "#111111",
-          marginBottom: "6px",
+          marginBottom: "7px",
         }}
       >
         {day.dateLabel}
@@ -34,7 +34,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         <div
           style={{
             marginBottom: "8px",
-            padding: "8px 10px",
+            padding: "9px 11px",
             border: `1px solid ${C.border}`,
             borderRadius: "6px",
             background: "#F8FAFD",
@@ -42,7 +42,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         >
           <div
             style={{
-              fontSize: "9px",
+              fontSize: "10.4px",
               fontWeight: 800,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -56,7 +56,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
             <div
               key={`${day.dayNumber}-dc-${i}`}
               style={{
-                fontSize: "10.5px",
+                fontSize: "11.6px",
                 lineHeight: 1.4,
                 color: "#111111",
                 marginBottom: i === day.dressCodes.length - 1 ? 0 : "2px",
@@ -72,7 +72,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         <>
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "11.2px",
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -86,9 +86,10 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              fontSize: "11.5px",
+              fontSize: "12.4px",
               lineHeight: 1.5,
               marginBottom: "10px",
+              tableLayout: "fixed",
             }}
           >
             <thead>
@@ -98,7 +99,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                     key={col}
                     style={{
                       textAlign: "left",
-                      padding: "7px 9px",
+                      padding: "8px 10px",
                       background: C.blue,
                       color: C.white,
                       fontWeight: 700,
@@ -115,38 +116,38 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                 <tr key={i}>
                   <td
                     style={{
-                      padding: "7px 9px",
+                      padding: "8px 10px",
                       lineHeight: 1.45,
                       border: `1px solid ${C.border}`,
                       verticalAlign: "top",
                       fontWeight: 600,
                       color: "#000000",
                       whiteSpace: "nowrap",
-                      width: "18%",
+                      width: "20%",
                     }}
                   >
                     {row.time}
                   </td>
                   <td
                     style={{
-                      padding: "7px 9px",
+                      padding: "8px 10px",
                       lineHeight: 1.5,
                       border: `1px solid ${C.border}`,
                       verticalAlign: "top",
                       color: C.text,
-                      width: "46%",
+                      width: "45%",
                     }}
                   >
                     {row.activity}
                   </td>
                   <td
                     style={{
-                      padding: "7px 9px",
+                      padding: "8px 10px",
                       lineHeight: 1.5,
                       border: `1px solid ${C.border}`,
                       verticalAlign: "top",
                       color: "#111111",
-                      width: "36%",
+                      width: "35%",
                     }}
                   >
                     {row.location}
@@ -162,7 +163,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
         <>
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "11.2px",
               fontWeight: 700,
               letterSpacing: "0.12em",
               textTransform: "uppercase",
@@ -178,11 +179,12 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                 key={`${day.dayNumber}-d-${i}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "145px 1fr",
-                  gap: "8px",
-                  padding: "6px 8px",
+                  gridTemplateColumns: "166px minmax(0, 1fr)",
+                  alignItems: "start",
+                  gap: "10px",
+                  padding: "7px 9px",
                   borderRadius: "5px",
-                  marginBottom: "4px",
+                  marginBottom: "5px",
                   background: row.highlight ? `${C.blue}0D` : "transparent",
                   borderLeft: row.highlight
                     ? `2px solid ${C.blue}`
@@ -191,7 +193,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
               >
                 <div
                   style={{
-                    fontSize: "10.5px",
+                    fontSize: "12px",
                     lineHeight: 1.35,
                     color: C.blue,
                     fontWeight: 700,
@@ -203,7 +205,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                 <div>
                   <div
                     style={{
-                      fontSize: "11px",
+                      fontSize: "12.2px",
                       lineHeight: 1.45,
                       color: "#111111",
                       fontWeight: row.highlight ? 700 : 600,
@@ -215,7 +217,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                     <div
                       style={{
                         marginTop: "1px",
-                        fontSize: "10px",
+                        fontSize: "11.1px",
                         color: "#3A5080",
                         fontStyle: "italic",
                         fontWeight: 600,
@@ -228,7 +230,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                     <div
                       style={{
                         marginTop: "1px",
-                        fontSize: "10px",
+                        fontSize: "11.1px",
                         color: C.red,
                         fontWeight: 700,
                       }}
@@ -247,7 +249,7 @@ function DailyActivitiesTable({ day }: { day: ProgramOutlineDay }) {
                         <li
                           key={idx}
                           style={{
-                            fontSize: "10px",
+                            fontSize: "11px",
                             lineHeight: 1.35,
                             color: "#1A2F5E",
                             marginBottom: "1px",
