@@ -789,8 +789,8 @@ export function ProgramDocument({ gap = 0 }: { gap?: number }) {
 }
 
 // ── Slot splits: each day split across two A4 pages ───────────────────────────
-const DAY_1_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[0].slots.slice(0, 7);
-const DAY_1_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[0].slots.slice(7);
+const DAY_1_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[0].slots.slice(0, 9);
+const DAY_1_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[0].slots.slice(9);
 
 const DAY_2_SLOTS_PAGE1 = DETAILED_PROGRAM_DAYS[1].slots.slice(0, 10);
 const DAY_2_SLOTS_PAGE2 = DETAILED_PROGRAM_DAYS[1].slots.slice(10);
