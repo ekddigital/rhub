@@ -278,12 +278,49 @@ function estimateDetailedRowUnits(row: ProgramOutlineDetailedActivity): number {
   return baseEstimate * 1.02;
 }
 
-function estimateDayChunkUnits(day: ProgramOutlineDay): number {
+function estimateSummaryRowUnits(row: ProgramOutlineActivity): number {
+  const timeUnits = Math.max(1, Math.ceil(row.time.length / 24)) * 0.6;
+  const activityUnits = Math.max(1, Math.ceil(row.activity.length / 62)) * 1.2;
+  const locationUnits = Math.max(1, Math.ceil(row.location.length / 44)) * 1.0;
+  return 1.8 + timeUnits + activityUnits + locationUnits;
+}
+
+function estimateDressCodeUnits(day: ProgramOutlineDay): number {
+  if (day.showDressCodes === false || day.dressCodes.length === 0) return 0;
+  const rows = day.dressCodes.reduce(
+    (sum, code) => sum + Math.max(1, Math.ceil(code.code.length / 46)) * 0.9,
+    0,
+  );
+  // Card chrome + label + row content
+  return 5.4 + rows;
+}
+
+function estimateSummaryTableUnits(day: ProgramOutlineDay): number {
+  if (day.showSummaryTable === false || day.activities.length === 0) return 0;
+  const rows = day.activities.reduce(
+    (sum, row) => sum + estimateSummaryRowUnits(row),
+    0,
+  );
+  // Heading + table header + borders/padding overhead
+  return 6.8 + rows;
+}
+
+function estimateStaticDayUnits(day: ProgramOutlineDay): number {
   const base = day.isContinuation
     ? CONT_DAY_CHUNK_BASE_UNITS
     : FIRST_DAY_CHUNK_BASE_UNITS;
+  const detailedHeadingUnits = day.detailedActivities.length > 0 ? 3.2 : 0;
   return (
     base +
+    estimateDressCodeUnits(day) +
+    estimateSummaryTableUnits(day) +
+    detailedHeadingUnits
+  );
+}
+
+function estimateDayChunkUnits(day: ProgramOutlineDay): number {
+  return (
+    estimateStaticDayUnits(day) +
     day.detailedActivities.reduce(
       (sum, row) => sum + estimateDetailedRowUnits(row),
       0,
@@ -292,8 +329,8 @@ function estimateDayChunkUnits(day: ProgramOutlineDay): number {
 }
 
 function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
-  const FIRST_CHUNK_BUDGET = 84;
-  const CONT_CHUNK_BUDGET = 92;
+  const FIRST_CHUNK_BUDGET = 88;
+  const CONT_CHUNK_BUDGET = 94;
   const chunks: ProgramOutlineDay[] = [];
   let cursor = 0;
   let isContinuation = false;
@@ -311,9 +348,7 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
       isContinuation,
     };
 
-    let usedUnits = isContinuation
-      ? CONT_DAY_CHUNK_BASE_UNITS
-      : FIRST_DAY_CHUNK_BASE_UNITS;
+    let usedUnits = estimateStaticDayUnits(working);
     const chunkBudget = isContinuation ? CONT_CHUNK_BUDGET : FIRST_CHUNK_BUDGET;
 
     while (cursor < details.length) {
