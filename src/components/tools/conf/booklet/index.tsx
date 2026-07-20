@@ -202,6 +202,22 @@ export function BookletPreview({
             break-after: auto;
             page-break-after: auto;
           }
+          /* Print-safe overrides for the cover page:
+             1. Heavy text-shadow blurs render as visible dark rectangles in
+                most print engines — flatten them.
+             2. backdrop-filter is not supported by any current print pipeline
+                — swap the frosted card for a solid translucent background so
+                the card still reads on paper.
+             3. Force background images / gradients to print exactly (Chrome
+                sometimes drops them without this on the printed elements). */
+          .booklet-page,
+          .booklet-page * {
+            text-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           @page {
             size: A4 portrait;
             margin: 0;
