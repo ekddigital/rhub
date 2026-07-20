@@ -420,13 +420,6 @@ export function DelegatesSection({
               fontStyle: "italic",
             }}
           >
-            {totalDelegateCount} signed-up participant
-            {totalDelegateCount !== 1 ? "s" : ""} as of{" "}
-            {new Date().toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
             <div style={{ marginTop: "6px", color: "#111111" }}>
               Delegates who have not registered will not be assigned a room.
             </div>

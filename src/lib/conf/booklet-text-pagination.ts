@@ -23,8 +23,8 @@ const ADDRESS_PROFILE: PaginationProfile = {
   lineHeight: 1.62,
   paragraphMarginBottom: 6,
   charsPerLine: 92,
-  firstPageMaxHeight: 620,
-  continuationPageMaxHeight: 840,
+  firstPageMaxHeight: 700,
+  continuationPageMaxHeight: 900,
 };
 
 function splitParagraphs(text: string): string[] {
@@ -212,6 +212,33 @@ export function paginateBookletBodyText(
 
   if (currentPage.length > 0) {
     pages.push(currentPage.join("\n\n"));
+  }
+
+  if (variant === "address" && pages.length >= 2) {
+    const mergedPages = [...pages];
+    const finalIndex = mergedPages.length - 1;
+    const lastPageParagraphs = splitParagraphs(mergedPages[finalIndex]);
+    const prevPageParagraphs = splitParagraphs(mergedPages[finalIndex - 1]);
+
+    const lastPageHeight = lastPageParagraphs.reduce(
+      (sum, p) => sum + estimateParagraphHeight(p, profile),
+      0,
+    );
+    const prevPageHeight = prevPageParagraphs.reduce(
+      (sum, p) => sum + estimateParagraphHeight(p, profile),
+      0,
+    );
+
+    const hasTinyTrailingPage = lastPageHeight <= 220;
+    if (
+      hasTinyTrailingPage &&
+      prevPageHeight + lastPageHeight <= profile.continuationPageMaxHeight + 18
+    ) {
+      const combined = [...prevPageParagraphs, ...lastPageParagraphs];
+      mergedPages[finalIndex - 1] = combined.join("\n\n");
+      mergedPages.pop();
+      return mergedPages;
+    }
   }
 
   return pages;

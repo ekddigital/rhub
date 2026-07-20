@@ -12,7 +12,15 @@ export function PageFooter({
   totalPages: number;
 }) {
   return (
-    <div style={{ marginTop: "auto" }}>
+    <div
+      style={{
+        marginTop: "auto",
+        background: C.white,
+        position: "relative",
+        zIndex: 4,
+        flexShrink: 0,
+      }}
+    >
       <div
         style={{
           height: "1px",

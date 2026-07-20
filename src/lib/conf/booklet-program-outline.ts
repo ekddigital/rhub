@@ -245,10 +245,10 @@ export function paginateProgramOutlineDays(
   return [days.slice(0, mid), days.slice(mid)];
 }
 
-const PAGE_UNIT_BUDGET = 100;
-const INTRO_PAGE_UNIT_BUDGET = 92;
-const FIRST_DAY_CHUNK_BASE_UNITS = 39;
-const CONT_DAY_CHUNK_BASE_UNITS = 16;
+const PAGE_UNIT_BUDGET = 98;
+const INTRO_PAGE_UNIT_BUDGET = 90;
+const FIRST_DAY_CHUNK_BASE_UNITS = 38;
+const CONT_DAY_CHUNK_BASE_UNITS = 15;
 
 function estimateIntroUnits(intro: string): number {
   const charsPerLine = 94;
@@ -270,7 +270,12 @@ function estimateDetailedRowUnits(row: ProgramOutlineDetailedActivity): number {
     0,
   );
 
-  return 2.2 + timeUnits + activityUnits + responsibleUnits + mealUnits + subsUnits;
+  const baseEstimate =
+    2.2 + timeUnits + activityUnits + responsibleUnits + mealUnits + subsUnits;
+
+  // Keep a very small safety buffer so estimation is stable without forcing
+  // tiny continuation pages.
+  return baseEstimate * 1.02;
 }
 
 function estimateDayChunkUnits(day: ProgramOutlineDay): number {
@@ -287,8 +292,8 @@ function estimateDayChunkUnits(day: ProgramOutlineDay): number {
 }
 
 function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
-  const FIRST_CHUNK_BUDGET = 78;
-  const CONT_CHUNK_BUDGET = 90;
+  const FIRST_CHUNK_BUDGET = 84;
+  const CONT_CHUNK_BUDGET = 92;
   const chunks: ProgramOutlineDay[] = [];
   let cursor = 0;
   let isContinuation = false;
@@ -340,6 +345,34 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
       showSummaryTable: true,
       isContinuation: false,
     });
+  }
+
+  // Avoid creating a trailing page for a tiny leftover row when it can safely
+  // fit in the previous chunk.
+  if (chunks.length >= 2) {
+    const lastIdx = chunks.length - 1;
+    const lastChunk = chunks[lastIdx];
+    const prevChunk = chunks[lastIdx - 1];
+    const isTinyTail =
+      lastChunk.detailedActivities.length <= 1 ||
+      estimateDayChunkUnits(lastChunk) <= CONT_DAY_CHUNK_BASE_UNITS + 10;
+
+    if (isTinyTail) {
+      const mergedPrev: ProgramOutlineDay = {
+        ...prevChunk,
+        detailedActivities: [
+          ...prevChunk.detailedActivities,
+          ...lastChunk.detailedActivities,
+        ],
+      };
+      const prevBudget = prevChunk.isContinuation
+        ? CONT_CHUNK_BUDGET
+        : FIRST_CHUNK_BUDGET;
+      if (estimateDayChunkUnits(mergedPrev) <= prevBudget + 16) {
+        chunks[lastIdx - 1] = mergedPrev;
+        chunks.pop();
+      }
+    }
   }
 
   return chunks;

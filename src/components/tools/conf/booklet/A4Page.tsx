@@ -64,6 +64,7 @@ export function A4Page({
           display: "flex",
           flexDirection: "column",
           padding: "22px 32px 14px",
+          overflow: "hidden",
           position: "relative",
           zIndex: 1,
         }}

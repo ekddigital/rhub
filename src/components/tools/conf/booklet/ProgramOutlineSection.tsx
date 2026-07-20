@@ -359,8 +359,11 @@ export function ProgramOutlineSection({
         </>
       )}
 
-      {days.map((day) => (
-        <DailyActivitiesTable key={day.dayNumber} day={day} />
+      {days.map((day, index) => (
+        <DailyActivitiesTable
+          key={`${day.dayNumber}-${day.label}-${index}`}
+          day={day}
+        />
       ))}
     </A4Page>
   );

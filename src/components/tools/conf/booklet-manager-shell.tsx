@@ -712,7 +712,39 @@ export function BookletManagerShell() {
           {data &&
             (() => {
               const nationalPresident =
-                data.necMembers.find((m) => m.role === "CHAIR") ?? null;
+                data.necMembers.find(
+                  (m) =>
+                    m.role === "CHAIR" ||
+                    (m.title ?? "").toLowerCase().includes("national president"),
+                ) ?? null;
+              const presidentSections =
+                data.booklet?.sections.filter(
+                  (s) =>
+                    s.type === "PRESIDENT_ADDRESS" ||
+                    s.title.toLowerCase().includes("national president address"),
+                ) ?? [];
+              const enabledPresidentSections = presidentSections.filter(
+                (s) => s.isEnabled,
+              );
+              const sectionPool =
+                enabledPresidentSections.length > 0
+                  ? enabledPresidentSections
+                  : presidentSections;
+              const hasPresidentSectionAddress = sectionPool.some((s) =>
+                Boolean((s.bodyText ?? "").trim()),
+              );
+              const presidentRosterAddress = nationalPresident?.rosterKey
+                ? data.rosterAddressLinks.find(
+                    (link) => link.rosterKey === nationalPresident.rosterKey,
+                  ) ?? null
+                : null;
+              const hasNationalPresidentAddress =
+                Boolean((nationalPresident?.bookletBio ?? "").trim()) ||
+                hasPresidentSectionAddress ||
+                Boolean(
+                  presidentRosterAddress?.includeAddressPage &&
+                    (presidentRosterAddress?.addressText ?? "").trim(),
+                );
               const checks = [
                 {
                   label: "Leader profiles added",
@@ -723,7 +755,7 @@ export function BookletManagerShell() {
                 },
                 {
                   label: "National President address written",
-                  ok: !!nationalPresident?.bookletBio,
+                  ok: hasNationalPresidentAddress,
                   hint: "The National President has not yet written their booklet address.",
                   action: () =>
                     nationalPresident && openChairBioEdit(nationalPresident),

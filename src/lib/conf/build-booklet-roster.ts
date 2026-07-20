@@ -71,6 +71,12 @@ function normalizeName(value: string | null | undefined): string {
   return normalizeLeaderName(value);
 }
 
+function normalizeNameForTitleOverride(
+  value: string | null | undefined,
+): string {
+  return normalizeLeaderName(value).replace(/[.,]/g, "").trim();
+}
+
 function parseCityArea(cityArea: string): {
   city: string;
   province: string | null;
@@ -170,9 +176,9 @@ function memberFromRosterRow(
   const rawName = stripHonorificDisplayName(
     linked?.name ?? dbMember?.name ?? row.leader_name,
   );
-  const normalizedDisplayName = normalizeLeaderName(rawName);
+  const normalizedDisplayName = normalizeNameForTitleOverride(rawName);
   const displayName =
-    normalizedDisplayName === "aaron s. pittman"
+    normalizedDisplayName === "aaron s pittman"
       ? "Dr. Aaron S. Pittman"
       : normalizedDisplayName === "christian mulbah"
         ? "Dr. Christian Mulbah"
