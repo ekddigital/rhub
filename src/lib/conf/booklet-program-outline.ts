@@ -245,60 +245,50 @@ export function paginateProgramOutlineDays(
   return [days.slice(0, mid), days.slice(mid)];
 }
 
-function estimateIntroHeight(intro: string): number {
-  const charsPerLine = 96;
-  const lineHeight = 28;
-  const lines = Math.max(2, Math.ceil(intro.length / charsPerLine));
-  return lines * lineHeight + 190;
+const PAGE_UNIT_BUDGET = 100;
+const INTRO_PAGE_UNIT_BUDGET = 92;
+const FIRST_DAY_CHUNK_BASE_UNITS = 39;
+const CONT_DAY_CHUNK_BASE_UNITS = 16;
+
+function estimateIntroUnits(intro: string): number {
+  const charsPerLine = 94;
+  const lines = Math.max(3, Math.ceil(intro.length / charsPerLine));
+  return Math.ceil(lines * 1.85 + 16);
 }
 
-function estimateDayTableHeight(day: ProgramOutlineDay): number {
-  const heading = 90;
-  const dressCodeBlock =
-    day.showDressCodes === false ? 0 : day.dressCodes.length * 24 + 36;
-  const tableHeader = day.showSummaryTable === false ? 0 : 46;
-  const summaryHeading = day.showSummaryTable === false ? 0 : 28;
-  const lineHeight = 20;
+function estimateDetailedRowUnits(row: ProgramOutlineDetailedActivity): number {
+  const timeUnits = Math.max(1, Math.ceil(row.time.length / 20)) * 0.8;
+  const activityUnits = Math.max(1, Math.ceil(row.activity.length / 68)) * 1.8;
+  const responsibleUnits = row.responsible
+    ? Math.max(1, Math.ceil(row.responsible.length / 66)) * 1.1
+    : 0;
+  const mealUnits = row.meal
+    ? Math.max(1, Math.ceil(row.meal.length / 64)) * 1.0
+    : 0;
+  const subsUnits = (row.subs ?? []).reduce(
+    (sum, sub) => sum + Math.max(1, Math.ceil(sub.length / 66)) * 0.9,
+    0,
+  );
 
-  const summaryRowHeight = day.activities.reduce((sum, row) => {
-    const timeLines = Math.max(1, Math.ceil(row.time.length / 18));
-    const activityLines = Math.max(1, Math.ceil(row.activity.length / 46));
-    const locationLines = Math.max(1, Math.ceil(row.location.length / 30));
-    const lines = Math.max(timeLines, activityLines, locationLines);
-    return sum + lines * lineHeight + 18;
-  }, 0);
+  return 2.2 + timeUnits + activityUnits + responsibleUnits + mealUnits + subsUnits;
+}
 
-  const detailedHeading = day.detailedActivities.length > 0 ? 32 : 0;
-  const detailedRowHeight = day.detailedActivities.reduce((sum, row) => {
-    const timeLines = Math.max(1, Math.ceil(row.time.length / 18));
-    const activityLines = Math.max(1, Math.ceil(row.activity.length / 46));
-    const responsibilityLines = row.responsible
-      ? Math.max(1, Math.ceil(row.responsible.length / 36))
-      : 0;
-    const mealLines = row.meal ? Math.ceil(row.meal.length / 42) : 0;
-    const subsLines = (row.subs ?? []).reduce(
-      (lines, sub) => lines + Math.max(1, Math.ceil(sub.length / 46)),
-      0,
-    );
-
-    const baseLines = Math.max(timeLines, activityLines + responsibilityLines);
-    return sum + (baseLines + mealLines + subsLines) * lineHeight + 24;
-  }, 0);
-
+function estimateDayChunkUnits(day: ProgramOutlineDay): number {
+  const base = day.isContinuation
+    ? CONT_DAY_CHUNK_BASE_UNITS
+    : FIRST_DAY_CHUNK_BASE_UNITS;
   return (
-    heading +
-    dressCodeBlock +
-    summaryHeading +
-    tableHeader +
-    summaryRowHeight +
-    detailedHeading +
-    detailedRowHeight +
-    18
+    base +
+    day.detailedActivities.reduce(
+      (sum, row) => sum + estimateDetailedRowUnits(row),
+      0,
+    )
   );
 }
 
 function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
-  const MAX_PAGE_HEIGHT = 860;
+  const FIRST_CHUNK_BUDGET = 78;
+  const CONT_CHUNK_BUDGET = 90;
   const chunks: ProgramOutlineDay[] = [];
   let cursor = 0;
   let isContinuation = false;
@@ -316,25 +306,25 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
       isContinuation,
     };
 
+    let usedUnits = isContinuation
+      ? CONT_DAY_CHUNK_BASE_UNITS
+      : FIRST_DAY_CHUNK_BASE_UNITS;
+    const chunkBudget = isContinuation ? CONT_CHUNK_BUDGET : FIRST_CHUNK_BUDGET;
+
     while (cursor < details.length) {
-      const candidateActivities = [
-        ...working.detailedActivities,
-        details[cursor],
-      ];
-      const candidate: ProgramOutlineDay = {
-        ...working,
-        detailedActivities: candidateActivities,
-      };
-      const fits = estimateDayTableHeight(candidate) <= MAX_PAGE_HEIGHT;
+      const row = details[cursor];
+      const rowUnits = estimateDetailedRowUnits(row);
+      const fits = usedUnits + rowUnits <= chunkBudget;
 
       if (!fits && working.detailedActivities.length > 0) {
         break;
       }
 
-      working.detailedActivities = candidateActivities;
+      working.detailedActivities.push(row);
+      usedUnits += rowUnits;
       cursor += 1;
 
-      if (!fits) {
+      if (!fits && working.detailedActivities.length === 1) {
         break;
       }
     }
@@ -362,23 +352,24 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
 export function paginateProgramOutlinePages(
   resolved: ResolvedProgramOutline,
 ): ProgramOutlinePageChunk[] {
-  const MAX_PAGE_HEIGHT = 860;
   const expandedDays = resolved.days.flatMap((day) => chunkDayActivities(day));
 
   const pages: ProgramOutlinePageChunk[] = [];
   let current: ProgramOutlinePageChunk = { showIntro: true, days: [] };
-  let used = estimateIntroHeight(resolved.intro);
+  let used = estimateIntroUnits(resolved.intro);
+  let budget = INTRO_PAGE_UNIT_BUDGET;
 
   for (const day of expandedDays) {
-    const dayHeight = estimateDayTableHeight(day);
-    if (current.days.length > 0 && used + dayHeight > MAX_PAGE_HEIGHT) {
+    const dayUnits = estimateDayChunkUnits(day);
+    if (current.days.length > 0 && used + dayUnits > budget) {
       pages.push(current);
       current = { showIntro: false, days: [] };
       used = 0;
+      budget = PAGE_UNIT_BUDGET;
     }
 
     current.days.push(day);
-    used += dayHeight;
+    used += dayUnits;
   }
 
   if (current.days.length > 0 || current.showIntro) {

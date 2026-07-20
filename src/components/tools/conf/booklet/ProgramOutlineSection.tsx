@@ -342,10 +342,12 @@ export function ProgramOutlineSection({
 
           <div
             style={{
-              fontSize: `${BOOKLET_BODY.fontSize}px`,
-              lineHeight: BOOKLET_BODY.lineHeight,
+              width: "100%",
+              maxWidth: "700px",
+              margin: "0 auto 18px",
+              fontSize: `${Math.max(BOOKLET_BODY.fontSize + 1, 15.5)}px`,
+              lineHeight: 1.72,
               color: C.text,
-              marginBottom: "18px",
             }}
           >
             {splitBookletParagraphs(intro).map((paragraph, i) => (
