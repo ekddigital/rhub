@@ -265,7 +265,9 @@ function splitDaySlots(slots: ProgramSlot[]): ProgramSlot[][] {
 
   for (const slot of slots) {
     const capacity =
-      pages.length === 0 ? FIRST_DAY_PAGE_CAPACITY : CONTINUED_DAY_PAGE_CAPACITY;
+      pages.length === 0
+        ? FIRST_DAY_PAGE_CAPACITY
+        : CONTINUED_DAY_PAGE_CAPACITY;
     const slotUnits = estimateSlotUnits(slot);
     const wouldOverflow = usedUnits + slotUnits > capacity;
 
@@ -287,7 +289,9 @@ function splitDaySlots(slots: ProgramSlot[]): ProgramSlot[][] {
   return pages;
 }
 
-const DAY_SLOT_PAGES = DETAILED_PROGRAM_DAYS.map((day) => splitDaySlots(day.slots));
+const DAY_SLOT_PAGES = DETAILED_PROGRAM_DAYS.map((day) =>
+  splitDaySlots(day.slots),
+);
 
 export const PROGRAM_GUIDE_TOTAL_PAGES =
   2 + DAY_SLOT_PAGES.reduce((sum, pages) => sum + pages.length, 0);
@@ -295,15 +299,14 @@ export const PROGRAM_GUIDE_TOTAL_PAGES =
 const DAY_PAGE_LAYOUTS = DETAILED_PROGRAM_DAYS.map((day, idx) => ({
   day,
   pages: DAY_SLOT_PAGES[idx] ?? [day.slots],
-})).reduce<Array<{ day: ProgramDay; pages: ProgramSlot[][]; startPageNum: number }>>(
-  (acc, entry) => {
-    const last = acc[acc.length - 1];
-    const startPageNum = last ? last.startPageNum + last.pages.length : 3;
-    acc.push({ ...entry, startPageNum });
-    return acc;
-  },
-  [],
-);
+})).reduce<
+  Array<{ day: ProgramDay; pages: ProgramSlot[][]; startPageNum: number }>
+>((acc, entry) => {
+  const last = acc[acc.length - 1];
+  const startPageNum = last ? last.startPageNum + last.pages.length : 3;
+  acc.push({ ...entry, startPageNum });
+  return acc;
+}, []);
 
 export function ProgramDocument({ gap = 0 }: { gap?: number }) {
   const colors = DAY_COLORS;

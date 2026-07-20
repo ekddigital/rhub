@@ -53,7 +53,8 @@ function isSignOffParagraph(text: string): boolean {
   const t = text.trim();
   if (SIGN_OFF_PATTERNS.some((re) => re.test(t))) return true;
   // Short standalone line (≤ 40 chars, no sentence terminator) at tail
-  if (t.length <= 40 && !/[.!?]$/.test(t) && !/\s/.test(t.slice(-1))) return true;
+  if (t.length <= 40 && !/[.!?]$/.test(t) && !/\s/.test(t.slice(-1)))
+    return true;
   return false;
 }
 
@@ -432,7 +433,9 @@ export function AddressSection({
         >
           {/* Signature photo beside sign-off for president address */}
           {section.type === "PRESIDENT_ADDRESS" ? (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}
+            >
               <Avatar src={speaker.photoPath} name={speaker.name} size={54} />
               <div>
                 <div
@@ -445,17 +448,36 @@ export function AddressSection({
                 >
                   {speaker.name}
                 </div>
-                <div style={{ fontSize: "12px", color: "#222222", marginTop: "1px" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#222222",
+                    marginTop: "1px",
+                  }}
+                >
                   {roleLabel(speaker as NecMember)}
                 </div>
                 <div style={{ fontSize: "12px", color: "#222222" }}>
                   Liberian Student Union in China
                 </div>
-                <div style={{ fontSize: "11px", color: "#444444", marginTop: "3px" }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#444444",
+                    marginTop: "3px",
+                  }}
+                >
                   Fiscal Year 2025–2026
                 </div>
-                <div style={{ fontSize: "11px", color: "#444444", marginTop: "6px" }}>
-                  July 26, 2026 · Jinan, Shandong Province, People's Republic of China
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "#444444",
+                    marginTop: "6px",
+                  }}
+                >
+                  July 26, 2026 · Jinan, Shandong Province, People's Republic of
+                  China
                 </div>
               </div>
             </div>

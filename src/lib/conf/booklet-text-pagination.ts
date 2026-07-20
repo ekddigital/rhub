@@ -118,7 +118,9 @@ function splitParagraphToFit(
     let cursor = 0;
 
     while (cursor < sentenceChunks.length) {
-      const next = head ? `${head} ${sentenceChunks[cursor]}` : sentenceChunks[cursor];
+      const next = head
+        ? `${head} ${sentenceChunks[cursor]}`
+        : sentenceChunks[cursor];
       if (estimateParagraphHeight(next, profile) > availableHeight) break;
       head = next;
       cursor += 1;

@@ -298,8 +298,7 @@ export function DelegatesSection({
   pageNum: number;
   totalPages: number;
 }) {
-  const participantLabel =
-    `Page ${rosterPageIndex + 1} of ${rosterPageCount}`;
+  const participantLabel = `Page ${rosterPageIndex + 1} of ${rosterPageCount}`;
 
   const isLastRosterPage = rosterPageIndex === rosterPageCount - 1;
   const cardHeight = computeDelegateRosterCardHeight(delegates.length, {
