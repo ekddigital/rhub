@@ -1,4 +1,5 @@
 import type { BookletSection } from "@/components/tools/conf/booklet/types";
+import { BOOKLET_CONTENT_HEIGHT } from "@/components/tools/conf/booklet/constants";
 import { DEFAULT_PROGRAM_OUTLINE_INTRO } from "@/lib/conf/booklet-conference-copy";
 import { DETAILED_PROGRAM_DAYS } from "@/components/tools/conf/detailed-program/program-data";
 
@@ -245,135 +246,212 @@ export function paginateProgramOutlineDays(
   return [days.slice(0, mid), days.slice(mid)];
 }
 
-const PAGE_UNIT_BUDGET = 98;
-const INTRO_PAGE_UNIT_BUDGET = 90;
-const FIRST_DAY_CHUNK_BASE_UNITS = 38;
-const CONT_DAY_CHUNK_BASE_UNITS = 15;
+// ─────────────────────────────────────────────────────────────────────────────
+// Pixel-based pagination
+//
+// All estimates below are in CSS pixels calibrated against the actual inline
+// styles used in ProgramOutlineSection.tsx. The page budget is derived from
+// BOOKLET_CONTENT_HEIGHT (usable A4 content area) with a safety buffer to
+// account for cumulative rounding of font metrics and native line-height
+// variation.
+// ─────────────────────────────────────────────────────────────────────────────
 
-function estimateIntroUnits(intro: string): number {
-  const charsPerLine = 94;
-  const lines = Math.max(3, Math.ceil(intro.length / charsPerLine));
-  return Math.ceil(lines * 1.85 + 16);
+const SAFETY_BUFFER_PX = 24;
+const PAGE_BUDGET_PX = BOOKLET_CONTENT_HEIGHT - SAFETY_BUFFER_PX;
+
+// ── Intro block (only on the first program-outline page) ────────────────────
+// Static chrome: "PROGRAM OUTLINE" pill (29px) + welcome title (34px) +
+// divider (16px) + wrapper marginBottom (16px) ≈ 96px.
+const INTRO_STATIC_PX = 96;
+const INTRO_LINE_HEIGHT_PX = 26.7; // fontSize 15.5 × lineHeight 1.72
+// Intro paragraphs render at 15.5px inside a 700px column → ~105 chars/line.
+const INTRO_CHARS_PER_LINE = 105;
+const INTRO_PARAGRAPH_MARGIN_PX = 12;
+const INTRO_TRAILING_MARGIN_PX = 18;
+
+// ── Per-day static blocks ───────────────────────────────────────────────────
+const DAY_HEADER_PX = 46; // day label + date label + their margins
+const DAY_TRAILING_MARGIN_PX = 16; // marginBottom on outer day wrapper
+
+const DRESS_CARD_CHROME_PX = 45; // padding, border, label, card marginBottom
+const DRESS_CARD_ROW_PX = 22; // fontSize 11.6 × lineHeight 1.4 (+small gap)
+
+const SUMMARY_HEADING_PX = 18.5; // "Daily Activities (Summary)" heading + margin
+const SUMMARY_THEAD_PX = 34.6; // header row padding + text
+const SUMMARY_ROW_PADDING_PX = 16; // 8px top + 8px bottom
+const SUMMARY_ROW_LINE_PX = 18.6; // fontSize 12.4 × lineHeight 1.5
+const SUMMARY_TABLE_TRAILING_PX = 10; // marginBottom on the table
+
+const DETAILED_HEADING_PX = 18.5; // "Detailed Flow" heading + margin
+const DETAILED_ROW_PADDING_PX = 14; // 7px top + 7px bottom
+const DETAILED_ROW_GAP_PX = 5; // marginBottom between rows
+const DETAILED_ACTIVITY_LINE_PX = 17.7; // fontSize 12.2 × lineHeight 1.45
+const DETAILED_META_LINE_PX = 15.5; // responsible / meal — fontSize 11.1 × ~1.4
+const DETAILED_META_GAP_PX = 1; // marginTop between activity and meta lines
+const DETAILED_SUB_LINE_PX = 14.9; // fontSize 11 × lineHeight 1.35
+const DETAILED_SUBS_STATIC_PX = 3; // ul marginTop + item marginBottom cluster
+
+// Approximate wrapping widths for each cell/column (chars per rendered line).
+const SUMMARY_ACTIVITY_CHARS = 34; // ~45% of 700px inner width, fontSize 12.4
+const SUMMARY_LOCATION_CHARS = 26; // ~35% of 700px inner width
+const DETAILED_ACTIVITY_CHARS = 82; // wide activity column in detailed grid
+const DETAILED_META_CHARS = 82;
+const DETAILED_SUB_CHARS = 82;
+
+function wrappedLines(text: string, charsPerLine: number): number {
+  const normalized = text.trim();
+  if (!normalized) return 0;
+  return Math.max(1, Math.ceil(normalized.length / charsPerLine));
 }
 
-function estimateDetailedRowUnits(row: ProgramOutlineDetailedActivity): number {
-  const timeUnits = Math.max(1, Math.ceil(row.time.length / 20)) * 0.8;
-  const activityUnits = Math.max(1, Math.ceil(row.activity.length / 68)) * 1.8;
-  const responsibleUnits = row.responsible
-    ? Math.max(1, Math.ceil(row.responsible.length / 66)) * 1.1
-    : 0;
-  const mealUnits = row.meal
-    ? Math.max(1, Math.ceil(row.meal.length / 64)) * 1.0
-    : 0;
-  const subsUnits = (row.subs ?? []).reduce(
-    (sum, sub) => sum + Math.max(1, Math.ceil(sub.length / 66)) * 0.9,
-    0,
-  );
+function estimateIntroPx(intro: string): number {
+  const normalized = intro.trim();
+  if (!normalized) return INTRO_STATIC_PX + INTRO_TRAILING_MARGIN_PX;
 
-  const baseEstimate =
-    2.2 + timeUnits + activityUnits + responsibleUnits + mealUnits + subsUnits;
+  const paragraphs = normalized
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
-  // Keep a very small safety buffer so estimation is stable without forcing
-  // tiny continuation pages.
-  return baseEstimate * 1.02;
+  const paragraphsPx = paragraphs.reduce((sum, paragraph) => {
+    const lines = wrappedLines(paragraph, INTRO_CHARS_PER_LINE);
+    return sum + lines * INTRO_LINE_HEIGHT_PX + INTRO_PARAGRAPH_MARGIN_PX;
+  }, 0);
+
+  return INTRO_STATIC_PX + paragraphsPx + INTRO_TRAILING_MARGIN_PX;
 }
 
-function estimateSummaryRowUnits(row: ProgramOutlineActivity): number {
-  const timeUnits = Math.max(1, Math.ceil(row.time.length / 24)) * 0.6;
-  const activityUnits = Math.max(1, Math.ceil(row.activity.length / 62)) * 1.2;
-  const locationUnits = Math.max(1, Math.ceil(row.location.length / 44)) * 1.0;
-  return 1.8 + timeUnits + activityUnits + locationUnits;
-}
-
-function estimateDressCodeUnits(day: ProgramOutlineDay): number {
+function estimateDressCodePx(day: ProgramOutlineDay): number {
   if (day.showDressCodes === false || day.dressCodes.length === 0) return 0;
-  const rows = day.dressCodes.reduce(
-    (sum, code) => sum + Math.max(1, Math.ceil(code.code.length / 46)) * 0.9,
-    0,
-  );
-  // Card chrome + label + row content
-  return 5.4 + rows;
+  const rowsPx = day.dressCodes.reduce((sum, dc) => {
+    // wrap the "Session: code" line; session label is short so use full width
+    const text = `${dc.session}: ${dc.code}`;
+    const lines = wrappedLines(text, 78);
+    return sum + lines * DRESS_CARD_ROW_PX;
+  }, 0);
+  return DRESS_CARD_CHROME_PX + rowsPx;
 }
 
-function estimateSummaryTableUnits(day: ProgramOutlineDay): number {
+function estimateSummaryTablePx(day: ProgramOutlineDay): number {
   if (day.showSummaryTable === false || day.activities.length === 0) return 0;
-  const rows = day.activities.reduce(
-    (sum, row) => sum + estimateSummaryRowUnits(row),
-    0,
-  );
-  // Heading + table header + borders/padding overhead
-  return 6.8 + rows;
-}
-
-function estimateStaticDayUnits(day: ProgramOutlineDay): number {
-  const base = day.isContinuation
-    ? CONT_DAY_CHUNK_BASE_UNITS
-    : FIRST_DAY_CHUNK_BASE_UNITS;
-  const detailedHeadingUnits = day.detailedActivities.length > 0 ? 3.2 : 0;
+  const rowsPx = day.activities.reduce((sum, row) => {
+    const activityLines = wrappedLines(row.activity, SUMMARY_ACTIVITY_CHARS);
+    const locationLines = wrappedLines(row.location, SUMMARY_LOCATION_CHARS);
+    const lines = Math.max(1, activityLines, locationLines);
+    return sum + SUMMARY_ROW_PADDING_PX + lines * SUMMARY_ROW_LINE_PX;
+  }, 0);
   return (
-    base +
-    estimateDressCodeUnits(day) +
-    estimateSummaryTableUnits(day) +
-    detailedHeadingUnits
+    SUMMARY_HEADING_PX + SUMMARY_THEAD_PX + rowsPx + SUMMARY_TABLE_TRAILING_PX
   );
 }
 
-function estimateDayChunkUnits(day: ProgramOutlineDay): number {
-  return (
-    estimateStaticDayUnits(day) +
-    day.detailedActivities.reduce(
-      (sum, row) => sum + estimateDetailedRowUnits(row),
+function estimateDetailedRowPx(row: ProgramOutlineDetailedActivity): number {
+  const activityLines = wrappedLines(row.activity, DETAILED_ACTIVITY_CHARS);
+  let px = DETAILED_ROW_PADDING_PX + activityLines * DETAILED_ACTIVITY_LINE_PX;
+
+  if (row.responsible) {
+    const lines = wrappedLines(row.responsible, DETAILED_META_CHARS);
+    px += DETAILED_META_GAP_PX + lines * DETAILED_META_LINE_PX;
+  }
+  if (row.meal) {
+    const lines = wrappedLines(row.meal, DETAILED_META_CHARS);
+    px += DETAILED_META_GAP_PX + lines * DETAILED_META_LINE_PX;
+  }
+  if (row.subs && row.subs.length > 0) {
+    const subsPx = row.subs.reduce(
+      (sum, sub) =>
+        sum + wrappedLines(sub, DETAILED_SUB_CHARS) * DETAILED_SUB_LINE_PX,
       0,
-    )
+    );
+    px += DETAILED_SUBS_STATIC_PX + subsPx;
+  }
+
+  return px + DETAILED_ROW_GAP_PX;
+}
+
+function estimateStaticDayPx(day: ProgramOutlineDay): number {
+  const detailedHeadingPx =
+    day.detailedActivities.length > 0 ? DETAILED_HEADING_PX : 0;
+  return (
+    DAY_HEADER_PX +
+    estimateDressCodePx(day) +
+    estimateSummaryTablePx(day) +
+    detailedHeadingPx
   );
 }
 
-function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
-  const FIRST_CHUNK_BUDGET = 88;
-  const CONT_CHUNK_BUDGET = 94;
+function estimateDayChunkPx(day: ProgramOutlineDay): number {
+  return (
+    estimateStaticDayPx(day) +
+    day.detailedActivities.reduce(
+      (sum, row) => sum + estimateDetailedRowPx(row),
+      0,
+    ) +
+    DAY_TRAILING_MARGIN_PX
+  );
+}
+
+/**
+ * Break a single day's detailed-flow rows across multiple page-chunks so no
+ * row is ever clipped. The first chunk always carries the day header, dress
+ * codes, and summary table; continuation chunks are labelled "(cont.)" and
+ * only carry additional detailed-flow rows.
+ */
+function chunkDayActivities(
+  day: ProgramOutlineDay,
+  firstChunkBudget: number = PAGE_BUDGET_PX,
+): ProgramOutlineDay[] {
   const chunks: ProgramOutlineDay[] = [];
+  const details = day.detailedActivities;
   let cursor = 0;
   let isContinuation = false;
 
-  const details = day.detailedActivities;
-
-  while (cursor < details.length) {
+  do {
     const working: ProgramOutlineDay = {
       ...day,
       label: isContinuation ? `${day.label} (cont.)` : day.label,
-      activities: !isContinuation ? day.activities : [],
+      activities: isContinuation ? [] : day.activities,
+      dressCodes: isContinuation ? [] : day.dressCodes,
       detailedActivities: [],
       showDressCodes: !isContinuation,
       showSummaryTable: !isContinuation,
       isContinuation,
     };
 
-    let usedUnits = estimateStaticDayUnits(working);
-    const chunkBudget = isContinuation ? CONT_CHUNK_BUDGET : FIRST_CHUNK_BUDGET;
+    // Available budget for this chunk. First chunk of the first day may be
+    // shrunk by the intro block; subsequent chunks use the full page.
+    const budget = isContinuation ? PAGE_BUDGET_PX : firstChunkBudget;
+    let usedPx = estimateStaticDayPx(working) + DAY_TRAILING_MARGIN_PX;
 
     while (cursor < details.length) {
-      const row = details[cursor];
-      const rowUnits = estimateDetailedRowUnits(row);
-      const fits = usedUnits + rowUnits <= chunkBudget;
-
-      if (!fits && working.detailedActivities.length > 0) {
+      const rowPx = estimateDetailedRowPx(details[cursor]);
+      if (usedPx + rowPx > budget) {
+        // Continuation chunks must always accept at least one row so a single
+        // oversized row still renders rather than looping forever. The first
+        // chunk of a day may legitimately carry zero detail rows if the day
+        // header + summary already fills the remaining page space (e.g. Day 1
+        // sharing the intro page).
+        if (isContinuation && working.detailedActivities.length === 0) {
+          working.detailedActivities.push(details[cursor]);
+          usedPx += rowPx;
+          cursor += 1;
+        }
         break;
       }
-
-      working.detailedActivities.push(row);
-      usedUnits += rowUnits;
+      working.detailedActivities.push(details[cursor]);
+      usedPx += rowPx;
       cursor += 1;
-
-      if (!fits && working.detailedActivities.length === 1) {
-        break;
-      }
     }
 
     chunks.push(working);
     isContinuation = true;
-  }
+    // Reset firstChunkBudget after first iteration so a shrunken first chunk
+    // does not cascade into subsequent continuation chunks.
+    firstChunkBudget = PAGE_BUDGET_PX;
+  } while (cursor < details.length);
 
   if (chunks.length === 0) {
+    // Day has no detailed rows — still emit the header/summary/dress code.
     chunks.push({
       ...day,
       showDressCodes: true,
@@ -382,62 +460,75 @@ function chunkDayActivities(day: ProgramOutlineDay): ProgramOutlineDay[] {
     });
   }
 
-  // Avoid creating a trailing page for a tiny leftover row when it can safely
-  // fit in the previous chunk.
-  if (chunks.length >= 2) {
-    const lastIdx = chunks.length - 1;
-    const lastChunk = chunks[lastIdx];
-    const prevChunk = chunks[lastIdx - 1];
-    const isTinyTail =
-      lastChunk.detailedActivities.length <= 1 ||
-      estimateDayChunkUnits(lastChunk) <= CONT_DAY_CHUNK_BASE_UNITS + 10;
-
-    if (isTinyTail) {
-      const mergedPrev: ProgramOutlineDay = {
-        ...prevChunk,
-        detailedActivities: [
-          ...prevChunk.detailedActivities,
-          ...lastChunk.detailedActivities,
-        ],
-      };
-      const prevBudget = prevChunk.isContinuation
-        ? CONT_CHUNK_BUDGET
-        : FIRST_CHUNK_BUDGET;
-      if (estimateDayChunkUnits(mergedPrev) <= prevBudget + 16) {
-        chunks[lastIdx - 1] = mergedPrev;
-        chunks.pop();
-      }
-    }
-  }
-
   return chunks;
 }
 
 /**
- * Program Outline pages are packed by estimated vertical height so rows do not
- * clip at the bottom of the page when day tables get longer.
+ * Program Outline pages are packed by estimated vertical pixel height so rows
+ * cannot clip at the bottom of a page, and so smaller day chunks share a page
+ * whenever they fit.
  */
 export function paginateProgramOutlinePages(
   resolved: ResolvedProgramOutline,
 ): ProgramOutlinePageChunk[] {
-  const expandedDays = resolved.days.flatMap((day) => chunkDayActivities(day));
+  const introPx = estimateIntroPx(resolved.intro);
+  const introRemainingPx = PAGE_BUDGET_PX - introPx;
+
+  // Decide whether Day 1's first chunk can share a page with the intro. The
+  // check requires enough room for the day header + dress code + summary
+  // table + at least one detailed-flow row. If not, the intro renders alone
+  // on page 1 and Day 1 starts on page 2 with a full page budget — this is
+  // the "fall down to next page" behaviour the user expects.
+  const firstDay = resolved.days[0];
+  let canShareIntroPage = false;
+  if (firstDay) {
+    const firstDayMinPx =
+      estimateStaticDayPx({
+        ...firstDay,
+        isContinuation: false,
+        showDressCodes: true,
+        showSummaryTable: true,
+      }) +
+      DAY_TRAILING_MARGIN_PX +
+      (firstDay.detailedActivities[0]
+        ? estimateDetailedRowPx(firstDay.detailedActivities[0])
+        : 0);
+    canShareIntroPage =
+      introRemainingPx > 0 && firstDayMinPx <= introRemainingPx;
+  }
+
+  // Chunk each day using the correct budget for its very first chunk. When
+  // Day 1 shares the intro page, its first chunk gets the remaining space;
+  // otherwise every day uses the full page budget for chunking.
+  const expandedDays: ProgramOutlineDay[] = [];
+  resolved.days.forEach((day, index) => {
+    const budget =
+      index === 0 && canShareIntroPage ? introRemainingPx : PAGE_BUDGET_PX;
+    expandedDays.push(...chunkDayActivities(day, budget));
+  });
 
   const pages: ProgramOutlinePageChunk[] = [];
   let current: ProgramOutlinePageChunk = { showIntro: true, days: [] };
-  let used = estimateIntroUnits(resolved.intro);
-  let budget = INTRO_PAGE_UNIT_BUDGET;
+  let usedPx = introPx;
 
-  for (const day of expandedDays) {
-    const dayUnits = estimateDayChunkUnits(day);
-    if (current.days.length > 0 && used + dayUnits > budget) {
+  for (let i = 0; i < expandedDays.length; i++) {
+    const day = expandedDays[i];
+    const dayPx = estimateDayChunkPx(day);
+
+    // Special case: Day 1's first chunk cannot share the intro page → emit
+    // the intro on its own page before any day content.
+    if (i === 0 && !canShareIntroPage && current.showIntro) {
       pages.push(current);
       current = { showIntro: false, days: [] };
-      used = 0;
-      budget = PAGE_UNIT_BUDGET;
+      usedPx = 0;
+    } else if (current.days.length > 0 && usedPx + dayPx > PAGE_BUDGET_PX) {
+      pages.push(current);
+      current = { showIntro: false, days: [] };
+      usedPx = 0;
     }
 
     current.days.push(day);
-    used += dayUnits;
+    usedPx += dayPx;
   }
 
   if (current.days.length > 0 || current.showIntro) {

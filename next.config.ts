@@ -21,10 +21,7 @@ const nextConfig: NextConfig = {
   },
   // Large hotel videos should not be pulled into the serverless/SSR trace graph.
   outputFileTracingExcludes: {
-    "*": [
-      "public/conf/assets/hotel/*.mp4",
-      "public/conf/assets/**/*.mp4",
-    ],
+    "*": ["public/conf/assets/hotel/*.mp4", "public/conf/assets/**/*.mp4"],
   },
   serverExternalPackages: ["@resvg/resvg-js", "adm-zip"],
   allowedDevOrigins: ["192.168.195.241"],

@@ -715,13 +715,17 @@ export function BookletManagerShell() {
                 data.necMembers.find(
                   (m) =>
                     m.role === "CHAIR" ||
-                    (m.title ?? "").toLowerCase().includes("national president"),
+                    (m.title ?? "")
+                      .toLowerCase()
+                      .includes("national president"),
                 ) ?? null;
               const presidentSections =
                 data.booklet?.sections.filter(
                   (s) =>
                     s.type === "PRESIDENT_ADDRESS" ||
-                    s.title.toLowerCase().includes("national president address"),
+                    s.title
+                      .toLowerCase()
+                      .includes("national president address"),
                 ) ?? [];
               const enabledPresidentSections = presidentSections.filter(
                 (s) => s.isEnabled,
@@ -734,16 +738,16 @@ export function BookletManagerShell() {
                 Boolean((s.bodyText ?? "").trim()),
               );
               const presidentRosterAddress = nationalPresident?.rosterKey
-                ? data.rosterAddressLinks.find(
+                ? (data.rosterAddressLinks.find(
                     (link) => link.rosterKey === nationalPresident.rosterKey,
-                  ) ?? null
+                  ) ?? null)
                 : null;
               const hasNationalPresidentAddress =
                 Boolean((nationalPresident?.bookletBio ?? "").trim()) ||
                 hasPresidentSectionAddress ||
                 Boolean(
                   presidentRosterAddress?.includeAddressPage &&
-                    (presidentRosterAddress?.addressText ?? "").trim(),
+                  (presidentRosterAddress?.addressText ?? "").trim(),
                 );
               const checks = [
                 {
