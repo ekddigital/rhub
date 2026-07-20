@@ -105,8 +105,7 @@ const DEFAULT_SECTIONS = [
     bodyText: DEFAULT_CONFERENCE_INTRO_BODY,
   },
   { type: "LEADER", title: "President of Liberia", sortOrder: 3 },
-  { type: "LEADER", title: "President of China", sortOrder: 4 },
-  { type: "LEADER", title: "Liberian Ambassador to China", sortOrder: 5 },
+  { type: "LEADER", title: "Liberian Ambassador to China", sortOrder: 4 },
   { type: "NEC", title: "NEC Leadership", sortOrder: 6 },
   {
     type: "PRESIDENT_ADDRESS",
@@ -272,6 +271,23 @@ export async function GET(
         const existingSections = [...existingBooklet.sections].sort(
           (a, b) => a.sortOrder - b.sortOrder,
         );
+
+        const chinaPresidentSections = existingSections.filter((s) => {
+          if (s.type !== "LEADER") return false;
+          const title = normalizeLabel(s.title);
+          return (
+            title.includes("china") &&
+            title.includes("president") &&
+            !title.includes("ambassador")
+          );
+        });
+        if (chinaPresidentSections.length > 0) {
+          await tx.confBookletSection.deleteMany({
+            where: {
+              id: { in: chinaPresidentSections.map((section) => section.id) },
+            },
+          });
+        }
 
         const presidentAddress = existingSections.find(
           (s) => s.type === "PRESIDENT_ADDRESS",
@@ -644,8 +660,7 @@ export async function GET(
         // Backfill missing LEADER dignitary sections (president / ambassador pages).
         const DEFAULT_LEADER_SECTIONS = [
           { title: "President of Liberia", sortHint: 3 },
-          { title: "President of China", sortHint: 4 },
-          { title: "Liberian Ambassador to China", sortHint: 5 },
+          { title: "Liberian Ambassador to China", sortHint: 4 },
         ] as const;
 
         const leaderSections = existingSections.filter(
@@ -972,7 +987,6 @@ export async function GET(
             .sort((a, b) => a.sortOrder - b.sortOrder);
           const leaderTitles = [
             "President of Liberia",
-            "President of China",
             "Liberian Ambassador to China",
           ];
 

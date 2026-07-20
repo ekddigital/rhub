@@ -53,11 +53,7 @@ export function resolveLeadersForBookletSection<
   }
 
   if (isChinaPresident) {
-    return pick(
-      (l) =>
-        normalizeLabel(l.country).includes("china") &&
-        normalizeLabel(l.title).includes("president"),
-    );
+    return [];
   }
 
   if (isAmbassador) {
