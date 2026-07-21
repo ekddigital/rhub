@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BedDouble,
   Pencil,
@@ -80,6 +80,39 @@ type Props = {
 
 type ViewMode = RoomAssignmentViewMode;
 type ManualAssignmentMode = "with-guest" | "with-delegate";
+
+function matchesSearch(value: string, query: string) {
+  if (!query.trim()) return true;
+  return value.toLowerCase().includes(query.trim().toLowerCase());
+}
+
+function nextAutoRoomCode(assignments: RoomAssignmentRow[]) {
+  const autoRoomPattern = /^RM-(\d+)$/i;
+  const existingAutoCodes = new Set<string>();
+  let maxSequence = 0;
+
+  for (const assignment of assignments) {
+    const code = assignment.roomCode.trim();
+    const normalizedCode = code.toUpperCase();
+    existingAutoCodes.add(normalizedCode);
+
+    const match = normalizedCode.match(autoRoomPattern);
+    if (!match) continue;
+    const sequence = Number.parseInt(match[1], 10);
+    if (Number.isFinite(sequence)) {
+      maxSequence = Math.max(maxSequence, sequence);
+    }
+  }
+
+  let nextSequence = maxSequence + 1;
+  while (true) {
+    const candidate = `RM-${String(nextSequence).padStart(3, "0")}`;
+    if (!existingAutoCodes.has(candidate)) {
+      return candidate;
+    }
+    nextSequence += 1;
+  }
+}
 
 function companionGuestsForDelegate(
   delegate: Pick<
@@ -242,6 +275,8 @@ export function RoomAssignmentWorkspace({
 
   const [manualA, setManualA] = useState("");
   const [manualB, setManualB] = useState("");
+  const [manualASearch, setManualASearch] = useState("");
+  const [manualBSearch, setManualBSearch] = useState("");
   const [manualRoomCode, setManualRoomCode] = useState("");
   const [manualOverride, setManualOverride] = useState("");
   const [manualAssignmentMode, setManualAssignmentMode] =
@@ -308,6 +343,85 @@ export function RoomAssignmentWorkspace({
       ),
     [delegates, assignedDelegateIds],
   );
+
+  const suggestedRoomCode = useMemo(
+    () => nextAutoRoomCode(assignments),
+    [assignments],
+  );
+
+  useEffect(() => {
+    if (!manualRoomCode.trim()) {
+      setManualRoomCode(suggestedRoomCode);
+    }
+  }, [suggestedRoomCode, manualRoomCode]);
+
+  const filteredAssignmentEligibleDelegates = useMemo(
+    () =>
+      assignmentEligibleDelegates.filter((delegate) =>
+        matchesSearch(
+          `${delegate.name} ${delegate.delegateCode ?? ""}`,
+          manualASearch,
+        ),
+      ),
+    [assignmentEligibleDelegates, manualASearch],
+  );
+
+  const filteredManualGuestOptions = useMemo(
+    () =>
+      manualGuestOptions.filter((option) =>
+        matchesSearch(option.label, manualBSearch),
+      ),
+    [manualGuestOptions, manualBSearch],
+  );
+
+  const filteredPairingEligibleDelegates = useMemo(
+    () =>
+      pairingEligibleDelegates
+        .filter((delegate) => delegate.id !== manualA)
+        .filter((delegate) =>
+          matchesSearch(
+            `${delegate.name} ${delegate.delegateCode ?? ""}`,
+            manualBSearch,
+          ),
+        ),
+    [pairingEligibleDelegates, manualA, manualBSearch],
+  );
+
+  const manualBGuestOptionsForSelect = useMemo(() => {
+    if (!manualB || !isGuestOccupantValue(manualB)) {
+      return filteredManualGuestOptions;
+    }
+    if (
+      filteredManualGuestOptions.some((option) => option.value === manualB)
+    ) {
+      return filteredManualGuestOptions;
+    }
+
+    const selectedGuest = manualGuestOptions.find(
+      (option) => option.value === manualB,
+    );
+    return selectedGuest
+      ? [selectedGuest, ...filteredManualGuestOptions]
+      : filteredManualGuestOptions;
+  }, [manualB, manualGuestOptions, filteredManualGuestOptions]);
+
+  const manualBDelegateOptionsForSelect = useMemo(() => {
+    if (!manualB || isGuestOccupantValue(manualB)) {
+      return filteredPairingEligibleDelegates;
+    }
+    if (
+      filteredPairingEligibleDelegates.some((delegate) => delegate.id === manualB)
+    ) {
+      return filteredPairingEligibleDelegates;
+    }
+
+    const selectedDelegate = pairingEligibleDelegates.find(
+      (delegate) => delegate.id === manualB,
+    );
+    return selectedDelegate
+      ? [selectedDelegate, ...filteredPairingEligibleDelegates]
+      : filteredPairingEligibleDelegates;
+  }, [manualB, pairingEligibleDelegates, filteredPairingEligibleDelegates]);
 
   const showManualAssignmentMode = Boolean(
     selectedManualDelegate &&
@@ -631,6 +745,12 @@ export function RoomAssignmentWorkspace({
           <div className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-2 xl:grid-cols-5">
             <div className="space-y-2">
               <Label>Occupant A</Label>
+              <Input
+                value={manualASearch}
+                onChange={(e) => setManualASearch(e.target.value)}
+                placeholder="Search name or code"
+                className="h-8"
+              />
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={manualA}
@@ -656,7 +776,7 @@ export function RoomAssignmentWorkspace({
                 }}
               >
                 <option value="">Select delegate</option>
-                {assignmentEligibleDelegates.map((d) => (
+                {filteredAssignmentEligibleDelegates.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name} ({d.delegateCode || "N/A"})
                   </option>
@@ -712,6 +832,12 @@ export function RoomAssignmentWorkspace({
 
             <div className="space-y-2">
               <Label>Occupant B (optional)</Label>
+              <Input
+                value={manualBSearch}
+                onChange={(e) => setManualBSearch(e.target.value)}
+                placeholder="Search guest or delegate"
+                className="h-8"
+              />
               <select
                 className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-xs"
                 value={manualB}
@@ -726,10 +852,8 @@ export function RoomAssignmentWorkspace({
                 }}
               >
                 <OccupantBSelectOptions
-                  guestOptions={manualGuestOptions}
-                  delegateOptions={pairingEligibleDelegates.filter(
-                    (d) => d.id !== manualA,
-                  )}
+                  guestOptions={manualBGuestOptionsForSelect}
+                  delegateOptions={manualBDelegateOptionsForSelect}
                 />
               </select>
             </div>
@@ -741,6 +865,9 @@ export function RoomAssignmentWorkspace({
                 value={manualRoomCode}
                 onChange={(e) => setManualRoomCode(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Auto-suggested next room: {suggestedRoomCode}
+              </p>
             </div>
 
             <div className="space-y-2 xl:col-span-2">

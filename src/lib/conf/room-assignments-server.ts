@@ -66,8 +66,36 @@ export type DelegatePairingRecord = RoomPairingDelegate & {
 };
 
 export async function generateRoomCode(confId: string) {
-  const count = await prisma.confRoomAssignment.count({ where: { confId } });
-  return `RM-${String(count + 1).padStart(3, "0")}`;
+  const assignments = await prisma.confRoomAssignment.findMany({
+    where: { confId },
+    select: { roomCode: true },
+  });
+
+  const roomPattern = /^RM-(\d+)$/i;
+  const existing = new Set<string>();
+  let maxNumber = 0;
+
+  for (const assignment of assignments) {
+    const normalized = assignment.roomCode.trim().toUpperCase();
+    existing.add(normalized);
+
+    const match = normalized.match(roomPattern);
+    if (!match) continue;
+
+    const value = Number.parseInt(match[1], 10);
+    if (Number.isFinite(value)) {
+      maxNumber = Math.max(maxNumber, value);
+    }
+  }
+
+  let next = maxNumber + 1;
+  while (true) {
+    const candidate = `RM-${String(next).padStart(3, "0")}`;
+    if (!existing.has(candidate)) {
+      return candidate;
+    }
+    next += 1;
+  }
 }
 
 export async function hasActiveAssignment(
