@@ -127,14 +127,19 @@ const DAY_2: ProgramDay = {
   dressCodes: [
     { session: "Conference Sessions", code: "Formal / Smart Business Attire" },
     {
-      session: "Pool Party and Sports",
+      session: "Pool Party",
       code: "Casual with Liberia's national colors (Red, White, Blue) encouraged",
     },
-    { session: "Awards Night", code: "Formal / Semi-Formal" },
   ],
   slots: [
     {
-      time: "8:00 AM – 8:30 AM",
+      time: "7:00 AM – 9:30 AM",
+      activity: "Breakfast (hotel time).",
+      by: "Hotel Service",
+      highlight: true,
+    },
+    {
+      time: "8:30 AM – 8:35 AM",
       activity: "Morning prayer and devotion.",
       by: "National Chaplain General — Mitchell Vampelt",
     },
@@ -175,36 +180,25 @@ const DAY_2: ProgramDay = {
       by: "National President — Olano Teah Bloh",
     },
     {
-      time: "11:00 AM – 11:40 AM",
+      time: "11:00 AM – 12:00 PM",
       activity: "Strategic Resolutions and motions from the floor.",
       by: "All Delegates",
     },
     {
-      time: "11:45 AM – 12:45 PM",
-      activity: "Lunch Break.",
+      time: "12:00 PM – 2:00 PM",
+      activity:
+        "Elections, reports, resolutions, and remaining formal conference business.",
+      by: "Independent Elections Commission (IEC) · Plenary",
+    },
+    {
+      time: "2:00 PM – 4:30 PM",
+      activity: "Lunch and relaxation break.",
       by: "Cooking Committee",
       highlight: true,
       meal: "Beans Toborgee",
     },
     {
-      time: "12:47 PM – 1:30 PM",
-      activity:
-        "Constitution Review Committee (CRC) — 2026 Constitution Presentation, and Adoption.",
-      by: "Constitution Review Committee (CRC)",
-    },
-    {
-      time: "1:32 PM – 2:15 PM",
-      activity:
-        "Elections — NEC Officer nominations, debate, voting, and results.",
-      by: "Independent Elections Commission (IEC)",
-    },
-    {
-      time: "2:20 PM – 3:20 PM",
-      activity: "Rest — delegates relax at the hotel.",
-      by: "All Delegates",
-    },
-    {
-      time: "4:00 PM – 9:00 PM",
+      time: "4:30 PM – 9:00 PM",
       activity: "Pool Party and Swimming.",
       by: "All Delegates",
       highlight: true,
@@ -233,68 +227,82 @@ const DAY_3: ProgramDay = {
   date: "July 26, 2026",
   dayOfWeek: "Sunday",
   dressCodes: [
-    { session: "Morning Program", code: "Business Formal" },
+    { session: "Breakfast", code: "Casual / Hotel Time" },
     {
       session: "Sports Activities",
       code: "Sports Wear — Liberia's national colors encouraged",
     },
-    { session: "Awards Night", code: "Formal / Semi-Formal" },
-    { session: "LSUIC Pageant", code: "Formal Attire" },
+    {
+      session: "Major Formal Session (Ambassador Present)",
+      code: "Business Formal",
+    },
+    { session: "Dinner & Awards Night", code: "Formal / Semi-Formal" },
   ],
   slots: [
     {
-      time: "8:00 AM – 8:30 AM",
-      activity: "Morning Prayer and Devotion.",
-      by: "National Chaplain General — Mitchell Vampelt",
+      time: "7:00 AM – 9:30 AM",
+      activity: "Breakfast (hotel time).",
+      by: "Hotel Service",
+      highlight: true,
     },
     {
-      time: "8:30 AM – 8:40 AM",
-      activity: "Call to Order (morning session).",
-      by: "Presiding Officer",
+      time: "9:00 AM – 2:00 PM",
+      activity: "Sports Activities (Football and related games).",
+      by: "All Delegates · Sports Coordinator",
     },
     {
-      time: "8:40 AM – 9:00 AM",
-      activity: "Welcome Remarks.",
-      by: "Conference Committee Secretary",
+      time: "12:30 PM",
+      activity: "Lunch — Pepper Kala.",
+      by: "Cooking Committee",
+      highlight: true,
+      meal: "Pepper Kala",
     },
     {
-      time: "9:00 AM – 9:10 AM",
-      activity: "Recognition of Special & Invited Guests.",
-      by: "National President — Olano Teah Bloh",
+      time: "2:20 PM – 4:00 PM",
+      activity:
+        "Coordination with hotel manager for renewed swimming access and related arrangements.",
+      by: "Conference Committee · Logistics Team",
     },
     {
-      time: "9:10 AM – 9:30 AM",
-      activity: "Musical Interlude - Independence Song.",
-      by: "Performing Member / Group",
+      time: "4:00 PM – 5:00 PM",
+      activity:
+        "Transition break — freshening up and seating for the formal evening session.",
+      by: "All Delegates",
     },
     {
-      time: "9:30 AM – 9:40 AM",
+      time: "5:00 PM – 5:15 PM",
+      activity: "Opening Prayer and Call to Order (major formal session).",
+      by: "National Chaplain General · Presiding Officer",
+      highlight: true,
+    },
+    {
+      time: "5:15 PM – 5:30 PM",
+      activity: "Welcome Remarks and recognition of special guests.",
+      by: "National President · Conference Chair",
+    },
+    {
+      time: "5:30 PM – 5:40 PM",
       activity: "Introduction of Guest Speaker.",
       by: "Member, Conference Committee",
     },
     {
-      time: "9:40 AM – 10:10 AM",
+      time: "5:40 PM – 6:10 PM",
       activity: "Independence Day Oration, Hon. Joshua Bosco Barvor.",
       by: "Hon. Joshua Bosco Barvor",
     },
     {
-      time: "10:10 AM – 10:30 AM",
-      activity: "Certification of Elected Officers.",
-      by: "Chair, Independent Elections Commission (IEC)",
+      time: "6:10 PM – 6:30 PM",
+      activity: "Certification and induction of elected officers.",
+      by: "IEC Chair · National President",
     },
     {
-      time: "10:30 AM – 10:50 AM",
-      activity: "Induction of Newly Elected Officials.",
-      by: "National President · IEC Chair",
-    },
-    {
-      time: "10:50 AM – 11:20 AM",
-      activity: "Inaugural Address by Newly Elected National President.",
+      time: "6:30 PM – 7:00 PM",
+      activity: "Inaugural Address by newly elected National President.",
       by: "Incoming National President",
     },
     {
-      time: "11:22 AM – 12:10 PM",
-      activity: "Independence Rally & Cutting of the Cake.",
+      time: "7:00 PM – 7:30 PM",
+      activity: "Independence rally, statements, and cake cutting ceremony.",
       by: "All Delegates · Liberian Embassy · Invited Personalities",
       subs: [
         { label: "Remarks — Liberian Embassy in Beijing" },
@@ -303,36 +311,20 @@ const DAY_3: ProgramDay = {
       ],
     },
     {
-      time: "12:10 PM – 12:30 PM",
-      activity: "Vote of Thanks · Announcements · National Anthem.",
-      by: "Conference Committee · All Participants",
-    },
-    {
-      time: "12:30 PM – 1:30 PM",
-      activity: "Lunch and Group Photos.",
-      by: "Cooking Committee · Conference Committee",
+      time: "7:30 PM – 8:00 PM",
+      activity: "Dinner service and formal networking.",
+      by: "Cooking Committee",
       highlight: true,
-      meal: "Pepper Kala",
+      meal: "Dinner service",
     },
     {
-      time: "2:00 PM – 5:30 PM",
-      activity: "Sports Activities.",
-      by: "All Delegates · Sports Coordinator",
-    },
-    {
-      time: "5:30 PM – 6:30 PM",
-      activity:
-        "Return to hotel, freshening up, and preparation for Awards Night.",
-      by: "All Delegates",
-    },
-    {
-      time: "7:00 PM – 8:30 PM",
+      time: "8:00 PM – 9:00 PM",
       activity: "Red Carpet · Musical Interlude, DJ.",
       by: "Master of Ceremony (MC) · All Participants",
       highlight: true,
     },
     {
-      time: "8:30 PM – 9:00 PM",
+      time: "9:00 PM – 9:10 PM",
       activity: "Welcome Remark · Opening Statement, MC.",
       by: "Master of Ceremony (MC)",
     },
@@ -343,7 +335,7 @@ const DAY_3: ProgramDay = {
       by: "Hon. Olano Teah Bloh",
     },
     {
-      time: "9:25 PM – 10:00 PM",
+      time: "9:20 PM – 10:00 PM",
       activity:
         "Special Statement · Liberia’s Ambassador to China, His Excellency Dudley McKinley Thomas.",
       by: "His Excellency Dudley McKinley Thomas",

@@ -270,9 +270,9 @@ export function resolveGuestBioAddress(
   return {
     speaker: {
       id: "guest-speaker",
-      name: "Guest Speaker",
+      name: "Mr. Joshua Bosco Barvor",
       role: "COMMITTEE",
-      title: section.subtitle ?? "Guest Speaker",
+      title: section.subtitle ?? "Introduction of the Guest Speaker",
       city: null,
       photoPath: null,
       committeeScope: null,

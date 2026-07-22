@@ -64,23 +64,28 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 ### Day 2 — Saturday, 25 July 2026 · Conference Business & Pool Party
 
-| Time            | Activities                                                                                     | Location              |
-| --------------- | ---------------------------------------------------------------------------------------------- | --------------------- |
-| 8:30 - 2:00     | Reports, elections, resolutions, voting on the new constitution, and other conference business | Hotel conference room |
-| 2:00 – ~4:00 PM | Rest — delegates may relax at the hotel                                                        | Hotel / personal time |
-| From ~4:00 PM   | Pool party and swimming                                                                        | Hotel pool / spa area |
+| Time             | Activities                                                                                                               | Location              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+| 7:00 – 9:30 AM   | Breakfast (hotel time)                                                                                                   | Hotel dining area     |
+| 8:30 AM – 2:00 PM | Opening prayer, call to order, annual reports, elections, resolutions, and constitution review — formal plenary session | Hotel conference room |
+| 2:00 – 4:30 PM   | Lunch and relaxation break                                                                                               | Hotel / personal time |
+| 4:30 – 9:00 PM   | Pool party and swimming                                                                                                  | Hotel pool / spa area |
 
-**Notes:** The morning plenary runs in the conference room through 2:00 PM. After a rest period, delegates reassemble from approximately 4:00 PM for the pool party and swimming.
+**Notes:** All formal conference business — reports, elections, resolutions, and constitution review — runs from 8:30 AM through 2:00 PM. Lunch and rest follow from 2:00 to 4:30 PM, then delegates reassemble for the pool party from 4:30 PM.
 
 ---
 
-### Day 3 — Sunday, 26 July 2026 · Conference, Sports & Evening Party
+### Day 3 — Sunday, 26 July 2026 · Independence Day, Sports & Awards Night
 
-| Time      | Activities               | Location                      |
-| --------- | ------------------------ | ----------------------------- |
-| Morning   | Conference room sessions | Hotel conference room         |
-| Afternoon | Football                 | Hotel sports grounds          |
-| Evening   | Conference evening party | Hotel venue (to be announced) |
+| Time               | Activities                                                                                                          | Location                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| 7:00 – 9:30 AM     | Breakfast (hotel time)                                                                                              | Hotel dining area                         |
+| 9:00 AM – 2:00 PM  | Sports activities (football) — Pepper Kala served for lunch                                                        | Hotel sports grounds                      |
+| 2:20 – 4:00 PM     | Coordination with hotel management for swimming and recreational access                                             | Hotel pool / grounds                      |
+| From 5:00 PM       | Major formal session — independence program, oration, inductions, rally, and awards night (Ambassador present)      | Hotel conference venue / awards hall      |
+| 10:00 PM – 4:00 AM | Awards Night Program — recognition of veterans, MISS LSUIC, achievement awards, and closing                        | Hotel awards hall                         |
+
+**Notes:** All formal business on July 26 — oration by the guest speaker, induction of elected officers, inaugural address, independence rally, and awards night — begins at **5:00 PM** to align with the Liberian Ambassador and his delegation's arrival. Sports and recreational activities occupy the morning and early afternoon.
 
 ---
 

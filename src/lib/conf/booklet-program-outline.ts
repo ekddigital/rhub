@@ -92,68 +92,54 @@ const SUMMARY_PROGRAM_DAYS: Array<
     dateLabel: "Saturday, 25 July 2026",
     activities: [
       {
-        time: "8:00 AM - 10:55 AM",
+        time: "7:00 AM – 9:30 AM",
+        activity: "Breakfast (hotel time)",
+        location: "Hotel dining area",
+      },
+      {
+        time: "8:30 AM – 2:00 PM",
         activity:
-          "Opening prayer, call to order, agenda adoption, credentials, and annual reports",
+          "Opening prayer, call to order, annual reports, elections, resolutions, and constitution review",
         location: "Hotel conference room",
       },
       {
-        time: "11:00 AM - 12:45 PM",
-        activity: "Strategic resolutions and lunch break",
-        location: "Hotel conference room",
-      },
-      {
-        time: "12:47 PM - 2:15 PM",
-        activity: "Constitution review and elections",
-        location: "Hotel conference room",
-      },
-      {
-        time: "2:20 PM - 3:20 PM",
-        activity: "Rest — delegates relax at the hotel",
+        time: "2:00 PM – 4:30 PM",
+        activity: "Lunch and relaxation break",
         location: "Hotel / personal time",
       },
       {
-        time: "4:00 PM - 9:00 PM",
-        activity: "Pool party, dinner, caucus check-ins, and closing prayer",
+        time: "4:30 PM – 9:00 PM",
+        activity: "Pool party, dinner, and closing prayer",
         location: "Hotel pool / spa area",
       },
     ],
   },
   {
     dayNumber: 3,
-    label: "Day 3 — Conference, Sports & Evening Party",
+    label: "Day 3 — Independence Day, Sports & Awards Night",
     dateLabel: "Sunday, 26 July 2026",
     activities: [
       {
-        time: "8:00 AM - 12:30 PM",
-        activity:
-          "Independence Day morning session, oration, inductions, rally, and anthem",
-        location: "Hotel conference room",
+        time: "7:00 AM – 9:30 AM",
+        activity: "Breakfast (hotel time)",
+        location: "Hotel dining area",
       },
       {
-        time: "12:30 PM - 1:30 PM",
-        activity: "Lunch and group photos",
-        location: "Hotel / designated photo point",
-      },
-      {
-        time: "2:00 PM - 5:30 PM",
-        activity: "Football",
+        time: "9:00 AM – 2:00 PM",
+        activity: "Sports activities — football and Pepper Kala lunch",
         location: "Hotel sports grounds",
       },
       {
-        time: "5:30 PM - 6:30 PM",
-        activity: "Freshening up and preparation for awards night",
-        location: "Hotel / room floors",
+        time: "2:20 PM – 4:00 PM",
+        activity:
+          "Hotel coordination for swimming and recreational activities",
+        location: "Hotel pool / grounds",
       },
       {
-        time: "7:00 PM - 10:00 PM",
-        activity: "Red carpet, welcome session, and special statements",
-        location: "Hotel venue (to be announced)",
-      },
-      {
-        time: "10:00 PM - 4:15 AM",
-        activity: "Awards Night Program, vote of thanks, and closing",
-        location: "Hotel venue (awards hall)",
+        time: "5:00 PM onwards",
+        activity:
+          "Major formal session, independence rally, oration, inductions, dinner, and awards night — Ambassador and guests present",
+        location: "Hotel conference venue / awards hall",
       },
     ],
   },

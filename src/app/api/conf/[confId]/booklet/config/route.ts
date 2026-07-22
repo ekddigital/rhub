@@ -33,6 +33,37 @@ const DEFAULT_ABBREVIATIONS_BODY = [
 
 const DEFAULT_CHAIRMAN_ADDRESS_BODY = DEFAULT_CHAIRMAN_ADDRESS;
 const DEFAULT_PRESIDENT_ADDRESS_BODY = DEFAULT_PRESIDENT_ADDRESS;
+const DEFAULT_GUEST_SPEAKER_BIO_BODY = [
+  "Introduction of the Guest Speaker",
+  "",
+  "Distinguished diplomats and delegates, respected leaders of the Liberian Student Union in China, representatives of African student unions, honored guests, ladies and gentlemen:",
+  "",
+  "It is a great privilege to introduce today's guest speaker, Mr. Joshua Bosco Barvor.",
+  "",
+  "Mr. Barvor is one of four children, with two sisters and one brother. His journey is a powerful example of perseverance, intellectual curiosity, service, and leadership. From his early education in Liberia to his academic and professional development in China, he has consistently demonstrated a commitment to growth and to creating opportunities for others.",
+  "",
+  "He began his education at the Kula Foundation in Gardnersville, continued at the Wilbel Foundation in Paynesville, and completed his primary education at the YMCA on GSA Road in Paynesville. He began his lower secondary education at the Isaac A. Davies Memorial School before continuing through the Firestone school system. He later completed Grade 9 and enrolled at St. Kizito Catholic High School.",
+  "",
+  "At St. Kizito, his leadership abilities became clear. He served as debate captain, assistant captain of the quizzing team, senior class president, and ultimately school president. These early responsibilities reflected the qualities that would continue to define his journey: confidence, discipline, a love of learning, and a sincere desire to bring people together.",
+  "",
+  "Following high school, Mr. Barvor completed the laboratory program at Daqmow Clinic, now Daqmow Hospital, where he qualified as a laboratory technician and served professionally. He later enrolled at the University of Liberia's Science College at the Fendall Campus to study biology and chemistry.",
+  "",
+  "During his time at the University of Liberia, his passion for bringing young people together led him to found Lux Galaxy, an organization created to help scholars grow, collaborate, connect, and inspire one another regardless of background. His university journey was interrupted by repeated institutional closures and the Ebola epidemic, but those challenges did not end his pursuit of education. They became part of the difficult road he continued to travel.",
+  "",
+  "Mr. Barvor subsequently enrolled at the China University of Mining and Technology in Xuzhou, Jiangsu Province. There, he studied Chinese for one year before beginning environmental engineering in Mandarin. This meant restarting his undergraduate journey in a new country, in a new language, and within a new academic system, which is a demanding undertaking that required exceptional determination.",
+  "",
+  "At the China University of Mining and Technology, he served as the international students' representative. Through that role, he established an exceptional record of service and helped pave the way for more Liberian students at the institution.",
+  "",
+  "Mr. Barvor holds a Bachelor of Engineering in Environmental Engineering and a Master of Engineering in Cartography and Geographic Information Engineering. He has also earned multiple professional certificates in areas including international business, search engine optimization, and artificial intelligence.",
+  "",
+  "His service to the Liberian Student Union in China has been equally significant. Over the years, he has served the LSUIC in several capacities, including City Coordinator/President. He has also served on numerous national standing and ad hoc committees, both as a member and as a chair. He currently serves as Chairman of the LSUIC Constitution Review and Amendment Committee.",
+  "",
+  "Beyond his academic and organizational achievements, Mr. Barvor is an exemplary leader, a doctor in training, a family man, and a Bible-believing Christian. His story reminds us that achievement is not simply measured by the qualifications one earns, but also by the people one encourages, the institutions one strengthens, and the opportunities one helps create for those who come after.",
+  "",
+  "This Independence Day, as Liberia honors its past, engages its present, and looks toward its future, it is fitting that we hear from someone whose life reflects perseverance through adversity, excellence through hard work, discipline, and service through leadership.",
+  "",
+  "Ladies and gentlemen, please join me in warmly welcoming our guest speaker, Mr. Joshua Bosco Barvor.",
+].join("\n\n");
 
 const SCOPED_COMMITTEE_SECTIONS = [
   {
@@ -113,7 +144,13 @@ const DEFAULT_SECTIONS = [
     bodyText: DEFAULT_PRESIDENT_ADDRESS_BODY,
     sortOrder: 7,
   },
-  { type: "GUEST_BIO", title: "Guest Speaker Biography", sortOrder: 8 },
+  {
+    type: "GUEST_BIO",
+    title: "Guest Speaker Biography",
+    subtitle: "Introduction of the Guest Speaker",
+    bodyText: DEFAULT_GUEST_SPEAKER_BIO_BODY,
+    sortOrder: 8,
+  },
   {
     type: "COC",
     title: "Council of Coordinators — Leadership",
@@ -412,6 +449,28 @@ export async function GET(
                   : {}),
                 ...(needsBody
                   ? { bodyText: DEFAULT_CHAIRMAN_ADDRESS_BODY }
+                  : {}),
+                isEnabled: true,
+              },
+            });
+          }
+        }
+
+        const guestBioSection = existingSections.find(
+          (s) => s.type === "GUEST_BIO",
+        );
+        if (guestBioSection) {
+          const needsGuestBioSubtitle = !(guestBioSection.subtitle ?? "").trim();
+          const needsGuestBioBody = !(guestBioSection.bodyText ?? "").trim();
+          if (needsGuestBioSubtitle || needsGuestBioBody) {
+            await tx.confBookletSection.update({
+              where: { id: guestBioSection.id },
+              data: {
+                ...(needsGuestBioSubtitle
+                  ? { subtitle: "Introduction of the Guest Speaker" }
+                  : {}),
+                ...(needsGuestBioBody
+                  ? { bodyText: DEFAULT_GUEST_SPEAKER_BIO_BODY }
                   : {}),
                 isEnabled: true,
               },
