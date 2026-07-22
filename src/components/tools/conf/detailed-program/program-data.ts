@@ -273,7 +273,7 @@ const DAY_3: ProgramDay = {
     {
       time: "5:00 PM – 5:10 PM",
       activity: "Introduction of Guest Speaker.",
-      by: "Member, Conference Committee",
+      by: "Olive K. Kamara",
     },
     {
       time: "5:10 PM – 5:40 PM",
