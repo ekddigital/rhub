@@ -80,7 +80,6 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 | Time              | Activities                                                                                                                | Location               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | 7:00 – 8:30 AM    | Breakfast                                                                                                                 | Hotel dining area      |
-| 9:00 AM – 2:00 PM | Sports activities (football) — Pepper Kala served for lunch                                                               | Hotel sports grounds   |
 | 9:00 AM – 2:00 PM | Sports activities (football) — Pepper Kala served for lunch at 1:30 PM                                                     | Hotel sports grounds   |
 | 4:00 – 4:20 PM    | Red Carpet · Musical Interlude, DJ                                                                                        | Hotel conference venue |
 | 4:20 – 5:00 PM    | Official Opening of the Independence Day Program (Opening Prayer and Call to Order)                                       | Hotel conference venue |
