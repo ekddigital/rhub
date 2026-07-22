@@ -204,9 +204,7 @@ export function buildRoomAssignmentWriteData(args: {
   return {
     occupantAId: args.occupantAId,
     occupantBId: args.occupantBId,
-    companionGuestId: args.occupantBId
-      ? null
-      : args.companionGuestId || null,
+    companionGuestId: args.occupantBId ? null : args.companionGuestId || null,
     status: args.status ?? ("ASSIGNED" as const),
     isManual: args.isManual ?? true,
     overrideReason: args.overrideReason ?? null,
@@ -271,4 +269,7 @@ export function formatRoomAssignmentWriteError(error: unknown): string | null {
   return "Room assignment conflicts with an existing record.";
 }
 
-export { isDelegateAccommodationPairEligible, isDelegateEligibleForRoomPairing };
+export {
+  isDelegateAccommodationPairEligible,
+  isDelegateEligibleForRoomPairing,
+};

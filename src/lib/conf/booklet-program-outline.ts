@@ -126,7 +126,7 @@ const SUMMARY_PROGRAM_DAYS: Array<
       },
       {
         time: "9:00 AM – 2:00 PM",
-        activity: "Sports activities — football and Pepper Kala lunch",
+        activity: "Sports activities — football and Pepper Kala lunch (1:30 PM)",
         location: "Hotel sports grounds",
       },
       {

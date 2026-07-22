@@ -64,12 +64,12 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 ### Day 2 — Saturday, 25 July 2026 · Conference Business & Pool Party
 
-| Time             | Activities                                                                                                               | Location              |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------- |
-| 7:00 – 8:30 AM   | Breakfast                                                                                                                | Hotel dining area     |
+| Time              | Activities                                                                                                              | Location              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 7:00 – 8:30 AM    | Breakfast                                                                                                               | Hotel dining area     |
 | 8:30 AM – 2:00 PM | Opening prayer, call to order, annual reports, elections, resolutions, and constitution review — formal plenary session | Hotel conference room |
-| 2:00 – 4:30 PM   | Lunch and relaxation break                                                                                               | Hotel / personal time |
-| 4:30 – 9:00 PM   | Pool party and swimming                                                                                                  | Hotel pool / spa area |
+| 2:00 – 4:30 PM    | Lunch and relaxation break                                                                                              | Hotel / personal time |
+| 4:30 – 9:00 PM    | Pool party and swimming                                                                                                 | Hotel pool / spa area |
 
 **Notes:** All formal conference business — reports, elections, resolutions, and constitution review — runs from 8:30 AM through 2:00 PM. Lunch and rest follow from 2:00 to 4:30 PM, then delegates reassemble for the pool party from 4:30 PM.
 
@@ -77,16 +77,17 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 ### Day 3 — Sunday, 26 July 2026 · Independence Day, Sports & Awards Night
 
-| Time               | Activities                                                                                                          | Location                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 7:00 – 8:30 AM     | Breakfast                                                                                                            | Hotel dining area                         |
-| 9:00 AM – 2:00 PM  | Sports activities (football) — Pepper Kala served for lunch                                                        | Hotel sports grounds                      |
-| 4:00 – 4:20 PM     | Red Carpet · Musical Interlude, DJ                                                                                  | Hotel conference venue                    |
-| 4:20 – 5:00 PM     | Official Opening of the Independence Day Program (Opening Prayer and Call to Order)                                | Hotel conference venue                    |
-| 5:00 PM onwards    | Major formal session — guest oration, recognition, NEC annual summary & book launch, inductions, and ambassador statement | Hotel conference venue                    |
-| 7:35 – 8:00 PM     | Independence rally, statements, and cake cutting ceremony                                                           | Hotel conference venue                    |
-| 8:00 – 8:30 PM     | Dinner service and formal networking                                                                                | Hotel conference venue                    |
-| 8:30 PM – 4:00 AM  | Awards Night Program — recognition of veterans, MISS LSUIC, achievement awards, and closing                        | Hotel awards hall                         |
+| Time              | Activities                                                                                                                | Location               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| 7:00 – 8:30 AM    | Breakfast                                                                                                                 | Hotel dining area      |
+| 9:00 AM – 2:00 PM | Sports activities (football) — Pepper Kala served for lunch                                                               | Hotel sports grounds   |
+| 9:00 AM – 2:00 PM | Sports activities (football) — Pepper Kala served for lunch at 1:30 PM                                                     | Hotel sports grounds   |
+| 4:00 – 4:20 PM    | Red Carpet · Musical Interlude, DJ                                                                                        | Hotel conference venue |
+| 4:20 – 5:00 PM    | Official Opening of the Independence Day Program (Opening Prayer and Call to Order)                                       | Hotel conference venue |
+| 5:00 PM onwards   | Major formal session — guest oration, recognition, NEC annual summary & book launch, inductions, and ambassador statement | Hotel conference venue |
+| 7:35 – 8:00 PM    | Independence rally, statements, and cake cutting ceremony                                                                 | Hotel conference venue |
+| 8:00 – 8:30 PM    | Dinner service and formal networking                                                                                      | Hotel conference venue |
+| 8:30 PM – 4:00 AM | Awards Night Program — recognition of veterans, MISS LSUIC, achievement awards, and closing                               | Hotel awards hall      |
 
 **Notes:** All major formal business on July 26 is arranged around the ambassador's availability, with official opening at **4:20 PM** and the formal core continuing into the night.
 

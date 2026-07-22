@@ -251,7 +251,7 @@ const DAY_3: ProgramDay = {
       by: "All Delegates · Sports Coordinator",
     },
     {
-      time: "12:30 PM",
+      time: "1:30 PM",
       activity: "Lunch — Pepper Kala.",
       by: "Cooking Committee",
       highlight: true,

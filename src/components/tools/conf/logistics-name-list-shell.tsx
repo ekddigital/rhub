@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import {
   ArrowLeft,
   Download,
@@ -24,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { LogisticsDocCell } from "@/components/tools/conf/logistics-doc-cell";
 import { LogisticsNameListDocument } from "@/components/tools/conf/logistics-name-list-document";
+import { LOGISTICS_NAME_LIST_ROWS_PER_PAGE } from "@/components/tools/conf/logistics-name-list-document";
 import { LogisticsRoomPairingsPanel } from "@/components/tools/conf/logistics-room-pairings-panel";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
@@ -38,6 +40,17 @@ import {
   type LogisticsNameListEntry,
   type LogisticsNameListResponse,
 } from "@/lib/conf/logistics-name-list";
+
+const PRINT_ROOT_ID = "logistics-name-list-print-root";
+const LOGISTICS_PAGE_SIZE = { width: 794, height: 1123 } as const;
+
+function logisticsExportBasename(data: LogisticsNameListResponse): string {
+  const slug = (data.conf?.name || "logistics-name-list")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `logistics-name-list-${slug || "export"}`;
+}
 
 function DocCell({
   confId,
@@ -89,6 +102,7 @@ export function LogisticsNameListShell() {
   const [uploadingDocKey, setUploadingDocKey] = useState<string | null>(null);
   const [readOnly, setReadOnly] = useState(false);
   const [generatedAt] = useState(() => new Date().toISOString());
+  const [portalReady, setPortalReady] = useState(false);
 
   const loadRoster = useCallback(async (id: string) => {
     const res = await fetch(`/api/conf/${id}/logistics/name-list`, {
@@ -153,6 +167,10 @@ export function LogisticsNameListShell() {
       mounted = false;
     };
   }, [loadRoster]);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   const filteredAvailable = useMemo(() => {
     const list = data?.availableDelegates ?? [];
@@ -264,23 +282,71 @@ export function LogisticsNameListShell() {
     if (!data || exporting) return;
     setExporting(true);
     setError(null);
+
+    const printRoot = document.getElementById(PRINT_ROOT_ID);
+    const prevPrintRootCssText = printRoot?.style.cssText ?? "";
+
     try {
+      const totalPages = Math.max(
+        1,
+        Math.ceil(
+          (data.entries?.length ?? 0) / LOGISTICS_NAME_LIST_ROWS_PER_PAGE,
+        ),
+      );
+
+      const {
+        warmupLogisticsPdfExport,
+        settleAfterPrintRootUpdate,
+        waitForLogisticsPagesInDom,
+        waitForLogisticsImagesInDom,
+        hideZeroSizeImages,
+        normalizeLogisticsPagesForCapture,
+      } = await import("@/lib/conf/logistics-name-list-pdf-export-support");
+
+      await warmupLogisticsPdfExport();
+      await settleAfterPrintRootUpdate();
+
+      const pagesReady = await waitForLogisticsPagesInDom(
+        PRINT_ROOT_ID,
+        totalPages,
+        { timeoutMs: 12_000 },
+      );
+      if (!pagesReady) {
+        throw new Error("Logistics pages did not finish rendering for export.");
+      }
+
+      normalizeLogisticsPagesForCapture(
+        PRINT_ROOT_ID,
+        LOGISTICS_PAGE_SIZE.width,
+        LOGISTICS_PAGE_SIZE.height,
+      );
+
+      await waitForLogisticsImagesInDom(PRINT_ROOT_ID);
+      if (printRoot) hideZeroSizeImages(printRoot);
+
       const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
       await exportToPDF(
-        "logistics-name-list-print-root",
-        "logistics-name-list",
+        PRINT_ROOT_ID,
+        logisticsExportBasename(data),
         undefined,
         {
           pageSelector: ".document-page",
           pageWrapperSelector: null,
           mode: "download",
           canvasScale: 2,
-          jpegQuality: 0.85,
+          jpegQuality: 0.9,
+          pageSizePx: {
+            width: LOGISTICS_PAGE_SIZE.width,
+            height: LOGISTICS_PAGE_SIZE.height,
+          },
         },
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "PDF export failed");
     } finally {
+      if (printRoot) {
+        printRoot.style.cssText = prevPrintRootCssText;
+      }
       setExporting(false);
     }
   };
@@ -312,39 +378,79 @@ export function LogisticsNameListShell() {
   return (
     <div className="space-y-6">
       <style>{`
-        #logistics-name-list-print-root {
+        #${PRINT_ROOT_ID} {
           position: fixed;
           left: -9999px;
           top: 0;
-          width: 794px;
+          width: ${LOGISTICS_PAGE_SIZE.width}px;
           pointer-events: none;
+          z-index: -1;
+        }
+        #${PRINT_ROOT_ID},
+        #${PRINT_ROOT_ID} * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         @media print {
-          body * { visibility: hidden; }
-          #logistics-name-list-print-root,
-          #logistics-name-list-print-root * { visibility: visible !important; }
-          #logistics-name-list-print-root {
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+          }
+          body > :not(#${PRINT_ROOT_ID}) {
+            display: none !important;
+          }
+          .logistics-no-print {
+            display: none !important;
+          }
+          #${PRINT_ROOT_ID} {
+            display: block !important;
             position: static !important;
             left: auto !important;
             top: auto !important;
             width: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: none !important;
             pointer-events: auto !important;
+            z-index: auto !important;
           }
-          .logistics-no-print { display: none !important; }
+          #${PRINT_ROOT_ID} > div {
+            display: block !important;
+            gap: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           .document-page {
             width: 210mm !important;
+            height: 297mm !important;
             min-height: 297mm !important;
-            height: auto !important;
-            margin: 0 !important;
+            max-height: 297mm !important;
+            margin: 0 auto !important;
             box-shadow: none !important;
+            transform: none !important;
             break-after: page;
             page-break-after: always;
+            page-break-inside: avoid;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
+          }
+          .document-page:first-child {
+            break-before: avoid;
+            page-break-before: avoid;
           }
           .document-page:last-child {
             break-after: auto;
             page-break-after: auto;
           }
-          @page { size: A4 portrait; margin: 0; }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
         }
       `}</style>
 
@@ -669,16 +775,19 @@ export function LogisticsNameListShell() {
         </Card>
       )}
 
-      {data && (
-        <div id="logistics-name-list-print-root">
-          <LogisticsNameListDocument
-            confInfo={data.conf}
-            entries={entries}
-            generatedAt={generatedAt}
-            forPrint
-          />
-        </div>
-      )}
+      {data &&
+        portalReady &&
+        createPortal(
+          <div id={PRINT_ROOT_ID}>
+            <LogisticsNameListDocument
+              confInfo={data.conf}
+              entries={entries}
+              generatedAt={generatedAt}
+              forPrint
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

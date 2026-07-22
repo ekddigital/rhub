@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  BedDouble,
-  Pencil,
-  UserMinus,
-} from "lucide-react";
+import { BedDouble, Pencil, UserMinus } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -176,7 +172,9 @@ function validateManualAssignmentInput({
       return `${occupantA.name} is not eligible for a single room with guest(s).`;
     }
 
-    const knownGuestIds = new Set((occupantA.guests ?? []).map((guest) => guest.id));
+    const knownGuestIds = new Set(
+      (occupantA.guests ?? []).map((guest) => guest.id),
+    );
     if (knownGuestIds.size > 0 && !knownGuestIds.has(companionGuestId)) {
       return "Selected guest does not belong to the primary delegate.";
     }
@@ -186,7 +184,9 @@ function validateManualAssignmentInput({
 
   if (occupantBId) {
     if (assignedDelegateIds.has(occupantBId)) {
-      const occupantB = delegates.find((delegate) => delegate.id === occupantBId);
+      const occupantB = delegates.find(
+        (delegate) => delegate.id === occupantBId,
+      );
       return `${occupantB?.name ?? "The selected delegate"} already has an active room assignment.`;
     }
 
@@ -291,7 +291,8 @@ export function RoomAssignmentWorkspace({
     if (!selectedManualDelegate) return [];
     return companionGuestsForDelegate(
       selectedManualDelegate,
-      manualAssignmentMode === "with-delegate" || Boolean(manualB && !isGuestOccupantValue(manualB)),
+      manualAssignmentMode === "with-delegate" ||
+        Boolean(manualB && !isGuestOccupantValue(manualB)),
     );
   }, [selectedManualDelegate, manualAssignmentMode, manualB]);
 
@@ -306,7 +307,7 @@ export function RoomAssignmentWorkspace({
 
   const canAssignWithGuest = Boolean(
     selectedManualDelegate &&
-      isDelegateEligibleForGuestSelfRoom(selectedManualDelegate),
+    isDelegateEligibleForGuestSelfRoom(selectedManualDelegate),
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -391,9 +392,7 @@ export function RoomAssignmentWorkspace({
     if (!manualB || !isGuestOccupantValue(manualB)) {
       return filteredManualGuestOptions;
     }
-    if (
-      filteredManualGuestOptions.some((option) => option.value === manualB)
-    ) {
+    if (filteredManualGuestOptions.some((option) => option.value === manualB)) {
       return filteredManualGuestOptions;
     }
 
@@ -410,7 +409,9 @@ export function RoomAssignmentWorkspace({
       return filteredPairingEligibleDelegates;
     }
     if (
-      filteredPairingEligibleDelegates.some((delegate) => delegate.id === manualB)
+      filteredPairingEligibleDelegates.some(
+        (delegate) => delegate.id === manualB,
+      )
     ) {
       return filteredPairingEligibleDelegates;
     }
@@ -425,9 +426,9 @@ export function RoomAssignmentWorkspace({
 
   const showManualAssignmentMode = Boolean(
     selectedManualDelegate &&
-      (selectedManualDelegate.guestCount ?? 0) > 0 &&
-      (canAssignWithGuest ||
-        pairingEligibleDelegates.some((d) => d.id !== selectedManualDelegate.id)),
+    (selectedManualDelegate.guestCount ?? 0) > 0 &&
+    (canAssignWithGuest ||
+      pairingEligibleDelegates.some((d) => d.id !== selectedManualDelegate.id)),
   );
 
   const activeAssignments = useMemo(
@@ -438,7 +439,10 @@ export function RoomAssignmentWorkspace({
     [assignments],
   );
 
-  const totalPages = Math.max(1, Math.ceil(activeAssignments.length / pageSize));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(activeAssignments.length / pageSize),
+  );
   const effectivePage = Math.min(page, totalPages);
 
   const paginatedAssignments = useMemo(() => {
@@ -457,16 +461,11 @@ export function RoomAssignmentWorkspace({
     const otherEditId = slot === "A" ? editB : editA;
 
     const pool =
-      slot === "B"
-        ? pairingEligibleDelegates
-        : assignmentEligibleDelegates;
+      slot === "B" ? pairingEligibleDelegates : assignmentEligibleDelegates;
 
     const options = pool.filter((d) => d.id !== otherEditId);
     const currentDelegate = delegates.find((d) => d.id === currentId);
-    if (
-      currentDelegate &&
-      !options.some((d) => d.id === currentDelegate.id)
-    ) {
+    if (currentDelegate && !options.some((d) => d.id === currentDelegate.id)) {
       options.unshift(currentDelegate);
     }
     return options;
@@ -573,8 +572,7 @@ export function RoomAssignmentWorkspace({
       await onRefresh();
       onNotice("Room assignment created.");
     } catch (e) {
-      const message =
-        e instanceof Error ? e.message : "Failed to assign room";
+      const message = e instanceof Error ? e.message : "Failed to assign room";
       setFormError(message);
       onError(message);
     } finally {
@@ -586,7 +584,8 @@ export function RoomAssignmentWorkspace({
   const handleSaveEdit = async (assignmentId: string) => {
     if (busy || submitting || !editA || !editRoomCode.trim()) return;
 
-    const editDelegateA = delegates.find((delegate) => delegate.id === editA) ?? null;
+    const editDelegateA =
+      delegates.find((delegate) => delegate.id === editA) ?? null;
     const validationError = validateManualAssignmentInput({
       occupantA: editDelegateA,
       occupantBValue: editB,
@@ -594,9 +593,13 @@ export function RoomAssignmentWorkspace({
       delegates,
       assignedDelegateIds: new Set(
         [...assignedDelegateIds].filter((id) => {
-          const assignment = assignments.find((item) => item.id === assignmentId);
+          const assignment = assignments.find(
+            (item) => item.id === assignmentId,
+          );
           if (!assignment || assignment.status === "CANCELLED") return true;
-          return id !== assignment.occupantA.id && id !== assignment.occupantB?.id;
+          return (
+            id !== assignment.occupantA.id && id !== assignment.occupantB?.id
+          );
         }),
       ),
     });
@@ -727,10 +730,12 @@ export function RoomAssignmentWorkspace({
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle className="text-base">Room Assignment Workspace</CardTitle>
+            <CardTitle className="text-base">
+              Room Assignment Workspace
+            </CardTitle>
             <CardDescription>
-              Assign paid delegates to rooms. Only fully paid delegates appear in
-              pairing dropdowns. Companion guests appear in Occupant B for
+              Assign paid delegates to rooms. Only fully paid delegates appear
+              in pairing dropdowns. Companion guests appear in Occupant B for
               guest-package delegates (single room with guest).
             </CardDescription>
           </div>
@@ -960,7 +965,10 @@ export function RoomAssignmentWorkspace({
                                 onChange={(e) => setEditB(e.target.value)}
                               >
                                 <OccupantBSelectOptions
-                                  guestOptions={guestOptionsForPrimary(editA, editB)}
+                                  guestOptions={guestOptionsForPrimary(
+                                    editA,
+                                    editB,
+                                  )}
                                   delegateOptions={occupantOptionsForEdit(
                                     assignment,
                                     "B",
@@ -970,7 +978,9 @@ export function RoomAssignmentWorkspace({
                               <Textarea
                                 placeholder="Override reason (if cross-gender)"
                                 value={editOverride}
-                                onChange={(e) => setEditOverride(e.target.value)}
+                                onChange={(e) =>
+                                  setEditOverride(e.target.value)
+                                }
                                 rows={1}
                                 className="text-xs"
                               />
@@ -980,7 +990,9 @@ export function RoomAssignmentWorkspace({
                             —
                           </td>
                           <td className="px-3 py-2 align-top text-muted-foreground">
-                            {editB && !isGuestOccupantValue(editB) ? "Pair" : "Single"}
+                            {editB && !isGuestOccupantValue(editB)
+                              ? "Pair"
+                              : "Single"}
                           </td>
                           <td className="px-3 py-2 align-top">
                             <Badge
@@ -997,7 +1009,9 @@ export function RoomAssignmentWorkspace({
                                   size="sm"
                                   className="h-7 text-xs"
                                   onClick={() => handleSaveEdit(assignment.id)}
-                                  disabled={busy || submitting || !editRoomCode.trim()}
+                                  disabled={
+                                    busy || submitting || !editRoomCode.trim()
+                                  }
                                 >
                                   Save
                                 </Button>
@@ -1136,7 +1150,10 @@ export function RoomAssignmentWorkspace({
                               onChange={(e) => setEditB(e.target.value)}
                             >
                               <OccupantBSelectOptions
-                                guestOptions={guestOptionsForPrimary(editA, editB)}
+                                guestOptions={guestOptionsForPrimary(
+                                  editA,
+                                  editB,
+                                )}
                                 delegateOptions={occupantOptionsForEdit(
                                   assignment,
                                   "B",
@@ -1203,7 +1220,9 @@ export function RoomAssignmentWorkspace({
                             hasPairPartner={Boolean(assignment.occupantB)}
                           />
                           {assignment.occupantB && (
-                            <OccupantGuestLines occupant={assignment.occupantB} />
+                            <OccupantGuestLines
+                              occupant={assignment.occupantB}
+                            />
                           )}
                           {assignment.overrideReason && (
                             <p className="rounded bg-amber-50 border border-amber-200 px-2 py-1 text-xs text-amber-700">

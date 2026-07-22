@@ -19,9 +19,7 @@ function normalizeLabel(value: string | null | undefined): string {
  * Each LEADER booklet section is one dignitary page. Match the enabled section
  * title to a single profile instead of rendering the full roster per section.
  */
-export function resolveLeadersForBookletSection<
-  T extends BookletLeaderProfile,
->(
+export function resolveLeadersForBookletSection<T extends BookletLeaderProfile>(
   sectionTitle: string,
   leaders: T[],
   conferenceId: string,

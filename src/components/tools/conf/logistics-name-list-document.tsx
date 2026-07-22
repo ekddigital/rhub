@@ -21,7 +21,7 @@ import {
 } from "@/lib/conf/logistics-name-list";
 
 /** Prioritize readable document scans over max rows per page. */
-const ROWS_PER_PAGE = 5;
+export const LOGISTICS_NAME_LIST_ROWS_PER_PAGE = 5;
 const DOC_THUMB_HEIGHT = 140;
 
 export type LogisticsNameListDocumentProps = {
@@ -304,7 +304,10 @@ export function LogisticsNameListDocument({
     ? formatDate(generatedAt)
     : formatDate(new Date().toISOString());
 
-  const pages = useMemo(() => chunkPages(entries, ROWS_PER_PAGE), [entries]);
+  const pages = useMemo(
+    () => chunkPages(entries, LOGISTICS_NAME_LIST_ROWS_PER_PAGE),
+    [entries],
+  );
   const visiblePages = pageFilter
     ? pages.filter((_, idx) => pageFilter.includes(idx))
     : pages;
@@ -321,7 +324,7 @@ export function LogisticsNameListDocument({
             officeLabel="Office of the Logistics Committee"
             hideCommitteeSidebar
             forPrint={forPrint}
-            className={absolutePageIdx > 0 ? "mt-4" : ""}
+            className={absolutePageIdx > 0 && !forPrint ? "mt-4" : ""}
             pageNumber={absolutePageIdx + 1}
             totalPages={pages.length}
           >
@@ -365,7 +368,9 @@ export function LogisticsNameListDocument({
             )}
             <RosterTable
               rows={pageRows}
-              startIndex={absolutePageIdx * ROWS_PER_PAGE}
+              startIndex={
+                absolutePageIdx * LOGISTICS_NAME_LIST_ROWS_PER_PAGE
+              }
             />
           </DocumentLayout>
         );

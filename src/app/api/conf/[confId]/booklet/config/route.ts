@@ -460,7 +460,9 @@ export async function GET(
           (s) => s.type === "GUEST_BIO",
         );
         if (guestBioSection) {
-          const needsGuestBioSubtitle = !(guestBioSection.subtitle ?? "").trim();
+          const needsGuestBioSubtitle = !(
+            guestBioSection.subtitle ?? ""
+          ).trim();
           const needsGuestBioBody = !(guestBioSection.bodyText ?? "").trim();
           if (needsGuestBioSubtitle || needsGuestBioBody) {
             await tx.confBookletSection.update({
