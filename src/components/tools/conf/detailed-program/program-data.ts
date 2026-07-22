@@ -288,13 +288,13 @@ const DAY_3: ProgramDay = {
     },
     {
       time: "6:00 PM – 6:20 PM",
-      activity: "NEC Summary of the Annual Report & Book Launch - 2025-2026.",
+      activity: "Summary of the Annual Report  & Book Launch - NEC 2025-2026.",
       by: "Hon. Olano Teah Bloh",
     },
     {
       time: "6:20 PM – 6:40 PM",
       activity: "Certification and induction of elected officers.",
-      by: "IEC Chair · National President",
+      by: "IEC Chair · Abmassador",
     },
     {
       time: "6:40 PM – 7:00 PM",
