@@ -79,13 +79,16 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 | Time               | Activities                                                                                                          | Location                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| 7:00 – 9:30 AM     | Breakfast (hotel time)                                                                                              | Hotel dining area                         |
+| 7:00 – 8:30 AM     | Breakfast                                                                                                            | Hotel dining area                         |
 | 9:00 AM – 2:00 PM  | Sports activities (football) — Pepper Kala served for lunch                                                        | Hotel sports grounds                      |
-| 2:20 – 4:00 PM     | Coordination with hotel management for swimming and recreational access                                             | Hotel pool / grounds                      |
-| From 5:00 PM       | Major formal session — independence program, oration, inductions, rally, and awards night (Ambassador present)      | Hotel conference venue / awards hall      |
-| 10:00 PM – 4:00 AM | Awards Night Program — recognition of veterans, MISS LSUIC, achievement awards, and closing                        | Hotel awards hall                         |
+| 4:00 – 4:20 PM     | Red Carpet · Musical Interlude, DJ                                                                                  | Hotel conference venue                    |
+| 4:20 – 5:00 PM     | Official Opening of the Independence Day Program (Opening Prayer and Call to Order)                                | Hotel conference venue                    |
+| 5:00 PM onwards    | Major formal session — guest oration, recognition, NEC annual summary & book launch, inductions, and ambassador statement | Hotel conference venue                    |
+| 7:35 – 8:00 PM     | Independence rally, statements, and cake cutting ceremony                                                           | Hotel conference venue                    |
+| 8:00 – 8:30 PM     | Dinner service and formal networking                                                                                | Hotel conference venue                    |
+| 8:30 PM – 4:00 AM  | Awards Night Program — recognition of veterans, MISS LSUIC, achievement awards, and closing                        | Hotel awards hall                         |
 
-**Notes:** All formal business on July 26 — oration by the guest speaker, induction of elected officers, inaugural address, independence rally, and awards night — begins at **5:00 PM** to align with the Liberian Ambassador and his delegation's arrival. Sports and recreational activities occupy the morning and early afternoon.
+**Notes:** All major formal business on July 26 is arranged around the ambassador's availability, with official opening at **4:20 PM** and the formal core continuing into the night.
 
 ---
 

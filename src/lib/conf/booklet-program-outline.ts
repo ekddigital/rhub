@@ -120,8 +120,8 @@ const SUMMARY_PROGRAM_DAYS: Array<
     dateLabel: "Sunday, 26 July 2026",
     activities: [
       {
-        time: "7:00 AM – 9:30 AM",
-        activity: "Breakfast (hotel time)",
+        time: "7:00 AM – 8:30 AM",
+        activity: "Breakfast",
         location: "Hotel dining area",
       },
       {
@@ -130,15 +130,19 @@ const SUMMARY_PROGRAM_DAYS: Array<
         location: "Hotel sports grounds",
       },
       {
-        time: "2:20 PM – 4:00 PM",
-        activity:
-          "Hotel coordination for swimming and recreational activities",
-        location: "Hotel pool / grounds",
+        time: "4:00 PM – 4:20 PM",
+        activity: "Red carpet · musical interlude (DJ)",
+        location: "Hotel conference venue",
+      },
+      {
+        time: "4:20 PM – 5:00 PM",
+        activity: "Official opening of the Independence Day program",
+        location: "Hotel conference venue",
       },
       {
         time: "5:00 PM onwards",
         activity:
-          "Major formal session, independence rally, oration, inductions, dinner, and awards night — Ambassador and guests present",
+          "Major formal session: oration, recognition, NEC annual summary & book launch, inductions, ambassador statement, rally, dinner, and awards night",
         location: "Hotel conference venue / awards hall",
       },
     ],

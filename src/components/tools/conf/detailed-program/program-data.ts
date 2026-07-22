@@ -133,8 +133,8 @@ const DAY_2: ProgramDay = {
   ],
   slots: [
     {
-      time: "7:00 AM – 9:30 AM",
-      activity: "Breakfast (hotel time).",
+      time: "7:00 AM – 8:30 AM",
+      activity: "Breakfast.",
       by: "Hotel Service",
       highlight: true,
     },
@@ -258,50 +258,57 @@ const DAY_3: ProgramDay = {
       meal: "Pepper Kala",
     },
     {
-      time: "2:20 PM – 4:00 PM",
-      activity:
-        "Coordination with hotel manager for renewed swimming access and related arrangements.",
-      by: "Conference Committee · Logistics Team",
+      time: "4:00 PM – 4:20 PM",
+      activity: "Red Carpet · Musical Interlude, DJ.",
+      by: "Master of Ceremony (MC) · All Participants",
+      highlight: true,
     },
     {
-      time: "4:00 PM – 5:00 PM",
+      time: "4:20 PM – 5:00 PM",
       activity:
-        "Transition break — freshening up and seating for the formal evening session.",
-      by: "All Delegates",
-    },
-    {
-      time: "5:00 PM – 5:15 PM",
-      activity: "Opening Prayer and Call to Order (major formal session).",
+        "Official Opening of the Independence Day Program (Opening Prayer and Call to Order).",
       by: "National Chaplain General · Presiding Officer",
       highlight: true,
     },
     {
-      time: "5:15 PM – 5:30 PM",
-      activity: "Welcome Remarks and recognition of special guests.",
-      by: "National President · Conference Chair",
-    },
-    {
-      time: "5:30 PM – 5:40 PM",
+      time: "5:00 PM – 5:10 PM",
       activity: "Introduction of Guest Speaker.",
       by: "Member, Conference Committee",
     },
     {
-      time: "5:40 PM – 6:10 PM",
+      time: "5:10 PM – 5:40 PM",
       activity: "Independence Day Oration, Hon. Joshua Bosco Barvor.",
       by: "Hon. Joshua Bosco Barvor",
     },
     {
-      time: "6:10 PM – 6:30 PM",
+      time: "5:40 PM – 6:00 PM",
+      activity:
+        "Recognition of The Liberian Embassy and Special Guests, Hon. Olano Teah Bloh.",
+      by: "Hon. Olano Teah Bloh",
+    },
+    {
+      time: "6:00 PM – 6:20 PM",
+      activity: "NEC Summary of the Annual Report & Book Launch - 2025-2026.",
+      by: "Hon. Olano Teah Bloh",
+    },
+    {
+      time: "6:20 PM – 6:40 PM",
       activity: "Certification and induction of elected officers.",
       by: "IEC Chair · National President",
     },
     {
-      time: "6:30 PM – 7:00 PM",
+      time: "6:40 PM – 7:00 PM",
       activity: "Inaugural Address by newly elected National President.",
       by: "Incoming National President",
     },
     {
-      time: "7:00 PM – 7:30 PM",
+      time: "7:00 PM – 7:35 PM",
+      activity:
+        "Special Statement · Liberia’s Ambassador to China, His Excellency Dudley McKinley Thomas.",
+      by: "His Excellency Dudley McKinley Thomas",
+    },
+    {
+      time: "7:35 PM – 8:00 PM",
       activity: "Independence rally, statements, and cake cutting ceremony.",
       by: "All Delegates · Liberian Embassy · Invited Personalities",
       subs: [
@@ -311,37 +318,14 @@ const DAY_3: ProgramDay = {
       ],
     },
     {
-      time: "7:30 PM – 8:00 PM",
+      time: "8:00 PM – 8:30 PM",
       activity: "Dinner service and formal networking.",
       by: "Cooking Committee",
       highlight: true,
       meal: "Dinner service",
     },
     {
-      time: "8:00 PM – 9:00 PM",
-      activity: "Red Carpet · Musical Interlude, DJ.",
-      by: "Master of Ceremony (MC) · All Participants",
-      highlight: true,
-    },
-    {
-      time: "9:00 PM – 9:10 PM",
-      activity: "Welcome Remark · Opening Statement, MC.",
-      by: "Master of Ceremony (MC)",
-    },
-    {
-      time: "9:10 PM – 9:20 PM",
-      activity:
-        "Recognition of The Liberian Embassy and Special Guests, Hon. Olano Teah Bloh.",
-      by: "Hon. Olano Teah Bloh",
-    },
-    {
-      time: "9:20 PM – 10:00 PM",
-      activity:
-        "Special Statement · Liberia’s Ambassador to China, His Excellency Dudley McKinley Thomas.",
-      by: "His Excellency Dudley McKinley Thomas",
-    },
-    {
-      time: "10:00 PM – 4:00 AM",
+      time: "8:30 PM – 4:00 AM",
       activity: "Awards Night Program.",
       by: "Master of Ceremony · Conference Committee",
       subs: [
