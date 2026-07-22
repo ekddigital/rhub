@@ -92,8 +92,8 @@ const SUMMARY_PROGRAM_DAYS: Array<
     dateLabel: "Saturday, 25 July 2026",
     activities: [
       {
-        time: "7:00 AM – 9:30 AM",
-        activity: "Breakfast (hotel time)",
+        time: "7:00 AM – 8:30 AM",
+        activity: "Breakfast",
         location: "Hotel dining area",
       },
       {
@@ -153,12 +153,12 @@ const SUMMARY_PROGRAM_DAYS: Array<
     dateLabel: "Monday, 27 July 2026",
     activities: [
       {
-        time: "6:30 AM - 7:30 AM",
+        time: "7:00 AM - 8:30 AM",
         activity: "Breakfast and room check-out preparation",
         location: "Hotel / room floors",
       },
       {
-        time: "7:30 AM - 12:00 noon",
+        time: "8:30 AM - 12:00 noon",
         activity:
           "Baggage coordination, welfare check, and official hotel check-out",
         location: "Hotel reception",

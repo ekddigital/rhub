@@ -227,7 +227,7 @@ const DAY_3: ProgramDay = {
   date: "July 26, 2026",
   dayOfWeek: "Sunday",
   dressCodes: [
-    { session: "Breakfast", code: "Casual / Hotel Time" },
+    { session: "Breakfast", code: "Casual Morning Wear" },
     {
       session: "Sports Activities",
       code: "Sports Wear — Liberia's national colors encouraged",
@@ -240,8 +240,8 @@ const DAY_3: ProgramDay = {
   ],
   slots: [
     {
-      time: "7:00 AM – 9:30 AM",
-      activity: "Breakfast (hotel time).",
+      time: "7:00 AM – 8:30 AM",
+      activity: "Breakfast.",
       by: "Hotel Service",
       highlight: true,
     },
@@ -364,19 +364,19 @@ const DAY_4: ProgramDay = {
   ],
   slots: [
     {
-      time: "6:30 AM – 7:30 AM",
+      time: "7:00 AM – 8:30 AM",
       activity: "Breakfast and room check-out preparation.",
       by: "All Delegates",
       highlight: true,
       meal: "Sandwich",
     },
     {
-      time: "7:30 AM – 9:00 AM",
+      time: "8:30 AM – 9:30 AM",
       activity: "Baggage coordination and final welfare check.",
       by: "Logistics Committee · Welfare Committee",
     },
     {
-      time: "8:00 AM – 12:00 PM",
+      time: "9:30 AM – 12:00 PM",
       activity: "Official hotel check-out — all rooms must be vacated by noon.",
       by: "All Delegates",
       highlight: true,

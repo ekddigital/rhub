@@ -66,7 +66,7 @@ Travel to and from Jinan, and local transport other than conference-arranged tra
 
 | Time             | Activities                                                                                                               | Location              |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------- |
-| 7:00 – 9:30 AM   | Breakfast (hotel time)                                                                                                   | Hotel dining area     |
+| 7:00 – 8:30 AM   | Breakfast                                                                                                                | Hotel dining area     |
 | 8:30 AM – 2:00 PM | Opening prayer, call to order, annual reports, elections, resolutions, and constitution review — formal plenary session | Hotel conference room |
 | 2:00 – 4:30 PM   | Lunch and relaxation break                                                                                               | Hotel / personal time |
 | 4:30 – 9:00 PM   | Pool party and swimming                                                                                                  | Hotel pool / spa area |
