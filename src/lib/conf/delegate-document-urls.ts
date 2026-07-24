@@ -190,6 +190,9 @@ export function resolveExternalBookletPhotoForClient(
 ): string | null {
   const trimmed = photoPath?.trim();
   if (!trimmed) return null;
+  if (trimmed.startsWith("/public/")) {
+    return `/${trimmed.slice("/public/".length)}`;
+  }
   if (
     trimmed.startsWith("/") ||
     trimmed.startsWith("data:") ||

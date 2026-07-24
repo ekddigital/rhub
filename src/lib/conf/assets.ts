@@ -487,6 +487,10 @@ export function resolveStoredAssetUrl(pathOrUrl: string, origin: string) {
     return `${assetsOrigin}${pathOrUrl}`;
   }
 
+  if (pathOrUrl.startsWith("/public/")) {
+    return `${origin}/${pathOrUrl.slice("/public/".length)}`;
+  }
+
   if (pathOrUrl.startsWith("/assets/")) {
     const assetId = extractAssetId(pathOrUrl);
     if (assetId) {

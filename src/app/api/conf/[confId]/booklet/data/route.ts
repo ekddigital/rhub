@@ -145,12 +145,6 @@ export async function GET(
     }
 
     function resolveLeaderPhoto(photoPath: string): string {
-      if (photoPath.startsWith("/conf/") || photoPath.startsWith("/public/")) {
-        return photoPath;
-      }
-      if (photoPath.startsWith("http://") || photoPath.startsWith("https://")) {
-        return photoPath;
-      }
       return resolveStoredAssetUrl(photoPath, origin);
     }
 
