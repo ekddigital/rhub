@@ -55,6 +55,11 @@ export type ParticipantRow = {
   flyerReady: boolean;
   status: "REGISTERED" | "CONFIRMED" | "ATTENDED" | "CANCELLED";
   createdAt: string;
+  guests?: Array<{
+    id: string;
+    name: string;
+    sortOrder: number;
+  }>;
 };
 
 type Props = {
@@ -243,35 +248,75 @@ export function ParticipantsDataTable({
   }, [filteredSorted, selectedIdSet, selectedIds.length]);
 
   const exportRows = useMemo(() => {
-    return exportSourceRows.map((row) => ({
-      conferenceId: row.delegateCode || "",
-      name: row.name,
-      passportNo: row.passportNo || "",
-      gender: row.gender || "",
-      university: row.university || "",
-      province: row.province || "",
-      city: row.city,
-      phone: row.phone || "",
-      wechat: row.wechat || "",
-      email: row.email || "",
-      roomPref: row.roomPref,
-      feePaid: row.feePaid ? "Yes" : "No",
-      feeAmount: row.feeAmount ?? "",
-      status: row.status,
-      flyerReady: row.flyerReady ? "Yes" : "No",
-      conferencePosition: row.conferencePosition || "",
-      bookletPhoto: row.bookletPhotoPath || "",
-      passportFile: row.passportPhotoPath || "",
-      lastEntryStampFile: row.lastEntryStampPath || "",
-      currentVisaFile: row.currentVisaPath || "",
-      createdAt: row.createdAt,
-    }));
+    return exportSourceRows.flatMap((row) => {
+      const delegateRow = {
+        rowType: "Delegate",
+        conferenceId: row.delegateCode || "",
+        name: row.name,
+        guestOf: "",
+        guestOrder: "",
+        passportNo: row.passportNo || "",
+        gender: row.gender || "",
+        university: row.university || "",
+        province: row.province || "",
+        city: row.city,
+        phone: row.phone || "",
+        wechat: row.wechat || "",
+        email: row.email || "",
+        roomPref: row.roomPref,
+        feePaid: row.feePaid ? "Yes" : "No",
+        feeAmount: row.feeAmount ?? "",
+        status: row.status,
+        flyerReady: row.flyerReady ? "Yes" : "No",
+        conferencePosition: row.conferencePosition || "",
+        bookletPhoto: row.bookletPhotoPath || "",
+        passportFile: row.passportPhotoPath || "",
+        lastEntryStampFile: row.lastEntryStampPath || "",
+        currentVisaFile: row.currentVisaPath || "",
+        createdAt: row.createdAt,
+      };
+
+      const guestRows = (row.guests ?? [])
+        .slice()
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((guest, index) => ({
+          rowType: `Guest ${index + 1}`,
+          conferenceId: row.delegateCode || "",
+          name: guest.name,
+          guestOf: row.name,
+          guestOrder: String(index + 1),
+          passportNo: "",
+          gender: "",
+          university: "",
+          province: "",
+          city: row.city,
+          phone: "",
+          wechat: "",
+          email: "",
+          roomPref: row.roomPref,
+          feePaid: row.feePaid ? "Yes" : "No",
+          feeAmount: "",
+          status: row.status,
+          flyerReady: row.flyerReady ? "Yes" : "No",
+          conferencePosition: row.conferencePosition || "",
+          bookletPhoto: "",
+          passportFile: "",
+          lastEntryStampFile: "",
+          currentVisaFile: "",
+          createdAt: row.createdAt,
+        }));
+
+      return [delegateRow, ...guestRows];
+    });
   }, [exportSourceRows]);
 
   const handleExportCsv = () => {
     const header = [
+      "Row Type",
       "Conference ID",
       "Name",
+      "Guest Of",
+      "Guest #",
       "Passport No",
       "Gender",
       "University",
@@ -297,8 +342,11 @@ export function ParticipantsDataTable({
       header.map((h) => csvEscape(h)).join(","),
       ...exportRows.map((row) =>
         [
+          row.rowType,
           row.conferenceId,
           row.name,
+          row.guestOf,
+          row.guestOrder,
           row.passportNo,
           row.gender,
           row.university,
@@ -332,8 +380,11 @@ export function ParticipantsDataTable({
 
   const handleExportTxt = () => {
     const header = [
+      "Row Type",
       "Conference ID",
       "Name",
+      "Guest Of",
+      "Guest #",
       "Passport No",
       "Gender",
       "University",
@@ -359,8 +410,11 @@ export function ParticipantsDataTable({
       header.join("\t"),
       ...exportRows.map((row) =>
         [
+          row.rowType,
           row.conferenceId,
           row.name,
+          row.guestOf,
+          row.guestOrder,
           row.passportNo,
           row.gender,
           row.university,
@@ -394,8 +448,11 @@ export function ParticipantsDataTable({
 
   const handleExportExcel = () => {
     const headers = [
+      "Row Type",
       "Conference ID",
       "Name",
+      "Guest Of",
+      "Guest #",
       "Passport No",
       "Gender",
       "University",
@@ -427,8 +484,11 @@ export function ParticipantsDataTable({
     const rowsHtml = exportRows
       .map((row) => {
         const values = [
+          row.rowType,
           row.conferenceId,
           row.name,
+          row.guestOf,
+          row.guestOrder,
           row.passportNo,
           row.gender,
           row.university,
@@ -481,7 +541,7 @@ export function ParticipantsDataTable({
             </CardDescription>
             {selectedIds.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                {selectedIds.length} selected (exports use selected rows)
+                {selectedIds.length} selected (exports use selected rows and guest entries)
               </p>
             )}
           </div>
