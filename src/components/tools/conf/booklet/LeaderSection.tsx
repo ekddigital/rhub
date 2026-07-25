@@ -22,6 +22,12 @@ function resolvePhoto(leader: LeaderProfile): string | null {
   if (title.includes("ambassador") || role.includes("ambassador")) {
     return ASSETS.ambassadorThomas;
   }
+  if (title.includes("president") && !title.includes("china")) {
+    return ASSETS.presidentBoakai;
+  }
+  if (title.includes("china") && title.includes("president")) {
+    return ASSETS.presidentXi;
+  }
   const country = leader.country?.toLowerCase() ?? "";
   for (const [key, path] of Object.entries(COUNTRY_PHOTO_MAP)) {
     if (country.includes(key)) return path;
