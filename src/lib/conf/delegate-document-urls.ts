@@ -273,7 +273,10 @@ export function mapDelegateDocumentsForClient(
       delegateId,
       path,
     );
-    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(path, pdfByPath);
+    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
   }
 
   if (includeBooklet) {
@@ -355,7 +358,10 @@ export async function mapDelegateDocumentsForClientAsync(
       delegateId,
       path,
     );
-    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(path, pdfByPath);
+    result.currentVisaIsPdf = resolveStoredDelegateDocumentIsPdf(
+      path,
+      pdfByPath,
+    );
   }
 
   if (includeBooklet) {

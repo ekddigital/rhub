@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Plus,
   Upload,
+  Download,
   CheckCircle2,
   XCircle,
   Clock,
@@ -167,6 +168,57 @@ const STATUS_CONFIG: Record<
   },
 };
 
+function formatPaymentItemDetails(note?: string | null) {
+  if (!note) return undefined;
+  const lines = note
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const itemLines = lines.filter((line) =>
+    /^(Item:|Qty:|Unit price:|Unit:|Line total:)/i.test(line),
+  );
+
+  return itemLines.length ? itemLines.join("; ") : undefined;
+}
+
+function stripPaymentItemDetails(note?: string | null) {
+  if (!note) return "";
+  const lines = note
+    .split("\n")
+    .filter(
+      (line) =>
+        !/^(Item:|Qty:|Unit price:|Unit:|Line total:)/i.test(line.trim()),
+    );
+  return lines.join("\n").trim();
+}
+
+function parsePaymentItemDetails(note?: string | null) {
+  const values = {
+    itemName: "",
+    itemQty: "1",
+    itemUnit: "",
+    itemUnitPrice: "",
+  };
+
+  if (!note) return values;
+
+  for (const raw of note.split("\n")) {
+    const line = raw.trim();
+    if (line.toLowerCase().startsWith("item:")) {
+      values.itemName = line.slice(5).trim();
+    } else if (line.toLowerCase().startsWith("qty:")) {
+      values.itemQty = line.slice(4).trim();
+    } else if (line.toLowerCase().startsWith("unit price:")) {
+      values.itemUnitPrice = line.slice(11).trim().replace(/[¥$,]/g, "");
+    } else if (line.toLowerCase().startsWith("unit:")) {
+      values.itemUnit = line.slice(5).trim();
+    }
+  }
+
+  return values;
+}
+
 const INCOME_SOURCES = [
   "Fundraising",
   "Donation",
@@ -194,26 +246,30 @@ function PaymentsDocumentPreview({
 }) {
   const rows: Record<string, unknown>[] =
     payments.length > 0
-      ? payments.map((payment) => ({
-          date: new Date(payment.paidAt).toLocaleDateString(),
-          type:
-            payment.paymentType === "INCOME"
-              ? "Income"
-              : payment.paymentType === "EXPENSE"
-                ? "Expense"
-                : "Expense",
-          paidBy: payment.paidBy || "—",
-          paidTo: payment.paidTo || "—",
-          method:
-            PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
-            payment.method,
-          proofs:
-            payment.proofs.length > 0
-              ? `${payment.proofs.length} file${payment.proofs.length === 1 ? "" : "s"}`
-              : "None",
-          amount: fmtRmb(payment.amount),
-          status: payment.status,
-        }))
+      ? payments.map((payment) => {
+          const itemDetails = formatPaymentItemDetails(payment.note);
+          return {
+            date: new Date(payment.paidAt).toLocaleDateString(),
+            type:
+              payment.paymentType === "INCOME"
+                ? "Income"
+                : payment.paymentType === "EXPENSE"
+                  ? "Expense"
+                  : "Expense",
+            paidBy: payment.paidBy || "—",
+            paidTo: payment.paidTo || "—",
+            method:
+              PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
+              payment.method,
+            item: itemDetails || "—",
+            proofs:
+              payment.proofs.length > 0
+                ? `${payment.proofs.length} file${payment.proofs.length === 1 ? "" : "s"}`
+                : "None",
+            amount: fmtRmb(payment.amount),
+            status: payment.status,
+          };
+        })
       : [
           {
             date: "—",
@@ -307,14 +363,24 @@ function PaymentsDocumentPreview({
           pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"
         }
         columns={[
-          { key: "date", label: "Date", width: 11 },
+          { key: "date", label: "Date", width: 10 },
           { key: "type", label: "Type", width: 8 },
-          { key: "paidBy", label: "Paid/Received By", width: 20 },
-          { key: "paidTo", label: "To/Received By", width: 17 },
-          { key: "method", label: "Method", width: 12 },
-          { key: "proofs", label: "Receipts", width: 12, align: "center" },
-          { key: "status", label: "Status", width: 11 },
-          { key: "amount", label: "Amount", width: 9, align: "right" },
+          { key: "paidBy", label: "Paid/Received By", width: 16 },
+          { key: "paidTo", label: "To/Received By", width: 14 },
+          { key: "method", label: "Method", width: 10 },
+          {
+            key: "item",
+            label: "Item details",
+            width: 18,
+            format: (value: unknown) => (
+              <div style={{ fontSize: 10, whiteSpace: "pre-wrap" }}>
+                {typeof value === "string" ? value : String(value)}
+              </div>
+            ),
+          },
+          { key: "proofs", label: "Receipts", width: 10, align: "center" },
+          { key: "status", label: "Status", width: 10 },
+          { key: "amount", label: "Amount", width: 10, align: "right" },
         ]}
         data={pageRows}
         forPrint={forPrint}
@@ -339,7 +405,7 @@ function PaymentsDocumentPreview({
               NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
             </div>
           </div>
-          {receiptSamples.length > 0 && (
+          {payments.some((payment) => payment.proofs.length > 0) && (
             <div style={{ marginTop: 12 }}>
               <div
                 style={{
@@ -349,7 +415,7 @@ function PaymentsDocumentPreview({
                   marginBottom: 8,
                 }}
               >
-                Payment Proofs / Receipts
+                Receipt Photos
               </div>
               <div
                 style={{
@@ -358,64 +424,58 @@ function PaymentsDocumentPreview({
                   gap: 10,
                 }}
               >
-                {receiptSamples.map((payment) => (
-                  <div
-                    key={`proof-${payment.id}`}
-                    style={{
-                      border: "1px solid #d9dfeb",
-                      borderRadius: 6,
-                      padding: 8,
-                    }}
-                  >
+                {payments
+                  .flatMap((payment) =>
+                    payment.proofs.map((proof) => ({
+                      payment,
+                      proof,
+                    })),
+                  )
+                  .map(({ payment, proof }) => (
                     <div
+                      key={`proof-${proof.id}`}
                       style={{
-                        fontSize: 9,
-                        color: "#555",
-                        marginBottom: 4,
-                        whiteSpace: "nowrap",
+                        border: "1px solid #d9dfeb",
+                        borderRadius: 6,
                         overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        background: "#fff",
                       }}
                     >
-                      {payment.paidBy} · {fmtRmb(payment.amount)}
-                    </div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      {payment.proofs.slice(0, 2).map((proof) => (
-                        <div
-                          key={proof.id}
+                      {proof.fileType?.startsWith("image/") ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={proof.filePath}
+                          alt={proof.fileName}
                           style={{
-                            width: 84,
-                            height: 84,
-                            border: "1px solid #e0e0e0",
-                            borderRadius: 4,
-                            overflow: "hidden",
+                            width: "100%",
+                            height: 180,
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          style={{
+                            width: "100%",
+                            height: 180,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            background: "#fafafa",
+                            background: "#f3f4f6",
                           }}
                         >
-                          {proof.fileType?.startsWith("image/") ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={proof.filePath}
-                              alt={proof.fileName}
-                              style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : (
-                            <span style={{ fontSize: 8, color: "#666" }}>
-                              FILE
-                            </span>
-                          )}
+                          <span style={{ fontSize: 10, color: "#666" }}>
+                            Document file
+                          </span>
                         </div>
-                      ))}
+                      )}
+                      <div style={{ padding: 10, fontSize: 10, color: "#555" }}>
+                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
+                          {payment.paidBy} · {fmtRmb(payment.amount)}
+                        </div>
+                        <div>{proof.fileName}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -469,6 +529,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     fileName: string;
     percent: number;
   } | null>(null);
+  const [itemName, setItemName] = useState("");
+  const [itemQty, setItemQty] = useState("1");
+  const [itemUnit, setItemUnit] = useState("pcs");
+  const [itemUnitPrice, setItemUnitPrice] = useState("");
+  const [pdfExporting, setPdfExporting] = useState(false);
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -670,11 +735,39 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const handleSubmit = async () => {
-    if (!amount || !paidBy || !confId || saving) return;
-    if (!(Number(amount) > 0)) {
+    const numericAmount = Number(amount);
+    const computedItemTotal =
+      Number(itemQty) > 0 && Number(itemUnitPrice) > 0
+        ? Number(itemQty) * Number(itemUnitPrice)
+        : 0;
+    const effectiveAmount =
+      numericAmount > 0 ? numericAmount : computedItemTotal;
+
+    if (!effectiveAmount || !paidBy || !confId || saving) return;
+    if (!(effectiveAmount > 0)) {
       setError("Amount must be greater than zero.");
       return;
     }
+
+    const itemDetailLines = itemName
+      ? [
+          `Item: ${itemName}`,
+          `Qty: ${itemQty || 1}`,
+          itemUnit ? `Unit: ${itemUnit}` : undefined,
+          itemUnitPrice
+            ? `Unit price: ${fmtRmb(Number(itemUnitPrice))}`
+            : undefined,
+          computedItemTotal
+            ? `Line total: ${fmtRmb(computedItemTotal)}`
+            : undefined,
+        ].filter(Boolean)
+      : [];
+
+    const notePayload = [note?.trim(), itemDetailLines.join("\n")]
+      .filter(Boolean)
+      .join("\n\n")
+      .trim();
+
     setSaving(true);
     setError(null);
     setProofValidationFeedback(null);
@@ -688,12 +781,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         method: methodVerb,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Number(amount),
+          amount: effectiveAmount,
           paidBy,
           paidTo: paidTo || undefined,
           method,
           ref: txRef || undefined,
-          note: note || undefined,
+          note: notePayload || undefined,
           paymentType,
           incomeSource:
             paymentType === "INCOME" ? incomeSource || undefined : undefined,
@@ -745,14 +838,20 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       setError("Approved/locked payments cannot be edited.");
       return;
     }
+    const parsed = parsePaymentItemDetails(payment.note);
+
     setEditingPaymentId(payment.id);
     setPaymentType(payment.paymentType || "EXPENSE");
     setAmount(String(payment.amount));
+    setItemName(parsed.itemName);
+    setItemQty(parsed.itemQty || "1");
+    setItemUnit(parsed.itemUnit || "pcs");
+    setItemUnitPrice(parsed.itemUnitPrice || "");
     setPaidBy(payment.paidBy || "");
     setPaidTo(payment.paidTo || "");
     setMethod(payment.method || "WECHAT");
     setTxRef(payment.ref || "");
-    setNote(payment.note || "");
+    setNote(stripPaymentItemDetails(payment.note || ""));
     setCommitteeScope(payment.committeeScope || "");
     setIncomeSource(payment.incomeSource || "");
     setProofFiles([]);
@@ -851,6 +950,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setEditingPaymentId(null);
     setPaymentType("EXPENSE");
     setAmount("");
+    setItemName("");
+    setItemQty("1");
+    setItemUnit("pcs");
+    setItemUnitPrice("");
     setPaidBy("");
     setPaidTo("");
     setMethod("WECHAT");
@@ -962,6 +1065,45 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="size-4" />
             Print / PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (pdfExporting) return;
+              setPdfExporting(true);
+              document.body.setAttribute("data-print-mode", "print");
+              try {
+                await new Promise<void>((resolve) => {
+                  requestAnimationFrame(() =>
+                    requestAnimationFrame(() => resolve()),
+                  );
+                });
+                const { exportToPDF } =
+                  await import("@/lib/creative/documents/pdfExport");
+                await exportToPDF(
+                  "payments-print-root",
+                  "payment-tracker",
+                  undefined,
+                  {
+                    pageSelector: ".document-page",
+                    pageWrapperSelector: null,
+                    mode: "download",
+                    canvasScale: 2,
+                    jpegQuality: 0.85,
+                  },
+                );
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "PDF export failed");
+              } finally {
+                document.body.removeAttribute("data-print-mode");
+                setPdfExporting(false);
+              }
+            }}
+            disabled={pdfExporting}
+          >
+            <Download className="size-4" />
+            {pdfExporting ? "Exporting..." : "Export PDF"}
           </Button>
           <Button variant="ghost" size="icon-sm" onClick={refresh}>
             <RefreshCw className="size-4" />
@@ -1252,6 +1394,61 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </div>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Item Purchased</Label>
+                <Input
+                  placeholder="Item or service purchased"
+                  value={itemName}
+                  onChange={(e) => setItemName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  step="any"
+                  placeholder="1"
+                  value={itemQty}
+                  onChange={(e) => setItemQty(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Unit</Label>
+                <Input
+                  placeholder="pcs / kg / service"
+                  value={itemUnit}
+                  onChange={(e) => setItemUnit(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Unit Price</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="any"
+                  placeholder="0.00"
+                  value={itemUnitPrice}
+                  onChange={(e) => setItemUnitPrice(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Line Total</Label>
+                <Input
+                  readOnly
+                  value={
+                    itemName && Number(itemQty) > 0 && Number(itemUnitPrice) > 0
+                      ? fmtRmb(Number(itemQty) * Number(itemUnitPrice))
+                      : ""
+                  }
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label>Description / Note</Label>
               <Textarea
@@ -1284,8 +1481,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               >
                 <Upload className="mb-2 size-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  Screenshots or receipts: {DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}.
-                  Maximum {CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file.
+                  Screenshots or receipts:{" "}
+                  {DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}. Maximum{" "}
+                  {CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file.
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {DELEGATE_UPLOAD_CONVERSION_TIP}
@@ -1380,7 +1578,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               <Button
                 size="sm"
                 onClick={handleSubmit}
-                disabled={!amount || !paidBy || saving}
+                disabled={
+                  saving ||
+                  !paidBy ||
+                  !(
+                    Number(amount) > 0 ||
+                    (itemName &&
+                      Number(itemQty) > 0 &&
+                      Number(itemUnitPrice) > 0)
+                  )
+                }
               >
                 {saving ? (
                   <Loader2 className="size-4 animate-spin" />

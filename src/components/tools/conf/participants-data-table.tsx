@@ -541,7 +541,8 @@ export function ParticipantsDataTable({
             </CardDescription>
             {selectedIds.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                {selectedIds.length} selected (exports use selected rows and guest entries)
+                {selectedIds.length} selected (exports use selected rows and
+                guest entries)
               </p>
             )}
           </div>

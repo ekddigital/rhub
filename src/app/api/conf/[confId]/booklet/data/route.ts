@@ -195,8 +195,9 @@ export async function GET(
     });
 
     const resolvedNecMembers = necMembers.map(resolveRosterMemberPhoto);
-    const resolvedCommitteeMembers =
-      committeeMembers.map(resolveRosterMemberPhoto);
+    const resolvedCommitteeMembers = committeeMembers.map(
+      resolveRosterMemberPhoto,
+    );
 
     // Prefer Conference Committee (null scope) General Chairman — not first
     // scoped committee chair (e.g. PPC Chairman).

@@ -87,6 +87,7 @@ export function ReportDocumentViewer({
   onExport,
   isExporting = false,
 }: ReportDocumentViewerProps) {
+  const PRINT_ROOT_ID = `report-print-root-${_reportId}`;
   // printMode is always false (window.print() handles media queries); no state setter needed.
   const printMode = false;
 
@@ -96,15 +97,47 @@ export function ReportDocumentViewer({
 
   const handleExport = useCallback(
     async (format: "pdf" | "csv") => {
-      if (onExport) {
-        try {
-          await onExport(format);
-        } catch (error) {
-          console.error(`Failed to export as ${format}:`, error);
+      if (format === "csv") {
+        if (onExport) {
+          try {
+            await onExport(format);
+          } catch (error) {
+            console.error(`Failed to export as ${format}:`, error);
+          }
+        }
+        return;
+      }
+
+      // PDF: do client-side export using the existing PDF engine so visuals
+      // match the on-screen preview. This captures the .document-page elements.
+      try {
+        const { warmupNavigationPdfExport } =
+          await import("@/lib/conf/navigation-pdf-export-support");
+        await warmupNavigationPdfExport();
+
+        const { exportToPDF } =
+          await import("@/lib/creative/documents/pdfExport");
+
+        const safeTitle = (title || "report").replace(/[^a-z0-9-_]/gi, "-");
+        await exportToPDF(PRINT_ROOT_ID, safeTitle, undefined, {
+          pageSelector: ".document-page",
+          pageWrapperSelector: null,
+          mode: "download",
+          canvasScale: 3,
+          jpegQuality: 0.92,
+        });
+      } catch (error) {
+        console.error("PDF export failed:", error);
+        if (onExport) {
+          try {
+            await onExport("pdf");
+          } catch (e) {
+            console.error("Fallback server export failed:", e);
+          }
         }
       }
     },
-    [onExport],
+    [onExport, title, PRINT_ROOT_ID],
   );
 
   // ── Calculate totals ────────────────────────────────────────────────────────
@@ -442,6 +475,7 @@ export function ReportDocumentViewer({
       <Card>
         <CardContent className="p-0 overflow-hidden">
           <div
+            id={PRINT_ROOT_ID}
             style={{
               maxHeight: "800px",
               overflowY: "auto",

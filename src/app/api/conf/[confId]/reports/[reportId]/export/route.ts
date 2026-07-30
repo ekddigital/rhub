@@ -45,9 +45,13 @@ export async function GET(
     if (format === "csv") {
       return exportAsCSV(report);
     } else {
-      // For now, return CSV as placeholder for PDF
-      // TODO: Implement full PDF export with html-to-pdf library
-      return exportAsCSV(report);
+      return NextResponse.json(
+        {
+          error:
+            "PDF export is not available from this server endpoint. Use the client-side PDF download button in the report viewer.",
+        },
+        { status: 501 },
+      );
     }
   } catch (error) {
     console.error("Failed to export report:", error);
@@ -105,7 +109,10 @@ function exportAsCSV(report: any) {
     .reduce((sum: number, e: any) => sum + (e.payment?.amount || 0), 0);
 
   rows.push(["Confirmed Entries Included", String(confirmedEntries.length)]);
-  rows.push(["Excluded (Not Finally Approved)", String(report.entries.length - confirmedEntries.length)]);
+  rows.push([
+    "Excluded (Not Finally Approved)",
+    String(report.entries.length - confirmedEntries.length),
+  ]);
   rows.push(["Total Expenses", String(expenses)]);
   rows.push(["Total Income", String(income)]);
   rows.push(["Net", String(income - expenses)]);
