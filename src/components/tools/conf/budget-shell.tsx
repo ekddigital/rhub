@@ -57,7 +57,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { BUDGET_CATEGORIES, BUDGET_STATUS_LABELS, BUDGET_EDIT_UNLOCK_LABELS, COMMON_UNITS } from "@/lib/conf/config";
+import {
+  BUDGET_CATEGORIES,
+  BUDGET_STATUS_LABELS,
+  BUDGET_EDIT_UNLOCK_LABELS,
+  COMMON_UNITS,
+} from "@/lib/conf/config";
 import {
   calcItemTotal,
   calcBudgetTotal,
@@ -77,6 +82,14 @@ import {
   computePageChunks,
   estimateTextBlockH,
 } from "@/lib/conf/document-pagination";
+import {
+  validatePaymentProofFile,
+  delegateDocumentAcceptAttribute,
+  CONFERENCE_UPLOAD_MAX_SIZE_LABEL,
+  DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL,
+  DELEGATE_UPLOAD_CONVERSION_TIP,
+} from "@/lib/conf/file-upload-client";
+import { formatUploadError } from "@/lib/conf/upload-feedback-client";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
@@ -276,8 +289,8 @@ function mergeBudgetAccessInfo(
   return {
     isManager: Boolean(
       serverAccess?.isManager ||
-        clientFlags?.isManager ||
-        clientFlags?.isSuperAdmin,
+      clientFlags?.isManager ||
+      clientFlags?.isSuperAdmin,
     ),
     isChair: Boolean(serverAccess?.isChair || clientFlags?.isSuperAdmin),
     isSuperAdmin: Boolean(
@@ -334,7 +347,8 @@ function canRejectBudget(
     return false;
   }
   if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
-  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope) return false;
+  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope)
+    return false;
   if (
     budget.creator.committeeScope &&
     budget.creator.committeeScope !== accessInfo.committeeScope
@@ -357,7 +371,8 @@ function canDeleteBudget(
     return budget.status === "DRAFT" || budget.status === "REJECTED";
   }
 
-  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope) return false;
+  if (!accessInfo.canApprovePayments || !accessInfo.committeeScope)
+    return false;
   if (
     budget.creator.committeeScope &&
     budget.creator.committeeScope !== accessInfo.committeeScope
@@ -367,10 +382,7 @@ function canDeleteBudget(
   return true;
 }
 
-function canEditBudget(
-  budget: ServerBudget,
-  accessInfo?: AccessInfo,
-): boolean {
+function canEditBudget(budget: ServerBudget, accessInfo?: AccessInfo): boolean {
   if (!accessInfo) return false;
   if (accessInfo.isChair || accessInfo.isSuperAdmin) return true;
   if (!isBudgetOwner(budget, accessInfo)) return false;
@@ -385,7 +397,10 @@ function canRequestEditAccess(
 ): boolean {
   if (!accessInfo || !isBudgetOwner(budget, accessInfo)) return false;
   if (budget.status !== "REVIEW" && budget.status !== "APPROVED") return false;
-  if (budget.editUnlockStatus === "PENDING" || budget.editUnlockStatus === "GRANTED") {
+  if (
+    budget.editUnlockStatus === "PENDING" ||
+    budget.editUnlockStatus === "GRANTED"
+  ) {
     return false;
   }
   return true;
@@ -467,14 +482,14 @@ function getSubmittedBudgetPermissions(
 ): SubmittedBudgetPermissions {
   const canCommitteeApprove = Boolean(
     budget.status === "DRAFT" &&
-      (accessInfo?.isSuperAdmin ||
-        (Boolean(accessInfo?.canApprovePayments) &&
-          Boolean(accessInfo?.committeeScope) &&
-          budget.creator.committeeScope === accessInfo?.committeeScope)),
+    (accessInfo?.isSuperAdmin ||
+      (Boolean(accessInfo?.canApprovePayments) &&
+        Boolean(accessInfo?.committeeScope) &&
+        budget.creator.committeeScope === accessInfo?.committeeScope)),
   );
   const canFinalApprove = Boolean(
     (budget.status === "REVIEW" || canFinalApproveFromDraft(budget)) &&
-      (accessInfo?.isChair || accessInfo?.isSuperAdmin),
+    (accessInfo?.isChair || accessInfo?.isSuperAdmin),
   );
 
   return {
@@ -625,7 +640,10 @@ function SubmittedBudgetActionsMenu({
           </DropdownMenuItem>
         )}
         {showUnlock && (
-          <DropdownMenuItem onClick={handlers.onUnlock} disabled={unlockLoading}>
+          <DropdownMenuItem
+            onClick={handlers.onUnlock}
+            disabled={unlockLoading}
+          >
             <Unlock className="size-4" />
             {budget.editUnlockStatus === "PENDING"
               ? "Approve Edit Request"
@@ -642,7 +660,10 @@ function SubmittedBudgetActionsMenu({
           </DropdownMenuItem>
         )}
         {showRelock && (
-          <DropdownMenuItem onClick={handlers.onRelock} disabled={relockLoading}>
+          <DropdownMenuItem
+            onClick={handlers.onRelock}
+            disabled={relockLoading}
+          >
             <Lock className="size-4" />
             Re-lock
           </DropdownMenuItem>
@@ -822,7 +843,11 @@ function CombinedExportSummary({
 }) {
   return (
     <div
-      className={forPrint ? "" : "rounded-lg border border-[#C8A061]/40 bg-[#C8A061]/5 p-4"}
+      className={
+        forPrint
+          ? ""
+          : "rounded-lg border border-[#C8A061]/40 bg-[#C8A061]/5 p-4"
+      }
       style={
         forPrint
           ? {
@@ -840,7 +865,9 @@ function CombinedExportSummary({
       <div style={{ marginTop: 8, fontSize: 11, color: "#555" }}>
         {budgets.length} budget{budgets.length === 1 ? "" : "s"} selected
       </div>
-      <ul style={{ marginTop: 10, paddingLeft: 18, fontSize: 11, color: "#444" }}>
+      <ul
+        style={{ marginTop: 10, paddingLeft: 18, fontSize: 11, color: "#444" }}
+      >
         {budgets.map((entry) => (
           <li key={entry.key} style={{ marginBottom: 4 }}>
             {entry.draft.title || "Untitled Budget"} — {fmtRmb(entry.total)}
@@ -908,7 +935,12 @@ function BudgetPreviewModal({
             <Eye className="size-4 text-muted-foreground" />
             {title}
           </div>
-          <Button variant="ghost" size="icon" className="size-7" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={onClose}
+          >
             <X className="size-4" />
           </Button>
         </div>
@@ -1152,6 +1184,17 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [editRequestNote, setEditRequestNote] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
   const [printPortalReady, setPrintPortalReady] = useState(false);
+  const [budgetProofFiles, setBudgetProofFiles] = useState<File[]>([]);
+  const [budgetProofPreviews, setBudgetProofPreviews] = useState<string[]>([]);
+  const [budgetProofValidationFeedback, setBudgetProofValidationFeedback] =
+    useState<string | null>(null);
+  const [budgetUploadStatus, setBudgetUploadStatus] = useState<{
+    currentFile: number;
+    totalFiles: number;
+    fileName: string;
+    percent: number;
+  } | null>(null);
+  const budgetFileInputRef = useRef<HTMLInputElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load from localStorage on mount
@@ -1175,6 +1218,52 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     window.addEventListener("afterprint", onAfterPrint);
     return () => window.removeEventListener("afterprint", onAfterPrint);
   }, []);
+
+  const handleBudgetFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(e.target.files || []);
+    const valid: File[] = [];
+    const invalidMessages: string[] = [];
+    for (const file of files) {
+      const validation = await validatePaymentProofFile(file);
+      if (!validation.ok) {
+        if (validation.error.startsWith("Unsupported file format")) {
+          invalidMessages.push(
+            `${file.name}: unsupported format. Use PNG, JPG, JPEG, WEBP, GIF, or PDF.`,
+          );
+        } else {
+          invalidMessages.push(`${file.name}: ${validation.error}`);
+        }
+        continue;
+      }
+      valid.push(file);
+    }
+
+    if (invalidMessages.length > 0) {
+      setBudgetProofValidationFeedback(
+        `Some files were skipped: ${invalidMessages.slice(0, 2).join(" | ")}`,
+      );
+      setError(null);
+    } else {
+      setBudgetProofValidationFeedback(null);
+      setError(null);
+    }
+
+    setBudgetProofFiles((prev) => [...prev, ...valid]);
+    valid.forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () =>
+          setBudgetProofPreviews((prev) => [...prev, reader.result as string]);
+        reader.readAsDataURL(file);
+      } else {
+        setBudgetProofPreviews((prev) => [...prev, ""]);
+      }
+    });
+
+    e.target.value = "";
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -1433,7 +1522,13 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
     }
     return entries;
-  }, [drafts, effectiveAccess, preparedByName, selectedExportKeys, serverBudgets]);
+  }, [
+    drafts,
+    effectiveAccess,
+    preparedByName,
+    selectedExportKeys,
+    serverBudgets,
+  ]);
 
   const combinedExportGrandTotal = useMemo(
     () => selectedExportBudgets.reduce((sum, entry) => sum + entry.total, 0),
@@ -1442,7 +1537,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const allDraftsSelected =
     drafts.length > 0 &&
-    drafts.every((draft) => selectedExportKeys.includes(draftExportKey(draft.id)));
+    drafts.every((draft) =>
+      selectedExportKeys.includes(draftExportKey(draft.id)),
+    );
 
   const toggleExportKey = useCallback((key: string) => {
     setSelectedExportKeys((prev) =>
@@ -1527,7 +1624,8 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
         });
 
-        const { exportToPDF } = await import("@/lib/creative/documents/pdfExport");
+        const { exportToPDF } =
+          await import("@/lib/creative/documents/pdfExport");
         const filename =
           mode === "combined"
             ? `combined_budgets_${selectedExportBudgets.length}`
@@ -1547,11 +1645,7 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setPdfExporting(false);
       }
     },
-    [
-      activeDraft.title,
-      pdfExporting,
-      selectedExportBudgets.length,
-    ],
+    [activeDraft.title, pdfExporting, selectedExportBudgets.length],
   );
 
   const handleExportCsv = useCallback(() => {
@@ -1777,7 +1871,14 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setDeleteLoadingId(null);
       }
     },
-    [confId, deleteLoadingId, editingServerBudgetId, previewServerBudget?.id, refreshConferenceBudgets, selectedServerBudgetId],
+    [
+      confId,
+      deleteLoadingId,
+      editingServerBudgetId,
+      previewServerBudget?.id,
+      refreshConferenceBudgets,
+      selectedServerBudgetId,
+    ],
   );
 
   const handleRequestEditAccess = useCallback(
@@ -2103,82 +2204,87 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   </span>
                 </div>
                 <div className="space-y-2">
-                {drafts.map((d) => {
-                  const exportKey = draftExportKey(d.id);
-                  const isSelected = selectedExportKeys.includes(exportKey);
-                  return (
-                  <div
-                    key={d.id}
-                    className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
-                      d.id === activeDraft.id
-                        ? "border-[#C8A061]/50 bg-[#C8A061]/5"
-                        : "hover:bg-muted/50 cursor-pointer"
-                    }`}
-                    onClick={() => handleLoadDraft(d)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <button
-                        type="button"
-                        className="mt-0.5 text-muted-foreground hover:text-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleExportKey(exportKey);
-                        }}
-                        title={isSelected ? "Deselect for export" : "Select for export"}
-                      >
-                        {isSelected ? (
-                          <CheckSquare className="size-4 text-[#C8A061]" />
-                        ) : (
-                          <Square className="size-4" />
-                        )}
-                      </button>
-                    <div>
-                      <p className="text-sm font-medium">
-                        {d.title || "Untitled Budget"}
-                        {d.id === activeDraft.id && (
-                          <span className="ml-2 text-xs text-[#C8A061]">
-                            current
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {BUDGET_CATEGORIES[d.category]?.label ?? d.category} ·{" "}
-                        {d.items.length} items ·{" "}
-                        {fmtRmb(calcBudgetTotal(d.items))} · saved{" "}
-                        {new Date(d.savedAt).toLocaleString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                    </div>
-                    </div>
-                    <div
-                      className="flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
+                  {drafts.map((d) => {
+                    const exportKey = draftExportKey(d.id);
+                    const isSelected = selectedExportKeys.includes(exportKey);
+                    return (
+                      <div
+                        key={d.id}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2.5 transition-colors ${
+                          d.id === activeDraft.id
+                            ? "border-[#C8A061]/50 bg-[#C8A061]/5"
+                            : "hover:bg-muted/50 cursor-pointer"
+                        }`}
                         onClick={() => handleLoadDraft(d)}
-                        title="Load"
                       >
-                        <Pencil className="size-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteDraft(d.id)}
-                        title="Delete"
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-                })}
+                        <div className="flex items-start gap-3">
+                          <button
+                            type="button"
+                            className="mt-0.5 text-muted-foreground hover:text-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExportKey(exportKey);
+                            }}
+                            title={
+                              isSelected
+                                ? "Deselect for export"
+                                : "Select for export"
+                            }
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="size-4 text-[#C8A061]" />
+                            ) : (
+                              <Square className="size-4" />
+                            )}
+                          </button>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {d.title || "Untitled Budget"}
+                              {d.id === activeDraft.id && (
+                                <span className="ml-2 text-xs text-[#C8A061]">
+                                  current
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {BUDGET_CATEGORIES[d.category]?.label ??
+                                d.category}{" "}
+                              · {d.items.length} items ·{" "}
+                              {fmtRmb(calcBudgetTotal(d.items))} · saved{" "}
+                              {new Date(d.savedAt).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          className="flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => handleLoadDraft(d)}
+                            title="Load"
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteDraft(d.id)}
+                            title="Delete"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -2550,6 +2656,89 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <Card className="budget-no-print border-[#C8A061]/30">
         <CardHeader>
+          <div>
+            <CardTitle className="text-base">Receipts / Attachments</CardTitle>
+            <CardDescription>
+              Upload screenshots, receipt photos, or supporting attachments for
+              inclusion in the budget export.
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <input
+            ref={budgetFileInputRef}
+            type="file"
+            accept={delegateDocumentAcceptAttribute("passport")}
+            multiple
+            onChange={handleBudgetFileChange}
+            className="hidden"
+          />
+          <div
+            className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-muted-foreground/20 p-6 transition-colors hover:border-[#C8A061]/50"
+            onClick={() => budgetFileInputRef.current?.click()}
+          >
+            <FolderOpen className="mb-2 size-8 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground text-center">
+              Screenshots or receipts: {DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}.
+              Maximum {CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file.
+            </p>
+            <p className="text-xs text-muted-foreground text-center">
+              {DELEGATE_UPLOAD_CONVERSION_TIP}
+            </p>
+          </div>
+
+          {budgetProofValidationFeedback && (
+            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300 mt-2">
+              {budgetProofValidationFeedback}
+            </div>
+          )}
+
+          {budgetUploadStatus && (
+            <div className="space-y-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2 mt-2">
+              <div className="flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
+                <span className="truncate">
+                  Uploading {budgetUploadStatus.currentFile}/
+                  {budgetUploadStatus.totalFiles}: {budgetUploadStatus.fileName}
+                </span>
+                <span>{budgetUploadStatus.percent}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200/40 dark:bg-blue-950/40">
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-all"
+                  style={{ width: `${budgetUploadStatus.percent}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {budgetProofPreviews.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-3">
+              {budgetProofPreviews.map((preview, idx) => (
+                <div
+                  key={idx}
+                  className="relative h-28 w-28 overflow-hidden rounded-lg border bg-white"
+                >
+                  {preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={preview}
+                      alt={`Receipt ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-muted">
+                      <FileSpreadsheet className="size-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="budget-no-print border-[#C8A061]/30">
+        <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle className="text-base">Submitted Budgets</CardTitle>
@@ -2719,7 +2908,9 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         </span>
                       </div>
                       {budget.creator.committeeScope && (
-                        <p className="truncate">{budget.creator.committeeScope}</p>
+                        <p className="truncate">
+                          {budget.creator.committeeScope}
+                        </p>
                       )}
                       <p>
                         {budget.items.length} item
@@ -3001,6 +3192,68 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 signatoryDraft={signatoryDraft}
                 forPrint
               />
+              {/* Render budget receipts in the print root so exportToPDF captures them */}
+              {budgetProofPreviews.length > 0 && (
+                <div style={{ padding: 20 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#002868",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Receipt Photos
+                  </div>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    {budgetProofPreviews.map((preview, idx) => (
+                      <div
+                        key={`budget-proof-${idx}`}
+                        style={{
+                          border: "1px solid #d9dfeb",
+                          borderRadius: 6,
+                          overflow: "hidden",
+                          background: "#fff",
+                        }}
+                      >
+                        {preview ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={preview}
+                            alt={`Receipt ${idx + 1}`}
+                            style={{
+                              width: "100%",
+                              height: 180,
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: "100%",
+                              height: 180,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              background: "#f3f4f6",
+                            }}
+                          >
+                            <span style={{ fontSize: 10, color: "#666" }}>
+                              Document file
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             {selectedExportBudgets.length > 0 && (
               <div className="budget-print-combined">

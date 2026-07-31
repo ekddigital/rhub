@@ -39,8 +39,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PAY_METHODS } from "@/lib/conf/config";
-import { fmtRmb } from "@/lib/conf/currency";
+import { PAY_METHODS, COMMON_UNITS } from "@/lib/conf/config";
+import { calcItemTotal, fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
   validatePaymentProofFile,
@@ -78,6 +78,15 @@ type Proof = {
   fileName: string;
   filePath: string;
   fileType: string | null;
+};
+
+type PaymentItem = {
+  id: string;
+  name: string;
+  qty: string;
+  unit: string;
+  customUnit?: string;
+  unitPrice: string;
 };
 
 type Payment = {
@@ -217,6 +226,126 @@ function parsePaymentItemDetails(note?: string | null) {
   }
 
   return values;
+}
+
+function formatPaymentItems(items: PaymentItem[]) {
+  return items
+    .map((item) => {
+      const lines: string[] = [];
+      if (item.name.trim()) {
+        lines.push(`Item: ${item.name.trim()}`);
+      }
+      if (Number(item.qty) > 0) {
+        lines.push(`Qty: ${item.qty}`);
+      }
+      if (item.unit === "custom") {
+        if (item.customUnit?.trim()) {
+          lines.push(`Unit: ${item.customUnit.trim()}`);
+        }
+      } else if (item.unit.trim()) {
+        lines.push(`Unit: ${item.unit.trim()}`);
+      }
+      if (item.unitPrice.trim()) {
+        const price = Number(item.unitPrice);
+        if (!Number.isNaN(price)) {
+          lines.push(`Unit price: ${fmtRmb(price)}`);
+        }
+      }
+      const qty = Number(item.qty);
+      const unitPrice = Number(item.unitPrice);
+      if (qty > 0 && unitPrice > 0) {
+        lines.push(`Line total: ${fmtRmb(calcItemTotal(qty, unitPrice))}`);
+      }
+      return lines.join("\n");
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function parsePaymentItems(note?: string | null, fallbackAmount?: number) {
+  if (!note) {
+    if (fallbackAmount && fallbackAmount > 0) {
+      return [
+        {
+          id: `item-${Date.now()}`,
+          name: "",
+          qty: "1",
+          unit: "pcs",
+          unitPrice: String(fallbackAmount),
+        },
+      ];
+    }
+    return [
+      {
+        id: `item-${Date.now()}`,
+        name: "",
+        qty: "1",
+        unit: "pcs",
+        unitPrice: "",
+      },
+    ];
+  }
+
+  const groups = note
+    .split(/\n\s*\n/)
+    .map((group) => group.trim())
+    .filter(Boolean);
+
+  const parsedItems: PaymentItem[] = [];
+  for (const group of groups) {
+    const item: PaymentItem = {
+      id: `item-${Date.now()}-${parsedItems.length}`,
+      name: "",
+      qty: "1",
+      unit: "pcs",
+      unitPrice: "",
+    };
+    let hasItem = false;
+
+    for (const raw of group.split("\n")) {
+      const line = raw.trim();
+      if (line.toLowerCase().startsWith("item:")) {
+        item.name = line.slice(5).trim();
+        hasItem = true;
+      } else if (line.toLowerCase().startsWith("qty:")) {
+        item.qty = line.slice(4).trim() || "1";
+      } else if (line.toLowerCase().startsWith("unit price:")) {
+        item.unitPrice = line.slice(11).trim().replace(/[¥$,]/g, "") || "";
+      } else if (line.toLowerCase().startsWith("unit:")) {
+        item.unit = line.slice(5).trim() || "pcs";
+      }
+    }
+
+    if (hasItem) {
+      parsedItems.push(item);
+    }
+  }
+
+  if (parsedItems.length > 0) {
+    return parsedItems;
+  }
+
+  if (fallbackAmount && fallbackAmount > 0) {
+    return [
+      {
+        id: `item-${Date.now()}`,
+        name: "",
+        qty: "1",
+        unit: "pcs",
+        unitPrice: String(fallbackAmount),
+      },
+    ];
+  }
+
+  return [
+    {
+      id: `item-${Date.now()}`,
+      name: "",
+      qty: "1",
+      unit: "pcs",
+      unitPrice: "",
+    },
+  ];
 }
 
 const INCOME_SOURCES = [
@@ -518,6 +647,15 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [note, setNote] = useState("");
   const [committeeScope, setCommitteeScope] = useState("");
   const [incomeSource, setIncomeSource] = useState("");
+  const [paymentItems, setPaymentItems] = useState<PaymentItem[]>([
+    {
+      id: `item-${Date.now()}`,
+      name: "",
+      qty: "1",
+      unit: "pcs",
+      unitPrice: "",
+    },
+  ]);
   const [proofFiles, setProofFiles] = useState<File[]>([]);
   const [proofPreviews, setProofPreviews] = useState<string[]>([]);
   const [proofValidationFeedback, setProofValidationFeedback] = useState<
@@ -529,10 +667,6 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     fileName: string;
     percent: number;
   } | null>(null);
-  const [itemName, setItemName] = useState("");
-  const [itemQty, setItemQty] = useState("1");
-  const [itemUnit, setItemUnit] = useState("pcs");
-  const [itemUnitPrice, setItemUnitPrice] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -623,6 +757,45 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     };
     void init();
   }, [loadCommitteeOptions, loadPayments]);
+
+  const addPaymentItem = useCallback(() => {
+    setPaymentItems((prev) => [
+      ...prev,
+      {
+        id: `item-${Date.now()}-${prev.length}`,
+        name: "",
+        qty: "1",
+        unit: "pcs",
+        unitPrice: "",
+      },
+    ]);
+  }, []);
+
+  const removePaymentItem = useCallback((idx: number) => {
+    setPaymentItems((prev) => prev.filter((_, index) => index !== idx));
+  }, []);
+
+  const updatePaymentItem = useCallback(
+    (idx: number, field: keyof PaymentItem, value: string) => {
+      setPaymentItems((prev) =>
+        prev.map((item, index) =>
+          index === idx ? { ...item, [field]: value } : item,
+        ),
+      );
+    },
+    [],
+  );
+
+  const paymentItemsTotal = useMemo(() => {
+    return paymentItems.reduce((sum, item) => {
+      const qty = Number(item.qty);
+      const unitPrice = Number(item.unitPrice);
+      if (qty > 0 && unitPrice >= 0) {
+        return sum + calcItemTotal(qty, unitPrice);
+      }
+      return sum;
+    }, 0);
+  }, [paymentItems]);
 
   useEffect(() => {
     if (!showForm) return;
@@ -736,10 +909,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const handleSubmit = async () => {
     const numericAmount = Number(amount);
-    const computedItemTotal =
-      Number(itemQty) > 0 && Number(itemUnitPrice) > 0
-        ? Number(itemQty) * Number(itemUnitPrice)
-        : 0;
+    const computedItemTotal = paymentItemsTotal;
     const effectiveAmount =
       numericAmount > 0 ? numericAmount : computedItemTotal;
 
@@ -749,21 +919,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       return;
     }
 
-    const itemDetailLines = itemName
-      ? [
-          `Item: ${itemName}`,
-          `Qty: ${itemQty || 1}`,
-          itemUnit ? `Unit: ${itemUnit}` : undefined,
-          itemUnitPrice
-            ? `Unit price: ${fmtRmb(Number(itemUnitPrice))}`
-            : undefined,
-          computedItemTotal
-            ? `Line total: ${fmtRmb(computedItemTotal)}`
-            : undefined,
-        ].filter(Boolean)
-      : [];
-
-    const notePayload = [note?.trim(), itemDetailLines.join("\n")]
+    const itemDetailLines = formatPaymentItems(paymentItems);
+    const notePayload = [note?.trim(), itemDetailLines]
       .filter(Boolean)
       .join("\n\n")
       .trim();
@@ -838,15 +995,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       setError("Approved/locked payments cannot be edited.");
       return;
     }
-    const parsed = parsePaymentItemDetails(payment.note);
 
     setEditingPaymentId(payment.id);
     setPaymentType(payment.paymentType || "EXPENSE");
     setAmount(String(payment.amount));
-    setItemName(parsed.itemName);
-    setItemQty(parsed.itemQty || "1");
-    setItemUnit(parsed.itemUnit || "pcs");
-    setItemUnitPrice(parsed.itemUnitPrice || "");
+    setPaymentItems(parsePaymentItems(payment.note, payment.amount));
     setPaidBy(payment.paidBy || "");
     setPaidTo(payment.paidTo || "");
     setMethod(payment.method || "WECHAT");
@@ -950,10 +1103,15 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setEditingPaymentId(null);
     setPaymentType("EXPENSE");
     setAmount("");
-    setItemName("");
-    setItemQty("1");
-    setItemUnit("pcs");
-    setItemUnitPrice("");
+    setPaymentItems([
+      {
+        id: `item-${Date.now()}`,
+        name: "",
+        qty: "1",
+        unit: "pcs",
+        unitPrice: "",
+      },
+    ]);
     setPaidBy("");
     setPaidTo("");
     setMethod("WECHAT");
@@ -1394,60 +1552,162 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label>Item Purchased</Label>
-                <Input
-                  placeholder="Item or service purchased"
-                  value={itemName}
-                  onChange={(e) => setItemName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Quantity</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  step="any"
-                  placeholder="1"
-                  value={itemQty}
-                  onChange={(e) => setItemQty(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Unit</Label>
-                <Input
-                  placeholder="pcs / kg / service"
-                  value={itemUnit}
-                  onChange={(e) => setItemUnit(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Unit Price</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="any"
-                  placeholder="0.00"
-                  value={itemUnitPrice}
-                  onChange={(e) => setItemUnitPrice(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Line Total</Label>
-                <Input
-                  readOnly
-                  value={
-                    itemName && Number(itemQty) > 0 && Number(itemUnitPrice) > 0
-                      ? fmtRmb(Number(itemQty) * Number(itemUnitPrice))
-                      : ""
-                  }
-                />
-              </div>
-            </div>
+            <Card className="budget-no-print">
+              <CardHeader className="flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Line Items</CardTitle>
+                  <CardDescription>
+                    {paymentItems.length} item
+                    {paymentItems.length !== 1 ? "s" : ""} · Total:{" "}
+                    <span className="font-semibold">
+                      {fmtRmb(paymentItemsTotal)}
+                    </span>
+                  </CardDescription>
+                </div>
+                <Button size="sm" onClick={addPaymentItem}>
+                  <Plus className="size-4" />
+                  Add Item
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-xs font-medium text-muted-foreground">
+                        <th className="w-8 pb-2 pr-2">#</th>
+                        <th className="min-w-40 pb-2 pr-2">Item</th>
+                        <th className="w-20 pb-2 pr-2">Qty</th>
+                        <th className="min-w-30 pb-2 pr-2">Unit</th>
+                        <th className="w-28 pb-2 pr-2">Unit Price</th>
+                        <th className="w-24 pb-2 pr-2 text-right">Total</th>
+                        <th className="w-8 pb-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentItems.map((item, idx) => {
+                        const total = calcItemTotal(
+                          Number(item.qty),
+                          Number(item.unitPrice),
+                        );
+                        const isCustom = item.unit === "custom";
+                        return (
+                          <tr key={item.id} className="border-b last:border-0">
+                            <td className="py-2 pr-2 text-muted-foreground text-xs">
+                              {idx + 1}
+                            </td>
+                            <td className="py-2 pr-2">
+                              <Input
+                                className="h-8 text-sm"
+                                placeholder="Item name"
+                                value={item.name}
+                                onChange={(e) =>
+                                  updatePaymentItem(idx, "name", e.target.value)
+                                }
+                              />
+                            </td>
+                            <td className="py-2 pr-2">
+                              <Input
+                                className="h-8 text-sm"
+                                type="number"
+                                min={0}
+                                step="any"
+                                placeholder="0"
+                                value={item.qty}
+                                onChange={(e) =>
+                                  updatePaymentItem(idx, "qty", e.target.value)
+                                }
+                              />
+                            </td>
+                            <td className="py-2 pr-2">
+                              <div className="flex gap-1">
+                                <select
+                                  className="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+                                  style={{ width: isCustom ? "120px" : "100%" }}
+                                  value={item.unit}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    updatePaymentItem(idx, "unit", value);
+                                    if (value !== "custom") {
+                                      updatePaymentItem(idx, "customUnit", "");
+                                    }
+                                  }}
+                                >
+                                  {COMMON_UNITS.map((u) => (
+                                    <option key={u} value={u}>
+                                      {u === "custom" ? "custom…" : u}
+                                    </option>
+                                  ))}
+                                </select>
+                                {isCustom && (
+                                  <Input
+                                    className="h-8 text-sm min-w-0 flex-1"
+                                    placeholder="e.g. players"
+                                    value={item.customUnit || ""}
+                                    onChange={(e) =>
+                                      updatePaymentItem(
+                                        idx,
+                                        "customUnit",
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-2 pr-2">
+                              <Input
+                                className="h-8 text-sm"
+                                type="number"
+                                min={0}
+                                step="any"
+                                placeholder="0"
+                                value={item.unitPrice}
+                                onChange={(e) =>
+                                  updatePaymentItem(
+                                    idx,
+                                    "unitPrice",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </td>
+                            <td className="py-2 pr-2 text-right font-mono font-medium">
+                              {fmtRmb(total)}
+                            </td>
+                            <td className="py-2">
+                              {paymentItems.length > 1 && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  onClick={() => removePaymentItem(idx)}
+                                  className="text-muted-foreground hover:text-destructive"
+                                >
+                                  <XCircle className="size-3.5" />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2">
+                        <td
+                          colSpan={5}
+                          className="py-3 text-right font-semibold"
+                        >
+                          GRAND TOTAL
+                        </td>
+                        <td className="py-3 text-right font-mono text-lg font-bold text-[#C8A061]">
+                          {fmtRmb(paymentItemsTotal)}
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="space-y-2">
               <Label>Description / Note</Label>
@@ -1581,12 +1841,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 disabled={
                   saving ||
                   !paidBy ||
-                  !(
-                    Number(amount) > 0 ||
-                    (itemName &&
-                      Number(itemQty) > 0 &&
-                      Number(itemUnitPrice) > 0)
-                  )
+                  !(Number(amount) > 0 || paymentItemsTotal > 0)
                 }
               >
                 {saving ? (
