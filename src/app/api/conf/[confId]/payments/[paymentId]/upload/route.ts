@@ -4,6 +4,7 @@ import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { uploadFileToEKDDigitalAssets } from "@/lib/conf/assets";
 import { validateDelegateDocumentUpload } from "@/lib/conf/upload-validation";
 import { resolveFileByteSize } from "@/lib/conf/resolve-file-size";
+import { mapPaymentProofForClient } from "@/lib/conf/payment-proof-urls";
 
 // POST /api/conf/[confId]/payments/[paymentId]/upload — upload payment proof screenshot
 export async function POST(
@@ -104,7 +105,10 @@ export async function POST(
       },
     });
 
-    return NextResponse.json({ ...proof, requestId }, { status: 201 });
+    return NextResponse.json(
+      { ...mapPaymentProofForClient(confId, paymentId, proof), requestId },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("[conf.payment.proof_upload_error]", {
       requestId,

@@ -8,6 +8,7 @@ import {
   paymentItemsFromNote,
   validatePaymentLineItemsPayload,
 } from "@/lib/conf/payment-line-items-server";
+import { mapPaymentForClient, mapPaymentsForClient } from "@/lib/conf/payment-proof-urls";
 
 const paymentInclude = {
   proofs: true,
@@ -64,7 +65,7 @@ export async function GET(
       include: paymentInclude,
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(payments);
+    return NextResponse.json(mapPaymentsForClient(confId, payments));
   } catch (error) {
     console.error("Failed to fetch payments:", error);
     return NextResponse.json(
@@ -239,7 +240,9 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(payment, { status: 201 });
+    return NextResponse.json(mapPaymentForClient(confId, payment), {
+      status: 201,
+    });
   } catch (error) {
     console.error("Failed to create payment:", error);
     return NextResponse.json(

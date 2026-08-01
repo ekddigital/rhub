@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
+import { mapPaymentForClient } from "@/lib/conf/payment-proof-urls";
 
 // POST /api/conf/[confId]/payments/[paymentId]/final-approve
 // Level-2 overall chair / super admin final approval → locks the record
@@ -95,7 +96,7 @@ export async function POST(
       },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(mapPaymentForClient(confId, updated));
   } catch (error) {
     console.error("Failed to final-approve payment:", error);
     return NextResponse.json(

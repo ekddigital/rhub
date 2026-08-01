@@ -58,6 +58,7 @@ import {
 import {
   FinanceLineItemsTable,
   type FinanceLineItemDraft,
+  type FinanceLineItemProof,
   type FinanceLineItemReceiptState,
 } from "@/components/tools/conf/finance-line-items-table";
 import {
@@ -85,7 +86,19 @@ type Proof = {
   fileName: string;
   filePath: string;
   fileType: string | null;
+  url?: string;
+  isPdf?: boolean;
 };
+
+function proofDisplayUrl(proof: Proof) {
+  return proof.url || proof.filePath;
+}
+
+function proofIsImage(proof: Proof) {
+  if (proof.isPdf) return false;
+  if (proof.fileType?.startsWith("image/")) return true;
+  return /\.(png|jpe?g|webp|gif)$/i.test(proof.fileName);
+}
 
 type PaymentLineItemRecord = {
   id: string;
@@ -289,6 +302,64 @@ function serializePaymentItems(items: PaymentItem[]) {
           : item.unit.trim() || "pcs",
       unitPrice: Number(item.unitPrice) || 0,
     }));
+}
+
+function buildSyncLineItems(items: PaymentItem[]) {
+  return items.map((item, idx) => ({
+    no: idx + 1,
+    name: item.name.trim() || `Item ${idx + 1}`,
+    qty: Number(item.qty) || 1,
+    unit:
+      item.unit === "custom"
+        ? item.customUnit?.trim() || "custom"
+        : String(item.unit).trim() || "pcs",
+    unitPrice: Number(item.unitPrice) > 0 ? Number(item.unitPrice) : 0.01,
+  }));
+}
+
+function remapAfterPaymentSync(
+  payment: Payment,
+  prevItems: PaymentItem[],
+  prevReceiptState: Record<string, FinanceLineItemReceiptState>,
+) {
+  const serverItems = payment.lineItems ?? [];
+  const items = prevItems.map((draft, idx) => {
+    const server = serverItems[idx];
+    return {
+      ...draft,
+      id: server?.id ?? draft.id,
+      no: server?.no ?? idx + 1,
+    };
+  });
+
+  const receiptState: Record<string, FinanceLineItemReceiptState> = {};
+  prevItems.forEach((oldDraft, idx) => {
+    const newItem = items[idx];
+    const server = serverItems[idx];
+    if (!newItem) return;
+
+    const oldState = prevReceiptState[oldDraft.id];
+    const mergedProofs = new Map<string, FinanceLineItemProof>();
+
+    for (const proof of oldState?.existingProofs ?? []) {
+      mergedProofs.set(proof.id, proof);
+    }
+    for (const proof of server?.proofs ?? []) {
+      mergedProofs.set(proof.id, proof);
+    }
+
+    if (oldState || mergedProofs.size > 0) {
+      receiptState[newItem.id] = {
+        existingProofs: Array.from(mergedProofs.values()),
+        pendingFile: oldState?.pendingFile ?? null,
+        pendingPreview: oldState?.pendingPreview ?? null,
+        uploading: oldState?.uploading,
+        uploadPercent: oldState?.uploadPercent,
+      };
+    }
+  });
+
+  return { items, receiptState };
 }
 
 const INCOME_SOURCES = [
@@ -513,10 +584,10 @@ function PaymentsDocumentPreview({
                         background: "#fff",
                       }}
                     >
-                      {proof.fileType?.startsWith("image/") ? (
+                      {proofIsImage(proof) ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={proof.filePath}
+                          src={proofDisplayUrl(proof)}
                           alt={proof.fileName}
                           style={{
                             width: "100%",
@@ -597,6 +668,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [receiptStateByItemId, setReceiptStateByItemId] = useState<
     Record<string, FinanceLineItemReceiptState>
   >({});
+  const [autoPromptReceiptForItemId, setAutoPromptReceiptForItemId] = useState<
+    string | null
+  >(null);
   const [proofValidationFeedback, setProofValidationFeedback] = useState<
     string | null
   >(null);
@@ -697,7 +771,19 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   }, [loadCommitteeOptions, loadPayments]);
 
   const addPaymentItem = useCallback(() => {
-    setPaymentItems((prev) => [...prev, emptyPaymentItem(prev.length + 1)]);
+    let newItemId: string | null = null;
+    setPaymentItems((prev) => {
+      const newItem = emptyPaymentItem(prev.length + 1);
+      newItemId = newItem.id;
+      return [...prev, newItem];
+    });
+    if (newItemId) {
+      setAutoPromptReceiptForItemId(newItemId);
+    }
+  }, []);
+
+  const clearAutoPromptReceipt = useCallback(() => {
+    setAutoPromptReceiptForItemId(null);
   }, []);
 
   const removePaymentItem = useCallback((idx: number) => {
@@ -755,7 +841,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       lineItemId: string | undefined,
       onProgress: (percent: number) => void,
     ) =>
-      new Promise<void>((resolve, reject) => {
+      new Promise<Proof>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `/api/conf/${confId}/payments/${paymentId}/upload`);
 
@@ -767,7 +853,11 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         xhr.onload = () => {
           if (xhr.status >= 200 && xhr.status < 300) {
             onProgress(100);
-            resolve();
+            try {
+              resolve(JSON.parse(xhr.responseText) as Proof);
+            } catch {
+              reject(new Error("Upload succeeded but response was invalid."));
+            }
             return;
           }
           let payload: UploadErrorPayload = {};
@@ -800,6 +890,102 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     [confId],
   );
 
+  const syncPaymentForReceiptUpload = useCallback(
+    async (
+      lineItemIndex: number,
+      currentItems: PaymentItem[],
+      currentReceiptState: Record<string, FinanceLineItemReceiptState>,
+    ) => {
+      if (!confId) {
+        throw new Error("Conference not loaded yet.");
+      }
+
+      const syncItems = buildSyncLineItems(currentItems);
+      const syncAmount = syncItems.reduce(
+        (sum, item) => sum + calcItemTotal(item.qty, item.unitPrice),
+        0,
+      );
+      const preparedByName = members.find(
+        (member) => member.id === preparedByMemberId,
+      )?.name;
+      const effectivePaidBy =
+        paidBy.trim() || preparedByName?.trim() || "Pending";
+
+      const payload = {
+        amount: syncAmount,
+        paidBy: effectivePaidBy,
+        paidTo: paidTo || undefined,
+        method,
+        ref: txRef || undefined,
+        note: note?.trim() || undefined,
+        paymentType,
+        incomeSource:
+          paymentType === "INCOME" ? incomeSource || undefined : undefined,
+        committeeScope: committeeScope || undefined,
+        submittedByMemberId: preparedByMemberId || undefined,
+        items: syncItems,
+      };
+
+      const endpoint = editingPaymentId
+        ? `/api/conf/${confId}/payments/${editingPaymentId}`
+        : `/api/conf/${confId}/payments`;
+      const res = await fetch(endpoint, {
+        method: editingPaymentId ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = (await res.json()) as { error?: string };
+        throw new Error(
+          err.error ??
+            (editingPaymentId
+              ? "Failed to sync payment for receipt upload"
+              : "Failed to create payment for receipt upload"),
+        );
+      }
+
+      const payment = (await res.json()) as Payment;
+      if (!editingPaymentId) {
+        setEditingPaymentId(payment.id);
+      }
+
+      const { items, receiptState } = remapAfterPaymentSync(
+        payment,
+        currentItems,
+        currentReceiptState,
+      );
+      setPaymentItems(items);
+      setReceiptStateByItemId(receiptState);
+
+      const lineItemId = payment.lineItems?.[lineItemIndex]?.id;
+      if (!lineItemId) {
+        throw new Error("Failed to resolve line item for receipt upload.");
+      }
+
+      return {
+        paymentId: payment.id,
+        lineItemId,
+        items,
+        receiptState,
+      };
+    },
+    [
+      committeeScope,
+      confId,
+      editingPaymentId,
+      incomeSource,
+      members,
+      method,
+      note,
+      paidBy,
+      paidTo,
+      paymentType,
+      preparedByMemberId,
+      txRef,
+    ],
+  );
+
   const handleReceiptSelect = useCallback(
     async (index: number, file: File) => {
       const validation = await validatePaymentProofFile(file);
@@ -814,7 +1000,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       setProofValidationFeedback(null);
       const item = paymentItems[index];
-      if (!item) return;
+      if (!item || !confId) return;
 
       let preview = "";
       if (file.type.startsWith("image/")) {
@@ -829,12 +1015,86 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         ...prev,
         [item.id]: {
           ...prev[item.id],
-          pendingFile: file,
+          uploading: true,
+          uploadPercent: 0,
           pendingPreview: preview || null,
         },
       }));
+
+      try {
+        const synced = await syncPaymentForReceiptUpload(
+          index,
+          paymentItems,
+          receiptStateByItemId,
+        );
+        const syncedItemId = synced.items[index]?.id ?? item.id;
+
+        setReceiptStateByItemId((prev) => ({
+          ...synced.receiptState,
+          [syncedItemId]: {
+            ...synced.receiptState[syncedItemId],
+            ...prev[syncedItemId],
+            ...prev[item.id],
+            uploading: true,
+            uploadPercent: 0,
+            pendingPreview: preview || null,
+          },
+        }));
+
+        const proof = await uploadProofWithProgress(
+          synced.paymentId,
+          file,
+          synced.lineItemId,
+          (percent) => {
+            setReceiptStateByItemId((prev) => ({
+              ...prev,
+              [syncedItemId]: {
+                ...prev[syncedItemId],
+                uploading: true,
+                uploadPercent: percent,
+              },
+            }));
+          },
+        );
+
+        setReceiptStateByItemId((prev) => ({
+          ...prev,
+          [syncedItemId]: {
+            ...prev[syncedItemId],
+            uploading: false,
+            uploadPercent: undefined,
+            pendingFile: null,
+            pendingPreview: null,
+            existingProofs: [
+              {
+                id: proof.id,
+                fileName: proof.fileName,
+                filePath: proofDisplayUrl(proof),
+                fileType: proof.fileType,
+              },
+            ],
+          },
+        }));
+      } catch (e) {
+        setReceiptStateByItemId((prev) => ({
+          ...prev,
+          [item.id]: {
+            ...prev[item.id],
+            uploading: false,
+            uploadPercent: undefined,
+            pendingPreview: null,
+          },
+        }));
+        setError(e instanceof Error ? e.message : "Failed to upload receipt");
+      }
     },
-    [paymentItems],
+    [
+      confId,
+      paymentItems,
+      receiptStateByItemId,
+      syncPaymentForReceiptUpload,
+      uploadProofWithProgress,
+    ],
   );
 
   const handleReceiptRemove = useCallback(
@@ -929,42 +1189,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               : "Failed to create payment"),
         );
       }
-      const payment = (await res.json()) as Payment;
 
-      const uploads: Array<{ file: File; lineItemId: string }> = [];
-      payment.lineItems?.forEach((lineItem, idx) => {
-        const draftItem = paymentItems[idx];
-        const pending = draftItem
-          ? receiptStateByItemId[draftItem.id]?.pendingFile
-          : null;
-        if (pending) {
-          uploads.push({ file: pending, lineItemId: lineItem.id });
-        }
-      });
-
-      for (const [index, upload] of uploads.entries()) {
-        setUploadStatus({
-          currentFile: index + 1,
-          totalFiles: uploads.length,
-          fileName: upload.file.name,
-          percent: 0,
-        });
-        await uploadProofWithProgress(
-          payment.id,
-          upload.file,
-          upload.lineItemId,
-          (percent) => {
-            setUploadStatus({
-              currentFile: index + 1,
-              totalFiles: uploads.length,
-              fileName: upload.file.name,
-              percent,
-            });
-          },
-        );
-      }
-
-      setUploadStatus(null);
+      await res.json();
       setPayments(await loadPayments(confId));
       resetForm();
     } catch (e) {
@@ -1101,6 +1327,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setPaymentItems([emptyPaymentItem()]);
     setPreparedByMemberId(accessInfo?.memberId || "");
     setReceiptStateByItemId({});
+    setAutoPromptReceiptForItemId(null);
     setPaidBy("");
     setPaidTo("");
     setMethod("WECHAT");
@@ -1565,6 +1792,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               receiptStateByItemId={receiptStateByItemId}
               onReceiptSelect={handleReceiptSelect}
               onReceiptRemove={handleReceiptRemove}
+              autoPromptReceiptForItemId={autoPromptReceiptForItemId}
+              onAutoPromptReceiptHandled={clearAutoPromptReceipt}
               receiptUploadHint={`Upload a receipt or payment screenshot per line item (${DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}). Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file. ${DELEGATE_UPLOAD_CONVERSION_TIP}`}
             />
 
@@ -1786,16 +2015,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       {allPaymentProofs(payment).slice(0, 4).map((proof) => (
                         <a
                           key={proof.id}
-                          href={proof.filePath}
+                          href={proofDisplayUrl(proof)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block size-24 overflow-hidden rounded border border-muted transition-opacity hover:opacity-80"
                           title={proof.fileName}
                         >
-                          {proof.fileType?.startsWith("image/") ? (
+                          {proofIsImage(proof) ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={proof.filePath}
+                              src={proofDisplayUrl(proof)}
                               alt={proof.fileName}
                               className="size-full object-cover"
                             />

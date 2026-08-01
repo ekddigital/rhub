@@ -1,6 +1,7 @@
 "use client";
 
-import { ImageIcon, Plus, Upload, X, XCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { ImageIcon, Loader2, Plus, Upload, X, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,12 +29,26 @@ export type FinanceLineItemProof = {
   fileName: string;
   filePath: string;
   fileType: string | null;
+  url?: string;
+  isPdf?: boolean;
 };
+
+function proofDisplayUrl(proof: FinanceLineItemProof) {
+  return proof.url || proof.filePath;
+}
+
+function proofIsImage(proof: FinanceLineItemProof) {
+  if (proof.isPdf) return false;
+  if (proof.fileType?.startsWith("image/")) return true;
+  return /\.(png|jpe?g|webp|gif)$/i.test(proof.fileName);
+}
 
 export type FinanceLineItemReceiptState = {
   pendingFile?: File | null;
   pendingPreview?: string | null;
   existingProofs?: FinanceLineItemProof[];
+  uploading?: boolean;
+  uploadPercent?: number;
 };
 
 type FinanceLineItemsTableProps = {
@@ -51,6 +66,8 @@ type FinanceLineItemsTableProps = {
   onReceiptSelect?: (index: number, file: File) => void;
   onReceiptRemove?: (index: number, proofId?: string) => void;
   receiptUploadHint?: string;
+  autoPromptReceiptForItemId?: string | null;
+  onAutoPromptReceiptHandled?: () => void;
   disabled?: boolean;
 };
 
@@ -70,8 +87,37 @@ export function FinanceLineItemsTable({
   onReceiptSelect,
   onReceiptRemove,
   receiptUploadHint,
+  autoPromptReceiptForItemId = null,
+  onAutoPromptReceiptHandled,
   disabled = false,
 }: FinanceLineItemsTableProps) {
+  const receiptInputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+
+  useEffect(() => {
+    if (
+      !autoPromptReceiptForItemId ||
+      !showReceiptColumn ||
+      disabled ||
+      !onReceiptSelect
+    ) {
+      return;
+    }
+
+    const input = receiptInputRefs.current.get(autoPromptReceiptForItemId);
+    if (!input) return;
+
+    requestAnimationFrame(() => {
+      input.click();
+      onAutoPromptReceiptHandled?.();
+    });
+  }, [
+    autoPromptReceiptForItemId,
+    disabled,
+    onAutoPromptReceiptHandled,
+    onReceiptSelect,
+    showReceiptColumn,
+  ]);
+
   return (
     <Card className="budget-no-print">
       <CardHeader className="flex-row items-center justify-between">
@@ -114,6 +160,7 @@ export function FinanceLineItemsTable({
                 );
                 const isCustom = item.unit === "custom";
                 const receiptState = receiptStateByItemId[item.id];
+                const isUploading = Boolean(receiptState?.uploading);
                 const hasReceipt =
                   Boolean(receiptState?.pendingPreview) ||
                   (receiptState?.existingProofs?.length ?? 0) > 0;
@@ -204,15 +251,15 @@ export function FinanceLineItemsTable({
                               className="group relative size-14 overflow-hidden rounded border"
                             >
                               <a
-                                href={proof.filePath}
+                                href={proofDisplayUrl(proof)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={proof.fileName}
                               >
-                                {proof.fileType?.startsWith("image/") ? (
+                                {proofIsImage(proof) ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img
-                                    src={proof.filePath}
+                                    src={proofDisplayUrl(proof)}
                                     alt={proof.fileName}
                                     className="size-full object-cover"
                                   />
@@ -263,11 +310,26 @@ export function FinanceLineItemsTable({
                               )}
                             </div>
                           )}
-                          {!disabled && onReceiptSelect && (
+                          {isUploading && (
+                            <div className="flex size-14 flex-col items-center justify-center rounded border border-blue-500/30 bg-blue-500/5 px-1 text-[10px] text-blue-700 dark:text-blue-300">
+                              <Loader2 className="mb-0.5 size-4 animate-spin" />
+                              {receiptState?.uploadPercent != null
+                                ? `${receiptState.uploadPercent}%`
+                                : "Uploading"}
+                            </div>
+                          )}
+                          {!disabled && onReceiptSelect && !isUploading && (
                             <label className="flex cursor-pointer flex-col items-center justify-center rounded border border-dashed border-muted-foreground/30 px-2 py-1.5 text-[10px] text-muted-foreground hover:border-[#C8A061]/50">
                               <Upload className="mb-0.5 size-3.5" />
                               {hasReceipt ? "Replace" : "Upload"}
                               <input
+                                ref={(el) => {
+                                  if (el) {
+                                    receiptInputRefs.current.set(item.id, el);
+                                  } else {
+                                    receiptInputRefs.current.delete(item.id);
+                                  }
+                                }}
                                 type="file"
                                 className="hidden"
                                 accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,application/pdf"

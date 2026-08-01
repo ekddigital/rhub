@@ -8,6 +8,7 @@ import {
   paymentAmountFromItems,
   validatePaymentLineItemsPayload,
 } from "@/lib/conf/payment-line-items-server";
+import { mapPaymentForClient } from "@/lib/conf/payment-proof-urls";
 
 type Params = { params: Promise<{ confId: string; paymentId: string }> };
 
@@ -52,7 +53,7 @@ export async function GET(_req: Request, { params }: Params) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    return NextResponse.json(payment);
+    return NextResponse.json(mapPaymentForClient(confId, payment));
   } catch (error) {
     console.error("Failed to fetch payment:", error);
     return NextResponse.json(
@@ -285,7 +286,7 @@ export async function PATCH(req: Request, { params }: Params) {
       },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(mapPaymentForClient(confId, updated));
   } catch (error) {
     console.error("Failed to update payment:", error);
     return NextResponse.json(

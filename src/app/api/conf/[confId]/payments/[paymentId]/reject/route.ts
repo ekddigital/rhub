@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
+import { mapPaymentForClient } from "@/lib/conf/payment-proof-urls";
 
 // POST /api/conf/[confId]/payments/[paymentId]/reject
 // Reject at any approval level (must provide a reason)
@@ -92,7 +93,7 @@ export async function POST(
       note: reason.trim(),
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(mapPaymentForClient(confId, updated));
   } catch (error) {
     console.error("Failed to reject payment:", error);
     return NextResponse.json(
