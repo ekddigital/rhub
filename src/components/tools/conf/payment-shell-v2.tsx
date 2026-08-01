@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   Plus,
-  Upload,
   Download,
   CheckCircle2,
   XCircle,
@@ -43,8 +42,11 @@ import { PAY_METHODS, COMMON_UNITS } from "@/lib/conf/config";
 import { calcItemTotal, fmtRmb } from "@/lib/conf/currency";
 import { fetchDefaultConference } from "@/lib/conf/client";
 import {
+  parsePaymentItemsNote,
+  stripPaymentItemDetails,
+} from "@/lib/conf/payment-items";
+import {
   validatePaymentProofFile,
-  delegateDocumentAcceptAttribute,
   CONFERENCE_UPLOAD_MAX_SIZE_LABEL,
   DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL,
   DELEGATE_UPLOAD_CONVERSION_TIP,
@@ -53,6 +55,11 @@ import {
   formatUploadError,
   type UploadErrorPayload,
 } from "@/lib/conf/upload-feedback-client";
+import {
+  FinanceLineItemsTable,
+  type FinanceLineItemDraft,
+  type FinanceLineItemReceiptState,
+} from "@/components/tools/conf/finance-line-items-table";
 import {
   DocumentLayout,
   DocumentTable,
@@ -80,14 +87,17 @@ type Proof = {
   fileType: string | null;
 };
 
-type PaymentItem = {
+type PaymentLineItemRecord = {
   id: string;
+  no: number;
   name: string;
-  qty: string;
+  qty: number;
   unit: string;
-  customUnit?: string;
-  unitPrice: string;
+  unitPrice: number;
+  proofs: Proof[];
 };
+
+type PaymentItem = FinanceLineItemDraft;
 
 type Payment = {
   id: string;
@@ -109,6 +119,7 @@ type Payment = {
   paidAt: string;
   createdAt: string;
   proofs: Proof[];
+  lineItems?: PaymentLineItemRecord[];
   submittedBy: {
     id: string;
     name: string;
@@ -177,7 +188,30 @@ const STATUS_CONFIG: Record<
   },
 };
 
-function formatPaymentItemDetails(note?: string | null) {
+function emptyPaymentItem(no = 1): PaymentItem {
+  return {
+    id: `item-${Date.now()}-${no}`,
+    no,
+    name: "",
+    qty: "1",
+    unit: "pcs",
+    unitPrice: "",
+  };
+}
+
+function formatPaymentLineItemsSummary(payment: Payment) {
+  if (payment.lineItems && payment.lineItems.length > 0) {
+    return payment.lineItems
+      .map(
+        (item) =>
+          `${item.name} (${item.qty} ${item.unit} × ${fmtRmb(item.unitPrice)})`,
+      )
+      .join("; ");
+  }
+  return formatPaymentItemDetailsFromNote(payment.note);
+}
+
+function formatPaymentItemDetailsFromNote(note?: string | null) {
   if (!note) return undefined;
   const lines = note
     .split("\n")
@@ -191,161 +225,70 @@ function formatPaymentItemDetails(note?: string | null) {
   return itemLines.length ? itemLines.join("; ") : undefined;
 }
 
-function stripPaymentItemDetails(note?: string | null) {
-  if (!note) return "";
-  const lines = note
-    .split("\n")
-    .filter(
-      (line) =>
-        !/^(Item:|Qty:|Unit price:|Unit:|Line total:)/i.test(line.trim()),
-    );
-  return lines.join("\n").trim();
-}
-
-function parsePaymentItemDetails(note?: string | null) {
-  const values = {
-    itemName: "",
-    itemQty: "1",
-    itemUnit: "",
-    itemUnitPrice: "",
-  };
-
-  if (!note) return values;
-
-  for (const raw of note.split("\n")) {
-    const line = raw.trim();
-    if (line.toLowerCase().startsWith("item:")) {
-      values.itemName = line.slice(5).trim();
-    } else if (line.toLowerCase().startsWith("qty:")) {
-      values.itemQty = line.slice(4).trim();
-    } else if (line.toLowerCase().startsWith("unit price:")) {
-      values.itemUnitPrice = line.slice(11).trim().replace(/[¥$,]/g, "");
-    } else if (line.toLowerCase().startsWith("unit:")) {
-      values.itemUnit = line.slice(5).trim();
-    }
+function paymentItemsFromPayment(payment: Payment): PaymentItem[] {
+  if (payment.lineItems && payment.lineItems.length > 0) {
+    return payment.lineItems.map((item) => ({
+      id: item.id,
+      no: item.no,
+      name: item.name,
+      qty: String(item.qty),
+      unit: (COMMON_UNITS as readonly string[]).includes(item.unit)
+        ? item.unit
+        : "custom",
+      customUnit: (COMMON_UNITS as readonly string[]).includes(item.unit)
+        ? undefined
+        : item.unit,
+      unitPrice: String(item.unitPrice),
+    }));
   }
 
-  return values;
+  const parsed = parsePaymentItemsNote(payment.note);
+  if (parsed.length > 0) {
+    return parsed.map((item, idx) => ({
+      id: `legacy-${idx}-${Date.now()}`,
+      no: idx + 1,
+      name: item.name,
+      qty: item.qty,
+      unit: item.unit,
+      customUnit: item.customUnit,
+      unitPrice: item.unitPrice,
+    }));
+  }
+
+  if (payment.amount > 0) {
+    return [emptyPaymentItem(1)];
+  }
+
+  return [emptyPaymentItem(1)];
 }
 
-function formatPaymentItems(items: PaymentItem[]) {
+function allPaymentProofs(payment: Payment): Proof[] {
+  const lineItemProofs =
+    payment.lineItems?.flatMap((item) => item.proofs ?? []) ?? [];
+  const paymentLevelProofs = payment.proofs.filter(
+    (proof) =>
+      !lineItemProofs.some((lineProof) => lineProof.id === proof.id),
+  );
+  return [...lineItemProofs, ...paymentLevelProofs];
+}
+
+function paymentFreeformNote(payment: Payment) {
+  return stripPaymentItemDetails(payment.note || "");
+}
+
+function serializePaymentItems(items: PaymentItem[]) {
   return items
-    .map((item) => {
-      const lines: string[] = [];
-      if (item.name.trim()) {
-        lines.push(`Item: ${item.name.trim()}`);
-      }
-      if (Number(item.qty) > 0) {
-        lines.push(`Qty: ${item.qty}`);
-      }
-      if (item.unit === "custom") {
-        if (item.customUnit?.trim()) {
-          lines.push(`Unit: ${item.customUnit.trim()}`);
-        }
-      } else if (item.unit.trim()) {
-        lines.push(`Unit: ${item.unit.trim()}`);
-      }
-      if (item.unitPrice.trim()) {
-        const price = Number(item.unitPrice);
-        if (!Number.isNaN(price)) {
-          lines.push(`Unit price: ${fmtRmb(price)}`);
-        }
-      }
-      const qty = Number(item.qty);
-      const unitPrice = Number(item.unitPrice);
-      if (qty > 0 && unitPrice > 0) {
-        lines.push(`Line total: ${fmtRmb(calcItemTotal(qty, unitPrice))}`);
-      }
-      return lines.join("\n");
-    })
-    .filter(Boolean)
-    .join("\n\n");
-}
-
-function parsePaymentItems(note?: string | null, fallbackAmount?: number) {
-  if (!note) {
-    if (fallbackAmount && fallbackAmount > 0) {
-      return [
-        {
-          id: `item-${Date.now()}`,
-          name: "",
-          qty: "1",
-          unit: "pcs",
-          unitPrice: String(fallbackAmount),
-        },
-      ];
-    }
-    return [
-      {
-        id: `item-${Date.now()}`,
-        name: "",
-        qty: "1",
-        unit: "pcs",
-        unitPrice: "",
-      },
-    ];
-  }
-
-  const groups = note
-    .split(/\n\s*\n/)
-    .map((group) => group.trim())
-    .filter(Boolean);
-
-  const parsedItems: PaymentItem[] = [];
-  for (const group of groups) {
-    const item: PaymentItem = {
-      id: `item-${Date.now()}-${parsedItems.length}`,
-      name: "",
-      qty: "1",
-      unit: "pcs",
-      unitPrice: "",
-    };
-    let hasItem = false;
-
-    for (const raw of group.split("\n")) {
-      const line = raw.trim();
-      if (line.toLowerCase().startsWith("item:")) {
-        item.name = line.slice(5).trim();
-        hasItem = true;
-      } else if (line.toLowerCase().startsWith("qty:")) {
-        item.qty = line.slice(4).trim() || "1";
-      } else if (line.toLowerCase().startsWith("unit price:")) {
-        item.unitPrice = line.slice(11).trim().replace(/[¥$,]/g, "") || "";
-      } else if (line.toLowerCase().startsWith("unit:")) {
-        item.unit = line.slice(5).trim() || "pcs";
-      }
-    }
-
-    if (hasItem) {
-      parsedItems.push(item);
-    }
-  }
-
-  if (parsedItems.length > 0) {
-    return parsedItems;
-  }
-
-  if (fallbackAmount && fallbackAmount > 0) {
-    return [
-      {
-        id: `item-${Date.now()}`,
-        name: "",
-        qty: "1",
-        unit: "pcs",
-        unitPrice: String(fallbackAmount),
-      },
-    ];
-  }
-
-  return [
-    {
-      id: `item-${Date.now()}`,
-      name: "",
-      qty: "1",
-      unit: "pcs",
-      unitPrice: "",
-    },
-  ];
+    .filter((item) => item.name.trim())
+    .map((item, idx) => ({
+      no: idx + 1,
+      name: item.name.trim(),
+      qty: Number(item.qty) || 0,
+      unit:
+        item.unit === "custom"
+          ? item.customUnit?.trim() || "custom"
+          : item.unit.trim() || "pcs",
+      unitPrice: Number(item.unitPrice) || 0,
+    }));
 }
 
 const INCOME_SOURCES = [
@@ -376,7 +319,7 @@ function PaymentsDocumentPreview({
   const rows: Record<string, unknown>[] =
     payments.length > 0
       ? payments.map((payment) => {
-          const itemDetails = formatPaymentItemDetails(payment.note);
+          const itemDetails = formatPaymentLineItemsSummary(payment);
           return {
             date: new Date(payment.paidAt).toLocaleDateString(),
             type:
@@ -392,8 +335,8 @@ function PaymentsDocumentPreview({
               payment.method,
             item: itemDetails || "—",
             proofs:
-              payment.proofs.length > 0
-                ? `${payment.proofs.length} file${payment.proofs.length === 1 ? "" : "s"}`
+              allPaymentProofs(payment).length > 0
+                ? `${allPaymentProofs(payment).length} file${allPaymentProofs(payment).length === 1 ? "" : "s"}`
                 : "None",
             amount: fmtRmb(payment.amount),
             status: payment.status,
@@ -413,7 +356,7 @@ function PaymentsDocumentPreview({
         ];
 
   const receiptSamples = payments
-    .filter((payment) => payment.proofs.length > 0)
+    .filter((payment) => allPaymentProofs(payment).length > 0)
     .slice(0, 6);
 
   // ── Dynamic pagination ─────────────────────────────────────────────────
@@ -534,7 +477,7 @@ function PaymentsDocumentPreview({
               NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
             </div>
           </div>
-          {payments.some((payment) => payment.proofs.length > 0) && (
+          {payments.some((payment) => allPaymentProofs(payment).length > 0) && (
             <div style={{ marginTop: 12 }}>
               <div
                 style={{
@@ -555,7 +498,7 @@ function PaymentsDocumentPreview({
               >
                 {payments
                   .flatMap((payment) =>
-                    payment.proofs.map((proof) => ({
+                    allPaymentProofs(payment).map((proof) => ({
                       payment,
                       proof,
                     })),
@@ -648,16 +591,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [committeeScope, setCommitteeScope] = useState("");
   const [incomeSource, setIncomeSource] = useState("");
   const [paymentItems, setPaymentItems] = useState<PaymentItem[]>([
-    {
-      id: `item-${Date.now()}`,
-      name: "",
-      qty: "1",
-      unit: "pcs",
-      unitPrice: "",
-    },
+    emptyPaymentItem(),
   ]);
-  const [proofFiles, setProofFiles] = useState<File[]>([]);
-  const [proofPreviews, setProofPreviews] = useState<string[]>([]);
+  const [preparedByMemberId, setPreparedByMemberId] = useState("");
+  const [receiptStateByItemId, setReceiptStateByItemId] = useState<
+    Record<string, FinanceLineItemReceiptState>
+  >({});
   const [proofValidationFeedback, setProofValidationFeedback] = useState<
     string | null
   >(null);
@@ -669,7 +608,6 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   } | null>(null);
   const [pdfExporting, setPdfExporting] = useState(false);
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadPayments = useCallback(
     async (id: string) => {
@@ -759,16 +697,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   }, [loadCommitteeOptions, loadPayments]);
 
   const addPaymentItem = useCallback(() => {
-    setPaymentItems((prev) => [
-      ...prev,
-      {
-        id: `item-${Date.now()}-${prev.length}`,
-        name: "",
-        qty: "1",
-        unit: "pcs",
-        unitPrice: "",
-      },
-    ]);
+    setPaymentItems((prev) => [...prev, emptyPaymentItem(prev.length + 1)]);
   }, []);
 
   const removePaymentItem = useCallback((idx: number) => {
@@ -776,7 +705,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   }, []);
 
   const updatePaymentItem = useCallback(
-    (idx: number, field: keyof PaymentItem, value: string) => {
+    (idx: number, field: keyof PaymentItem, value: string | number) => {
       setPaymentItems((prev) =>
         prev.map((item, index) =>
           index === idx ? { ...item, [field]: value } : item,
@@ -802,7 +731,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (accessInfo?.committeeScope) {
       setCommitteeScope(accessInfo.committeeScope);
     }
-  }, [accessInfo?.committeeScope, showForm]);
+    if (accessInfo?.memberId && !preparedByMemberId) {
+      setPreparedByMemberId(accessInfo.memberId);
+    }
+  }, [accessInfo?.committeeScope, accessInfo?.memberId, preparedByMemberId, showForm]);
 
   const refresh = async () => {
     if (!confId) return;
@@ -817,7 +749,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const uploadProofWithProgress = useCallback(
-    (paymentId: string, file: File, onProgress: (percent: number) => void) =>
+    (
+      paymentId: string,
+      file: File,
+      lineItemId: string | undefined,
+      onProgress: (percent: number) => void,
+    ) =>
       new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", `/api/conf/${confId}/payments/${paymentId}/upload`);
@@ -857,79 +794,110 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const fd = new FormData();
         fd.append("file", file);
         fd.append("paymentId", paymentId);
+        if (lineItemId) fd.append("lineItemId", lineItemId);
         xhr.send(fd);
       }),
     [confId],
   );
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const valid: File[] = [];
-    const invalidMessages: string[] = [];
-    for (const file of files) {
+  const handleReceiptSelect = useCallback(
+    async (index: number, file: File) => {
       const validation = await validatePaymentProofFile(file);
       if (!validation.ok) {
-        if (validation.error.startsWith("Unsupported file format")) {
-          invalidMessages.push(
-            `${file.name}: unsupported format. Use PNG, JPG, JPEG, WEBP, GIF, or PDF.`,
-          );
-        } else {
-          invalidMessages.push(`${file.name}: ${validation.error}`);
-        }
-        continue;
+        setProofValidationFeedback(
+          validation.error.startsWith("Unsupported file format")
+            ? `${file.name}: unsupported format. Use PNG, JPG, JPEG, WEBP, GIF, or PDF.`
+            : `${file.name}: ${validation.error}`,
+        );
+        return;
       }
-      valid.push(file);
-    }
 
-    if (invalidMessages.length > 0) {
-      setProofValidationFeedback(
-        `Some files were skipped: ${invalidMessages.slice(0, 2).join(" | ")}`,
-      );
-      setError(null);
-    } else {
       setProofValidationFeedback(null);
-      setError(null);
-    }
+      const item = paymentItems[index];
+      if (!item) return;
 
-    setProofFiles((prev) => [...prev, ...valid]);
-    valid.forEach((file) => {
+      let preview = "";
       if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onloadend = () =>
-          setProofPreviews((prev) => [...prev, reader.result as string]);
-        reader.readAsDataURL(file);
-      } else {
-        setProofPreviews((prev) => [...prev, ""]);
+        preview = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(String(reader.result || ""));
+          reader.readAsDataURL(file);
+        });
       }
-    });
 
-    // Allows selecting the same file again after removing/retrying.
-    e.target.value = "";
-  };
+      setReceiptStateByItemId((prev) => ({
+        ...prev,
+        [item.id]: {
+          ...prev[item.id],
+          pendingFile: file,
+          pendingPreview: preview || null,
+        },
+      }));
+    },
+    [paymentItems],
+  );
+
+  const handleReceiptRemove = useCallback(
+    async (index: number, proofId?: string) => {
+      const item = paymentItems[index];
+      if (!item) return;
+
+      if (proofId && editingPaymentId && confId) {
+        try {
+          const res = await fetch(
+            `/api/conf/${confId}/payments/${editingPaymentId}/proofs/${proofId}`,
+            { method: "DELETE" },
+          );
+          if (!res.ok) {
+            const err = (await res.json()) as { error?: string };
+            throw new Error(err.error ?? "Failed to remove receipt");
+          }
+          setReceiptStateByItemId((prev) => ({
+            ...prev,
+            [item.id]: {
+              ...prev[item.id],
+              existingProofs: (prev[item.id]?.existingProofs ?? []).filter(
+                (proof) => proof.id !== proofId,
+              ),
+            },
+          }));
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "Failed to remove receipt");
+        }
+        return;
+      }
+
+      setReceiptStateByItemId((prev) => ({
+        ...prev,
+        [item.id]: {
+          ...prev[item.id],
+          pendingFile: null,
+          pendingPreview: null,
+        },
+      }));
+    },
+    [confId, editingPaymentId, paymentItems],
+  );
 
   const handleSubmit = async () => {
-    const numericAmount = Number(amount);
+    const serializedItems = serializePaymentItems(paymentItems);
     const computedItemTotal = paymentItemsTotal;
-    const effectiveAmount =
-      numericAmount > 0 ? numericAmount : computedItemTotal;
+    const effectiveAmount = computedItemTotal;
 
     if (!effectiveAmount || !paidBy || !confId || saving) return;
     if (!(effectiveAmount > 0)) {
       setError("Amount must be greater than zero.");
       return;
     }
-
-    const itemDetailLines = formatPaymentItems(paymentItems);
-    const notePayload = [note?.trim(), itemDetailLines]
-      .filter(Boolean)
-      .join("\n\n")
-      .trim();
+    if (serializedItems.length === 0) {
+      setError("Add at least one line item with a name.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
     setProofValidationFeedback(null);
     try {
-      // 1. Create or update payment record
       const endpoint = editingPaymentId
         ? `/api/conf/${confId}/payments/${editingPaymentId}`
         : `/api/conf/${confId}/payments`;
@@ -943,11 +911,13 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           paidTo: paidTo || undefined,
           method,
           ref: txRef || undefined,
-          note: notePayload || undefined,
+          note: note?.trim() || undefined,
           paymentType,
           incomeSource:
             paymentType === "INCOME" ? incomeSource || undefined : undefined,
           committeeScope: committeeScope || undefined,
+          submittedByMemberId: preparedByMemberId || undefined,
+          items: serializedItems,
         }),
       });
       if (!res.ok) {
@@ -961,22 +931,37 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
       const payment = (await res.json()) as Payment;
 
-      // 2. Upload proof files if any
-      for (const [index, file] of proofFiles.entries()) {
+      const uploads: Array<{ file: File; lineItemId: string }> = [];
+      payment.lineItems?.forEach((lineItem, idx) => {
+        const draftItem = paymentItems[idx];
+        const pending = draftItem
+          ? receiptStateByItemId[draftItem.id]?.pendingFile
+          : null;
+        if (pending) {
+          uploads.push({ file: pending, lineItemId: lineItem.id });
+        }
+      });
+
+      for (const [index, upload] of uploads.entries()) {
         setUploadStatus({
           currentFile: index + 1,
-          totalFiles: proofFiles.length,
-          fileName: file.name,
+          totalFiles: uploads.length,
+          fileName: upload.file.name,
           percent: 0,
         });
-        await uploadProofWithProgress(payment.id, file, (percent) => {
-          setUploadStatus({
-            currentFile: index + 1,
-            totalFiles: proofFiles.length,
-            fileName: file.name,
-            percent,
-          });
-        });
+        await uploadProofWithProgress(
+          payment.id,
+          upload.file,
+          upload.lineItemId,
+          (percent) => {
+            setUploadStatus({
+              currentFile: index + 1,
+              totalFiles: uploads.length,
+              fileName: upload.file.name,
+              percent,
+            });
+          },
+        );
       }
 
       setUploadStatus(null);
@@ -999,7 +984,19 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setEditingPaymentId(payment.id);
     setPaymentType(payment.paymentType || "EXPENSE");
     setAmount(String(payment.amount));
-    setPaymentItems(parsePaymentItems(payment.note, payment.amount));
+    const loadedItems = paymentItemsFromPayment(payment);
+    setPaymentItems(loadedItems);
+    setPreparedByMemberId(payment.submittedBy?.id || "");
+    setReceiptStateByItemId(() => {
+      const next: Record<string, FinanceLineItemReceiptState> = {};
+      loadedItems.forEach((item, idx) => {
+        const serverItem = payment.lineItems?.[idx];
+        next[item.id] = {
+          existingProofs: serverItem?.proofs ?? [],
+        };
+      });
+      return next;
+    });
     setPaidBy(payment.paidBy || "");
     setPaidTo(payment.paidTo || "");
     setMethod(payment.method || "WECHAT");
@@ -1007,8 +1004,6 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setNote(stripPaymentItemDetails(payment.note || ""));
     setCommitteeScope(payment.committeeScope || "");
     setIncomeSource(payment.incomeSource || "");
-    setProofFiles([]);
-    setProofPreviews([]);
     setProofValidationFeedback(null);
     setUploadStatus(null);
     setShowForm(true);
@@ -1103,15 +1098,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setEditingPaymentId(null);
     setPaymentType("EXPENSE");
     setAmount("");
-    setPaymentItems([
-      {
-        id: `item-${Date.now()}`,
-        name: "",
-        qty: "1",
-        unit: "pcs",
-        unitPrice: "",
-      },
-    ]);
+    setPaymentItems([emptyPaymentItem()]);
+    setPreparedByMemberId(accessInfo?.memberId || "");
+    setReceiptStateByItemId({});
     setPaidBy("");
     setPaidTo("");
     setMethod("WECHAT");
@@ -1119,8 +1108,6 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setNote("");
     setCommitteeScope("");
     setIncomeSource("");
-    setProofFiles([]);
-    setProofPreviews([]);
     setProofValidationFeedback(null);
     setUploadStatus(null);
     setShowForm(false);
@@ -1406,8 +1393,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             </CardTitle>
             <CardDescription>
               {editingPaymentId
-                ? "Update payment details. Existing proofs remain; newly uploaded proofs are added."
-                : "Record an expense payment or incoming funds with proof of transaction"}
+                ? "Update line items and receipts. Each line item can have its own proof screenshot."
+                : "Record expenses or incoming funds with line items and receipt proof per item"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1445,17 +1432,6 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Amount (¥ RMB) *</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="any"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
               {paymentType === "EXPENSE" ? (
                 <div className="space-y-2">
                   <Label>Payment Method</Label>
@@ -1543,6 +1519,27 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 )}
               </div>
               <div className="space-y-2">
+                <Label>Prepared By (Committee Member)</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+                  value={preparedByMemberId}
+                  onChange={(e) => setPreparedByMemberId(e.target.value)}
+                  disabled={
+                    Boolean(accessInfo?.memberId) && !accessInfo?.isSuperAdmin
+                  }
+                >
+                  <option value="">Select member profile...</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.id ?? ""}>
+                      {member.name}
+                      {member.committeeScope
+                        ? ` (${member.committeeScope})`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
                 <Label>Transaction Ref</Label>
                 <Input
                   placeholder="Reference number"
@@ -1550,286 +1547,59 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   onChange={(e) => setTxRef(e.target.value)}
                 />
               </div>
+              <div className="space-y-2">
+                <Label>Grand Total (auto-calculated)</Label>
+                <div className="flex h-9 items-center rounded-md border border-input bg-muted/20 px-3 text-sm font-semibold text-[#C8A061]">
+                  {fmtRmb(paymentItemsTotal)}
+                </div>
+              </div>
             </div>
 
-            <Card className="budget-no-print">
-              <CardHeader className="flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">Line Items</CardTitle>
-                  <CardDescription>
-                    {paymentItems.length} item
-                    {paymentItems.length !== 1 ? "s" : ""} · Total:{" "}
-                    <span className="font-semibold">
-                      {fmtRmb(paymentItemsTotal)}
-                    </span>
-                  </CardDescription>
-                </div>
-                <Button size="sm" onClick={addPaymentItem}>
-                  <Plus className="size-4" />
-                  Add Item
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b text-left text-xs font-medium text-muted-foreground">
-                        <th className="w-8 pb-2 pr-2">#</th>
-                        <th className="min-w-40 pb-2 pr-2">Item</th>
-                        <th className="w-20 pb-2 pr-2">Qty</th>
-                        <th className="min-w-30 pb-2 pr-2">Unit</th>
-                        <th className="w-28 pb-2 pr-2">Unit Price</th>
-                        <th className="w-24 pb-2 pr-2 text-right">Total</th>
-                        <th className="w-8 pb-2"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paymentItems.map((item, idx) => {
-                        const total = calcItemTotal(
-                          Number(item.qty),
-                          Number(item.unitPrice),
-                        );
-                        const isCustom = item.unit === "custom";
-                        return (
-                          <tr key={item.id} className="border-b last:border-0">
-                            <td className="py-2 pr-2 text-muted-foreground text-xs">
-                              {idx + 1}
-                            </td>
-                            <td className="py-2 pr-2">
-                              <Input
-                                className="h-8 text-sm"
-                                placeholder="Item name"
-                                value={item.name}
-                                onChange={(e) =>
-                                  updatePaymentItem(idx, "name", e.target.value)
-                                }
-                              />
-                            </td>
-                            <td className="py-2 pr-2">
-                              <Input
-                                className="h-8 text-sm"
-                                type="number"
-                                min={0}
-                                step="any"
-                                placeholder="0"
-                                value={item.qty}
-                                onChange={(e) =>
-                                  updatePaymentItem(idx, "qty", e.target.value)
-                                }
-                              />
-                            </td>
-                            <td className="py-2 pr-2">
-                              <div className="flex gap-1">
-                                <select
-                                  className="flex h-8 rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-                                  style={{ width: isCustom ? "120px" : "100%" }}
-                                  value={item.unit}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    updatePaymentItem(idx, "unit", value);
-                                    if (value !== "custom") {
-                                      updatePaymentItem(idx, "customUnit", "");
-                                    }
-                                  }}
-                                >
-                                  {COMMON_UNITS.map((u) => (
-                                    <option key={u} value={u}>
-                                      {u === "custom" ? "custom…" : u}
-                                    </option>
-                                  ))}
-                                </select>
-                                {isCustom && (
-                                  <Input
-                                    className="h-8 text-sm min-w-0 flex-1"
-                                    placeholder="e.g. players"
-                                    value={item.customUnit || ""}
-                                    onChange={(e) =>
-                                      updatePaymentItem(
-                                        idx,
-                                        "customUnit",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-2 pr-2">
-                              <Input
-                                className="h-8 text-sm"
-                                type="number"
-                                min={0}
-                                step="any"
-                                placeholder="0"
-                                value={item.unitPrice}
-                                onChange={(e) =>
-                                  updatePaymentItem(
-                                    idx,
-                                    "unitPrice",
-                                    e.target.value,
-                                  )
-                                }
-                              />
-                            </td>
-                            <td className="py-2 pr-2 text-right font-mono font-medium">
-                              {fmtRmb(total)}
-                            </td>
-                            <td className="py-2">
-                              {paymentItems.length > 1 && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon-sm"
-                                  onClick={() => removePaymentItem(idx)}
-                                  className="text-muted-foreground hover:text-destructive"
-                                >
-                                  <XCircle className="size-3.5" />
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t-2">
-                        <td
-                          colSpan={5}
-                          className="py-3 text-right font-semibold"
-                        >
-                          GRAND TOTAL
-                        </td>
-                        <td className="py-3 text-right font-mono text-lg font-bold text-[#C8A061]">
-                          {fmtRmb(paymentItemsTotal)}
-                        </td>
-                        <td></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <FinanceLineItemsTable
+              items={paymentItems}
+              grandTotal={paymentItemsTotal}
+              onAddItem={addPaymentItem}
+              onRemoveItem={removePaymentItem}
+              onUpdateItem={updatePaymentItem}
+              showReceiptColumn
+              receiptStateByItemId={receiptStateByItemId}
+              onReceiptSelect={handleReceiptSelect}
+              onReceiptRemove={handleReceiptRemove}
+              receiptUploadHint={`Upload a receipt or payment screenshot per line item (${DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}). Maximum ${CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file. ${DELEGATE_UPLOAD_CONVERSION_TIP}`}
+            />
 
             <div className="space-y-2">
               <Label>Description / Note</Label>
               <Textarea
-                placeholder="Describe this transaction..."
+                placeholder="Optional notes about this payment record..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
               />
             </div>
 
-            {/* Proof Upload */}
-            <div className="space-y-2">
-              <Label>Proof of Payment / Receipt</Label>
-              {editingPaymentId && (
-                <p className="text-xs text-muted-foreground">
-                  Uploading here adds extra proof files to this record.
-                </p>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={delegateDocumentAcceptAttribute("passport")}
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <div
-                className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-muted-foreground/20 p-6 transition-colors hover:border-[#C8A061]/50"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="mb-2 size-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Screenshots or receipts:{" "}
-                  {DELEGATE_TRAVEL_DOC_EXTENSIONS_LABEL}. Maximum{" "}
-                  {CONFERENCE_UPLOAD_MAX_SIZE_LABEL} per file.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {DELEGATE_UPLOAD_CONVERSION_TIP}
-                </p>
+            {proofValidationFeedback && (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+                {proofValidationFeedback}
               </div>
-              {proofValidationFeedback && (
-                <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-                  {proofValidationFeedback}
+            )}
+            {uploadStatus && (
+              <div className="space-y-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2">
+                <div className="flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
+                  <span className="truncate">
+                    Uploading receipt {uploadStatus.currentFile}/
+                    {uploadStatus.totalFiles}: {uploadStatus.fileName}
+                  </span>
+                  <span>{uploadStatus.percent}%</span>
                 </div>
-              )}
-              {uploadStatus && (
-                <div className="space-y-2 rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2">
-                  <div className="flex items-center justify-between gap-2 text-xs text-blue-700 dark:text-blue-300">
-                    <span className="truncate">
-                      Uploading {uploadStatus.currentFile}/
-                      {uploadStatus.totalFiles}: {uploadStatus.fileName}
-                    </span>
-                    <span>{uploadStatus.percent}%</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200/40 dark:bg-blue-950/40">
-                    <div
-                      className="h-full rounded-full bg-blue-500 transition-all"
-                      style={{ width: `${uploadStatus.percent}%` }}
-                    />
-                  </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-blue-200/40 dark:bg-blue-950/40">
+                  <div
+                    className="h-full rounded-full bg-blue-500 transition-all"
+                    style={{ width: `${uploadStatus.percent}%` }}
+                  />
                 </div>
-              )}
-              {editingPaymentId && (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Existing proof files
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {(
-                      payments.find((p) => p.id === editingPaymentId)?.proofs ??
-                      []
-                    ).map((proof) => (
-                      <a
-                        key={`editing-proof-${proof.id}`}
-                        href={proof.filePath}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block size-20 overflow-hidden rounded border border-muted"
-                        title={proof.fileName}
-                      >
-                        {proof.fileType?.startsWith("image/") ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={proof.filePath}
-                            alt={proof.fileName}
-                            className="size-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex size-full items-center justify-center bg-muted">
-                            <ImageIcon className="size-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {proofPreviews.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-3">
-                  {proofPreviews.map((preview, idx) => (
-                    <div
-                      key={idx}
-                      className="relative size-28 overflow-hidden rounded-lg border"
-                    >
-                      {preview ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={preview}
-                          alt={`Proof ${idx + 1}`}
-                          className="size-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-full items-center justify-center bg-muted">
-                          <ImageIcon className="size-6 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={resetForm}>
@@ -1841,7 +1611,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 disabled={
                   saving ||
                   !paidBy ||
-                  !(Number(amount) > 0 || paymentItemsTotal > 0)
+                  !(paymentItemsTotal > 0) ||
+                  serializePaymentItems(paymentItems).length === 0
                 }
               >
                 {saving ? (
@@ -1953,10 +1724,22 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       </p>
                     )}
 
-                    {payment.note && (
+                    {paymentFreeformNote(payment) && (
                       <p className="text-xs text-muted-foreground">
-                        {payment.note}
+                        {paymentFreeformNote(payment)}
                       </p>
+                    )}
+
+                    {payment.lineItems && payment.lineItems.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {payment.lineItems.map((item) => (
+                          <div key={item.id}>
+                            {item.name}: {item.qty} {item.unit} ×{" "}
+                            {fmtRmb(item.unitPrice)} ={" "}
+                            {fmtRmb(calcItemTotal(item.qty, item.unitPrice))}
+                          </div>
+                        ))}
+                      </div>
                     )}
 
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -1998,9 +1781,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   </div>
 
                   {/* Proof thumbnails */}
-                  {payment.proofs.length > 0 && (
+                  {allPaymentProofs(payment).length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {payment.proofs.slice(0, 4).map((proof) => (
+                      {allPaymentProofs(payment).slice(0, 4).map((proof) => (
                         <a
                           key={proof.id}
                           href={proof.filePath}
@@ -2023,9 +1806,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           )}
                         </a>
                       ))}
-                      {payment.proofs.length > 4 && (
+                      {allPaymentProofs(payment).length > 4 && (
                         <div className="flex size-24 items-center justify-center rounded border border-muted bg-muted text-xs text-muted-foreground">
-                          +{payment.proofs.length - 4}
+                          +{allPaymentProofs(payment).length - 4}
                         </div>
                       )}
                     </div>

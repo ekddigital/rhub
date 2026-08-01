@@ -39,11 +39,30 @@ export async function POST(
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const lineItemIdRaw = formData.get("lineItemId");
+    const lineItemId =
+      typeof lineItemIdRaw === "string" && lineItemIdRaw.trim().length > 0
+        ? lineItemIdRaw.trim()
+        : null;
+
     if (!file) {
       return NextResponse.json(
         { error: "No file uploaded", requestId },
         { status: 400 },
       );
+    }
+
+    if (lineItemId) {
+      const lineItem = await prisma.confPaymentLineItem.findFirst({
+        where: { id: lineItemId, paymentId },
+        select: { id: true },
+      });
+      if (!lineItem) {
+        return NextResponse.json(
+          { error: "Line item not found for this payment", requestId },
+          { status: 404 },
+        );
+      }
     }
 
     const resolvedSize = await resolveFileByteSize(file);
@@ -77,6 +96,7 @@ export async function POST(
     const proof = await prisma.confPaymentProof.create({
       data: {
         paymentId,
+        lineItemId,
         fileName: file.name,
         filePath: uploaded.publicUrl,
         fileSize: file.size,

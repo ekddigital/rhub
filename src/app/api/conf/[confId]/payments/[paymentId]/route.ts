@@ -1,10 +1,35 @@
 import { NextResponse } from "next/server";
-import { PayMethod } from "@prisma/client";
+import { PayMethod, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
+import {
+  buildPaymentNoteFromItems,
+  paymentAmountFromItems,
+  validatePaymentLineItemsPayload,
+} from "@/lib/conf/payment-line-items-server";
 
 type Params = { params: Promise<{ confId: string; paymentId: string }> };
+
+const paymentInclude = {
+  proofs: true,
+  lineItems: {
+    orderBy: { no: "asc" as const },
+    include: { proofs: true },
+  },
+  budget: { select: { id: true, title: true } },
+  item: { select: { id: true, name: true } },
+  submittedBy: {
+    select: {
+      id: true,
+      name: true,
+      role: true,
+      committeeScope: true,
+      canApprovePayments: true,
+    },
+  },
+  committeeApprover: { select: { id: true, name: true, role: true } },
+};
 
 function normalizeScope(value: unknown) {
   const text = String(value || "").trim();
@@ -20,21 +45,7 @@ export async function GET(_req: Request, { params }: Params) {
 
     const payment = await prisma.confPayment.findFirst({
       where: { id: paymentId, confId },
-      include: {
-        proofs: true,
-        budget: { select: { id: true, title: true } },
-        item: { select: { id: true, name: true } },
-        submittedBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            committeeScope: true,
-            canApprovePayments: true,
-          },
-        },
-        committeeApprover: { select: { id: true, name: true, role: true } },
-      },
+      include: paymentInclude,
     });
 
     if (!payment) {
@@ -97,7 +108,35 @@ export async function PATCH(req: Request, { params }: Params) {
       paymentType?: "EXPENSE" | "INCOME";
       incomeSource?: string | null;
       committeeScope?: string | null;
+      submittedByMemberId?: string | null;
+      items?: Array<{
+        id?: string;
+        no?: number;
+        name: string;
+        qty: number;
+        unit: string;
+        unitPrice: number;
+      }>;
     };
+
+    const lineItemValidation =
+      body.items !== undefined
+        ? validatePaymentLineItemsPayload(body.items)
+        : null;
+    if (lineItemValidation && !lineItemValidation.ok) {
+      return NextResponse.json(
+        { error: lineItemValidation.error },
+        { status: 400 },
+      );
+    }
+
+    const normalizedItems = lineItemValidation?.items;
+    const nextAmount =
+      normalizedItems !== undefined
+        ? paymentAmountFromItems(normalizedItems)
+        : body.amount !== undefined
+          ? Number(body.amount)
+          : existing.amount;
 
     const allowedTypes = ["EXPENSE", "INCOME"] as const;
     if (body.paymentType && !allowedTypes.includes(body.paymentType)) {
@@ -107,7 +146,7 @@ export async function PATCH(req: Request, { params }: Params) {
       );
     }
 
-    if (body.amount !== undefined && !(Number(body.amount) > 0)) {
+    if (!(nextAmount > 0)) {
       return NextResponse.json(
         { error: "Amount must be greater than zero" },
         { status: 400 },
@@ -151,27 +190,59 @@ export async function PATCH(req: Request, { params }: Params) {
       );
     }
 
-    const updates = {
-      ...(body.amount !== undefined ? { amount: Number(body.amount) } : {}),
-      ...(body.paidBy !== undefined ? { paidBy: String(body.paidBy).trim() } : {}),
-      ...(body.paidTo !== undefined
-        ? { paidTo: normalizeScope(body.paidTo) }
-        : {}),
-      ...(body.method !== undefined ? { method: body.method as PayMethod } : {}),
-      ...(body.ref !== undefined ? { ref: normalizeScope(body.ref) } : {}),
-      ...(body.note !== undefined ? { note: normalizeScope(body.note) } : {}),
-      ...(body.paymentType !== undefined ? { paymentType: body.paymentType } : {}),
-      ...(body.incomeSource !== undefined
-        ? { incomeSource: normalizeScope(body.incomeSource) }
-        : {}),
-      ...(body.committeeScope !== undefined ? { committeeScope: nextScope } : {}),
-    };
+    const nextNote =
+      normalizedItems !== undefined
+        ? buildPaymentNoteFromItems(
+            normalizedItems,
+            body.note !== undefined ? body.note : existing.note,
+          )
+        : body.note !== undefined
+          ? normalizeScope(body.note)
+          : existing.note;
 
     const requiresReapproval = existing.status !== "PENDING";
-    const updated = await prisma.confPayment.update({
-      where: { id: paymentId },
-      data: {
-        ...updates,
+    const updated = await prisma.$transaction(async (tx) => {
+      if (normalizedItems !== undefined) {
+        await tx.confPaymentLineItem.deleteMany({ where: { paymentId } });
+        if (normalizedItems.length > 0) {
+          await tx.confPaymentLineItem.createMany({
+            data: normalizedItems.map((item) => ({
+              paymentId,
+              no: item.no ?? 1,
+              name: item.name,
+              qty: item.qty,
+              unit: item.unit,
+              unitPrice: item.unitPrice,
+            })),
+          });
+        }
+      }
+
+      const data: Prisma.ConfPaymentUpdateInput = {
+        amount: nextAmount,
+        ...(body.paidBy !== undefined ? { paidBy: String(body.paidBy).trim() } : {}),
+        ...(body.paidTo !== undefined
+          ? { paidTo: normalizeScope(body.paidTo) }
+          : {}),
+        ...(body.method !== undefined ? { method: body.method as PayMethod } : {}),
+        ...(body.ref !== undefined ? { ref: normalizeScope(body.ref) } : {}),
+        ...(body.note !== undefined || normalizedItems !== undefined
+          ? { note: nextNote }
+          : {}),
+        ...(body.paymentType !== undefined ? { paymentType: body.paymentType } : {}),
+        ...(body.incomeSource !== undefined
+          ? { incomeSource: normalizeScope(body.incomeSource) }
+          : {}),
+        ...(body.committeeScope !== undefined ? { committeeScope: nextScope } : {}),
+        ...(body.submittedByMemberId !== undefined
+          ? body.submittedByMemberId
+            ? {
+                submittedBy: {
+                  connect: { id: String(body.submittedByMemberId) },
+                },
+              }
+            : { submittedBy: { disconnect: true } }
+          : {}),
         ...(requiresReapproval
           ? {
               status: "PENDING",
@@ -181,21 +252,13 @@ export async function PATCH(req: Request, { params }: Params) {
               approvedAt: null,
             }
           : {}),
-      },
-      include: {
-        proofs: true,
-        budget: { select: { id: true, title: true } },
-        submittedBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            committeeScope: true,
-            canApprovePayments: true,
-          },
-        },
-        committeeApprover: { select: { id: true, name: true, role: true } },
-      },
+      };
+
+      return tx.confPayment.update({
+        where: { id: paymentId },
+        data,
+        include: paymentInclude,
+      });
     });
 
     await logFinanceAction({

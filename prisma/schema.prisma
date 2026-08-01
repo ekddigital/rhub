@@ -881,6 +881,7 @@ model ConfPayment {
     conf      ConfEvent       @relation(fields: [confId], references: [id], onDelete: Cascade)
     budget    ConfBudget?     @relation(fields: [budgetId], references: [id], onDelete: SetNull)
     item      ConfBudgetItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+    lineItems ConfPaymentLineItem[]
     proofs    ConfPaymentProof[]
     submittedBy    ConfMember? @relation("PaymentSubmitter", fields: [submittedByMemberId], references: [id], onDelete: SetNull)
     committeeApprover ConfMember? @relation("CommitteeApprover", fields: [committeeApprovedBy], references: [id], onDelete: SetNull)
@@ -894,9 +895,27 @@ model ConfPayment {
     @@index([isLocked])
 }
 
+model ConfPaymentLineItem {
+    id        String   @id @default(cuid())
+    paymentId String
+    no        Int
+    name      String
+    qty       Float
+    unit      String
+    unitPrice Float
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    payment ConfPayment       @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+    proofs  ConfPaymentProof[]
+
+    @@index([paymentId])
+}
+
 model ConfPaymentProof {
     id         String   @id @default(cuid())
     paymentId  String
+    lineItemId String?
     fileName   String
     filePath   String
     fileSize   Int?
@@ -904,9 +923,11 @@ model ConfPaymentProof {
     uploadedBy String?
     createdAt  DateTime @default(now())
 
-    payment ConfPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+    payment  ConfPayment          @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+    lineItem ConfPaymentLineItem? @relation(fields: [lineItemId], references: [id], onDelete: SetNull)
 
     @@index([paymentId])
+    @@index([lineItemId])
 }
 
 model ConfDelegate {

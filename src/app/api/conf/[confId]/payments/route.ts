@@ -2,6 +2,32 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireConferenceApiAccess } from "@/lib/conf/access";
 import { logFinanceAction } from "@/lib/conf/audit";
+import {
+  buildPaymentNoteFromItems,
+  paymentAmountFromItems,
+  paymentItemsFromNote,
+  validatePaymentLineItemsPayload,
+} from "@/lib/conf/payment-line-items-server";
+
+const paymentInclude = {
+  proofs: true,
+  lineItems: {
+    orderBy: { no: "asc" as const },
+    include: { proofs: true },
+  },
+  budget: { select: { id: true, title: true } },
+  item: { select: { id: true, name: true } },
+  submittedBy: {
+    select: {
+      id: true,
+      name: true,
+      role: true,
+      committeeScope: true,
+      canApprovePayments: true,
+    },
+  },
+  committeeApprover: { select: { id: true, name: true, role: true } },
+};
 
 // GET /api/conf/[confId]/payments — list all payments
 export async function GET(
@@ -35,21 +61,7 @@ export async function GET(
             }
           : {}),
       },
-      include: {
-        proofs: true,
-        budget: { select: { id: true, title: true } },
-        item: { select: { id: true, name: true } },
-        submittedBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            committeeScope: true,
-            canApprovePayments: true,
-          },
-        },
-        committeeApprover: { select: { id: true, name: true, role: true } },
-      },
+      include: paymentInclude,
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(payments);
@@ -86,9 +98,25 @@ export async function POST(
       incomeSource,
       committeeScope,
       submittedByMemberId,
+      items,
     } = body;
 
-    if (!amount || !paidBy) {
+    const lineItemValidation = items
+      ? validatePaymentLineItemsPayload(items)
+      : null;
+    if (lineItemValidation && !lineItemValidation.ok) {
+      return NextResponse.json(
+        { error: lineItemValidation.error },
+        { status: 400 },
+      );
+    }
+
+    const normalizedItems = lineItemValidation?.items;
+    const computedAmount = normalizedItems
+      ? paymentAmountFromItems(normalizedItems)
+      : Number(amount);
+
+    if (!computedAmount || !paidBy) {
       return NextResponse.json(
         { error: "amount and paidBy are required" },
         { status: 400 },
@@ -160,34 +188,40 @@ export async function POST(
       }
     }
 
+    const notePayload = normalizedItems
+      ? buildPaymentNoteFromItems(normalizedItems, note)
+      : note || null;
+
     const payment = await prisma.confPayment.create({
       data: {
         confId,
         budgetId: budgetId || null,
         itemId: itemId || null,
-        amount: Number(amount),
+        amount: computedAmount,
         paidBy,
         paidTo: paidTo || null,
         method: method || "WECHAT",
         ref: txRef || null,
-        note: note || null,
+        note: notePayload,
         paymentType: paymentType || "EXPENSE",
         incomeSource: incomeSource || null,
         committeeScope: normalizedScope,
         submittedByMemberId: submitter?.id || auth.access.memberId || null,
+        ...(normalizedItems
+          ? {
+              lineItems: {
+                create: normalizedItems.map((item) => ({
+                  no: item.no ?? 1,
+                  name: item.name,
+                  qty: item.qty,
+                  unit: item.unit,
+                  unitPrice: item.unitPrice,
+                })),
+              },
+            }
+          : {}),
       },
-      include: {
-        proofs: true,
-        submittedBy: {
-          select: {
-            id: true,
-            name: true,
-            role: true,
-            committeeScope: true,
-            canApprovePayments: true,
-          },
-        },
-      },
+      include: paymentInclude,
     });
 
     await logFinanceAction({
