@@ -30,7 +30,39 @@ const paymentInclude = {
   committeeApprover: { select: { id: true, name: true, role: true } },
 };
 
-// GET /api/conf/[confId]/payments — list all payments
+const DEFAULT_PAGE_SIZE = 10;
+const MAX_PAGE_SIZE = 100;
+
+function buildPaymentWhere(
+  confId: string,
+  paymentType: string | null,
+  committeeScope: string | null,
+  status: string | null,
+) {
+  const statusFilter =
+    status === "ACTIVE"
+      ? { status: { not: "REJECTED" as const } }
+      : status
+        ? {
+            status: status as
+              | "PENDING"
+              | "COMMITTEE_APPROVED"
+              | "APPROVED"
+              | "REJECTED",
+          }
+        : {};
+
+  return {
+    confId,
+    ...(paymentType
+      ? { paymentType: paymentType as "EXPENSE" | "INCOME" }
+      : {}),
+    ...(committeeScope ? { committeeScope } : {}),
+    ...statusFilter,
+  };
+}
+
+// GET /api/conf/[confId]/payments — list payments (paginated when page param present)
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ confId: string }> },
@@ -44,28 +76,79 @@ export async function GET(
     const paymentType = searchParams.get("type"); // EXPENSE | INCOME
     const committeeScope = searchParams.get("scope");
     const status = searchParams.get("status");
+    const pageParam = searchParams.get("page");
 
-    const payments = await prisma.confPayment.findMany({
-      where: {
-        confId,
-        ...(paymentType
-          ? { paymentType: paymentType as "EXPENSE" | "INCOME" }
-          : {}),
-        ...(committeeScope ? { committeeScope } : {}),
-        ...(status
-          ? {
-              status: status as
-                | "PENDING"
-                | "COMMITTEE_APPROVED"
-                | "APPROVED"
-                | "REJECTED",
-            }
-          : {}),
+    const where = buildPaymentWhere(
+      confId,
+      paymentType,
+      committeeScope,
+      status,
+    );
+
+    if (!pageParam) {
+      const payments = await prisma.confPayment.findMany({
+        where,
+        include: paymentInclude,
+        orderBy: { createdAt: "desc" },
+      });
+      return NextResponse.json(mapPaymentsForClient(confId, payments));
+    }
+
+    const page = Math.max(1, Number.parseInt(pageParam, 10) || 1);
+    const pageSize = Math.min(
+      MAX_PAGE_SIZE,
+      Math.max(
+        1,
+        Number.parseInt(
+          searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE),
+          10,
+        ) || DEFAULT_PAGE_SIZE,
+      ),
+    );
+
+    const [total, payments, approvedPayments, pendingCount] =
+      await Promise.all([
+        prisma.confPayment.count({ where }),
+        prisma.confPayment.findMany({
+          where,
+          include: paymentInclude,
+          orderBy: { createdAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.confPayment.findMany({
+          where: { confId, status: "APPROVED" },
+          select: { amount: true, paymentType: true },
+        }),
+        prisma.confPayment.count({
+          where: {
+            confId,
+            status: { in: ["PENDING", "COMMITTEE_APPROVED"] },
+          },
+        }),
+      ]);
+
+    const totalExpense = approvedPayments
+      .filter((p) => p.paymentType === "EXPENSE" || !p.paymentType)
+      .reduce((sum, p) => sum + p.amount, 0);
+    const totalIncome = approvedPayments
+      .filter((p) => p.paymentType === "INCOME")
+      .reduce((sum, p) => sum + p.amount, 0);
+    const lockedCount = approvedPayments.length;
+
+    return NextResponse.json({
+      payments: mapPaymentsForClient(confId, payments),
+      total,
+      page,
+      pageSize,
+      pages: Math.max(1, Math.ceil(total / pageSize)),
+      stats: {
+        totalExpense,
+        totalIncome,
+        pendingCount,
+        lockedCount,
       },
-      include: paymentInclude,
-      orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(mapPaymentsForClient(confId, payments));
   } catch (error) {
     console.error("Failed to fetch payments:", error);
     return NextResponse.json(

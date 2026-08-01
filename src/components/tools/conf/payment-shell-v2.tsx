@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -25,7 +25,14 @@ import {
   Printer,
   Pencil,
   Trash2,
+  CheckSquare,
+  Square,
+  LayoutGrid,
+  List,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -76,6 +83,12 @@ import {
   hasSignatories,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
+import {
+  canDeletePayment as canDeletePaymentAccess,
+  canEditPayment as canEditPaymentAccess,
+  type PaymentAccessRecord,
+} from "@/lib/conf/payment-access";
+import type { ConferenceAccess } from "@/lib/conf/access";
 
 type PaymentStatus = "PENDING" | "COMMITTEE_APPROVED" | "APPROVED" | "REJECTED";
 type PaymentType = "EXPENSE" | "INCOME";
@@ -370,6 +383,182 @@ const INCOME_SOURCES = [
   "Other",
 ];
 
+const PAYMENT_VIEW_LS_KEY = "conf_payment_list_view";
+const DEFAULT_LIST_PAGE_SIZE = 10;
+
+type PaymentListViewMode = "list" | "cards";
+
+type PaginatedPaymentsResponse = {
+  payments: Payment[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+  stats: {
+    totalExpense: number;
+    totalIncome: number;
+    pendingCount: number;
+    lockedCount: number;
+  };
+};
+
+function loadPaymentViewMode(): PaymentListViewMode {
+  try {
+    const stored = localStorage.getItem(PAYMENT_VIEW_LS_KEY);
+    if (stored === "list" || stored === "cards") return stored;
+  } catch {
+    // ignore
+  }
+  return "list";
+}
+
+function savePaymentViewMode(mode: PaymentListViewMode) {
+  try {
+    localStorage.setItem(PAYMENT_VIEW_LS_KEY, mode);
+  } catch {
+    // ignore
+  }
+}
+
+function paymentToAccessRecord(payment: Payment): PaymentAccessRecord {
+  return {
+    id: payment.id,
+    status: payment.status,
+    isLocked: payment.isLocked,
+    committeeScope: payment.committeeScope,
+    submittedByMemberId: payment.submittedBy?.id ?? null,
+    submittedBy: payment.submittedBy
+      ? {
+          id: payment.submittedBy.id,
+          committeeScope: payment.submittedBy.committeeScope,
+        }
+      : null,
+  };
+}
+
+function toConferenceAccess(access?: AccessInfo): ConferenceAccess | null {
+  if (!access) return null;
+  return {
+    user: null,
+    confId: "",
+    isParticipant: true,
+    isManager: access.isManager,
+    isChair: access.isChair,
+    isSuperAdmin: access.isSuperAdmin,
+    isHotelCheckin: false,
+    delegateId: null,
+    memberId: access.memberId,
+    memberRole: null,
+    committeeScope: access.committeeScope,
+    canApprovePayments: access.canApprovePayments,
+    canAssignCommittee: false,
+  };
+}
+
+function canEditPayment(payment: Payment, accessInfo?: AccessInfo) {
+  const access = toConferenceAccess(accessInfo);
+  if (!access) return false;
+  return canEditPaymentAccess(paymentToAccessRecord(payment), access);
+}
+
+function canDeletePayment(payment: Payment, accessInfo?: AccessInfo) {
+  const access = toConferenceAccess(accessInfo);
+  if (!access) return false;
+  return canDeletePaymentAccess(paymentToAccessRecord(payment), access);
+}
+
+function buildDraftPaymentForPreview(args: {
+  paymentType: PaymentType;
+  paidBy: string;
+  paidTo: string;
+  method: string;
+  txRef: string;
+  note: string;
+  committeeScope: string;
+  incomeSource: string;
+  paymentItems: PaymentItem[];
+  paymentItemsTotal: number;
+  receiptStateByItemId: Record<string, FinanceLineItemReceiptState>;
+  preparedByMemberId: string;
+  members: SignatoryMember[];
+  editingPaymentId: string | null;
+}): Payment {
+  const preparedByName =
+    args.members.find((member) => member.id === args.preparedByMemberId)?.name ??
+    "";
+
+  const lineItems: PaymentLineItemRecord[] = args.paymentItems
+    .filter((item) => item.name.trim())
+    .map((item, idx) => {
+      const receiptState = args.receiptStateByItemId[item.id];
+      const proofs: Proof[] = [];
+
+      for (const proof of receiptState?.existingProofs ?? []) {
+        proofs.push({
+          id: proof.id,
+          fileName: proof.fileName,
+          filePath: proof.filePath,
+          fileType: proof.fileType ?? null,
+        });
+      }
+
+      if (receiptState?.pendingPreview) {
+        proofs.push({
+          id: `draft-preview-${item.id}`,
+          fileName: "Receipt preview",
+          filePath: receiptState.pendingPreview,
+          fileType: "image/png",
+        });
+      }
+
+      return {
+        id: item.id,
+        no: idx + 1,
+        name: item.name.trim(),
+        qty: Number(item.qty) || 0,
+        unit:
+          item.unit === "custom"
+            ? item.customUnit?.trim() || "custom"
+            : String(item.unit).trim() || "pcs",
+        unitPrice: Number(item.unitPrice) || 0,
+        proofs,
+      };
+    });
+
+  return {
+    id: args.editingPaymentId ?? "draft-preview",
+    amount: args.paymentItemsTotal,
+    paidBy: args.paidBy.trim() || preparedByName || "—",
+    paidTo: args.paidTo.trim() || null,
+    method: args.method,
+    ref: args.txRef.trim() || null,
+    note: args.note.trim() || null,
+    status: "PENDING",
+    paymentType: args.paymentType,
+    incomeSource: args.paymentType === "INCOME" ? args.incomeSource || null : null,
+    committeeScope: args.committeeScope.trim() || null,
+    isLocked: false,
+    committeeApprovedBy: null,
+    committeeApprovedAt: null,
+    approvedBy: null,
+    approvedAt: null,
+    paidAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    proofs: [],
+    lineItems,
+    submittedBy: preparedByName
+      ? {
+          id: args.preparedByMemberId,
+          name: preparedByName,
+          role: "",
+          committeeScope: args.committeeScope || null,
+        }
+      : null,
+    committeeApprover: null,
+    budget: null,
+  };
+}
+
 function PaymentsDocumentPreview({
   payments,
   totalExpense,
@@ -638,6 +827,24 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     createDefaultSignatoryDraft(),
   );
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [confirmedPayments, setConfirmedPayments] = useState<Payment[]>([]);
+  const [listPage, setListPage] = useState(1);
+  const [listPageSize, setListPageSize] = useState(DEFAULT_LIST_PAGE_SIZE);
+  const [listTotal, setListTotal] = useState(0);
+  const [listPages, setListPages] = useState(1);
+  const [rejectedPayments, setRejectedPayments] = useState<Payment[]>([]);
+  const [rejectedPage, setRejectedPage] = useState(1);
+  const [rejectedTotal, setRejectedTotal] = useState(0);
+  const [rejectedPages, setRejectedPages] = useState(1);
+  const [paymentStats, setPaymentStats] = useState({
+    totalExpense: 0,
+    totalIncome: 0,
+    pendingCount: 0,
+    lockedCount: 0,
+  });
+  const [listViewMode, setListViewMode] = useState<PaymentListViewMode>("list");
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<string[]>([]);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -684,19 +891,59 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
 
   const loadPayments = useCallback(
-    async (id: string) => {
+    async (
+      id: string,
+      opts?: {
+        page?: number;
+        pageSize?: number;
+        statusOverride?: PaymentStatusFilter;
+      },
+    ) => {
+      const page = opts?.page ?? listPage;
+      const pageSize = opts?.pageSize ?? listPageSize;
+      const effectiveStatus = opts?.statusOverride ?? filterStatus;
+
       const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(pageSize));
       if (filterType !== "ALL") params.set("type", filterType);
-      if (filterStatus !== "ALL" && filterStatus !== "ACTIVE") {
-        params.set("status", filterStatus);
+      if (effectiveStatus !== "ALL") {
+        params.set("status", effectiveStatus);
       }
+
       const res = await fetch(`/api/conf/${id}/payments?${params}`, {
         cache: "no-store",
       });
       if (!res.ok) throw new Error("Failed to load payments");
-      return (await res.json()) as Payment[];
+      const payload = (await res.json()) as PaginatedPaymentsResponse;
+      return payload;
     },
-    [filterType, filterStatus],
+    [filterType, filterStatus, listPage, listPageSize],
+  );
+
+  const loadConfirmedPayments = useCallback(async (id: string) => {
+    const res = await fetch(`/api/conf/${id}/payments?status=APPROVED`, {
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("Failed to load confirmed payments");
+    return (await res.json()) as Payment[];
+  }, []);
+
+  const loadRejectedPayments = useCallback(
+    async (id: string, page = rejectedPage) => {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(listPageSize));
+      params.set("status", "REJECTED");
+      if (filterType !== "ALL") params.set("type", filterType);
+
+      const res = await fetch(`/api/conf/${id}/payments?${params}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Failed to load rejected payments");
+      return (await res.json()) as PaginatedPaymentsResponse;
+    },
+    [filterType, listPageSize, rejectedPage],
   );
 
   const loadCommitteeOptions = useCallback(async (id: string) => {
@@ -717,18 +964,41 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   }, []);
 
   useEffect(() => {
+    setListViewMode(loadPaymentViewMode());
+  }, []);
+
+  useEffect(() => {
     const init = async () => {
       try {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const [data, , membersRes, bookletRes] = await Promise.all([
-          loadPayments(conf.id),
-          loadCommitteeOptions(conf.id),
-          fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
-          fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
-        ]);
-        setPayments(data);
+        const [listPayload, confirmed, rejectedPayload, , membersRes, bookletRes] =
+          await Promise.all([
+            loadPayments(conf.id, { page: 1 }),
+            loadConfirmedPayments(conf.id),
+            filterStatus === "ACTIVE" || filterStatus === "ALL"
+              ? loadRejectedPayments(conf.id, 1)
+              : Promise.resolve(null),
+            loadCommitteeOptions(conf.id),
+            fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
+            fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
+          ]);
+        setPayments(listPayload.payments);
+        setListTotal(listPayload.total);
+        setListPage(listPayload.page);
+        setListPages(listPayload.pages);
+        setPaymentStats(listPayload.stats);
+        setConfirmedPayments(confirmed);
+        if (rejectedPayload) {
+          setRejectedPayments(rejectedPayload.payments);
+          setRejectedTotal(rejectedPayload.total);
+          setRejectedPage(rejectedPayload.page);
+          setRejectedPages(rejectedPayload.pages);
+        } else {
+          setRejectedPayments([]);
+          setRejectedTotal(0);
+        }
 
         if (membersRes.ok) {
           const payload = (await membersRes.json()) as Array<{
@@ -768,7 +1038,49 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
     };
     void init();
-  }, [loadCommitteeOptions, loadPayments]);
+  }, [loadCommitteeOptions, loadConfirmedPayments, loadPayments, loadRejectedPayments]);
+
+  const filtersInitializedRef = useRef(false);
+  useEffect(() => {
+    if (!confId) return;
+    if (!filtersInitializedRef.current) {
+      filtersInitializedRef.current = true;
+      return;
+    }
+    const reload = async () => {
+      try {
+        setLoading(true);
+        setListPage(1);
+        setRejectedPage(1);
+        const [listPayload, confirmed, rejectedPayload] = await Promise.all([
+          loadPayments(confId, { page: 1 }),
+          loadConfirmedPayments(confId),
+          filterStatus === "ACTIVE" || filterStatus === "ALL"
+            ? loadRejectedPayments(confId, 1)
+            : Promise.resolve(null),
+        ]);
+        setPayments(listPayload.payments);
+        setListTotal(listPayload.total);
+        setListPages(listPayload.pages);
+        setPaymentStats(listPayload.stats);
+        setConfirmedPayments(confirmed);
+        setSelectedPaymentIds([]);
+        if (rejectedPayload) {
+          setRejectedPayments(rejectedPayload.payments);
+          setRejectedTotal(rejectedPayload.total);
+          setRejectedPages(rejectedPayload.pages);
+        } else {
+          setRejectedPayments([]);
+          setRejectedTotal(0);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to reload");
+      } finally {
+        setLoading(false);
+      }
+    };
+    void reload();
+  }, [confId, filterType, filterStatus, loadConfirmedPayments, loadPayments, loadRejectedPayments]);
 
   const addPaymentItem = useCallback(() => {
     let newItemId: string | null = null;
@@ -826,12 +1138,135 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     if (!confId) return;
     setLoading(true);
     try {
-      setPayments(await loadPayments(confId));
+      const [listPayload, confirmed, rejectedPayload] = await Promise.all([
+        loadPayments(confId, { page: listPage, pageSize: listPageSize }),
+        loadConfirmedPayments(confId),
+        filterStatus === "ACTIVE" || filterStatus === "ALL"
+          ? loadRejectedPayments(confId, rejectedPage)
+          : Promise.resolve(null),
+      ]);
+      setPayments(listPayload.payments);
+      setListTotal(listPayload.total);
+      setListPages(listPayload.pages);
+      setPaymentStats(listPayload.stats);
+      setConfirmedPayments(confirmed);
+      if (rejectedPayload) {
+        setRejectedPayments(rejectedPayload.payments);
+        setRejectedTotal(rejectedPayload.total);
+        setRejectedPages(rejectedPayload.pages);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to refresh");
     } finally {
       setLoading(false);
     }
+  };
+
+  const goToListPage = async (nextPage: number) => {
+    if (!confId) return;
+    setLoading(true);
+    try {
+      const listPayload = await loadPayments(confId, {
+        page: nextPage,
+        pageSize: listPageSize,
+      });
+      setPayments(listPayload.payments);
+      setListTotal(listPayload.total);
+      setListPage(listPayload.page);
+      setListPages(listPayload.pages);
+      setPaymentStats(listPayload.stats);
+      setSelectedPaymentIds([]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load page");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const goToRejectedPage = async (nextPage: number) => {
+    if (!confId) return;
+    setLoading(true);
+    try {
+      const rejectedPayload = await loadRejectedPayments(confId, nextPage);
+      setRejectedPayments(rejectedPayload.payments);
+      setRejectedTotal(rejectedPayload.total);
+      setRejectedPage(rejectedPayload.page);
+      setRejectedPages(rejectedPayload.pages);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load rejected page");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleListPageSizeChange = async (nextSize: number) => {
+    setListPageSize(nextSize);
+    setListPage(1);
+    setRejectedPage(1);
+    if (!confId) return;
+    setLoading(true);
+    try {
+      const [listPayload, rejectedPayload] = await Promise.all([
+        loadPayments(confId, { page: 1, pageSize: nextSize }),
+        filterStatus === "ACTIVE" || filterStatus === "ALL"
+          ? loadRejectedPayments(confId, 1)
+          : Promise.resolve(null),
+      ]);
+      setPayments(listPayload.payments);
+      setListTotal(listPayload.total);
+      setListPages(listPayload.pages);
+      setPaymentStats(listPayload.stats);
+      if (rejectedPayload) {
+        setRejectedPayments(rejectedPayload.payments);
+        setRejectedTotal(rejectedPayload.total);
+        setRejectedPages(rejectedPayload.pages);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to change page size");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewModeChange = (mode: PaymentListViewMode) => {
+    setListViewMode(mode);
+    savePaymentViewMode(mode);
+  };
+
+  const deletablePaymentsOnPage = useMemo(
+    () => payments.filter((payment) => canDeletePayment(payment, accessInfo)),
+    [payments, accessInfo],
+  );
+
+  const allDeletableSelected =
+    deletablePaymentsOnPage.length > 0 &&
+    deletablePaymentsOnPage.every((payment) =>
+      selectedPaymentIds.includes(payment.id),
+    );
+
+  const togglePaymentSelection = (paymentId: string) => {
+    setSelectedPaymentIds((prev) =>
+      prev.includes(paymentId)
+        ? prev.filter((id) => id !== paymentId)
+        : [...prev, paymentId],
+    );
+  };
+
+  const toggleSelectAllDeletable = () => {
+    if (allDeletableSelected) {
+      setSelectedPaymentIds((prev) =>
+        prev.filter(
+          (id) => !deletablePaymentsOnPage.some((payment) => payment.id === id),
+        ),
+      );
+      return;
+    }
+    setSelectedPaymentIds((prev) => [
+      ...prev,
+      ...deletablePaymentsOnPage
+        .map((payment) => payment.id)
+        .filter((id) => !prev.includes(id)),
+    ]);
   };
 
   const uploadProofWithProgress = useCallback(
@@ -1191,7 +1626,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       }
 
       await res.json();
-      setPayments(await loadPayments(confId));
+      await refresh();
       resetForm();
     } catch (e) {
       setUploadStatus(null);
@@ -1202,8 +1637,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const handleEditPayment = (payment: Payment) => {
-    if (payment.isLocked || payment.status === "APPROVED") {
-      setError("Approved/locked payments cannot be edited.");
+    if (!canEditPayment(payment, accessInfo)) {
+      setError("You do not have permission to edit this payment.");
       return;
     }
 
@@ -1253,14 +1688,46 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const err = (await res.json()) as { error?: string };
         throw new Error(err.error ?? "Failed to delete payment");
       }
-      setPayments((prev) => prev.filter((payment) => payment.id !== paymentId));
+      setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
       if (editingPaymentId === paymentId) {
         resetForm();
       }
+      await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete failed");
     } finally {
       setDeleteLoadingId(null);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!confId || bulkDeleteLoading || selectedPaymentIds.length === 0) return;
+    const confirmed = window.confirm(
+      `Delete ${selectedPaymentIds.length} selected payment record${selectedPaymentIds.length === 1 ? "" : "s"}? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setBulkDeleteLoading(true);
+    setError(null);
+    try {
+      for (const paymentId of selectedPaymentIds) {
+        const res = await fetch(`/api/conf/${confId}/payments/${paymentId}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const err = (await res.json()) as { error?: string };
+          throw new Error(err.error ?? "Failed to delete one or more payments");
+        }
+      }
+      if (editingPaymentId && selectedPaymentIds.includes(editingPaymentId)) {
+        resetForm();
+      }
+      setSelectedPaymentIds([]);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bulk delete failed");
+    } finally {
+      setBulkDeleteLoading(false);
     }
   };
 
@@ -1280,10 +1747,8 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const err = (await res.json()) as { error?: string };
         throw new Error(err.error ?? "Failed to approve");
       }
-      const updated = (await res.json()) as Payment;
-      setPayments((prev) =>
-        prev.map((p) => (p.id === paymentId ? updated : p)),
-      );
+      await res.json();
+      await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Approval failed");
     } finally {
@@ -1307,10 +1772,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         const err = (await res.json()) as { error?: string };
         throw new Error(err.error ?? "Failed to reject");
       }
-      const updated = (await res.json()) as Payment;
-      setPayments((prev) =>
-        prev.map((p) => (p.id === paymentId ? updated : p)),
-      );
+      await refresh();
       setRejectingId(null);
       setRejectReason("");
     } catch (e) {
@@ -1340,23 +1802,64 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setShowForm(false);
   };
 
-  const activePayments = payments.filter((p) => p.status !== "REJECTED");
-  const rejectedPayments = payments.filter((p) => p.status === "REJECTED");
-  const confirmedPayments = activePayments.filter(
-    (p) => p.status === "APPROVED",
-  );
-  const unconfirmedPayments = activePayments.filter(
-    (p) => p.status !== "APPROVED",
+  const draftPaymentPreview = useMemo(
+    () =>
+      buildDraftPaymentForPreview({
+        paymentType,
+        paidBy,
+        paidTo,
+        method,
+        txRef,
+        note,
+        committeeScope,
+        incomeSource,
+        paymentItems,
+        paymentItemsTotal,
+        receiptStateByItemId,
+        preparedByMemberId,
+        members,
+        editingPaymentId,
+      }),
+    [
+      paymentType,
+      paidBy,
+      paidTo,
+      method,
+      txRef,
+      note,
+      committeeScope,
+      incomeSource,
+      paymentItems,
+      paymentItemsTotal,
+      receiptStateByItemId,
+      preparedByMemberId,
+      members,
+      editingPaymentId,
+    ],
   );
 
-  const expenses = confirmedPayments.filter(
-    (p) => p.paymentType === "EXPENSE" || !p.paymentType,
-  );
-  const incomes = confirmedPayments.filter((p) => p.paymentType === "INCOME");
-  const totalExpense = expenses.reduce((s, p) => s + p.amount, 0);
-  const totalIncome = incomes.reduce((s, p) => s + p.amount, 0);
-  const lockedCount = confirmedPayments.length;
-  const pendingCount = unconfirmedPayments.length;
+  const livePreviewPayments = showForm
+    ? [draftPaymentPreview]
+    : confirmedPayments;
+  const livePreviewExpense = showForm
+    ? draftPaymentPreview.paymentType === "EXPENSE"
+      ? draftPaymentPreview.amount
+      : 0
+    : paymentStats.totalExpense;
+  const livePreviewIncome = showForm
+    ? draftPaymentPreview.paymentType === "INCOME"
+      ? draftPaymentPreview.amount
+      : 0
+    : paymentStats.totalIncome;
+
+  const showRejectedSection =
+    (filterStatus === "ACTIVE" || filterStatus === "ALL") &&
+    rejectedTotal > 0;
+  const listIsEmpty = payments.length === 0;
+  const totalExpense = paymentStats.totalExpense;
+  const totalIncome = paymentStats.totalIncome;
+  const pendingCount = paymentStats.pendingCount;
+  const lockedCount = paymentStats.lockedCount;
   const isScopeLockedToMember =
     Boolean(accessInfo?.committeeScope) && !accessInfo?.isSuperAdmin;
   const canFinalApproveFromPending = useCallback((payment: Payment) => {
@@ -1860,8 +2363,68 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </Card>
       )}
 
+      {showForm && (
+        <Card className="payments-no-print border-[#C8A061]/30">
+          <CardHeader className="flex-row items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">Live Payment Document</CardTitle>
+              <CardDescription>
+                Full letter-style preview. Updates as you type line items,
+                metadata, and receipts.
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-1 rounded-md border px-1 py-1">
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
+                title="Zoom out"
+              >
+                <ZoomOut className="size-3.5" />
+              </button>
+              <span className="w-10 text-center text-xs font-mono">
+                {previewZoom}%
+              </span>
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
+                title="Zoom in"
+              >
+                <ZoomIn className="size-3.5" />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto rounded-lg bg-muted/20 p-4">
+              <div
+                style={{
+                  width: 794,
+                  margin: "0 auto",
+                  transform: `scale(${previewZoom / 100})`,
+                  transformOrigin: "top center",
+                  marginBottom:
+                    previewZoom < 100
+                      ? `${((previewZoom - 100) / 100) * 900}px`
+                      : 0,
+                }}
+              >
+                <PaymentsDocumentPreview
+                  payments={livePreviewPayments}
+                  totalExpense={livePreviewExpense}
+                  totalIncome={livePreviewIncome}
+                  confInfo={confInfo}
+                  members={members}
+                  signatoryDraft={signatoryDraft}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Empty state */}
-      {activePayments.length === 0 && !showForm && (
+      {listIsEmpty && !showForm && (
         <Card>
           <CardContent className="flex flex-col items-center py-12 text-center">
             <DollarSign className="mb-4 size-12 text-muted-foreground/30" />
@@ -1875,23 +2438,127 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </Card>
       )}
 
-      {/* Active Payment List */}
-      <div className="space-y-3">
-        {activePayments.map((payment) => {
+      {!listIsEmpty && (
+        <Card className="payments-no-print">
+          <CardHeader>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle className="text-base">Payment Records</CardTitle>
+                <CardDescription>
+                  {listTotal} record{listTotal === 1 ? "" : "s"}
+                  {selectedPaymentIds.length > 0
+                    ? ` · ${selectedPaymentIds.length} selected`
+                    : ""}
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {deletablePaymentsOnPage.length > 0 && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={toggleSelectAllDeletable}
+                    >
+                      {allDeletableSelected ? (
+                        <CheckSquare className="size-3.5" />
+                      ) : (
+                        <Square className="size-3.5" />
+                      )}
+                      Select all
+                    </Button>
+                    {selectedPaymentIds.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 border-red-500/40 text-xs text-red-600 hover:bg-red-500/10"
+                        onClick={() => void handleBulkDelete()}
+                        disabled={bulkDeleteLoading}
+                      >
+                        {bulkDeleteLoading ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3.5" />
+                        )}
+                        Delete selected
+                      </Button>
+                    )}
+                  </>
+                )}
+                <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
+                  <Button
+                    type="button"
+                    variant={listViewMode === "list" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => handleViewModeChange("list")}
+                  >
+                    <List className="size-3.5" />
+                    List
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={listViewMode === "cards" ? "secondary" : "ghost"}
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => handleViewModeChange("cards")}
+                  >
+                    <LayoutGrid className="size-3.5" />
+                    Cards
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div
+              className={
+                listViewMode === "cards"
+                  ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                  : "space-y-3"
+              }
+            >
+              {payments.map((payment) => {
           const config = STATUS_CONFIG[payment.status] ?? STATUS_CONFIG.PENDING;
           const StatusIcon = config.icon;
           const isExpense =
             payment.paymentType === "EXPENSE" || !payment.paymentType;
           const isRejecting = rejectingId === payment.id;
+          const showEdit = canEditPayment(payment, accessInfo);
+          const showDelete = canDeletePayment(payment, accessInfo);
+          const isSelected = selectedPaymentIds.includes(payment.id);
 
           return (
             <Card
               key={payment.id}
-              className={payment.isLocked ? "border-purple-500/30" : ""}
+              className={cn(
+                payment.isLocked ? "border-purple-500/30" : "",
+                listViewMode === "cards" && "h-full",
+                isSelected && "border-[#002868]/50 ring-1 ring-[#002868]/20",
+              )}
             >
               <CardContent className="pt-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex-1 space-y-1">
+                  <div className="flex min-w-0 flex-1 gap-2">
+                    {showDelete && (
+                      <button
+                        type="button"
+                        className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
+                        onClick={() => togglePaymentSelection(payment.id)}
+                        title={
+                          isSelected ? "Deselect for delete" : "Select for delete"
+                        }
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="size-4 text-[#C8A061]" />
+                        ) : (
+                          <Square className="size-4" />
+                        )}
+                      </button>
+                    )}
+                    <div className="min-w-0 flex-1 space-y-1">
                     {/* Amount + badges */}
                     <div className="flex flex-wrap items-center gap-2">
                       <span
@@ -2007,6 +2674,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           : ""}
                       </p>
                     )}
+                    </div>
                   </div>
 
                   {/* Proof thumbnails */}
@@ -2044,32 +2712,36 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   )}
                 </div>
 
-                {!payment.isLocked && accessInfo?.isManager && (
+                {(showEdit || showDelete) && (
                   <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs"
-                      onClick={() => handleEditPayment(payment)}
-                      disabled={saving || deleteLoadingId === payment.id}
-                    >
-                      <Pencil className="size-3" />
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
-                      onClick={() => handleDeletePayment(payment.id)}
-                      disabled={deleteLoadingId === payment.id}
-                    >
-                      {deleteLoadingId === payment.id ? (
-                        <Loader2 className="size-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="size-3" />
-                      )}
-                      Delete
-                    </Button>
+                    {showEdit && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => handleEditPayment(payment)}
+                        disabled={saving || deleteLoadingId === payment.id}
+                      >
+                        <Pencil className="size-3" />
+                        Edit
+                      </Button>
+                    )}
+                    {showDelete && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
+                        onClick={() => handleDeletePayment(payment.id)}
+                        disabled={deleteLoadingId === payment.id}
+                      >
+                        {deleteLoadingId === payment.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-3" />
+                        )}
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 )}
 
@@ -2184,103 +2856,212 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               </CardContent>
             </Card>
           );
-        })}
-      </div>
+              })}
+            </div>
 
-      {rejectedPayments.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm">
+              <div className="text-muted-foreground">
+                Showing{" "}
+                {listTotal === 0
+                  ? 0
+                  : (listPage - 1) * listPageSize + 1}{" "}
+                - {Math.min(listPage * listPageSize, listTotal)} of {listTotal}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                  value={String(listPageSize)}
+                  onChange={(e) =>
+                    void handleListPageSizeChange(Number(e.target.value))
+                  }
+                >
+                  {[10, 20, 50].map((size) => (
+                    <option key={size} value={size}>
+                      {size} / page
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => void goToListPage(listPage - 1)}
+                  disabled={listPage <= 1 || loading}
+                >
+                  <ChevronLeft className="size-4" />
+                  Prev
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Page {listPage} / {listPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => void goToListPage(listPage + 1)}
+                  disabled={listPage >= listPages || loading}
+                >
+                  Next
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {showRejectedSection && (
         <Card className="border-red-500/30">
           <CardHeader>
             <CardTitle className="text-base text-red-600">
               Rejected Records
             </CardTitle>
             <CardDescription>
-              Records rejected in the approval workflow are tracked here.
+              {rejectedTotal} rejected record{rejectedTotal === 1 ? "" : "s"} ·
+              delete when no longer needed
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {rejectedPayments.map((payment) => (
-              <div
-                key={`rejected-${payment.id}`}
-                className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm">
-                    <span className="font-semibold">{payment.paidBy}</span>
-                    {payment.paidTo ? ` -> ${payment.paidTo}` : ""}
+            {rejectedPayments.map((payment) => {
+              const showDelete = canDeletePayment(payment, accessInfo);
+              return (
+                <div
+                  key={`rejected-${payment.id}`}
+                  className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm">
+                      <span className="font-semibold">{payment.paidBy}</span>
+                      {payment.paidTo ? ` -> ${payment.paidTo}` : ""}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm font-semibold text-red-600">
+                        {fmtRmb(payment.amount)}
+                      </div>
+                      {showDelete && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
+                          onClick={() => handleDeletePayment(payment.id)}
+                          disabled={deleteLoadingId === payment.id}
+                        >
+                          {deleteLoadingId === payment.id ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-3" />
+                          )}
+                          Delete
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-red-600">
-                    {fmtRmb(payment.amount)}
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {new Date(payment.paidAt).toLocaleDateString()} ·{" "}
+                    {PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
+                      payment.method}
+                    {payment.ref ? ` · Ref: ${payment.ref}` : ""}
                   </div>
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {new Date(payment.paidAt).toLocaleDateString()} ·{" "}
-                  {PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
-                    payment.method}
-                  {payment.ref ? ` · Ref: ${payment.ref}` : ""}
+              );
+            })}
+
+            {rejectedPages > 1 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm">
+                <div className="text-muted-foreground">
+                  Page {rejectedPage} / {rejectedPages} · {rejectedTotal} total
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => void goToRejectedPage(rejectedPage - 1)}
+                    disabled={rejectedPage <= 1 || loading}
+                  >
+                    <ChevronLeft className="size-4" />
+                    Prev
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => void goToRejectedPage(rejectedPage + 1)}
+                    disabled={rejectedPage >= rejectedPages || loading}
+                  >
+                    Next
+                    <ChevronRight className="size-4" />
+                  </Button>
                 </div>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       )}
 
-      <Card className="payments-no-print border-[#C8A061]/30">
-        <CardHeader className="flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle className="text-base">Live Payment Document</CardTitle>
-            <CardDescription>
-              Reusable document layout preview (same shared source used
-              elsewhere).
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-1 rounded-md border px-1 py-1">
-            <button
-              type="button"
-              className="rounded p-1 hover:bg-muted"
-              onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
-              title="Zoom out"
-            >
-              <ZoomOut className="size-3.5" />
-            </button>
-            <span className="w-10 text-center text-xs font-mono">
-              {previewZoom}%
-            </span>
-            <button
-              type="button"
-              className="rounded p-1 hover:bg-muted"
-              onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
-              title="Zoom in"
-            >
-              <ZoomIn className="size-3.5" />
-            </button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-auto rounded-lg bg-muted/20 p-4">
-            <div
-              style={{
-                width: 794,
-                margin: "0 auto",
-                transform: `scale(${previewZoom / 100})`,
-                transformOrigin: "top center",
-                marginBottom:
-                  previewZoom < 100
-                    ? `${((previewZoom - 100) / 100) * 900}px`
-                    : 0,
-              }}
-            >
-              <PaymentsDocumentPreview
-                payments={confirmedPayments}
-                totalExpense={totalExpense}
-                totalIncome={totalIncome}
-                confInfo={confInfo}
-                members={members}
-                signatoryDraft={signatoryDraft}
-              />
+      {!showForm && (
+        <Card className="payments-no-print border-[#C8A061]/30">
+          <CardHeader className="flex-row items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-base">Payments Register Preview</CardTitle>
+              <CardDescription>
+                Finally approved payments in register format (updates when
+                records are confirmed).
+              </CardDescription>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex items-center gap-1 rounded-md border px-1 py-1">
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.max(55, z - 5))}
+                title="Zoom out"
+              >
+                <ZoomOut className="size-3.5" />
+              </button>
+              <span className="w-10 text-center text-xs font-mono">
+                {previewZoom}%
+              </span>
+              <button
+                type="button"
+                className="rounded p-1 hover:bg-muted"
+                onClick={() => setPreviewZoom((z) => Math.min(100, z + 5))}
+                title="Zoom in"
+              >
+                <ZoomIn className="size-3.5" />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-auto rounded-lg bg-muted/20 p-4">
+              <div
+                style={{
+                  width: 794,
+                  margin: "0 auto",
+                  transform: `scale(${previewZoom / 100})`,
+                  transformOrigin: "top center",
+                  marginBottom:
+                    previewZoom < 100
+                      ? `${((previewZoom - 100) / 100) * 900}px`
+                      : 0,
+                }}
+              >
+                <PaymentsDocumentPreview
+                  payments={livePreviewPayments}
+                  totalExpense={livePreviewExpense}
+                  totalIncome={livePreviewIncome}
+                  confInfo={confInfo}
+                  members={members}
+                  signatoryDraft={signatoryDraft}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="payments-no-print border-[#C8A061]/30">
         <CardHeader>

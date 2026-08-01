@@ -8,6 +8,10 @@ import {
   paymentAmountFromItems,
   validatePaymentLineItemsPayload,
 } from "@/lib/conf/payment-line-items-server";
+import {
+  canDeletePayment,
+  canEditPayment,
+} from "@/lib/conf/payment-access";
 import { mapPaymentForClient } from "@/lib/conf/payment-proof-urls";
 
 type Params = { params: Promise<{ confId: string; paymentId: string }> };
@@ -85,6 +89,10 @@ export async function PATCH(req: Request, { params }: Params) {
         committeeScope: true,
         status: true,
         isLocked: true,
+        submittedByMemberId: true,
+        submittedBy: {
+          select: { id: true, committeeScope: true },
+        },
       },
     });
 
@@ -92,10 +100,10 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    if (existing.isLocked || existing.status === "APPROVED") {
+    if (!canEditPayment(existing, auth.access)) {
       return NextResponse.json(
-        { error: "Approved/locked payments cannot be edited" },
-        { status: 409 },
+        { error: "You do not have permission to edit this payment" },
+        { status: 403 },
       );
     }
 
@@ -313,6 +321,10 @@ export async function DELETE(_req: Request, { params }: Params) {
         committeeScope: true,
         status: true,
         isLocked: true,
+        submittedByMemberId: true,
+        submittedBy: {
+          select: { id: true, committeeScope: true },
+        },
       },
     });
 
@@ -320,26 +332,9 @@ export async function DELETE(_req: Request, { params }: Params) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    if (existing.isLocked || existing.status === "APPROVED") {
+    if (!canDeletePayment(existing, auth.access)) {
       return NextResponse.json(
-        { error: "Approved/locked payments cannot be deleted" },
-        { status: 409 },
-      );
-    }
-
-    const isScopedMemberActor =
-      !auth.access.isSuperAdmin &&
-      !auth.access.isChair &&
-      Boolean(auth.access.memberId);
-    if (
-      isScopedMemberActor &&
-      existing.committeeScope !== auth.access.committeeScope
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "You can only delete payments within your assigned committee scope",
-        },
+        { error: "You do not have permission to delete this payment" },
         { status: 403 },
       );
     }
