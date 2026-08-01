@@ -1,4 +1,4 @@
-import { SignatoryDraft } from "@/components/tools/conf/document-signatory-controls";
+import { SignatoryDraft, collectSignatorySlots } from "@/components/tools/conf/document-signatory-controls";
 import {
   signatureBlockContainerStyle,
   signatureBlockItemStyle,
@@ -12,9 +12,7 @@ type Props = {
 export function DocumentSignatureBlock({ draft, compact = false }: Props) {
   if (draft.signatoryMode === "NONE") return null;
 
-  const signatories = [draft.signatory1, draft.signatory2, draft.signatory3].filter(
-    (slot) => slot.name.trim() || slot.title.trim(),
-  );
+  const signatories = collectSignatorySlots(draft);
 
   if (signatories.length === 0) return null;
 

@@ -89,8 +89,16 @@ import {
   SignatoryDraft,
   SignatoryMember,
   hasSignatories,
+  SIGNATORY_SLOT_UI,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
+import {
+  normalizeSignatureProfileKey,
+} from "@/lib/conf/signature-profiles";
+import {
+  migrateSignatoryDraft,
+  type PaymentRegisterConfig,
+} from "@/lib/conf/payment-register-config";
 import { paymentsToCsv } from "@/lib/conf/export";
 import {
   canDeletePayment as canDeletePaymentAccess,
@@ -871,6 +879,7 @@ function PaymentsDocumentPreview({
   totalIncome,
   confInfo,
   members,
+  preparedByName,
   signatoryDraft,
   forPrint = false,
 }: {
@@ -879,6 +888,7 @@ function PaymentsDocumentPreview({
   totalIncome: number;
   confInfo: ConferenceEventInfo | null;
   members: SignatoryMember[];
+  preparedByName: string;
   signatoryDraft: SignatoryDraft;
   forPrint?: boolean;
 }) {
@@ -1048,7 +1058,13 @@ function PaymentsDocumentPreview({
                 </div>
               </div>
               <div style={{ textAlign: "right", fontSize: 10, color: "#555" }}>
-                <div>Register Summary:</div>
+                <div>Prepared By:</div>
+                <div
+                  style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}
+                >
+                  {preparedByName || "Pending selection"}
+                </div>
+                <div style={{ marginTop: 8 }}>Register Summary:</div>
                 <div
                   style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}
                 >
@@ -1152,6 +1168,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   const [previewZoom, setPreviewZoom] = useState(72);
   const [signatoryDraft, setSignatoryDraft] = useState<SignatoryDraft>(
     createDefaultSignatoryDraft(),
+  );
+  const [registerPreparedByMemberId, setRegisterPreparedByMemberId] =
+    useState("");
+  const [registerConfigLoaded, setRegisterConfigLoaded] = useState(false);
+  const [signatureLibrary, setSignatureLibrary] = useState<
+    Record<string, { signatureDataUrl: string }>
+  >({});
+  const [necPresidentName, setNecPresidentName] = useState("");
+  const registerConfigSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
   );
   const [payments, setPayments] = useState<Payment[]>([]);
   const [confirmedPayments, setConfirmedPayments] = useState<Payment[]>([]);
@@ -1340,7 +1366,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         setLoading(true);
         const conf = await fetchDefaultConference();
         setConfId(conf.id);
-        const [listPayload, confirmed, rejectedPayload, , membersRes, bookletRes] =
+        const [listPayload, confirmed, rejectedPayload, , membersRes, bookletRes, registerConfigRes, signaturesRes] =
           await Promise.all([
             loadPayments(conf.id, { page: 1 }),
             loadConfirmedPayments(conf.id),
@@ -1350,6 +1376,12 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
             loadCommitteeOptions(conf.id),
             fetch(`/api/conf/${conf.id}/members`, { cache: "no-store" }),
             fetch(`/api/conf/${conf.id}/booklet/data`, { cache: "no-store" }),
+            fetch(`/api/conf/${conf.id}/payments/register-config`, {
+              cache: "no-store",
+            }),
+            fetch(`/api/conf/${conf.id}/letters/signatures`, {
+              cache: "no-store",
+            }),
           ]);
         setPayments(listPayload.payments);
         setListTotal(listPayload.total);
@@ -1393,14 +1425,44 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         if (bookletRes.ok) {
           const bookletPayload = (await bookletRes.json()) as {
             event?: ConferenceEventInfo;
+            nec?: Array<{ title?: string; name?: string }>;
           };
           if (bookletPayload.event) {
             setConfInfo(bookletPayload.event);
           }
+          const necPresident = bookletPayload.nec?.find((leader) =>
+            (leader.title || "").toLowerCase().includes("national president"),
+          );
+          if (necPresident?.name) {
+            setNecPresidentName(String(necPresident.name));
+          }
+        }
+
+        if (signaturesRes.ok) {
+          const signatureData = (await signaturesRes.json()) as {
+            profiles?: Array<{
+              key: string;
+              signatureDataUrl: string;
+            }>;
+          };
+          const library: Record<string, { signatureDataUrl: string }> = {};
+          for (const profile of signatureData.profiles ?? []) {
+            library[profile.key] = {
+              signatureDataUrl: profile.signatureDataUrl,
+            };
+          }
+          setSignatureLibrary(library);
+        }
+
+        if (registerConfigRes.ok) {
+          const config = (await registerConfigRes.json()) as PaymentRegisterConfig;
+          setRegisterPreparedByMemberId(config.preparedByMemberId ?? "");
+          setSignatoryDraft(migrateSignatoryDraft(config.signatoryDraft));
         }
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load");
       } finally {
+        setRegisterConfigLoaded(true);
         setLoading(false);
       }
     };
@@ -1448,6 +1510,113 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     };
     void reload();
   }, [confId, filterType, filterStatus, loadConfirmedPayments, loadPayments, loadRejectedPayments]);
+
+  const resolveSignatureForName = useCallback(
+    (name: string) => {
+      const key = normalizeSignatureProfileKey(name);
+      return signatureLibrary[key]?.signatureDataUrl ?? "";
+    },
+    [signatureLibrary],
+  );
+
+  const hydrateSignatoryDraftSignatures = useCallback(
+    (draft: SignatoryDraft): SignatoryDraft => {
+      const next = migrateSignatoryDraft(draft);
+      for (const { key } of SIGNATORY_SLOT_UI) {
+        const slot = next[key];
+        if (!slot.sig.trim() && slot.name.trim()) {
+          const matched = resolveSignatureForName(slot.name);
+          if (matched) {
+            next[key] = { ...slot, sig: matched };
+          }
+        }
+      }
+      return next;
+    },
+    [resolveSignatureForName],
+  );
+
+  useEffect(() => {
+    if (!registerConfigLoaded || Object.keys(signatureLibrary).length === 0) {
+      return;
+    }
+    setSignatoryDraft((current) => hydrateSignatoryDraftSignatures(current));
+  }, [hydrateSignatoryDraftSignatures, registerConfigLoaded, signatureLibrary]);
+
+  const saveSignatureProfile = useCallback(
+    async (name: string, title: string, signatureDataUrl: string) => {
+      const normalizedName = name.trim();
+      if (!confId || !normalizedName || !signatureDataUrl) return;
+
+      const key = normalizeSignatureProfileKey(normalizedName);
+      setSignatureLibrary((prev) => ({
+        ...prev,
+        [key]: { signatureDataUrl },
+      }));
+
+      try {
+        await fetch(`/api/conf/${confId}/letters/signatures`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: normalizedName,
+            title,
+            signatureDataUrl,
+          }),
+        });
+      } catch (err) {
+        console.warn("Failed to persist signature profile", err);
+      }
+    },
+    [confId],
+  );
+
+  const persistRegisterConfig = useCallback(
+    async (preparedByMemberId: string, draft: SignatoryDraft) => {
+      if (!confId) return;
+      try {
+        await fetch(`/api/conf/${confId}/payments/register-config`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            preparedByMemberId,
+            signatoryDraft: draft,
+          }),
+        });
+      } catch (err) {
+        console.warn("Failed to save payment register config", err);
+      }
+    },
+    [confId],
+  );
+
+  useEffect(() => {
+    if (!confId || !registerConfigLoaded) return;
+    if (registerConfigSaveTimer.current) {
+      clearTimeout(registerConfigSaveTimer.current);
+    }
+    registerConfigSaveTimer.current = setTimeout(() => {
+      void persistRegisterConfig(registerPreparedByMemberId, signatoryDraft);
+    }, 600);
+    return () => {
+      if (registerConfigSaveTimer.current) {
+        clearTimeout(registerConfigSaveTimer.current);
+      }
+    };
+  }, [
+    confId,
+    persistRegisterConfig,
+    registerConfigLoaded,
+    registerPreparedByMemberId,
+    signatoryDraft,
+  ]);
+
+  const registerPreparedByName = useMemo(
+    () =>
+      members.find((member) => member.id === registerPreparedByMemberId)?.name ??
+      "",
+    [members, registerPreparedByMemberId],
+  );
 
   const addPaymentItem = useCallback(() => {
     let newItemId: string | null = null;
@@ -2906,6 +3075,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   totalIncome={livePreviewIncome}
                   confInfo={confInfo}
                   members={members}
+                  preparedByName={registerPreparedByName}
                   signatoryDraft={signatoryDraft}
                 />
               </div>
@@ -3596,6 +3766,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                   totalIncome={livePreviewIncome}
                   confInfo={confInfo}
                   members={members}
+                  preparedByName={registerPreparedByName}
                   signatoryDraft={signatoryDraft}
                 />
               </div>
@@ -3606,16 +3777,36 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
       <Card className="payments-no-print border-[#C8A061]/30">
         <CardHeader>
-          <CardTitle className="text-base">Signatories</CardTitle>
+          <CardTitle className="text-base">Register Signatures</CardTitle>
           <CardDescription>
-            Shared signatory controls, same pattern as Letters.
+            Configure who prepared the register and which signatories appear on
+            the printed document. Settings are saved automatically.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Prepared By (Report Author)</Label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              value={registerPreparedByMemberId}
+              onChange={(e) => setRegisterPreparedByMemberId(e.target.value)}
+            >
+              <option value="">Select committee member…</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                  {member.title ? ` — ${member.title}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
           <DocumentSignatoryControls
             value={signatoryDraft}
             onChange={setSignatoryDraft}
             members={members}
+            nationalPresidentName={necPresidentName}
+            resolveSignatureForName={resolveSignatureForName}
+            onSaveSignatureProfile={saveSignatureProfile}
           />
         </CardContent>
       </Card>
@@ -3686,6 +3877,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               totalIncome={printIncomeTotal}
               confInfo={confInfo}
               members={members}
+              preparedByName={registerPreparedByName}
               signatoryDraft={signatoryDraft}
               forPrint
             />
