@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -76,6 +77,11 @@ import {
   normalizeSidebarMembers,
 } from "@/lib/conf/document-layout";
 import { computePageChunks } from "@/lib/conf/document-pagination";
+import {
+  chunkReceiptPhotos,
+  DocumentReceiptPhotosGrid,
+  type ReceiptPhotoEntry,
+} from "@/lib/conf/document-receipt-photos";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
@@ -632,6 +638,36 @@ function buildDraftPaymentForPreview(args: {
   };
 }
 
+function formatPaymentStatusLabel(status: string): string {
+  switch (status) {
+    case "APPROVED":
+      return "Approved";
+    case "COMMITTEE_APPROVED":
+      return "Committee OK";
+    case "PENDING":
+      return "Pending";
+    case "REJECTED":
+      return "Rejected";
+    default:
+      return status;
+  }
+}
+
+function compactTableCell(value: unknown) {
+  return (
+    <div
+      style={{
+        fontSize: 9,
+        lineHeight: 1.25,
+        wordBreak: "break-word",
+        whiteSpace: "pre-wrap",
+      }}
+    >
+      {typeof value === "string" ? value : String(value ?? "")}
+    </div>
+  );
+}
+
 function PaymentsDocumentPreview({
   payments,
   totalExpense,
@@ -649,12 +685,23 @@ function PaymentsDocumentPreview({
   signatoryDraft: SignatoryDraft;
   forPrint?: boolean;
 }) {
+  const createdAt = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   const rows: Record<string, unknown>[] =
     payments.length > 0
       ? payments.map((payment) => {
+          const proofCount = allPaymentProofs(payment).length;
           const itemDetails = formatPaymentLineItemsSummary(payment);
           return {
-            date: new Date(payment.paidAt).toLocaleDateString(),
+            date: new Date(payment.paidAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "2-digit",
+            }),
             type:
               payment.paymentType === "INCOME"
                 ? "Income"
@@ -668,11 +715,11 @@ function PaymentsDocumentPreview({
               payment.method,
             item: itemDetails || "—",
             proofs:
-              allPaymentProofs(payment).length > 0
-                ? `${allPaymentProofs(payment).length} file${allPaymentProofs(payment).length === 1 ? "" : "s"}`
+              proofCount > 0
+                ? `${proofCount} file${proofCount === 1 ? "" : "s"}`
                 : "None",
             amount: fmtRmb(payment.amount),
-            status: payment.status,
+            status: formatPaymentStatusLabel(payment.status),
           };
         })
       : [
@@ -682,31 +729,31 @@ function PaymentsDocumentPreview({
             paidBy: "No records yet",
             paidTo: "—",
             method: "—",
+            item: "—",
             proofs: "—",
             amount: "—",
             status: "—",
           },
         ];
 
-  const receiptSamples = payments
-    .filter((payment) => allPaymentProofs(payment).length > 0)
-    .slice(0, 6);
+  const receiptEntries: ReceiptPhotoEntry[] = payments.flatMap((payment) =>
+    allPaymentProofs(payment).map((proof) => ({
+      id: `proof-${proof.id}`,
+      imageUrl: proofIsImage(proof) ? proofDisplayUrl(proof) : null,
+      fileName: proof.fileName,
+      captionLine1: `${payment.paidBy} · ${fmtRmb(payment.amount)}`,
+      captionLine2: proof.fileName,
+      isImage: proofIsImage(proof),
+    })),
+  );
+  const receiptChunks = chunkReceiptPhotos(receiptEntries);
 
-  // ── Dynamic pagination ─────────────────────────────────────────────────
-  // Page-1 overhead: title + date + income/expense summary line (~70px).
-  // Trailing overhead: net balance line + receipt thumbnails + signature.
-  // Continuation pages: "Continued…" label (~28px).
-  const receiptTrailingH =
-    receiptSamples.length > 0
-      ? 38 + Math.ceil(receiptSamples.length / 2) * 110
-      : 0;
   const rowChunks = computePageChunks(rows, {
-    page1OverheadPx: 70,
-    trailingPx:
-      42 + receiptTrailingH + (hasSignatories(signatoryDraft) ? 140 : 0),
-    contHeaderPx: 28,
+    page1OverheadPx: 82,
+    trailingPx: 42 + (hasSignatories(signatoryDraft) ? 140 : 0),
+    contHeaderPx: 32,
   });
-  // Scope sidebar to committees represented in this payment set (falls back to all members).
+
   const scopedCommitteeKeys = Array.from(
     new Set(
       payments
@@ -727,168 +774,164 @@ function PaymentsDocumentPreview({
     scopedMembers.length > 0 ? scopedMembers : members,
   );
   const normalizedConfInfo = normalizeConfInfo(confInfo);
+  const totalPages = rowChunks.length + receiptChunks.length;
 
-  return rowChunks.map((pageRows, pageIndex) => (
-    <DocumentLayout
-      key={`payments-v2-page-${pageIndex}`}
-      forPrint={forPrint}
-      confInfo={normalizedConfInfo}
-      officeLabel="Office of the Finance Secretary"
-      members={sidebarMembers}
-      className={pageIndex > 0 ? "mt-4" : ""}
-      pageNumber={pageIndex + 1}
-      totalPages={rowChunks.length}
-    >
-      {pageIndex === 0 ? (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}>
-            Payments Register
-          </div>
-          <div style={{ marginTop: 3, fontSize: 10, color: "#555" }}>
-            Date:{" "}
-            {new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </div>
-          <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
-            Total Income: {fmtRmb(totalIncome)} · Total Expense:{" "}
-            {fmtRmb(totalExpense)}
-          </div>
-        </div>
-      ) : (
-        <div style={{ fontSize: 11, color: "#777", marginBottom: 12 }}>
-          Continued Payment Records (Page {pageIndex + 1})
-        </div>
-      )}
+  const tableColumns = [
+    { key: "date", label: "Date", width: 9, format: compactTableCell },
+    { key: "type", label: "Type", width: 7, format: compactTableCell },
+    {
+      key: "paidBy",
+      label: "Paid/Received By",
+      width: 14,
+      format: compactTableCell,
+    },
+    {
+      key: "paidTo",
+      label: "To/Received By",
+      width: 13,
+      format: compactTableCell,
+    },
+    { key: "method", label: "Method", width: 9, format: compactTableCell },
+    {
+      key: "item",
+      label: "Item details",
+      width: 24,
+      format: compactTableCell,
+    },
+    {
+      key: "proofs",
+      label: "Receipts",
+      width: 7,
+      align: "center" as const,
+      format: compactTableCell,
+    },
+    { key: "status", label: "Status", width: 9, format: compactTableCell },
+    {
+      key: "amount",
+      label: "Amount",
+      width: 8,
+      align: "right" as const,
+      format: compactTableCell,
+    },
+  ];
 
-      <DocumentTable
-        caption={
-          pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"
-        }
-        columns={[
-          { key: "date", label: "Date", width: 10 },
-          { key: "type", label: "Type", width: 8 },
-          { key: "paidBy", label: "Paid/Received By", width: 16 },
-          { key: "paidTo", label: "To/Received By", width: 14 },
-          { key: "method", label: "Method", width: 10 },
-          {
-            key: "item",
-            label: "Item details",
-            width: 18,
-            format: (value: unknown) => (
-              <div style={{ fontSize: 10, whiteSpace: "pre-wrap" }}>
-                {typeof value === "string" ? value : String(value)}
+  return (
+    <>
+      {rowChunks.map((pageRows, pageIndex) => (
+        <DocumentLayout
+          key={`payments-v2-page-${pageIndex}`}
+          forPrint={forPrint}
+          confInfo={normalizedConfInfo}
+          officeLabel="Office of the Finance Secretary"
+          members={sidebarMembers}
+          hideCommitteeSidebar
+          className={pageIndex > 0 && !forPrint ? "mt-4" : ""}
+          pageNumber={pageIndex + 1}
+          totalPages={totalPages}
+        >
+          {pageIndex === 0 ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 16,
+                marginBottom: 12,
+              }}
+            >
+              <div>
+                <div
+                  style={{ fontSize: 18, fontWeight: 800, color: "#002868" }}
+                >
+                  Payments Register
+                </div>
+                <div style={{ marginTop: 4, fontSize: 10, color: "#555" }}>
+                  Date: {createdAt}
+                </div>
+                <div style={{ marginTop: 2, fontSize: 10, color: "#555" }}>
+                  Total Income: {fmtRmb(totalIncome)} · Total Expense:{" "}
+                  {fmtRmb(totalExpense)}
+                </div>
               </div>
-            ),
-          },
-          { key: "proofs", label: "Receipts", width: 10, align: "center" },
-          { key: "status", label: "Status", width: 10 },
-          { key: "amount", label: "Amount", width: 10, align: "right" },
-        ]}
-        data={pageRows}
-        forPrint={forPrint}
-      />
-
-      {pageIndex === rowChunks.length - 1 && (
-        <>
-          <div
-            style={{
-              marginTop: 12,
-              borderTop: "1.5px solid #002868",
-              paddingTop: 8,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#666" }}>
-              {payments.length} payment record{payments.length === 1 ? "" : "s"}
+              <div style={{ textAlign: "right", fontSize: 10, color: "#555" }}>
+                <div>Register Summary:</div>
+                <div
+                  style={{ fontWeight: 700, color: "#002868", marginTop: 2 }}
+                >
+                  {payments.length} record{payments.length === 1 ? "" : "s"}
+                </div>
+              </div>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
-              NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
-            </div>
-          </div>
-          {payments.some((payment) => allPaymentProofs(payment).length > 0) && (
-            <div style={{ marginTop: 12 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#002868",
-                  marginBottom: 8,
-                }}
-              >
-                Receipt Photos
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: 10,
-                }}
-              >
-                {payments
-                  .flatMap((payment) =>
-                    allPaymentProofs(payment).map((proof) => ({
-                      payment,
-                      proof,
-                    })),
-                  )
-                  .map(({ payment, proof }) => (
-                    <div
-                      key={`proof-${proof.id}`}
-                      style={{
-                        border: "1px solid #d9dfeb",
-                        borderRadius: 6,
-                        overflow: "hidden",
-                        background: "#fff",
-                      }}
-                    >
-                      {proofIsImage(proof) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={proofDisplayUrl(proof)}
-                          alt={proof.fileName}
-                          style={{
-                            width: "100%",
-                            height: 180,
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "100%",
-                            height: 180,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "#f3f4f6",
-                          }}
-                        >
-                          <span style={{ fontSize: 10, color: "#666" }}>
-                            Document file
-                          </span>
-                        </div>
-                      )}
-                      <div style={{ padding: 10, fontSize: 10, color: "#555" }}>
-                        <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                          {payment.paidBy} · {fmtRmb(payment.amount)}
-                        </div>
-                        <div>{proof.fileName}</div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
+          ) : (
+            <div style={{ fontSize: 11, color: "#777", marginBottom: 12 }}>
+              Continued Payment Records (Page {pageIndex + 1})
             </div>
           )}
-          <DocumentSignatureBlock draft={signatoryDraft} />
-        </>
-      )}
-    </DocumentLayout>
-  ));
+
+          <DocumentTable
+            caption={
+              pageIndex === 0 ? "Payment Records" : "Payment Records (cont.)"
+            }
+            columns={tableColumns}
+            data={pageRows}
+            forPrint={forPrint}
+          />
+
+          {pageIndex === rowChunks.length - 1 && (
+            <>
+              <div
+                style={{
+                  marginTop: 12,
+                  borderTop: "1.5px solid #002868",
+                  paddingTop: 8,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ fontSize: 10, color: "#666" }}>
+                  {payments.length} payment record
+                  {payments.length === 1 ? "" : "s"}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#C8A061" }}>
+                  NET BALANCE: {fmtRmb(totalIncome - totalExpense)}
+                </div>
+              </div>
+              <DocumentSignatureBlock draft={signatoryDraft} />
+            </>
+          )}
+        </DocumentLayout>
+      ))}
+
+      {receiptChunks.map((chunk, receiptPageIndex) => (
+        <DocumentLayout
+          key={`payments-v2-receipts-${receiptPageIndex}`}
+          forPrint={forPrint}
+          confInfo={normalizedConfInfo}
+          officeLabel="Office of the Finance Secretary"
+          members={sidebarMembers}
+          hideCommitteeSidebar
+          className={!forPrint ? "mt-4" : ""}
+          pageNumber={rowChunks.length + receiptPageIndex + 1}
+          totalPages={totalPages}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#002868",
+              marginBottom: 12,
+            }}
+          >
+            Receipt Photos
+            {receiptChunks.length > 1
+              ? ` (${receiptPageIndex + 1} of ${receiptChunks.length})`
+              : ""}
+          </div>
+          <DocumentReceiptPhotosGrid entries={chunk} />
+        </DocumentLayout>
+      ))}
+    </>
+  );
 }
 
 export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
@@ -1064,10 +1107,13 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setPrintPortalReady(true);
   }, []);
 
+  const confirmedPaymentsRef = useRef(confirmedPayments);
+  confirmedPaymentsRef.current = confirmedPayments;
+
   useEffect(() => {
     const onAfterPrint = () => {
       document.body.removeAttribute("data-print-mode");
-      setPrintPayments([]);
+      setPrintPayments(confirmedPaymentsRef.current);
     };
     window.addEventListener("afterprint", onAfterPrint);
     return () => window.removeEventListener("afterprint", onAfterPrint);
@@ -1364,6 +1410,25 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         confirmedPayments,
       ),
     [selectedPaymentIds, payments, confirmedPayments],
+  );
+
+  const registerExpenseTotal = useMemo(
+    () =>
+      registerPayments
+        .filter(
+          (payment) =>
+            payment.paymentType === "EXPENSE" || !payment.paymentType,
+        )
+        .reduce((sum, payment) => sum + payment.amount, 0),
+    [registerPayments],
+  );
+
+  const registerIncomeTotal = useMemo(
+    () =>
+      registerPayments
+        .filter((payment) => payment.paymentType === "INCOME")
+        .reduce((sum, payment) => sum + payment.amount, 0),
+    [registerPayments],
   );
 
   const printExpenseTotal = useMemo(
@@ -2094,17 +2159,17 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
 
   const livePreviewPayments = showForm
     ? [draftPaymentPreview]
-    : confirmedPayments;
+    : registerPayments;
   const livePreviewExpense = showForm
     ? draftPaymentPreview.paymentType === "EXPENSE"
       ? draftPaymentPreview.amount
       : 0
-    : paymentStats.totalExpense;
+    : registerExpenseTotal;
   const livePreviewIncome = showForm
     ? draftPaymentPreview.paymentType === "INCOME"
       ? draftPaymentPreview.amount
       : 0
-    : paymentStats.totalIncome;
+    : registerIncomeTotal;
 
   const showRejectedSection =
     (filterStatus === "ACTIVE" || filterStatus === "ALL") &&
@@ -2148,33 +2213,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           top: 0;
           width: 794px;
           pointer-events: none;
-        }
-        @media print {
-          body * { visibility: hidden; }
-          #payments-print-root,
-          #payments-print-root * { visibility: visible !important; }
-          #payments-print-root {
-            position: static !important;
-            left: auto !important;
-            top: auto !important;
-            width: auto !important;
-            pointer-events: auto !important;
-          }
-          .payments-no-print { display: none !important; }
-          .document-page {
-            width: 210mm !important;
-            min-height: 297mm !important;
-            height: auto !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            break-after: page;
-            page-break-after: always;
-          }
-          .document-page:last-child {
-            break-after: auto;
-            page-break-after: auto;
-          }
-          @page { size: A4 portrait; margin: 0; }
+          z-index: -1;
         }
       `}</style>
       {/* Header */}
@@ -3381,19 +3420,67 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </div>
       )}
 
-      {printPortalReady && (
-        <div id="payments-print-root">
-          <PaymentsDocumentPreview
-            payments={printPayments}
-            totalExpense={printExpenseTotal}
-            totalIncome={printIncomeTotal}
-            confInfo={confInfo}
-            members={members}
-            signatoryDraft={signatoryDraft}
-            forPrint
-          />
-        </div>
-      )}
+      {printPortalReady &&
+        createPortal(
+          <div id="payments-print-root">
+            <style>{`
+              @media print {
+                html,
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  width: 100% !important;
+                  height: auto !important;
+                  overflow: visible !important;
+                  background: white !important;
+                }
+                body > :not(#payments-print-root) {
+                  display: none !important;
+                }
+                #payments-print-root {
+                  display: block !important;
+                  position: static !important;
+                  left: auto !important;
+                  top: auto !important;
+                  width: auto !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  pointer-events: auto !important;
+                  z-index: auto !important;
+                }
+                #payments-print-root .mt-4 {
+                  margin-top: 0 !important;
+                }
+                .document-page {
+                  width: 210mm !important;
+                  min-height: 297mm !important;
+                  height: auto !important;
+                  margin: 0 !important;
+                  box-shadow: none !important;
+                  display: flex !important;
+                  flex-direction: column !important;
+                  break-after: page;
+                  page-break-after: always;
+                }
+                .document-page:last-child {
+                  break-after: auto;
+                  page-break-after: auto;
+                }
+                @page { size: A4 portrait; margin: 0; }
+              }
+            `}</style>
+            <PaymentsDocumentPreview
+              payments={printPayments}
+              totalExpense={printExpenseTotal}
+              totalIncome={printIncomeTotal}
+              confInfo={confInfo}
+              members={members}
+              signatoryDraft={signatoryDraft}
+              forPrint
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
