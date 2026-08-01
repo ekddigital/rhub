@@ -69,7 +69,7 @@ export interface TableColumn {
   label: string;
   width?: number | string; // as % or px
   align?: "left" | "center" | "right";
-  format?: (value: unknown) => React.ReactNode;
+  format?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
 }
 
 export interface DocumentTableProps {
@@ -548,7 +548,7 @@ export function DocumentTable({
                   }}
                 >
                   {col.format
-                    ? col.format(row[col.key])
+                    ? col.format(row[col.key], row)
                     : String(row[col.key] ?? "")}
                 </td>
               ))}

@@ -76,12 +76,13 @@ import {
   normalizeConfInfo,
   normalizeSidebarMembers,
 } from "@/lib/conf/document-layout";
-import { computePageChunks } from "@/lib/conf/document-pagination";
+import { computePageChunks, remainingTablePagePx } from "@/lib/conf/document-pagination";
 import {
-  chunkReceiptPhotos,
+  allocateReceiptPhotoPages,
   DocumentReceiptPhotosGrid,
   type ReceiptPhotoEntry,
 } from "@/lib/conf/document-receipt-photos";
+import { PAGE_METRICS } from "@/lib/conf/document-constants";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
@@ -668,6 +669,202 @@ function compactTableCell(value: unknown) {
   );
 }
 
+type PaymentRegisterRowKind = "item" | "subtotal" | "placeholder";
+
+type PaymentRegisterRow = Record<string, unknown> & {
+  _rowKind?: PaymentRegisterRowKind;
+};
+
+function paymentRegisterUnitLabel(unit: string) {
+  return unit.trim() || "—";
+}
+
+function paymentProofCountLabel(payment: Payment) {
+  const proofCount = allPaymentProofs(payment).length;
+  return proofCount > 0
+    ? `${proofCount} file${proofCount === 1 ? "" : "s"}`
+    : "None";
+}
+
+function getRegisterLineItems(payment: Payment) {
+  if (payment.lineItems && payment.lineItems.length > 0) {
+    return payment.lineItems.map((item) => ({
+      name: item.name,
+      qty: String(item.qty),
+      unit: paymentRegisterUnitLabel(item.unit),
+      unitPrice: fmtRmb(item.unitPrice),
+      lineTotal: calcItemTotal(item.qty, item.unitPrice),
+    }));
+  }
+
+  const parsed = parsePaymentItemsNote(payment.note);
+  if (parsed.length > 0) {
+    return parsed.map((item) => {
+      const qty = Number(item.qty) || 0;
+      const unitPrice = Number(item.unitPrice) || 0;
+      const unit =
+        item.unit === "custom"
+          ? paymentRegisterUnitLabel(item.customUnit || "custom")
+          : paymentRegisterUnitLabel(item.unit);
+      return {
+        name: item.name,
+        qty: item.qty,
+        unit,
+        unitPrice: unitPrice > 0 ? fmtRmb(unitPrice) : "—",
+        lineTotal: calcItemTotal(qty, unitPrice),
+      };
+    });
+  }
+
+  return [];
+}
+
+function buildPaymentRegisterRows(payments: Payment[]): PaymentRegisterRow[] {
+  if (payments.length === 0) {
+    return [
+      {
+        _rowKind: "placeholder",
+        date: "—",
+        type: "—",
+        paidBy: "No records yet",
+        paidTo: "—",
+        method: "—",
+        item: "—",
+        qty: "—",
+        unit: "—",
+        unitPrice: "—",
+        proofs: "—",
+        status: "—",
+        amount: "—",
+      },
+    ];
+  }
+
+  const rows: PaymentRegisterRow[] = [];
+
+  for (const payment of payments) {
+    const meta = {
+      date: new Date(payment.paidAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "2-digit",
+      }),
+      type:
+        payment.paymentType === "INCOME"
+          ? "Income"
+          : payment.paymentType === "EXPENSE"
+            ? "Expense"
+            : "Expense",
+      paidBy: payment.paidBy || "—",
+      paidTo: payment.paidTo || "—",
+      method:
+        PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
+        payment.method,
+      proofs: paymentProofCountLabel(payment),
+      status: formatPaymentStatusLabel(payment.status),
+    };
+
+    const lineItems = getRegisterLineItems(payment);
+    const blankMeta = {
+      date: "",
+      type: "",
+      paidBy: "",
+      paidTo: "",
+      method: "",
+      proofs: "",
+      status: "",
+    };
+
+    if (lineItems.length === 0) {
+      rows.push({
+        _rowKind: "item",
+        ...meta,
+        item:
+          formatPaymentLineItemsSummary(payment) ||
+          paymentFreeformNote(payment) ||
+          "—",
+        qty: "—",
+        unit: "—",
+        unitPrice: "—",
+        amount: fmtRmb(payment.amount),
+      });
+      continue;
+    }
+
+    lineItems.forEach((line, idx) => {
+      rows.push({
+        _rowKind: "item",
+        ...(idx === 0 ? meta : blankMeta),
+        item: line.name,
+        qty: line.qty,
+        unit: line.unit,
+        unitPrice: line.unitPrice,
+        amount: fmtRmb(line.lineTotal),
+      });
+    });
+
+    rows.push({
+      _rowKind: "subtotal",
+      ...blankMeta,
+      item: "Payment total",
+      qty: "",
+      unit: "",
+      unitPrice: "",
+      amount: fmtRmb(payment.amount),
+    });
+  }
+
+  return rows;
+}
+
+function registerMetaCell(value: unknown) {
+  if (value === "" || value === null || value === undefined) return null;
+  return compactTableCell(value);
+}
+
+function registerValueCell(value: unknown, row: Record<string, unknown>) {
+  if (row._rowKind === "subtotal") return null;
+  if (value === "" || value === null || value === undefined) return null;
+  return compactTableCell(value);
+}
+
+function registerItemCell(value: unknown, row: Record<string, unknown>) {
+  if (row._rowKind === "subtotal") {
+    return (
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: "#666",
+          fontStyle: "italic",
+        }}
+      >
+        {String(value ?? "")}
+      </div>
+    );
+  }
+  return compactTableCell(value);
+}
+
+function registerAmountCell(value: unknown, row: Record<string, unknown>) {
+  const content = typeof value === "string" ? value : String(value ?? "");
+  if (row._rowKind === "subtotal") {
+    return (
+      <div
+        style={{
+          fontSize: 9,
+          fontWeight: 800,
+          color: "#002868",
+          textAlign: "right",
+        }}
+      >
+        {content}
+      </div>
+    );
+  }
+  return compactTableCell(value);
+}
+
 function PaymentsDocumentPreview({
   payments,
   totalExpense,
@@ -691,50 +888,7 @@ function PaymentsDocumentPreview({
     day: "numeric",
   });
 
-  const rows: Record<string, unknown>[] =
-    payments.length > 0
-      ? payments.map((payment) => {
-          const proofCount = allPaymentProofs(payment).length;
-          const itemDetails = formatPaymentLineItemsSummary(payment);
-          return {
-            date: new Date(payment.paidAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "2-digit",
-            }),
-            type:
-              payment.paymentType === "INCOME"
-                ? "Income"
-                : payment.paymentType === "EXPENSE"
-                  ? "Expense"
-                  : "Expense",
-            paidBy: payment.paidBy || "—",
-            paidTo: payment.paidTo || "—",
-            method:
-              PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ??
-              payment.method,
-            item: itemDetails || "—",
-            proofs:
-              proofCount > 0
-                ? `${proofCount} file${proofCount === 1 ? "" : "s"}`
-                : "None",
-            amount: fmtRmb(payment.amount),
-            status: formatPaymentStatusLabel(payment.status),
-          };
-        })
-      : [
-          {
-            date: "—",
-            type: "—",
-            paidBy: "No records yet",
-            paidTo: "—",
-            method: "—",
-            item: "—",
-            proofs: "—",
-            amount: "—",
-            status: "—",
-          },
-        ];
+  const rows = buildPaymentRegisterRows(payments);
 
   const receiptEntries: ReceiptPhotoEntry[] = payments.flatMap((payment) =>
     allPaymentProofs(payment).map((proof) => ({
@@ -746,13 +900,28 @@ function PaymentsDocumentPreview({
       isImage: proofIsImage(proof),
     })),
   );
-  const receiptChunks = chunkReceiptPhotos(receiptEntries);
 
+  const trailingPx = 42 + (hasSignatories(signatoryDraft) ? 140 : 0);
   const rowChunks = computePageChunks(rows, {
     page1OverheadPx: 82,
-    trailingPx: 42 + (hasSignatories(signatoryDraft) ? 140 : 0),
+    trailingPx,
     contHeaderPx: 32,
   });
+
+  const lastTablePageIndex = rowChunks.length - 1;
+  const lastTablePageOverhead =
+    lastTablePageIndex === 0 ? 82 : 32;
+  const lastTablePageRemainingPx = remainingTablePagePx(
+    rowChunks[lastTablePageIndex]?.length ?? 0,
+    lastTablePageOverhead,
+    trailingPx,
+  );
+  const { lastPageReceipts, extraPages: receiptExtraPages } =
+    allocateReceiptPhotoPages(
+      receiptEntries,
+      lastTablePageRemainingPx,
+      PAGE_METRICS.contentH,
+    );
 
   const scopedCommitteeKeys = Array.from(
     new Set(
@@ -774,44 +943,70 @@ function PaymentsDocumentPreview({
     scopedMembers.length > 0 ? scopedMembers : members,
   );
   const normalizedConfInfo = normalizeConfInfo(confInfo);
-  const totalPages = rowChunks.length + receiptChunks.length;
+  const totalPages = rowChunks.length + receiptExtraPages.length;
 
   const tableColumns = [
-    { key: "date", label: "Date", width: 9, format: compactTableCell },
-    { key: "type", label: "Type", width: 7, format: compactTableCell },
+    {
+      key: "date",
+      label: "Date",
+      width: 7,
+      format: registerMetaCell,
+    },
+    { key: "type", label: "Type", width: 6, format: registerMetaCell },
     {
       key: "paidBy",
       label: "Paid/Received By",
-      width: 14,
-      format: compactTableCell,
+      width: 10,
+      format: registerMetaCell,
     },
     {
       key: "paidTo",
       label: "To/Received By",
-      width: 13,
-      format: compactTableCell,
+      width: 9,
+      format: registerMetaCell,
     },
-    { key: "method", label: "Method", width: 9, format: compactTableCell },
+    { key: "method", label: "Method", width: 7, format: registerMetaCell },
     {
       key: "item",
-      label: "Item details",
-      width: 24,
-      format: compactTableCell,
+      label: "Item",
+      width: 18,
+      format: registerItemCell,
+    },
+    {
+      key: "qty",
+      label: "Qty",
+      width: 5,
+      align: "center" as const,
+      format: registerValueCell,
+    },
+    {
+      key: "unit",
+      label: "Unit",
+      width: 6,
+      align: "center" as const,
+      format: registerValueCell,
+    },
+    {
+      key: "unitPrice",
+      label: "Unit Price (¥)",
+      width: 8,
+      align: "right" as const,
+      format: registerValueCell,
     },
     {
       key: "proofs",
       label: "Receipts",
-      width: 7,
+      width: 6,
       align: "center" as const,
-      format: compactTableCell,
+      format: registerMetaCell,
     },
-    { key: "status", label: "Status", width: 9, format: compactTableCell },
+    { key: "status", label: "Status", width: 8, format: registerMetaCell },
     {
       key: "amount",
-      label: "Amount",
-      width: 8,
+      label: "Amount (¥)",
+      width: 10,
       align: "right" as const,
-      format: compactTableCell,
+      format: registerAmountCell,
     },
   ];
 
@@ -897,12 +1092,28 @@ function PaymentsDocumentPreview({
                 </div>
               </div>
               <DocumentSignatureBlock draft={signatoryDraft} />
+              {lastPageReceipts.length > 0 && (
+                <>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "#002868",
+                      marginTop: 12,
+                      marginBottom: 12,
+                    }}
+                  >
+                    Receipt Photos
+                  </div>
+                  <DocumentReceiptPhotosGrid entries={lastPageReceipts} />
+                </>
+              )}
             </>
           )}
         </DocumentLayout>
       ))}
 
-      {receiptChunks.map((chunk, receiptPageIndex) => (
+      {receiptExtraPages.map((chunk, receiptPageIndex) => (
         <DocumentLayout
           key={`payments-v2-receipts-${receiptPageIndex}`}
           forPrint={forPrint}
@@ -923,8 +1134,8 @@ function PaymentsDocumentPreview({
             }}
           >
             Receipt Photos
-            {receiptChunks.length > 1
-              ? ` (${receiptPageIndex + 1} of ${receiptChunks.length})`
+            {receiptExtraPages.length > 1
+              ? ` (${receiptPageIndex + 1} of ${receiptExtraPages.length})`
               : ""}
           </div>
           <DocumentReceiptPhotosGrid entries={chunk} />

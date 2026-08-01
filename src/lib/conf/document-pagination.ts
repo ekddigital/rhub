@@ -122,3 +122,21 @@ export function computePageChunks<T>(
 
   return pages;
 }
+
+/** Pixels consumed by a table page: overhead + caption/header + rows + optional trailing. */
+export function estimateTablePageUsedPx(
+  rowCount: number,
+  pageOverheadPx: number,
+  trailingPx = 0,
+): number {
+  return pageOverheadPx + TABLE_FIXED_H + rowCount * rowH + trailingPx;
+}
+
+/** Remaining vertical space on a table page after rows and trailing content. */
+export function remainingTablePagePx(
+  rowCount: number,
+  pageOverheadPx: number,
+  trailingPx = 0,
+): number {
+  return contentH - estimateTablePageUsedPx(rowCount, pageOverheadPx, trailingPx);
+}
