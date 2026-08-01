@@ -76,6 +76,57 @@ export function multiBudgetToCsv(
   return `${lines.join("\n")}\n`;
 }
 
+export type PaymentCsvRecord = {
+  paidAt: string;
+  paymentType: "EXPENSE" | "INCOME" | string | null;
+  paidBy: string;
+  paidTo: string | null;
+  method: string;
+  amount: number;
+  status: string;
+  committeeScope: string | null;
+  ref: string | null;
+  note: string | null;
+  itemDetails?: string | null;
+};
+
+/** Generate CSV string from payment records */
+export function paymentsToCsv(
+  payments: PaymentCsvRecord[],
+  title = "Payment Records",
+): string {
+  const header =
+    "Date,Type,Paid/Received By,To/Received By,Method,Amount (¥),Status,Committee,Ref,Notes,Item Details";
+  const rows = payments.map((payment) =>
+    [
+      new Date(payment.paidAt).toLocaleDateString(),
+      payment.paymentType === "INCOME" ? "Income" : "Expense",
+      `"${payment.paidBy.replace(/"/g, '""')}"`,
+      `"${(payment.paidTo ?? "").replace(/"/g, '""')}"`,
+      payment.method,
+      payment.amount,
+      payment.status,
+      `"${(payment.committeeScope ?? "").replace(/"/g, '""')}"`,
+      `"${(payment.ref ?? "").replace(/"/g, '""')}"`,
+      `"${(payment.note ?? "").replace(/"/g, '""')}"`,
+      `"${(payment.itemDetails ?? "").replace(/"/g, '""')}"`,
+    ].join(","),
+  );
+
+  const totalExpense = payments
+    .filter((payment) => payment.paymentType !== "INCOME")
+    .reduce((sum, payment) => sum + payment.amount, 0);
+  const totalIncome = payments
+    .filter((payment) => payment.paymentType === "INCOME")
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  rows.push("");
+  rows.push(`,,,,Total Expense,${totalExpense},,,,,`);
+  rows.push(`,,,,Total Income,${totalIncome},,,,,`);
+
+  return `${title}\n${header}\n${rows.join("\n")}\n`;
+}
+
 /** Convert budget data to a downloadable Response */
 export function csvResponse(csv: string, filename: string): Response {
   // BOM for Excel UTF-8 compatibility

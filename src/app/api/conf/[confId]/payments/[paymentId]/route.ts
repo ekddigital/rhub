@@ -304,7 +304,7 @@ export async function PATCH(req: Request, { params }: Params) {
   }
 }
 
-// DELETE /api/conf/[confId]/payments/[paymentId] — remove unlocked payment
+// DELETE /api/conf/[confId]/payments/[paymentId] — remove payment (admins may delete approved/locked)
 export async function DELETE(_req: Request, { params }: Params) {
   try {
     const { confId, paymentId } = await params;

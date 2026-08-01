@@ -31,6 +31,7 @@ import {
   List,
   ChevronLeft,
   ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -83,6 +84,7 @@ import {
   hasSignatories,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
+import { paymentsToCsv } from "@/lib/conf/export";
 import {
   canDeletePayment as canDeletePaymentAccess,
   canEditPayment as canEditPaymentAccess,
@@ -465,6 +467,77 @@ function canDeletePayment(payment: Payment, accessInfo?: AccessInfo) {
   const access = toConferenceAccess(accessInfo);
   if (!access) return false;
   return canDeletePaymentAccess(paymentToAccessRecord(payment), access);
+}
+
+function paymentToCsvRecord(payment: Payment) {
+  return {
+    paidAt: payment.paidAt,
+    paymentType: payment.paymentType,
+    paidBy: payment.paidBy,
+    paidTo: payment.paidTo,
+    method:
+      PAY_METHODS[payment.method as keyof typeof PAY_METHODS] ?? payment.method,
+    amount: payment.amount,
+    status: payment.status,
+    committeeScope: payment.committeeScope,
+    ref: payment.ref,
+    note: paymentFreeformNote(payment) || null,
+    itemDetails: formatPaymentLineItemsSummary(payment) || null,
+  };
+}
+
+function resolveRegisterPayments(
+  selectedIds: string[],
+  pagePayments: Payment[],
+  confirmedPayments: Payment[],
+): Payment[] {
+  const selectedApproved = pagePayments.filter(
+    (payment) =>
+      selectedIds.includes(payment.id) && payment.status === "APPROVED",
+  );
+  if (selectedApproved.length > 0) return selectedApproved;
+
+  const pageApproved = pagePayments.filter(
+    (payment) => payment.status === "APPROVED",
+  );
+  if (pageApproved.length > 0) return pageApproved;
+
+  return confirmedPayments;
+}
+
+function deleteConfirmationMessage(targetPayments: Payment[]) {
+  const approvedOrLocked = targetPayments.filter(
+    (payment) => payment.status === "APPROVED" || payment.isLocked,
+  );
+  if (approvedOrLocked.length > 0) {
+    const countLabel =
+      targetPayments.length === 1
+        ? "this payment record"
+        : `${targetPayments.length} payment records`;
+    return `Delete ${countLabel}? ${approvedOrLocked.length} ${
+      approvedOrLocked.length === 1 ? "is" : "are"
+    } finally approved or locked. This cannot be undone and will affect financial totals.`;
+  }
+  if (targetPayments.length === 1) {
+    return "Delete this payment record? This action cannot be undone.";
+  }
+  return `Delete ${targetPayments.length} selected payment records? This cannot be undone.`;
+}
+
+function downloadPaymentsCsv(paymentsForCsv: Payment[], filename: string) {
+  const csv = paymentsToCsv(
+    paymentsForCsv.map(paymentToCsvRecord),
+    "Payment Records",
+  );
+  const blob = new Blob(["\uFEFF" + csv], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function buildDraftPaymentForPreview(args: {
@@ -888,6 +961,9 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     percent: number;
   } | null>(null);
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [printPayments, setPrintPayments] = useState<Payment[]>([]);
+  const [printPortalReady, setPrintPortalReady] = useState(false);
+  const [csvExportLoading, setCsvExportLoading] = useState(false);
   const [committeeOptions, setCommitteeOptions] = useState<string[]>([]);
 
   const loadPayments = useCallback(
@@ -919,6 +995,23 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
       return payload;
     },
     [filterType, filterStatus, listPage, listPageSize],
+  );
+
+  const loadAllFilteredPayments = useCallback(
+    async (id: string) => {
+      const params = new URLSearchParams();
+      if (filterType !== "ALL") params.set("type", filterType);
+      if (filterStatus !== "ALL") {
+        params.set("status", filterStatus);
+      }
+
+      const res = await fetch(`/api/conf/${id}/payments?${params}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Failed to load payments for export");
+      return (await res.json()) as Payment[];
+    },
+    [filterType, filterStatus],
   );
 
   const loadConfirmedPayments = useCallback(async (id: string) => {
@@ -966,6 +1059,23 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   useEffect(() => {
     setListViewMode(loadPaymentViewMode());
   }, []);
+
+  useEffect(() => {
+    setPrintPortalReady(true);
+  }, []);
+
+  useEffect(() => {
+    const onAfterPrint = () => {
+      document.body.removeAttribute("data-print-mode");
+      setPrintPayments([]);
+    };
+    window.addEventListener("afterprint", onAfterPrint);
+    return () => window.removeEventListener("afterprint", onAfterPrint);
+  }, []);
+
+  useEffect(() => {
+    setPrintPayments(confirmedPayments);
+  }, [confirmedPayments]);
 
   useEffect(() => {
     const init = async () => {
@@ -1233,16 +1343,51 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     savePaymentViewMode(mode);
   };
 
-  const deletablePaymentsOnPage = useMemo(
-    () => payments.filter((payment) => canDeletePayment(payment, accessInfo)),
-    [payments, accessInfo],
+  const selectedPaymentsOnPage = useMemo(
+    () => payments.filter((payment) => selectedPaymentIds.includes(payment.id)),
+    [payments, selectedPaymentIds],
   );
 
-  const allDeletableSelected =
-    deletablePaymentsOnPage.length > 0 &&
-    deletablePaymentsOnPage.every((payment) =>
-      selectedPaymentIds.includes(payment.id),
-    );
+  const selectedDeletablePayments = useMemo(
+    () =>
+      selectedPaymentsOnPage.filter((payment) =>
+        canDeletePayment(payment, accessInfo),
+      ),
+    [selectedPaymentsOnPage, accessInfo],
+  );
+
+  const registerPayments = useMemo(
+    () =>
+      resolveRegisterPayments(
+        selectedPaymentIds,
+        payments,
+        confirmedPayments,
+      ),
+    [selectedPaymentIds, payments, confirmedPayments],
+  );
+
+  const printExpenseTotal = useMemo(
+    () =>
+      printPayments
+        .filter(
+          (payment) =>
+            payment.paymentType === "EXPENSE" || !payment.paymentType,
+        )
+        .reduce((sum, payment) => sum + payment.amount, 0),
+    [printPayments],
+  );
+
+  const printIncomeTotal = useMemo(
+    () =>
+      printPayments
+        .filter((payment) => payment.paymentType === "INCOME")
+        .reduce((sum, payment) => sum + payment.amount, 0),
+    [printPayments],
+  );
+
+  const allPageSelected =
+    payments.length > 0 &&
+    payments.every((payment) => selectedPaymentIds.includes(payment.id));
 
   const togglePaymentSelection = (paymentId: string) => {
     setSelectedPaymentIds((prev) =>
@@ -1252,22 +1397,129 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     );
   };
 
-  const toggleSelectAllDeletable = () => {
-    if (allDeletableSelected) {
+  const toggleSelectAllOnPage = () => {
+    if (allPageSelected) {
       setSelectedPaymentIds((prev) =>
-        prev.filter(
-          (id) => !deletablePaymentsOnPage.some((payment) => payment.id === id),
-        ),
+        prev.filter((id) => !payments.some((payment) => payment.id === id)),
       );
       return;
     }
     setSelectedPaymentIds((prev) => [
       ...prev,
-      ...deletablePaymentsOnPage
-        .map((payment) => payment.id)
-        .filter((id) => !prev.includes(id)),
+      ...payments.map((payment) => payment.id).filter((id) => !prev.includes(id)),
     ]);
   };
+
+  const clearPaymentSelection = () => {
+    setSelectedPaymentIds([]);
+  };
+
+  const triggerPrint = useCallback((paymentsForPrint: Payment[]) => {
+    setPrintPayments(paymentsForPrint);
+    document.body.setAttribute("data-print-mode", "register");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+      });
+    });
+  }, []);
+
+  const handleExportCsv = useCallback(
+    async (source: "selection" | "filter") => {
+      if (!confId || csvExportLoading) return;
+      setCsvExportLoading(true);
+      setError(null);
+      try {
+        let paymentsForCsv: Payment[];
+        if (source === "selection" && selectedPaymentIds.length > 0) {
+          const selectedIds = new Set(selectedPaymentIds);
+          paymentsForCsv = payments.filter((payment) =>
+            selectedIds.has(payment.id),
+          );
+          const missingSelectedIds = selectedPaymentIds.filter(
+            (id) => !paymentsForCsv.some((payment) => payment.id === id),
+          );
+          if (missingSelectedIds.length > 0) {
+            const allFiltered = await loadAllFilteredPayments(confId);
+            paymentsForCsv = allFiltered.filter((payment) =>
+              selectedIds.has(payment.id),
+            );
+          }
+        } else {
+          paymentsForCsv = await loadAllFilteredPayments(confId);
+        }
+
+        if (paymentsForCsv.length === 0) {
+          setError("No payment records to export.");
+          return;
+        }
+
+        downloadPaymentsCsv(
+          paymentsForCsv,
+          source === "selection" && selectedPaymentIds.length > 0
+            ? `payments_selected_${paymentsForCsv.length}.csv`
+            : `payments_filtered_${paymentsForCsv.length}.csv`,
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "CSV export failed");
+      } finally {
+        setCsvExportLoading(false);
+      }
+    },
+    [
+      confId,
+      csvExportLoading,
+      loadAllFilteredPayments,
+      payments,
+      selectedPaymentIds,
+    ],
+  );
+
+  const handleRegisterPrint = useCallback(
+    (paymentsForPrint: Payment[]) => {
+      if (paymentsForPrint.length === 0) {
+        setError("No approved payment records to print.");
+        return;
+      }
+      triggerPrint(paymentsForPrint);
+    },
+    [triggerPrint],
+  );
+
+  const handleExportPdf = useCallback(
+    async (paymentsForPrint: Payment[], filename: string) => {
+      if (pdfExporting) return;
+      if (paymentsForPrint.length === 0) {
+        setError("No approved payment records to export.");
+        return;
+      }
+
+      setPdfExporting(true);
+      setPrintPayments(paymentsForPrint);
+      document.body.setAttribute("data-print-mode", "register");
+      try {
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+        const { exportToPDF } =
+          await import("@/lib/creative/documents/pdfExport");
+        await exportToPDF("payments-print-root", filename, undefined, {
+          pageSelector: ".document-page",
+          pageWrapperSelector: null,
+          mode: "download",
+          canvasScale: 2,
+          jpegQuality: 0.85,
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "PDF export failed");
+      } finally {
+        document.body.removeAttribute("data-print-mode");
+        setPrintPayments(confirmedPayments);
+        setPdfExporting(false);
+      }
+    },
+    [confirmedPayments, pdfExporting],
+  );
 
   const uploadProofWithProgress = useCallback(
     (
@@ -1671,25 +1923,23 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
     setError(null);
   };
 
-  const handleDeletePayment = async (paymentId: string) => {
+  const handleDeletePayment = async (payment: Payment) => {
     if (!confId || deleteLoadingId) return;
-    const confirmed = window.confirm(
-      "Delete this payment record? This action cannot be undone.",
-    );
+    const confirmed = window.confirm(deleteConfirmationMessage([payment]));
     if (!confirmed) return;
 
-    setDeleteLoadingId(paymentId);
+    setDeleteLoadingId(payment.id);
     setError(null);
     try {
-      const res = await fetch(`/api/conf/${confId}/payments/${paymentId}`, {
+      const res = await fetch(`/api/conf/${confId}/payments/${payment.id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
         const err = (await res.json()) as { error?: string };
         throw new Error(err.error ?? "Failed to delete payment");
       }
-      setSelectedPaymentIds((prev) => prev.filter((id) => id !== paymentId));
-      if (editingPaymentId === paymentId) {
+      setSelectedPaymentIds((prev) => prev.filter((id) => id !== payment.id));
+      if (editingPaymentId === payment.id) {
         resetForm();
       }
       await refresh();
@@ -1701,17 +1951,18 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
   };
 
   const handleBulkDelete = async () => {
-    if (!confId || bulkDeleteLoading || selectedPaymentIds.length === 0) return;
+    if (!confId || bulkDeleteLoading || selectedDeletablePayments.length === 0)
+      return;
     const confirmed = window.confirm(
-      `Delete ${selectedPaymentIds.length} selected payment record${selectedPaymentIds.length === 1 ? "" : "s"}? This cannot be undone.`,
+      deleteConfirmationMessage(selectedDeletablePayments),
     );
     if (!confirmed) return;
 
     setBulkDeleteLoading(true);
     setError(null);
     try {
-      for (const paymentId of selectedPaymentIds) {
-        const res = await fetch(`/api/conf/${confId}/payments/${paymentId}`, {
+      for (const payment of selectedDeletablePayments) {
+        const res = await fetch(`/api/conf/${confId}/payments/${payment.id}`, {
           method: "DELETE",
         });
         if (!res.ok) {
@@ -1719,7 +1970,10 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           throw new Error(err.error ?? "Failed to delete one or more payments");
         }
       }
-      if (editingPaymentId && selectedPaymentIds.includes(editingPaymentId)) {
+      if (
+        editingPaymentId &&
+        selectedDeletablePayments.some((payment) => payment.id === editingPaymentId)
+      ) {
         resetForm();
       }
       setSelectedPaymentIds([]);
@@ -1937,48 +2191,35 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="size-4" />
-            Print / PDF
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={csvExportLoading}
+            onClick={() => void handleExportCsv("filter")}
+          >
+            <FileSpreadsheet className="size-4" />
+            {csvExportLoading ? "Exporting…" : "Export CSV"}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={async () => {
-              if (pdfExporting) return;
-              setPdfExporting(true);
-              document.body.setAttribute("data-print-mode", "print");
-              try {
-                await new Promise<void>((resolve) => {
-                  requestAnimationFrame(() =>
-                    requestAnimationFrame(() => resolve()),
-                  );
-                });
-                const { exportToPDF } =
-                  await import("@/lib/creative/documents/pdfExport");
-                await exportToPDF(
-                  "payments-print-root",
-                  "payment-tracker",
-                  undefined,
-                  {
-                    pageSelector: ".document-page",
-                    pageWrapperSelector: null,
-                    mode: "download",
-                    canvasScale: 2,
-                    jpegQuality: 0.85,
-                  },
-                );
-              } catch (e) {
-                setError(e instanceof Error ? e.message : "PDF export failed");
-              } finally {
-                document.body.removeAttribute("data-print-mode");
-                setPdfExporting(false);
-              }
-            }}
+            onClick={() => handleRegisterPrint(registerPayments)}
+            title="Print or save as PDF"
+          >
+            <Printer className="size-4" />
+            Print
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             disabled={pdfExporting}
+            onClick={() =>
+              void handleExportPdf(registerPayments, "payment-register")
+            }
+            title="Download PDF"
           >
             <Download className="size-4" />
-            {pdfExporting ? "Exporting..." : "Export PDF"}
+            {pdfExporting ? "Exporting…" : "Export PDF"}
           </Button>
           <Button variant="ghost" size="icon-sm" onClick={refresh}>
             <RefreshCw className="size-4" />
@@ -2452,16 +2693,16 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                 </CardDescription>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {deletablePaymentsOnPage.length > 0 && (
+                {payments.length > 0 && (
                   <>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       className="h-7 text-xs"
-                      onClick={toggleSelectAllDeletable}
+                      onClick={toggleSelectAllOnPage}
                     >
-                      {allDeletableSelected ? (
+                      {allPageSelected ? (
                         <CheckSquare className="size-3.5" />
                       ) : (
                         <Square className="size-3.5" />
@@ -2469,21 +2710,71 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                       Select all
                     </Button>
                     {selectedPaymentIds.length > 0 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 border-red-500/40 text-xs text-red-600 hover:bg-red-500/10"
-                        onClick={() => void handleBulkDelete()}
-                        disabled={bulkDeleteLoading}
-                      >
-                        {bulkDeleteLoading ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="size-3.5" />
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          disabled={csvExportLoading}
+                          onClick={() => void handleExportCsv("selection")}
+                        >
+                          <FileSpreadsheet className="size-3.5" />
+                          Export selected
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => handleRegisterPrint(registerPayments)}
+                        >
+                          <Printer className="size-3.5" />
+                          Print selected
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs"
+                          disabled={pdfExporting}
+                          onClick={() =>
+                            void handleExportPdf(
+                              registerPayments,
+                              `payments_selected_${registerPayments.length}`,
+                            )
+                          }
+                        >
+                          <Download className="size-3.5" />
+                          PDF selected
+                        </Button>
+                        {selectedDeletablePayments.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 border-red-500/40 text-xs text-red-600 hover:bg-red-500/10"
+                            onClick={() => void handleBulkDelete()}
+                            disabled={bulkDeleteLoading}
+                          >
+                            {bulkDeleteLoading ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="size-3.5" />
+                            )}
+                            Delete selected
+                          </Button>
                         )}
-                        Delete selected
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={clearPaymentSelection}
+                        >
+                          Clear selection
+                        </Button>
+                      </>
                     )}
                   </>
                 )}
@@ -2542,22 +2833,22 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
               <CardContent className="pt-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 flex-1 gap-2">
-                    {showDelete && (
-                      <button
-                        type="button"
-                        className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
-                        onClick={() => togglePaymentSelection(payment.id)}
-                        title={
-                          isSelected ? "Deselect for delete" : "Select for delete"
-                        }
-                      >
-                        {isSelected ? (
-                          <CheckSquare className="size-4 text-[#C8A061]" />
-                        ) : (
-                          <Square className="size-4" />
-                        )}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="mt-1 shrink-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => togglePaymentSelection(payment.id)}
+                      title={
+                        isSelected
+                          ? "Deselect record"
+                          : "Select record"
+                      }
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="size-4 text-[#C8A061]" />
+                      ) : (
+                        <Square className="size-4" />
+                      )}
+                    </button>
                     <div className="min-w-0 flex-1 space-y-1">
                     {/* Amount + badges */}
                     <div className="flex flex-wrap items-center gap-2">
@@ -2731,7 +3022,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                         size="sm"
                         variant="outline"
                         className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
-                        onClick={() => handleDeletePayment(payment.id)}
+                        onClick={() => handleDeletePayment(payment)}
                         disabled={deleteLoadingId === payment.id}
                       >
                         {deleteLoadingId === payment.id ? (
@@ -2945,7 +3236,7 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
                           size="sm"
                           variant="outline"
                           className="h-7 border-red-500/40 text-red-600 hover:bg-red-500/10 text-xs"
-                          onClick={() => handleDeletePayment(payment.id)}
+                          onClick={() => handleDeletePayment(payment)}
                           disabled={deleteLoadingId === payment.id}
                         >
                           {deleteLoadingId === payment.id ? (
@@ -3090,17 +3381,19 @@ export function PaymentShell({ accessInfo }: { accessInfo?: AccessInfo }) {
         </div>
       )}
 
-      <div id="payments-print-root">
-        <PaymentsDocumentPreview
-          payments={confirmedPayments}
-          totalExpense={totalExpense}
-          totalIncome={totalIncome}
-          confInfo={confInfo}
-          members={members}
-          signatoryDraft={signatoryDraft}
-          forPrint
-        />
-      </div>
+      {printPortalReady && (
+        <div id="payments-print-root">
+          <PaymentsDocumentPreview
+            payments={printPayments}
+            totalExpense={printExpenseTotal}
+            totalIncome={printIncomeTotal}
+            confInfo={confInfo}
+            members={members}
+            signatoryDraft={signatoryDraft}
+            forPrint
+          />
+        </div>
+      )}
     </div>
   );
 }

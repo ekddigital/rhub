@@ -32,9 +32,9 @@ export function canEditPayment(
   payment: PaymentAccessRecord,
   access: ConferenceAccess,
 ): boolean {
-  if (payment.isLocked || payment.status === "APPROVED") return false;
-
   if (hasPaymentAdminRights(access)) return true;
+
+  if (payment.isLocked || payment.status === "APPROVED") return false;
 
   if (isPaymentOwner(payment, access)) {
     return payment.status === "PENDING" || payment.status === "REJECTED";
@@ -58,9 +58,9 @@ export function canDeletePayment(
   payment: PaymentAccessRecord,
   access: ConferenceAccess,
 ): boolean {
-  if (payment.isLocked || payment.status === "APPROVED") return false;
-
   if (hasPaymentAdminRights(access)) return true;
+
+  if (payment.isLocked || payment.status === "APPROVED") return false;
 
   if (isPaymentOwner(payment, access)) {
     return payment.status === "PENDING" || payment.status === "REJECTED";
