@@ -10,12 +10,10 @@ import {
 export function ConferenceReportTocPage({
   pageNum,
   pageIndex,
-  totalTocPages,
   entries,
 }: {
   pageNum: number;
   pageIndex: number;
-  totalTocPages: number;
   entries: (typeof REPORT_TOC)[number][];
 }) {
   const totalPages = computeReportTotalPages();
@@ -101,22 +99,6 @@ export function ConferenceReportTocPage({
             </div>
           ))}
         </div>
-
-        {pageIndex === totalTocPages - 1 && (
-          <div
-            style={{
-              marginTop: "auto",
-              paddingTop: "10px",
-              borderTop: `1px solid ${C.border}`,
-              fontSize: "10px",
-              color: "#666",
-              lineHeight: 1.5,
-            }}
-          >
-            Source: {REPORT_META.markdownPath} · {totalPages} pages · Theme:
-            &ldquo;{REPORT_META.theme}&rdquo;
-          </div>
-        )}
       </div>
       <PageFooter
         confName={REPORT_META.confName}

@@ -419,7 +419,6 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           key={`toc-${idx}`}
           pageNum={nextPage()}
           pageIndex={idx}
-          totalTocPages={tocChunks.length}
           entries={chunk}
         />
       ))}
@@ -878,7 +877,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             fontStyle: "italic",
           }}
         >
-          Date: 13 August 2026 · Source markdown: {REPORT_META.markdownPath}
+          Date: 13 August 2026
         </div>
       </ReportA4Page>
     </div>
