@@ -11,10 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ConferenceReportPreview } from "@/components/tools/conf/conference-report/ConferenceReportPreview";
-import {
-  ATTENDANCE_STATS,
-  REPORT_META,
-} from "@/components/tools/conf/conference-report/content-data";
+import { REPORT_META } from "@/components/tools/conf/conference-report/content-data";
 
 export function ConferenceReportShell() {
   return (
@@ -30,8 +27,7 @@ export function ConferenceReportShell() {
             {REPORT_META.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Official post-conference report for the {REPORT_META.confName} —{" "}
-            {REPORT_META.theme}.
+            Official post-conference report — {REPORT_META.bookletTitle}
           </p>
         </div>
       </div>
@@ -52,26 +48,9 @@ export function ConferenceReportShell() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="text-xs text-muted-foreground space-y-1">
+        <CardContent className="text-sm text-muted-foreground">
           <p>
-            Theme: &ldquo;{REPORT_META.theme}&rdquo; · Sub-theme: &ldquo;
-            {REPORT_META.subTheme}&rdquo;
-          </p>
-          <p>
-            {ATTENDANCE_STATS.totalRegistered} registered participants from{" "}
-            {ATTENDANCE_STATS.uniqueCities} cities. Download as PDF to share or
-            print.
-          </p>
-          <p>
-            Source markdown:{" "}
-            <a
-              href={REPORT_META.markdownPath}
-              className="text-blue-600 underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              jinan-2026-conference-report.md
-            </a>
+            Jinan, Shandong Province · Report certified {REPORT_META.reportDate}
           </p>
         </CardContent>
       </Card>

@@ -19,20 +19,23 @@ Jinan, Shandong Province, People's Republic of China
 1. [Executive Summary](#1-executive-summary)
 2. [Conference Objectives and Theme](#2-conference-objectives-and-theme)
 3. [Pre-Conference Preparation](#3-pre-conference-preparation)
-4. [Conference Overview](#4-conference-overview)
-5. [Day 1 — Arrival & Meet and Greet](#5-day-1--arrival--meet-and-greet)
-6. [Day 2 — Conference Business & Pool Party](#6-day-2--conference-business--pool-party)
-7. [Day 3 — Independence Day, Sports & Awards Night](#7-day-3--independence-day-sports--awards-night)
-8. [Day 4 — Departure](#8-day-4--departure)
-9. [Attendance and Finance Summary](#9-attendance-and-finance-summary)
-10. [Full Delegate Register](#10-full-delegate-register)
-11. [Distinguished Guests and Speakers](#11-distinguished-guests-and-speakers)
-12. [Outcomes, Resolutions, and Recommendations](#12-outcomes-resolutions-and-recommendations)
-13. [Lessons Learned for Future Conferences](#13-lessons-learned-for-future-conferences)
-14. [Photographic Record](#14-photographic-record)
-15. [Acknowledgements](#15-acknowledgements)
-16. [Certification](#16-certification)
-17. [Appendices](#17-appendices)
+4. [Venue and Accommodation](#4-venue-and-accommodation)
+5. [Conference Committee](#5-conference-committee)
+6. [Conference Overview](#6-conference-overview)
+7. [Day 1 — Arrival & Meet and Greet](#7-day-1--arrival--meet-and-greet)
+8. [Day 2 — Conference Business & Pool Party](#8-day-2--conference-business--pool-party)
+9. [Day 3 — Independence Day, Sports & Awards Night](#9-day-3--independence-day-sports--awards-night)
+10. [Day 4 — Departure](#10-day-4--departure)
+11. [Election Report Summary](#11-election-report-summary)
+12. [Attendance and Finance Summary](#12-attendance-and-finance-summary)
+13. [Full Delegate Register](#13-full-delegate-register)
+14. [Distinguished Guests and Speakers](#14-distinguished-guests-and-speakers)
+15. [Outcomes, Resolutions, and Recommendations](#15-outcomes-resolutions-and-recommendations)
+16. [Lessons Learned for Future Conferences](#16-lessons-learned-for-future-conferences)
+17. [Photographic Record](#17-photographic-record)
+18. [Acknowledgements](#18-acknowledgements)
+19. [Certification](#19-certification)
+20. [Appendices](#20-appendices)
 
 ---
 
@@ -79,7 +82,7 @@ The theme invited delegates to reflect on foundations laid by founders and alumn
 | Conference Chair (General Chairman) | Enoch Kwateh Dongbo |
 | General Secretary, Conference Committee | Harris M. Bowulo |
 | Outgoing National President | Hon. Olano Teah Bloh |
-| Incoming National President | Certified at Independence Day induction (26 July 2026) |
+| Incoming National President | Certified at Independence Day induction (26 July 2026) — **Hon. Moses Kingsford Flomo** |
 
 ---
 
@@ -89,40 +92,113 @@ Months before delegates arrived in Jinan, the Conference Committee and NEC execu
 
 ### 3.1 Registration and Delegate Mobilization
 
-- **rhub delegate registration** — Step-by-step registration guidance was published for delegates (`flyer-delegate-registration-guide.png`).
-- **Conference fee structure** — Tiered pricing for single rooms, shared rooms, veteran placements, March intake delegates, and no-accommodation options was communicated (`flyer-conference-fees-structure.png`).
-- **Sample delegate profiles** — Profile cards for conference leadership (e.g., Enoch Kwateh Dongbo, Noah D. Mason Jr.) modeled the rhub delegate profile format.
-- **Delegate badges** — Badge and lanyard mockups were prepared for on-site identification (`delegate-badge-lanyard-mockup.jpg`).
+- **Online delegate registration** — Step-by-step registration guidance was published for delegates.
+- **Conference fee structure** — Tiered pricing for single rooms, shared rooms, veteran placements, March intake delegates, and no-accommodation options was communicated to all chapters.
+- **Sample delegate profiles** — Profile cards for conference leadership modeled the official delegate profile format.
+- **Delegate badges** — Badge and lanyard designs were prepared for on-site identification.
 
 ### 3.2 Communications and Outreach
 
+Pre-conference promotional materials included overview posters, theme graphics, program highlights, countdown campaigns, online information sessions, video challenge promotions, and Miss LSUIC contestant calls. Key campaign assets included:
+
 | Asset | Purpose |
 | --- | --- |
-| `flyer-20th-annual-general-conference.jpg` | Overview poster for the 20th annual conference |
-| `flyer-legacy-and-influence-conference.jpg` | Theme poster — Legacy and Influence |
-| `flyer-what-to-expect-highlights.jpg` | Program highlights and delegate expectations |
-| `flyer-51-days-countdown.png` | Countdown campaign (51 days to conference) |
-| `flyer-know-about-conference-may-22.png` | May 22 information session announcement |
-| `flyer-conference-info-session-online.png` | Online info session with meeting details |
-| `flyer-video-challenge-1-minute.jpg` | One-minute video challenge promotion |
-| `flyer-miss-lsuic-contestant-call.jpg` | Miss LSUIC contestant registration call |
-
-### 3.3 Fundraising and Merchandise
-
-- **Fundraising campaign** — Payment methods and campaign details published (`flyer-fundraising-campaign-payment-methods.png`).
-- **Conference merchandise** — Tote bag design prepared for delegate distribution (`merchandise-conference-tote-bag.jpg`).
-
-### 3.4 Operational Committees
-
-Standing and ad hoc committees were activated before arrival, including **Cooking**, **Logistics**, **Welfare**, **Protocol**, **Press & Public Affairs**, and the **Independent Electoral Commission (IEC)**. The Cooking Committee received a disbursed allocation of **RMB 18,113.03** for conference feeding operations (see Section 9 and Appendix A).
+| 20th Annual Conference overview poster | General conference announcement |
+| Legacy and Influence theme poster | Theme and sub-theme promotion |
+| What to Expect — program highlights | Delegate expectations and schedule preview |
+| Delegate registration guide | Step-by-step registration instructions |
+| Conference fee structure flyer | Room categories and pricing tiers |
+| 51-day countdown campaign | Pre-conference mobilization |
+| Online information session | Virtual briefing for prospective delegates |
+| Fundraising campaign | Payment methods and supporter outreach |
+| Miss LSUIC contestant call | Pageant registration promotion |
+| Conference merchandise | Tote bag and delegate materials |
 
 ![Legacy and Influence — conference theme poster](/conf/assets/before-after-conf/flyers/flyer-legacy-and-influence-conference.jpg)
 
+![20th Annual Conference overview poster](/conf/assets/before-after-conf/flyers/flyer-20th-annual-general-conference.jpg)
+
+![What to expect — program highlights](/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg)
+
 ![Delegate registration guide](/conf/assets/before-after-conf/flyers/flyer-delegate-registration-guide.png)
+
+![Conference fee structure](/conf/assets/before-after-conf/flyers/flyer-conference-fees-structure.png)
+
+### 3.3 Fundraising and Merchandise
+
+- **Fundraising campaign** — Payment methods and campaign details published for institutional and individual supporters.
+- **Conference merchandise** — Tote bag design prepared for delegate distribution.
+
+### 3.4 Operational Committees
+
+Standing and ad hoc committees were activated before arrival, including **Cooking**, **Logistics**, **Welfare**, **Protocol**, **Press & Public Affairs**, and the **Independent Electoral Commission (IEC)**. The Cooking Committee received a disbursed allocation of **RMB 18,113.03** for conference feeding operations (see Section 12 and Appendix A).
 
 ---
 
-## 4. Conference Overview
+## 4. Venue and Accommodation
+
+The LSUIC 20th Annual Conference was hosted at the **Arcadia Spa Golf International Hotel** (齐河阿尔卡迪亚温泉高尔夫国际酒店) in Qihe County, Dezhou, Shandong Province — approximately 40 km southwest of central Jinan.
+
+| Item | Detail |
+| --- | --- |
+| Hotel (English) | Arcadia Spa Golf International Hotel |
+| Hotel (Chinese) | 齐河阿尔卡迪亚温泉高尔夫国际酒店 |
+| Address | 山东省德州市齐河县308国道国科球类中心旁 |
+| Location | Qihe County, Dezhou, Shandong Province, PRC |
+
+Jinan — the City of Springs and capital of Shandong Province — is widely known for its historic artesian wells and long cultural heritage. Shandong is the birthplace of Confucian thought and one of China's major provincial centers of learning and industry.
+
+### 4.1 Conference Facilities Used
+
+| Facility | Use during conference |
+| --- | --- |
+| Hotel reception | Arrival check-in, room assignment, welfare desk, Day 4 checkout |
+| Hotel yard (golf course grounds) | Day 1 Meet and Greet, opening prayer, self-introductions |
+| Hotel conference room | Day 2 plenary business, elections, resolutions; Day 3 Independence Day formal program |
+| Hotel pool / spa area | Day 2 afternoon pool party and dinner service |
+| Hotel sports grounds | Day 3 Independence Day sports — football, basketball, handball, team activities |
+| Hotel dining areas | Cooking Committee meal service throughout all four days |
+| Guest room blocks | Single-room, shared-room, and veteran delegate accommodations |
+
+### 4.2 Room Categories and Conference Fees
+
+| Room Category | Fee (RMB) | Notes |
+| --- | ---: | --- |
+| GS — Single Room | 600 | One delegate per room |
+| Veteran — Single Room | 740 | Honorary veteran placement |
+| GS — Shared Room | 250 | Two delegates per room (primary tier) |
+| GS — Shared Room + Guest | 750 | Delegate with registered guest companion |
+| March Intake — Shared Room | 330 | Reduced rate for March intake delegates |
+| GS — No Accommodation | 175 | Local Jinan-area delegates without hotel room |
+
+**Travel note:** Bus K904 serves the hotel stop until **7:20 PM**. Delegates arriving or departing after this time should use DiDi or a taxi from Jinan West Railway Station or Jinan East Railway Station.
+
+---
+
+## 5. Conference Committee
+
+The LSUIC 2026 Conference Committee — constitutionally capped at eleven appointed members — executed planning, logistics, communications, and on-site operations for the Jinan conference. The committee met weekly from appointment through conference adjournment.
+
+| Role | Name | City |
+| --- | --- | --- |
+| General Chairman | Enoch Kwateh Dongbo | Jinan, SD |
+| Co-Chair | Alfreda Ruth Togbah | Suzhou, JS |
+| General Secretary | Harris M. Bowulo | Beijing, BJ |
+| PRO & Media | Abdul Corneh | Henan, ZJ |
+| Cooking Team Chair | Kukor Brooks | Jinan, SD |
+| Member, Cooking Team | Lisa Y. Synyenlentu | Qingdao, SD |
+| Member, Cooking Team | Blessing Hawa Washington | Nantong, JS |
+| Chair on Logistics | Robert D. Molley | Qufu, SD |
+| Member, Cooking Team | Priscilla Bamu Dweh | Suzhou, JS |
+| Member, Cooking Team | Williamena Yah Munyeneh | Suzhou, JS |
+| Member, Cooking Team | Yvonne B. Blamoh | Nanjing, JS |
+| Chair on Sports | Jefferson T. Banquando | Suzhou, JS |
+
+*Source: LSUIC leaders roster — Conference Committee (CC) appointments, Jinan 2026.*
+
+---
+
+## 6. Conference Overview
 
 | Item | Detail |
 | --- | --- |
@@ -148,7 +224,7 @@ Standing and ad hoc committees were activated before arrival, including **Cookin
 
 ---
 
-## 5. Day 1 — Arrival & Meet and Greet
+## 7. Day 1 — Arrival & Meet and Greet
 
 **Date:** Friday, 24 July 2026 · **Day label:** Arrival Day  
 **Venue:** Arcadia Spa Golf International Hotel, Qihe County, Dezhou, Shandong Province
@@ -192,7 +268,7 @@ The evening closed with delegate feedback, a vote of thanks from the Conference 
 
 ---
 
-## 6. Day 2 — Conference Business & Pool Party
+## 8. Day 2 — Conference Business & Pool Party
 
 **Date:** Saturday, 25 July 2026 · **Day label:** Conference Business & Pool Party  
 **Venue:** Hotel conference room (plenary) · Hotel pool / spa area (afternoon)
@@ -232,7 +308,7 @@ Following **Beans Toborgee** lunch and rest (**2:00 – 4:30 PM**), delegates re
 
 ---
 
-## 7. Day 3 — Independence Day, Sports & Awards Night
+## 9. Day 3 — Independence Day, Sports & Awards Night
 
 **Date:** Sunday, 26 July 2026 · **Day label:** Independence Day, Sports & Awards Night  
 **Designation:** 179th Independence Day of Liberia  
@@ -339,7 +415,7 @@ The program closed with statements from the National President and the Conferenc
 
 ---
 
-## 8. Day 4 — Departure
+## 10. Day 4 — Departure
 
 **Date:** Monday, 27 July 2026 · **Day label:** Departure Day  
 **Venue:** Hotel reception · Jinan West Railway Station (group transfers)
@@ -371,9 +447,60 @@ Delegates returned to their respective cities carrying forward renewed commitmen
 
 ---
 
-## 9. Attendance and Finance Summary
+## 11. Election Report Summary
 
-### 9.1 Registration Summary
+The Independent Elections Commission (IEC-2026) administered the 2026 LSUIC General Elections on **25 July 2026** during the Day 2 plenary session. IEC-2026 introduced the union's first online voter registration and remote voting platform, enabling members who could not physically attend the conference to exercise their democratic rights.
+
+### 11.1 Voter Registration
+
+| Category | Count |
+| --- | ---: |
+| Total platform users | 90 |
+| Eligible registered voters | 85 |
+| In-person voters (Jinan conference) | 56 |
+| Online voters | 29 |
+| Registered candidates | 7 |
+
+Seven candidates were verified and approved for NEC positions. No provincial or city election nominations were received at the national level; the IEC received observer invitations from provincial election committees in Zhejiang, Wuhan, and Beijing.
+
+### 11.2 Election Results — 25 July 2026
+
+| Position | Elected Officer | Votes Received |
+| --- | --- | ---: |
+| National President | **Moses Kingsford Flomo** | 58 |
+| National Vice President | **John Tarway Twalla** | 59 |
+| Secretary General | **Frederick Francis Johnson II** | 56 |
+| Deputy Secretary General | **Abraham Dixon** | 57 |
+| Financial Secretary General | **Alfreda R. Togbah** | 56 |
+| National Treasurer | **Antoinette T. Dickson** | 57 |
+| Chaplain General | **Laimah A. Dowie** | 56 |
+
+The IEC certified and officially announced results after vote counting, verification, and validation. Newly elected officers were inducted on **26 July 2026** before **H.E. Dudley McKinley Thomas**, Ambassador of the Republic of Liberia to the People's Republic of China.
+
+### 11.3 IEC Financial Summary
+
+| Item | Amount (RMB) |
+| --- | ---: |
+| Candidate registration fee revenue | 2,365.00 |
+| Total expenditure | 948.69 |
+| Balance turned over to outgoing NEC | 1,416.31 |
+
+IEC expenditures included development of the candidate and voter registration platform (RMB 500.00), preparation of candidates' certificates (RMB 245.00), and printing of ballot papers and transportation (RMB 203.69).
+
+### 11.4 Key Electoral Initiatives
+
+- **Digital registration** — Online candidate and voter registration platform contracted and deployed for the 2026 cycle.
+- **Voter education** — Online civic education session held 17 July 2026.
+- **Candidate debates** — Online debate (20 July) and in-person manifesto presentations at the conference (25 July).
+- **Hybrid voting** — First LSUIC election combining in-person and online ballot casting.
+
+*Source: IEC-2026 Comprehensive Election Administrative Report, submitted 28 July 2026.*
+
+---
+
+## 12. Attendance and Finance Summary
+
+### 12.1 Registration Summary
 
 | Metric | Value |
 | --- | --- |
@@ -385,7 +512,7 @@ Delegates returned to their respective cities carrying forward renewed commitmen
 | Veteran single-room placements | 2 |
 | Records with guest add-ons | 5 |
 
-### 9.2 Fee Structure Observed
+### 12.2 Fee Structure Observed
 
 | Room Category | Typical Fee (RMB) | Count (approx.) |
 | --- | ---: | ---: |
@@ -397,23 +524,47 @@ Delegates returned to their respective cities carrying forward renewed commitmen
 | March Intake — Shared Room | 330 | 2 |
 | Guest (standalone) | 600 | 1 |
 
-### 9.3 Cooking Committee Expenditure (Cross-Reference)
+### 12.3 Cooking Committee Financial Report
 
-Per the Cooking Committee financial report (Appendix A):
+Per the Cooking Committee financial report (Appendix A), the committee received **RMB 18,113.03** and expended **RMB 17,538.08**, returning an unexpended balance of **RMB 574.95** to the Conference Committee.
+
+#### Expenditure by Category
+
+| Category | Amount (RMB) |
+| --- | ---: |
+| Food, meat, vegetables, and groceries | 8,170.29 |
+| Seasonings, baking supplies, and condiments | 1,414.42 |
+| Kitchen equipment and supplies | 3,274.81 |
+| Member reimbursements and transfers | 3,766.99 |
+| Transportation | 911.57 |
+| **Total expenditure** | **17,538.08** |
+
+#### Member Reimbursements
+
+| Recipient | Purpose | Amount (RMB) |
+| --- | --- | ---: |
+| Mason | Purchase of food items | 2,935.80 |
+| Jenneh | Dry fish and oil | 940.00 |
+| John | Gas and cooking tub | 569.24 |
+| Albert | Beans purchase | 100.00 |
+| SF | Miscellaneous expenses | 37.00 |
+| Kukor | Fufu purchase | 700.00 |
+
+The Cooking Committee maintained itemized records for all purchases and transfers. Certified by **Kukor Brooks**, Cooking Committee Chairperson, 1 August 2026.
+
+### 12.4 Conference Revenue Summary
 
 | Description | Amount (RMB) |
 | --- | ---: |
-| Funds disbursed to Cooking Committee | 18,113.03 |
-| Total expenditure | 17,538.08 |
-| Unexpended balance returned | 574.95 |
+| Delegate registration fees collected | 34,640.00 |
+| Cooking Committee funds disbursed | 18,113.03 |
+| IEC election revenue | 2,365.00 |
 
-The Cooking Committee maintained itemized records for food, seasonings, kitchen equipment, transportation, and member reimbursements — a model of committee-level accountability referenced in Section 13.
-
-*Primary source: `conference-attendance.xlsx` — Conference Committee financial register, Jinan 2026.*
+*Primary source: Official Jinan 2026 Conference Delegates and Fees register; Cooking Committee report; IEC-2026 financial report.*
 
 ---
 
-## 10. Full Delegate Register
+## 13. Full Delegate Register
 
 The following table reproduces the official **Jinan 2026 Conference Delegates and Fees** register maintained by the Conference Committee. All balances are reconciled to zero.
 
@@ -533,7 +684,7 @@ The following table reproduces the official **Jinan 2026 Conference Delegates an
 
 ---
 
-## 11. Distinguished Guests and Speakers
+## 14. Distinguished Guests and Speakers
 
 | Role | Name | Contribution |
 | --- | --- | --- |
@@ -542,7 +693,7 @@ The following table reproduces the official **Jinan 2026 Conference Delegates an
 | Outgoing National President | **Hon. Olano Teah Bloh** | NEC annual summary; book launch (*How Far We Have Come*); embassy recognition |
 | Conference Chair | **Enoch Kwateh Dongbo** | Overall conference leadership; closing remarks at Awards Night |
 | General Secretary, Conference Committee | **Harris M. Bowulo** | Documentation, protocol support, report review |
-| Incoming National President | **Newly elected NEC President** | Inaugural address upon IEC certification |
+| Incoming National President | **Hon. Moses Kingsford Flomo** | Inaugural address upon IEC certification (26 July) |
 | Cooking Committee Chair | **Kukor Brooks** | Conference catering operations and financial accountability |
 | Official Photographer | **K-Visuals Studio** | Day 3 official photography and Pixieset gallery |
 
@@ -550,9 +701,9 @@ Embassy staff, veterans, special invitees, institutional partners, and city chap
 
 ---
 
-## 12. Outcomes, Resolutions, and Recommendations
+## 15. Outcomes, Resolutions, and Recommendations
 
-### 12.1 Conference Outcomes
+### 15.1 Conference Outcomes
 
 | Outcome | Detail |
 | --- | --- |
@@ -564,7 +715,7 @@ Embassy staff, veterans, special invitees, institutional partners, and city chap
 | **Fellowship deepened** | Meet-and-greet, pool party, sports, shared meals, and awards night strengthened bonds across the Liberian student community in China. |
 | **Influence extended** | Delegates from dozens of cities returned with renewed purpose under the Jinan 2026 theme. |
 
-### 12.2 Resolutions (Plenary Session, 25 July)
+### 15.2 Resolutions (Plenary Session, 25 July)
 
 The plenary session on 25 July adopted resolutions addressing:
 
@@ -575,18 +726,18 @@ The plenary session on 25 July adopted resolutions addressing:
 
 *Full resolution text is maintained in the Conference Committee plenary minutes.*
 
-### 12.3 Recommendations for NEC and Future Conference Committees
+### 15.3 Recommendations for NEC and Future Conference Committees
 
 1. Publish unified post-conference reports within thirty days of adjournment, following the structure of this document.
 2. Maintain separate committee financial reports (as modeled by the Cooking Committee) and consolidate summaries in the main conference report.
-3. Continue rhub-based registration, delegate profiles, and digital asset archiving for each conference cycle.
+3. Continue online registration, delegate profiles, and digital asset archiving for each conference cycle.
 4. Schedule ambassador and VIP engagements early, with confirmed windows for Independence Day formalities.
 5. Contract official photography for all four conference days, not only the ceremonial day.
 6. Preserve the Expectation Tree and signed t-shirt traditions as standard opening-day fellowship elements.
 
 ---
 
-## 13. Lessons Learned for Future Conferences
+## 16. Lessons Learned for Future Conferences
 
 Drawing on the Cooking Committee report, prior LSUIC conference patterns, and Jinan 2026 execution:
 
@@ -596,7 +747,7 @@ The Cooking Committee's itemized expenditure categories (food, seasonings, equip
 
 ### Pre-Conference Mobilization
 
-Countdown flyers, online info sessions, fee-structure transparency, and rhub registration guides measurably improved delegate preparedness. **Lesson:** Begin the communications campaign at least sixty days out with themed assets tied to the conference theme.
+Countdown flyers, online info sessions, fee-structure transparency, and registration guides measurably improved delegate preparedness. **Lesson:** Begin the communications campaign at least sixty days out with themed assets tied to the conference theme.
 
 ### Program Balance
 
@@ -608,7 +759,7 @@ Independence Day formalities were arranged around ambassador availability, with 
 
 ### Documentation and Assets
 
-Renamed photo assets (`photos/`, `flyers/`) and README indexing in rhub enable reproducible report generation. **Lesson:** Enforce descriptive filenames and a root README at asset ingest time, not post-conference.
+Renamed photo assets and a structured conference archive enable reproducible report generation. **Lesson:** Enforce descriptive filenames and organized asset indexing at ingest time, not post-conference.
 
 ### Catering on Sports Day
 
@@ -616,12 +767,12 @@ Serving Pepper Kala at the sports grounds at 1:30 PM kept delegates engaged thro
 
 ---
 
-## 14. Photographic Record
+## 17. Photographic Record
 
 Official Day 3 photography is published by **K-Visuals Studio**:  
 [https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/](https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/)
 
-Additional conference photographs and pre-conference flyers are archived in the rhub asset library at `/conf/assets/before-after-conf/` (see `photos/`, `flyers/`, and `README.md`).
+Additional conference photographs and pre-conference campaign materials are archived in the official conference asset library.
 
 ### Independence Day Formal Program
 
@@ -670,7 +821,7 @@ Additional conference photographs and pre-conference flyers are archived in the 
 
 ---
 
-## 15. Acknowledgements
+## 18. Acknowledgements
 
 The Conference Committee extends sincere gratitude to:
 
@@ -682,11 +833,11 @@ The Conference Committee extends sincere gratitude to:
 
 ---
 
-## 16. Certification
+## 19. Certification
 
 We hereby certify that this report accurately reflects the attendance, program execution, financial summary, and thematic outcomes of the **LSUIC 20th Annual Conference & Anniversary** held in Jinan, Shandong Province, from **24 to 27 July 2026**.
 
-The attendance register reproduced in Section 10 is drawn from the official conference financial records. Photographs cited herein are held in the conference asset archive and the official Day 3 gallery linked above. Committee financial data is cross-referenced against the Cooking Committee report (Appendix A).
+The attendance register reproduced in Section 13 is drawn from the official conference financial records. Photographs cited herein are held in the conference asset archive and the official Day 3 gallery linked above. Committee financial data is cross-referenced against the Cooking Committee report (Appendix A).
 
 **Prepared by:**  
 Conference Committee — Documentation & Reporting
@@ -703,38 +854,25 @@ General Chairman, Conference Committee
 
 ---
 
-## 17. Appendices
+## 20. Appendices
 
-### Appendix A — Cooking Committee Financial Summary
+### Appendix A — Cooking Committee Financial Report (Full Itemized Records)
 
-Source: `public/conf/assets/before-after-conf/cooking.md`
+Source: Cooking Committee financial report, Jinan 2026 (certified 1 August 2026).
 
-| Category | Amount (RMB) |
-| --- | ---: |
-| Funds disbursed | 18,113.03 |
-| Food, meat, vegetables, groceries | (see cooking.md §3A) |
-| Seasonings and baking supplies | (see cooking.md §3B) |
-| Kitchen equipment and supplies | (see cooking.md §3C) |
-| Member reimbursements | (see cooking.md §3D) |
-| Transportation | 911.57 |
-| **Total expenditure** | **17,538.08** |
-| **Closing balance** | **574.95** |
+**Funds received:** RMB 18,113.03 · **Total expenditure:** RMB 17,538.08 · **Closing balance:** RMB 574.95
 
-Certified by Kukor Brooks, Cooking Committee Chairperson, 1 August 2026.
+See the complete itemized expenditure tables (food, seasonings, equipment, reimbursements, transportation) in the certified Cooking Committee report on file with the Conference Committee.
 
-### Appendix B — Asset Index
+### Appendix B — IEC-2026 Election Report
 
-See `public/conf/assets/before-after-conf/README.md` for the complete index of renamed photographs, flyers, and source documents.
+Source: Independent Elections Commission comprehensive election administrative report, submitted 28 July 2026.
 
-### Appendix C — Primary Sources
+Includes voter registration statistics, election results, financial reconciliation, and IEC member roster.
 
-| Source | Location |
-| --- | --- |
-| Conference attendance register | `conference-attendance.xlsx` |
-| Cooking Committee report | `cooking.md` |
-| Program outline | `public/conf/navigation/Program-Highlight.md` |
-| Detailed program (source of truth) | `src/components/tools/conf/detailed-program/program-data.ts` |
-| This report (markdown) | `public/conf/reports/jinan-2026-conference-report.md` |
+### Appendix C — Pre-Conference Campaign Materials
+
+Conference mobilization assets including theme posters, registration guides, fee structure flyers, countdown campaigns, information session announcements, fundraising materials, and merchandise designs.
 
 ### Appendix D — Program General Notes
 

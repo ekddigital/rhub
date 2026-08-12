@@ -11,18 +11,24 @@ import {
 import {
   ATTENDANCE_ROWS,
   ATTENDANCE_STATS,
+  CONFERENCE_COMMITTEE,
   CONFERENCE_OBJECTIVES,
+  COOKING_BUDGET_CATEGORIES,
+  COOKING_REIMBURSEMENTS,
   DISTINGUISHED_GUESTS,
+  ELECTION_SUMMARY,
   EXECUTIVE_SUMMARY,
   FINANCE_SUMMARY,
   LESSONS_LEARNED,
   OUTCOMES,
   PRE_CONFERENCE,
+  PRE_CONFERENCE_FLYERS,
   PROGRAM_GENERAL_NOTES,
   REPORT_META,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
   RESOLUTIONS_SUMMARY,
+  VENUE_AND_ACCOMMODATION,
   buildReportProgramPages,
   chunkAttendance,
   chunkReportPhotos,
@@ -519,14 +525,177 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         ))}
       </ReportA4Page>
 
-      {/* Pre-Conference + Overview */}
+      {/* Pre-Conference Preparation */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Pre-Conference">
         <SectionTitle>3. Pre-Conference Preparation</SectionTitle>
         {PRE_CONFERENCE.map((p) => (
           <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
         ))}
 
-        <SectionTitle>4. Conference Overview</SectionTitle>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "6px",
+            marginTop: "8px",
+          }}
+        >
+          {PRE_CONFERENCE_FLYERS.slice(0, 4).map((flyer) => (
+            <div key={flyer.src}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={flyer.src}
+                alt={flyer.caption}
+                style={{
+                  width: "100%",
+                  height: "88px",
+                  objectFit: "cover",
+                  borderRadius: "4px",
+                  border: `1px solid ${C.border}`,
+                }}
+              />
+              <div
+                style={{
+                  fontSize: "8px",
+                  color: "#555",
+                  marginTop: "2px",
+                  lineHeight: 1.3,
+                }}
+              >
+                {flyer.caption}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ReportA4Page>
+
+      {/* Venue and Accommodation */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Venue & Accommodation">
+        <SectionTitle>4. Venue and Accommodation</SectionTitle>
+        <BodyParagraph>
+          The conference was hosted at the {VENUE_AND_ACCOMMODATION.nameEn} (
+          {VENUE_AND_ACCOMMODATION.nameZh}) in {VENUE_AND_ACCOMMODATION.location}.
+          Jinan — the City of Springs and capital of Shandong Province — provided a
+          fitting setting for LSUIC&apos;s twentieth anniversary assembly.
+        </BodyParagraph>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <tbody>
+            {[
+              ["Hotel", VENUE_AND_ACCOMMODATION.nameEn],
+              ["Chinese name", VENUE_AND_ACCOMMODATION.nameZh],
+              ["Address", VENUE_AND_ACCOMMODATION.address],
+            ].map(([label, value]) => (
+              <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    fontWeight: 700,
+                    color: C.blue,
+                    width: "28%",
+                    background: "#F0F7FF",
+                  }}
+                >
+                  {label}
+                </td>
+                <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, color: "#222" }}>
+                  {value}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "6px",
+          }}
+        >
+          Conference facilities used
+        </div>
+        {VENUE_AND_ACCOMMODATION.facilities.map((item) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "4px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            • {item}
+          </div>
+        ))}
+        <BodyParagraph>{VENUE_AND_ACCOMMODATION.travelNote}</BodyParagraph>
+      </ReportA4Page>
+
+      {/* Conference Committee */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Committee">
+        <SectionTitle>5. Conference Committee</SectionTitle>
+        <BodyParagraph>
+          The LSUIC 2026 Conference Committee — constitutionally capped at eleven
+          appointed members — executed planning, logistics, communications, and
+          on-site operations for the Jinan conference. The committee met weekly
+          from appointment through conference adjournment.
+        </BodyParagraph>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Role", "Name", "City"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {CONFERENCE_COMMITTEE.map((member, idx) => (
+              <tr
+                key={`${member.name}-${member.role}`}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {member.role}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{member.name}</td>
+                <td style={{ padding: REPORT_TABLE.cellPadding, color: "#444" }}>
+                  {member.city}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ReportA4Page>
+
+      {/* Conference Overview */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Overview">
+        <SectionTitle>6. Conference Overview</SectionTitle>
         <table
           style={{
             width: "100%",
@@ -603,7 +772,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             slots={page.slots}
             showHeader={page.pageIndex === 0}
           />
-          {page.sectionNum === 8 &&
+          {page.sectionNum === 10 &&
             page.pageIndex === page.pageCount - 1 && (
               <div
                 style={{
@@ -619,9 +788,89 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </ReportA4Page>
       ))}
 
-      {/* Attendance & Finance */}
+      {/* Election Report Summary */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Election Report">
+        <SectionTitle>11. Election Report Summary</SectionTitle>
+        <BodyParagraph>
+          The Independent Elections Commission (IEC-2026) administered the 2026
+          LSUIC General Elections on {ELECTION_SUMMARY.electionDate}, introducing
+          the union&apos;s first online voter registration and remote voting
+          platform. Of {ELECTION_SUMMARY.voterStats.platformUsers} platform
+          users, {ELECTION_SUMMARY.voterStats.eligibleVoters} members were
+          confirmed as eligible voters ({ELECTION_SUMMARY.voterStats.inPersonVoters}{" "}
+          in person, {ELECTION_SUMMARY.voterStats.onlineVoters} online).
+        </BodyParagraph>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Position", "Elected Officer", "Votes"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: h === "Votes" ? "center" : "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ELECTION_SUMMARY.outcomes.map((row, idx) => (
+              <tr
+                key={row.position}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {row.position}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.winner}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "center",
+                    fontWeight: 700,
+                    color: C.blue,
+                  }}
+                >
+                  {row.votes}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {ELECTION_SUMMARY.highlights.map((item) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "5px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            • {item}
+          </div>
+        ))}
+      </ReportA4Page>
+
+      {/* Attendance & Finance — summary */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Attendance & Finance">
-        <SectionTitle>9. Attendance and Finance Summary</SectionTitle>
+        <SectionTitle>12. Attendance and Finance Summary</SectionTitle>
         <div
           style={{
             display: "grid",
@@ -694,7 +943,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               ["Delegate fees collected", FINANCE_SUMMARY.delegateFeesCollected.toLocaleString()],
               ["Cooking Committee — disbursed", FINANCE_SUMMARY.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })],
               ["Cooking Committee — expended", FINANCE_SUMMARY.cookingExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["Cooking Committee — balance", FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Cooking Committee — balance returned", FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC election revenue", FINANCE_SUMMARY.iecRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC election expenditure", FINANCE_SUMMARY.iecExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC balance turned over to NEC", FINANCE_SUMMARY.iecBalanceTurnover.toLocaleString(undefined, { minimumFractionDigits: 2 })],
             ].map(([label, value]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
@@ -719,6 +971,138 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </table>
       </ReportA4Page>
 
+      {/* Cooking Committee budget detail */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Cooking Committee Budget">
+        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "8px",
+          }}
+        >
+          Cooking Committee Expenditure by Category
+        </div>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+            marginBottom: "12px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: "#F0F7FF" }}>
+              {["Category", "Amount (RMB)"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    color: C.blue,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {COOKING_BUDGET_CATEGORIES.map((row) => (
+              <tr key={row.label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.label}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "right",
+                    fontWeight: 600,
+                  }}
+                >
+                  {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+            ))}
+            <tr style={{ background: C.blue, color: C.white }}>
+              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 700 }}>
+                Total Cooking Committee expenditure
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE_PROSE.cellPadding,
+                  textAlign: "right",
+                  fontWeight: 700,
+                }}
+              >
+                {FINANCE_SUMMARY.cookingExpenditure.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                })}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "6px",
+          }}
+        >
+          Member Reimbursements
+        </div>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+          }}
+        >
+          <thead>
+            <tr style={{ background: "#F0F7FF" }}>
+              {["Recipient", "Purpose", "Amount (RMB)"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                    color: C.blue,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {COOKING_REIMBURSEMENTS.map((row) => (
+              <tr key={`${row.recipient}-${row.purpose}`} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {row.recipient}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.purpose}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "right",
+                  }}
+                >
+                  {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <BodyParagraph>
+          Certified by Kukor Brooks, Cooking Committee Chairperson, 1 August 2026.
+          Funds disbursed: RMB {FINANCE_SUMMARY.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })}; unexpended balance returned: RMB {FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}.
+        </BodyParagraph>
+      </ReportA4Page>
+
       {/* Attendance register pages */}
       {attendanceChunks.map((chunk, chunkIdx) => (
         <ReportA4Page
@@ -726,12 +1110,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "10. Delegate Register"
-              : "10. Delegate Register (cont.)"
+              ? "13. Delegate Register"
+              : "13. Delegate Register (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>10. Full Attendance Register</SectionTitle>
+            <SectionTitle>13. Full Attendance Register</SectionTitle>
           )}
           {chunkIdx > 0 && (
             <div
@@ -751,7 +1135,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Distinguished Guests + Outcomes + Resolutions */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Outcomes">
-        <SectionTitle>11. Distinguished Guests and Speakers</SectionTitle>
+        <SectionTitle>14. Distinguished Guests and Speakers</SectionTitle>
         <table
           style={{
             width: "100%",
@@ -779,7 +1163,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           </tbody>
         </table>
 
-        <SectionTitle>12. Outcomes and Resolutions</SectionTitle>
+        <SectionTitle>15. Outcomes and Resolutions</SectionTitle>
         {OUTCOMES.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
@@ -803,12 +1187,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Lessons Learned + Acknowledgements */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Lessons Learned">
-        <SectionTitle>13. Lessons Learned for Future Conferences</SectionTitle>
+        <SectionTitle>16. Lessons Learned for Future Conferences</SectionTitle>
         {LESSONS_LEARNED.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
 
-        <SectionTitle>15. Acknowledgements</SectionTitle>
+        <SectionTitle>18. Acknowledgements</SectionTitle>
         <BodyParagraph>
           The Conference Committee extends sincere gratitude to H.E. Dudley
           McKinley Thomas and the Embassy of Liberia in Beijing; the NEC and all
@@ -825,12 +1209,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "14. Photographic Record"
-              : "14. Photographic Record (cont.)"
+              ? "17. Photographic Record"
+              : "17. Photographic Record (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>14. Conference Photographs</SectionTitle>
+            <SectionTitle>17. Conference Photographs</SectionTitle>
           )}
           <PhotoGrid photos={chunk} />
         </ReportA4Page>
@@ -838,7 +1222,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Certification */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Certification">
-        <SectionTitle>16. Certification</SectionTitle>
+        <SectionTitle>19. Certification</SectionTitle>
         <BodyParagraph>
           We hereby certify that this report accurately reflects the attendance,
           program execution, financial summary, and thematic outcomes of the

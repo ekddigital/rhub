@@ -6,6 +6,10 @@ import {
   type ProgramSlot,
 } from "@/components/tools/conf/detailed-program/program-data";
 import { bookletProgramDayLabel } from "@/lib/conf/booklet-program-outline";
+import {
+  loadLsuicLeadersRoster,
+  stripHonorificDisplayName,
+} from "@/lib/conf/lsuic-leaders-roster";
 import attendanceRows from "./attendance.generated.json";
 
 export const REPORT_PROGRAM_DAYS = DETAILED_PROGRAM_DAYS;
@@ -28,7 +32,8 @@ export const REPORT_META = {
     "Cover photo: K-VISUALS / Pixieset gallery — official delegate group photograph",
   pixiesetUrl:
     "https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/",
-  markdownPath: "/conf/reports/jinan-2026-conference-report.md",
+  reportDate: "13 August 2026",
+  venueAddress: CONF_2026.address,
 } as const;
 
 export type AttendanceRow = {
@@ -64,14 +69,199 @@ export const FINANCE_SUMMARY = {
   cookingFundsDisbursed: 18_113.03,
   cookingExpenditure: 17_538.08,
   cookingBalance: 574.95,
+  iecRevenue: 2_365.0,
+  iecExpenditure: 948.69,
+  iecBalanceTurnover: 1_416.31,
 } as const;
 
-/** Report section titles for each conference day (§5–§8), aligned with booklet Program Outline. */
+export type CommitteeMember = {
+  role: string;
+  name: string;
+  city: string;
+};
+
+export const CONFERENCE_COMMITTEE: readonly CommitteeMember[] =
+  loadLsuicLeadersRoster()
+    .filter((row) => row.committee_short_name === "CC")
+    .map((row) => ({
+      role: row.leader_role,
+      name: stripHonorificDisplayName(row.leader_name.replace(/\*\*/g, "")),
+      city: row.leader_city_area,
+    }));
+
+export const VENUE_AND_ACCOMMODATION = {
+  nameEn: CONF_2026.venue,
+  nameZh: CONF_2026.venueCn,
+  address: CONF_2026.address,
+  location:
+    "Qihe County, Dezhou, Shandong Province — approximately 40 km southwest of central Jinan",
+  facilities: [
+    "Dedicated hotel conference room for plenary sessions, elections, and formal business",
+    "Hotel yard and golf course grounds for Day 1 meet-and-greet and fellowship",
+    "Indoor pool and spa area for Day 2 pool party",
+    "Outdoor sports grounds for Independence Day football, basketball, and team activities",
+    "On-site dining areas for Cooking Committee meal service throughout the program",
+    "Guest room blocks for single-room, shared-room, and veteran delegate placements",
+  ],
+  roomCategories: [
+    { category: "GS — Single Room", feeRmb: 600, notes: "One delegate per room" },
+    {
+      category: "Veteran — Single Room",
+      feeRmb: 740,
+      notes: "Honourary veteran placement",
+    },
+    {
+      category: "GS — Shared Room",
+      feeRmb: 250,
+      notes: "Two delegates per room (primary registration tier)",
+    },
+    {
+      category: "GS — Shared Room + Guest",
+      feeRmb: 750,
+      notes: "Delegate with registered guest companion",
+    },
+    {
+      category: "March Intake — Shared Room",
+      feeRmb: 330,
+      notes: "Reduced rate for March intake delegates",
+    },
+    {
+      category: "GS — No Accommodation",
+      feeRmb: 175,
+      notes: "Local Jinan-area delegates without hotel room",
+    },
+  ],
+  travelNote:
+    "Bus K904 serves the hotel stop until 7:20 PM daily. Delegates arriving after this time should use DiDi or a taxi from Jinan West Railway Station or Jinan East Railway Station.",
+} as const;
+
+export const PRE_CONFERENCE_FLYERS = [
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-20th-annual-general-conference.jpg",
+    caption: "20th Annual Conference overview poster",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-legacy-and-influence-conference.jpg",
+    caption: "Legacy and Influence theme poster",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg",
+    caption: "Program highlights and delegate expectations",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-delegate-registration-guide.png",
+    caption: "Delegate registration guide",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-conference-fees-structure.png",
+    caption: "Conference fee tiers and room categories",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-51-days-countdown.png",
+    caption: "51-day countdown campaign",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-conference-info-session-online.png",
+    caption: "Online pre-conference information session",
+  },
+  {
+    src: "/conf/assets/before-after-conf/flyers/flyer-fundraising-campaign-payment-methods.png",
+    caption: "Fundraising campaign and payment methods",
+  },
+] as const;
+
+export const ELECTION_SUMMARY = {
+  electionDate: "25 July 2026",
+  voterStats: {
+    platformUsers: 90,
+    eligibleVoters: 85,
+    inPersonVoters: 56,
+    onlineVoters: 29,
+    candidatesRegistered: 7,
+  },
+  outcomes: [
+    {
+      position: "National President",
+      winner: "Moses Kingsford Flomo",
+      votes: 58,
+    },
+    {
+      position: "National Vice President",
+      winner: "John Tarway Twalla",
+      votes: 59,
+    },
+    {
+      position: "Secretary General",
+      winner: "Frederick Francis Johnson II",
+      votes: 56,
+    },
+    {
+      position: "Deputy Secretary General",
+      winner: "Abraham Dixon",
+      votes: 57,
+    },
+    {
+      position: "Financial Secretary General",
+      winner: "Alfreda R. Togbah",
+      votes: 56,
+    },
+    {
+      position: "National Treasurer",
+      winner: "Antoinette T. Dickson",
+      votes: 57,
+    },
+    {
+      position: "Chaplain General",
+      winner: "Laimah A. Dowie",
+      votes: 56,
+    },
+  ],
+  highlights: [
+    "IEC-2026 introduced the first online voter registration and remote voting platform, enabling 29 online voters to participate alongside 56 in-person voters at the conference.",
+    "Candidate debates were held online (20 July) and in person at the conference (25 July) before voting commenced.",
+    "Newly elected officers were certified and inducted on Independence Day (26 July) before H.E. Dudley McKinley Thomas, Ambassador of Liberia to China.",
+    "IEC financial balance of RMB 1,416.31 was formally turned over to outgoing NEC leadership upon completion of the electoral cycle.",
+  ],
+} as const;
+
+export const COOKING_BUDGET_CATEGORIES = [
+  {
+    label: "Food, meat, vegetables, and groceries",
+    amount: 8_170.29,
+  },
+  {
+    label: "Seasonings, baking supplies, and condiments",
+    amount: 1_414.42,
+  },
+  {
+    label: "Kitchen equipment and supplies",
+    amount: 3_274.81,
+  },
+  {
+    label: "Member reimbursements and transfers",
+    amount: 3_766.99,
+  },
+  {
+    label: "Transportation",
+    amount: 911.57,
+  },
+] as const;
+
+export const COOKING_REIMBURSEMENTS = [
+  { recipient: "Mason", purpose: "Purchase of food items", amount: 2_935.8 },
+  { recipient: "Jenneh", purpose: "Dry fish and oil", amount: 940.0 },
+  { recipient: "John", purpose: "Gas and cooking tub", amount: 569.24 },
+  { recipient: "Albert", purpose: "Beans purchase", amount: 100.0 },
+  { recipient: "SF", purpose: "Miscellaneous expenses", amount: 37.0 },
+  { recipient: "Kukor", purpose: "Fufu purchase", amount: 700.0 },
+] as const;
+
+/** Report section titles for each conference day (§7–§10), aligned with booklet Program Outline. */
 export const REPORT_DAY_SECTIONS = [
-  { sectionNum: 5, title: bookletProgramDayLabel(1), day: 1 },
-  { sectionNum: 6, title: bookletProgramDayLabel(2), day: 2 },
-  { sectionNum: 7, title: bookletProgramDayLabel(3), day: 3 },
-  { sectionNum: 8, title: bookletProgramDayLabel(4), day: 4 },
+  { sectionNum: 7, title: bookletProgramDayLabel(1), day: 1 },
+  { sectionNum: 8, title: bookletProgramDayLabel(2), day: 2 },
+  { sectionNum: 9, title: bookletProgramDayLabel(3), day: 3 },
+  { sectionNum: 10, title: bookletProgramDayLabel(4), day: 4 },
 ] as const;
 
 export type ReportTocEntry = {
@@ -83,15 +273,16 @@ export type ReportTocEntry = {
 };
 
 const REPORT_TOC_AFTER_DAYS = [
-  { num: 9, title: "Attendance and Finance Summary" },
-  { num: 10, title: "Full Delegate Register" },
-  { num: 11, title: "Distinguished Guests and Speakers" },
-  { num: 12, title: "Outcomes, Resolutions, and Recommendations" },
-  { num: 13, title: "Lessons Learned for Future Conferences" },
-  { num: 14, title: "Photographic Record" },
-  { num: 15, title: "Acknowledgements" },
-  { num: 16, title: "Certification" },
-  { num: 17, title: "Appendices" },
+  { num: 11, title: "Election Report Summary" },
+  { num: 12, title: "Attendance and Finance Summary" },
+  { num: 13, title: "Full Delegate Register" },
+  { num: 14, title: "Distinguished Guests and Speakers" },
+  { num: 15, title: "Outcomes, Resolutions, and Recommendations" },
+  { num: 16, title: "Lessons Learned for Future Conferences" },
+  { num: 17, title: "Photographic Record" },
+  { num: 18, title: "Acknowledgements" },
+  { num: 19, title: "Certification" },
+  { num: 20, title: "Appendices" },
 ] as const;
 
 /** Table of contents — mirrors jinan-2026-conference-report.md; program days match booklet Program Outline. */
@@ -99,7 +290,9 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
   { num: 1, title: "Executive Summary" },
   { num: 2, title: "Conference Objectives and Theme" },
   { num: 3, title: "Pre-Conference Preparation" },
-  { num: 4, title: "Conference Overview" },
+  { num: 4, title: "Venue and Accommodation" },
+  { num: 5, title: "Conference Committee" },
+  { num: 6, title: "Conference Overview" },
   ...REPORT_DAY_SECTIONS.map(({ sectionNum, title }) => ({
     num: sectionNum,
     title,
@@ -114,7 +307,7 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
 
-  let page = 5;
+  let page = 8;
 
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
@@ -125,7 +318,9 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
     page += pageSpan;
   }
 
-  const financeStart = page++;
+  const electionStart = page++;
+  const financeStart = page;
+  page += REPORT_FIXED_PAGES.financeSummary;
   const registerStart = page;
   page += attendancePages;
   const outcomesStart = page++;
@@ -145,23 +340,30 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
       case 2:
         return { ...entry, startPage: 3, pageSpan: 1 };
       case 3:
-      case 4:
         return { ...entry, startPage: 4, pageSpan: 1 };
-      case 9:
-        return { ...entry, startPage: financeStart, pageSpan: 1 };
-      case 10:
-        return { ...entry, startPage: registerStart, pageSpan: attendancePages };
+      case 4:
+        return { ...entry, startPage: 5, pageSpan: 1 };
+      case 5:
+        return { ...entry, startPage: 6, pageSpan: 1 };
+      case 6:
+        return { ...entry, startPage: 7, pageSpan: 1 };
       case 11:
+        return { ...entry, startPage: electionStart, pageSpan: 1 };
       case 12:
-        return { ...entry, startPage: outcomesStart, pageSpan: 1 };
+        return { ...entry, startPage: financeStart, pageSpan: REPORT_FIXED_PAGES.financeSummary };
       case 13:
-      case 15:
-        return { ...entry, startPage: lessonsStart, pageSpan: 1 };
+        return { ...entry, startPage: registerStart, pageSpan: attendancePages };
       case 14:
-        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+      case 15:
+        return { ...entry, startPage: outcomesStart, pageSpan: 1 };
       case 16:
-        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+      case 18:
+        return { ...entry, startPage: lessonsStart, pageSpan: 1 };
       case 17:
+        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+      case 19:
+        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+      case 20:
         return entry;
       default:
         return entry;
@@ -185,15 +387,16 @@ export const CONFERENCE_OBJECTIVES = [
 ] as const;
 
 export const PRE_CONFERENCE = [
-  "Months before arrival, the Conference Committee published rhub registration guides, fee-structure flyers, countdown campaigns, online info sessions, and Legacy and Influence theme posters.",
-  "Fundraising payment methods, delegate profile cards, badge mockups, Miss LSUIC calls, and merchandise designs were distributed through the rhub asset library.",
-  "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and IEC — were activated with disbursed allocations and pre-arrival coordination.",
+  "Months before arrival, the Conference Committee published delegate registration guides, fee-structure flyers, countdown campaigns, online information sessions, and Legacy and Influence theme posters across LSUIC communication channels.",
+  "Fundraising payment methods, delegate profile cards, badge designs, Miss LSUIC contestant calls, and conference merchandise were distributed to mobilize delegates from more than thirty-five cities.",
+  "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and the Independent Elections Commission (IEC) — were activated with disbursed allocations and pre-arrival coordination.",
 ] as const;
 
 export const DISTINGUISHED_GUESTS = [
   { role: "Ambassador of Liberia to the PRC", name: "H.E. Dudley McKinley Thomas" },
   { role: "Independence Day Orator", name: "Hon. Joshua Bosco Barvor" },
   { role: "Outgoing National President", name: "Hon. Olano Teah Bloh" },
+  { role: "Incoming National President", name: "Hon. Moses Kingsford Flomo" },
   { role: "Conference Chair", name: "Enoch Kwateh Dongbo" },
   { role: "General Secretary, Conference Committee", name: "Harris M. Bowulo" },
   { role: "Cooking Committee Chair", name: "Kukor Brooks" },
@@ -473,8 +676,12 @@ export function buildReportProgramPages(
 export const REPORT_FIXED_PAGES = {
   toc: 1,
   executiveAndObjectives: 1,
-  preConferenceAndOverview: 1,
-  financeSummary: 1,
+  preConference: 1,
+  venueAndAccommodation: 1,
+  conferenceCommittee: 1,
+  conferenceOverview: 1,
+  electionSummary: 1,
+  financeSummary: 2,
   guestsOutcomes: 1,
   lessonsAndAcknowledgements: 1,
   certification: 1,
