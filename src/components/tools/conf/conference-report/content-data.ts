@@ -39,35 +39,99 @@ export const ATTENDANCE_STATS = {
     ATTENDANCE_ROWS.map((r) => r.city).filter(Boolean),
   ).size,
   fullyPaid: ATTENDANCE_ROWS.filter((r) => r.balance === "0").length,
+  totalFeesRmb: ATTENDANCE_ROWS.reduce(
+    (sum, r) => sum + Number.parseFloat(r.fee || "0"),
+    0,
+  ),
   vipGuests: ATTENDANCE_ROWS.filter((r) => r.room.includes("VIP")).length,
   veteranPlacements: ATTENDANCE_ROWS.filter((r) =>
     r.room.includes("Veteran"),
   ).length,
 } as const;
 
+export const FINANCE_SUMMARY = {
+  delegateFeesCollected: ATTENDANCE_STATS.totalFeesRmb,
+  cookingFundsDisbursed: 18_113.03,
+  cookingExpenditure: 17_538.08,
+  cookingBalance: 574.95,
+} as const;
+
+/** Table of contents — mirrors jinan-2026-conference-report.md section numbering. */
+export const REPORT_TOC = [
+  { num: 1, title: "Executive Summary" },
+  { num: 2, title: "Conference Objectives and Theme" },
+  { num: 3, title: "Pre-Conference Preparation" },
+  { num: 4, title: "Conference Overview" },
+  {
+    num: 5,
+    title: "Opening Day — Arrival and Meet and Greet",
+    subs: ["Plenary Business and Elections (§6)", "Independence Day Ceremonies (§7)", "Closing Day — Departure (§8)"],
+  },
+  { num: 9, title: "Attendance and Finance Summary" },
+  { num: 10, title: "Full Delegate Register" },
+  { num: 11, title: "Distinguished Guests and Speakers" },
+  { num: 12, title: "Outcomes, Resolutions, and Recommendations" },
+  { num: 13, title: "Lessons Learned for Future Conferences" },
+  { num: 14, title: "Photographic Record" },
+  { num: 15, title: "Acknowledgements" },
+  { num: 16, title: "Certification" },
+  { num: 17, title: "Appendices" },
+] as const;
+
 export const EXECUTIVE_SUMMARY = [
   "The Liberian Student Union in China (LSUIC) successfully convened its 20th Annual Conference & Anniversary at the Arcadia Spa Golf International Hotel in Jinan, Shandong Province, from 24 to 27 July 2026, under the theme Jinan 2026: Legacy and Influence.",
   "Delegates, national officers, conference committee members, veterans, guests, and distinguished representatives gathered for four days of fellowship, plenary business, elections, constitution review, Independence Day observance, sporting activities, and awards recognition.",
-  "This report records conference attendance, summarizes the program and outcomes, and documents the legacy and influence theme that guided the assembly. Attendance figures are drawn from the official conference registration and fee records maintained by the Conference Committee.",
+  "This unified report records conference attendance, financial reconciliation, program outcomes, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report.",
+] as const;
+
+export const CONFERENCE_OBJECTIVES = [
+  "Honor twenty years of LSUIC annual conferences, veterans, and institutional memory.",
+  "Renew governance through annual reports, elections, resolutions, and constitution review.",
+  "Celebrate Liberia's 179th Independence Day with diplomatic engagement and civic ceremony.",
+  "Certify newly elected NEC officers in the presence of the Ambassador of Liberia to China.",
+  "Recognize achievement through awards for excellence, service, pageantry, and special honor.",
+  "Strengthen fellowship and extend influence as delegates return to cities across China.",
+] as const;
+
+export const PRE_CONFERENCE = [
+  "Months before arrival, the Conference Committee published rhub registration guides, fee-structure flyers, countdown campaigns, online info sessions, and Legacy and Influence theme posters.",
+  "Fundraising payment methods, delegate profile cards, badge mockups, Miss LSUIC calls, and merchandise designs were distributed through the rhub asset library.",
+  "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and IEC — were activated with disbursed allocations and pre-arrival coordination.",
 ] as const;
 
 export const PROGRAM_NARRATIVE = [
   {
-    heading: "Opening and Fellowship — 24 July",
-    body: "Delegates arrived at the Arcadia Spa Golf International Hotel, completed check-in, and assembled for the Meet and Greet in the hotel yard. Welcome remarks from the Conference Committee, self-introductions, and an overview of the conference set a tone of unity and expectation. Fellowship activities, shared meals, and the expectation tree encouraged delegates to articulate and track their hopes for the week.",
+    heading: "Opening Day — 24 July",
+    body: "Delegates arrived at the Arcadia Spa Golf International Hotel, completed check-in, and assembled for the Meet and Greet in the hotel yard. Welcome remarks, self-introductions, fellowship games, the Expectation Tree, and signed t-shirt traditions set a tone of unity and expectation.",
   },
   {
-    heading: "Plenary Business and Elections — 25 July",
-    body: "The conference room hosted the formal opening prayer, call to order, annual reports, elections, resolutions, and constitution review from morning through early afternoon. Delegates engaged in the core governance work of the union before an afternoon rest period and evening pool party that balanced business with community fellowship.",
+    heading: "Plenary Business — 25 July",
+    body: "The conference room hosted opening prayer, annual reports, elections, resolutions, and constitution review from 8:30 AM through 2:00 PM. An afternoon rest period and evening pool party balanced governance with community fellowship.",
   },
   {
-    heading: "Independence Day, Sports, and Awards — 26 July",
-    body: "Sunday centered on Liberia's Independence Day observance alongside sporting activities and the awards night program. Football on the hotel sports grounds, the red-carpet Independence Day opening, guest orations, NEC annual summary and book launch, induction ceremonies, ambassador statements, cake cutting, dinner, and awards recognition formed the ceremonial heart of the conference.",
+    heading: "Independence Day and Awards — 26 July",
+    body: "Sunday centered on Liberia's Independence Day alongside football, basketball, and team-building sports; the red-carpet formal program; guest orations; NEC annual summary and book launch; induction ceremonies; ambassador statements; cake cutting; dinner; and awards recognition through the early morning.",
   },
   {
-    heading: "Departure — 27 July",
+    heading: "Closing Day — 27 July",
     body: "Delegates checked out and departed by noon, carrying forward renewed commitments to service, leadership, and influence in their respective cities across China.",
   },
+] as const;
+
+export const INDEPENDENCE_DAY_NARRATIVE = [
+  "Hon. Joshua Bosco Barvor delivered the Independence Day oration. Hon. Olano Teah Bloh presented the NEC annual summary and book launch — How Far We Have Come.",
+  "The IEC certified newly elected NEC officers before H.E. Dudley McKinley Thomas, Ambassador of Liberia to China, who delivered a special statement commending LSUIC's twenty-year record.",
+  "Awards Night recognized veterans, Miss LSUIC, achievers, financial supporters, academic excellence, NEC service, and special honorees.",
+] as const;
+
+export const DISTINGUISHED_GUESTS = [
+  { role: "Ambassador of Liberia to the PRC", name: "H.E. Dudley McKinley Thomas" },
+  { role: "Independence Day Orator", name: "Hon. Joshua Bosco Barvor" },
+  { role: "Outgoing National President", name: "Hon. Olano Teah Bloh" },
+  { role: "Conference Chair", name: "Enoch Kwateh Dongbo" },
+  { role: "General Secretary, Conference Committee", name: "Harris M. Bowulo" },
+  { role: "Cooking Committee Chair", name: "Kukor Brooks" },
+  { role: "Official Photographer", name: "K-Visuals Studio" },
 ] as const;
 
 export const OUTCOMES = [
@@ -82,14 +146,44 @@ export const OUTCOMES = [
       "Elections, resolutions, and constitution review strengthened institutional accountability.",
   },
   {
-    label: "Influence extended",
+    label: "Leadership certified",
     detail:
-      "Delegates from dozens of cities and provinces returned to their communities with renewed purpose under the Jinan 2026 theme.",
+      "Newly elected NEC officers were inducted before the Ambassador and assembled delegates.",
   },
   {
-    label: "Fellowship deepened",
+    label: "Influence extended",
     detail:
-      "Meet-and-greet, pool party, sports, Independence Day celebrations, and awards night strengthened bonds across the Liberian student community in China.",
+      "Delegates from dozens of cities and provinces returned with renewed purpose under the Jinan 2026 theme.",
+  },
+] as const;
+
+export const RESOLUTIONS_SUMMARY = [
+  "Strengthen city chapter coordination and reporting to NEC.",
+  "Support academic excellence and welfare programs across provinces.",
+  "Institutionalize conference documentation and financial transparency standards.",
+  "Endorse incoming NEC leadership and transition protocols.",
+] as const;
+
+export const LESSONS_LEARNED = [
+  {
+    label: "Financial accountability",
+    detail:
+      "Committee-level itemized reporting (as modeled by the Cooking Committee's RMB 574.95 reconciliation) should be mandatory before adjournment.",
+  },
+  {
+    label: "Pre-conference mobilization",
+    detail:
+      "Begin themed communications at least sixty days out with rhub registration guides, fee flyers, and info sessions.",
+  },
+  {
+    label: "Program balance",
+    detail:
+      "Protect half-day informal fellowship blocks adjacent to heavy plenary agendas to prevent governance fatigue.",
+  },
+  {
+    label: "Documentation",
+    detail:
+      "Enforce descriptive asset filenames and README indexing at ingest time; contract photography for all conference days.",
   },
 ] as const;
 
@@ -111,6 +205,10 @@ export const REPORT_PHOTOS = [
     caption: "Ambassador welcome — flower presentation",
   },
   {
+    src: "/conf/assets/before-after-conf/photos/ambassador-dudley-mckinley-thomas-podium.jpg",
+    caption: "Ambassador at formal session",
+  },
+  {
     src: "/conf/assets/before-after-conf/photos/miss-lsuic-pageant-winners.jpg",
     caption: "Miss LSUIC pageant",
   },
@@ -126,9 +224,34 @@ export const REPORT_PHOTOS = [
     src: "/conf/assets/before-after-conf/photos/sports-football-kick.jpg",
     caption: "Independence Day sports — football",
   },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-multi-legged-race.jpg",
+    caption: "Multi-legged race — team building",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-field-group-photo.jpg",
+    caption: "Sports field group photo",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/banquet-dinner-seated-delegates.jpg",
+    caption: "Banquet dinner — seated delegates",
+  },
 ] as const;
 
 export const ATTENDANCE_ROWS_PER_PAGE = 22;
+
+/** Fixed interior pages excluding cover, attendance chunks, and photo chunks. */
+export const REPORT_FIXED_PAGES = {
+  toc: 2,
+  executiveAndObjectives: 1,
+  preConferenceAndOverview: 1,
+  programNarrative: 1,
+  independenceDay: 1,
+  financeSummary: 1,
+  guestsOutcomes: 1,
+  lessonsAndAcknowledgements: 1,
+  certification: 1,
+} as const;
 
 export function chunkAttendance(rows: AttendanceRow[]): AttendanceRow[][] {
   const chunks: AttendanceRow[][] = [];
@@ -138,9 +261,9 @@ export function chunkAttendance(rows: AttendanceRow[]): AttendanceRow[][] {
   return chunks;
 }
 
-/** Attendance pages + fixed content pages (cover, summary×2, outcomes, photos, certification). */
 export function computeReportTotalPages(): number {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = Math.ceil(REPORT_PHOTOS.length / 4);
-  return 1 + 2 + attendancePages + 1 + photoPages + 1;
+  const fixedPages = Object.values(REPORT_FIXED_PAGES).reduce((a, b) => a + b, 0);
+  return 1 + fixedPages + attendancePages + photoPages;
 }

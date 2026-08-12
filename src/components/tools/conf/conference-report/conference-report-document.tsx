@@ -4,13 +4,25 @@ import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import { ConferenceReportCoverPage } from "./ConferenceReportCoverPage";
 import {
+  chunkReportToc,
+  ConferenceReportTocPage,
+} from "./ConferenceReportTocPage";
+import {
   ATTENDANCE_ROWS,
   ATTENDANCE_STATS,
+  CONFERENCE_OBJECTIVES,
+  DISTINGUISHED_GUESTS,
   EXECUTIVE_SUMMARY,
+  FINANCE_SUMMARY,
+  INDEPENDENCE_DAY_NARRATIVE,
+  LESSONS_LEARNED,
   OUTCOMES,
+  PRE_CONFERENCE,
   PROGRAM_NARRATIVE,
   REPORT_META,
   REPORT_PHOTOS,
+  REPORT_TOC,
+  RESOLUTIONS_SUMMARY,
   chunkAttendance,
   computeReportTotalPages,
   type AttendanceRow,
@@ -98,6 +110,35 @@ function BodyParagraph({ children }: { children: ReactNode }) {
     >
       {children}
     </p>
+  );
+}
+
+function BulletItem({ label, detail }: { label: string; detail: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+        marginBottom: "7px",
+        alignItems: "flex-start",
+      }}
+    >
+      <div
+        style={{
+          width: "6px",
+          height: "6px",
+          borderRadius: "50%",
+          background: C.gold,
+          marginTop: "6px",
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ fontSize: "12.5px", color: "#333", lineHeight: 1.55 }}>
+        <span style={{ fontWeight: 800, color: C.blue }}>{label}</span>
+        {" — "}
+        {detail}
+      </div>
+    </div>
   );
 }
 
@@ -208,6 +249,7 @@ function PhotoGrid({
 
 export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
+  const tocChunks = chunkReportToc(REPORT_TOC);
   const photoChunks: (typeof REPORT_PHOTOS)[number][][] = [];
   for (let i = 0; i < REPORT_PHOTOS.length; i += 4) {
     photoChunks.push(REPORT_PHOTOS.slice(i, i + 4));
@@ -226,20 +268,59 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
     >
       <ConferenceReportCoverPage />
 
-      {/* Executive Summary + Overview */}
+      {/* Table of Contents — pages 2–3 */}
+      {tocChunks.map((chunk, idx) => (
+        <ConferenceReportTocPage
+          key={`toc-${idx}`}
+          pageNum={nextPage()}
+          pageIndex={idx}
+          totalTocPages={tocChunks.length}
+          entries={chunk}
+        />
+      ))}
+
+      {/* Executive Summary + Objectives */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Executive Summary">
         <SectionTitle>1. Executive Summary</SectionTitle>
         {EXECUTIVE_SUMMARY.map((p) => (
           <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
         ))}
 
-        <SectionTitle>2. Conference Overview</SectionTitle>
+        <SectionTitle>2. Conference Objectives and Theme</SectionTitle>
+        <BodyParagraph>
+          Theme: &ldquo;{REPORT_META.theme}&rdquo; · Sub-theme: &ldquo;
+          {REPORT_META.subTheme}&rdquo;
+        </BodyParagraph>
+        {CONFERENCE_OBJECTIVES.map((obj) => (
+          <div
+            key={obj.slice(0, 30)}
+            style={{
+              fontSize: "12.5px",
+              color: "#333",
+              marginBottom: "5px",
+              paddingLeft: "12px",
+              lineHeight: 1.5,
+            }}
+          >
+            • {obj}
+          </div>
+        ))}
+      </ReportA4Page>
+
+      {/* Pre-Conference + Overview */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Pre-Conference">
+        <SectionTitle>3. Pre-Conference Preparation</SectionTitle>
+        {PRE_CONFERENCE.map((p) => (
+          <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
+        ))}
+
+        <SectionTitle>4. Conference Overview</SectionTitle>
         <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
             fontSize: "12px",
-            marginBottom: "12px",
+            marginBottom: "10px",
           }}
         >
           <tbody>
@@ -250,35 +331,64 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               ["Dates", REPORT_META.dates],
               ["Venue", REPORT_META.venueEn],
               ["Location", `${REPORT_META.city}, PRC`],
+              ["Conference Chair", "Enoch Kwateh Dongbo"],
             ].map(([label, value]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
                   style={{
-                    padding: "7px 8px",
+                    padding: "6px 8px",
                     fontWeight: 700,
                     color: C.blue,
-                    width: "28%",
+                    width: "30%",
                     background: "#F0F7FF",
                   }}
                 >
                   {label}
                 </td>
-                <td style={{ padding: "7px 10px", color: "#222" }}>{value}</td>
+                <td style={{ padding: "6px 10px", color: "#222" }}>{value}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </ReportA4Page>
+
+      {/* Program narrative — all four days */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Program Narrative">
+        <SectionTitle>5–8. Conference Program</SectionTitle>
+        {PROGRAM_NARRATIVE.map((section) => (
+          <div key={section.heading} style={{ marginBottom: "10px" }}>
+            <div
+              style={{
+                fontSize: "13px",
+                fontWeight: 800,
+                color: C.blue,
+                marginBottom: "3px",
+              }}
+            >
+              {section.heading}
+            </div>
+            <BodyParagraph>{section.body}</BodyParagraph>
+          </div>
+        ))}
+      </ReportA4Page>
+
+      {/* Independence Day detail */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Independence Day">
+        <SectionTitle>7. Independence Day Ceremonies</SectionTitle>
+        {INDEPENDENCE_DAY_NARRATIVE.map((p) => (
+          <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
+        ))}
         <BodyParagraph>
-          The conference opened with arrival and meet-and-greet, proceeded through
-          plenary business and elections, Independence Day observance and awards,
-          and concluded with departure on Monday, 27 July — a unified four-day
-          program under the Legacy and Influence theme.
+          Official Day 3 photography:{" "}
+          <span style={{ color: C.blue, fontSize: "11px" }}>
+            {REPORT_META.pixiesetUrl}
+          </span>
         </BodyParagraph>
       </ReportA4Page>
 
-      {/* Attendance Summary + Program Highlights */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Attendance & Program">
-        <SectionTitle>3. Attendance Summary</SectionTitle>
+      {/* Attendance & Finance */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Attendance & Finance">
+        <SectionTitle>9. Attendance and Finance Summary</SectionTitle>
         <div
           style={{
             display: "grid",
@@ -291,7 +401,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ["Registered", ATTENDANCE_STATS.totalRegistered],
             ["Cities represented", ATTENDANCE_STATS.uniqueCities],
             ["Fully paid", ATTENDANCE_STATS.fullyPaid],
-            ["VIP guests", ATTENDANCE_STATS.vipGuests],
+            ["Veteran placements", ATTENDANCE_STATS.veteranPlacements],
           ].map(([label, value]) => (
             <div
               key={String(label)}
@@ -318,22 +428,39 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           ))}
         </div>
 
-        <SectionTitle>5. Program Highlights</SectionTitle>
-        {PROGRAM_NARRATIVE.map((section) => (
-          <div key={section.heading} style={{ marginBottom: "10px" }}>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 800,
-                color: C.blue,
-                marginBottom: "3px",
-              }}
-            >
-              {section.heading}
-            </div>
-            <BodyParagraph>{section.body}</BodyParagraph>
-          </div>
-        ))}
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "12px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Description", "Amount (RMB)"].map((h) => (
+                <th
+                  key={h}
+                  style={{ padding: "6px 8px", textAlign: "left" }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Delegate fees collected", FINANCE_SUMMARY.delegateFeesCollected.toLocaleString()],
+              ["Cooking Committee — disbursed", FINANCE_SUMMARY.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Cooking Committee — expended", FINANCE_SUMMARY.cookingExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Cooking Committee — balance", FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+            ].map(([label, value]) => (
+              <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td style={{ padding: "6px 8px", fontWeight: 600 }}>{label}</td>
+                <td style={{ padding: "6px 8px", textAlign: "right" }}>{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </ReportA4Page>
 
       {/* Attendance register pages */}
@@ -343,12 +470,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "4. Attendance Register"
-              : "4. Attendance Register (cont.)"
+              ? "10. Delegate Register"
+              : "10. Delegate Register (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>4. Full Attendance Register</SectionTitle>
+            <SectionTitle>10. Full Attendance Register</SectionTitle>
           )}
           {chunkIdx > 0 && (
             <div
@@ -366,55 +493,71 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </ReportA4Page>
       ))}
 
-      {/* Outcomes + Distinguished Guests */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Outcomes & Ceremonies">
-        <SectionTitle>6. Distinguished Guests and Ceremonies</SectionTitle>
-        <BodyParagraph>
-          The conference welcomed His Excellency the Ambassador of the Republic
-          of Liberia to the People&apos;s Republic of China, national executive
-          officers, conference committee leadership, veterans of the union,
-          keynote speakers, and invited guests. Ceremonies included the inaugural
-          address of the incoming national president, ambassador engagements,
-          Independence Day formalities, and the awards night program.
-        </BodyParagraph>
+      {/* Distinguished Guests + Outcomes + Resolutions */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Outcomes">
+        <SectionTitle>11. Distinguished Guests and Speakers</SectionTitle>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "11px",
+            marginBottom: "12px",
+          }}
+        >
+          <tbody>
+            {DISTINGUISHED_GUESTS.map((g) => (
+              <tr key={g.name} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td
+                  style={{
+                    padding: "5px 6px",
+                    fontWeight: 700,
+                    color: C.blue,
+                    width: "42%",
+                  }}
+                >
+                  {g.role}
+                </td>
+                <td style={{ padding: "5px 6px" }}>{g.name}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-        <SectionTitle>7. Outcomes and Legacy</SectionTitle>
+        <SectionTitle>12. Outcomes and Resolutions</SectionTitle>
         {OUTCOMES.map((item) => (
-          <div
-            key={item.label}
-            style={{
-              display: "flex",
-              gap: "8px",
-              marginBottom: "8px",
-              alignItems: "flex-start",
-            }}
-          >
-            <div
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: C.gold,
-                marginTop: "6px",
-                flexShrink: 0,
-              }}
-            />
-            <div>
-              <span style={{ fontWeight: 800, color: C.blue, fontSize: "13px" }}>
-                {item.label}
-              </span>
-              <span style={{ fontSize: "13px", color: "#333" }}>
-                {" "}
-                — {item.detail}
-              </span>
-            </div>
-          </div>
+          <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
+        <div style={{ marginTop: "8px" }}>
+          {RESOLUTIONS_SUMMARY.map((r) => (
+            <div
+              key={r.slice(0, 30)}
+              style={{
+                fontSize: "12px",
+                color: "#333",
+                marginBottom: "4px",
+                paddingLeft: "10px",
+              }}
+            >
+              • {r}
+            </div>
+          ))}
+        </div>
+      </ReportA4Page>
+
+      {/* Lessons Learned + Acknowledgements */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Lessons Learned">
+        <SectionTitle>13. Lessons Learned for Future Conferences</SectionTitle>
+        {LESSONS_LEARNED.map((item) => (
+          <BulletItem key={item.label} label={item.label} detail={item.detail} />
+        ))}
+
+        <SectionTitle>15. Acknowledgements</SectionTitle>
         <BodyParagraph>
-          The Conference Committee expresses gratitude to the National Executive
-          Committee, hotel staff, cooking and logistics teams, media partners
-          including K-VISUALS, and every delegate who traveled to Jinan for this
-          milestone assembly.
+          The Conference Committee extends sincere gratitude to H.E. Dudley
+          McKinley Thomas and the Embassy of Liberia in Beijing; the NEC and all
+          standing and ad hoc committees; K-Visuals Studio; the Arcadia Spa Golf
+          International Hotel; and every delegate, veteran, guest, and volunteer
+          who traveled to Jinan.
         </BodyParagraph>
       </ReportA4Page>
 
@@ -425,12 +568,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "Conference Photographs"
-              : "Conference Photographs (cont.)"
+              ? "14. Photographic Record"
+              : "14. Photographic Record (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>Conference Photographs</SectionTitle>
+            <SectionTitle>14. Conference Photographs</SectionTitle>
           )}
           <PhotoGrid photos={chunk} />
         </ReportA4Page>
@@ -438,13 +581,13 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Certification */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Certification">
-        <SectionTitle>8. Certification</SectionTitle>
+        <SectionTitle>16. Certification</SectionTitle>
         <BodyParagraph>
-          We hereby certify that this report represents an official summary of
-          the Liberian Student Union in China (LSUIC) 20th Annual Conference held
-          in Jinan, Shandong Province, from 24 to 27 July 2026. The attendance
-          records and program summary recorded herein have been reconciled
-          against conference committee documentation.
+          We hereby certify that this report accurately reflects the attendance,
+          program execution, financial summary, and thematic outcomes of the
+          LSUIC 20th Annual Conference held in Jinan, Shandong Province, from 24
+          to 27 July 2026. Committee financial data is cross-referenced against
+          the Cooking Committee report (Appendix A).
         </BodyParagraph>
 
         <div
@@ -473,7 +616,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 fontSize: "12px",
               }}
             >
-              Conference Committee Secretariat
+              Conference Committee — Documentation &amp; Reporting
             </div>
           </div>
           <div>
@@ -494,9 +637,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 fontSize: "12px",
               }}
             >
-              Enoch Kwateh Dongbo
+              Harris M. Bowulo
               <br />
-              <span style={{ color: "#666" }}>Conference Committee Chairman</span>
+              <span style={{ color: "#666" }}>
+                General Secretary, Conference Committee
+              </span>
             </div>
           </div>
         </div>
@@ -520,7 +665,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               maxWidth: "280px",
             }}
           >
-            National Executive Committee, LSUIC
+            Enoch Kwateh Dongbo
+            <br />
+            <span style={{ color: "#666" }}>
+              General Chairman, Conference Committee
+            </span>
           </div>
         </div>
 
@@ -533,7 +682,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             fontStyle: "italic",
           }}
         >
-          Date: August 2026 · Source markdown: {REPORT_META.markdownPath}
+          Date: 13 August 2026 · Source markdown: {REPORT_META.markdownPath}
         </div>
       </ReportA4Page>
     </div>
