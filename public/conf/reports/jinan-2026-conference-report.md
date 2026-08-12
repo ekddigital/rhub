@@ -20,10 +20,10 @@ Jinan, Shandong Province, People's Republic of China
 2. [Conference Objectives and Theme](#2-conference-objectives-and-theme)
 3. [Pre-Conference Preparation](#3-pre-conference-preparation)
 4. [Conference Overview](#4-conference-overview)
-5. [Opening Day — Arrival and Meet and Greet](#5-opening-day--arrival-and-meet-and-greet)
-6. [Plenary Business and Elections](#6-plenary-business-and-elections)
-7. [Independence Day, Sports, and Awards Night](#7-independence-day-sports-and-awards-night)
-8. [Closing Day — Departure](#8-closing-day--departure)
+5. [Day 1 — Arrival & Meet and Greet](#5-day-1--arrival--meet-and-greet)
+6. [Day 2 — Conference Business & Pool Party](#6-day-2--conference-business--pool-party)
+7. [Day 3 — Independence Day, Sports & Awards Night](#7-day-3--independence-day-sports--awards-night)
+8. [Day 4 — Departure](#8-day-4--departure)
 9. [Attendance and Finance Summary](#9-attendance-and-finance-summary)
 10. [Full Delegate Register](#10-full-delegate-register)
 11. [Distinguished Guests and Speakers](#11-distinguished-guests-and-speakers)
@@ -148,7 +148,7 @@ Standing and ad hoc committees were activated before arrival, including **Cookin
 
 ---
 
-## 5. Opening Day — Arrival and Meet and Greet
+## 5. Day 1 — Arrival & Meet and Greet
 
 **Date:** Friday, 24 July 2026 · **Day label:** Arrival Day  
 **Venue:** Arcadia Spa Golf International Hotel, Qihe County, Dezhou, Shandong Province
@@ -192,7 +192,7 @@ The evening closed with delegate feedback, a vote of thanks from the Conference 
 
 ---
 
-## 6. Plenary Business and Elections
+## 6. Day 2 — Conference Business & Pool Party
 
 **Date:** Saturday, 25 July 2026 · **Day label:** Conference Business & Pool Party  
 **Venue:** Hotel conference room (plenary) · Hotel pool / spa area (afternoon)
@@ -232,7 +232,7 @@ Following **Beans Toborgee** lunch and rest (**2:00 – 4:30 PM**), delegates re
 
 ---
 
-## 7. Independence Day, Sports, and Awards Night
+## 7. Day 3 — Independence Day, Sports & Awards Night
 
 **Date:** Sunday, 26 July 2026 · **Day label:** Independence Day, Sports & Awards Night  
 **Designation:** 179th Independence Day of Liberia  
@@ -339,7 +339,7 @@ The program closed with statements from the National President and the Conferenc
 
 ---
 
-## 8. Closing Day — Departure
+## 8. Day 4 — Departure
 
 **Date:** Monday, 27 July 2026 · **Day label:** Departure Day  
 **Venue:** Hotel reception · Jinan West Railway Station (group transfers)

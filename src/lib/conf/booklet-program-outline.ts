@@ -182,6 +182,13 @@ const SUMMARY_DAY_MAP = new Map(
   SUMMARY_PROGRAM_DAYS.map((day) => [day.dayNumber, day]),
 );
 
+/** Booklet Program Outline day labels — shared with conference report §5–§8. */
+export function bookletProgramDayLabel(dayNumber: number): string {
+  return (
+    SUMMARY_DAY_MAP.get(dayNumber)?.label ?? `Day ${dayNumber}`
+  );
+}
+
 /** Jinan 2026 conference program — summary + detailed flow. */
 export const JINAN_2026_PROGRAM_DAYS: ProgramOutlineDay[] =
   DETAILED_PROGRAM_DAYS.map((day) => {

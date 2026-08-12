@@ -5,6 +5,7 @@ import {
   type ProgramDay,
   type ProgramSlot,
 } from "@/components/tools/conf/detailed-program/program-data";
+import { bookletProgramDayLabel } from "@/lib/conf/booklet-program-outline";
 import attendanceRows from "./attendance.generated.json";
 
 export const REPORT_PROGRAM_DAYS = DETAILED_PROGRAM_DAYS;
@@ -65,16 +66,23 @@ export const FINANCE_SUMMARY = {
   cookingBalance: 574.95,
 } as const;
 
-/** Table of contents — mirrors jinan-2026-conference-report.md section numbering. */
-export const REPORT_TOC = [
-  { num: 1, title: "Executive Summary" },
-  { num: 2, title: "Conference Objectives and Theme" },
-  { num: 3, title: "Pre-Conference Preparation" },
-  { num: 4, title: "Conference Overview" },
-  { num: 5, title: "Opening Day — Arrival and Meet and Greet" },
-  { num: 6, title: "Plenary Business and Elections" },
-  { num: 7, title: "Independence Day, Sports, and Awards Night" },
-  { num: 8, title: "Closing Day — Departure" },
+/** Report section titles for each conference day (§5–§8), aligned with booklet Program Outline. */
+export const REPORT_DAY_SECTIONS = [
+  { sectionNum: 5, title: bookletProgramDayLabel(1), day: 1 },
+  { sectionNum: 6, title: bookletProgramDayLabel(2), day: 2 },
+  { sectionNum: 7, title: bookletProgramDayLabel(3), day: 3 },
+  { sectionNum: 8, title: bookletProgramDayLabel(4), day: 4 },
+] as const;
+
+export type ReportTocEntry = {
+  num: number;
+  title: string;
+  startPage?: number;
+  pageSpan?: number;
+  isProgramDay?: boolean;
+};
+
+const REPORT_TOC_AFTER_DAYS = [
   { num: 9, title: "Attendance and Finance Summary" },
   { num: 10, title: "Full Delegate Register" },
   { num: 11, title: "Distinguished Guests and Speakers" },
@@ -85,6 +93,81 @@ export const REPORT_TOC = [
   { num: 16, title: "Certification" },
   { num: 17, title: "Appendices" },
 ] as const;
+
+/** Table of contents — mirrors jinan-2026-conference-report.md; program days match booklet Program Outline. */
+export const REPORT_TOC: readonly ReportTocEntry[] = [
+  { num: 1, title: "Executive Summary" },
+  { num: 2, title: "Conference Objectives and Theme" },
+  { num: 3, title: "Pre-Conference Preparation" },
+  { num: 4, title: "Conference Overview" },
+  ...REPORT_DAY_SECTIONS.map(({ sectionNum, title }) => ({
+    num: sectionNum,
+    title,
+    isProgramDay: true,
+  })),
+  ...REPORT_TOC_AFTER_DAYS,
+];
+
+/** Resolve interior start pages for each TOC row (cover = 1, TOC = 2, body from 3). */
+export function buildReportTocWithPages(): ReportTocEntry[] {
+  const programPages = buildReportProgramPages();
+  const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
+  const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
+
+  let page = 5;
+
+  const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
+  for (const section of REPORT_DAY_SECTIONS) {
+    const pageSpan = programPages.filter(
+      (entry) => entry.sectionNum === section.sectionNum,
+    ).length;
+    dayPageInfo.set(section.sectionNum, { startPage: page, pageSpan });
+    page += pageSpan;
+  }
+
+  const financeStart = page++;
+  const registerStart = page;
+  page += attendancePages;
+  const outcomesStart = page++;
+  const lessonsStart = page++;
+  const photosStart = page;
+  page += photoPages;
+  const certificationStart = page;
+
+  return REPORT_TOC.map((entry) => {
+    if (entry.isProgramDay) {
+      const info = dayPageInfo.get(entry.num);
+      return info ? { ...entry, ...info } : entry;
+    }
+
+    switch (entry.num) {
+      case 1:
+      case 2:
+        return { ...entry, startPage: 3, pageSpan: 1 };
+      case 3:
+      case 4:
+        return { ...entry, startPage: 4, pageSpan: 1 };
+      case 9:
+        return { ...entry, startPage: financeStart, pageSpan: 1 };
+      case 10:
+        return { ...entry, startPage: registerStart, pageSpan: attendancePages };
+      case 11:
+      case 12:
+        return { ...entry, startPage: outcomesStart, pageSpan: 1 };
+      case 13:
+      case 15:
+        return { ...entry, startPage: lessonsStart, pageSpan: 1 };
+      case 14:
+        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+      case 16:
+        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+      case 17:
+        return entry;
+      default:
+        return entry;
+    }
+  });
+}
 
 export const EXECUTIVE_SUMMARY = [
   "The Liberian Student Union in China (LSUIC) successfully convened its 20th Annual Conference & Anniversary at the Arcadia Spa Golf International Hotel in Jinan, Shandong Province, from 24 to 27 July 2026, under the theme Jinan 2026: Legacy and Influence.",
@@ -105,18 +188,6 @@ export const PRE_CONFERENCE = [
   "Months before arrival, the Conference Committee published rhub registration guides, fee-structure flyers, countdown campaigns, online info sessions, and Legacy and Influence theme posters.",
   "Fundraising payment methods, delegate profile cards, badge mockups, Miss LSUIC calls, and merchandise designs were distributed through the rhub asset library.",
   "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and IEC — were activated with disbursed allocations and pre-arrival coordination.",
-] as const;
-
-/** Report section titles for each conference day (§5–§8). */
-export const REPORT_DAY_SECTIONS = [
-  { sectionNum: 5, title: "Opening Day — Arrival and Meet and Greet", day: 1 },
-  { sectionNum: 6, title: "Plenary Business and Elections", day: 2 },
-  {
-    sectionNum: 7,
-    title: "Independence Day, Sports, and Awards Night",
-    day: 3,
-  },
-  { sectionNum: 8, title: "Closing Day — Departure", day: 4 },
 ] as const;
 
 export const DISTINGUISHED_GUESTS = [
@@ -309,14 +380,14 @@ export const REPORT_PHOTOS = [
   },
 ] as const;
 
-/** ~40 rows fill A4 with compact table padding; first page has section title. */
-export const ATTENDANCE_ROWS_PER_PAGE = 40;
+/** Rows per attendance page — tuned for 12px table type + section title on page 1. */
+export const ATTENDANCE_ROWS_PER_PAGE = 33;
 
-/** Photos per interior page — 3×3 grid. */
-export const PHOTOS_PER_PAGE = 9;
+/** Photos per interior page — 2×3 grid at readable caption size. */
+export const PHOTOS_PER_PAGE = 6;
 
-const REPORT_PROGRAM_FIRST_PAGE_CAPACITY = 118;
-const REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY = 132;
+const REPORT_PROGRAM_FIRST_PAGE_CAPACITY = 96;
+const REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY = 108;
 
 function estimateReportSlotUnits(slot: ProgramSlot): number {
   const activityUnits = Math.ceil(slot.activity.length / 88) * 1.15;

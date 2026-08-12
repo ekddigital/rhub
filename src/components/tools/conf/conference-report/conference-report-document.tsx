@@ -6,6 +6,7 @@ import { ConferenceReportCoverPage } from "./ConferenceReportCoverPage";
 import {
   chunkReportToc,
   ConferenceReportTocPage,
+  resolveReportTocEntries,
 } from "./ConferenceReportTocPage";
 import {
   ATTENDANCE_ROWS,
@@ -21,7 +22,6 @@ import {
   REPORT_META,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
-  REPORT_TOC,
   RESOLUTIONS_SUMMARY,
   buildReportProgramPages,
   chunkAttendance,
@@ -30,6 +30,20 @@ import {
   type AttendanceRow,
 } from "./content-data";
 import type { ProgramDay, ProgramSlot } from "../detailed-program/program-data";
+import {
+  REPORT_BODY,
+  REPORT_BULLET,
+  REPORT_CERT,
+  REPORT_CONTINUATION,
+  REPORT_LIST_ITEM,
+  REPORT_PHOTO,
+  REPORT_PROGRAM,
+  REPORT_SECTION_TITLE,
+  REPORT_STATS,
+  REPORT_SUBSECTION,
+  REPORT_TABLE,
+  REPORT_TABLE_PROSE,
+} from "./report-typography";
 
 export const CONFERENCE_REPORT_TOTAL_PAGES = computeReportTotalPages();
 
@@ -88,12 +102,12 @@ function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
-        fontSize: "17px",
-        fontWeight: 800,
-        color: C.blue,
-        marginBottom: "10px",
-        paddingBottom: "6px",
-        borderBottom: `2px solid ${C.gold}`,
+        fontSize: `${REPORT_SECTION_TITLE.fontSize}px`,
+        fontWeight: REPORT_SECTION_TITLE.fontWeight,
+        color: REPORT_SECTION_TITLE.color,
+        marginBottom: `${REPORT_SECTION_TITLE.marginBottom}px`,
+        paddingBottom: `${REPORT_SECTION_TITLE.paddingBottom}px`,
+        borderBottom: REPORT_SECTION_TITLE.borderBottom,
       }}
     >
       {children}
@@ -105,10 +119,11 @@ function BodyParagraph({ children }: { children: ReactNode }) {
   return (
     <p
       style={{
-        fontSize: "13px",
-        lineHeight: 1.65,
-        color: "#222",
+        fontSize: `${REPORT_BODY.fontSize}px`,
+        lineHeight: REPORT_BODY.lineHeight,
+        color: REPORT_BODY.color,
         marginBottom: "10px",
+        textAlign: "justify",
       }}
     >
       {children}
@@ -136,7 +151,13 @@ function BulletItem({ label, detail }: { label: string; detail: string }) {
           flexShrink: 0,
         }}
       />
-      <div style={{ fontSize: "12.5px", color: "#333", lineHeight: 1.55 }}>
+      <div
+        style={{
+          fontSize: `${REPORT_BULLET.fontSize}px`,
+          color: REPORT_BULLET.color,
+          lineHeight: REPORT_BULLET.lineHeight,
+        }}
+      >
         <span style={{ fontWeight: 800, color: C.blue }}>{label}</span>
         {" — "}
         {detail}
@@ -151,7 +172,7 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
       style={{
         width: "100%",
         borderCollapse: "collapse",
-        fontSize: "10.5px",
+        fontSize: `${REPORT_TABLE.fontSize}px`,
       }}
     >
       <thead>
@@ -160,10 +181,10 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
             <th
               key={h}
               style={{
-                padding: "5px 4px",
+                padding: REPORT_TABLE.cellPadding,
                 textAlign: h === "Name" || h === "City" ? "left" : "center",
                 fontWeight: 700,
-                fontSize: "9.5px",
+                fontSize: `${REPORT_TABLE.headerFontSize}px`,
               }}
             >
               {h}
@@ -180,17 +201,53 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
               borderBottom: "1px solid #E5E7EB",
             }}
           >
-            <td style={{ padding: "3px", textAlign: "center", width: "28px" }}>
-              {row.no}
-            </td>
-            <td style={{ padding: "3px 5px", fontWeight: 600 }}>{row.name}</td>
-            <td style={{ padding: "3px 5px", color: "#444" }}>{row.city}</td>
-            <td style={{ padding: "3px 4px", fontSize: "9.5px" }}>{row.room}</td>
-            <td style={{ padding: "3px", textAlign: "center" }}>{row.fee}</td>
-            <td style={{ padding: "3px", textAlign: "center" }}>{row.paid}</td>
             <td
               style={{
-                padding: "3px",
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: "center",
+                width: "30px",
+              }}
+            >
+              {row.no}
+            </td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                fontWeight: 600,
+              }}
+            >
+              {row.name}
+            </td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                color: "#444",
+              }}
+            >
+              {row.city}
+            </td>
+            <td style={{ padding: REPORT_TABLE.compactCellPadding }}>
+              {row.room}
+            </td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: "center",
+              }}
+            >
+              {row.fee}
+            </td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: "center",
+              }}
+            >
+              {row.paid}
+            </td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
                 textAlign: "center",
                 color: row.balance === "0" ? "#047857" : C.red,
                 fontWeight: 700,
@@ -210,10 +267,10 @@ function PhotoGrid({
 }: {
   photos: (typeof REPORT_PHOTOS)[number][];
 }) {
-  const cols = photos.length <= 6 ? 2 : 3;
+  const cols = photos.length <= 4 ? 2 : 3;
   const rows = Math.ceil(photos.length / cols);
   const imageHeight =
-    rows >= 3 ? "148px" : rows === 2 ? "210px" : "280px";
+    rows >= 3 ? "132px" : rows === 2 ? "188px" : "260px";
 
   return (
     <div
@@ -408,7 +465,7 @@ function ProgramDayBlock({
 
 export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
-  const tocChunks = chunkReportToc(REPORT_TOC);
+  const tocChunks = chunkReportToc(resolveReportTocEntries());
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
 

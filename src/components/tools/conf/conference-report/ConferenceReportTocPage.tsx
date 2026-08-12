@@ -2,10 +2,68 @@ import { BOOKLET_A4, C } from "../booklet/constants";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
 import {
+  buildReportTocWithPages,
   computeReportTotalPages,
   REPORT_META,
-  REPORT_TOC,
+  type ReportTocEntry,
 } from "./content-data";
+
+function TocDotLeader() {
+  return (
+    <div
+      aria-hidden
+      style={{
+        height: "12px",
+        overflow: "hidden",
+        fontSize: "10px",
+        lineHeight: "12px",
+        letterSpacing: "2px",
+        color: C.border,
+        whiteSpace: "nowrap",
+        userSelect: "none",
+      }}
+    >
+      {"·".repeat(24)}
+    </div>
+  );
+}
+
+function PageRangeBadge({
+  startPage,
+  pageSpan,
+  highlighted,
+}: {
+  startPage: number;
+  pageSpan: number;
+  highlighted: boolean;
+}) {
+  const multi = pageSpan > 1;
+  const endPage = startPage + pageSpan - 1;
+  const label = multi ? `${startPage}–${endPage}` : String(startPage);
+
+  return (
+    <div
+      style={{
+        boxSizing: "border-box",
+        width: multi ? "38px" : "22px",
+        height: "22px",
+        borderRadius: multi ? "11px" : "50%",
+        background: highlighted ? C.blue : C.lightBlue,
+        border: `1px solid ${highlighted ? C.blue : C.border}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "9px",
+        fontWeight: 700,
+        color: highlighted ? C.white : C.blue,
+        flexShrink: 0,
+        lineHeight: 1,
+      }}
+    >
+      {label}
+    </div>
+  );
+}
 
 export function ConferenceReportTocPage({
   pageNum,
@@ -14,7 +72,7 @@ export function ConferenceReportTocPage({
 }: {
   pageNum: number;
   pageIndex: number;
-  entries: (typeof REPORT_TOC)[number][];
+  entries: ReportTocEntry[];
 }) {
   const totalPages = computeReportTotalPages();
   return (
@@ -43,22 +101,30 @@ export function ConferenceReportTocPage({
           display: "flex",
           flexDirection: "column",
           width: "100%",
-          padding: "18px 40px 10px",
+          padding: "28px 40px 20px",
           overflow: "hidden",
         }}
       >
         {pageIndex === 0 && (
-          <div
-            style={{
-              fontSize: "17px",
-              fontWeight: 800,
-              color: C.blue,
-              marginBottom: "12px",
-              paddingBottom: "6px",
-              borderBottom: `2px solid ${C.gold}`,
-            }}
-          >
-            Table of Contents
+          <div style={{ marginBottom: "20px", flexShrink: 0 }}>
+            <div
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                color: C.blue,
+                marginBottom: "6px",
+              }}
+            >
+              Table of Contents
+            </div>
+            <div
+              style={{
+                height: "3px",
+                width: "60px",
+                background: `linear-gradient(90deg, ${C.red}, ${C.blue})`,
+                borderRadius: "2px",
+              }}
+            />
           </div>
         )}
 
@@ -66,38 +132,79 @@ export function ConferenceReportTocPage({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "5px",
+            gap: "2px",
             flex: 1,
+            minHeight: 0,
           }}
         >
-          {entries.map((entry) => (
-            <div key={entry.num}>
+          {entries.map((entry) => {
+            const highlighted = Boolean(entry.isProgramDay);
+            const hasPage = entry.startPage != null && entry.pageSpan != null;
+
+            return (
               <div
+                key={entry.num}
                 style={{
-                  fontSize: "12.5px",
-                  fontWeight: 700,
-                  color: C.blue,
-                  lineHeight: 1.45,
+                  display: "grid",
+                  gridTemplateColumns: hasPage
+                    ? "minmax(0, 1fr) 72px 40px"
+                    : "minmax(0, 1fr)",
+                  columnGap: "8px",
+                  alignItems: "center",
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  background: highlighted ? `${C.blue}08` : "transparent",
+                  borderBottom: `1px solid ${C.border}50`,
+                  flexShrink: 0,
                 }}
               >
-                {entry.num}. {entry.title}
-              </div>
-              {"subs" in entry && Array.isArray(entry.subs) &&
-                entry.subs.map((sub: string) => (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    minWidth: 0,
+                  }}
+                >
                   <div
-                    key={sub}
                     style={{
-                      fontSize: "11px",
-                      color: "#444",
-                      paddingLeft: "16px",
-                      lineHeight: 1.4,
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: highlighted ? C.red : C.border,
+                      flexShrink: 0,
+                      marginTop: "6px",
                     }}
-                  >
-                    – {sub}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: highlighted ? 700 : 500,
+                        color: highlighted ? C.blue : "#111111",
+                        lineHeight: 1.38,
+                      }}
+                    >
+                      {entry.num}. {entry.title}
+                    </div>
                   </div>
-                ))}
-            </div>
-          ))}
+                </div>
+
+                {hasPage && (
+                  <>
+                    <TocDotLeader />
+                    <div style={{ justifySelf: "end" }}>
+                      <PageRangeBadge
+                        startPage={entry.startPage!}
+                        pageSpan={entry.pageSpan!}
+                        highlighted={highlighted}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
       <PageFooter
@@ -112,7 +219,12 @@ export function ConferenceReportTocPage({
 
 /** Keep the full TOC on one page when it fits A4 content height. */
 export function chunkReportToc(
-  entries: readonly (typeof REPORT_TOC)[number][],
-): (typeof REPORT_TOC)[number][][] {
+  entries: readonly ReportTocEntry[],
+): ReportTocEntry[][] {
   return [entries.slice()];
+}
+
+/** TOC rows with computed page ranges for PDF preview. */
+export function resolveReportTocEntries(): ReportTocEntry[] {
+  return buildReportTocWithPages();
 }
