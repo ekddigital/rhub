@@ -12,7 +12,8 @@ export const REPORT_META = {
   venueEn: CONF_2026.venue,
   venueZh: CONF_2026.venueCn,
   city: `${CONF_2026.city}, ${CONF_2026.province}`,
-  coverPhoto: "/conf/assets/before-after-conf/day3-group-photo.jpg",
+  coverPhoto:
+    "/conf/assets/before-after-conf/photos/group-photo-day3-cover.jpg",
   coverPhotoCredit:
     "Cover photo: K-VISUALS / Pixieset gallery — official delegate group photograph",
   pixiesetUrl:
@@ -94,36 +95,36 @@ export const OUTCOMES = [
 
 export const REPORT_PHOTOS = [
   {
-    src: "/conf/assets/before-after-conf/ambassador-olano-and-new-president.jpg",
-    caption: "Ambassador and incoming national president",
+    src: "/conf/assets/before-after-conf/photos/independence-cake-cutting-ceremony.jpg",
+    caption: "Independence cake-cutting ceremony",
   },
   {
-    src: "/conf/assets/before-after-conf/key-note-speaker.jpg",
-    caption: "Keynote address",
+    src: "/conf/assets/before-after-conf/photos/independence-day-oration-podium.jpg",
+    caption: "Independence Day oration",
   },
   {
-    src: "/conf/assets/before-after-conf/inauguraal-address-new-president.jpg",
+    src: "/conf/assets/before-after-conf/photos/inaugural-address-new-president.jpg",
     caption: "Inaugural address — new national president",
   },
   {
-    src: "/conf/assets/before-after-conf/meeting-ambassor.jpg",
-    caption: "Ambassador engagement with delegates",
+    src: "/conf/assets/before-after-conf/photos/ambassador-welcome-flower-presentation.jpg",
+    caption: "Ambassador welcome — flower presentation",
   },
   {
-    src: "/conf/assets/before-after-conf/miss-lsuic.jpg",
-    caption: "MISS LSUIC recognition",
+    src: "/conf/assets/before-after-conf/photos/miss-lsuic-pageant-winners.jpg",
+    caption: "Miss LSUIC pageant",
   },
   {
-    src: "/conf/assets/before-after-conf/song-performance.jpg",
-    caption: "Musical performance",
+    src: "/conf/assets/before-after-conf/photos/awards-night-delegate-speech.jpg",
+    caption: "Awards Night — delegate speech",
   },
   {
-    src: "/conf/assets/before-after-conf/LSUIC3-17.jpg",
-    caption: "Conference plenary session",
+    src: "/conf/assets/before-after-conf/photos/banquet-delegates-applause.jpg",
+    caption: "Banquet — delegates applauding",
   },
   {
-    src: "/conf/assets/before-after-conf/LSUIC2-579.jpg",
-    caption: "Independence Day program",
+    src: "/conf/assets/before-after-conf/photos/sports-football-kick.jpg",
+    caption: "Independence Day sports — football",
   },
 ] as const;
 

@@ -4,7 +4,7 @@ Day 3 Focus: Legacy and Influence · Independence Day & Awards Night
 Jinan, Shandong Province, People's Republic of China
 24–27 July 2026 · Report Date: 13 August 2026
 
-![LSUIC Jinan 2026 — Day 3 Group Photo](/conf/assets/before-after-conf/day3-group-photo.jpg)
+![LSUIC Jinan 2026 — Day 3 Group Photo](/conf/assets/before-after-conf/photos/group-photo-day3-cover.jpg)
 
 **Theme:** Jinan 2026: Legacy and Influence
 **Sub-theme:** Honoring Our Past, Engaging Our Present, and Inspiring Our Future
@@ -189,13 +189,13 @@ Delegates assembled for breakfast and proceeded to the hotel sports grounds for 
 
 At **1:30 PM**, the Cooking Committee served **Pepper Kala** for lunch at the sports grounds, continuing the conference's tradition of shared Liberian meals prepared by student volunteers.
 
-![Conference sports and fellowship](/conf/assets/before-after-conf/LSUIC3-17.jpg)
+![Independence Day sports — football](/conf/assets/before-after-conf/photos/sports-football-kick.jpg)
 
 ### 4.2 Afternoon — Red Carpet and Official Opening
 
 From **4:00 PM**, delegates transitioned to the hotel conference venue for a **Red Carpet** reception with musical interlude and DJ accompaniment. At **4:20 PM**, the National Chaplain General opened the Independence Day program with prayer and call to order, marking the formal commencement of the day's legacy-and-influence agenda.
 
-![Red carpet and formal opening](/conf/assets/before-after-conf/LSUIC3-61.jpg)
+![Formal session — spoken word presentation](/conf/assets/before-after-conf/photos/formal-spoken-word-presentation.jpg)
 
 ### 4.3 Independence Day Oration and Diplomatic Recognition
 
@@ -203,23 +203,23 @@ From **4:00 PM**, delegates transitioned to the hotel conference venue for a **R
 
 **Hon. Olano Teah Bloh**, outgoing National President, recognized the **Liberian Embassy in Beijing** and special guests, and presented the **NEC Annual Summary and book launch** — *How Far We Have Come* — a chronicle of LSUIC leadership, service, legacy, and solidarity across two decades.
 
-![Keynote and formal addresses](/conf/assets/before-after-conf/key-note-speaker.jpg)
+![Independence Day oration](/conf/assets/before-after-conf/photos/independence-day-oration-podium.jpg)
 
-![Meeting with Ambassador and union leadership](/conf/assets/before-after-conf/meeting-ambassor.jpg)
+![Ambassador welcome — flower presentation](/conf/assets/before-after-conf/photos/ambassador-welcome-flower-presentation.jpg)
 
 ### 4.4 Leadership Transition
 
 The Independent Electoral Commission (IEC), in the presence of **His Excellency Dudley McKinley Thomas**, Ambassador of the Republic of Liberia to the People's Republic of China, conducted the **certification and induction of newly elected NEC officers**. The incoming National President delivered an **inaugural address**, pledging to build on the legacy of past administrations and to lead with influence grounded in accountability and service.
 
-![Ambassador with outgoing and incoming leadership](/conf/assets/before-after-conf/ambassador-olano-and-new-president.jpg)
+![Independence cake-cutting ceremony](/conf/assets/before-after-conf/photos/independence-cake-cutting-ceremony.jpg)
 
-![Inaugural address — newly elected National President](/conf/assets/before-after-conf/inauguraal-address-new-president.jpg)
+![Inaugural address — newly elected National President](/conf/assets/before-after-conf/photos/inaugural-address-new-president.jpg)
 
 ### 4.5 Ambassador's Statement and Independence Rally
 
 Ambassador **Dudley McKinley Thomas** delivered a special statement commending LSUIC for twenty years of organized student governance in China and encouraging delegates to represent Liberia with dignity and purpose. The program continued with an **Independence rally**, remarks from the Embassy and invited personalities, and a **cake-cutting ceremony** marking Liberia's 179th year of independence.
 
-![Ambassador Dudley McKinley Thomas at the formal session](/conf/assets/before-after-conf/ambassor.jpg)
+![Ambassador Dudley McKinley Thomas at the formal session](/conf/assets/before-after-conf/photos/ambassador-dudley-mckinley-thomas-podium.jpg)
 
 ### 4.6 Dinner and Awards Night
 
@@ -234,11 +234,11 @@ Following dinner and formal networking (**8:00 – 8:30 PM**), the **Awards Nigh
 - NEC Service Awards & Scholars of the Year
 - LSUIC Special Honoree Award
 
-![Miss LSUIC](/conf/assets/before-after-conf/miss-lsuic.jpg)
+![Miss LSUIC pageant](/conf/assets/before-after-conf/photos/miss-lsuic-pageant-winners.jpg)
 
-![Musical performance — Awards Night](/conf/assets/before-after-conf/song-performance.jpg)
+![Awards Night — delegate speech](/conf/assets/before-after-conf/photos/awards-night-delegate-speech.jpg)
 
-![Awards Night celebration](/conf/assets/before-after-conf/LSUIC2-579.jpg)
+![Banquet — delegates applauding](/conf/assets/before-after-conf/photos/banquet-delegates-applause.jpg)
 
 The program closed with statements from the National President and the Conference Chair, a vote of thanks, and formal adjournment.
 
@@ -260,25 +260,27 @@ Beyond Day 3, the full conference achieved its planning objectives across fellow
 Official Day 3 photography is published by **K-Visuals Studio**:
 [https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/](https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/)
 
-Additional conference photographs are archived in the rhub asset library at `/conf/assets/before-after-conf/`.
+Additional conference photographs are archived in the rhub asset library at `/conf/assets/before-after-conf/` (see `photos/` and `flyers/` subfolders and `README.md`).
 
 | Photo | Description |
 | --- | --- |
-| day3-group-photo.jpg | Official Day 3 group photograph (cover) |
-| LSUIC3-17.jpg | Sports activities on Independence Day |
-| LSUIC3-61.jpg | Formal session and red-carpet atmosphere |
-| key-note-speaker.jpg | Independence Day oration |
-| meeting-ambassor.jpg | Ambassador and union leadership |
-| ambassador-olano-and-new-president.jpg | Diplomatic recognition and leadership transition |
-| inauguraal-address-new-president.jpg | Inaugural address |
-| miss-lsuic.jpg | Miss LSUIC pageant |
-| song-performance.jpg | Awards Night musical performance |
-| LSUIC2-539.jpg | Awards Night — delegate celebration |
-| LSUIC2-593.jpg | Awards Night — recognition ceremony |
+| photos/group-photo-day3-cover.jpg | Official Day 3 group photograph (cover) |
+| photos/sports-football-kick.jpg | Independence Day sports — football |
+| photos/formal-spoken-word-presentation.jpg | Formal session — spoken word presentation |
+| photos/independence-day-oration-podium.jpg | Independence Day oration |
+| photos/ambassador-welcome-flower-presentation.jpg | Ambassador welcome — flower presentation |
+| photos/independence-cake-cutting-ceremony.jpg | Independence cake-cutting ceremony |
+| photos/inaugural-address-new-president.jpg | Inaugural address |
+| photos/ambassador-dudley-mckinley-thomas-podium.jpg | Ambassador at formal session |
+| photos/miss-lsuic-pageant-winners.jpg | Miss LSUIC pageant |
+| photos/awards-night-delegate-speech.jpg | Awards Night — delegate speech |
+| photos/banquet-delegates-applause.jpg | Banquet — delegates applauding |
+| photos/sports-multi-legged-race.jpg | Independence Day sports — team-building race |
+| photos/sports-football-match.jpg | Independence Day sports — football match |
 
-![Awards Night — delegates in celebration](/conf/assets/before-after-conf/LSUIC2-539.jpg)
+![Independence Day sports — team-building race](/conf/assets/before-after-conf/photos/sports-multi-legged-race.jpg)
 
-![Recognition and celebration](/conf/assets/before-after-conf/LSUIC2-593.jpg)
+![Independence Day sports — football match](/conf/assets/before-after-conf/photos/sports-football-match.jpg)
 
 ---
 
