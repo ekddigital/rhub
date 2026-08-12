@@ -14,20 +14,18 @@ import {
   DISTINGUISHED_GUESTS,
   EXECUTIVE_SUMMARY,
   FINANCE_SUMMARY,
-  INDEPENDENCE_DAY_NARRATIVE,
   LESSONS_LEARNED,
   OUTCOMES,
   PRE_CONFERENCE,
   PROGRAM_GENERAL_NOTES,
-  PROGRAM_NARRATIVE,
   REPORT_META,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
   REPORT_TOC,
   RESOLUTIONS_SUMMARY,
+  buildReportProgramPages,
   chunkAttendance,
   chunkReportPhotos,
-  chunkReportProgramDays,
   computeReportTotalPages,
   type AttendanceRow,
 } from "./content-data";
@@ -320,44 +318,58 @@ function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
   );
 }
 
-function ProgramDayBlock({ day }: { day: ProgramDay }) {
+function ProgramDayBlock({
+  day,
+  slots,
+  showHeader = true,
+}: {
+  day: ProgramDay;
+  slots?: ProgramSlot[];
+  showHeader?: boolean;
+}) {
+  const displaySlots = slots ?? day.slots;
+
   return (
     <div style={{ marginBottom: "10px" }}>
-      <div
-        style={{
-          fontSize: "12px",
-          fontWeight: 800,
-          color: C.blue,
-          marginBottom: "2px",
-        }}
-      >
-        Day {day.day} — {day.label}
-      </div>
-      <div
-        style={{
-          fontSize: "9.5px",
-          color: "#666",
-          marginBottom: "4px",
-        }}
-      >
-        {day.dayOfWeek}, {day.date}
-        {day.theme ? ` · ${day.theme}` : ""}
-      </div>
-      {day.dressCodes.length > 0 && (
-        <div
-          style={{
-            fontSize: "8.5px",
-            color: "#555",
-            marginBottom: "4px",
-            lineHeight: 1.35,
-          }}
-        >
-          {day.dressCodes.map((dc) => (
-            <span key={dc.session} style={{ marginRight: "8px" }}>
-              <strong>{dc.session}:</strong> {dc.code}
-            </span>
-          ))}
-        </div>
+      {showHeader && (
+        <>
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 800,
+              color: C.blue,
+              marginBottom: "2px",
+            }}
+          >
+            Day {day.day} — {day.label}
+          </div>
+          <div
+            style={{
+              fontSize: "9.5px",
+              color: "#666",
+              marginBottom: "4px",
+            }}
+          >
+            {day.dayOfWeek}, {day.date}
+            {day.theme ? ` · ${day.theme}` : ""}
+          </div>
+          {day.dressCodes.length > 0 && (
+            <div
+              style={{
+                fontSize: "8.5px",
+                color: "#555",
+                marginBottom: "4px",
+                lineHeight: 1.35,
+              }}
+            >
+              {day.dressCodes.map((dc) => (
+                <span key={dc.session} style={{ marginRight: "8px" }}>
+                  <strong>{dc.session}:</strong> {dc.code}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
       )}
       <table
         style={{
@@ -385,7 +397,7 @@ function ProgramDayBlock({ day }: { day: ProgramDay }) {
           </tr>
         </thead>
         <tbody>
-          {day.slots.map((slot) => (
+          {displaySlots.map((slot) => (
             <ProgramSlotRow key={`${slot.time}-${slot.activity.slice(0, 20)}`} slot={slot} />
           ))}
         </tbody>
@@ -398,7 +410,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
   const tocChunks = chunkReportToc(REPORT_TOC);
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
-  const programChunks = chunkReportProgramDays(REPORT_PROGRAM_DAYS);
+  const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -496,79 +508,43 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </table>
       </ReportA4Page>
 
-      {/* Detailed program schedule — sourced from Detailed Program */}
-      {programChunks.map((chunk, chunkIdx) => (
+      {/* Detailed program schedule — one section per day (§5–§8), sourced from Detailed Program */}
+      {programPages.map((page) => (
         <ReportA4Page
-          key={`program-${chunkIdx}`}
+          key={`program-${page.sectionNum}-${page.pageIndex}`}
           pageNum={nextPage()}
           sectionLabel={
-            chunkIdx === 0
-              ? "5–8. Detailed Program"
-              : "5–8. Detailed Program (cont.)"
+            page.pageIndex === 0
+              ? `${page.sectionNum}. ${page.sectionTitle}`
+              : `${page.sectionNum}. ${page.sectionTitle} (cont.)`
           }
         >
-          {chunkIdx === 0 && (
-            <>
-              <SectionTitle>5–8. Conference Program — Detailed Schedule</SectionTitle>
-              {PROGRAM_NARRATIVE.slice(0, 2).map((section) => (
-                <div key={section.heading} style={{ marginBottom: "6px" }}>
-                  <div
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 800,
-                      color: C.blue,
-                      marginBottom: "2px",
-                    }}
-                  >
-                    {section.heading}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      lineHeight: 1.45,
-                      color: "#333",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {section.body}
-                  </div>
-                </div>
-              ))}
-            </>
+          {page.pageIndex === 0 ? (
+            <SectionTitle>
+              {page.sectionNum}. {page.sectionTitle}
+            </SectionTitle>
+          ) : (
+            <div
+              style={{
+                fontSize: "12px",
+                fontWeight: 700,
+                color: C.blue,
+                marginBottom: "8px",
+              }}
+            >
+              {page.sectionNum}. {page.sectionTitle} — continued
+            </div>
           )}
-          {chunk.map((day) => (
-            <ProgramDayBlock key={day.day} day={day} />
-          ))}
-          {chunkIdx === programChunks.length - 1 && (
-            <>
-              <div style={{ marginTop: "6px" }}>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 800,
-                    color: C.blue,
-                    marginBottom: "4px",
-                  }}
-                >
-                  Independence Day Ceremonies — Summary
-                </div>
-                {INDEPENDENCE_DAY_NARRATIVE.map((p) => (
-                  <div
-                    key={p.slice(0, 30)}
-                    style={{
-                      fontSize: "10px",
-                      lineHeight: 1.45,
-                      color: "#333",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {p}
-                  </div>
-                ))}
-              </div>
+          <ProgramDayBlock
+            day={page.day}
+            slots={page.slots}
+            showHeader={page.pageIndex === 0}
+          />
+          {page.sectionNum === 8 &&
+            page.pageIndex === page.pageCount - 1 && (
               <div
                 style={{
-                  marginTop: "4px",
+                  marginTop: "6px",
                   fontSize: "8px",
                   color: "#666",
                   lineHeight: 1.35,
@@ -576,8 +552,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               >
                 {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
               </div>
-            </>
-          )}
+            )}
         </ReportA4Page>
       ))}
 

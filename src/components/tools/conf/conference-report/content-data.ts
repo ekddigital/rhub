@@ -3,6 +3,7 @@ import {
   DETAILED_PROGRAM_DAYS,
   PROGRAM_GENERAL_NOTES,
   type ProgramDay,
+  type ProgramSlot,
 } from "@/components/tools/conf/detailed-program/program-data";
 import attendanceRows from "./attendance.generated.json";
 
@@ -70,11 +71,10 @@ export const REPORT_TOC = [
   { num: 2, title: "Conference Objectives and Theme" },
   { num: 3, title: "Pre-Conference Preparation" },
   { num: 4, title: "Conference Overview" },
-  {
-    num: 5,
-    title: "Opening Day — Arrival and Meet and Greet",
-    subs: ["Plenary Business and Elections (§6)", "Independence Day Ceremonies (§7)", "Closing Day — Departure (§8)"],
-  },
+  { num: 5, title: "Opening Day — Arrival and Meet and Greet" },
+  { num: 6, title: "Plenary Business and Elections" },
+  { num: 7, title: "Independence Day, Sports, and Awards Night" },
+  { num: 8, title: "Closing Day — Departure" },
   { num: 9, title: "Attendance and Finance Summary" },
   { num: 10, title: "Full Delegate Register" },
   { num: 11, title: "Distinguished Guests and Speakers" },
@@ -107,29 +107,16 @@ export const PRE_CONFERENCE = [
   "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and IEC — were activated with disbursed allocations and pre-arrival coordination.",
 ] as const;
 
-export const PROGRAM_NARRATIVE = [
+/** Report section titles for each conference day (§5–§8). */
+export const REPORT_DAY_SECTIONS = [
+  { sectionNum: 5, title: "Opening Day — Arrival and Meet and Greet", day: 1 },
+  { sectionNum: 6, title: "Plenary Business and Elections", day: 2 },
   {
-    heading: "Day 1 — Arrival Day (24 July)",
-    body: "Check-in 11:00 AM–8:00 PM; Opening Prayer 4:10 PM; Liberian Dry Rice lunch 4:30 PM; Welcome Remarks 5:05 PM (National President / Conference Chair); self-introductions; orientation by Enoch Kwateh Dongbo; fellowship games 7:00–9:00 PM led by Hon. Ruphine M. Harmon.",
+    sectionNum: 7,
+    title: "Independence Day, Sports, and Awards Night",
+    day: 3,
   },
-  {
-    heading: "Day 2 — Conference Business & Pool Party (25 July)",
-    body: "Plenary 8:30 AM–2:00 PM: devotion (Mitchell Vampelt), agenda (C. Nathaniel Willie II), credentials (Hon. Olano Teah Bloh), financial report (Noah Dave Mason Jr.), presidential report, resolutions, IEC elections. Beans Toborgee lunch; pool party 4:30–9:00 PM; Pepper Soup dinner at 7:00 PM.",
-  },
-  {
-    heading: "Day 3 — Independence Day & Awards (26 July)",
-    body: "Sports 9:00 AM–2:00 PM with Pepper Kala at 1:30 PM. Red Carpet 4:00 PM; oration by Hon. Joshua Bosco Barvor; NEC book launch; IEC induction before H.E. Dudley McKinley Thomas; Independence rally and cake cutting; Awards Night 8:30 PM–4:00 AM.",
-  },
-  {
-    heading: "Day 4 — Departure (27 July)",
-    body: "Sandwich breakfast 7:00–8:30 AM; baggage coordination; checkout by noon; group transfers to Jinan West Railway Station; CoC welfare follow-up.",
-  },
-] as const;
-
-export const INDEPENDENCE_DAY_NARRATIVE = [
-  "4:00 PM Red Carpet with DJ; 4:20 PM official opening; Olive K. Kamara introduced Hon. Joshua Bosco Barvor (oration 5:10–5:40 PM).",
-  "Hon. Olano Teah Bloh recognized the Embassy, presented NEC annual summary and book launch How Far We Have Come, and witnessed IEC certification before H.E. Dudley McKinley Thomas (statement 7:00–7:35 PM).",
-  "Independence rally and cake cutting 7:35–8:00 PM; Awards Night 8:30 PM–4:00 AM — veterans, Miss LSUIC, AEA-2026, NEC Service Awards, and Special Honoree.",
+  { sectionNum: 8, title: "Closing Day — Departure", day: 4 },
 ] as const;
 
 export const DISTINGUISHED_GUESTS = [
@@ -328,16 +315,87 @@ export const ATTENDANCE_ROWS_PER_PAGE = 40;
 /** Photos per interior page — 3×3 grid. */
 export const PHOTOS_PER_PAGE = 9;
 
-/** Program schedule pages — pair days to fit A4 (Day 3 alone; Days 1+2 and Day 4 grouped). */
-export function chunkReportProgramDays(
-  days: readonly ProgramDay[],
-): ProgramDay[][] {
-  if (days.length === 0) return [];
-  return [
-    days.slice(0, 2),
-    [days[2]],
-    days.slice(3),
-  ].filter((chunk) => chunk.length > 0);
+const REPORT_PROGRAM_FIRST_PAGE_CAPACITY = 118;
+const REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY = 132;
+
+function estimateReportSlotUnits(slot: ProgramSlot): number {
+  const activityUnits = Math.ceil(slot.activity.length / 88) * 1.15;
+  const byUnits = slot.by ? Math.ceil(slot.by.length / 96) * 0.85 : 0;
+  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 72) * 0.85 : 0;
+  const subsUnits =
+    slot.subs?.reduce((sum, sub) => {
+      const subLabelUnits = Math.ceil(sub.label.length / 84) * 0.95;
+      const subByUnits = sub.by ? Math.ceil(sub.by.length / 84) * 0.65 : 0;
+      return sum + subLabelUnits + subByUnits;
+    }, 0) ?? 0;
+
+  return 3.2 + activityUnits + byUnits + mealUnits + subsUnits;
+}
+
+function splitReportDaySlots(slots: readonly ProgramSlot[]): ProgramSlot[][] {
+  const pages: ProgramSlot[][] = [];
+  let currentPage: ProgramSlot[] = [];
+  let usedUnits = 0;
+
+  for (const slot of slots) {
+    const capacity =
+      pages.length === 0
+        ? REPORT_PROGRAM_FIRST_PAGE_CAPACITY
+        : REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY;
+    const slotUnits = estimateReportSlotUnits(slot);
+    const wouldOverflow = usedUnits + slotUnits > capacity;
+
+    if (wouldOverflow && currentPage.length > 0) {
+      pages.push(currentPage);
+      currentPage = [slot];
+      usedUnits = slotUnits;
+      continue;
+    }
+
+    currentPage.push(slot);
+    usedUnits += slotUnits;
+  }
+
+  if (currentPage.length > 0) {
+    pages.push(currentPage);
+  }
+
+  return pages;
+}
+
+export type ReportProgramPage = {
+  sectionNum: number;
+  sectionTitle: string;
+  day: ProgramDay;
+  slots: ProgramSlot[];
+  pageIndex: number;
+  pageCount: number;
+};
+
+/** One report section (§5–§8) per day; paginate long slot lists within a day. */
+export function buildReportProgramPages(
+  days: readonly ProgramDay[] = REPORT_PROGRAM_DAYS,
+): ReportProgramPage[] {
+  const pages: ReportProgramPage[] = [];
+
+  for (const section of REPORT_DAY_SECTIONS) {
+    const day = days.find((entry) => entry.day === section.day);
+    if (!day) continue;
+
+    const slotPages = splitReportDaySlots(day.slots);
+    slotPages.forEach((slots, pageIndex) => {
+      pages.push({
+        sectionNum: section.sectionNum,
+        sectionTitle: section.title,
+        day,
+        slots,
+        pageIndex,
+        pageCount: slotPages.length,
+      });
+    });
+  }
+
+  return pages;
 }
 
 /** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
@@ -372,7 +430,7 @@ export function chunkReportPhotos(
 export function computeReportTotalPages(): number {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
-  const programPages = chunkReportProgramDays(REPORT_PROGRAM_DAYS).length;
+  const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS).length;
   const fixedPages = Object.values(REPORT_FIXED_PAGES).reduce((a, b) => a + b, 0);
   return 1 + fixedPages + programPages + attendancePages + photoPages;
 }

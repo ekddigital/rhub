@@ -82,8 +82,8 @@ export function ConferenceReportTocPage({
               >
                 {entry.num}. {entry.title}
               </div>
-              {"subs" in entry &&
-                entry.subs?.map((sub) => (
+              {"subs" in entry && Array.isArray(entry.subs) &&
+                entry.subs.map((sub: string) => (
                   <div
                     key={sub}
                     style={{
