@@ -8,6 +8,7 @@ import {
   DollarSign,
   LayoutDashboard,
   Megaphone,
+  FileText,
   UserCheck,
   Users,
   Wallet,
@@ -73,6 +74,13 @@ const DOC_LINKS = [
     description:
       "Build and print participant booklet-ready cards with photos and room details.",
     icon: BookOpen,
+  },
+  {
+    href: "/tools/conf/conference-report",
+    title: "Conference Report",
+    description:
+      "Post-conference report — full attendance register, program highlights, and photo record for Jinan 2026.",
+    icon: FileText,
   },
   {
     href: "/tools/conf/meetings",

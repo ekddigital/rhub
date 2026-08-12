@@ -1,0 +1,983 @@
+[
+  {
+    "no": "1",
+    "name": "Prince S. S. Songor",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "2",
+    "name": "Angel Bartee",
+    "city": "Shanghai",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "3",
+    "name": "Aaron S. Pittman",
+    "city": "Guangzhou, Guandong",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "4",
+    "name": "Albert B. Weah Weah",
+    "city": "Jinan, Shandong",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "5",
+    "name": "J. Odomeo K Zaizay",
+    "city": "Xi'an, Shaanxi",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "6",
+    "name": "Korlu Kimbeh",
+    "city": "Qingdao, Shandong",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "7",
+    "name": "John T. Twalla",
+    "city": "Ningbo, Zhejiang",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "8",
+    "name": "Fredetta M. N. Yeenee",
+    "city": "Changchun, Jilin",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "9",
+    "name": "Isaac Younge",
+    "city": "Ningbo, Zhejiang",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "10",
+    "name": "Darous K. Joboe",
+    "city": "Tianjin",
+    "room": "GS - Single Room",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "11",
+    "name": "Andrew Koko Wejlah",
+    "city": "Nanjing, Jiangsu",
+    "room": "Veteran - Single Room",
+    "fee": "740",
+    "paid": "740",
+    "balance": "0"
+  },
+  {
+    "no": "12",
+    "name": "D. Omario Yarsiah",
+    "city": "Jinhua, Zhejiang",
+    "room": "Veteran - Single Room",
+    "fee": "740",
+    "paid": "740",
+    "balance": "0"
+  },
+  {
+    "no": "13",
+    "name": "Noah D. Mason Jr.",
+    "city": "Ningbo, Zhejiang",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "14",
+    "name": "Fredrick Francis Johnson II",
+    "city": "Changchun, Jilin",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "15",
+    "name": "Enoch K. Dongbo",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "16",
+    "name": "Tarloh G. Chea",
+    "city": "Hefei, Anhui",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "17",
+    "name": "Queenetta D. Johnson",
+    "city": "Chengdu, Sichuan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "18",
+    "name": "Laimah A. Dowie",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "19",
+    "name": "Moses Kingsford Flomo",
+    "city": "Changchun, Jilin",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "20",
+    "name": "Mohammed D. Keita",
+    "city": "Hengyang, Hunan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "21",
+    "name": "Nancy B. Topo",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "22",
+    "name": "Anthony J. Tarplah Jr",
+    "city": "Xi'an, Shaanxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "23",
+    "name": "Antoinette T. Dickson",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "24",
+    "name": "Charles N. Kollie",
+    "city": "Xi'an, Shaanxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "25",
+    "name": "Abdul M. Corneh",
+    "city": "Zhengzhou, Henan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "26",
+    "name": "Matenneh P. Varney",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "27",
+    "name": "Faith T. Titus",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "28",
+    "name": "Albertresa H. Booker",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "29",
+    "name": "Lawrina N. Varney",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "30",
+    "name": "Andrew Success Howe",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "31",
+    "name": "Samson W. Dweh",
+    "city": "Xi'an, Shaanxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "32",
+    "name": "Nathan Desoe",
+    "city": "Xi'an, Shaanxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "33",
+    "name": "Marthaline Fofana",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "34",
+    "name": "Olano Teah Bloh",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Single Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "35",
+    "name": "Harris M. Bowulo",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "36",
+    "name": "Leelia Y. Johnson",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "37",
+    "name": "Robert Flomo",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "38",
+    "name": "Robert D. Molley",
+    "city": "Qufu, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "39",
+    "name": "Cecelia Wilkinson",
+    "city": "Jingzhou, Hubei",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "40",
+    "name": "Amos F. Saylay",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "41",
+    "name": "Veronica K. Duo",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "42",
+    "name": "Cyrus G. Geiwoe",
+    "city": "Wuhan, Hubei",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "43",
+    "name": "Lydia Lusu Lahun",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "44",
+    "name": "Jonathan J. S. Luciny Jr.",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "45",
+    "name": "Ronell D. Atachie",
+    "city": "Xuzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "46",
+    "name": "Jenneh Zayzay",
+    "city": "Jiaxing, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "47",
+    "name": "Robert B. Posseh Jr.",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "48",
+    "name": "Williamena Y Munyeneh",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "49",
+    "name": "Martina B. Luwor",
+    "city": "Huzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "50",
+    "name": "Rejoice A. Reeves",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "51",
+    "name": "James S. Ngafua",
+    "city": "Wenzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "52",
+    "name": "Alex Z. Cleayon",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "53",
+    "name": "Courage D. Paye",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "54",
+    "name": "Priscilla Bamu Dweh",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "55",
+    "name": "Louise M. Kpoto",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "56",
+    "name": "Ruphine M. Harmon",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "57",
+    "name": "Joshua B. Barvor",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "58",
+    "name": "Jefferson D. Kanneh",
+    "city": "Xinxiang, Henan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "59",
+    "name": "Jairus Y. Railey",
+    "city": "Taizhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "60",
+    "name": "Emmanuel K. S. Smith",
+    "city": "Hengyang, Hunan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "61",
+    "name": "Prince Y. Saydee",
+    "city": "Xuzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "62",
+    "name": "Daniel K. Hinneh",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "63",
+    "name": "Sonnie B. Akoi",
+    "city": "Nantong, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "64",
+    "name": "JOYCELINE J. YENGBE",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "65",
+    "name": "Fatumata Keita",
+    "city": "Huzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "66",
+    "name": "Carolina N. Tamba",
+    "city": "Qingdao, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "67",
+    "name": "Musfred A. T. Twalla",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "68",
+    "name": "Monthera W. Dougbe",
+    "city": "Harbin, Heilonjiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "69",
+    "name": "Simeon G. Gibson",
+    "city": "Ganzhou, Jiamgxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "70",
+    "name": "Stephen B. Saygar",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "71",
+    "name": "Leah N. Taylor",
+    "city": "Weifang, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "72",
+    "name": "Paulina Goffa",
+    "city": "Jinhua, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "73",
+    "name": "Helen G. Kwia",
+    "city": "Nantong, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "74",
+    "name": "Isaaclyn J. S. Bowen",
+    "city": "Tai'an, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "75",
+    "name": "Jenice B. Lebbie",
+    "city": "Harbin, Heilonjiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "76",
+    "name": "Louise V. K. Suah",
+    "city": "Nanchang, Jiangxi",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "77",
+    "name": "Elijah N. Smith",
+    "city": "Wuxi, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "78",
+    "name": "J. Ebenezer Dennis",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "79",
+    "name": "C Nathaniel Willie II",
+    "city": "Chengdu, Sichuan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "80",
+    "name": "Jessey S. Ndorley",
+    "city": "Wuhan, Hubei",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "81",
+    "name": "Olive Kamara",
+    "city": "Guiyang, Guizhou",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "82",
+    "name": "Diamond Youti",
+    "city": "Weifang, Shandong",
+    "room": "March Intake - Shared Room",
+    "fee": "330",
+    "paid": "330",
+    "balance": "0"
+  },
+  {
+    "no": "83",
+    "name": "Nathaniel Blama Jr.",
+    "city": "Weifang, Shandong",
+    "room": "March Intake - Shared Room",
+    "fee": "330",
+    "paid": "330",
+    "balance": "0"
+  },
+  {
+    "no": "84",
+    "name": "Courage N. Wilson",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "85",
+    "name": "Jacob B. Grear",
+    "city": "Chengdu, Sichuan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "86",
+    "name": "James Hubbard",
+    "city": "Tai'an, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "87",
+    "name": "Amos J. Swaray",
+    "city": "Chengdu, Sichuan",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "88",
+    "name": "T. Yarkpawolo Johnson",
+    "city": "Taizhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "89",
+    "name": "Alfreda R. Togbah",
+    "city": "Suzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "90",
+    "name": "Manna D. Blah",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "91",
+    "name": "Emmanuel D. Taylor",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "92",
+    "name": "Jowel A. Penneh",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "93",
+    "name": "Abraham Dixon",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "94",
+    "name": "Kukor Brooks",
+    "city": "Jinan, Shandong",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "95",
+    "name": "Yvonne B. Blamoh",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "96",
+    "name": "Jarbee K. Subah",
+    "city": "Hangzhou, Zhejiang",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "97",
+    "name": "Mardaweh L. Adams",
+    "city": "Jinan, Shandong",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "98",
+    "name": "Blessing H. Washington",
+    "city": "Nantong, Jiangsu",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "99",
+    "name": "Evan Teah",
+    "city": "Jinan, Shandong",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "100",
+    "name": "Doreen C. Jones",
+    "city": "Jinan, Shandong",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "101",
+    "name": "Enoch B. Quaye",
+    "city": "Jinan, Shandong",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "102",
+    "name": "Clarence S. Johnson",
+    "city": "Xuzhou, Jiangsu",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "103",
+    "name": "Emmanuel L. Smith",
+    "city": "Nanjing, Jiangsu",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "104",
+    "name": "Andrew N. Thompson",
+    "city": "Beijing",
+    "room": "GS - Shared Room + Guest",
+    "fee": "750",
+    "paid": "750",
+    "balance": "0"
+  },
+  {
+    "no": "105",
+    "name": "Andrew N. Thompson",
+    "city": "Beijing",
+    "room": "Guest",
+    "fee": "600",
+    "paid": "600",
+    "balance": "0"
+  },
+  {
+    "no": "106",
+    "name": "Vickie Y. Weefar",
+    "city": "Xuzhou, Jiangsu",
+    "room": "GS - No Accomodation",
+    "fee": "175",
+    "paid": "175",
+    "balance": "0"
+  },
+  {
+    "no": "107",
+    "name": "Martu H. Jah",
+    "city": "Shanghai",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "108",
+    "name": "Jesses Ukaegbu",
+    "city": "Beijing",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  },
+  {
+    "no": "109",
+    "name": "Meme Layweh",
+    "city": "Xuzhou, Jiangsu",
+    "room": "GS - Shared Room",
+    "fee": "250",
+    "paid": "250",
+    "balance": "0"
+  }
+]

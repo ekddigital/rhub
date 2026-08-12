@@ -24,6 +24,7 @@ import {
   Download,
   MapPinned,
   ListOrdered,
+  FileBarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/contexts/user-context";
@@ -84,6 +85,18 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     href: "/tools/conf/detailed-program",
     label: "Detailed Program",
     icon: ListOrdered,
+    minAccess: "delegate",
+  },
+  {
+    href: "/tools/conf/conference-report",
+    label: "Conference Report",
+    icon: FileBarChart,
+    minAccess: "delegate",
+  },
+  {
+    href: "/tools/conf/conference-report",
+    label: "Conference Report",
+    icon: FileText,
     minAccess: "delegate",
   },
   {
