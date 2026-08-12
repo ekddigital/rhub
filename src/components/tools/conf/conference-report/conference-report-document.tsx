@@ -40,7 +40,6 @@ import {
   REPORT_PROGRAM,
   REPORT_SECTION_TITLE,
   REPORT_STATS,
-  REPORT_SUBSECTION,
   REPORT_TABLE,
   REPORT_TABLE_PROSE,
 } from "./report-typography";
@@ -298,12 +297,12 @@ function PhotoGrid({
           />
           <div
             style={{
-              fontSize: "9px",
-              color: "#555",
-              marginTop: "2px",
-              fontWeight: 600,
+              fontSize: `${REPORT_PHOTO.caption.fontSize}px`,
+              color: REPORT_PHOTO.caption.color,
+              marginTop: "3px",
+              fontWeight: REPORT_PHOTO.caption.fontWeight,
               textAlign: "center",
-              lineHeight: 1.25,
+              lineHeight: REPORT_PHOTO.caption.lineHeight,
             }}
           >
             {photo.caption}
@@ -319,10 +318,10 @@ function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
     <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
       <td
         style={{
-          padding: "3px 4px",
-          fontSize: "9px",
-          fontWeight: 700,
-          color: C.blue,
+          padding: REPORT_TABLE.compactCellPadding,
+          fontSize: `${REPORT_PROGRAM.time.fontSize}px`,
+          fontWeight: REPORT_PROGRAM.time.fontWeight,
+          color: REPORT_PROGRAM.time.color,
           verticalAlign: "top",
           width: "18%",
           whiteSpace: "nowrap",
@@ -332,11 +331,11 @@ function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
       </td>
       <td
         style={{
-          padding: "3px 5px",
-          fontSize: "9.5px",
-          color: "#222",
+          padding: REPORT_TABLE.compactCellPadding,
+          fontSize: `${REPORT_PROGRAM.activity.fontSize}px`,
+          color: REPORT_PROGRAM.activity.color,
           verticalAlign: "top",
-          lineHeight: 1.35,
+          lineHeight: REPORT_PROGRAM.activity.lineHeight,
         }}
       >
         {slot.activity}
@@ -350,10 +349,10 @@ function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
           <div
             key={sub.label}
             style={{
-              fontSize: "8.5px",
-              color: "#555",
+              fontSize: `${REPORT_PROGRAM.subItem.fontSize}px`,
+              color: REPORT_PROGRAM.subItem.color,
               paddingLeft: "8px",
-              marginTop: "1px",
+              marginTop: "2px",
             }}
           >
             – {sub.label}
@@ -362,9 +361,9 @@ function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
       </td>
       <td
         style={{
-          padding: "3px 4px",
-          fontSize: "8.5px",
-          color: "#444",
+          padding: REPORT_TABLE.compactCellPadding,
+          fontSize: `${REPORT_PROGRAM.responsible.fontSize}px`,
+          color: REPORT_PROGRAM.responsible.color,
           verticalAlign: "top",
           width: "28%",
         }}
@@ -392,19 +391,19 @@ function ProgramDayBlock({
         <>
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: 800,
-              color: C.blue,
-              marginBottom: "2px",
+              fontSize: `${REPORT_PROGRAM.dayTitle.fontSize}px`,
+              fontWeight: REPORT_PROGRAM.dayTitle.fontWeight,
+              color: REPORT_PROGRAM.dayTitle.color,
+              marginBottom: "3px",
             }}
           >
             Day {day.day} — {day.label}
           </div>
           <div
             style={{
-              fontSize: "9.5px",
-              color: "#666",
-              marginBottom: "4px",
+              fontSize: `${REPORT_PROGRAM.dayMeta.fontSize}px`,
+              color: REPORT_PROGRAM.dayMeta.color,
+              marginBottom: "5px",
             }}
           >
             {day.dayOfWeek}, {day.date}
@@ -413,10 +412,10 @@ function ProgramDayBlock({
           {day.dressCodes.length > 0 && (
             <div
               style={{
-                fontSize: "8.5px",
-                color: "#555",
-                marginBottom: "4px",
-                lineHeight: 1.35,
+                fontSize: `${REPORT_PROGRAM.dressCode.fontSize}px`,
+                color: REPORT_PROGRAM.dressCode.color,
+                marginBottom: "5px",
+                lineHeight: REPORT_PROGRAM.dressCode.lineHeight,
               }}
             >
               {day.dressCodes.map((dc) => (
@@ -432,7 +431,7 @@ function ProgramDayBlock({
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          fontSize: "9.5px",
+          fontSize: `${REPORT_TABLE.fontSize}px`,
         }}
       >
         <thead>
@@ -441,11 +440,11 @@ function ProgramDayBlock({
               <th
                 key={h}
                 style={{
-                  padding: "3px 4px",
+                  padding: REPORT_TABLE.cellPadding,
                   textAlign: "left",
-                  fontWeight: 700,
-                  fontSize: "8.5px",
-                  color: C.blue,
+                  fontWeight: REPORT_PROGRAM.tableHeader.fontWeight,
+                  fontSize: `${REPORT_PROGRAM.tableHeader.fontSize}px`,
+                  color: REPORT_PROGRAM.tableHeader.color,
                 }}
               >
                 {h}
@@ -508,11 +507,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           <div
             key={obj.slice(0, 30)}
             style={{
-              fontSize: "12.5px",
-              color: "#333",
-              marginBottom: "5px",
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "6px",
               paddingLeft: "12px",
-              lineHeight: 1.5,
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
             }}
           >
             • {obj}
@@ -532,7 +531,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontSize: "12px",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
             marginBottom: "10px",
           }}
         >
@@ -549,7 +548,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
                   style={{
-                    padding: "6px 8px",
+                    padding: REPORT_TABLE_PROSE.cellPadding,
                     fontWeight: 700,
                     color: C.blue,
                     width: "30%",
@@ -558,7 +557,14 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 >
                   {label}
                 </td>
-                <td style={{ padding: "6px 10px", color: "#222" }}>{value}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    color: "#222",
+                  }}
+                >
+                  {value}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -583,9 +589,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           ) : (
             <div
               style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                color: C.blue,
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
                 marginBottom: "8px",
               }}
             >
@@ -601,10 +607,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             page.pageIndex === page.pageCount - 1 && (
               <div
                 style={{
-                  marginTop: "6px",
-                  fontSize: "8px",
-                  color: "#666",
-                  lineHeight: 1.35,
+                  marginTop: "8px",
+                  fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
+                  color: REPORT_PROGRAM.footnote.color,
+                  lineHeight: REPORT_PROGRAM.footnote.lineHeight,
                 }}
               >
                 {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
@@ -639,14 +645,20 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 border: `1px solid ${C.blue}22`,
               }}
             >
-              <div style={{ fontSize: "10px", color: "#666", fontWeight: 700 }}>
+              <div
+                style={{
+                  fontSize: `${REPORT_STATS.label.fontSize}px`,
+                  color: REPORT_STATS.label.color,
+                  fontWeight: REPORT_STATS.label.fontWeight,
+                }}
+              >
                 {label}
               </div>
               <div
                 style={{
-                  fontSize: "22px",
-                  fontWeight: 800,
-                  color: C.blue,
+                  fontSize: `${REPORT_STATS.value.fontSize}px`,
+                  fontWeight: REPORT_STATS.value.fontWeight,
+                  color: REPORT_STATS.value.color,
                 }}
               >
                 {value}
@@ -659,7 +671,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontSize: "12px",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
           }}
         >
           <thead>
@@ -667,7 +679,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               {["Description", "Amount (RMB)"].map((h) => (
                 <th
                   key={h}
-                  style={{ padding: "6px 8px", textAlign: "left" }}
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "left",
+                  }}
                 >
                   {h}
                 </th>
@@ -682,8 +697,22 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               ["Cooking Committee — balance", FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
             ].map(([label, value]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={{ padding: "6px 8px", fontWeight: 600 }}>{label}</td>
-                <td style={{ padding: "6px 8px", textAlign: "right" }}>{value}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    fontWeight: 600,
+                  }}
+                >
+                  {label}
+                </td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "right",
+                  }}
+                >
+                  {value}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -707,9 +736,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           {chunkIdx > 0 && (
             <div
               style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                color: C.blue,
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
                 marginBottom: "8px",
               }}
             >
@@ -727,7 +756,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontSize: "11px",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
             marginBottom: "12px",
           }}
         >
@@ -736,7 +765,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               <tr key={g.name} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
                   style={{
-                    padding: "5px 6px",
+                    padding: REPORT_TABLE.cellPadding,
                     fontWeight: 700,
                     color: C.blue,
                     width: "42%",
@@ -744,7 +773,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 >
                   {g.role}
                 </td>
-                <td style={{ padding: "5px 6px" }}>{g.name}</td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{g.name}</td>
               </tr>
             ))}
           </tbody>
@@ -759,10 +788,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             <div
               key={r.slice(0, 30)}
               style={{
-                fontSize: "12px",
-                color: "#333",
-                marginBottom: "4px",
+                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                color: REPORT_LIST_ITEM.color,
+                marginBottom: "5px",
                 paddingLeft: "10px",
+                lineHeight: REPORT_LIST_ITEM.lineHeight,
               }}
             >
               • {r}
@@ -828,9 +858,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           <div>
             <div
               style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                color: C.blue,
+                fontSize: `${REPORT_CERT.label.fontSize}px`,
+                fontWeight: REPORT_CERT.label.fontWeight,
+                color: REPORT_CERT.label.color,
                 marginBottom: "40px",
               }}
             >
@@ -840,7 +870,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               style={{
                 borderTop: `1px solid ${C.blue}`,
                 paddingTop: "6px",
-                fontSize: "12px",
+                fontSize: `${REPORT_CERT.signature.fontSize}px`,
               }}
             >
               Conference Committee — Documentation &amp; Reporting
@@ -849,9 +879,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           <div>
             <div
               style={{
-                fontSize: "12px",
-                fontWeight: 700,
-                color: C.blue,
+                fontSize: `${REPORT_CERT.label.fontSize}px`,
+                fontWeight: REPORT_CERT.label.fontWeight,
+                color: REPORT_CERT.label.color,
                 marginBottom: "40px",
               }}
             >
@@ -861,12 +891,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               style={{
                 borderTop: `1px solid ${C.blue}`,
                 paddingTop: "6px",
-                fontSize: "12px",
+                fontSize: `${REPORT_CERT.signature.fontSize}px`,
               }}
             >
               Harris M. Bowulo
               <br />
-              <span style={{ color: "#666" }}>
+              <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
                 General Secretary, Conference Committee
               </span>
             </div>
@@ -876,9 +906,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         <div style={{ marginTop: "36px" }}>
           <div
             style={{
-              fontSize: "12px",
-              fontWeight: 700,
-              color: C.blue,
+              fontSize: `${REPORT_CERT.label.fontSize}px`,
+              fontWeight: REPORT_CERT.label.fontWeight,
+              color: REPORT_CERT.label.color,
               marginBottom: "40px",
             }}
           >
@@ -888,13 +918,13 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             style={{
               borderTop: `1px solid ${C.blue}`,
               paddingTop: "6px",
-              fontSize: "12px",
+              fontSize: `${REPORT_CERT.signature.fontSize}px`,
               maxWidth: "280px",
             }}
           >
             Enoch Kwateh Dongbo
             <br />
-            <span style={{ color: "#666" }}>
+            <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
               General Chairman, Conference Committee
             </span>
           </div>
@@ -904,9 +934,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           style={{
             marginTop: "auto",
             paddingTop: "24px",
-            fontSize: "10px",
-            color: "#888",
-            fontStyle: "italic",
+            fontSize: `${REPORT_CERT.date.fontSize}px`,
+            color: REPORT_CERT.date.color,
+            fontStyle: REPORT_CERT.date.fontStyle,
           }}
         >
           Date: 13 August 2026

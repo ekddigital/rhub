@@ -7,6 +7,7 @@ import {
   REPORT_META,
   type ReportTocEntry,
 } from "./content-data";
+import { REPORT_TOC } from "./report-typography";
 
 function TocDotLeader() {
   return (
@@ -53,8 +54,8 @@ function PageRangeBadge({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "9px",
-        fontWeight: 700,
+        fontSize: `${REPORT_TOC.badge.fontSize}px`,
+        fontWeight: REPORT_TOC.badge.fontWeight,
         color: highlighted ? C.white : C.blue,
         flexShrink: 0,
         lineHeight: 1,
@@ -109,9 +110,9 @@ export function ConferenceReportTocPage({
           <div style={{ marginBottom: "20px", flexShrink: 0 }}>
             <div
               style={{
-                fontSize: "22px",
-                fontWeight: 800,
-                color: C.blue,
+                fontSize: `${REPORT_TOC.title.fontSize}px`,
+                fontWeight: REPORT_TOC.title.fontWeight,
+                color: REPORT_TOC.title.color,
                 marginBottom: "6px",
               }}
             >
@@ -151,7 +152,7 @@ export function ConferenceReportTocPage({
                     : "minmax(0, 1fr)",
                   columnGap: "8px",
                   alignItems: "center",
-                  padding: "8px 12px",
+                  padding: "9px 12px",
                   borderRadius: "6px",
                   background: highlighted ? `${C.blue}08` : "transparent",
                   borderBottom: `1px solid ${C.border}50`,
@@ -179,10 +180,10 @@ export function ConferenceReportTocPage({
                   <div style={{ minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: "13px",
+                        fontSize: `${REPORT_TOC.entry.fontSize}px`,
                         fontWeight: highlighted ? 700 : 500,
                         color: highlighted ? C.blue : "#111111",
-                        lineHeight: 1.38,
+                        lineHeight: REPORT_TOC.entry.lineHeight,
                       }}
                     >
                       {entry.num}. {entry.title}
