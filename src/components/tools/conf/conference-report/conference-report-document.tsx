@@ -18,16 +18,20 @@ import {
   LESSONS_LEARNED,
   OUTCOMES,
   PRE_CONFERENCE,
+  PROGRAM_GENERAL_NOTES,
   PROGRAM_NARRATIVE,
   REPORT_META,
   REPORT_PHOTOS,
+  REPORT_PROGRAM_DAYS,
   REPORT_TOC,
   RESOLUTIONS_SUMMARY,
   chunkAttendance,
   chunkReportPhotos,
+  chunkReportProgramDays,
   computeReportTotalPages,
   type AttendanceRow,
 } from "./content-data";
+import type { ProgramDay, ProgramSlot } from "../detailed-program/program-data";
 
 export const CONFERENCE_REPORT_TOTAL_PAGES = computeReportTotalPages();
 
@@ -255,10 +259,146 @@ function PhotoGrid({
   );
 }
 
+function ProgramSlotRow({ slot }: { slot: ProgramSlot }) {
+  return (
+    <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+      <td
+        style={{
+          padding: "3px 4px",
+          fontSize: "9px",
+          fontWeight: 700,
+          color: C.blue,
+          verticalAlign: "top",
+          width: "18%",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {slot.time}
+      </td>
+      <td
+        style={{
+          padding: "3px 5px",
+          fontSize: "9.5px",
+          color: "#222",
+          verticalAlign: "top",
+          lineHeight: 1.35,
+        }}
+      >
+        {slot.activity}
+        {slot.meal && (
+          <span style={{ color: "#047857", fontWeight: 700 }}>
+            {" "}
+            · {slot.meal}
+          </span>
+        )}
+        {slot.subs?.map((sub) => (
+          <div
+            key={sub.label}
+            style={{
+              fontSize: "8.5px",
+              color: "#555",
+              paddingLeft: "8px",
+              marginTop: "1px",
+            }}
+          >
+            – {sub.label}
+          </div>
+        ))}
+      </td>
+      <td
+        style={{
+          padding: "3px 4px",
+          fontSize: "8.5px",
+          color: "#444",
+          verticalAlign: "top",
+          width: "28%",
+        }}
+      >
+        {slot.by ?? "—"}
+      </td>
+    </tr>
+  );
+}
+
+function ProgramDayBlock({ day }: { day: ProgramDay }) {
+  return (
+    <div style={{ marginBottom: "10px" }}>
+      <div
+        style={{
+          fontSize: "12px",
+          fontWeight: 800,
+          color: C.blue,
+          marginBottom: "2px",
+        }}
+      >
+        Day {day.day} — {day.label}
+      </div>
+      <div
+        style={{
+          fontSize: "9.5px",
+          color: "#666",
+          marginBottom: "4px",
+        }}
+      >
+        {day.dayOfWeek}, {day.date}
+        {day.theme ? ` · ${day.theme}` : ""}
+      </div>
+      {day.dressCodes.length > 0 && (
+        <div
+          style={{
+            fontSize: "8.5px",
+            color: "#555",
+            marginBottom: "4px",
+            lineHeight: 1.35,
+          }}
+        >
+          {day.dressCodes.map((dc) => (
+            <span key={dc.session} style={{ marginRight: "8px" }}>
+              <strong>{dc.session}:</strong> {dc.code}
+            </span>
+          ))}
+        </div>
+      )}
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontSize: "9.5px",
+        }}
+      >
+        <thead>
+          <tr style={{ background: "#F0F7FF" }}>
+            {["Time", "Activity", "Responsible"].map((h) => (
+              <th
+                key={h}
+                style={{
+                  padding: "3px 4px",
+                  textAlign: "left",
+                  fontWeight: 700,
+                  fontSize: "8.5px",
+                  color: C.blue,
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {day.slots.map((slot) => (
+            <ProgramSlotRow key={`${slot.time}-${slot.activity.slice(0, 20)}`} slot={slot} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
   const tocChunks = chunkReportToc(REPORT_TOC);
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
+  const programChunks = chunkReportProgramDays(REPORT_PROGRAM_DAYS);
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -357,36 +497,90 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </table>
       </ReportA4Page>
 
-      {/* Program narrative + Independence Day */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Program Narrative">
-        <SectionTitle>5–8. Conference Program</SectionTitle>
-        {PROGRAM_NARRATIVE.map((section) => (
-          <div key={section.heading} style={{ marginBottom: "8px" }}>
-            <div
-              style={{
-                fontSize: "13px",
-                fontWeight: 800,
-                color: C.blue,
-                marginBottom: "3px",
-              }}
-            >
-              {section.heading}
-            </div>
-            <BodyParagraph>{section.body}</BodyParagraph>
-          </div>
-        ))}
-
-        <SectionTitle>7. Independence Day Ceremonies</SectionTitle>
-        {INDEPENDENCE_DAY_NARRATIVE.map((p) => (
-          <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
-        ))}
-        <BodyParagraph>
-          Official Day 3 photography:{" "}
-          <span style={{ color: C.blue, fontSize: "11px" }}>
-            {REPORT_META.pixiesetUrl}
-          </span>
-        </BodyParagraph>
-      </ReportA4Page>
+      {/* Detailed program schedule — sourced from Detailed Program */}
+      {programChunks.map((chunk, chunkIdx) => (
+        <ReportA4Page
+          key={`program-${chunkIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            chunkIdx === 0
+              ? "5–8. Detailed Program"
+              : "5–8. Detailed Program (cont.)"
+          }
+        >
+          {chunkIdx === 0 && (
+            <>
+              <SectionTitle>5–8. Conference Program — Detailed Schedule</SectionTitle>
+              {PROGRAM_NARRATIVE.slice(0, 2).map((section) => (
+                <div key={section.heading} style={{ marginBottom: "6px" }}>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      color: C.blue,
+                      marginBottom: "2px",
+                    }}
+                  >
+                    {section.heading}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      lineHeight: 1.45,
+                      color: "#333",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {section.body}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          {chunk.map((day) => (
+            <ProgramDayBlock key={day.day} day={day} />
+          ))}
+          {chunkIdx === programChunks.length - 1 && (
+            <>
+              <div style={{ marginTop: "6px" }}>
+                <div
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    color: C.blue,
+                    marginBottom: "4px",
+                  }}
+                >
+                  Independence Day Ceremonies — Summary
+                </div>
+                {INDEPENDENCE_DAY_NARRATIVE.map((p) => (
+                  <div
+                    key={p.slice(0, 30)}
+                    style={{
+                      fontSize: "10px",
+                      lineHeight: 1.45,
+                      color: "#333",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {p}
+                  </div>
+                ))}
+              </div>
+              <div
+                style={{
+                  marginTop: "4px",
+                  fontSize: "8px",
+                  color: "#666",
+                  lineHeight: 1.35,
+                }}
+              >
+                {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
+              </div>
+            </>
+          )}
+        </ReportA4Page>
+      ))}
 
       {/* Attendance & Finance */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Attendance & Finance">

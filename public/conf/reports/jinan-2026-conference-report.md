@@ -137,67 +137,148 @@ Standing and ad hoc committees were activated before arrival, including **Cookin
 
 ### Four-Day Program at a Glance
 
-| Day | Date | Focus | Highlights |
-| --- | --- | --- | --- |
-| Opening | Fri, 24 Jul | Arrival & Meet and Greet | Welcome remarks, self-introductions, fellowship games, expectation tree |
-| Plenary | Sat, 25 Jul | Conference Business & Pool Party | Annual reports, elections, resolutions, constitution review; afternoon pool party |
-| Ceremonial | Sun, 26 Jul | Independence Day, Sports & Awards Night | Football, Independence Day program, ambassador address, inductions, Awards Night |
-| Closing | Mon, 27 Jul | Departure | Checkout and delegate departure by noon |
+| Day | Date | Label | Venue Focus | Key Meals |
+| --- | --- | --- | --- | --- |
+| 1 | Fri, 24 Jul | Arrival Day | Hotel reception · yard (golf course) | Liberian Dry Rice (4:30 PM) |
+| 2 | Sat, 25 Jul | Conference Business & Pool Party | Conference room · pool / spa | Beans Toborgee · Pepper Soup with Rice and Fufu |
+| 3 | Sun, 26 Jul | Independence Day, Sports & Awards Night | Sports grounds · conference venue | Pepper Kala · Awards Night banquet |
+| 4 | Mon, 27 Jul | Departure Day | Hotel reception · Jinan West Railway Station | Sandwich (breakfast) |
+
+*All times China Standard Time (CST / UTC+8). Full slot-by-slot schedule in Sections 5–8 and Appendix D.*
 
 ---
 
 ## 5. Opening Day — Arrival and Meet and Greet
 
-**Date:** Friday, 24 July 2026
+**Date:** Friday, 24 July 2026 · **Day label:** Arrival Day  
+**Venue:** Arcadia Spa Golf International Hotel, Qihe County, Dezhou, Shandong Province
 
-Delegates traveled from more than thirty-five cities to the Arcadia Spa Golf International Hotel. Check-in and room card issuance proceeded throughout the morning; delegates arriving before 11:00 AM were welcomed with corn bread and juice while awaiting the evening program.
+### Dress Code
 
-At **5:00 PM**, the Conference Committee convened the **Meet and Greet** in the hotel yard near the golf course. The General Chairman delivered the official welcome statement, followed by delegate self-introductions and a comprehensive overview of the four-day conference schedule.
+| Session | Attire |
+| --- | --- |
+| Arrival / Check-in | Casual / Comfortable travel wear |
+| Meet & Greet | Business Casual |
 
-Fellowship activities strengthened community from the first evening:
+### Detailed Program — Day 1
 
-- **Expectation Tree** — Delegates wrote personal hopes for the conference on sticky notes attached to a shared tree; notes were removed as expectations were fulfilled across the week.
-- **Signed t-shirt tradition** — Delegates exchanged signatures and messages on white t-shirts worn throughout the day, creating a visible memory artifact.
-- **Meet and Greet games** — Group games including sentence chains, pick-and-act, singing, and listen-and-follow exercises broke ice across city delegations.
+| Time | Activity | Responsible | Location |
+| --- | --- | --- | --- |
+| All Day | Delegates arrive and travel to the conference venue | All Delegates | In transit / venue arrival |
+| 11:00 AM – 8:00 PM | Arrival, check-in at hotel reception, room assignment, and welfare support desk | Logistics Committee · Welfare Committee | Hotel reception |
+| 2:00 PM – 4:00 PM | Rest window — delegates settle into rooms and explore hotel grounds | All Delegates | Hotel / logistics desk |
+| 4:10 PM – 4:15 PM | Opening Prayer | National Chaplain General / Designee | Hotel yard (near golf course) |
+| 4:30 PM | Lunch — **Liberian Dry Rice** | Cooking Committee | Hotel dining area |
+| 5:05 PM – 5:20 PM | Welcome Remarks — Meet and Greet official opening | National President / Conference Chair | Hotel yard |
+| 5:20 PM – 6:00 PM | Self-Introductions — all delegates introduce themselves | All Delegates | Hotel yard |
+| 6:00 PM – 6:20 PM | Conference orientation — four-day program overview, hotel ground rules, delegate expectations | Conference Chair — **Enoch Kwateh Dongbo** | Hotel yard |
+| 6:20 PM – 6:30 PM | Housekeeping announcements and logistics briefing for Day 2 | National Secretary General | Hotel yard |
+| 7:00 PM – 9:00 PM | Games, Fellowship, and informal networking | National Vice President — **Hon. Ruphine M. Harmon** | Hotel dining area |
+| 9:10 PM | Closing prayer — end of Day 1 | National Chaplain General / Designee | Hotel yard |
 
-The evening closed with delegate feedback, a vote of thanks from the Conference Committee, and closing prayer — establishing a tone of unity, expectation, and mutual support that carried through the remaining days.
+### Narrative Summary
+
+Delegates traveled from more than thirty-five cities to the Arcadia Spa Golf International Hotel. Check-in and room card issuance proceeded from **11:00 AM through 8:00 PM**; delegates arriving before 11:00 AM were welcomed with corn bread and juice while awaiting the evening program.
+
+The **Meet and Greet** opened with prayer at **4:10 PM**, followed by **Liberian Dry Rice** at **4:30 PM**. **Hon. Olano Teah Bloh** (National President) and **Enoch Kwateh Dongbo** (Conference Chair) delivered welcome remarks from **5:05 PM**. All delegates introduced themselves (**5:20 – 6:00 PM**), received a four-day orientation from the Conference Chair, and heard housekeeping from the National Secretary General.
+
+Fellowship under **Hon. Ruphine M. Harmon** ran **7:00 – 9:00 PM** with games that strengthened community from the first evening:
+
+- **Expectation Tree** — Delegates wrote personal hopes on sticky notes attached to a shared tree; notes were removed as expectations were fulfilled across the week.
+- **Signed t-shirt tradition** — Delegates exchanged signatures on white t-shirts worn throughout the day.
+- **Meet and Greet games** — Sentence chains, pick-and-act, singing, numbers game, and listen-and-follow exercises.
+
+The evening closed with delegate feedback, a vote of thanks from the Conference Committee, and closing prayer at **9:10 PM**.
 
 ---
 
 ## 6. Plenary Business and Elections
 
-**Date:** Saturday, 25 July 2026
+**Date:** Saturday, 25 July 2026 · **Day label:** Conference Business & Pool Party  
+**Venue:** Hotel conference room (plenary) · Hotel pool / spa area (afternoon)
 
-The conference room hosted the formal governance agenda from **8:30 AM to 2:00 PM**, following breakfast and opening prayer.
+### Dress Code
 
-### Morning Plenary Session
+| Session | Attire |
+| --- | --- |
+| Conference Sessions | Formal / Smart Business Attire |
+| Pool Party | Casual with Liberia's national colors (Red, White, Blue) encouraged |
 
-- Call to order and formal opening
-- **Annual reports** from NEC and standing committees
-- **Elections** conducted by the Independent Electoral Commission (IEC)
-- **Resolutions** proposed, debated, and adopted
-- **Constitution review** — amendments and clarifications recorded for institutional continuity
+### Detailed Program — Day 2
 
-Delegates engaged directly in the core accountability work of the union. The session balanced procedural rigor with inclusive participation, ensuring that governance outcomes reflected the will of the assembled body.
+| Time | Activity | Responsible | Location |
+| --- | --- | --- | --- |
+| 7:00 AM – 8:30 AM | Breakfast | Hotel Service | Hotel dining area |
+| 8:30 AM – 8:35 AM | Morning prayer and devotion | National Chaplain General — **Mitchell Vampelt** | Hotel conference room |
+| 8:30 AM – 8:35 AM | Call to Order — 20th Annual General Conference officially opened | Presiding Officer — Conference Chair / National President | Hotel conference room |
+| 8:35 AM – 8:45 AM | Reading and Adoption of the Conference Agenda | National Secretary General — **C. Nathaniel Willie II** | Hotel conference room |
+| 8:45 AM – 9:00 AM | Establishment of the Bar (Credentials Report) | National President — **Hon. Olano Teah Bloh** | Hotel conference room |
+| 9:00 AM – 9:15 AM | Welcome Remarks | National Vice President — **Hon. Ruphine M. Harmon** | Hotel conference room |
+| 9:15 AM – 9:30 AM | Special Statement — Opening of the Conference | Conference Chair — **Enoch Kwateh Dongbo** | Hotel conference room |
+| 9:30 AM – 9:50 AM | Annual Reports - Q&A — National Financial Report | National Financial Secretary General — **Noah Dave Mason Jr.** | Hotel conference room |
+| 9:55 AM – 10:55 AM | Annual Reports - Q&A — National President's Annual Report | National President — **Olano Teah Bloh** | Hotel conference room |
+| 11:00 AM – 12:00 PM | Strategic Resolutions and motions from the floor | All Delegates | Hotel conference room |
+| 12:00 PM – 2:00 PM | Elections, reports, resolutions, and remaining formal conference business | Independent Elections Commission (IEC) · Plenary | Hotel conference room |
+| 2:00 PM – 4:30 PM | Lunch and relaxation break — **Beans Toborgee** | Cooking Committee | Hotel / personal time |
+| 4:30 PM – 9:00 PM | Pool Party and Swimming | All Delegates | Hotel pool / spa area |
+| 7:00 PM | Dinner — **Pepper Soup with Rice and Fufu** | Cooking Committee | Hotel pool / spa area |
+| 9:00 PM | Closing Prayer — city and province caucus, check-ins, informal networking | National Chaplain General / Designee | Hotel pool / spa area |
 
-### Afternoon Fellowship
+### Narrative Summary
 
-Following lunch and a rest period (**2:00 – 4:30 PM**), delegates reassembled for an **afternoon pool party** (**4:30 – 9:00 PM**) at the hotel pool and spa area. The pool party provided intentional balance between formal business and informal community building — a pattern that has proven effective across prior LSUIC conferences.
+The conference room hosted the formal governance agenda from **8:30 AM to 2:00 PM**, following breakfast and opening devotion led by **Mitchell Vampelt**. **C. Nathaniel Willie II** adopted the agenda; **Hon. Olano Teah Bloh** established the bar. **Noah Dave Mason Jr.** presented the National Financial Report (**9:30 – 9:50 AM**); the National President's Annual Report ran **9:55 AM – 10:55 AM**. Resolutions and IEC-conducted elections filled the remainder of the morning session through **2:00 PM**.
+
+Following **Beans Toborgee** lunch and rest (**2:00 – 4:30 PM**), delegates reassembled for an **afternoon pool party** (**4:30 – 9:00 PM**) with **Pepper Soup with Rice and Fufu** served at **7:00 PM**. The pool party provided intentional balance between formal business and informal community building.
 
 ---
 
 ## 7. Independence Day, Sports, and Awards Night
 
-**Date:** Sunday, 26 July 2026  
-**Designation:** 179th Independence Day of Liberia · Sports · Formal Program · Awards Night
+**Date:** Sunday, 26 July 2026 · **Day label:** Independence Day, Sports & Awards Night  
+**Designation:** 179th Independence Day of Liberia  
+**Venue:** Hotel sports grounds · Hotel conference venue · Awards hall
 
-The ceremonial heart of Jinan 2026 united Liberia's independence observance with LSUIC's legacy-and-influence theme, diplomatic engagement, leadership transition, and public recognition of service and achievement.
+### Dress Code
+
+| Session | Attire |
+| --- | --- |
+| Breakfast | Casual Morning Wear |
+| Sports Activities | Sports Wear — Liberia's national colors encouraged |
+| Major Formal Session (Ambassador Present) | Business Formal |
+| Dinner & Awards Night | Formal / Semi-Formal |
+
+### Detailed Program — Day 3
+
+| Time | Activity | Responsible | Location |
+| --- | --- | --- | --- |
+| 7:00 AM – 8:30 AM | Breakfast | Hotel Service | Hotel dining area |
+| 9:00 AM – 2:00 PM | Sports Activities (Football and related games) | All Delegates · Sports Coordinator | Hotel sports grounds |
+| 1:30 PM | Lunch — **Pepper Kala** | Cooking Committee | Hotel sports grounds |
+| 4:00 PM – 4:20 PM | Red Carpet · Musical Interlude, DJ | Master of Ceremony (MC) · All Participants | Hotel conference venue |
+| 4:20 PM – 5:00 PM | Official Opening of the Independence Day Program (Opening Prayer and Call to Order) | National Chaplain General · Presiding Officer | Hotel conference venue |
+| 5:00 PM – 5:10 PM | Introduction of Guest Speaker | **Olive K. Kamara** | Hotel conference venue |
+| 5:10 PM – 5:40 PM | Independence Day Oration | **Hon. Joshua Bosco Barvor** | Hotel conference venue |
+| 5:40 PM – 6:00 PM | Recognition of The Liberian Embassy and Special Guests | **Hon. Olano Teah Bloh** | Hotel conference venue |
+| 6:00 PM – 6:20 PM | Summary of the Annual Report & Book Launch — NEC 2025–2026 | **Hon. Olano Teah Bloh** | Hotel conference venue |
+| 6:20 PM – 6:40 PM | Certification and induction of elected officers | IEC Chair · Ambassador | Hotel conference venue |
+| 6:40 PM – 7:00 PM | Inaugural Address by newly elected National President | Incoming National President | Hotel conference venue |
+| 7:00 PM – 7:35 PM | Special Statement — Liberia's Ambassador to China | **H.E. Dudley McKinley Thomas** | Hotel conference venue |
+| 7:35 PM – 8:00 PM | Independence rally, statements, and cake cutting ceremony | All Delegates · Liberian Embassy · Invited Personalities | Hotel conference venue |
+| 8:00 PM – 8:30 PM | Dinner service and formal networking | Cooking Committee | Hotel conference venue |
+| 8:30 PM – 4:00 AM | Awards Night Program | Master of Ceremony · Conference Committee | Hotel awards hall |
+| 4:00 AM – 4:15 AM | Special Statement · Vote of Thanks · Closing | National President · Chair, Conference Committee | Hotel awards hall |
+
+**Independence rally sub-items (7:35 – 8:00 PM):** Remarks — Liberian Embassy in Beijing · Remarks — Invited Personalities & Institutions · Cake cutting ceremony
+
+**Awards Night sub-items (8:30 PM – 4:00 AM):** Musical Interlude · Recognition of Veterans — Graduates of the Class of 2025/2026 · Recognition of Special Invitees · MISS LSUIC · LSUIC 2026 Achievers' Awards · LSUIC Financial Supporters · Academic Excellence Awards (AEA-2026) · NEC Service Awards & Scholars of the Year · LSUIC Special Honoree Award
+
+**Awards Night dinner menu:** Jollof Rice · Fried Rice · Fried Chicken · Barbecue · Fried Turkey · Potato Salad · Vegetable Salad · Macaroni Salad & More
 
 ### 7.1 Morning — Sports and Fellowship
 
-Delegates assembled for breakfast and proceeded to the hotel sports grounds for **football, basketball, handball, tug-of-war, multi-legged races, and team-building games** from 9:00 AM to 2:00 PM. Sporting dress in Liberia's national colors — red, white, and blue — was encouraged, reinforcing unity and patriotic spirit on Independence Day.
+Delegates assembled for breakfast and proceeded to the hotel sports grounds for **football, basketball, handball, tug-of-war, multi-legged races, chopstick games, spoon-and-ball races, and team-building activities** from **9:00 AM to 2:00 PM**. Sporting dress in Liberia's national colors — red, white, and blue — was encouraged.
 
-At **1:30 PM**, the Cooking Committee served **Pepper Kala** for lunch at the sports grounds, continuing the conference tradition of shared Liberian meals prepared by student volunteers.
+At **1:30 PM**, the Cooking Committee served **Pepper Kala** for lunch at the sports grounds.
 
 ![Independence Day sports — football](/conf/assets/before-after-conf/photos/sports-football-kick.jpg)
 
@@ -207,7 +288,7 @@ At **1:30 PM**, the Cooking Committee served **Pepper Kala** for lunch at the sp
 
 ### 7.2 Afternoon — Red Carpet and Official Opening
 
-From **4:00 PM**, delegates transitioned to the hotel conference venue for a **Red Carpet** reception with musical interlude and DJ accompaniment. At **4:20 PM**, the National Chaplain General opened the Independence Day program with prayer and call to order.
+From **4:00 PM**, delegates transitioned to the hotel conference venue for a **Red Carpet** reception with musical interlude and DJ accompaniment. At **4:20 PM**, the National Chaplain General opened the Independence Day program with prayer and call to order. **Olive K. Kamara** introduced the guest speaker at **5:00 PM**.
 
 ![Formal session — spoken word presentation](/conf/assets/before-after-conf/photos/formal-spoken-word-presentation.jpg)
 
@@ -260,9 +341,31 @@ The program closed with statements from the National President and the Conferenc
 
 ## 8. Closing Day — Departure
 
-**Date:** Monday, 27 July 2026
+**Date:** Monday, 27 July 2026 · **Day label:** Departure Day  
+**Venue:** Hotel reception · Jinan West Railway Station (group transfers)
 
-Delegates completed checkout and departed the hotel **by 12:00 noon**. Logistics coordination supported safe return travel across provinces. The orderly closing reinforced the Conference Committee's commitment to professional event management from arrival through departure.
+### Dress Code
+
+| Session | Attire |
+| --- | --- |
+| Checkout / Departure | Casual / Travel Wear |
+
+### Detailed Program — Day 4
+
+| Time | Activity | Responsible | Location |
+| --- | --- | --- | --- |
+| 7:00 AM – 8:30 AM | Breakfast and room check-out preparation — **Sandwich** | All Delegates | Hotel dining area / room floors |
+| 8:30 AM – 9:30 AM | Baggage coordination and final welfare check | Logistics Committee · Welfare Committee | Hotel reception |
+| 9:30 AM – 12:00 PM | Official hotel check-out — all rooms must be vacated by noon | All Delegates | Hotel reception |
+| As needed | Conference-arranged group transfers to Jinan West Railway Station | Logistics Committee | Hotel pickup point |
+| After 12:00 PM | Delegates depart for individual travel routes | All Delegates | Railway stations / travel routes |
+| Ongoing | City and provincial coordinator follow-up — confirm all delegates arrived safely | Council of Coordinators (CoC) · National Welfare Committee | Remote follow-up |
+
+**Logistics note:** Bus K904 operates to the hotel stop only until **7:20 PM**. Delegates arriving or departing after this time must use DiDi or a taxi.
+
+### Narrative Summary
+
+Delegates completed breakfast (**Sandwich**, **7:00 – 8:30 AM**), baggage coordination, and official checkout **by 12:00 noon**. The Logistics Committee arranged group transfers to **Jinan West Railway Station** as needed. City and provincial coordinators confirmed safe arrival through ongoing follow-up.
 
 Delegates returned to their respective cities carrying forward renewed commitments to service, leadership, and influence — the closing movement of the Legacy and Influence theme.
 
@@ -630,4 +733,14 @@ See `public/conf/assets/before-after-conf/README.md` for the complete index of r
 | Conference attendance register | `conference-attendance.xlsx` |
 | Cooking Committee report | `cooking.md` |
 | Program outline | `public/conf/navigation/Program-Highlight.md` |
+| Detailed program (source of truth) | `src/components/tools/conf/detailed-program/program-data.ts` |
 | This report (markdown) | `public/conf/reports/jinan-2026-conference-report.md` |
+
+### Appendix D — Program General Notes
+
+1. All times are China Standard Time (CST / UTC+8).
+2. Dress code: Conference sessions — formal or smart business attire. Pool Party and sports — casual with Liberia's national colors (Red, White, Blue) encouraged. Awards Night — formal / semi-formal.
+3. Conference room is located within the hotel. All plenary sessions take place there unless otherwise announced.
+4. Delegates are expected to be seated and ready 5 minutes before each session begins.
+5. Mobile phones should be on silent during all formal sessions.
+6. For travel assistance and emergencies, contact the Logistics Committee.

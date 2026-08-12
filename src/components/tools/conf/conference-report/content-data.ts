@@ -1,5 +1,13 @@
 import { CONF_2026 } from "@/lib/conf/config";
+import {
+  DETAILED_PROGRAM_DAYS,
+  PROGRAM_GENERAL_NOTES,
+  type ProgramDay,
+} from "@/components/tools/conf/detailed-program/program-data";
 import attendanceRows from "./attendance.generated.json";
+
+export const REPORT_PROGRAM_DAYS = DETAILED_PROGRAM_DAYS;
+export { PROGRAM_GENERAL_NOTES };
 
 export const REPORT_META = {
   title: "Conference Report",
@@ -101,27 +109,27 @@ export const PRE_CONFERENCE = [
 
 export const PROGRAM_NARRATIVE = [
   {
-    heading: "Opening Day — 24 July",
-    body: "Delegates arrived at the Arcadia Spa Golf International Hotel, completed check-in, and assembled for the Meet and Greet in the hotel yard. Welcome remarks, self-introductions, fellowship games, the Expectation Tree, and signed t-shirt traditions set a tone of unity and expectation.",
+    heading: "Day 1 — Arrival Day (24 July)",
+    body: "Check-in 11:00 AM–8:00 PM; Opening Prayer 4:10 PM; Liberian Dry Rice lunch 4:30 PM; Welcome Remarks 5:05 PM (National President / Conference Chair); self-introductions; orientation by Enoch Kwateh Dongbo; fellowship games 7:00–9:00 PM led by Hon. Ruphine M. Harmon.",
   },
   {
-    heading: "Plenary Business — 25 July",
-    body: "The conference room hosted opening prayer, annual reports, elections, resolutions, and constitution review from 8:30 AM through 2:00 PM. An afternoon rest period and evening pool party balanced governance with community fellowship.",
+    heading: "Day 2 — Conference Business & Pool Party (25 July)",
+    body: "Plenary 8:30 AM–2:00 PM: devotion (Mitchell Vampelt), agenda (C. Nathaniel Willie II), credentials (Hon. Olano Teah Bloh), financial report (Noah Dave Mason Jr.), presidential report, resolutions, IEC elections. Beans Toborgee lunch; pool party 4:30–9:00 PM; Pepper Soup dinner at 7:00 PM.",
   },
   {
-    heading: "Independence Day and Awards — 26 July",
-    body: "Sunday centered on Liberia's Independence Day alongside football, basketball, and team-building sports; the red-carpet formal program; guest orations; NEC annual summary and book launch; induction ceremonies; ambassador statements; cake cutting; dinner; and awards recognition through the early morning.",
+    heading: "Day 3 — Independence Day & Awards (26 July)",
+    body: "Sports 9:00 AM–2:00 PM with Pepper Kala at 1:30 PM. Red Carpet 4:00 PM; oration by Hon. Joshua Bosco Barvor; NEC book launch; IEC induction before H.E. Dudley McKinley Thomas; Independence rally and cake cutting; Awards Night 8:30 PM–4:00 AM.",
   },
   {
-    heading: "Closing Day — 27 July",
-    body: "Delegates checked out and departed by noon, carrying forward renewed commitments to service, leadership, and influence in their respective cities across China.",
+    heading: "Day 4 — Departure (27 July)",
+    body: "Sandwich breakfast 7:00–8:30 AM; baggage coordination; checkout by noon; group transfers to Jinan West Railway Station; CoC welfare follow-up.",
   },
 ] as const;
 
 export const INDEPENDENCE_DAY_NARRATIVE = [
-  "Hon. Joshua Bosco Barvor delivered the Independence Day oration. Hon. Olano Teah Bloh presented the NEC annual summary and book launch — How Far We Have Come.",
-  "The IEC certified newly elected NEC officers before H.E. Dudley McKinley Thomas, Ambassador of Liberia to China, who delivered a special statement commending LSUIC's twenty-year record.",
-  "Awards Night recognized veterans, Miss LSUIC, achievers, financial supporters, academic excellence, NEC service, and special honorees.",
+  "4:00 PM Red Carpet with DJ; 4:20 PM official opening; Olive K. Kamara introduced Hon. Joshua Bosco Barvor (oration 5:10–5:40 PM).",
+  "Hon. Olano Teah Bloh recognized the Embassy, presented NEC annual summary and book launch How Far We Have Come, and witnessed IEC certification before H.E. Dudley McKinley Thomas (statement 7:00–7:35 PM).",
+  "Independence rally and cake cutting 7:35–8:00 PM; Awards Night 8:30 PM–4:00 AM — veterans, Miss LSUIC, AEA-2026, NEC Service Awards, and Special Honoree.",
 ] as const;
 
 export const DISTINGUISHED_GUESTS = [
@@ -320,12 +328,23 @@ export const ATTENDANCE_ROWS_PER_PAGE = 40;
 /** Photos per interior page — 3×3 grid. */
 export const PHOTOS_PER_PAGE = 9;
 
-/** Fixed interior pages excluding cover, attendance chunks, and photo chunks. */
+/** Program schedule pages — pair days to fit A4 (Day 3 alone; Days 1+2 and Day 4 grouped). */
+export function chunkReportProgramDays(
+  days: readonly ProgramDay[],
+): ProgramDay[][] {
+  if (days.length === 0) return [];
+  return [
+    days.slice(0, 2),
+    [days[2]],
+    days.slice(3),
+  ].filter((chunk) => chunk.length > 0);
+}
+
+/** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
 export const REPORT_FIXED_PAGES = {
   toc: 1,
   executiveAndObjectives: 1,
   preConferenceAndOverview: 1,
-  programAndIndependence: 1,
   financeSummary: 1,
   guestsOutcomes: 1,
   lessonsAndAcknowledgements: 1,
@@ -353,6 +372,7 @@ export function chunkReportPhotos(
 export function computeReportTotalPages(): number {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
+  const programPages = chunkReportProgramDays(REPORT_PROGRAM_DAYS).length;
   const fixedPages = Object.values(REPORT_FIXED_PAGES).reduce((a, b) => a + b, 0);
-  return 1 + fixedPages + attendancePages + photoPages;
+  return 1 + fixedPages + programPages + attendancePages + photoPages;
 }
