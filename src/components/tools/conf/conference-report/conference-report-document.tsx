@@ -24,6 +24,7 @@ import {
   REPORT_TOC,
   RESOLUTIONS_SUMMARY,
   chunkAttendance,
+  chunkReportPhotos,
   computeReportTotalPages,
   type AttendanceRow,
 } from "./content-data";
@@ -177,17 +178,17 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
               borderBottom: "1px solid #E5E7EB",
             }}
           >
-            <td style={{ padding: "4px", textAlign: "center", width: "28px" }}>
+            <td style={{ padding: "3px", textAlign: "center", width: "28px" }}>
               {row.no}
             </td>
-            <td style={{ padding: "4px 6px", fontWeight: 600 }}>{row.name}</td>
-            <td style={{ padding: "4px 6px", color: "#444" }}>{row.city}</td>
-            <td style={{ padding: "4px 4px", fontSize: "9.5px" }}>{row.room}</td>
-            <td style={{ padding: "4px", textAlign: "center" }}>{row.fee}</td>
-            <td style={{ padding: "4px", textAlign: "center" }}>{row.paid}</td>
+            <td style={{ padding: "3px 5px", fontWeight: 600 }}>{row.name}</td>
+            <td style={{ padding: "3px 5px", color: "#444" }}>{row.city}</td>
+            <td style={{ padding: "3px 4px", fontSize: "9.5px" }}>{row.room}</td>
+            <td style={{ padding: "3px", textAlign: "center" }}>{row.fee}</td>
+            <td style={{ padding: "3px", textAlign: "center" }}>{row.paid}</td>
             <td
               style={{
-                padding: "4px",
+                padding: "3px",
                 textAlign: "center",
                 color: row.balance === "0" ? "#047857" : C.red,
                 fontWeight: 700,
@@ -207,13 +208,19 @@ function PhotoGrid({
 }: {
   photos: (typeof REPORT_PHOTOS)[number][];
 }) {
+  const cols = photos.length <= 6 ? 2 : 3;
+  const rows = Math.ceil(photos.length / cols);
+  const imageHeight =
+    rows >= 3 ? "148px" : rows === 2 ? "210px" : "280px";
+
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "12px",
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gap: "6px 8px",
         flex: 1,
+        alignContent: "start",
       }}
     >
       {photos.map((photo) => (
@@ -224,19 +231,20 @@ function PhotoGrid({
             alt={photo.caption}
             style={{
               width: "100%",
-              height: "200px",
+              height: imageHeight,
               objectFit: "cover",
-              borderRadius: "6px",
+              borderRadius: "4px",
               border: `1px solid ${C.border}`,
             }}
           />
           <div
             style={{
-              fontSize: "10px",
+              fontSize: "9px",
               color: "#555",
-              marginTop: "4px",
+              marginTop: "2px",
               fontWeight: 600,
               textAlign: "center",
+              lineHeight: 1.25,
             }}
           >
             {photo.caption}
@@ -250,10 +258,7 @@ function PhotoGrid({
 export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
   const tocChunks = chunkReportToc(REPORT_TOC);
-  const photoChunks: (typeof REPORT_PHOTOS)[number][][] = [];
-  for (let i = 0; i < REPORT_PHOTOS.length; i += 4) {
-    photoChunks.push(REPORT_PHOTOS.slice(i, i + 4));
-  }
+  const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -268,7 +273,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
     >
       <ConferenceReportCoverPage />
 
-      {/* Table of Contents — pages 2–3 */}
+      {/* Table of Contents */}
       {tocChunks.map((chunk, idx) => (
         <ConferenceReportTocPage
           key={`toc-${idx}`}
@@ -352,11 +357,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </table>
       </ReportA4Page>
 
-      {/* Program narrative — all four days */}
+      {/* Program narrative + Independence Day */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Program Narrative">
         <SectionTitle>5–8. Conference Program</SectionTitle>
         {PROGRAM_NARRATIVE.map((section) => (
-          <div key={section.heading} style={{ marginBottom: "10px" }}>
+          <div key={section.heading} style={{ marginBottom: "8px" }}>
             <div
               style={{
                 fontSize: "13px",
@@ -370,10 +375,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             <BodyParagraph>{section.body}</BodyParagraph>
           </div>
         ))}
-      </ReportA4Page>
 
-      {/* Independence Day detail */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Independence Day">
         <SectionTitle>7. Independence Day Ceremonies</SectionTitle>
         {INDEPENDENCE_DAY_NARRATIVE.map((p) => (
           <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>

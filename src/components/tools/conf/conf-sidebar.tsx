@@ -94,12 +94,6 @@ const CONF_NAV_ITEMS: ConfNavItem[] = [
     minAccess: "delegate",
   },
   {
-    href: "/tools/conf/conference-report",
-    label: "Conference Report",
-    icon: FileText,
-    minAccess: "delegate",
-  },
-  {
     href: "/tools/conf/booklet/downloads",
     label: "Booklet Downloads",
     icon: Download,

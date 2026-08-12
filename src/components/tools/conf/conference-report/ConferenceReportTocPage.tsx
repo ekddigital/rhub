@@ -68,7 +68,7 @@ export function ConferenceReportTocPage({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "7px",
+            gap: "5px",
             flex: 1,
           }}
         >
@@ -128,14 +128,9 @@ export function ConferenceReportTocPage({
   );
 }
 
-/** Split TOC entries across two pages for readable spacing. */
+/** Keep the full TOC on one page when it fits A4 content height. */
 export function chunkReportToc(
   entries: readonly (typeof REPORT_TOC)[number][],
-  firstPageCount = 9,
 ): (typeof REPORT_TOC)[number][][] {
-  if (entries.length <= firstPageCount) return [entries.slice()];
-  return [
-    entries.slice(0, firstPageCount),
-    entries.slice(firstPageCount),
-  ];
+  return [entries.slice()];
 }

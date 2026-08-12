@@ -189,6 +189,10 @@ export const LESSONS_LEARNED = [
 
 export const REPORT_PHOTOS = [
   {
+    src: "/conf/assets/before-after-conf/photos/group-photo-day3-cover.jpg",
+    caption: "Official Day 3 group photograph",
+  },
+  {
     src: "/conf/assets/before-after-conf/photos/independence-cake-cutting-ceremony.jpg",
     caption: "Independence cake-cutting ceremony",
   },
@@ -209,6 +213,14 @@ export const REPORT_PHOTOS = [
     caption: "Ambassador at formal session",
   },
   {
+    src: "/conf/assets/before-after-conf/photos/formal-spoken-word-presentation.jpg",
+    caption: "Spoken word presentation",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/formal-podium-monthly-city-visits.jpg",
+    caption: "Podium address — monthly city visits",
+  },
+  {
     src: "/conf/assets/before-after-conf/photos/miss-lsuic-pageant-winners.jpg",
     caption: "Miss LSUIC pageant",
   },
@@ -221,32 +233,99 @@ export const REPORT_PHOTOS = [
     caption: "Banquet — delegates applauding",
   },
   {
+    src: "/conf/assets/before-after-conf/photos/banquet-dinner-seated-delegates.jpg",
+    caption: "Banquet dinner — seated delegates",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/banquet-attendees-formal-session.jpg",
+    caption: "Banquet — formal session",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/banquet-vip-guest-portrait.jpg",
+    caption: "Banquet VIP guest portrait",
+  },
+  {
     src: "/conf/assets/before-after-conf/photos/sports-football-kick.jpg",
     caption: "Independence Day sports — football",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-football-match.jpg",
+    caption: "Football match in progress",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-football-action-shot.jpg",
+    caption: "Football action shot",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-basketball-team-group.jpg",
+    caption: "Basketball team group photo",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-basketball-game-action.jpg",
+    caption: "Basketball game action",
   },
   {
     src: "/conf/assets/before-after-conf/photos/sports-multi-legged-race.jpg",
     caption: "Multi-legged race — team building",
   },
   {
+    src: "/conf/assets/before-after-conf/photos/sports-multi-legged-race-team.jpg",
+    caption: "Multi-legged race — team coordination",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-tug-of-war.jpg",
+    caption: "Tug-of-war team activity",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-handball-throw.jpg",
+    caption: "Handball throw",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-spoon-ball-race.jpg",
+    caption: "Spoon-and-ball race",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-chopstick-game-team-building.jpg",
+    caption: "Chopstick team-building game",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-chopstick-ball-pickup.jpg",
+    caption: "Chopstick ball pickup challenge",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-team-huddle-board-game.jpg",
+    caption: "Team huddle — floor board game",
+  },
+  {
     src: "/conf/assets/before-after-conf/photos/sports-field-group-photo.jpg",
     caption: "Sports field group photo",
   },
   {
-    src: "/conf/assets/before-after-conf/photos/banquet-dinner-seated-delegates.jpg",
-    caption: "Banquet dinner — seated delegates",
+    src: "/conf/assets/before-after-conf/photos/sports-team-bibs-group-photo.jpg",
+    caption: "Sports day group photo (yellow bibs)",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-red-bibs-group-photo.jpg",
+    caption: "Sports day group photo (red bibs)",
+  },
+  {
+    src: "/conf/assets/before-after-conf/photos/sports-participant-livestreaming.jpg",
+    caption: "Participant recording on sports court",
   },
 ] as const;
 
-export const ATTENDANCE_ROWS_PER_PAGE = 22;
+/** ~40 rows fill A4 with compact table padding; first page has section title. */
+export const ATTENDANCE_ROWS_PER_PAGE = 40;
+
+/** Photos per interior page — 3×3 grid. */
+export const PHOTOS_PER_PAGE = 9;
 
 /** Fixed interior pages excluding cover, attendance chunks, and photo chunks. */
 export const REPORT_FIXED_PAGES = {
-  toc: 2,
+  toc: 1,
   executiveAndObjectives: 1,
   preConferenceAndOverview: 1,
-  programNarrative: 1,
-  independenceDay: 1,
+  programAndIndependence: 1,
   financeSummary: 1,
   guestsOutcomes: 1,
   lessonsAndAcknowledgements: 1,
@@ -261,9 +340,19 @@ export function chunkAttendance(rows: AttendanceRow[]): AttendanceRow[][] {
   return chunks;
 }
 
+export function chunkReportPhotos(
+  photos: readonly (typeof REPORT_PHOTOS)[number][],
+): (typeof REPORT_PHOTOS)[number][][] {
+  const chunks: (typeof REPORT_PHOTOS)[number][][] = [];
+  for (let i = 0; i < photos.length; i += PHOTOS_PER_PAGE) {
+    chunks.push(photos.slice(i, i + PHOTOS_PER_PAGE));
+  }
+  return chunks;
+}
+
 export function computeReportTotalPages(): number {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
-  const photoPages = Math.ceil(REPORT_PHOTOS.length / 4);
+  const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const fixedPages = Object.values(REPORT_FIXED_PAGES).reduce((a, b) => a + b, 0);
   return 1 + fixedPages + attendancePages + photoPages;
 }
