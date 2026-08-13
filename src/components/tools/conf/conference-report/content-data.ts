@@ -11,6 +11,14 @@ import {
   stripHonorificDisplayName,
 } from "@/lib/conf/lsuic-leaders-roster";
 import attendanceRows from "./attendance.generated.json";
+import {
+  buildPreConferencePagePlans,
+  chunkAttendanceVariable,
+  FLYER_LANDSCAPE_ASPECT,
+  FLYER_PORTRAIT_ASPECT,
+  type FlyerItem,
+  type PreConferencePagePlan,
+} from "./report-layout";
 
 export const REPORT_PROGRAM_DAYS = DETAILED_PROGRAM_DAYS;
 export { PROGRAM_GENERAL_NOTES };
@@ -135,38 +143,46 @@ export const VENUE_AND_ACCOMMODATION = {
     "Bus K904 serves the hotel stop until 7:20 PM daily. Delegates arriving after this time should use DiDi or a taxi from Jinan West Railway Station or Jinan East Railway Station.",
 } as const;
 
-export const PRE_CONFERENCE_FLYERS = [
+export const PRE_CONFERENCE_FLYERS: readonly FlyerItem[] = [
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-20th-annual-general-conference.jpg",
     caption: "20th Annual Conference overview poster",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-legacy-and-influence-conference.jpg",
     caption: "Legacy and Influence theme poster",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg",
     caption: "Program highlights and delegate expectations",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-delegate-registration-guide.png",
     caption: "Delegate registration guide",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-conference-fees-structure.png",
     caption: "Conference fee tiers and room categories",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-51-days-countdown.png",
     caption: "51-day countdown campaign",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-conference-info-session-online.png",
     caption: "Online pre-conference information session",
+    aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-fundraising-campaign-payment-methods.png",
     caption: "Fundraising campaign and payment methods",
+    aspectRatio: FLYER_LANDSCAPE_ASPECT,
   },
 ] as const;
 
@@ -303,11 +319,21 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
 
 /** Resolve interior start pages for each TOC row (cover = 1, TOC = 2, body from 3). */
 export function buildReportTocWithPages(): ReportTocEntry[] {
+  const preConferencePages = buildPreConferencePages();
   const programPages = buildReportProgramPages();
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
 
-  let page = 8;
+  let page = 3;
+  const executiveStart = page;
+  page += REPORT_FIXED_PAGES.executiveAndObjectives;
+
+  const preConferenceStart = page;
+  page += preConferencePages.length;
+
+  const venueStart = page++;
+  const committeeStart = page++;
+  const overviewStart = page++;
 
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
@@ -338,19 +364,27 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
     switch (entry.num) {
       case 1:
       case 2:
-        return { ...entry, startPage: 3, pageSpan: 1 };
+        return { ...entry, startPage: executiveStart, pageSpan: 1 };
       case 3:
-        return { ...entry, startPage: 4, pageSpan: 1 };
+        return {
+          ...entry,
+          startPage: preConferenceStart,
+          pageSpan: preConferencePages.length,
+        };
       case 4:
-        return { ...entry, startPage: 5, pageSpan: 1 };
+        return { ...entry, startPage: venueStart, pageSpan: 1 };
       case 5:
-        return { ...entry, startPage: 6, pageSpan: 1 };
+        return { ...entry, startPage: committeeStart, pageSpan: 1 };
       case 6:
-        return { ...entry, startPage: 7, pageSpan: 1 };
+        return { ...entry, startPage: overviewStart, pageSpan: 1 };
       case 11:
         return { ...entry, startPage: electionStart, pageSpan: 1 };
       case 12:
-        return { ...entry, startPage: financeStart, pageSpan: REPORT_FIXED_PAGES.financeSummary };
+        return {
+          ...entry,
+          startPage: financeStart,
+          pageSpan: REPORT_FIXED_PAGES.financeSummary,
+        };
       case 13:
         return { ...entry, startPage: registerStart, pageSpan: attendancePages };
       case 14:
@@ -583,11 +617,12 @@ export const REPORT_PHOTOS = [
   },
 ] as const;
 
-/** Rows per attendance page — tuned for 12px table type + section title on page 1. */
-export const ATTENDANCE_ROWS_PER_PAGE = 33;
-
-/** Photos per interior page — 2×3 grid at readable caption size. */
+/** Photos per interior page — 2×3 grid; row height scales to fill the page. */
 export const PHOTOS_PER_PAGE = 6;
+
+export function buildPreConferencePages(): PreConferencePagePlan[] {
+  return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
+}
 
 const REPORT_PROGRAM_FIRST_PAGE_CAPACITY = 96;
 const REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY = 108;
@@ -673,26 +708,26 @@ export function buildReportProgramPages(
 }
 
 /** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
-export const REPORT_FIXED_PAGES = {
-  toc: 1,
-  executiveAndObjectives: 1,
-  preConference: 1,
-  venueAndAccommodation: 1,
-  conferenceCommittee: 1,
-  conferenceOverview: 1,
-  electionSummary: 1,
-  financeSummary: 2,
-  guestsOutcomes: 1,
-  lessonsAndAcknowledgements: 1,
-  certification: 1,
-} as const;
+export function getReportFixedPageCounts() {
+  return {
+    toc: 1,
+    executiveAndObjectives: 1,
+    preConference: buildPreConferencePages().length,
+    venueAndAccommodation: 1,
+    conferenceCommittee: 1,
+    conferenceOverview: 1,
+    electionSummary: 1,
+    financeSummary: 2,
+    guestsOutcomes: 1,
+    lessonsAndAcknowledgements: 1,
+    certification: 1,
+  } as const;
+}
+
+export const REPORT_FIXED_PAGES = getReportFixedPageCounts();
 
 export function chunkAttendance(rows: AttendanceRow[]): AttendanceRow[][] {
-  const chunks: AttendanceRow[][] = [];
-  for (let i = 0; i < rows.length; i += ATTENDANCE_ROWS_PER_PAGE) {
-    chunks.push(rows.slice(i, i + ATTENDANCE_ROWS_PER_PAGE));
-  }
-  return chunks;
+  return chunkAttendanceVariable(rows);
 }
 
 export function chunkReportPhotos(

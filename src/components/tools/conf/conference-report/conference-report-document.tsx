@@ -21,14 +21,13 @@ import {
   FINANCE_SUMMARY,
   LESSONS_LEARNED,
   OUTCOMES,
-  PRE_CONFERENCE,
-  PRE_CONFERENCE_FLYERS,
   PROGRAM_GENERAL_NOTES,
   REPORT_META,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
   RESOLUTIONS_SUMMARY,
   VENUE_AND_ACCOMMODATION,
+  buildPreConferencePages,
   buildReportProgramPages,
   chunkAttendance,
   chunkReportPhotos,
@@ -36,6 +35,17 @@ import {
   type AttendanceRow,
 } from "./content-data";
 import type { ProgramDay, ProgramSlot } from "../detailed-program/program-data";
+import {
+  computeFlyerGridLayout,
+  computePhotoGridLayout,
+  estimateBodyParagraphsHeight,
+  flyerGridCols,
+  photoGridAvailableHeight,
+  REPORT_IMAGE_GRID_GAP_X,
+  REPORT_IMAGE_GRID_GAP_Y,
+  reportUsableHeight,
+  type FlyerItem,
+} from "./report-layout";
 import {
   REPORT_BODY,
   REPORT_BULLET,
@@ -267,40 +277,73 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
   );
 }
 
-function PhotoGrid({
-  photos,
+function FlyerGrid({
+  flyers,
+  availableHeight,
 }: {
-  photos: (typeof REPORT_PHOTOS)[number][];
+  flyers: readonly FlyerItem[];
+  availableHeight: number;
 }) {
-  const cols = photos.length <= 4 ? 2 : 3;
-  const rows = Math.ceil(photos.length / cols);
-  const imageHeight =
-    rows >= 3 ? "132px" : rows === 2 ? "188px" : "260px";
+  if (flyers.length === 0) return null;
+
+  const cols = flyerGridCols(flyers);
+  const meanAspect =
+    flyers.reduce((sum, f) => sum + f.aspectRatio, 0) / flyers.length;
+  const layout = computeFlyerGridLayout(
+    flyers.length,
+    availableHeight,
+    cols,
+    meanAspect,
+  );
 
   return (
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gap: "6px 8px",
+        gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
+        gap: `${REPORT_IMAGE_GRID_GAP_Y}px ${REPORT_IMAGE_GRID_GAP_X}px`,
         flex: 1,
+        minHeight: 0,
         alignContent: "start",
+        marginTop: "8px",
       }}
     >
-      {photos.map((photo) => (
-        <div key={photo.src} style={{ minHeight: 0 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={photo.src}
-            alt={photo.caption}
+      {flyers.map((flyer) => (
+        <div
+          key={flyer.src}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
+          <div
             style={{
               width: "100%",
-              height: imageHeight,
-              objectFit: "cover",
+              height: `${layout.imageHeight}px`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#F8FAFC",
               borderRadius: "4px",
               border: `1px solid ${C.border}`,
+              overflow: "hidden",
             }}
-          />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={flyer.src}
+              alt={flyer.caption}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
+          </div>
           <div
             style={{
               fontSize: `${REPORT_PHOTO.caption.fontSize}px`,
@@ -309,6 +352,88 @@ function PhotoGrid({
               fontWeight: REPORT_PHOTO.caption.fontWeight,
               textAlign: "center",
               lineHeight: REPORT_PHOTO.caption.lineHeight,
+              minHeight: `${layout.captionHeight}px`,
+            }}
+          >
+            {flyer.caption}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PhotoGrid({
+  photos,
+  showSectionTitle,
+  showContinuation,
+}: {
+  photos: (typeof REPORT_PHOTOS)[number][];
+  showSectionTitle: boolean;
+  showContinuation: boolean;
+}) {
+  const availableHeight = photoGridAvailableHeight(
+    showSectionTitle,
+    showContinuation,
+  );
+  const layout = computePhotoGridLayout(photos.length, availableHeight);
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${layout.cols}, 1fr)`,
+        gridTemplateRows: `repeat(${layout.rows}, minmax(0, 1fr))`,
+        gap: `${REPORT_IMAGE_GRID_GAP_Y}px ${REPORT_IMAGE_GRID_GAP_X}px`,
+        flex: 1,
+        minHeight: 0,
+      }}
+    >
+      {photos.map((photo) => (
+        <div
+          key={photo.src}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: 0,
+          }}
+        >
+          <div
+            style={{
+              flex: 1,
+              minHeight: `${layout.imageHeight}px`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#F8FAFC",
+              borderRadius: "4px",
+              border: `1px solid ${C.border}`,
+              overflow: "hidden",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={photo.src}
+              alt={photo.caption}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                width: "auto",
+                height: "auto",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              fontSize: `${REPORT_PHOTO.caption.fontSize}px`,
+              color: REPORT_PHOTO.caption.color,
+              marginTop: "3px",
+              fontWeight: REPORT_PHOTO.caption.fontWeight,
+              textAlign: "center",
+              lineHeight: REPORT_PHOTO.caption.lineHeight,
+              flexShrink: 0,
             }}
           >
             {photo.caption}
@@ -473,6 +598,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const tocChunks = chunkReportToc(resolveReportTocEntries());
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
+  const preConferencePages = buildPreConferencePages();
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -526,48 +652,52 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
       </ReportA4Page>
 
       {/* Pre-Conference Preparation */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Pre-Conference">
-        <SectionTitle>3. Pre-Conference Preparation</SectionTitle>
-        {PRE_CONFERENCE.map((p) => (
-          <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
-        ))}
+      {preConferencePages.map((plan) => {
+        const chrome =
+          plan.showSectionTitle
+            ? "sectionTitle"
+            : plan.pageIndex > 0 && plan.flyers.length > 0
+              ? "continuation"
+              : "none";
+        const flyerHeightBudget =
+          reportUsableHeight(chrome) -
+          estimateBodyParagraphsHeight(plan.paragraphs);
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "6px",
-            marginTop: "8px",
-          }}
-        >
-          {PRE_CONFERENCE_FLYERS.slice(0, 4).map((flyer) => (
-            <div key={flyer.src}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={flyer.src}
-                alt={flyer.caption}
-                style={{
-                  width: "100%",
-                  height: "88px",
-                  objectFit: "cover",
-                  borderRadius: "4px",
-                  border: `1px solid ${C.border}`,
-                }}
-              />
+        return (
+          <ReportA4Page
+            key={`pre-conf-${plan.pageIndex}`}
+            pageNum={nextPage()}
+            sectionLabel={
+              plan.pageIndex === 0
+                ? "Pre-Conference"
+                : "Pre-Conference (cont.)"
+            }
+          >
+            {plan.showSectionTitle && (
+              <SectionTitle>3. Pre-Conference Preparation</SectionTitle>
+            )}
+            {plan.pageIndex > 0 && plan.flyers.length > 0 && (
               <div
                 style={{
-                  fontSize: "8px",
-                  color: "#555",
-                  marginTop: "2px",
-                  lineHeight: 1.3,
+                  fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                  fontWeight: REPORT_CONTINUATION.fontWeight,
+                  color: REPORT_CONTINUATION.color,
+                  marginBottom: "8px",
                 }}
               >
-                {flyer.caption}
+                3. Pre-Conference Preparation — campaign flyers
               </div>
-            </div>
-          ))}
-        </div>
-      </ReportA4Page>
+            )}
+            {plan.paragraphs.map((p) => (
+              <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
+            ))}
+            <FlyerGrid
+              flyers={plan.flyers}
+              availableHeight={Math.max(200, flyerHeightBudget)}
+            />
+          </ReportA4Page>
+        );
+      })}
 
       {/* Venue and Accommodation */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Venue & Accommodation">
@@ -1216,7 +1346,23 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           {chunkIdx === 0 && (
             <SectionTitle>17. Conference Photographs</SectionTitle>
           )}
-          <PhotoGrid photos={chunk} />
+          {chunkIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              17. Conference Photographs — continued
+            </div>
+          )}
+          <PhotoGrid
+            photos={chunk}
+            showSectionTitle={chunkIdx === 0}
+            showContinuation={chunkIdx > 0}
+          />
         </ReportA4Page>
       ))}
 
