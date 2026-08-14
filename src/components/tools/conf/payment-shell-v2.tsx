@@ -318,6 +318,63 @@ function allPaymentProofs(payment: Payment): Proof[] {
   return [...lineItemProofs, ...paymentLevelProofs];
 }
 
+function receiptCaptionVendor(
+  payment: Payment,
+  lineItem?: PaymentLineItemRecord,
+): string {
+  return (
+    lineItem?.name?.trim() ||
+    payment.paidTo?.trim() ||
+    payment.paidBy?.trim() ||
+    "—"
+  );
+}
+
+function receiptCaptionAmount(
+  payment: Payment,
+  lineItem?: PaymentLineItemRecord,
+): number {
+  if (lineItem) {
+    return calcItemTotal(lineItem.qty, lineItem.unitPrice);
+  }
+  return payment.amount;
+}
+
+function buildReceiptPhotoEntries(payments: Payment[]): ReceiptPhotoEntry[] {
+  return payments.flatMap((payment) => {
+    const entries: ReceiptPhotoEntry[] = [];
+    const seenProofIds = new Set<string>();
+
+    for (const item of payment.lineItems ?? []) {
+      for (const proof of item.proofs ?? []) {
+        seenProofIds.add(proof.id);
+        entries.push({
+          id: `proof-${proof.id}`,
+          imageUrl: proofIsImage(proof) ? proofDisplayUrl(proof) : null,
+          fileName: proof.fileName,
+          captionLine1: `${receiptCaptionVendor(payment, item)} · ${fmtRmb(receiptCaptionAmount(payment, item))}`,
+          captionLine2: proof.fileName,
+          isImage: proofIsImage(proof),
+        });
+      }
+    }
+
+    for (const proof of payment.proofs) {
+      if (seenProofIds.has(proof.id)) continue;
+      entries.push({
+        id: `proof-${proof.id}`,
+        imageUrl: proofIsImage(proof) ? proofDisplayUrl(proof) : null,
+        fileName: proof.fileName,
+        captionLine1: `${receiptCaptionVendor(payment)} · ${fmtRmb(receiptCaptionAmount(payment))}`,
+        captionLine2: proof.fileName,
+        isImage: proofIsImage(proof),
+      });
+    }
+
+    return entries;
+  });
+}
+
 function paymentFreeformNote(payment: Payment) {
   return stripPaymentItemDetails(payment.note || "");
 }
@@ -903,16 +960,7 @@ function PaymentsDocumentPreview({
 
   const rows = buildPaymentRegisterRows(payments);
 
-  const receiptEntries: ReceiptPhotoEntry[] = payments.flatMap((payment) =>
-    allPaymentProofs(payment).map((proof) => ({
-      id: `proof-${proof.id}`,
-      imageUrl: proofIsImage(proof) ? proofDisplayUrl(proof) : null,
-      fileName: proof.fileName,
-      captionLine1: `${payment.paidBy} · ${fmtRmb(payment.amount)}`,
-      captionLine2: proof.fileName,
-      isImage: proofIsImage(proof),
-    })),
-  );
+  const receiptEntries: ReceiptPhotoEntry[] = buildReceiptPhotoEntries(payments);
 
   const trailingPx = 42 + (hasSignatories(signatoryDraft) ? 140 : 0);
   const rowChunks = computePageChunks(rows, {
