@@ -80,6 +80,7 @@ import { computePageChunks, remainingTablePagePx } from "@/lib/conf/document-pag
 import {
   allocateReceiptPhotoPages,
   DocumentReceiptPhotosGrid,
+  receiptGridAvailableHeight,
   type ReceiptPhotoEntry,
 } from "@/lib/conf/document-receipt-photos";
 import { PAGE_METRICS } from "@/lib/conf/document-constants";
@@ -1121,7 +1122,13 @@ function PaymentsDocumentPreview({
                   >
                     Receipt Photos
                   </div>
-                  <DocumentReceiptPhotosGrid entries={lastPageReceipts} />
+                  <DocumentReceiptPhotosGrid
+                    entries={lastPageReceipts}
+                    availableHeight={receiptGridAvailableHeight(
+                      lastTablePageRemainingPx,
+                      { includeHeading: true },
+                    )}
+                  />
                 </>
               )}
             </>
@@ -1154,7 +1161,13 @@ function PaymentsDocumentPreview({
               ? ` (${receiptPageIndex + 1} of ${receiptExtraPages.length})`
               : ""}
           </div>
-          <DocumentReceiptPhotosGrid entries={chunk} />
+          <DocumentReceiptPhotosGrid
+            entries={chunk}
+            availableHeight={receiptGridAvailableHeight(
+              PAGE_METRICS.contentH,
+              { includeHeading: true, marginTop: 0 },
+            )}
+          />
         </DocumentLayout>
       ))}
     </>
