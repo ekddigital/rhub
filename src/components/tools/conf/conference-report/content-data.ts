@@ -291,6 +291,8 @@ export const PRE_CONFERENCE_FLYERS: readonly FlyerItem[] = [
 
 export const ELECTION_SUMMARY = {
   electionDate: "25 July 2026",
+  certificationDate: "26 July 2026",
+  reportSubmittedDate: "28 July 2026",
   voterStats: {
     platformUsers: 90,
     eligibleVoters: 85,
@@ -298,6 +300,8 @@ export const ELECTION_SUMMARY = {
     onlineVoters: 29,
     candidatesRegistered: 7,
   },
+  /** Highest and lowest vote tallies across NEC positions (IEC certified results). */
+  voteTallyRange: { min: 56, max: 59 },
   outcomes: [
     {
       position: "National President",
@@ -339,9 +343,45 @@ export const ELECTION_SUMMARY = {
     "IEC-2026 introduced the first online voter registration and remote voting platform, enabling 29 online voters to participate alongside 56 in-person voters at the conference.",
     "Candidate debates were held online (20 July) and in person at the conference (25 July) before voting commenced.",
     "Newly elected officers were certified and inducted on Independence Day (26 July) before H.E. Dudley McKinley Thomas, Ambassador of Liberia to China.",
-    "IEC financial balance of RMB 1,416.31 was formally turned over to outgoing NEC leadership upon completion of the electoral cycle.",
+    "Seven candidates were verified for NEC positions; no provincial or city nominations were received at the national level.",
   ],
 } as const;
+
+export const IEC_COMMISSIONERS = [
+  { name: "Aaron S. Pittman", role: "Chairman", city: "Guangzhou" },
+  { name: "Daniel Karlay Hinneh", role: "Co-Chairman", city: "Suzhou" },
+  { name: "Jefferson D. Kanneh", role: "Secretary", city: "Xinxiang" },
+  { name: "Zack Tito Tweh", role: "PRO & Ex-Official", city: "Shenzhen" },
+  { name: "Olive Kulah Kamara", role: "Member", city: "Guiyang" },
+  { name: "Linus Burke Snyder", role: "Member", city: "Qingdao" },
+  { name: "Amos Jusu Swaray", role: "Member", city: "Chengdu" },
+] as const;
+
+export const IEC_ELECTORAL_INITIATIVES = [
+  "Digital registration — Online candidate and voter registration platform deployed for the 2026 cycle.",
+  "Voter education — Online civic education session held 17 July 2026.",
+  "Candidate debates — Online debate (20 July) and in-person manifesto presentations at the conference (25 July).",
+  "Hybrid voting — First LSUIC election combining in-person (56) and online (29) ballot casting on 25 July 2026.",
+  "Provincial observers — IEC received observer invitations from election committees in Zhejiang, Wuhan, and Beijing.",
+] as const;
+
+/** Participation metrics derived from IEC-2026 certified voter and results data. */
+export function getIecParticipationMetrics() {
+  const { eligibleVoters, inPersonVoters, onlineVoters } =
+    ELECTION_SUMMARY.voterStats;
+  const { min, max } = ELECTION_SUMMARY.voteTallyRange;
+  const turnoutPctMax = Math.round((max / eligibleVoters) * 1000) / 10;
+  const turnoutPctMin = Math.round((min / eligibleVoters) * 1000) / 10;
+  const inPersonShare = Math.round((inPersonVoters / eligibleVoters) * 1000) / 10;
+  const onlineShare = Math.round((onlineVoters / eligibleVoters) * 1000) / 10;
+
+  return {
+    turnoutPctMin,
+    turnoutPctMax,
+    inPersonShare,
+    onlineShare,
+  } as const;
+}
 
 export const COOKING_BUDGET_CATEGORIES = [
   {
@@ -681,15 +721,38 @@ export const CONFERENCE_CHALLENGES = [
   {
     label: "Post-conference documentation deadlines",
     detail:
-      "Committee financial certification (Cooking Committee, 1 August 2026), IEC turnover (RMB 1,416.31 balance), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard.",
+      "Committee financial certification (Cooking Committee, 1 August 2026), IEC election report submission (28 July 2026), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard.",
+  },
+] as const;
+
+export const RHUB_PLATFORM_LINKS = [
+  {
+    label: "Conference Hub (main platform)",
+    url: "https://rhub.ekddigital.com/tools/conf",
+    description:
+      "Central dashboard for delegates, committees, finance, and conference tools",
+  },
+  {
+    label: "Delegate registration portal",
+    url: "https://rhub.ekddigital.com/tools/conf/delegates/register",
+    description:
+      "Public registration with document uploads and payment declaration",
+  },
+  {
+    label: "Platform login",
+    url: "https://rhub.ekddigital.com/login",
+    description:
+      "Member sign-in for delegate profiles, committee tools, and IEC voting",
   },
 ] as const;
 
 export const RHUB_PLATFORM = {
   intro: [
-    "The EKD Digital Resource Hub (rhub) — developed and operated by EKD Digital — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, rhub provided a single operational environment for delegate data, finance, communications, and program documentation.",
+    "The EKD Digital Resource Hub (rhub) — developed and operated by EKD Digital — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, the Conference Hub at rhub.ekddigital.com provided a single operational environment for delegate data, finance, communications, and program documentation.",
     "Conference leadership used rhub to reduce manual coordination across committees and to preserve auditable records aligned with LSUIC financial transparency standards. The platform supported both on-site Jinan operations and remote participation — notably IEC-2026 online voter registration and remote voting.",
   ],
+  platformAccessIntro:
+    "Delegates, committee members, and election participants accessed rhub through the following entry points throughout the conference cycle:",
   capabilities: [
     "Public delegate registration portal with document uploads and payment declaration",
     "Delegate profiles, room assignments, and fee tracking for 109 registered records",
@@ -980,7 +1043,7 @@ export function getReportFixedPageCounts() {
     acknowledgements: 1,
     certification: 1,
     cookingAppendix: buildCookingAppendixPages().length,
-    iecAppendix: 1,
+    iecAppendix: 2,
   } as const;
 }
 

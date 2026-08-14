@@ -519,22 +519,15 @@ Seven candidates were verified and approved for NEC positions. No provincial or 
 
 The IEC certified and officially announced results after vote counting, verification, and validation. Newly elected officers were inducted on **26 July 2026** before **H.E. Dudley McKinley Thomas**, Ambassador of the Republic of Liberia to the People's Republic of China.
 
-### 11.3 IEC Financial Summary
-
-| Item | Amount (RMB) |
-| --- | ---: |
-| Candidate registration fee revenue | 2,365.00 |
-| Total expenditure | 948.69 |
-| Balance turned over to outgoing NEC | 1,416.31 |
-
-IEC expenditures included development of the candidate and voter registration platform (RMB 500.00), preparation of candidates' certificates (RMB 245.00), and printing of ballot papers and transportation (RMB 203.69).
-
-### 11.4 Key Electoral Initiatives
+### 11.3 Key Electoral Initiatives
 
 - **Digital registration** — Online candidate and voter registration platform contracted and deployed for the 2026 cycle.
 - **Voter education** — Online civic education session held 17 July 2026.
 - **Candidate debates** — Online debate (20 July) and in-person manifesto presentations at the conference (25 July).
 - **Hybrid voting** — First LSUIC election combining in-person and online ballot casting.
+- **Provincial observers** — IEC received observer invitations from election committees in Zhejiang, Wuhan, and Beijing.
+
+*IEC financial reconciliation is summarized in Section 12.*
 
 *Source: IEC-2026 Comprehensive Election Administrative Report, submitted 28 July 2026.*
 
@@ -809,15 +802,25 @@ The Jinan 2026 conference executed successfully within its four-day program, but
 | **Registration and payment reconciliation** | 109 delegate and guest records across single-room, shared-room, veteran, March intake, and no-accommodation tiers required continuous fee tracking. All listed fees were collected (RMB 34,640). |
 | **Hybrid election administration** | IEC-2026 introduced the union's first online voter registration and remote voting platform. Of 90 platform users, 85 were confirmed eligible — 56 voting in person at Jinan and 29 online. |
 | **Independence Day program density** | Day 3 combined sports, formal Independence Day ceremonies, ambassador engagement, NEC induction, and an awards night program running from 8:30 PM through the early morning. |
-| **Post-conference documentation deadlines** | Committee financial certification (Cooking Committee, 1 August 2026), IEC turnover (RMB 1,416.31 balance), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard. |
+| **Post-conference documentation deadlines** | Committee financial certification (Cooking Committee, 1 August 2026), IEC election report submission (28 July 2026), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard. |
 
 ---
 
 ## 17. EKD Digital Resources — Conference Management Platform
 
-The **EKD Digital Resource Hub (rhub)** — developed and operated by **EKD Digital** — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, rhub provided a single operational environment for delegate data, finance, communications, and program documentation.
+The **EKD Digital Resource Hub (rhub)** — developed and operated by **EKD Digital** — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, the [Conference Hub](https://rhub.ekddigital.com/tools/conf) provided a single operational environment for delegate data, finance, communications, and program documentation.
 
 Conference leadership used rhub to reduce manual coordination across committees and to preserve auditable records aligned with LSUIC financial transparency standards. The platform supported both on-site Jinan operations and remote participation — notably IEC-2026 online voter registration and remote voting.
+
+### Platform access
+
+Delegates, committee members, and election participants accessed rhub through the following entry points throughout the conference cycle:
+
+| Entry point | URL |
+| --- | --- |
+| Conference Hub (main platform) | [https://rhub.ekddigital.com/tools/conf](https://rhub.ekddigital.com/tools/conf) |
+| Delegate registration portal | [https://rhub.ekddigital.com/tools/conf/delegates/register](https://rhub.ekddigital.com/tools/conf/delegates/register) |
+| Platform login | [https://rhub.ekddigital.com/login](https://rhub.ekddigital.com/login) |
 
 ### Platform capabilities used for Jinan 2026
 
@@ -1081,7 +1084,7 @@ Source: Cooking Committee financial report, Jinan 2026 (certified 1 August 2026)
 
 ### Appendix B — IEC-2026 Election Report
 
-Source: Independent Elections Commission comprehensive election administrative report, submitted 28 July 2026.
+Source: Independent Elections Commission comprehensive election administrative report, submitted 28 July 2026. IEC-2026 administered hybrid in-person and online voting on **25 July 2026**; newly elected officers were certified and inducted on **26 July 2026**.
 
 #### Voter Registration Summary
 
@@ -1091,7 +1094,16 @@ Source: Independent Elections Commission comprehensive election administrative r
 | Eligible registered voters | 85 |
 | In-person voters (Jinan conference) | 56 |
 | Online voters | 29 |
-| Registered candidates | 7 |
+| Registered candidates (NEC positions) | 7 |
+
+#### Participation & Turnout
+
+| Metric | Value |
+| --- | --- |
+| Vote tallies (certified results) | 56–59 across NEC positions |
+| Estimated turnout (of 85 eligible voters) | 65.9%–69.4% |
+| Eligible voters — in-person share | 65.9% (56) |
+| Eligible voters — online share | 34.1% (29) |
 
 #### Election Results — 25 July 2026
 
@@ -1105,16 +1117,27 @@ Source: Independent Elections Commission comprehensive election administrative r
 | National Treasurer | Antoinette T. Dickson | 57 |
 | Chaplain General | Laimah A. Dowie | 56 |
 
-#### IEC Financial Summary
+The IEC certified and officially announced results after vote counting, verification, and validation.
 
-| Item | Amount (RMB) |
-| --- | ---: |
-| Candidate registration fee revenue | 2,365.00 |
-| Platform development | 500.00 |
-| Candidates' certificates | 245.00 |
-| Ballot papers and transportation | 203.69 |
-| **Total expenditure** | **948.69** |
-| **Balance turned over to outgoing NEC** | **1,416.31** |
+#### Electoral Process & Initiatives
+
+- **Digital registration** — Online candidate and voter registration platform deployed for the 2026 cycle.
+- **Voter education** — Online civic education session held 17 July 2026.
+- **Candidate debates** — Online debate (20 July) and in-person manifesto presentations at the conference (25 July).
+- **Hybrid voting** — First LSUIC election combining in-person (56) and online (29) ballot casting.
+- **Provincial observers** — IEC received observer invitations from election committees in Zhejiang, Wuhan, and Beijing.
+
+#### IEC-2026 Commission
+
+| Name | Position | City |
+| --- | --- | --- |
+| Aaron S. Pittman | Chairman | Guangzhou |
+| Daniel Karlay Hinneh | Co-Chairman | Suzhou |
+| Jefferson D. Kanneh | Secretary | Xinxiang |
+| Zack Tito Tweh | PRO & Ex-Official | Shenzhen |
+| Olive Kulah Kamara | Member | Guiyang |
+| Linus Burke Snyder | Member | Qingdao |
+| Amos Jusu Swaray | Member | Chengdu |
 
 ### Appendix C — Pre-Conference Campaign Materials
 

@@ -87,3 +87,11 @@ export const REPORT_CERT = {
   role: { fontSize: 12, color: "#666" },
   date: { fontSize: 11, color: "#888", fontStyle: "italic" as const },
 } as const;
+
+/** Inline and table hyperlinks — blue, underlined for screen and PDF export. */
+export const REPORT_LINK = {
+  color: C.blue,
+  textDecoration: "underline",
+  textUnderlineOffset: "2px",
+  fontWeight: 600,
+} as const;

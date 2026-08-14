@@ -26,7 +26,9 @@ import {
   EXECUTIVE_SUMMARY,
   FINANCE_SUMMARY,
   FUTURE_ADVISORIES,
-  IEC_EXPENDITURE_ITEMS,
+  getIecParticipationMetrics,
+  IEC_COMMISSIONERS,
+  IEC_ELECTORAL_INITIATIVES,
   LESSONS_LEARNED,
   OUTCOMES,
   PROGRAM_GENERAL_NOTES,
@@ -35,6 +37,7 @@ import {
   REPORT_PROGRAM_DAYS,
   RESOLUTIONS_SUMMARY,
   RHUB_PLATFORM,
+  RHUB_PLATFORM_LINKS,
   VENUE_AND_ACCOMMODATION,
   buildPreConferencePages,
   buildReportProgramPages,
@@ -62,6 +65,7 @@ import {
   REPORT_BULLET,
   REPORT_CERT,
   REPORT_CONTINUATION,
+  REPORT_LINK,
   REPORT_LIST_ITEM,
   REPORT_PHOTO,
   REPORT_PROGRAM,
@@ -155,6 +159,30 @@ function BodyParagraph({ children }: { children: ReactNode }) {
     >
       {children}
     </p>
+  );
+}
+
+function ReportLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        color: REPORT_LINK.color,
+        textDecoration: REPORT_LINK.textDecoration,
+        textUnderlineOffset: REPORT_LINK.textUnderlineOffset,
+        fontWeight: REPORT_LINK.fontWeight,
+      }}
+    >
+      {children}
+    </a>
   );
 }
 
@@ -1112,61 +1140,17 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             • {item}
           </div>
         ))}
-
         <div
           style={{
-            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-            fontWeight: 700,
-            color: C.blue,
-            marginTop: "10px",
-            marginBottom: "6px",
+            fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
+            color: REPORT_PROGRAM.footnote.color,
+            marginTop: "8px",
+            lineHeight: REPORT_PROGRAM.footnote.lineHeight,
           }}
         >
-          IEC-2026 Financial Summary
-        </div>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
-          }}
-        >
-          <tbody>
-            {[
-              ["Candidate registration fee revenue", FINANCE_SUMMARY.iecRevenue],
-              ["Total expenditure", FINANCE_SUMMARY.iecExpenditure],
-              ["Balance turned over to outgoing NEC", FINANCE_SUMMARY.iecBalanceTurnover],
-            ].map(([label, value]) => (
-              <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td
-                  style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
-                    fontWeight: 600,
-                  }}
-                >
-                  {label}
-                </td>
-                <td
-                  style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
-                    textAlign: "right",
-                  }}
-                >
-                  {formatRmb(Number(value))}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div
-          style={{
-            fontSize: `${REPORT_TABLE.fontSize}px`,
-            color: "#555",
-            marginTop: "6px",
-            lineHeight: 1.45,
-          }}
-        >
-          {IEC_EXPENDITURE_ITEMS.map((item) => item.description).join(" · ")}
+          Source: IEC-2026 Comprehensive Election Administrative Report, submitted{" "}
+          {ELECTION_SUMMARY.reportSubmittedDate}. IEC financial reconciliation is
+          summarized in Section 12.
         </div>
       </ReportA4Page>
 
@@ -1521,9 +1505,85 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         <SectionTitle>
           17. EKD Digital Resources — Conference Management Platform
         </SectionTitle>
-        {RHUB_PLATFORM.intro.map((paragraph) => (
-          <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
-        ))}
+        <BodyParagraph>
+          The EKD Digital Resource Hub (rhub) — developed and operated by EKD Digital
+          — served as the integrated conference management platform for LSUIC Jinan
+          2026. From pre-conference mobilization through post-conference reporting,{" "}
+          the{" "}
+          <ReportLink href={RHUB_PLATFORM_LINKS[0].url}>
+            Conference Hub
+          </ReportLink>{" "}
+          provided a single operational environment for delegate data, finance,
+          communications, and program documentation.
+        </BodyParagraph>
+        <BodyParagraph>{RHUB_PLATFORM.intro[1]}</BodyParagraph>
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "6px",
+            marginTop: "2px",
+          }}
+        >
+          Platform access
+        </div>
+        <BodyParagraph>{RHUB_PLATFORM.platformAccessIntro}</BodyParagraph>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Entry point", "URL"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {RHUB_PLATFORM_LINKS.map((row, idx) => (
+              <tr
+                key={row.url}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {row.label}
+                  <div
+                    style={{
+                      fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
+                      fontWeight: 400,
+                      color: REPORT_PROGRAM.footnote.color,
+                      marginTop: "2px",
+                      lineHeight: REPORT_PROGRAM.footnote.lineHeight,
+                    }}
+                  >
+                    {row.description}
+                  </div>
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>
+                  <ReportLink href={row.url}>{row.url}</ReportLink>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <div
           style={{
             fontSize: `${REPORT_SUBSECTION.fontSize}px`,
@@ -1995,9 +2055,21 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </div>
         <BodyParagraph>
           Source: Independent Elections Commission comprehensive election administrative
-          report, submitted 28 July 2026. IEC-2026 administered hybrid in-person and online
-          voting on {ELECTION_SUMMARY.electionDate}.
+          report, submitted {ELECTION_SUMMARY.reportSubmittedDate}. IEC-2026 administered
+          hybrid in-person and online voting on {ELECTION_SUMMARY.electionDate}; newly
+          elected officers were certified and inducted on {ELECTION_SUMMARY.certificationDate}.
         </BodyParagraph>
+
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "6px",
+          }}
+        >
+          Voter Registration Summary
+        </div>
         <table
           style={{
             width: "100%",
@@ -2008,7 +2080,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         >
           <thead>
             <tr style={{ background: C.blue, color: C.white }}>
-              {["Metric", "Count"].map((h) => (
+              {["Category", "Count"].map((h) => (
                 <th
                   key={h}
                   style={{
@@ -2025,11 +2097,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           </thead>
           <tbody>
             {[
-              ["Platform users", ELECTION_SUMMARY.voterStats.platformUsers],
+              ["Total platform users", ELECTION_SUMMARY.voterStats.platformUsers],
               ["Eligible registered voters", ELECTION_SUMMARY.voterStats.eligibleVoters],
-              ["In-person voters (Jinan)", ELECTION_SUMMARY.voterStats.inPersonVoters],
+              ["In-person voters (Jinan conference)", ELECTION_SUMMARY.voterStats.inPersonVoters],
               ["Online voters", ELECTION_SUMMARY.voterStats.onlineVoters],
-              ["Registered candidates", ELECTION_SUMMARY.voterStats.candidatesRegistered],
+              ["Registered candidates (NEC positions)", ELECTION_SUMMARY.voterStats.candidatesRegistered],
             ].map(([label, value], idx) => (
               <tr
                 key={String(label)}
@@ -2046,23 +2118,35 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
+
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "6px",
+          }}
+        >
+          Participation & Turnout
+        </div>
         <table
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+            fontSize: `${REPORT_TABLE.fontSize}px`,
             marginBottom: "10px",
           }}
         >
           <thead>
             <tr style={{ background: "#F0F7FF" }}>
-              {["IEC Expenditure", "Amount (RMB)"].map((h) => (
+              {["Metric", "Value"].map((h) => (
                 <th
                   key={h}
                   style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    padding: REPORT_TABLE.cellPadding,
                     textAlign: "left",
                     fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
                     color: C.blue,
                   }}
                 >
@@ -2072,49 +2156,186 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             </tr>
           </thead>
           <tbody>
-            {IEC_EXPENDITURE_ITEMS.map((row) => (
-              <tr key={row.description} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.description}</td>
-                <td
+            {(() => {
+              const metrics = getIecParticipationMetrics();
+              const { min, max } = ELECTION_SUMMARY.voteTallyRange;
+              return [
+                [
+                  "Vote tallies (certified results)",
+                  `${min}–${max} across NEC positions`,
+                ],
+                [
+                  "Estimated turnout (of 85 eligible voters)",
+                  `${metrics.turnoutPctMin}%–${metrics.turnoutPctMax}%`,
+                ],
+                [
+                  "Eligible voters — in-person share",
+                  `${metrics.inPersonShare}% (${ELECTION_SUMMARY.voterStats.inPersonVoters})`,
+                ],
+                [
+                  "Eligible voters — online share",
+                  `${metrics.onlineShare}% (${ELECTION_SUMMARY.voterStats.onlineVoters})`,
+                ],
+              ];
+            })().map(([label, value], idx) => (
+              <tr
+                key={String(label)}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {label}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "6px",
+          }}
+        >
+          Election Results — {ELECTION_SUMMARY.electionDate}
+        </div>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Position", "Elected Officer", "Votes"].map((h) => (
+                <th
+                  key={h}
                   style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
-                    textAlign: "right",
-                    fontWeight: 600,
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: h === "Votes" ? "center" : "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
                   }}
                 >
-                  {formatRmb(row.amount)}
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {ELECTION_SUMMARY.outcomes.map((row, idx) => (
+              <tr
+                key={row.position}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {row.position}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.winner}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "center",
+                    fontWeight: 700,
+                    color: C.blue,
+                  }}
+                >
+                  {row.votes}
                 </td>
               </tr>
             ))}
-            <tr style={{ background: C.blue, color: C.white }}>
-              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 700 }}>
-                Total IEC expenditure
-              </td>
-              <td
+          </tbody>
+        </table>
+      </ReportA4Page>
+
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Appendix B — IEC-2026 (cont.)">
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "6px",
+          }}
+        >
+          Electoral Process & Initiatives
+        </div>
+        {IEC_ELECTORAL_INITIATIVES.map((item) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "4px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            • {item}
+          </div>
+        ))}
+
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginTop: "8px",
+            marginBottom: "6px",
+          }}
+        >
+          IEC-2026 Commission
+        </div>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+          }}
+        >
+          <thead>
+            <tr style={{ background: "#F0F7FF" }}>
+              {["Name", "Position", "City"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                    color: C.blue,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {IEC_COMMISSIONERS.map((row, idx) => (
+              <tr
+                key={row.name}
                 style={{
-                  padding: REPORT_TABLE_PROSE.cellPadding,
-                  textAlign: "right",
-                  fontWeight: 700,
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
                 }}
               >
-                {formatRmb(FINANCE_SUMMARY.iecExpenditure)}
-              </td>
-            </tr>
-            <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
-                Balance turned over to outgoing NEC
-              </td>
-              <td
-                style={{
-                  padding: REPORT_TABLE_PROSE.cellPadding,
-                  textAlign: "right",
-                  fontWeight: 700,
-                  color: C.blue,
-                }}
-              >
-                {formatRmb(FINANCE_SUMMARY.iecBalanceTurnover)}
-              </td>
-            </tr>
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {row.name}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.role}</td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.city}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </ReportA4Page>
