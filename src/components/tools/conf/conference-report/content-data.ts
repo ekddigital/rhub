@@ -733,16 +733,22 @@ export const RHUB_PLATFORM_LINKS = [
       "Central dashboard for delegates, committees, finance, and conference tools",
   },
   {
-    label: "Delegate registration portal",
-    url: "https://rhub.ekddigital.com/tools/conf/delegates/register",
+    label: "Platform account registration",
+    url: "https://rhub.ekddigital.com/register",
     description:
-      "Public registration with document uploads and payment declaration",
+      "Create a rhub member account on the Resource Hub (distinct from delegate conference registration)",
   },
   {
     label: "Platform login",
     url: "https://rhub.ekddigital.com/login",
     description:
       "Member sign-in for delegate profiles, committee tools, and IEC voting",
+  },
+  {
+    label: "Delegate registration portal",
+    url: "https://rhub.ekddigital.com/tools/conf/delegates/register",
+    description:
+      "Conference delegate registration with document uploads and payment declaration",
   },
 ] as const;
 

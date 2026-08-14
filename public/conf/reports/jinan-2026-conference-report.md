@@ -819,8 +819,9 @@ Delegates, committee members, and election participants accessed rhub through th
 | Entry point | URL |
 | --- | --- |
 | Conference Hub (main platform) | [https://rhub.ekddigital.com/tools/conf](https://rhub.ekddigital.com/tools/conf) |
-| Delegate registration portal | [https://rhub.ekddigital.com/tools/conf/delegates/register](https://rhub.ekddigital.com/tools/conf/delegates/register) |
+| Platform account registration | [https://rhub.ekddigital.com/register](https://rhub.ekddigital.com/register) |
 | Platform login | [https://rhub.ekddigital.com/login](https://rhub.ekddigital.com/login) |
+| Delegate registration portal | [https://rhub.ekddigital.com/tools/conf/delegates/register](https://rhub.ekddigital.com/tools/conf/delegates/register) |
 
 ### Platform capabilities used for Jinan 2026
 
