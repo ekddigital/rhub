@@ -81,9 +81,11 @@ import {
   allocateReceiptPhotoPages,
   DocumentReceiptPhotosGrid,
   receiptGridAvailableHeight,
+  receiptOnlyPageAvailablePx,
+  RECEIPT_LAST_PAGE_TITLE_BLOCK,
+  RECEIPT_SECTION_TITLE_BLOCK,
   type ReceiptPhotoEntry,
 } from "@/lib/conf/document-receipt-photos";
-import { PAGE_METRICS } from "@/lib/conf/document-constants";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
@@ -931,7 +933,7 @@ function PaymentsDocumentPreview({
     allocateReceiptPhotoPages(
       receiptEntries,
       lastTablePageRemainingPx,
-      PAGE_METRICS.contentH,
+      receiptOnlyPageAvailablePx(),
     );
 
   const scopedCommitteeKeys = Array.from(
@@ -1126,7 +1128,10 @@ function PaymentsDocumentPreview({
                     entries={lastPageReceipts}
                     availableHeight={receiptGridAvailableHeight(
                       lastTablePageRemainingPx,
-                      { includeHeading: true },
+                      {
+                        sectionTitlePx: RECEIPT_LAST_PAGE_TITLE_BLOCK,
+                        marginTopPx: 0,
+                      },
                     )}
                   />
                 </>
@@ -1164,8 +1169,8 @@ function PaymentsDocumentPreview({
           <DocumentReceiptPhotosGrid
             entries={chunk}
             availableHeight={receiptGridAvailableHeight(
-              PAGE_METRICS.contentH,
-              { includeHeading: true, marginTop: 0 },
+              receiptOnlyPageAvailablePx(),
+              { sectionTitlePx: RECEIPT_SECTION_TITLE_BLOCK, marginTopPx: 0 },
             )}
           />
         </DocumentLayout>

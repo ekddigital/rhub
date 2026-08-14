@@ -3,7 +3,11 @@
  */
 
 import React from "react";
-import { DOCUMENT_COLORS as C, PAGE_LAYOUT } from "./document-constants";
+import {
+  DOCUMENT_COLORS as C,
+  PAGE_LAYOUT,
+  PAGE_METRICS,
+} from "./document-constants";
 
 export interface ReceiptPhotoEntry {
   id: string;
@@ -26,11 +30,23 @@ export const RECEIPTS_PER_PAGE_MAX = 4;
 /** @deprecated Use RECEIPTS_PER_PAGE_MAX */
 export const RECEIPTS_PER_PAGE = RECEIPTS_PER_PAGE_MAX;
 
+/** Buffer so grid content never sits flush against the page footer. */
+export const RECEIPT_PAGE_SAFETY_MARGIN = 12;
+
+/** "Receipt Photos" title on dedicated pages (13px type + 12px margin-bottom). */
+export const RECEIPT_SECTION_TITLE_BLOCK = Math.ceil(13 * 1.2) + 12;
+
+/** Title block on the last table page (12px top + title + 12px bottom). */
+export const RECEIPT_LAST_PAGE_TITLE_BLOCK =
+  12 + Math.ceil(13 * 1.2) + 12;
+
 /** Measured block heights (px) for pagination — matches rendered chrome. */
 export const RECEIPT_GRID_METRICS = {
-  headingH: 37,
+  /** @deprecated Prefer RECEIPT_SECTION_TITLE_BLOCK */
+  headingH: RECEIPT_SECTION_TITLE_BLOCK,
   marginTop: 12,
-  captionBlockH: 36,
+  /** Two caption lines + vertical padding (8px × 2). */
+  captionBlockH: 48,
   rowGap: 10,
   columnGap: 10,
   columns: 2,
@@ -43,13 +59,14 @@ export type ReceiptGridLayout = {
   cellWidth: number;
   imageHeight: number;
   captionHeight: number;
+  blockHeight: number;
 };
 
 function gapTotal(rows: number, gap: number): number {
   return Math.max(0, rows - 1) * gap;
 }
 
-/** Compute grid cell geometry so images keep aspect ratio and fill available height. */
+/** Compute grid cell geometry so images keep aspect ratio within available height. */
 export function computeReceiptGridLayout(
   receiptCount: number,
   gridAvailableHeight: number,
@@ -66,10 +83,15 @@ export function computeReceiptGridLayout(
   const rowBudget =
     (gridAvailableHeight - gapY * Math.max(0, rows - 1)) / rows;
   const maxImageHeightFromWidth = cellWidth / aspectRatio;
+  const imageBudget = rowBudget - captionHeight - RECEIPT_GRID_METRICS.borderH;
   const imageHeight = Math.min(
     maxImageHeightFromWidth,
-    Math.max(120, rowBudget - captionHeight - RECEIPT_GRID_METRICS.borderH),
+    Math.max(0, imageBudget),
   );
+  const cellHeight =
+    imageHeight + captionHeight + RECEIPT_GRID_METRICS.borderH;
+  const blockHeight =
+    cellHeight * rows + gapTotal(rows, RECEIPT_GRID_METRICS.rowGap);
 
   return {
     cols,
@@ -77,23 +99,62 @@ export function computeReceiptGridLayout(
     cellWidth,
     imageHeight,
     captionHeight,
+    blockHeight,
   };
 }
 
-/** Vertical space available for the grid after page chrome (heading, margins). */
+export type ReceiptGridHeightOpts = {
+  /** Section title height (0 when title is rendered outside the measured block). */
+  sectionTitlePx?: number;
+  /** Extra margin above the section title. */
+  marginTopPx?: number;
+  /** Safety buffer above the page footer. */
+  safetyMarginPx?: number;
+  /** @deprecated Use sectionTitlePx */
+  includeHeading?: boolean;
+  /** @deprecated Use marginTopPx */
+  marginTop?: number;
+};
+
+function resolveReceiptGridHeightOpts(
+  opts?: ReceiptGridHeightOpts,
+): Required<
+  Pick<ReceiptGridHeightOpts, "sectionTitlePx" | "marginTopPx" | "safetyMarginPx">
+> {
+  if (opts?.sectionTitlePx !== undefined) {
+    return {
+      sectionTitlePx: opts.sectionTitlePx,
+      marginTopPx: opts.marginTopPx ?? 0,
+      safetyMarginPx: opts.safetyMarginPx ?? RECEIPT_PAGE_SAFETY_MARGIN,
+    };
+  }
+
+  const includeHeading = opts?.includeHeading ?? true;
+  return {
+    sectionTitlePx: includeHeading ? RECEIPT_GRID_METRICS.headingH : 0,
+    marginTopPx:
+      opts?.marginTopPx ??
+      (includeHeading ? RECEIPT_GRID_METRICS.marginTop : 0),
+    safetyMarginPx: opts?.safetyMarginPx ?? RECEIPT_PAGE_SAFETY_MARGIN,
+  };
+}
+
+/** Vertical space available for the grid after page chrome (heading, margins, safety). */
 export function receiptGridAvailableHeight(
   pageAvailablePx: number,
-  opts?: {
-    includeHeading?: boolean;
-    marginTop?: number;
-  },
+  opts?: ReceiptGridHeightOpts,
 ): number {
-  const includeHeading = opts?.includeHeading ?? true;
-  const marginTop =
-    opts?.marginTop ??
-    (includeHeading ? RECEIPT_GRID_METRICS.marginTop : 0);
-  const headingH = includeHeading ? RECEIPT_GRID_METRICS.headingH : 0;
-  return Math.max(0, pageAvailablePx - headingH - marginTop);
+  const { sectionTitlePx, marginTopPx, safetyMarginPx } =
+    resolveReceiptGridHeightOpts(opts);
+  return Math.max(
+    0,
+    pageAvailablePx - marginTopPx - sectionTitlePx - safetyMarginPx,
+  );
+}
+
+/** Usable height for a dedicated receipt-only page (full content column). */
+export function receiptOnlyPageAvailablePx(): number {
+  return PAGE_METRICS.contentH;
 }
 
 /** Estimate rendered height of the receipt grid (excluding page heading). */
@@ -102,29 +163,23 @@ export function estimateReceiptPhotosBlockH(
   gridAvailableHeight: number,
 ): number {
   if (count <= 0 || gridAvailableHeight <= 0) return 0;
-  const layout = computeReceiptGridLayout(count, gridAvailableHeight);
-  const cellH =
-    layout.imageHeight + layout.captionHeight + RECEIPT_GRID_METRICS.borderH;
-  return cellH * layout.rows + gapTotal(layout.rows, RECEIPT_GRID_METRICS.rowGap);
+  return computeReceiptGridLayout(count, gridAvailableHeight).blockHeight;
 }
 
 /** Max receipt thumbnails that fit on a page with optional heading chrome. */
 export function maxReceiptsThatFit(
   pageAvailablePx: number,
-  opts?: {
-    includeHeading?: boolean;
-    marginTop?: number;
-  },
+  opts?: ReceiptGridHeightOpts,
 ): number {
   const gridBudget = receiptGridAvailableHeight(pageAvailablePx, opts);
   if (gridBudget <= 0) return 0;
 
   for (let count = RECEIPTS_PER_PAGE_MAX; count >= 1; count -= 1) {
-    if (estimateReceiptPhotosBlockH(count, gridBudget) <= gridBudget + 1) {
+    if (estimateReceiptPhotosBlockH(count, gridBudget) <= gridBudget) {
       return count;
     }
   }
-  return 1;
+  return 0;
 }
 
 export function chunkReceiptPhotos<T>(
@@ -146,7 +201,7 @@ export function chunkReceiptPhotos<T>(
 export function allocateReceiptPhotoPages(
   entries: ReceiptPhotoEntry[],
   lastTablePageRemainingPx: number,
-  receiptOnlyPageAvailablePx: number,
+  receiptOnlyPageAvailablePxValue: number,
 ): {
   lastPageReceipts: ReceiptPhotoEntry[];
   extraPages: ReceiptPhotoEntry[][];
@@ -155,12 +210,19 @@ export function allocateReceiptPhotoPages(
     return { lastPageReceipts: [], extraPages: [] };
   }
 
-  const onLast = maxReceiptsThatFit(lastTablePageRemainingPx, {
-    includeHeading: true,
-    marginTop: RECEIPT_GRID_METRICS.marginTop,
-  });
-  const lastPageReceipts = entries.slice(0, onLast);
-  const remaining = entries.slice(onLast);
+  const lastPageOpts: ReceiptGridHeightOpts = {
+    sectionTitlePx: RECEIPT_LAST_PAGE_TITLE_BLOCK,
+    marginTopPx: 0,
+  };
+  const receiptPageOpts: ReceiptGridHeightOpts = {
+    sectionTitlePx: RECEIPT_SECTION_TITLE_BLOCK,
+    marginTopPx: 0,
+  };
+
+  const onLast = maxReceiptsThatFit(lastTablePageRemainingPx, lastPageOpts);
+  const lastPageReceipts = onLast > 0 ? entries.slice(0, onLast) : [];
+  const remaining =
+    onLast > 0 ? entries.slice(onLast) : entries;
 
   if (remaining.length === 0) {
     return { lastPageReceipts, extraPages: [] };
@@ -169,13 +231,15 @@ export function allocateReceiptPhotoPages(
   const extraPages: ReceiptPhotoEntry[][] = [];
   let pos = 0;
   while (pos < remaining.length) {
-    const cap = Math.max(
-      1,
-      maxReceiptsThatFit(receiptOnlyPageAvailablePx, {
-        includeHeading: true,
-        marginTop: 0,
-      }),
+    const cap = maxReceiptsThatFit(
+      receiptOnlyPageAvailablePxValue,
+      receiptPageOpts,
     );
+    if (cap <= 0) {
+      extraPages.push(remaining.slice(pos, pos + 1));
+      pos += 1;
+      continue;
+    }
     extraPages.push(remaining.slice(pos, pos + cap));
     pos += cap;
   }
@@ -193,7 +257,7 @@ export function DocumentReceiptPhotosGrid({
 }) {
   const layout = computeReceiptGridLayout(
     entries.length,
-    Math.max(availableHeight, 120),
+    Math.max(0, availableHeight),
   );
 
   return (
@@ -202,6 +266,9 @@ export function DocumentReceiptPhotosGrid({
         display: "grid",
         gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))`,
         gap: RECEIPT_GRID_METRICS.rowGap,
+        maxHeight: availableHeight,
+        overflow: "hidden",
+        paddingBottom: 4,
       }}
     >
       {entries.map((entry) => (
@@ -214,6 +281,10 @@ export function DocumentReceiptPhotosGrid({
             background: "#fff",
             display: "flex",
             flexDirection: "column",
+            maxHeight:
+              layout.imageHeight +
+              layout.captionHeight +
+              RECEIPT_GRID_METRICS.borderH,
           }}
         >
           {entry.isImage && entry.imageUrl ? (
@@ -221,6 +292,7 @@ export function DocumentReceiptPhotosGrid({
               style={{
                 width: "100%",
                 height: layout.imageHeight,
+                flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -246,6 +318,7 @@ export function DocumentReceiptPhotosGrid({
               style={{
                 width: "100%",
                 height: layout.imageHeight,
+                flexShrink: 0,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -261,17 +334,47 @@ export function DocumentReceiptPhotosGrid({
                 padding: "8px 10px",
                 fontSize: 9.5,
                 color: "#555",
-                minHeight: layout.captionHeight,
+                height: layout.captionHeight,
+                overflow: "hidden",
+                flexShrink: 0,
               }}
             >
               {entry.captionLine1 && (
-                <div style={{ fontWeight: 700, marginBottom: 2, color: C.navy }}>
+                <div
+                  style={{
+                    fontWeight: 700,
+                    marginBottom: 2,
+                    color: C.navy,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {entry.captionLine1}
                 </div>
               )}
-              {entry.captionLine2 && <div>{entry.captionLine2}</div>}
+              {entry.captionLine2 && (
+                <div
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {entry.captionLine2}
+                </div>
+              )}
               {!entry.captionLine2 && entry.fileName && (
-                <div style={{ wordBreak: "break-word" }}>{entry.fileName}</div>
+                <div
+                  style={{
+                    wordBreak: "break-word",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {entry.fileName}
+                </div>
               )}
             </div>
           )}
