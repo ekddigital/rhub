@@ -524,11 +524,26 @@ IEC expenditures included development of the candidate and voter registration pl
 | March Intake — Shared Room | 330 | 2 |
 | Guest (standalone) | 600 | 1 |
 
-### 12.3 Cooking Committee Financial Report
+### 12.3 Cooking Committee Report
 
-Per the Cooking Committee financial report (Appendix A), the committee received **RMB 18,113.03** and expended **RMB 17,538.08**, returning an unexpended balance of **RMB 574.95** to the Conference Committee.
+Per the certified Cooking Committee financial report (Appendix A), the committee received **RMB 18,113.03** and expended **RMB 17,538.08**, returning an unexpended balance of **RMB 574.95** to the Conference Committee.
 
-#### Expenditure by Category
+The Cooking Committee was entrusted with planning, procuring, preparing, and serving meals for delegates and guests throughout the four-day conference. Disbursement covered food items, cooking ingredients, kitchen utensils, transportation, and operational expenses for conference catering. The Committee maintained expenditure records for all purchases and transfers made during the conference period and operated within the approved budget.
+
+| Day | Booklet label | Key meals served |
+| --- | --- | --- |
+| 1 | Arrival Day | Liberian Dry Rice (4:30 PM) |
+| 2 | Conference Business & Pool Party | Beans Toborgee · Pepper Soup with Rice and Fufu |
+| 3 | Independence Day, Sports & Awards Night | Pepper Kala · Awards Night banquet |
+| 4 | Departure Day | Sandwich (breakfast) |
+
+#### Statement of Funds Received
+
+| Description | Amount (RMB) |
+| --- | ---: |
+| Total Funds Disbursed | 18,113.03 |
+
+#### Expenditure by Category (Reconciled)
 
 | Category | Amount (RMB) |
 | --- | ---: |
@@ -550,7 +565,15 @@ Per the Cooking Committee financial report (Appendix A), the committee received 
 | SF | Miscellaneous expenses | 37.00 |
 | Kukor | Fufu purchase | 700.00 |
 
-The Cooking Committee maintained itemized records for all purchases and transfers. Certified by **Kukor Brooks**, Cooking Committee Chairperson, 1 August 2026.
+#### Financial Reconciliation
+
+| Description | Amount (RMB) |
+| --- | ---: |
+| Funds Received | 18,113.03 |
+| Less: Total Expenditure | 17,538.08 |
+| Closing Balance | 574.95 |
+
+The Cooking Committee maintained itemized records for all purchases and transfers (see Appendix A). Certified by **Kukor Brooks**, Cooking Committee Chairperson, 1 August 2026; approved by the Conference Committee Chairman.
 
 ### 12.4 Conference Revenue Summary
 
@@ -862,13 +885,144 @@ Source: Cooking Committee financial report, Jinan 2026 (certified 1 August 2026)
 
 **Funds received:** RMB 18,113.03 · **Total expenditure:** RMB 17,538.08 · **Closing balance:** RMB 574.95
 
-See the complete itemized expenditure tables (food, seasonings, equipment, reimbursements, transportation) in the certified Cooking Committee report on file with the Conference Committee.
+#### A. Food Items, Meat, Vegetables and Groceries
+
+| No. | Description | Amount (RMB) |
+| ---: | --- | ---: |
+| 1 | Oil | 322.10 |
+| 2 | Chicken Breast | 209.00 |
+| 3 | Supermarket Purchases | 82.00 |
+| 4 | Debai Food Mall | 335.00 |
+| 5 | Cucumber | 129.00 |
+| 6 | Salt | 0.18 |
+| 7 | Food Items | 167.42 |
+| 8 | Meat | 483.00 |
+| 9 | Sausage | 170.00 |
+| 10 | Mixed Vegetables | 88.00 |
+| 11 | Chicken | 168.00 |
+| 12 | Cow Skin | 303.62 |
+| 13 | Beans | 234.63 |
+| 14 | Turkey | 931.20 |
+| 15 | Chicken | 1,114.35 |
+| 16 | Okra | 25.80 |
+| 17 | Bread | 427.53 |
+| 18 | Rice | 871.95 |
+| 19 | Mayonnaise | 170.80 |
+| 20 | Flour | 269.61 |
+| 21 | Sugar | 75.00 |
+| 22 | Milk | 191.67 |
+| 23 | Tomatoes | 51.60 |
+| 24 | BBQ Soy Sauce | 92.13 |
+| 25 | Pepper | 230.78 |
+| 26 | Peanut Butter | 36.40 |
+| 27 | Dry Crawfish | 58.89 |
+| 28 | Butter | 126.54 |
+| 29 | Potatoes | 243.38 |
+| 30 | Garlic | 52.44 |
+| 31 | Macaroni | 138.11 |
+| 32 | Onions | 67.42 |
+| 33 | Bitter Balls | 68.61 |
+| 34 | Mixed Vegetables | 234.13 |
+
+#### B. Seasonings, Baking Supplies and Condiments
+
+| No. | Description | Amount (RMB) |
+| ---: | --- | ---: |
+| 1 | Garlic Powder | 29.90 |
+| 2 | Turmeric Powder | 19.80 |
+| 3 | Yeast | 54.48 |
+| 4 | Black Pepper | 85.86 |
+| 5 | Spice Cubes | 494.51 |
+| 6 | Condensed Milk | 49.93 |
+| 7 | Ketchup | 85.20 |
+| 8 | Onion Powder | 57.80 |
+| 9 | Bay Leaf | 20.38 |
+| 10 | Nutmeg | 17.90 |
+| 11 | Baking Powder | 76.95 |
+| 12 | Dry Vanilla | 28.12 |
+| 13 | Liquid Vanilla | 67.50 |
+| 14 | Benny Seed | 19.88 |
+| 15 | Seasonings | 306.21 |
+
+#### C. Kitchen Equipment and Supplies
+
+| No. | Description | Amount (RMB) |
+| ---: | --- | ---: |
+| 1 | Baking Pan | 78.66 |
+| 2 | Cook Spoon | 118.40 |
+| 3 | Knife | 59.90 |
+| 4 | Cooking Pan | 529.74 |
+| 5 | Glasses | 244.69 |
+| 6 | Plates | 323.40 |
+| 7 | Blender | 171.90 |
+| 8 | Napkins | 1,605.02 |
+| 9 | Garbage Bags | 64.70 |
+| 10 | Soap | 48.80 |
+| 11 | Towel | 29.60 |
+
+#### D. Money Transfers / Reimbursements
+
+| Recipient | Purpose | Amount (RMB) |
+| --- | --- | ---: |
+| Mason | Purchase of Food Items | 2,935.80 |
+| Jenneh | Dry Fish and Oil | 940.00 |
+| John | Gas and Cooking Tub | 569.24 |
+| Albert | Beans Purchase | 100.00 |
+| SF | Miscellaneous Expenses | 37.00 |
+| Kukor | Fufu Purchase | 700.00 |
+
+#### E. Transportation
+
+| Description | Amount (RMB) |
+| --- | ---: |
+| Transportation Expenses | 911.57 |
+
+#### Financial Reconciliation
+
+| Description | Amount (RMB) |
+| --- | ---: |
+| Funds Received | 18,113.03 |
+| Less: Total Expenditure | 17,538.08 |
+| Closing Balance | 574.95 |
+
+**Certification:** Prepared by the Cooking Committee; reviewed and verified by **Kukor Brooks**, Cooking Committee Chairperson, 1 August 2026; approved by the Conference Committee Chairman.
 
 ### Appendix B — IEC-2026 Election Report
 
 Source: Independent Elections Commission comprehensive election administrative report, submitted 28 July 2026.
 
-Includes voter registration statistics, election results, financial reconciliation, and IEC member roster.
+#### Voter Registration Summary
+
+| Category | Count |
+| --- | ---: |
+| Total platform users | 90 |
+| Eligible registered voters | 85 |
+| In-person voters (Jinan conference) | 56 |
+| Online voters | 29 |
+| Registered candidates | 7 |
+
+#### Election Results — 25 July 2026
+
+| Position | Elected Officer | Votes |
+| --- | --- | ---: |
+| National President | Moses Kingsford Flomo | 58 |
+| National Vice President | John Tarway Twalla | 59 |
+| Secretary General | Frederick Francis Johnson II | 56 |
+| Deputy Secretary General | Abraham Dixon | 57 |
+| Financial Secretary General | Alfreda R. Togbah | 56 |
+| National Treasurer | Antoinette T. Dickson | 57 |
+| Chaplain General | Laimah A. Dowie | 56 |
+
+#### IEC Financial Summary
+
+| Item | Amount (RMB) |
+| --- | ---: |
+| Candidate registration fee revenue | 2,365.00 |
+| Platform development | 500.00 |
+| Candidates' certificates | 245.00 |
+| Ballot papers and transportation | 203.69 |
+| **Total expenditure** | **948.69** |
+| **Balance turned over to outgoing NEC** | **1,416.31** |
 
 ### Appendix C — Pre-Conference Campaign Materials
 

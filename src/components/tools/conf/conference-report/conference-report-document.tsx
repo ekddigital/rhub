@@ -14,11 +14,16 @@ import {
   CONFERENCE_COMMITTEE,
   CONFERENCE_OBJECTIVES,
   COOKING_BUDGET_CATEGORIES,
+  COOKING_CERTIFICATION,
+  COOKING_COMMITTEE_NARRATIVE,
   COOKING_REIMBURSEMENTS,
+  COOKING_TRANSPORTATION,
+  buildCookingAppendixPages,
   DISTINGUISHED_GUESTS,
   ELECTION_SUMMARY,
   EXECUTIVE_SUMMARY,
   FINANCE_SUMMARY,
+  IEC_EXPENDITURE_ITEMS,
   LESSONS_LEARNED,
   OUTCOMES,
   PROGRAM_GENERAL_NOTES,
@@ -269,6 +274,77 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
               }}
             >
               {row.balance}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function formatRmb(amount: number): string {
+  return amount.toLocaleString(undefined, { minimumFractionDigits: 2 });
+}
+
+function CookingLineItemsTable({
+  items,
+}: {
+  items: readonly { no: number; description: string; amount: number }[];
+}) {
+  return (
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: `${REPORT_TABLE.fontSize}px`,
+        marginBottom: "8px",
+      }}
+    >
+      <thead>
+        <tr style={{ background: "#F0F7FF" }}>
+          {["No.", "Description", "Amount (RMB)"].map((h) => (
+            <th
+              key={h}
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: h === "Amount (RMB)" ? "right" : "left",
+                fontWeight: 700,
+                fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                color: C.blue,
+              }}
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((row, idx) => (
+          <tr
+            key={`${row.no}-${row.description}`}
+            style={{
+              background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+              borderBottom: "1px solid #E5E7EB",
+            }}
+          >
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: "center",
+                width: "32px",
+              }}
+            >
+              {row.no}
+            </td>
+            <td style={{ padding: REPORT_TABLE.compactCellPadding }}>{row.description}</td>
+            <td
+              style={{
+                padding: REPORT_TABLE.compactCellPadding,
+                textAlign: "right",
+                fontWeight: 600,
+              }}
+            >
+              {formatRmb(row.amount)}
             </td>
           </tr>
         ))}
@@ -599,6 +675,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
   const preConferencePages = buildPreConferencePages();
+  const cookingAppendixPages = buildCookingAppendixPages();
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -996,6 +1073,62 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             • {item}
           </div>
         ))}
+
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginTop: "10px",
+            marginBottom: "6px",
+          }}
+        >
+          IEC-2026 Financial Summary
+        </div>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+          }}
+        >
+          <tbody>
+            {[
+              ["Candidate registration fee revenue", FINANCE_SUMMARY.iecRevenue],
+              ["Total expenditure", FINANCE_SUMMARY.iecExpenditure],
+              ["Balance turned over to outgoing NEC", FINANCE_SUMMARY.iecBalanceTurnover],
+            ].map(([label, value]) => (
+              <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    fontWeight: 600,
+                  }}
+                >
+                  {label}
+                </td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "right",
+                  }}
+                >
+                  {formatRmb(Number(value))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div
+          style={{
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+            color: "#555",
+            marginTop: "6px",
+            lineHeight: 1.45,
+          }}
+        >
+          {IEC_EXPENDITURE_ITEMS.map((item) => item.description).join(" · ")}
+        </div>
       </ReportA4Page>
 
       {/* Attendance & Finance — summary */}
@@ -1102,8 +1235,22 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
       </ReportA4Page>
 
       {/* Cooking Committee budget detail */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Cooking Committee Budget">
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Cooking Committee Report">
         <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "8px",
+          }}
+        >
+          Cooking Committee Report
+        </div>
+        {COOKING_COMMITTEE_NARRATIVE.slice(0, 2).map((paragraph) => (
+          <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
+        ))}
+
         <div
           style={{
             fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
@@ -1471,6 +1618,378 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         >
           Date: 13 August 2026
         </div>
+      </ReportA4Page>
+
+      {cookingAppendixPages.map((page, pageIdx) => (
+        <ReportA4Page
+          key={`cooking-appendix-${pageIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            pageIdx === 0
+              ? "Appendix A — Cooking Committee"
+              : "Appendix A (cont.)"
+          }
+        >
+          {pageIdx === 0 && (
+            <SectionTitle>20. Appendices — Appendix A</SectionTitle>
+          )}
+          {pageIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              Appendix A — Cooking Committee Financial Report (continued)
+            </div>
+          )}
+
+          {page.showIntro &&
+            COOKING_COMMITTEE_NARRATIVE.map((paragraph) => (
+              <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
+            ))}
+
+          {page.showFundsReceived && (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "10px",
+              }}
+            >
+              <thead>
+                <tr style={{ background: C.blue, color: C.white }}>
+                  {["Description", "Amount (RMB)"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "left",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+                  <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                    Total Funds Disbursed
+                  </td>
+                  <td
+                    style={{
+                      padding: REPORT_TABLE_PROSE.cellPadding,
+                      textAlign: "right",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {formatRmb(FINANCE_SUMMARY.cookingFundsDisbursed)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+
+          {page.sections.map((section) => (
+            <div key={section.key} style={{ marginBottom: "6px" }}>
+              <div
+                style={{
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  fontWeight: 700,
+                  color: C.blue,
+                  marginBottom: "4px",
+                }}
+              >
+                {section.title}
+              </div>
+              <CookingLineItemsTable items={section.items} />
+            </div>
+          ))}
+
+          {page.showTransfers && (
+            <>
+              <div
+                style={{
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  fontWeight: 700,
+                  color: C.blue,
+                  marginBottom: "4px",
+                }}
+              >
+                D. Money Transfers / Reimbursements
+              </div>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: `${REPORT_TABLE.fontSize}px`,
+                  marginBottom: "8px",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#F0F7FF" }}>
+                    {["Recipient", "Purpose", "Amount (RMB)"].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: REPORT_TABLE.cellPadding,
+                          textAlign: "left",
+                          fontWeight: 700,
+                          fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                          color: C.blue,
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COOKING_REIMBURSEMENTS.map((row) => (
+                    <tr
+                      key={`${row.recipient}-${row.purpose}`}
+                      style={{ borderBottom: "1px solid #E5E7EB" }}
+                    >
+                      <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                        {row.recipient}
+                      </td>
+                      <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.purpose}</td>
+                      <td style={{ padding: REPORT_TABLE.cellPadding, textAlign: "right" }}>
+                        {formatRmb(row.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {page.showTransportation && (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "8px",
+              }}
+            >
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+                  <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                    E. Transportation Expenses
+                  </td>
+                  <td
+                    style={{
+                      padding: REPORT_TABLE_PROSE.cellPadding,
+                      textAlign: "right",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {formatRmb(COOKING_TRANSPORTATION)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+
+          {page.showReconciliation && (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "10px",
+              }}
+            >
+              <thead>
+                <tr style={{ background: C.blue, color: C.white }}>
+                  {["Financial Reconciliation", "Amount (RMB)"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "left",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Funds Received", FINANCE_SUMMARY.cookingFundsDisbursed],
+                  ["Less: Total Expenditure", FINANCE_SUMMARY.cookingExpenditure],
+                  ["Closing Balance", FINANCE_SUMMARY.cookingBalance],
+                ].map(([label, value]) => (
+                  <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                      {label}
+                    </td>
+                    <td
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "right",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatRmb(Number(value))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {page.showCertification && (
+            <BodyParagraph>
+              Certified by {COOKING_CERTIFICATION.reviewedBy},{" "}
+              {COOKING_CERTIFICATION.reviewedRole}, {COOKING_CERTIFICATION.reviewDate}.
+              Approved by the {COOKING_CERTIFICATION.approvedRole}.
+            </BodyParagraph>
+          )}
+        </ReportA4Page>
+      ))}
+
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Appendix B — IEC-2026">
+        <div
+          style={{
+            fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+            fontWeight: REPORT_CONTINUATION.fontWeight,
+            color: REPORT_CONTINUATION.color,
+            marginBottom: "8px",
+          }}
+        >
+          Appendix B — IEC-2026 Election Report
+        </div>
+        <BodyParagraph>
+          Source: Independent Elections Commission comprehensive election administrative
+          report, submitted 28 July 2026. IEC-2026 administered hybrid in-person and online
+          voting on {ELECTION_SUMMARY.electionDate}.
+        </BodyParagraph>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: C.blue, color: C.white }}>
+              {["Metric", "Count"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ["Platform users", ELECTION_SUMMARY.voterStats.platformUsers],
+              ["Eligible registered voters", ELECTION_SUMMARY.voterStats.eligibleVoters],
+              ["In-person voters (Jinan)", ELECTION_SUMMARY.voterStats.inPersonVoters],
+              ["Online voters", ELECTION_SUMMARY.voterStats.onlineVoters],
+              ["Registered candidates", ELECTION_SUMMARY.voterStats.candidatesRegistered],
+            ].map(([label, value], idx) => (
+              <tr
+                key={String(label)}
+                style={{
+                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
+                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                  {label}
+                </td>
+                <td style={{ padding: REPORT_TABLE.cellPadding }}>{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+            marginBottom: "10px",
+          }}
+        >
+          <thead>
+            <tr style={{ background: "#F0F7FF" }}>
+              {["IEC Expenditure", "Amount (RMB)"].map((h) => (
+                <th
+                  key={h}
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "left",
+                    fontWeight: 700,
+                    color: C.blue,
+                  }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {IEC_EXPENDITURE_ITEMS.map((row) => (
+              <tr key={row.description} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.description}</td>
+                <td
+                  style={{
+                    padding: REPORT_TABLE_PROSE.cellPadding,
+                    textAlign: "right",
+                    fontWeight: 600,
+                  }}
+                >
+                  {formatRmb(row.amount)}
+                </td>
+              </tr>
+            ))}
+            <tr style={{ background: C.blue, color: C.white }}>
+              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 700 }}>
+                Total IEC expenditure
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE_PROSE.cellPadding,
+                  textAlign: "right",
+                  fontWeight: 700,
+                }}
+              >
+                {formatRmb(FINANCE_SUMMARY.iecExpenditure)}
+              </td>
+            </tr>
+            <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                Balance turned over to outgoing NEC
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE_PROSE.cellPadding,
+                  textAlign: "right",
+                  fontWeight: 700,
+                  color: C.blue,
+                }}
+              >
+                {formatRmb(FINANCE_SUMMARY.iecBalanceTurnover)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </ReportA4Page>
     </div>
   );

@@ -12,6 +12,17 @@ import {
 } from "@/lib/conf/lsuic-leaders-roster";
 import attendanceRows from "./attendance.generated.json";
 import {
+  buildCookingAppendixPages,
+  COOKING_COMMITTEE_NARRATIVE,
+  COOKING_EQUIPMENT,
+  COOKING_FOOD_ITEMS,
+  COOKING_SEASONINGS,
+  COOKING_TRANSFERS,
+  COOKING_TRANSPORTATION,
+  COOKING_CERTIFICATION,
+  type CookingAppendixPagePlan,
+} from "./cooking-report-data";
+import {
   buildPreConferencePagePlans,
   chunkAttendanceVariable,
   FLYER_LANDSCAPE_ASPECT,
@@ -19,6 +30,18 @@ import {
   type FlyerItem,
   type PreConferencePagePlan,
 } from "./report-layout";
+
+export {
+  buildCookingAppendixPages,
+  COOKING_COMMITTEE_NARRATIVE,
+  COOKING_EQUIPMENT,
+  COOKING_FOOD_ITEMS,
+  COOKING_SEASONINGS,
+  COOKING_TRANSFERS,
+  COOKING_TRANSPORTATION,
+  COOKING_CERTIFICATION,
+  type CookingAppendixPagePlan,
+};
 
 export const REPORT_PROGRAM_DAYS = DETAILED_PROGRAM_DAYS;
 export { PROGRAM_GENERAL_NOTES };
@@ -263,13 +286,21 @@ export const COOKING_BUDGET_CATEGORIES = [
   },
 ] as const;
 
-export const COOKING_REIMBURSEMENTS = [
-  { recipient: "Mason", purpose: "Purchase of food items", amount: 2_935.8 },
-  { recipient: "Jenneh", purpose: "Dry fish and oil", amount: 940.0 },
-  { recipient: "John", purpose: "Gas and cooking tub", amount: 569.24 },
-  { recipient: "Albert", purpose: "Beans purchase", amount: 100.0 },
-  { recipient: "SF", purpose: "Miscellaneous expenses", amount: 37.0 },
-  { recipient: "Kukor", purpose: "Fufu purchase", amount: 700.0 },
+export const COOKING_REIMBURSEMENTS = COOKING_TRANSFERS;
+
+export const IEC_EXPENDITURE_ITEMS = [
+  {
+    description: "Candidate and voter registration platform development",
+    amount: 500.0,
+  },
+  {
+    description: "Preparation of candidates' certificates",
+    amount: 245.0,
+  },
+  {
+    description: "Printing of ballot papers and transportation",
+    amount: 203.69,
+  },
 ] as const;
 
 /** Report section titles for each conference day (§7–§10), aligned with booklet Program Outline. */
@@ -323,6 +354,8 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const programPages = buildReportProgramPages();
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
+  const cookingAppendixPages = buildCookingAppendixPages().length;
+  const appendixPages = cookingAppendixPages + REPORT_FIXED_PAGES.iecAppendix;
 
   let page = 3;
   const executiveStart = page;
@@ -354,6 +387,8 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const photosStart = page;
   page += photoPages;
   const certificationStart = page;
+  page += REPORT_FIXED_PAGES.certification;
+  const appendixStart = page;
 
   return REPORT_TOC.map((entry) => {
     if (entry.isProgramDay) {
@@ -398,7 +433,11 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
       case 19:
         return { ...entry, startPage: certificationStart, pageSpan: 1 };
       case 20:
-        return entry;
+        return {
+          ...entry,
+          startPage: appendixStart,
+          pageSpan: appendixPages,
+        };
       default:
         return entry;
     }
@@ -476,7 +515,7 @@ export const LESSONS_LEARNED = [
   {
     label: "Pre-conference mobilization",
     detail:
-      "Begin themed communications at least sixty days out with rhub registration guides, fee flyers, and info sessions.",
+      "Begin themed communications at least sixty days out with delegate registration guides, fee flyers, and info sessions.",
   },
   {
     label: "Program balance",
@@ -721,6 +760,8 @@ export function getReportFixedPageCounts() {
     guestsOutcomes: 1,
     lessonsAndAcknowledgements: 1,
     certification: 1,
+    cookingAppendix: buildCookingAppendixPages().length,
+    iecAppendix: 1,
   } as const;
 }
 
@@ -744,6 +785,20 @@ export function computeReportTotalPages(): number {
   const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS).length;
-  const fixedPages = Object.values(REPORT_FIXED_PAGES).reduce((a, b) => a + b, 0);
+  const fixed = getReportFixedPageCounts();
+  const fixedPages =
+    fixed.toc +
+    fixed.executiveAndObjectives +
+    fixed.preConference +
+    fixed.venueAndAccommodation +
+    fixed.conferenceCommittee +
+    fixed.conferenceOverview +
+    fixed.electionSummary +
+    fixed.financeSummary +
+    fixed.guestsOutcomes +
+    fixed.lessonsAndAcknowledgements +
+    fixed.certification +
+    fixed.cookingAppendix +
+    fixed.iecAppendix;
   return 1 + fixedPages + programPages + attendancePages + photoPages;
 }
