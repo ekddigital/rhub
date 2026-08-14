@@ -405,11 +405,14 @@ const REPORT_TOC_AFTER_DAYS = [
   { num: 13, title: "Full Delegate Register" },
   { num: 14, title: "Distinguished Guests and Speakers" },
   { num: 15, title: "Outcomes, Resolutions, and Recommendations" },
-  { num: 16, title: "Lessons Learned for Future Conferences" },
-  { num: 17, title: "Photographic Record" },
-  { num: 18, title: "Acknowledgements" },
-  { num: 19, title: "Certification" },
-  { num: 20, title: "Appendices" },
+  { num: 16, title: "Challenges Faced During the Conference" },
+  { num: 17, title: "EKD Digital Resources — Conference Management Platform" },
+  { num: 18, title: "Lessons Learned for Future Conferences" },
+  { num: 19, title: "Advisories and Recommendations for Future Conferences" },
+  { num: 20, title: "Photographic Record" },
+  { num: 21, title: "Acknowledgements" },
+  { num: 22, title: "Certification" },
+  { num: 23, title: "Appendices" },
 ] as const;
 
 /** Table of contents — mirrors jinan-2026-conference-report.md; program days match booklet Program Outline. */
@@ -447,8 +450,7 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const venuePageCount = buildVenueAndAccommodationPageCount();
   const venueStart = page;
   page += venuePageCount;
-  const committeeStart = page++;
-  const overviewStart = page++;
+  const committeeAndOverviewStart = page++;
 
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
@@ -465,7 +467,10 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const registerStart = page;
   page += attendancePages;
   const outcomesStart = page++;
-  const lessonsStart = page++;
+  const challengesStart = page++;
+  const rhubStart = page++;
+  const lessonsAdvisoriesStart = page++;
+  const acknowledgementsStart = page++;
   const photosStart = page;
   page += photoPages;
   const certificationStart = page;
@@ -491,9 +496,8 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
       case 4:
         return { ...entry, startPage: venueStart, pageSpan: venuePageCount };
       case 5:
-        return { ...entry, startPage: committeeStart, pageSpan: 1 };
       case 6:
-        return { ...entry, startPage: overviewStart, pageSpan: 1 };
+        return { ...entry, startPage: committeeAndOverviewStart, pageSpan: 1 };
       case 11:
         return { ...entry, startPage: electionStart, pageSpan: 1 };
       case 12:
@@ -508,13 +512,19 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
       case 15:
         return { ...entry, startPage: outcomesStart, pageSpan: 1 };
       case 16:
-      case 18:
-        return { ...entry, startPage: lessonsStart, pageSpan: 1 };
+        return { ...entry, startPage: challengesStart, pageSpan: 1 };
       case 17:
-        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+        return { ...entry, startPage: rhubStart, pageSpan: 1 };
+      case 18:
       case 19:
-        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+        return { ...entry, startPage: lessonsAdvisoriesStart, pageSpan: 1 };
       case 20:
+        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+      case 21:
+        return { ...entry, startPage: acknowledgementsStart, pageSpan: 1 };
+      case 22:
+        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+      case 23:
         return {
           ...entry,
           startPage: appendixStart,
@@ -528,8 +538,9 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
 
 export const EXECUTIVE_SUMMARY = [
   "The Liberian Student Union in China (LSUIC) successfully convened its 20th Annual Conference & Anniversary at the Arcadia Spa Golf International Hotel in Jinan, Shandong Province, from 24 to 27 July 2026, under the theme Jinan 2026: Legacy and Influence.",
-  "Delegates, national officers, conference committee members, veterans, guests, and distinguished representatives gathered for four days of fellowship, plenary business, elections, constitution review, Independence Day observance, sporting activities, and awards recognition.",
-  "This unified report records conference attendance, financial reconciliation, program outcomes, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report.",
+  "Delegates, national officers, conference committee members, veterans, guests, and distinguished representatives gathered for four days of fellowship, plenary business, elections, constitution review, Independence Day observance, sporting activities, and awards recognition. The assembly marked two decades of uninterrupted annual conferences.",
+  "This unified report records conference attendance, financial reconciliation, program outcomes, operational challenges, platform support, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report (Appendix A).",
+  "A total of 109 registered delegate and guest records represent Liberian students and guests from more than 35 cities across China. All listed conference fees were fully collected (RMB 34,640 in delegate registrations), demonstrating strong financial compliance and delegate commitment.",
 ] as const;
 
 export const CONFERENCE_OBJECTIVES = [
@@ -562,7 +573,7 @@ export const OUTCOMES = [
   {
     label: "Legacy honored",
     detail:
-      "Veterans, past leaders, and the history of two decades of annual conferences were recognized throughout the program.",
+      "Veterans, past leaders, and twenty years of annual conferences were recognized throughout the program, including the NEC book launch.",
   },
   {
     label: "Governance renewed",
@@ -573,6 +584,21 @@ export const OUTCOMES = [
     label: "Leadership certified",
     detail:
       "Newly elected NEC officers were inducted before the Ambassador and assembled delegates.",
+  },
+  {
+    label: "Nationhood celebrated",
+    detail:
+      "Liberia's 179th Independence Day was observed with oration, rally, and cake-cutting ceremony.",
+  },
+  {
+    label: "Achievement recognized",
+    detail:
+      "Awards Night honored academic excellence, service, financial supporters, Miss LSUIC, and special honorees.",
+  },
+  {
+    label: "Fellowship deepened",
+    detail:
+      "Meet-and-greet, pool party, sports, shared meals, and awards night strengthened bonds across the Liberian student community in China.",
   },
   {
     label: "Influence extended",
@@ -605,10 +631,99 @@ export const LESSONS_LEARNED = [
       "Protect half-day informal fellowship blocks adjacent to heavy plenary agendas to prevent governance fatigue.",
   },
   {
+    label: "Ceremonial scheduling",
+    detail:
+      "Confirm diplomatic schedules before publishing final Day 3 timetables; build buffer time between red carpet, oration, induction, and awards night.",
+  },
+  {
     label: "Documentation",
     detail:
       "Enforce descriptive asset filenames and README indexing at ingest time; contract photography for all conference days.",
   },
+  {
+    label: "Catering on sports day",
+    detail:
+      "Serving Pepper Kala at the sports grounds at 1:30 PM kept delegates engaged through the Independence Day morning program — coordinate meal timing with outdoor schedules.",
+  },
+] as const;
+
+export const CONFERENCE_CHALLENGES = [
+  {
+    label: "Delegate travel and arrival coordination",
+    detail:
+      "Delegates arrived from more than 35 cities. The hotel's Bus K904 stop ends service at 7:20 PM daily, requiring DiDi or taxi arrangements from Jinan West and Jinan East Railway Stations for late arrivals.",
+  },
+  {
+    label: "Remote venue logistics",
+    detail:
+      "The Arcadia Spa Golf International Hotel sits approximately 40 km southwest of central Jinan. Cooking Committee transportation expenses (RMB 911.57) and coordinated bus movement were essential to keep delegates on schedule.",
+  },
+  {
+    label: "Cooking Committee procurement and meal timing",
+    detail:
+      "The Committee managed 34 food line items, six member reimbursements, and same-day service for plenary sessions, pool party, sports-day Pepper Kala, and the awards night banquet — all within a RMB 18,113.03 allocation.",
+  },
+  {
+    label: "Registration and payment reconciliation",
+    detail:
+      "109 delegate and guest records across single-room, shared-room, veteran, March intake, and no-accommodation tiers required continuous fee tracking. All listed fees were collected (RMB 34,640), but reconciliation demanded disciplined record-keeping throughout the cycle.",
+  },
+  {
+    label: "Hybrid election administration",
+    detail:
+      "IEC-2026 introduced the union's first online voter registration and remote voting platform. Of 90 platform users, 85 were confirmed eligible — 56 voting in person at Jinan and 29 online — requiring parallel technical and procedural oversight on election day.",
+  },
+  {
+    label: "Independence Day program density",
+    detail:
+      "Day 3 combined sports, formal Independence Day ceremonies, ambassador engagement, NEC induction, and an awards night program running from 8:30 PM through the early morning — demanding tight transitions between outdoor and indoor venues.",
+  },
+  {
+    label: "Post-conference documentation deadlines",
+    detail:
+      "Committee financial certification (Cooking Committee, 1 August 2026), IEC turnover (RMB 1,416.31 balance), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard.",
+  },
+] as const;
+
+export const RHUB_PLATFORM = {
+  intro: [
+    "The EKD Digital Resource Hub (rhub) — developed and operated by EKD Digital — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, rhub provided a single operational environment for delegate data, finance, communications, and program documentation.",
+    "Conference leadership used rhub to reduce manual coordination across committees and to preserve auditable records aligned with LSUIC financial transparency standards. The platform supported both on-site Jinan operations and remote participation — notably IEC-2026 online voter registration and remote voting.",
+  ],
+  capabilities: [
+    "Public delegate registration portal with document uploads and payment declaration",
+    "Delegate profiles, room assignments, and fee tracking for 109 registered records",
+    "Conference finance, payments, budget, and audit modules for committee disbursements",
+    "Booklet builder and downloadable participant materials",
+    "Detailed program, navigation guide, and conference report generation (this document)",
+    "Letter and memo composer for official LSUIC correspondence",
+    "Flyer studio for pre-conference campaigns — registration guides, fee structure, and countdown assets",
+    "Committee roster, logistics name list, timeline, and meetings documentation",
+    "IEC-2026 online voter registration and remote voting platform integration",
+    "Certificates module and centralized conference documentation hub",
+  ],
+  closing:
+    "The Conference Committee acknowledges EKD Digital for providing rhub as the operational backbone of Jinan 2026. Platform support enabled accountable registration, transparent finance tracking, and reproducible post-conference documentation consistent with prior LSUIC reporting standards.",
+} as const;
+
+export const FUTURE_ADVISORIES = [
+  "Publish unified post-conference reports within thirty days of adjournment, following the structure of this document.",
+  "Maintain separate committee financial reports (as modeled by the Cooking Committee) and consolidate summaries in the main conference report.",
+  "Continue online registration, delegate profiles, and digital asset archiving through rhub for each conference cycle.",
+  "Schedule ambassador and VIP engagements early, with confirmed windows for Independence Day formalities.",
+  "Contract official photography for all four conference days, not only the ceremonial day.",
+  "Preserve the Expectation Tree and signed t-shirt traditions as standard opening-day fellowship elements.",
+  "Require mandatory line-item committee reporting and chairperson certification before conference adjournment.",
+  "Begin themed pre-conference communications at least sixty days out with registration guides, fee flyers, and online information sessions.",
+] as const;
+
+export const ACKNOWLEDGEMENTS = [
+  "His Excellency Dudley McKinley Thomas, Ambassador of the Republic of Liberia to the People's Republic of China, and the staff of the Embassy of Liberia in Beijing",
+  "The National Executive Committee (NEC) and all standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, IEC, and others",
+  "EKD Digital for the EKD Digital Resource Hub (rhub) — conference management platform support throughout the Jinan 2026 cycle",
+  "K-Visuals Studio for official conference photography and the Day 3 Pixieset gallery",
+  "The Arcadia Spa Golf International Hotel management and staff",
+  "Every delegate, veteran, guest, and volunteer who traveled to Jinan and contributed to a safe, dignified, and memorable twentieth conference",
 ] as const;
 
 export const REPORT_PHOTOS = [
@@ -650,7 +765,7 @@ export const REPORT_PHOTOS = [
   },
   {
     src: "/conf/assets/before-after-conf/photos/awards-night-delegate-speech.jpg",
-    caption: "Awards Night — delegate speech",
+    caption: "Awards Night — delegate singing",
   },
   {
     src: "/conf/assets/before-after-conf/photos/banquet-delegates-applause.jpg",
@@ -855,12 +970,14 @@ export function getReportFixedPageCounts() {
     executiveAndObjectives: 1,
     preConference: buildPreConferencePages().length,
     venueAndAccommodation: buildVenueAndAccommodationPageCount(),
-    conferenceCommittee: 1,
-    conferenceOverview: 1,
+    committeeAndOverview: 1,
     electionSummary: 1,
     financeSummary: 2,
     guestsOutcomes: 1,
-    lessonsAndAcknowledgements: 1,
+    challenges: 1,
+    rhubPlatform: 1,
+    lessonsAndAdvisories: 1,
+    acknowledgements: 1,
     certification: 1,
     cookingAppendix: buildCookingAppendixPages().length,
     iecAppendix: 1,
@@ -889,12 +1006,14 @@ export function computeReportTotalPages(): number {
     fixed.executiveAndObjectives +
     fixed.preConference +
     fixed.venueAndAccommodation +
-    fixed.conferenceCommittee +
-    fixed.conferenceOverview +
+    fixed.committeeAndOverview +
     fixed.electionSummary +
     fixed.financeSummary +
     fixed.guestsOutcomes +
-    fixed.lessonsAndAcknowledgements +
+    fixed.challenges +
+    fixed.rhubPlatform +
+    fixed.lessonsAndAdvisories +
+    fixed.acknowledgements +
     fixed.certification +
     fixed.cookingAppendix +
     fixed.iecAppendix;

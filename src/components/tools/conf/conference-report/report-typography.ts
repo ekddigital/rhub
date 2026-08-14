@@ -1,10 +1,9 @@
-import { BOOKLET_BODY } from "@/lib/conf/booklet-body-typography";
 import { C } from "../booklet/constants";
 
-/** Interior body prose — matches delegate booklet readability (~10.5–11pt at 96 DPI). */
+/** Interior body prose — larger than delegate booklet for on-screen/PDF report readability. */
 export const REPORT_BODY = {
-  fontSize: BOOKLET_BODY.fontSize,
-  lineHeight: BOOKLET_BODY.lineHeight,
+  fontSize: 16,
+  lineHeight: 1.62,
   color: "#0A1328",
 } as const;
 
@@ -18,41 +17,41 @@ export const REPORT_SECTION_TITLE = {
 } as const;
 
 export const REPORT_SUBSECTION = {
-  fontSize: 14,
+  fontSize: 15,
   fontWeight: 800,
   color: C.blue,
 } as const;
 
 export const REPORT_CONTINUATION = {
-  fontSize: 13.5,
+  fontSize: 14.5,
   fontWeight: 700,
   color: C.blue,
 } as const;
 
 export const REPORT_BULLET = {
-  fontSize: 13.5,
+  fontSize: 15,
   lineHeight: 1.55,
   color: "#333",
 } as const;
 
 export const REPORT_LIST_ITEM = {
-  fontSize: 13.5,
+  fontSize: 15,
   lineHeight: 1.5,
   color: "#333",
 } as const;
 
 /** Compact tables (attendance register, program schedule). */
 export const REPORT_TABLE = {
-  fontSize: 12,
-  headerFontSize: 11.5,
-  cellPadding: "5px 6px",
-  compactCellPadding: "4px 5px",
+  fontSize: 13.5,
+  headerFontSize: 12.5,
+  cellPadding: "6px 7px",
+  compactCellPadding: "5px 6px",
 } as const;
 
 /** Overview / finance tables — slightly larger. */
 export const REPORT_TABLE_PROSE = {
-  fontSize: 13,
-  cellPadding: "7px 9px",
+  fontSize: 15,
+  cellPadding: "8px 10px",
 } as const;
 
 export const REPORT_PROGRAM = {

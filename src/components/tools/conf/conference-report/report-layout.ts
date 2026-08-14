@@ -61,7 +61,7 @@ export function reportUsableHeight(chrome: ReportPageChrome = "none"): number {
 
 /** Estimate rendered height for one body paragraph at interior width. */
 export function estimateBodyParagraphHeight(text: string): number {
-  const charsPerLine = Math.floor(REPORT_CONTENT_WIDTH / 7.2);
+  const charsPerLine = Math.floor(REPORT_CONTENT_WIDTH / 7.8);
   const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
   return lines * REPORT_BODY_LINE_HEIGHT_PX + REPORT_BODY_PARAGRAPH_MARGIN;
 }
@@ -232,8 +232,8 @@ export function photoGridAvailableHeight(
   return reportUsableHeight(chrome);
 }
 
-/** Attendance table row height (compact cells + 12px type). */
-export const REPORT_ATTENDANCE_ROW_HEIGHT = 22;
+/** Attendance table row height (compact cells + 13.5px type). */
+export const REPORT_ATTENDANCE_ROW_HEIGHT = 24;
 export const REPORT_ATTENDANCE_HEADER_HEIGHT = 26;
 
 export function attendanceRowsForPage(isFirstPage: boolean): number {

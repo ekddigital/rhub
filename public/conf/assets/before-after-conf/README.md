@@ -67,7 +67,7 @@ Official Day 3 photography (K-Visuals Studio). Filenames describe scene content.
 | `banquet-vip-guest-portrait.jpg` | Banquet VIP guest portrait |
 | `banquet-attendees-formal-session.jpg` | Banquet attendees at formal session |
 | `miss-lsuic-pageant-winners.jpg` | Miss LSUIC pageant — winners on stage |
-| `awards-night-delegate-speech.jpg` | Awards Night — delegate speech |
+| `awards-night-delegate-speech.jpg` | Awards Night — delegate singing |
 
 ### Sports and fellowship (Independence Day morning)
 

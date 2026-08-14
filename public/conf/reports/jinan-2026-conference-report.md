@@ -31,11 +31,14 @@ Jinan, Shandong Province, People's Republic of China
 13. [Full Delegate Register](#13-full-delegate-register)
 14. [Distinguished Guests and Speakers](#14-distinguished-guests-and-speakers)
 15. [Outcomes, Resolutions, and Recommendations](#15-outcomes-resolutions-and-recommendations)
-16. [Lessons Learned for Future Conferences](#16-lessons-learned-for-future-conferences)
-17. [Photographic Record](#17-photographic-record)
-18. [Acknowledgements](#18-acknowledgements)
-19. [Certification](#19-certification)
-20. [Appendices](#20-appendices)
+16. [Challenges Faced During the Conference](#16-challenges-faced-during-the-conference)
+17. [EKD Digital Resources — Conference Management Platform](#17-ekd-digital-resources--conference-management-platform)
+18. [Lessons Learned for Future Conferences](#18-lessons-learned-for-future-conferences)
+19. [Advisories and Recommendations for Future Conferences](#19-advisories-and-recommendations-for-future-conferences)
+20. [Photographic Record](#20-photographic-record)
+21. [Acknowledgements](#21-acknowledgements)
+22. [Certification](#22-certification)
+23. [Appendices](#23-appendices)
 
 ---
 
@@ -446,7 +449,7 @@ Following dinner and formal networking (**8:00 – 8:30 PM**), the **Awards Nigh
 
 ![Miss LSUIC pageant](/conf/assets/before-after-conf/photos/miss-lsuic-pageant-winners.jpg)
 
-![Awards Night — delegate speech](/conf/assets/before-after-conf/photos/awards-night-delegate-speech.jpg)
+![Awards Night — delegate singing](/conf/assets/before-after-conf/photos/awards-night-delegate-speech.jpg)
 
 ![Banquet — delegates applauding](/conf/assets/before-after-conf/photos/banquet-delegates-applause.jpg)
 
@@ -790,16 +793,50 @@ The plenary session on 25 July adopted resolutions addressing:
 
 ### 15.3 Recommendations for NEC and Future Conference Committees
 
-1. Publish unified post-conference reports within thirty days of adjournment, following the structure of this document.
-2. Maintain separate committee financial reports (as modeled by the Cooking Committee) and consolidate summaries in the main conference report.
-3. Continue online registration, delegate profiles, and digital asset archiving for each conference cycle.
-4. Schedule ambassador and VIP engagements early, with confirmed windows for Independence Day formalities.
-5. Contract official photography for all four conference days, not only the ceremonial day.
-6. Preserve the Expectation Tree and signed t-shirt traditions as standard opening-day fellowship elements.
+See **Section 19 — Advisories and Recommendations for Future Conferences** for the full forward-looking advisory list adopted by the Conference Committee.
 
 ---
 
-## 16. Lessons Learned for Future Conferences
+## 16. Challenges Faced During the Conference
+
+The Jinan 2026 conference executed successfully within its four-day program, but several operational challenges required active management by the Conference Committee and supporting ad hoc committees. The following items reflect documented constraints drawn from registration records, committee financial reports, and on-site program execution.
+
+| Challenge | Detail |
+| --- | --- |
+| **Delegate travel and arrival coordination** | Delegates arrived from more than 35 cities. The hotel's Bus K904 stop ends service at 7:20 PM daily, requiring DiDi or taxi arrangements from Jinan West and Jinan East Railway Stations for late arrivals. |
+| **Remote venue logistics** | The Arcadia Spa Golf International Hotel sits approximately 40 km southwest of central Jinan. Cooking Committee transportation expenses (RMB 911.57) and coordinated bus movement were essential to keep delegates on schedule. |
+| **Cooking Committee procurement and meal timing** | The Committee managed 34 food line items, six member reimbursements, and same-day service for plenary sessions, pool party, sports-day Pepper Kala, and the awards night banquet — all within a RMB 18,113.03 allocation. |
+| **Registration and payment reconciliation** | 109 delegate and guest records across single-room, shared-room, veteran, March intake, and no-accommodation tiers required continuous fee tracking. All listed fees were collected (RMB 34,640). |
+| **Hybrid election administration** | IEC-2026 introduced the union's first online voter registration and remote voting platform. Of 90 platform users, 85 were confirmed eligible — 56 voting in person at Jinan and 29 online. |
+| **Independence Day program density** | Day 3 combined sports, formal Independence Day ceremonies, ambassador engagement, NEC induction, and an awards night program running from 8:30 PM through the early morning. |
+| **Post-conference documentation deadlines** | Committee financial certification (Cooking Committee, 1 August 2026), IEC turnover (RMB 1,416.31 balance), and this unified report required coordinated documentation under the Conference Committee's thirty-day reporting standard. |
+
+---
+
+## 17. EKD Digital Resources — Conference Management Platform
+
+The **EKD Digital Resource Hub (rhub)** — developed and operated by **EKD Digital** — served as the integrated conference management platform for LSUIC Jinan 2026. From pre-conference mobilization through post-conference reporting, rhub provided a single operational environment for delegate data, finance, communications, and program documentation.
+
+Conference leadership used rhub to reduce manual coordination across committees and to preserve auditable records aligned with LSUIC financial transparency standards. The platform supported both on-site Jinan operations and remote participation — notably IEC-2026 online voter registration and remote voting.
+
+### Platform capabilities used for Jinan 2026
+
+- Public delegate registration portal with document uploads and payment declaration
+- Delegate profiles, room assignments, and fee tracking for **109 registered records**
+- Conference finance, payments, budget, and audit modules for committee disbursements
+- Booklet builder and downloadable participant materials
+- Detailed program, navigation guide, and conference report generation (this document)
+- Letter and memo composer for official LSUIC correspondence
+- Flyer studio for pre-conference campaigns — registration guides, fee structure, and countdown assets
+- Committee roster, logistics name list, timeline, and meetings documentation
+- IEC-2026 online voter registration and remote voting platform integration
+- Certificates module and centralized conference documentation hub
+
+The Conference Committee acknowledges **EKD Digital** for providing rhub as the operational backbone of Jinan 2026. Platform support enabled accountable registration, transparent finance tracking, and reproducible post-conference documentation consistent with prior LSUIC reporting standards.
+
+---
+
+## 18. Lessons Learned for Future Conferences
 
 Drawing on the Cooking Committee report, prior LSUIC conference patterns, and Jinan 2026 execution:
 
@@ -829,7 +866,22 @@ Serving Pepper Kala at the sports grounds at 1:30 PM kept delegates engaged thro
 
 ---
 
-## 17. Photographic Record
+## 19. Advisories and Recommendations for Future Conferences
+
+The Conference Committee and NEC plenary session recommend the following practices for future LSUIC annual conferences, drawing on Jinan 2026 execution, the Cooking Committee report, and prior conference reporting standards:
+
+1. Publish unified post-conference reports within thirty days of adjournment, following the structure of this document.
+2. Maintain separate committee financial reports (as modeled by the Cooking Committee) and consolidate summaries in the main conference report.
+3. Continue online registration, delegate profiles, and digital asset archiving through rhub for each conference cycle.
+4. Schedule ambassador and VIP engagements early, with confirmed windows for Independence Day formalities.
+5. Contract official photography for all four conference days, not only the ceremonial day.
+6. Preserve the Expectation Tree and signed t-shirt traditions as standard opening-day fellowship elements.
+7. Require mandatory line-item committee reporting and chairperson certification before conference adjournment.
+8. Begin themed pre-conference communications at least sixty days out with registration guides, fee flyers, and online information sessions.
+
+---
+
+## 20. Photographic Record
 
 Official Day 3 photography is published by **K-Visuals Studio**:  
 [https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/](https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/)
@@ -875,7 +927,7 @@ Additional conference photographs and pre-conference campaign materials are arch
 | `photos/banquet-vip-guest-portrait.jpg` | Banquet VIP guest portrait |
 | `photos/banquet-attendees-formal-session.jpg` | Banquet attendees at formal session |
 | `photos/miss-lsuic-pageant-winners.jpg` | Miss LSUIC pageant — winners on stage |
-| `photos/awards-night-delegate-speech.jpg` | Awards Night — delegate speech |
+| `photos/awards-night-delegate-speech.jpg` | Awards Night — delegate singing |
 
 ![Banquet dinner — seated delegates](/conf/assets/before-after-conf/photos/banquet-dinner-seated-delegates.jpg)
 
@@ -883,19 +935,20 @@ Additional conference photographs and pre-conference campaign materials are arch
 
 ---
 
-## 18. Acknowledgements
+## 21. Acknowledgements
 
 The Conference Committee extends sincere gratitude to:
 
 - **His Excellency Dudley McKinley Thomas**, Ambassador of the Republic of Liberia to the People's Republic of China, and the staff of the **Embassy of Liberia in Beijing**
 - The **National Executive Committee (NEC)** and all **standing and ad hoc committees** — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, IEC, and others
+- **EKD Digital** for the EKD Digital Resource Hub (rhub) — conference management platform support throughout the Jinan 2026 cycle
 - **K-Visuals Studio** for official conference photography
 - The **Arcadia Spa Golf International Hotel** management and staff
 - Every **delegate, veteran, guest, and volunteer** who traveled to Jinan and contributed to a safe, dignified, and memorable twentieth conference
 
 ---
 
-## 19. Certification
+## 22. Certification
 
 We hereby certify that this report accurately reflects the attendance, program execution, financial summary, and thematic outcomes of the **LSUIC 20th Annual Conference & Anniversary** held in Jinan, Shandong Province, from **24 to 27 July 2026**.
 
@@ -916,7 +969,7 @@ General Chairman, Conference Committee
 
 ---
 
-## 20. Appendices
+## 23. Appendices
 
 ### Appendix A — Cooking Committee Financial Report (Full Itemized Records)
 

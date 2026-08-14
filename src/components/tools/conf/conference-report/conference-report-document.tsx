@@ -11,6 +11,8 @@ import {
 import {
   ATTENDANCE_ROWS,
   ATTENDANCE_STATS,
+  ACKNOWLEDGEMENTS,
+  CONFERENCE_CHALLENGES,
   CONFERENCE_COMMITTEE,
   CONFERENCE_OBJECTIVES,
   COOKING_BUDGET_CATEGORIES,
@@ -23,6 +25,7 @@ import {
   ELECTION_SUMMARY,
   EXECUTIVE_SUMMARY,
   FINANCE_SUMMARY,
+  FUTURE_ADVISORIES,
   IEC_EXPENDITURE_ITEMS,
   LESSONS_LEARNED,
   OUTCOMES,
@@ -31,6 +34,7 @@ import {
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
   RESOLUTIONS_SUMMARY,
+  RHUB_PLATFORM,
   VENUE_AND_ACCOMMODATION,
   buildPreConferencePages,
   buildReportProgramPages,
@@ -63,6 +67,7 @@ import {
   REPORT_PROGRAM,
   REPORT_SECTION_TITLE,
   REPORT_STATS,
+  REPORT_SUBSECTION,
   REPORT_TABLE,
   REPORT_TABLE_PROSE,
 } from "./report-typography";
@@ -881,8 +886,8 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </ReportA4Page>
       ))}
 
-      {/* Conference Committee */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Committee">
+      {/* Conference Committee + Overview (shared page) */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Committee & Overview">
         <SectionTitle>5. Conference Committee</SectionTitle>
         <BodyParagraph>
           The LSUIC 2026 Conference Committee — constitutionally capped at eleven
@@ -895,6 +900,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             width: "100%",
             borderCollapse: "collapse",
             fontSize: `${REPORT_TABLE.fontSize}px`,
+            marginBottom: "16px",
           }}
         >
           <thead>
@@ -934,10 +940,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
-      </ReportA4Page>
 
-      {/* Conference Overview */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Overview">
         <SectionTitle>6. Conference Overview</SectionTitle>
         <table
           style={{
@@ -1498,21 +1501,109 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </div>
       </ReportA4Page>
 
-      {/* Lessons Learned + Acknowledgements */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Lessons Learned">
-        <SectionTitle>16. Lessons Learned for Future Conferences</SectionTitle>
+      {/* Challenges Faced */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Challenges">
+        <SectionTitle>16. Challenges Faced During the Conference</SectionTitle>
+        <BodyParagraph>
+          The Jinan 2026 conference executed successfully within its four-day
+          program, but several operational challenges required active management
+          by the Conference Committee and supporting ad hoc committees. The
+          following items reflect documented constraints drawn from registration
+          records, committee financial reports, and on-site program execution.
+        </BodyParagraph>
+        {CONFERENCE_CHALLENGES.map((item) => (
+          <BulletItem key={item.label} label={item.label} detail={item.detail} />
+        ))}
+      </ReportA4Page>
+
+      {/* EKD Digital Resources (rhub) */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Platform">
+        <SectionTitle>
+          17. EKD Digital Resources — Conference Management Platform
+        </SectionTitle>
+        {RHUB_PLATFORM.intro.map((paragraph) => (
+          <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
+        ))}
+        <div
+          style={{
+            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+            fontWeight: REPORT_SUBSECTION.fontWeight,
+            color: REPORT_SUBSECTION.color,
+            marginBottom: "8px",
+            marginTop: "4px",
+          }}
+        >
+          Platform capabilities used for Jinan 2026
+        </div>
+        {RHUB_PLATFORM.capabilities.map((item) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "5px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            • {item}
+          </div>
+        ))}
+        <BodyParagraph>{RHUB_PLATFORM.closing}</BodyParagraph>
+      </ReportA4Page>
+
+      {/* Lessons Learned + Advisories */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Lessons & Advisories">
+        <SectionTitle>18. Lessons Learned for Future Conferences</SectionTitle>
         {LESSONS_LEARNED.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
 
-        <SectionTitle>18. Acknowledgements</SectionTitle>
+        <SectionTitle>
+          19. Advisories and Recommendations for Future Conferences
+        </SectionTitle>
         <BodyParagraph>
-          The Conference Committee extends sincere gratitude to H.E. Dudley
-          McKinley Thomas and the Embassy of Liberia in Beijing; the NEC and all
-          standing and ad hoc committees; K-Visuals Studio; the Arcadia Spa Golf
-          International Hotel; and every delegate, veteran, guest, and volunteer
-          who traveled to Jinan.
+          The Conference Committee and NEC plenary session recommend the
+          following practices for future LSUIC annual conferences, drawing on
+          Jinan 2026 execution, the Cooking Committee report, and prior
+          conference reporting standards.
         </BodyParagraph>
+        {FUTURE_ADVISORIES.map((item, idx) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "6px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            {idx + 1}. {item}
+          </div>
+        ))}
+      </ReportA4Page>
+
+      {/* Acknowledgements */}
+      <ReportA4Page pageNum={nextPage()} sectionLabel="Acknowledgements">
+        <SectionTitle>21. Acknowledgements</SectionTitle>
+        <BodyParagraph>
+          The Conference Committee extends sincere gratitude to:
+        </BodyParagraph>
+        {ACKNOWLEDGEMENTS.map((item) => (
+          <div
+            key={item.slice(0, 30)}
+            style={{
+              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+              color: REPORT_LIST_ITEM.color,
+              marginBottom: "6px",
+              paddingLeft: "10px",
+              lineHeight: REPORT_LIST_ITEM.lineHeight,
+            }}
+          >
+            • {item}
+          </div>
+        ))}
       </ReportA4Page>
 
       {/* Photo highlight pages */}
@@ -1522,12 +1613,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "17. Photographic Record"
-              : "17. Photographic Record (cont.)"
+              ? "20. Photographic Record"
+              : "20. Photographic Record (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>17. Conference Photographs</SectionTitle>
+            <SectionTitle>20. Conference Photographs</SectionTitle>
           )}
           {chunkIdx > 0 && (
             <div
@@ -1538,7 +1629,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 marginBottom: "8px",
               }}
             >
-              17. Conference Photographs — continued
+              20. Conference Photographs — continued
             </div>
           )}
           <PhotoGrid
@@ -1551,7 +1642,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
       {/* Certification */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Certification">
-        <SectionTitle>19. Certification</SectionTitle>
+        <SectionTitle>22. Certification</SectionTitle>
         <BodyParagraph>
           We hereby certify that this report accurately reflects the attendance,
           program execution, financial summary, and thematic outcomes of the
@@ -1667,7 +1758,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           }
         >
           {pageIdx === 0 && (
-            <SectionTitle>20. Appendices — Appendix A</SectionTitle>
+            <SectionTitle>23. Appendices — Appendix A</SectionTitle>
           )}
           {pageIdx > 0 && (
             <div
