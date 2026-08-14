@@ -166,6 +166,91 @@ export const VENUE_AND_ACCOMMODATION = {
     "Bus K904 serves the hotel stop until 7:20 PM daily. Delegates arriving after this time should use DiDi or a taxi from Jinan West Railway Station or Jinan East Railway Station.",
 } as const;
 
+export type ReportImageItem = {
+  src: string;
+  caption: string;
+};
+
+/** Arcadia Spa Golf International Hotel — static venue photos for §4. */
+export const VENUE_HOTEL_PHOTOS: readonly ReportImageItem[] = [
+  {
+    src: "/conf/assets/hotel/main_entrance_view.png",
+    caption: "Hotel main entrance and driveway",
+  },
+  {
+    src: "/conf/assets/hotel/receptionist_desk.png",
+    caption: "Reception desk and lobby",
+  },
+  {
+    src: "/conf/assets/hotel/evening_view.jpg",
+    caption: "Hotel exterior — evening view",
+  },
+  {
+    src: "/conf/assets/hotel/evening_view0.jpg",
+    caption: "Hotel grounds — evening view",
+  },
+  {
+    src: "/conf/assets/hotel/conference_hall.jpg",
+    caption: "Conference hall — plenary seating",
+  },
+  {
+    src: "/conf/assets/hotel/f1a226969ddcd8e6e824f844c27bde80.jpg",
+    caption: "Conference hall — alternate setup",
+  },
+  {
+    src: "/conf/assets/hotel/dinning_hall.jpg",
+    caption: "Dining hall — main room",
+  },
+  {
+    src: "/conf/assets/hotel/dinner_hall0.jpg",
+    caption: "Dining hall — banquet seating",
+  },
+  {
+    src: "/conf/assets/hotel/dinner_hall1.png",
+    caption: "Dining hall — interior",
+  },
+  {
+    src: "/conf/assets/hotel/dinner_hall2.jpg",
+    caption: "Dining hall — service area",
+  },
+  {
+    src: "/conf/assets/hotel/dinning_hall3.jpg",
+    caption: "Dining hall — additional seating",
+  },
+  {
+    src: "/conf/assets/hotel/dinning_hall5.jpg",
+    caption: "Dining hall — interior view",
+  },
+  {
+    src: "/conf/assets/hotel/dinning_hall6.jpg",
+    caption: "Dining hall — seating layout",
+  },
+  {
+    src: "/conf/assets/hotel/dinning_hall7.png",
+    caption: "Dining hall — banquet setup",
+  },
+  {
+    src: "/conf/assets/hotel/swimming_pool_at_night.png",
+    caption: "Indoor pool and spa area",
+  },
+  {
+    src: "/conf/assets/hotel/gymn.png",
+    caption: "Fitness center",
+  },
+  {
+    src: "/conf/assets/hotel/play_ground.png",
+    caption: "Outdoor sports grounds",
+  },
+  {
+    src: "/conf/assets/hotel/single_bed.png",
+    caption: "Guest room — single bed",
+  },
+  {
+    src: "/conf/assets/hotel/double_bed.png",
+    caption: "Guest room — twin beds",
+  },
+] as const;
+
 export const PRE_CONFERENCE_FLYERS: readonly FlyerItem[] = [
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-20th-annual-general-conference.jpg",
@@ -173,13 +258,8 @@ export const PRE_CONFERENCE_FLYERS: readonly FlyerItem[] = [
     aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
-    src: "/conf/assets/before-after-conf/flyers/flyer-legacy-and-influence-conference.jpg",
-    caption: "Legacy and Influence theme poster",
-    aspectRatio: FLYER_PORTRAIT_ASPECT,
-  },
-  {
     src: "/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg",
-    caption: "Program highlights and delegate expectations",
+    caption: "Legacy and Influence theme poster",
     aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
@@ -194,7 +274,7 @@ export const PRE_CONFERENCE_FLYERS: readonly FlyerItem[] = [
   },
   {
     src: "/conf/assets/before-after-conf/flyers/flyer-51-days-countdown.png",
-    caption: "51-day countdown campaign",
+    caption: "Conference countdown campaign flyer",
     aspectRatio: FLYER_PORTRAIT_ASPECT,
   },
   {
@@ -364,7 +444,9 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const preConferenceStart = page;
   page += preConferencePages.length;
 
-  const venueStart = page++;
+  const venuePageCount = buildVenueAndAccommodationPageCount();
+  const venueStart = page;
+  page += venuePageCount;
   const committeeStart = page++;
   const overviewStart = page++;
 
@@ -407,7 +489,7 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
           pageSpan: preConferencePages.length,
         };
       case 4:
-        return { ...entry, startPage: venueStart, pageSpan: 1 };
+        return { ...entry, startPage: venueStart, pageSpan: venuePageCount };
       case 5:
         return { ...entry, startPage: committeeStart, pageSpan: 1 };
       case 6:
@@ -659,6 +741,26 @@ export const REPORT_PHOTOS = [
 /** Photos per interior page — 2×3 grid; row height scales to fill the page. */
 export const PHOTOS_PER_PAGE = 6;
 
+export function chunkReportImages<T extends ReportImageItem>(
+  photos: readonly T[],
+  perPage: number = PHOTOS_PER_PAGE,
+): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < photos.length; i += perPage) {
+    chunks.push(photos.slice(i, i + perPage) as T[]);
+  }
+  return chunks;
+}
+
+export function chunkVenuePhotos(): ReportImageItem[][] {
+  return chunkReportImages(VENUE_HOTEL_PHOTOS);
+}
+
+/** §4 text page plus venue photo gallery pages. */
+export function buildVenueAndAccommodationPageCount(): number {
+  return 1 + chunkVenuePhotos().length;
+}
+
 export function buildPreConferencePages(): PreConferencePagePlan[] {
   return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
 }
@@ -752,7 +854,7 @@ export function getReportFixedPageCounts() {
     toc: 1,
     executiveAndObjectives: 1,
     preConference: buildPreConferencePages().length,
-    venueAndAccommodation: 1,
+    venueAndAccommodation: buildVenueAndAccommodationPageCount(),
     conferenceCommittee: 1,
     conferenceOverview: 1,
     electionSummary: 1,
@@ -774,11 +876,7 @@ export function chunkAttendance(rows: AttendanceRow[]): AttendanceRow[][] {
 export function chunkReportPhotos(
   photos: readonly (typeof REPORT_PHOTOS)[number][],
 ): (typeof REPORT_PHOTOS)[number][][] {
-  const chunks: (typeof REPORT_PHOTOS)[number][][] = [];
-  for (let i = 0; i < photos.length; i += PHOTOS_PER_PAGE) {
-    chunks.push(photos.slice(i, i + PHOTOS_PER_PAGE));
-  }
-  return chunks;
+  return chunkReportImages(photos);
 }
 
 export function computeReportTotalPages(): number {

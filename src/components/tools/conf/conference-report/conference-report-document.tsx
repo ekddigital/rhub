@@ -36,8 +36,10 @@ import {
   buildReportProgramPages,
   chunkAttendance,
   chunkReportPhotos,
+  chunkVenuePhotos,
   computeReportTotalPages,
   type AttendanceRow,
+  type ReportImageItem,
 } from "./content-data";
 import type { ProgramDay, ProgramSlot } from "../detailed-program/program-data";
 import {
@@ -444,7 +446,7 @@ function PhotoGrid({
   showSectionTitle,
   showContinuation,
 }: {
-  photos: (typeof REPORT_PHOTOS)[number][];
+  photos: readonly ReportImageItem[];
   showSectionTitle: boolean;
   showContinuation: boolean;
 }) {
@@ -673,6 +675,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
   const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
   const tocChunks = chunkReportToc(resolveReportTocEntries());
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
+  const venuePhotoChunks = chunkVenuePhotos();
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
   const preConferencePages = buildPreConferencePages();
   const cookingAppendixPages = buildCookingAppendixPages();
@@ -844,6 +847,39 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         ))}
         <BodyParagraph>{VENUE_AND_ACCOMMODATION.travelNote}</BodyParagraph>
       </ReportA4Page>
+
+      {venuePhotoChunks.map((chunk, chunkIdx) => (
+        <ReportA4Page
+          key={`venue-photos-${chunkIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            chunkIdx === 0
+              ? "Venue & Accommodation"
+              : "Venue & Accommodation (cont.)"
+          }
+        >
+          {chunkIdx === 0 && (
+            <SectionTitle>4. Venue and Accommodation — Hotel Photos</SectionTitle>
+          )}
+          {chunkIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              4. Venue and Accommodation — hotel photos (cont.)
+            </div>
+          )}
+          <PhotoGrid
+            photos={chunk}
+            showSectionTitle={chunkIdx === 0}
+            showContinuation={chunkIdx > 0}
+          />
+        </ReportA4Page>
+      ))}
 
       {/* Conference Committee */}
       <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Committee">

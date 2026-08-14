@@ -104,21 +104,18 @@ Pre-conference promotional materials included overview posters, theme graphics, 
 | Asset | Purpose |
 | --- | --- |
 | 20th Annual Conference overview poster | General conference announcement |
-| Legacy and Influence theme poster | Theme and sub-theme promotion |
-| What to Expect — program highlights | Delegate expectations and schedule preview |
+| Legacy and Influence theme poster | Theme, sub-theme, and program highlights (What to Expect) |
 | Delegate registration guide | Step-by-step registration instructions |
 | Conference fee structure flyer | Room categories and pricing tiers |
-| 51-day countdown campaign | Pre-conference mobilization |
+| Conference countdown campaign flyer | Pre-conference mobilization |
 | Online information session | Virtual briefing for prospective delegates |
 | Fundraising campaign | Payment methods and supporter outreach |
 | Miss LSUIC contestant call | Pageant registration promotion |
 | Conference merchandise | Tote bag and delegate materials |
 
-![Legacy and Influence — conference theme poster](/conf/assets/before-after-conf/flyers/flyer-legacy-and-influence-conference.jpg)
-
 ![20th Annual Conference overview poster](/conf/assets/before-after-conf/flyers/flyer-20th-annual-general-conference.jpg)
 
-![What to expect — program highlights](/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg)
+![Legacy and Influence — conference theme poster](/conf/assets/before-after-conf/flyers/flyer-what-to-expect-highlights.jpg)
 
 ![Delegate registration guide](/conf/assets/before-after-conf/flyers/flyer-delegate-registration-guide.png)
 
@@ -172,6 +169,48 @@ Jinan — the City of Springs and capital of Shandong Province — is widely kno
 | GS — No Accommodation | 175 | Local Jinan-area delegates without hotel room |
 
 **Travel note:** Bus K904 serves the hotel stop until **7:20 PM**. Delegates arriving or departing after this time should use DiDi or a taxi from Jinan West Railway Station or Jinan East Railway Station.
+
+### 4.3 Hotel Photographs
+
+Arcadia Spa Golf International Hotel — entrance, conference facilities, dining areas, pool and spa, sports grounds, fitness center, and guest rooms.
+
+![Hotel main entrance and driveway](/conf/assets/hotel/main_entrance_view.png)
+
+![Reception desk and lobby](/conf/assets/hotel/receptionist_desk.png)
+
+![Hotel exterior — evening view](/conf/assets/hotel/evening_view.jpg)
+
+![Hotel grounds — evening view](/conf/assets/hotel/evening_view0.jpg)
+
+![Conference hall — plenary seating](/conf/assets/hotel/conference_hall.jpg)
+
+![Conference hall — alternate setup](/conf/assets/hotel/f1a226969ddcd8e6e824f844c27bde80.jpg)
+
+![Dining hall — main room](/conf/assets/hotel/dinning_hall.jpg)
+
+![Dining hall — banquet seating](/conf/assets/hotel/dinner_hall0.jpg)
+
+![Dining hall — interior](/conf/assets/hotel/dinner_hall1.png)
+
+![Dining hall — service area](/conf/assets/hotel/dinner_hall2.jpg)
+
+![Dining hall — additional seating](/conf/assets/hotel/dinning_hall3.jpg)
+
+![Dining hall — interior view](/conf/assets/hotel/dinning_hall5.jpg)
+
+![Dining hall — seating layout](/conf/assets/hotel/dinning_hall6.jpg)
+
+![Dining hall — banquet setup](/conf/assets/hotel/dinning_hall7.png)
+
+![Indoor pool and spa area](/conf/assets/hotel/swimming_pool_at_night.png)
+
+![Fitness center](/conf/assets/hotel/gymn.png)
+
+![Outdoor sports grounds](/conf/assets/hotel/play_ground.png)
+
+![Guest room — single bed](/conf/assets/hotel/single_bed.png)
+
+![Guest room — twin beds](/conf/assets/hotel/double_bed.png)
 
 ---
 

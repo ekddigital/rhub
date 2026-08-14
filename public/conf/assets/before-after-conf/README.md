@@ -24,12 +24,11 @@ Pre-conference promotional graphics, delegate profiles, and registration materia
 | `flyer-delegate-registration-guide.png` | Step-by-step rhub delegate registration guide |
 | `flyer-fundraising-campaign-payment-methods.png` | Fundraising campaign and payment details |
 | `flyer-conference-fees-structure.png` | Conference fee tiers and pricing |
-| `flyer-51-days-countdown.png` | Countdown to conference (51 days) |
+| `flyer-51-days-countdown.png` | Conference countdown campaign flyer (sample from countdown series) |
 | `flyer-know-about-conference-may-22.png` | May 22 info session announcement |
 | `flyer-conference-info-session-online.png` | Online info session with meeting details |
 | `flyer-20th-annual-general-conference.jpg` | 20th annual conference overview poster |
-| `flyer-legacy-and-influence-conference.jpg` | Legacy and Influence theme poster |
-| `flyer-what-to-expect-highlights.jpg` | What to expect — program highlights |
+| `flyer-what-to-expect-highlights.jpg` | Legacy and Influence theme poster — program highlights (What to Expect) |
 | `flyer-video-challenge-1-minute.jpg` | 1-minute video challenge promo |
 | `flyer-miss-lsuic-contestant-call.jpg` | Miss LSUIC contestant registration |
 | `delegate-profile-enoch-kwateh-dongbo.png` | Sample delegate profile card |
