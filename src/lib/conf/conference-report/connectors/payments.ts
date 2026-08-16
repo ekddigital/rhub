@@ -4,6 +4,7 @@ import {
   computeCookingExpenditure,
 } from "@/lib/conf/cooking-report-data";
 import { buildPaymentReceiptPhotoEntries } from "@/lib/conf/payment-receipt-entries";
+import { RECEIPTS_PER_PAGE_MAX } from "@/lib/conf/document-receipt-photos";
 import { mapPaymentsForClient } from "@/lib/conf/payment-proof-urls";
 import { prisma } from "@/lib/prisma";
 import type { ReportDataSource } from "./types";
@@ -11,7 +12,7 @@ import type { ReportDataSource } from "./types";
 export const COOKING_COMMITTEE_SCOPE = "Cooking";
 
 const paymentInclude = {
-  proofs: true,
+  proofs: { orderBy: { createdAt: "asc" as const } },
   lineItems: {
     orderBy: { no: "asc" as const },
     include: { proofs: true },
@@ -64,10 +65,10 @@ export function buildStaticCookingFinanceSummary() {
   };
 }
 
-/** ~4 receipt screenshots per report appendix page (2×2 grid). */
+/** ~6 receipt screenshots per report appendix page (2×3 grid). */
 export function chunkReportReceiptEntries<T>(
   entries: readonly T[],
-  perPage = 4,
+  perPage = RECEIPTS_PER_PAGE_MAX,
 ): T[][] {
   const chunks: T[][] = [];
   for (let i = 0; i < entries.length; i += perPage) {
@@ -78,7 +79,7 @@ export function chunkReportReceiptEntries<T>(
 
 export function countReportReceiptAppendixPages(
   entryCount: number,
-  perPage = 4,
+  perPage = RECEIPTS_PER_PAGE_MAX,
 ): number {
   if (entryCount <= 0) return 0;
   return Math.ceil(entryCount / perPage);

@@ -24,8 +24,8 @@ export const RECEIPT_PORTRAIT_ASPECT = 9 / 16;
 /** Interior content width (page width minus horizontal padding). */
 export const RECEIPT_CONTENT_WIDTH = PAGE_LAYOUT.width - 48;
 
-/** Max receipts per page — 2×2 keeps portrait screenshots readable. */
-export const RECEIPTS_PER_PAGE_MAX = 4;
+/** Max receipts per page — 2×3 grid (portrait screenshots). */
+export const RECEIPTS_PER_PAGE_MAX = 6;
 
 /** @deprecated Use RECEIPTS_PER_PAGE_MAX */
 export const RECEIPTS_PER_PAGE = RECEIPTS_PER_PAGE_MAX;
@@ -57,6 +57,7 @@ export type ReceiptGridLayout = {
   cols: number;
   rows: number;
   cellWidth: number;
+  cellHeight: number;
   imageHeight: number;
   captionHeight: number;
   blockHeight: number;
@@ -97,6 +98,7 @@ export function computeReceiptGridLayout(
     cols,
     rows,
     cellWidth,
+    cellHeight,
     imageHeight,
     captionHeight,
     blockHeight,
@@ -259,16 +261,20 @@ export function DocumentReceiptPhotosGrid({
     entries.length,
     Math.max(0, availableHeight),
   );
+  const cellHeight = layout.cellHeight;
 
   return (
     <div
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${layout.cols}, minmax(0, 1fr))`,
-        gap: RECEIPT_GRID_METRICS.rowGap,
+        gridTemplateRows: `repeat(${layout.rows}, ${cellHeight}px)`,
+        columnGap: RECEIPT_GRID_METRICS.columnGap,
+        rowGap: RECEIPT_GRID_METRICS.rowGap,
         maxHeight: availableHeight,
         overflow: "hidden",
         paddingBottom: 4,
+        alignContent: "start",
       }}
     >
       {entries.map((entry) => (
@@ -281,10 +287,8 @@ export function DocumentReceiptPhotosGrid({
             background: "#fff",
             display: "flex",
             flexDirection: "column",
-            maxHeight:
-              layout.imageHeight +
-              layout.captionHeight +
-              RECEIPT_GRID_METRICS.borderH,
+            height: cellHeight,
+            minHeight: 0,
           }}
         >
           {entry.isImage && entry.imageUrl ? (
@@ -297,6 +301,7 @@ export function DocumentReceiptPhotosGrid({
                 alignItems: "center",
                 justifyContent: "center",
                 background: "#f8fafc",
+                overflow: "hidden",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -304,10 +309,8 @@ export function DocumentReceiptPhotosGrid({
                 src={entry.imageUrl}
                 alt={entry.fileName}
                 style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  width: "auto",
-                  height: "auto",
+                  width: "100%",
+                  height: "100%",
                   objectFit: "contain",
                   display: "block",
                 }}

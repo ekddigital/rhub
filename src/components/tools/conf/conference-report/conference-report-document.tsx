@@ -94,6 +94,20 @@ import {
   REPORT_TABLE_PROSE,
 } from "./report-typography";
 
+const RECEIPT_APPENDIX_INTRO =
+  "Receipt screenshots from approved Cooking Committee payment records (rhub payments register).";
+
+function receiptAppendixGridHeight(pageIdx: number): number {
+  if (pageIdx === 0) {
+    return (
+      reportUsableHeight("sectionTitle") -
+      estimateBodyParagraphsHeight([RECEIPT_APPENDIX_INTRO]) -
+      8
+    );
+  }
+  return reportUsableHeight("continuation");
+}
+
 export function computeConferenceReportTotalPages(
   runtime: ReportRuntimeContext,
 ): number {
@@ -2468,7 +2482,10 @@ export function ConferenceReportDocument({
               ).
             </BodyParagraph>
           )}
-          <DocumentReceiptPhotosGrid entries={chunk} availableHeight={520} />
+          <DocumentReceiptPhotosGrid
+            entries={chunk}
+            availableHeight={receiptAppendixGridHeight(pageIdx)}
+          />
         </ReportPage>
       ))}
 
