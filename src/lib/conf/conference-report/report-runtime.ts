@@ -9,9 +9,12 @@ import type { AttendanceRow } from "@/components/tools/conf/conference-report/co
 import {
   buildReportAttendanceStats,
   chunkReportRoomPairings,
-  countReportReceiptAppendixPages,
-  countReportRoomPairingPages,
 } from "@/lib/conf/conference-report/connectors";
+import {
+  buildStaticReportBookletContent,
+  buildReportBookletPagePlans,
+} from "@/lib/conf/conference-report/connectors/booklet";
+import type { ReportBookletContent } from "@/lib/conf/conference-report/connectors/booklet";
 import type {
   ConferenceReportConnectorData,
   ReportApprovedBudget,
@@ -28,6 +31,7 @@ export type ReportRuntimeSources = {
   budgets: ReportDataSource;
   receipts: ReportDataSource;
   certificate: ReportDataSource;
+  booklet: ReportDataSource;
 };
 
 export type ReportRuntimeContext = {
@@ -38,6 +42,8 @@ export type ReportRuntimeContext = {
   approvedBudgets: ReportApprovedBudget[];
   cookingReceiptEntries: ReceiptPhotoEntry[];
   keynoteCertificate: KeynoteCertificateData;
+  booklet: ReportBookletContent;
+  bookletPages: ReturnType<typeof buildReportBookletPagePlans>;
   cookingBudgetCategories: ReturnType<typeof buildCookingBudgetCategories>;
   sources: ReportRuntimeSources;
 };
@@ -69,6 +75,8 @@ export function createReportRuntimeContext(
     ...STATIC_IEC,
   };
 
+  const booklet = connector?.booklet ?? buildStaticReportBookletContent();
+
   return {
     attendanceRows,
     attendanceStats,
@@ -77,6 +85,8 @@ export function createReportRuntimeContext(
     approvedBudgets: connector?.approvedBudgets ?? [],
     cookingReceiptEntries: connector?.cookingReceiptEntries ?? [],
     keynoteCertificate: connector?.keynoteCertificate ?? REPORT_KEYNOTE_CERTIFICATE,
+    booklet,
+    bookletPages: buildReportBookletPagePlans(booklet),
     cookingBudgetCategories: buildCookingBudgetCategories(),
     sources: {
       attendance: connector?.attendanceSource ?? "snapshot",
@@ -84,8 +94,9 @@ export function createReportRuntimeContext(
       budgets: connector?.budgetsSource ?? "static",
       receipts: connector?.receiptsSource ?? "static",
       certificate: connector?.certificateSource ?? "static",
+      booklet: connector?.bookletSource ?? "static",
     },
   };
 }
 
-export { chunkReportRoomPairings };
+export { chunkReportRoomPairings, buildCookingAppendixPages };

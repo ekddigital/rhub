@@ -1,5 +1,6 @@
 import type { ReceiptPhotoEntry } from "@/lib/conf/document-receipt-photos";
 import type { KeynoteCertificateData } from "@/lib/conf/keynote-certificate-data";
+import type { ReportBookletContent } from "./booklet";
 
 export type ReportDataSource = "live" | "snapshot" | "static";
 
@@ -60,6 +61,8 @@ export type ConferenceReportConnectorData = {
   receiptsSource: ReportDataSource;
   keynoteCertificate: KeynoteCertificateData;
   certificateSource: ReportDataSource;
+  booklet: ReportBookletContent;
+  bookletSource: ReportDataSource;
   financeSummary: ReportFinanceSummary;
   attendanceStats: ReportAttendanceStats;
 };

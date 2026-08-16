@@ -31,6 +31,13 @@ export {
 } from "./payments";
 
 export {
+  buildStaticReportBookletContent,
+  buildReportBookletPagePlans,
+  countReportBookletPages,
+  loadReportBookletContent,
+} from "./booklet";
+
+export {
   loadReportKeynoteCertificate,
   REPORT_KEYNOTE_CERTIFICATE,
 } from "./certificates";

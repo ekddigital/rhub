@@ -16,6 +16,11 @@ import {
 } from "./ConferenceReportTocPage";
 import { ReportKeynoteCertificateSection } from "./ReportKeynoteCertificateSection";
 import {
+  ReportBookletBlockSection,
+  ReportBookletContinuationLabel,
+  ReportBookletProgramOutlineSection,
+} from "./ReportBookletSections";
+import {
   ReportRoomPairingsContinuationLabel,
   ReportRoomPairingsTable,
 } from "./ReportRoomPairingsSection";
@@ -741,6 +746,7 @@ export function ConferenceReportDocument({
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
   const preConferencePages = buildPreConferencePages();
   const cookingAppendixPages = buildCookingAppendixPages();
+  const bookletPages = runtime.bookletPages;
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -1047,7 +1053,57 @@ export function ConferenceReportDocument({
         </table>
       </ReportPage>
 
-      {/* Detailed program schedule — one section per day (§5–§8), sourced from Detailed Program */}
+      {/* Conference Booklet — major sections from /tools/conf/booklet */}
+      {bookletPages.map((plan, idx) => (
+        <ReportPage
+          key={`booklet-${plan.kind}-${idx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            plan.kind === "block"
+              ? plan.pageIndex === 0
+                ? `Booklet — ${plan.block.title}`
+                : `Booklet — ${plan.block.title} (cont.)`
+              : plan.pageIndex === 0
+                ? "Booklet — Program Outline"
+                : "Booklet — Program Outline (cont.)"
+          }
+        >
+          {plan.kind === "block" ? (
+            <>
+              {plan.pageIndex === 0 ? (
+                plan.block.key === "introduction" ? (
+                  <SectionTitle>
+                    Conference Booklet — {plan.block.title}
+                  </SectionTitle>
+                ) : (
+                  <SectionTitle>{plan.block.title}</SectionTitle>
+                )
+              ) : (
+                <ReportBookletContinuationLabel title={plan.block.title} />
+              )}
+              <ReportBookletBlockSection
+                block={{ ...plan.block, paragraphs: plan.paragraphs }}
+                showSource={
+                  plan.pageIndex === 0 && plan.block.key === "introduction"
+                }
+              />
+            </>
+          ) : (
+            <>
+              {plan.pageIndex > 0 && (
+                <ReportBookletContinuationLabel title="Program Outline" />
+              )}
+              <ReportBookletProgramOutlineSection
+                content={runtime.booklet}
+                days={plan.days}
+                showIntro={plan.showIntro}
+              />
+            </>
+          )}
+        </ReportPage>
+      ))}
+
+      {/* Detailed program schedule — one section per day (§7–§10), sourced from Detailed Program */}
       {programPages.map((page) => (
         <ReportPage
           key={`program-${page.sectionNum}-${page.pageIndex}`}

@@ -26,9 +26,11 @@ import {
   type CookingAppendixPagePlan,
 } from "@/lib/conf/cooking-report-data";
 import {
+  countReportBookletPages,
   countReportReceiptAppendixPages,
   countReportRoomPairingPages,
 } from "@/lib/conf/conference-report/connectors";
+import { buildStaticReportBookletContent } from "@/lib/conf/conference-report/connectors/booklet";
 import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 import {
   REPORT_PROGRAM_PAGINATION,
@@ -426,9 +428,11 @@ export const REPORT_DAY_SECTIONS = [
 export type ReportTocEntry = {
   num: number;
   title: string;
+  id?: string;
   startPage?: number;
   pageSpan?: number;
   isProgramDay?: boolean;
+  isBookletEmbed?: boolean;
 };
 
 const REPORT_TOC_AFTER_DAYS = [
@@ -453,8 +457,14 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
   { num: 2, title: "Conference Objectives and Theme" },
   { num: 3, title: "Pre-Conference Preparation" },
   { num: 4, title: "Venue and Accommodation" },
-  { num: 5, title: "Conference Committee" },
-  { num: 6, title: "Conference Overview" },
+  { num: 5, title: "Conference Committee", id: "committee" },
+  { num: 6, title: "Conference Overview", id: "overview" },
+  {
+    num: 6,
+    title: "Conference Booklet — Introduction & Program Outline",
+    id: "booklet-embed",
+    isBookletEmbed: true,
+  },
   ...REPORT_DAY_SECTIONS.map(({ sectionNum, title }) => ({
     num: sectionNum,
     title,
@@ -488,6 +498,11 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const venueStart = page;
   page += venuePageCount;
   const committeeAndOverviewStart = page++;
+  const bookletStart = page;
+  const bookletPages = runtime?.bookletPages.length ?? countReportBookletPages(
+    runtime?.booklet ?? buildStaticReportBookletContent(),
+  );
+  page += bookletPages;
 
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
@@ -517,6 +532,10 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const appendixStart = page;
 
   return REPORT_TOC.map((entry) => {
+    if (entry.isBookletEmbed) {
+      return { ...entry, startPage: bookletStart, pageSpan: bookletPages };
+    }
+
     if (entry.isProgramDay) {
       const info = dayPageInfo.get(entry.num);
       return info ? { ...entry, ...info } : entry;
@@ -535,8 +554,12 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
       case 4:
         return { ...entry, startPage: venueStart, pageSpan: venuePageCount };
       case 5:
-      case 6:
         return { ...entry, startPage: committeeAndOverviewStart, pageSpan: 1 };
+      case 6:
+        if (entry.id === "overview") {
+          return { ...entry, startPage: committeeAndOverviewStart, pageSpan: 1 };
+        }
+        return entry;
       case 11:
         return { ...entry, startPage: electionStart, pageSpan: 1 };
       case 12:
@@ -1001,6 +1024,9 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
   const receiptAppendixPages = runtime
     ? countReportReceiptAppendixPages(runtime.cookingReceiptEntries.length)
     : 0;
+  const bookletEmbedPages = runtime
+    ? runtime.bookletPages.length
+    : countReportBookletPages(buildStaticReportBookletContent());
   const certificatePage = 1;
 
   return {
@@ -1009,6 +1035,7 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     preConference: buildPreConferencePages().length,
     venueAndAccommodation: buildVenueAndAccommodationPageCount(),
     committeeAndOverview: 1,
+    bookletEmbed: bookletEmbedPages,
     electionSummary: 1,
     financeSummary: 2,
     keynoteCertificate: certificatePage,
@@ -1051,6 +1078,7 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.preConference +
     fixed.venueAndAccommodation +
     fixed.committeeAndOverview +
+    fixed.bookletEmbed +
     fixed.electionSummary +
     fixed.financeSummary +
     fixed.keynoteCertificate +

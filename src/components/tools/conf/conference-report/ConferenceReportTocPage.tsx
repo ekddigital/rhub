@@ -144,7 +144,7 @@ export function ConferenceReportTocPage({
 
             return (
               <div
-                key={entry.num}
+                key={entry.id ?? `${entry.num}-${entry.title}`}
                 style={{
                   display: "grid",
                   gridTemplateColumns: hasPage

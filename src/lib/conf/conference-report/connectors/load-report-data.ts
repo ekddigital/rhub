@@ -12,6 +12,10 @@ import {
   loadReportCookingPayments,
 } from "./payments";
 import { loadReportKeynoteCertificate } from "./certificates";
+import {
+  buildStaticReportBookletContent,
+  loadReportBookletContent,
+} from "./booklet";
 import type {
   ConferenceReportConnectorData,
   ReportAttendanceRow,
@@ -65,12 +69,13 @@ function resolveAttendance(
 export async function loadConferenceReportConnectorData(
   confId: string,
 ): Promise<ConferenceReportConnectorData> {
-  const [delegateData, budgetData, paymentData, certificateData] =
+  const [delegateData, budgetData, paymentData, certificateData, bookletData] =
     await Promise.all([
       loadReportDelegateData(confId),
       loadReportApprovedBudgets(confId),
       loadReportCookingPayments(confId),
       Promise.resolve(loadReportKeynoteCertificate()),
+      loadReportBookletContent(confId),
     ]);
 
   const attendance = resolveAttendance(
@@ -103,6 +108,8 @@ export async function loadConferenceReportConnectorData(
     receiptsSource: paymentData.source,
     keynoteCertificate: certificateData.certificate,
     certificateSource: certificateData.source,
+    booklet: bookletData,
+    bookletSource: bookletData.source,
     financeSummary,
     attendanceStats: buildReportAttendanceStats(attendance.rows),
   };
