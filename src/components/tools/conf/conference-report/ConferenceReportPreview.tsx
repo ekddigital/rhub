@@ -10,6 +10,7 @@ import {
   ConferenceReportDocument,
 } from "./conference-report-document";
 import { REPORT_META } from "./content-data";
+import type { SignatoryDraft } from "@/components/tools/conf/document-signatory-controls";
 import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 
 const PRINT_ROOT_ID = "conference-report-print-root";
@@ -20,8 +21,10 @@ function exportBasename(): string {
 
 export function ConferenceReportPreview({
   runtime,
+  signatoryDraft,
 }: {
   runtime: ReportRuntimeContext;
+  signatoryDraft?: SignatoryDraft;
 }) {
   const totalPages = computeConferenceReportTotalPages(runtime);
   const [zoom, setZoom] = useState(85);
@@ -287,14 +290,14 @@ export function ConferenceReportPreview({
             marginBottom: zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
           }}
         >
-          <ConferenceReportDocument gap={16} runtime={runtime} />
+          <ConferenceReportDocument gap={16} runtime={runtime} signatoryDraft={signatoryDraft} />
         </div>
       </div>
 
       {portalReady &&
         createPortal(
           <div id={PRINT_ROOT_ID}>
-            <ConferenceReportDocument gap={0} runtime={runtime} />
+            <ConferenceReportDocument gap={0} runtime={runtime} signatoryDraft={signatoryDraft} />
           </div>,
           document.body,
         )}

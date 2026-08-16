@@ -31,6 +31,22 @@ export type ReportApprovedBudget = {
   itemCount: number;
 };
 
+export type ReportBudgetVsActualLine = {
+  item: string;
+  budgetRmb: number | null;
+  actualRmb: number | null;
+  notes?: string;
+  varianceRmb: number | null;
+};
+
+export type ReportBudgetVsActualTotals = {
+  budgetTotal: number;
+  actualTotal: number;
+  overBudget: number;
+  underBudget: number;
+  netVariance: number;
+};
+
 export type ReportFinanceSummary = {
   delegateFeesCollected: number;
   cookingFundsDisbursed: number;
@@ -57,6 +73,9 @@ export type ConferenceReportConnectorData = {
   roomPairingsSource: ReportDataSource;
   approvedBudgets: ReportApprovedBudget[];
   budgetsSource: ReportDataSource;
+  budgetVsActual: ReportBudgetVsActualLine[];
+  budgetVsActualTotals: ReportBudgetVsActualTotals;
+  budgetVsActualSource: ReportDataSource;
   cookingReceiptEntries: ReceiptPhotoEntry[];
   receiptsSource: ReportDataSource;
   keynoteCertificate: KeynoteCertificateData;

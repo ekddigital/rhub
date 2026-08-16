@@ -5,6 +5,7 @@ import {
 } from "./delegates";
 import {
   loadReportApprovedBudgets,
+  loadReportConferenceBudgetVsActual,
   selectCookingApprovedBudget,
 } from "./budget";
 import {
@@ -91,6 +92,7 @@ export async function loadConferenceReportConnectorData(
         }
       : undefined;
 
+  const budgetVsActual = loadReportConferenceBudgetVsActual();
   const financeSummary = buildFinanceSummary({
     attendanceRows: attendance.rows,
     cookingOverride: cookingFinanceOverride,
@@ -104,6 +106,9 @@ export async function loadConferenceReportConnectorData(
       delegateData.roomPairings.length > 0 ? delegateData.source : "static",
     approvedBudgets: budgetData.budgets,
     budgetsSource: budgetData.source,
+    budgetVsActual: budgetVsActual.lines,
+    budgetVsActualTotals: budgetVsActual.totals,
+    budgetVsActualSource: budgetVsActual.source,
     cookingReceiptEntries: paymentData.receiptEntries,
     receiptsSource: paymentData.source,
     keynoteCertificate: certificateData.certificate,

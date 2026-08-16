@@ -97,6 +97,7 @@ import {
   hasSignatories,
 } from "@/components/tools/conf/document-signatory-controls";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
+import { ConferenceBudgetReconciliationCard } from "@/components/tools/conf/conference-budget-reconciliation-card";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -2114,6 +2115,10 @@ export function BudgetShell({ accessInfo }: { accessInfo?: AccessInfo }) {
           {error}
         </div>
       )}
+
+      <div className="budget-no-print">
+        <ConferenceBudgetReconciliationCard />
+      </div>
 
       {editingServerBudgetId && (
         <div className="budget-no-print flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#002868]/30 bg-[#002868]/5 px-4 py-3">

@@ -9,6 +9,7 @@ import type { AttendanceRow } from "@/components/tools/conf/conference-report/co
 import {
   buildReportAttendanceStats,
   chunkReportRoomPairings,
+  loadReportConferenceBudgetVsActual,
 } from "@/lib/conf/conference-report/connectors";
 import {
   buildStaticReportBookletContent,
@@ -19,6 +20,8 @@ import type {
   ConferenceReportConnectorData,
   ReportApprovedBudget,
   ReportAttendanceStats,
+  ReportBudgetVsActualLine,
+  ReportBudgetVsActualTotals,
   ReportDataSource,
   ReportFinanceSummary,
   ReportRoomPairingRow,
@@ -29,6 +32,7 @@ export type ReportRuntimeSources = {
   attendance: ReportDataSource;
   roomPairings: ReportDataSource;
   budgets: ReportDataSource;
+  budgetVsActual: ReportDataSource;
   receipts: ReportDataSource;
   certificate: ReportDataSource;
   booklet: ReportDataSource;
@@ -40,6 +44,8 @@ export type ReportRuntimeContext = {
   financeSummary: ReportFinanceSummary;
   roomPairings: ReportRoomPairingRow[];
   approvedBudgets: ReportApprovedBudget[];
+  budgetVsActual: ReportBudgetVsActualLine[];
+  budgetVsActualTotals: ReportBudgetVsActualTotals;
   cookingReceiptEntries: ReceiptPhotoEntry[];
   keynoteCertificate: KeynoteCertificateData;
   booklet: ReportBookletContent;
@@ -76,6 +82,14 @@ export function createReportRuntimeContext(
   };
 
   const booklet = connector?.booklet ?? buildStaticReportBookletContent();
+  const budgetVsActualData =
+    connector?.budgetVsActual && connector.budgetVsActual.length > 0
+      ? {
+          lines: connector.budgetVsActual,
+          totals: connector.budgetVsActualTotals,
+          source: connector.budgetVsActualSource,
+        }
+      : loadReportConferenceBudgetVsActual();
 
   return {
     attendanceRows,
@@ -83,6 +97,8 @@ export function createReportRuntimeContext(
     financeSummary,
     roomPairings: connector?.roomPairings ?? [],
     approvedBudgets: connector?.approvedBudgets ?? [],
+    budgetVsActual: budgetVsActualData.lines,
+    budgetVsActualTotals: budgetVsActualData.totals,
     cookingReceiptEntries: connector?.cookingReceiptEntries ?? [],
     keynoteCertificate: connector?.keynoteCertificate ?? REPORT_KEYNOTE_CERTIFICATE,
     booklet,
@@ -92,6 +108,7 @@ export function createReportRuntimeContext(
       attendance: connector?.attendanceSource ?? "snapshot",
       roomPairings: connector?.roomPairingsSource ?? "static",
       budgets: connector?.budgetsSource ?? "static",
+      budgetVsActual: budgetVsActualData.source,
       receipts: connector?.receiptsSource ?? "static",
       certificate: connector?.certificateSource ?? "static",
       booklet: connector?.bookletSource ?? "static",

@@ -19,6 +19,7 @@ export {
 
 export {
   loadReportApprovedBudgets,
+  loadReportConferenceBudgetVsActual,
   selectCookingApprovedBudget,
 } from "./budget";
 

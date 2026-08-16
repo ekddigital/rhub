@@ -5,6 +5,12 @@ import {
   chunkReportRoomPairings,
   type ReportRuntimeContext,
 } from "@/lib/conf/conference-report/report-runtime";
+import type { ReportBudgetVsActualLine } from "@/lib/conf/conference-report/connectors/types";
+import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
+import {
+  hasSignatories,
+  type SignatoryDraft,
+} from "@/components/tools/conf/document-signatory-controls";
 import { BOOKLET_A4, C } from "../booklet/constants";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
@@ -337,6 +343,162 @@ function AttendanceTable({ rows }: { rows: AttendanceRow[] }) {
 
 function formatRmb(amount: number): string {
   return amount.toLocaleString(undefined, { minimumFractionDigits: 2 });
+}
+
+function formatBudgetCell(amount: number | null): string {
+  if (amount == null) return "—";
+  return formatRmb(amount);
+}
+
+function BudgetVsActualTable({
+  lines,
+  totals,
+}: {
+  lines: readonly ReportBudgetVsActualLine[];
+  totals: ReportRuntimeContext["budgetVsActualTotals"];
+}) {
+  return (
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: `${REPORT_TABLE.fontSize}px`,
+        marginBottom: "12px",
+      }}
+    >
+      <thead>
+        <tr style={{ background: "#F0F7FF" }}>
+          {["Item", "Budget (RMB)", "Actual (RMB)", "Variance", "Notes"].map(
+            (h) => (
+              <th
+                key={h}
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  textAlign: h === "Notes" ? "left" : h === "Item" ? "left" : "right",
+                  fontWeight: 700,
+                  fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  color: C.blue,
+                }}
+              >
+                {h}
+              </th>
+            ),
+          )}
+        </tr>
+      </thead>
+      <tbody>
+        {lines.map((row) => {
+          const variance =
+            row.varianceRmb == null
+              ? "—"
+              : row.varianceRmb === 0
+                ? "0.00"
+                : row.varianceRmb > 0
+                  ? `+${formatRmb(row.varianceRmb)}`
+                  : `−${formatRmb(Math.abs(row.varianceRmb))}`;
+          const varianceColor =
+            row.varianceRmb == null || row.varianceRmb === 0
+              ? "#333"
+              : row.varianceRmb > 0
+                ? "#BF0A30"
+                : "#1a7a4a";
+
+          return (
+            <tr
+              key={row.item}
+              style={{ borderBottom: "1px solid #E5E7EB" }}
+            >
+              <td
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  fontWeight: 600,
+                }}
+              >
+                {row.item}
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  textAlign: "right",
+                }}
+              >
+                {formatBudgetCell(row.budgetRmb)}
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  textAlign: "right",
+                  fontWeight: row.actualRmb != null ? 600 : 400,
+                }}
+              >
+                {formatBudgetCell(row.actualRmb)}
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  textAlign: "right",
+                  fontWeight: 600,
+                  color: varianceColor,
+                }}
+              >
+                {variance}
+              </td>
+              <td
+                style={{
+                  padding: REPORT_TABLE.cellPadding,
+                  fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                  color: REPORT_CERT.role.color,
+                }}
+              >
+                {row.notes ?? ""}
+              </td>
+            </tr>
+          );
+        })}
+        <tr style={{ background: C.blue, color: C.white }}>
+          <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 700 }}>
+            Totals
+          </td>
+          <td
+            style={{
+              padding: REPORT_TABLE.cellPadding,
+              textAlign: "right",
+              fontWeight: 700,
+            }}
+          >
+            {formatRmb(totals.budgetTotal)}
+          </td>
+          <td
+            style={{
+              padding: REPORT_TABLE.cellPadding,
+              textAlign: "right",
+              fontWeight: 700,
+            }}
+          >
+            {formatRmb(totals.actualTotal)}
+          </td>
+          <td
+            style={{
+              padding: REPORT_TABLE.cellPadding,
+              textAlign: "right",
+              fontWeight: 700,
+            }}
+          >
+            {totals.netVariance >= 0 ? "+" : "−"}
+            {formatRmb(Math.abs(totals.netVariance))}
+          </td>
+          <td
+            style={{
+              padding: REPORT_TABLE.cellPadding,
+              fontSize: `${REPORT_TABLE.headerFontSize}px`,
+            }}
+          >
+            Over {formatRmb(totals.overBudget)} · Under {formatRmb(totals.underBudget)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
 }
 
 function CookingLineItemsTable({
@@ -725,15 +887,19 @@ function ProgramDayBlock({
 export function ConferenceReportDocument({
   gap = 0,
   runtime,
+  signatoryDraft,
 }: {
   gap?: number;
   runtime: ReportRuntimeContext;
+  signatoryDraft?: SignatoryDraft;
 }) {
   const totalPages = computeConferenceReportTotalPages(runtime);
   const attendanceRows = runtime.attendanceRows;
   const attendanceStats = runtime.attendanceStats;
   const financeSummary = runtime.financeSummary;
   const cookingBudgetCategories = runtime.cookingBudgetCategories;
+  const budgetVsActual = runtime.budgetVsActual;
+  const budgetVsActualTotals = runtime.budgetVsActualTotals;
   const roomPairingChunks = chunkReportRoomPairings(runtime.roomPairings);
   const receiptAppendixChunks = chunkReportReceiptEntries(
     runtime.cookingReceiptEntries,
@@ -1421,6 +1587,26 @@ export function ConferenceReportDocument({
             marginBottom: "8px",
           }}
         >
+          Conference Budget vs Actual Spend
+        </div>
+        <BodyParagraph>
+          Line-item reconciliation of the approved conference budget against
+          actual expenditure recorded during Jinan 2026. Items marked with no
+          actual amount were reallocated or covered under other budget lines.
+        </BodyParagraph>
+        <BudgetVsActualTable
+          lines={budgetVsActual}
+          totals={budgetVsActualTotals}
+        />
+
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "8px",
+          }}
+        >
           Cooking Committee Report
         </div>
         {COOKING_COMMITTEE_NARRATIVE.slice(0, 2).map((paragraph) => (
@@ -1911,88 +2097,94 @@ export function ConferenceReportDocument({
           the Cooking Committee report (Appendix A).
         </BodyParagraph>
 
-        <div
-          style={{
-            marginTop: "32px",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "40px",
-          }}
-        >
-          <div>
+        {signatoryDraft && hasSignatories(signatoryDraft) ? (
+          <DocumentSignatureBlock draft={signatoryDraft} />
+        ) : (
+          <>
             <div
               style={{
-                fontSize: `${REPORT_CERT.label.fontSize}px`,
-                fontWeight: REPORT_CERT.label.fontWeight,
-                color: REPORT_CERT.label.color,
-                marginBottom: "40px",
+                marginTop: "32px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "40px",
               }}
             >
-              Prepared by:
+              <div>
+                <div
+                  style={{
+                    fontSize: `${REPORT_CERT.label.fontSize}px`,
+                    fontWeight: REPORT_CERT.label.fontWeight,
+                    color: REPORT_CERT.label.color,
+                    marginBottom: "40px",
+                  }}
+                >
+                  Prepared by:
+                </div>
+                <div
+                  style={{
+                    borderTop: `1px solid ${C.blue}`,
+                    paddingTop: "6px",
+                    fontSize: `${REPORT_CERT.signature.fontSize}px`,
+                  }}
+                >
+                  Conference Committee — Documentation &amp; Reporting
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: `${REPORT_CERT.label.fontSize}px`,
+                    fontWeight: REPORT_CERT.label.fontWeight,
+                    color: REPORT_CERT.label.color,
+                    marginBottom: "40px",
+                  }}
+                >
+                  Reviewed by:
+                </div>
+                <div
+                  style={{
+                    borderTop: `1px solid ${C.blue}`,
+                    paddingTop: "6px",
+                    fontSize: `${REPORT_CERT.signature.fontSize}px`,
+                  }}
+                >
+                  Harris M. Bowulo
+                  <br />
+                  <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
+                    General Secretary, Conference Committee
+                  </span>
+                </div>
+              </div>
             </div>
-            <div
-              style={{
-                borderTop: `1px solid ${C.blue}`,
-                paddingTop: "6px",
-                fontSize: `${REPORT_CERT.signature.fontSize}px`,
-              }}
-            >
-              Conference Committee — Documentation &amp; Reporting
-            </div>
-          </div>
-          <div>
-            <div
-              style={{
-                fontSize: `${REPORT_CERT.label.fontSize}px`,
-                fontWeight: REPORT_CERT.label.fontWeight,
-                color: REPORT_CERT.label.color,
-                marginBottom: "40px",
-              }}
-            >
-              Reviewed by:
-            </div>
-            <div
-              style={{
-                borderTop: `1px solid ${C.blue}`,
-                paddingTop: "6px",
-                fontSize: `${REPORT_CERT.signature.fontSize}px`,
-              }}
-            >
-              Harris M. Bowulo
-              <br />
-              <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
-                General Secretary, Conference Committee
-              </span>
-            </div>
-          </div>
-        </div>
 
-        <div style={{ marginTop: "36px" }}>
-          <div
-            style={{
-              fontSize: `${REPORT_CERT.label.fontSize}px`,
-              fontWeight: REPORT_CERT.label.fontWeight,
-              color: REPORT_CERT.label.color,
-              marginBottom: "40px",
-            }}
-          >
-            Approved by:
-          </div>
-          <div
-            style={{
-              borderTop: `1px solid ${C.blue}`,
-              paddingTop: "6px",
-              fontSize: `${REPORT_CERT.signature.fontSize}px`,
-              maxWidth: "280px",
-            }}
-          >
-            Enoch Kwateh Dongbo
-            <br />
-            <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
-              General Chairman, Conference Committee
-            </span>
-          </div>
-        </div>
+            <div style={{ marginTop: "36px" }}>
+              <div
+                style={{
+                  fontSize: `${REPORT_CERT.label.fontSize}px`,
+                  fontWeight: REPORT_CERT.label.fontWeight,
+                  color: REPORT_CERT.label.color,
+                  marginBottom: "40px",
+                }}
+              >
+                Approved by:
+              </div>
+              <div
+                style={{
+                  borderTop: `1px solid ${C.blue}`,
+                  paddingTop: "6px",
+                  fontSize: `${REPORT_CERT.signature.fontSize}px`,
+                  maxWidth: "280px",
+                }}
+              >
+                Enoch Kwateh Dongbo
+                <br />
+                <span style={{ color: REPORT_CERT.role.color, fontSize: `${REPORT_CERT.role.fontSize}px` }}>
+                  General Chairman, Conference Committee
+                </span>
+              </div>
+            </div>
+          </>
+        )}
 
         <div
           style={{

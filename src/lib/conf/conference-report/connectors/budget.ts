@@ -1,7 +1,16 @@
 import { BUDGET_CATEGORIES } from "@/lib/conf/config";
+import {
+  CONFERENCE_BUDGET_VS_ACTUAL,
+  computeConferenceBudgetTotals,
+} from "@/lib/conf/conference-budget-data";
 import { calcItemTotal } from "@/lib/conf/currency";
 import { prisma } from "@/lib/prisma";
-import type { ReportApprovedBudget, ReportDataSource } from "./types";
+import type {
+  ReportApprovedBudget,
+  ReportBudgetVsActualLine,
+  ReportBudgetVsActualTotals,
+  ReportDataSource,
+} from "./types";
 
 export async function loadReportApprovedBudgets(
   confId: string,
@@ -43,4 +52,17 @@ export function selectCookingApprovedBudget(
     /cooking/i.test(budget.title),
   );
   return cookingBudget ?? budgets[0] ?? null;
+}
+
+/** Certified post-conference budget vs actual reconciliation (static source of truth). */
+export function loadReportConferenceBudgetVsActual(): {
+  lines: ReportBudgetVsActualLine[];
+  totals: ReportBudgetVsActualTotals;
+  source: ReportDataSource;
+} {
+  return {
+    lines: CONFERENCE_BUDGET_VS_ACTUAL.map((line) => ({ ...line })),
+    totals: computeConferenceBudgetTotals(),
+    source: "static",
+  };
 }
