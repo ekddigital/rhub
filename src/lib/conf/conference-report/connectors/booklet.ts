@@ -198,19 +198,95 @@ export function chunkBookletParagraphs(
   return chunks.length > 0 ? chunks : [[]];
 }
 
+/** Report interior page budget (matches report-layout.ts). */
+const REPORT_PAGE_CONTENT_PX = 1123 - 61 - 33 - 28;
+const REPORT_PROGRAM_OUTLINE_SAFETY_PX = 12;
+const REPORT_PROGRAM_OUTLINE_TITLE_PX = 28;
+const REPORT_PROGRAM_OUTLINE_INTRO_LINE_PX = 26;
+const REPORT_PROGRAM_OUTLINE_INTRO_CHARS = 92;
+const REPORT_PROGRAM_OUTLINE_DAY_HEADER_PX = 24;
+const REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX = 32;
+const REPORT_PROGRAM_OUTLINE_ROW_LINE_PX = 17;
+const REPORT_PROGRAM_OUTLINE_ROW_PADDING_PX = 10;
+const REPORT_PROGRAM_OUTLINE_DAY_MARGIN_PX = 8;
+const REPORT_PROGRAM_OUTLINE_SOURCE_PX = 32;
+
+function estimateBookletProgramIntroHeaderPx(intro: string): number {
+  const lines = Math.max(
+    1,
+    Math.ceil(intro.trim().length / REPORT_PROGRAM_OUTLINE_INTRO_CHARS),
+  );
+  return (
+    REPORT_PROGRAM_OUTLINE_TITLE_PX +
+    lines * REPORT_PROGRAM_OUTLINE_INTRO_LINE_PX +
+    8
+  );
+}
+
+function estimateBookletProgramDayPx(day: ReportBookletProgramDay): number {
+  const rowsPx = day.activities.reduce((sum, row) => {
+    const activityLines = Math.max(
+      1,
+      Math.ceil(row.activity.length / 46),
+    );
+    const locationLines = Math.max(
+      1,
+      Math.ceil(row.location.length / 36),
+    );
+    const lines = Math.max(activityLines, locationLines);
+    return sum + REPORT_PROGRAM_OUTLINE_ROW_PADDING_PX + lines * REPORT_PROGRAM_OUTLINE_ROW_LINE_PX;
+  }, 0);
+
+  return (
+    REPORT_PROGRAM_OUTLINE_DAY_HEADER_PX +
+    REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX +
+    rowsPx +
+    REPORT_PROGRAM_OUTLINE_DAY_MARGIN_PX
+  );
+}
+
+/** Pack program-outline days by estimated height instead of fixed 2-per-page. */
+export function paginateReportBookletProgramOutline(
+  content: ReportBookletContent,
+): Array<{ showIntro: boolean; days: ReportBookletProgramDay[] }> {
+  const pages: Array<{ showIntro: boolean; days: ReportBookletProgramDay[] }> =
+    [];
+  const budget = REPORT_PAGE_CONTENT_PX - REPORT_PROGRAM_OUTLINE_SAFETY_PX;
+  let current: { showIntro: boolean; days: ReportBookletProgramDay[] } = {
+    showIntro: true,
+    days: [],
+  };
+  let usedPx = estimateBookletProgramIntroHeaderPx(content.programOutline.intro);
+  if (current.showIntro) {
+    usedPx += REPORT_PROGRAM_OUTLINE_SOURCE_PX;
+  }
+
+  for (const day of content.programOutline.days) {
+    const dayPx = estimateBookletProgramDayPx(day);
+    if (current.days.length > 0 && usedPx + dayPx > budget) {
+      pages.push(current);
+      current = { showIntro: false, days: [] };
+      usedPx = 0;
+    }
+    current.days.push(day);
+    usedPx += dayPx;
+  }
+
+  if (current.days.length > 0 || current.showIntro) {
+    pages.push(current);
+  }
+
+  return pages.length > 0 ? pages : [{ showIntro: true, days: [] }];
+}
+
 /** Estimate report pages for booklet embed sections (after §6 Overview). */
 export function countReportBookletPages(content: ReportBookletContent): number {
   let pages = 0;
   pages += chunkBookletParagraphs(content.introduction.paragraphs, 3).length;
-  pages += chunkBookletParagraphs(content.chairmanAddress.paragraphs, 3).length;
-  pages += Math.min(
-    2,
-    chunkBookletParagraphs(content.presidentAddress.paragraphs, 3).length,
-  );
   if (content.overview) {
     pages += chunkBookletParagraphs(content.overview.paragraphs, 3).length;
   }
-  pages += Math.max(1, Math.ceil(content.programOutline.days.length / 2));
+  pages += Math.max(1, paginateReportBookletProgramOutline(content).length);
   return pages;
 }
 
@@ -248,25 +324,18 @@ export function buildReportBookletPagePlans(content: ReportBookletContent) {
   };
 
   pushBlock(content.introduction, 3);
-  pushBlock(content.chairmanAddress, 3);
-  pushBlock(content.presidentAddress, 3, 2);
   if (content.overview) {
     pushBlock(content.overview, 3);
   }
 
-  const dayChunks: ReportBookletProgramDay[][] = [];
-  for (let i = 0; i < content.programOutline.days.length; i += 2) {
-    dayChunks.push(content.programOutline.days.slice(i, i + 2));
-  }
-  if (dayChunks.length === 0) dayChunks.push([]);
-
-  dayChunks.forEach((days, pageIndex) => {
+  const programPages = paginateReportBookletProgramOutline(content);
+  programPages.forEach((page, pageIndex) => {
     plans.push({
       kind: "program-outline",
-      showIntro: pageIndex === 0,
-      days,
+      showIntro: page.showIntro,
+      days: page.days,
       pageIndex,
-      pageCount: dayChunks.length,
+      pageCount: programPages.length,
     });
   });
 

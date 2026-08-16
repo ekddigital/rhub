@@ -109,23 +109,27 @@ export function ReportBookletProgramOutlineSection({
   content,
   days,
   showIntro,
+  showTitle = true,
 }: {
   content: ReportBookletContent;
   days: readonly ReportBookletProgramDay[];
   showIntro: boolean;
+  showTitle?: boolean;
 }) {
   return (
     <>
-      <div
-        style={{
-          fontSize: `${REPORT_SECTION_TITLE.fontSize - 2}px`,
-          fontWeight: REPORT_SECTION_TITLE.fontWeight,
-          color: REPORT_SECTION_TITLE.color,
-          marginBottom: "8px",
-        }}
-      >
-        Program Outline — {content.programOutline.welcomeTitle}
-      </div>
+      {showTitle && (
+        <div
+          style={{
+            fontSize: `${REPORT_SECTION_TITLE.fontSize - 2}px`,
+            fontWeight: REPORT_SECTION_TITLE.fontWeight,
+            color: REPORT_SECTION_TITLE.color,
+            marginBottom: "8px",
+          }}
+        >
+          Program Outline — {content.programOutline.welcomeTitle}
+        </div>
+      )}
       {showIntro && (
         <p
           style={{
@@ -140,7 +144,7 @@ export function ReportBookletProgramOutlineSection({
         </p>
       )}
       {days.map((day) => (
-        <div key={day.label} style={{ marginBottom: "12px" }}>
+        <div key={day.label} style={{ marginBottom: "8px" }}>
           <div
             style={{
               fontSize: `${REPORT_LIST_ITEM.fontSize}px`,

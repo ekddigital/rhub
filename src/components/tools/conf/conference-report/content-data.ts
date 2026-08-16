@@ -32,8 +32,7 @@ import {
 import { buildStaticReportBookletContent } from "@/lib/conf/conference-report/connectors/booklet";
 import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 import {
-  REPORT_PROGRAM_PAGINATION,
-  splitProgramDaySlots,
+  splitReportProgramDaySlots,
 } from "@/lib/conf/detailed-program-pagination";
 import attendanceRows from "./attendance.generated.json";
 import {
@@ -976,8 +975,16 @@ export function buildPreConferencePages(): PreConferencePagePlan[] {
   return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
 }
 
-function splitReportDaySlots(slots: readonly ProgramSlot[]): ProgramSlot[][] {
-  return splitProgramDaySlots(slots, REPORT_PROGRAM_PAGINATION);
+function splitReportDaySlots(day: ProgramDay): ProgramSlot[][] {
+  const dressCodeChars = day.dressCodes.reduce(
+    (sum, dc) => sum + dc.session.length + dc.code.length,
+    0,
+  );
+  return splitReportProgramDaySlots(
+    day.slots,
+    day.dressCodes.length,
+    dressCodeChars,
+  );
 }
 
 export type ReportProgramPage = {
@@ -999,7 +1006,7 @@ export function buildReportProgramPages(
     const day = days.find((entry) => entry.day === section.day);
     if (!day) continue;
 
-    const slotPages = splitReportDaySlots(day.slots);
+    const slotPages = splitReportDaySlots(day);
     slotPages.forEach((slots, pageIndex) => {
       pages.push({
         sectionNum: section.sectionNum,

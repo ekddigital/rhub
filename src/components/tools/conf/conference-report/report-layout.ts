@@ -232,33 +232,58 @@ export function photoGridAvailableHeight(
   return reportUsableHeight(chrome);
 }
 
-/** Attendance table row height (compact cells + 13.5px type). */
-export const REPORT_ATTENDANCE_ROW_HEIGHT = 24;
+/**
+ * Attendance table body row height — measured from rendered cells
+ * (5px vertical padding × 2 + 13.5px type line box + 1px border).
+ * Underestimating this caused overflow:hidden to clip ~8 rows per page.
+ */
+export const REPORT_ATTENDANCE_ROW_HEIGHT = 31;
 export const REPORT_ATTENDANCE_HEADER_HEIGHT = 26;
 
-export function attendanceRowsForPage(isFirstPage: boolean): number {
+/** Source citation block below the table on the first attendance page. */
+export const REPORT_ATTENDANCE_SOURCE_BLOCK = estimateBodyParagraphHeight(
+  "Source: Official Jinan 2026 registration and fees register (conference-attendance.xlsx).",
+);
+
+export function attendanceRowsForPage(
+  isFirstPage: boolean,
+  options?: { includeSourceBlock?: boolean },
+): number {
   const chrome: ReportPageChrome = isFirstPage ? "sectionTitle" : "continuation";
-  const available = reportUsableHeight(chrome);
+  let available = reportUsableHeight(chrome);
+  if (isFirstPage && options?.includeSourceBlock) {
+    available -= REPORT_ATTENDANCE_SOURCE_BLOCK;
+  }
   return Math.max(
-    20,
+    10,
     Math.floor(
       (available - REPORT_ATTENDANCE_HEADER_HEIGHT) / REPORT_ATTENDANCE_ROW_HEIGHT,
     ),
   );
 }
 
-/** Variable-size attendance chunks — first page fits section title. */
+/** Variable-size attendance chunks — first page fits section title + source note. */
 export function chunkAttendanceVariable<T>(rows: readonly T[]): T[][] {
   if (rows.length === 0) return [];
+
   const chunks: T[][] = [];
   let offset = 0;
   let isFirst = true;
 
   while (offset < rows.length) {
-    const size = attendanceRowsForPage(isFirst);
+    const size = attendanceRowsForPage(isFirst, {
+      includeSourceBlock: isFirst,
+    });
     chunks.push(rows.slice(offset, offset + size) as T[]);
     offset += size;
     isFirst = false;
+  }
+
+  const totalChunked = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  if (totalChunked !== rows.length) {
+    throw new Error(
+      `Attendance pagination error: chunked ${totalChunked} rows but source has ${rows.length}`,
+    );
   }
 
   return chunks;

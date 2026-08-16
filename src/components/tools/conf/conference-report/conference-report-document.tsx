@@ -1429,6 +1429,7 @@ export function ConferenceReportDocument({
                 content={runtime.booklet}
                 days={plan.days}
                 showIntro={plan.showIntro}
+                showTitle={plan.pageIndex === 0}
               />
             </>
           )}
