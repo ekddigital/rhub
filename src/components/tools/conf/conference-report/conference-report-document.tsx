@@ -2762,7 +2762,19 @@ export function ConferenceReportDocument({
             ))}
           </tbody>
         </table>
+      </ReportPage>
 
+      <ReportPage pageNum={nextPage()} sectionLabel="Appendix — IEC-2026 (cont.)">
+        <div
+          style={{
+            fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+            fontWeight: REPORT_CONTINUATION.fontWeight,
+            color: REPORT_CONTINUATION.color,
+            marginBottom: "8px",
+          }}
+        >
+          28. Appendices — IEC-2026 Election Report (continued)
+        </div>
         <div
           style={{
             fontSize: `${REPORT_SUBSECTION.fontSize}px`,
@@ -2825,98 +2837,98 @@ export function ConferenceReportDocument({
             ))}
           </tbody>
         </table>
-      </ReportPage>
-
-      <ReportPage pageNum={nextPage()} sectionLabel="Appendix — IEC-2026 (cont.)">
-        <div
-          style={{
-            fontSize: `${REPORT_CONTINUATION.fontSize}px`,
-            fontWeight: REPORT_CONTINUATION.fontWeight,
-            color: REPORT_CONTINUATION.color,
-            marginBottom: "8px",
-          }}
-        >
-          28. Appendices — IEC-2026 Election Report (continued)
-        </div>
-        <div
-          style={{
-            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
-            fontWeight: REPORT_SUBSECTION.fontWeight,
-            color: REPORT_SUBSECTION.color,
-            marginBottom: "6px",
-          }}
-        >
-          Electoral Process & Initiatives
-        </div>
-        {IEC_ELECTORAL_INITIATIVES.map((item) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "4px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {item}
-          </div>
-        ))}
 
         <div
           style={{
-            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
-            fontWeight: REPORT_SUBSECTION.fontWeight,
-            color: REPORT_SUBSECTION.color,
-            marginTop: "8px",
-            marginBottom: "6px",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "16px",
+            alignItems: "start",
           }}
         >
-          IEC-2026 Commission
-        </div>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE.fontSize}px`,
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#F0F7FF" }}>
-              {["Name", "Position", "City"].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: REPORT_TABLE.cellPadding,
-                    textAlign: "left",
-                    fontWeight: 700,
-                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
-                    color: C.blue,
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {IEC_COMMISSIONERS.map((row, idx) => (
-              <tr
-                key={row.name}
+          <div>
+            <div
+              style={{
+                fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+                fontWeight: REPORT_SUBSECTION.fontWeight,
+                color: REPORT_SUBSECTION.color,
+                marginBottom: "6px",
+              }}
+            >
+              Electoral Process & Initiatives
+            </div>
+            {IEC_ELECTORAL_INITIATIVES.map((item) => (
+              <div
+                key={item.slice(0, 30)}
                 style={{
-                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
-                  borderBottom: "1px solid #E5E7EB",
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  color: REPORT_LIST_ITEM.color,
+                  marginBottom: "4px",
+                  paddingLeft: "10px",
+                  lineHeight: REPORT_LIST_ITEM.lineHeight,
                 }}
               >
-                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
-                  {row.name}
-                </td>
-                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.role}</td>
-                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.city}</td>
-              </tr>
+                • {item}
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+                fontWeight: REPORT_SUBSECTION.fontWeight,
+                color: REPORT_SUBSECTION.color,
+                marginBottom: "6px",
+              }}
+            >
+              IEC-2026 Commission
+            </div>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE.fontSize}px`,
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#F0F7FF" }}>
+                  {["Name", "Position", "City"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: REPORT_TABLE.cellPadding,
+                        textAlign: "left",
+                        fontWeight: 700,
+                        fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                        color: C.blue,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {IEC_COMMISSIONERS.map((row, idx) => (
+                  <tr
+                    key={row.name}
+                    style={{
+                      background: idx % 2 === 0 ? "#F8FAFC" : C.white,
+                      borderBottom: "1px solid #E5E7EB",
+                    }}
+                  >
+                    <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+                      {row.name}
+                    </td>
+                    <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.role}</td>
+                    <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.city}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </ReportPage>
     </div>
   );

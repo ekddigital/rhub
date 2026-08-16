@@ -7,7 +7,7 @@ import {
   REPORT_META,
   type ReportTocEntry,
 } from "./content-data";
-import { REPORT_TOC } from "./report-typography";
+import { REPORT_TOC as REPORT_TOC_TYPOGRAPHY } from "./report-typography";
 
 function TocDotLeader() {
   return (
@@ -54,8 +54,8 @@ function PageRangeBadge({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: `${REPORT_TOC.badge.fontSize}px`,
-        fontWeight: REPORT_TOC.badge.fontWeight,
+        fontSize: `${REPORT_TOC_TYPOGRAPHY.badge.fontSize}px`,
+        fontWeight: REPORT_TOC_TYPOGRAPHY.badge.fontWeight,
         color: highlighted ? C.white : C.blue,
         flexShrink: 0,
         lineHeight: 1,
@@ -110,9 +110,9 @@ export function ConferenceReportTocPage({
           <div style={{ marginBottom: "20px", flexShrink: 0 }}>
             <div
               style={{
-                fontSize: `${REPORT_TOC.title.fontSize}px`,
-                fontWeight: REPORT_TOC.title.fontWeight,
-                color: REPORT_TOC.title.color,
+                fontSize: `${REPORT_TOC_TYPOGRAPHY.title.fontSize}px`,
+                fontWeight: REPORT_TOC_TYPOGRAPHY.title.fontWeight,
+                color: REPORT_TOC_TYPOGRAPHY.title.color,
                 marginBottom: "6px",
               }}
             >
@@ -153,7 +153,11 @@ export function ConferenceReportTocPage({
                     : "minmax(0, 1fr)",
                   columnGap: "8px",
                   alignItems: "center",
-                  padding: entry.isPartHeading ? "12px 12px 6px" : "9px 12px",
+                  padding: entry.isPartHeading
+                    ? "12px 12px 6px"
+                    : entry.isBookletEmbed
+                      ? "9px 12px 9px 28px"
+                      : "9px 12px",
                   borderRadius: "6px",
                   background: entry.isPartHeading
                     ? `${C.gold}12`
@@ -172,7 +176,7 @@ export function ConferenceReportTocPage({
                     minWidth: 0,
                   }}
                 >
-                  {!entry.isPartHeading && (
+                  {!entry.isPartHeading && !entry.isBookletEmbed && (
                     <div
                       style={{
                         width: "6px",
@@ -188,15 +192,19 @@ export function ConferenceReportTocPage({
                     <div
                       style={{
                         fontSize: entry.isPartHeading
-                          ? `${REPORT_TOC.entry.fontSize + 1}px`
-                          : `${REPORT_TOC.entry.fontSize}px`,
+                          ? `${REPORT_TOC_TYPOGRAPHY.entry.fontSize + 1}px`
+                          : `${REPORT_TOC_TYPOGRAPHY.entry.fontSize}px`,
                         fontWeight: entry.isPartHeading || highlighted ? 800 : 500,
                         color: entry.isPartHeading ? C.blue : highlighted ? C.blue : "#111111",
-                        lineHeight: REPORT_TOC.entry.lineHeight,
+                        lineHeight: REPORT_TOC_TYPOGRAPHY.entry.lineHeight,
                         letterSpacing: entry.isPartHeading ? "0.02em" : undefined,
                       }}
                     >
-                      {entry.isPartHeading ? entry.title : `${entry.num}. ${entry.title}`}
+                      {entry.isPartHeading
+                        ? entry.title
+                        : entry.isBookletEmbed
+                          ? entry.title
+                          : `${entry.num}. ${entry.title}`}
                     </div>
                   </div>
                 </div>
@@ -228,12 +236,7 @@ export function ConferenceReportTocPage({
   );
 }
 
-/** Keep the full TOC on one page when it fits A4 content height. */
-export function chunkReportToc(
-  entries: readonly ReportTocEntry[],
-): ReportTocEntry[][] {
-  return [entries.slice()];
-}
+export { chunkReportToc } from "./report-layout";
 
 /** TOC rows with computed page ranges for PDF preview. */
 export function resolveReportTocEntries(

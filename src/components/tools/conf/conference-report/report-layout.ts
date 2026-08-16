@@ -7,6 +7,7 @@ import {
   REPORT_SECTION_TITLE,
   REPORT_SUBSECTION,
   REPORT_TABLE,
+  REPORT_TOC,
 } from "./report-typography";
 
 /** Report A4Page content padding (top + bottom). */
@@ -415,10 +416,37 @@ export function estimateRhubPlatformBlockHeight(
   }
 }
 
-/** Max capability bullets per §17 continuation page (keeps content above overflow clip). */
-const MAX_RHUB_CAPABILITIES_PER_PAGE = 5;
+function measureRhubPlatformPageHeight(
+  blocks: readonly RhubPlatformBlock[],
+  showSectionTitle: boolean,
+  introParagraphs: readonly string[],
+  platformAccessIntro: string,
+  linkRows: readonly { label: string; description: string; url: string }[],
+  capabilities: readonly string[],
+  closing: string,
+): number {
+  let height = showSectionTitle
+    ? REPORT_SECTION_TITLE_BLOCK
+    : REPORT_CONTINUATION_BLOCK;
+  let linkTableHeader = false;
+  for (const block of blocks) {
+    height += estimateRhubPlatformBlockHeight(
+      block,
+      introParagraphs,
+      platformAccessIntro,
+      linkRows,
+      capabilities,
+      closing,
+    );
+    if (block.kind === "linkRow" && !linkTableHeader) {
+      height += REPORT_TABLE_HEADER_HEIGHT;
+      linkTableHeader = true;
+    }
+  }
+  return height;
+}
 
-/** Paginate §17 rhub platform content — intro + access table, then capabilities + acknowledgement. */
+/** Paginate §22 rhub platform content — greedy pack using reportUsableHeight. */
 export function buildRhubPlatformPagePlans(
   introParagraphs: readonly string[],
   platformAccessIntro: string,
@@ -426,7 +454,7 @@ export function buildRhubPlatformPagePlans(
   capabilities: readonly string[],
   closing: string,
 ): RhubPlatformPagePlan[] {
-  const accessBlocks: RhubPlatformBlock[] = [
+  const allBlocks: RhubPlatformBlock[] = [
     ...introParagraphs.map(
       (_, index): RhubPlatformBlock => ({ kind: "intro", index }),
     ),
@@ -435,94 +463,85 @@ export function buildRhubPlatformPagePlans(
     ...linkRows.map(
       (_, index): RhubPlatformBlock => ({ kind: "linkRow", index }),
     ),
+    { kind: "capabilitiesHeader" },
+    ...capabilities.map(
+      (_, index): RhubPlatformBlock => ({ kind: "capability", index }),
+    ),
+    { kind: "closing" },
   ];
 
   const measurePage = (
     blocks: readonly RhubPlatformBlock[],
     showSectionTitle: boolean,
-  ): number => {
-    let height = showSectionTitle
-      ? REPORT_SECTION_TITLE_BLOCK
-      : REPORT_CONTINUATION_BLOCK;
-    let linkTableHeader = false;
-    for (const block of blocks) {
-      height += estimateRhubPlatformBlockHeight(
-        block,
-        introParagraphs,
-        platformAccessIntro,
-        linkRows,
-        capabilities,
-        closing,
-      );
-      if (block.kind === "linkRow" && !linkTableHeader) {
-        height += REPORT_TABLE_HEADER_HEIGHT;
-        linkTableHeader = true;
-      }
-    }
-    return height;
-  };
-
-  const accessBudget = reportUsableHeight("sectionTitle");
-  if (measurePage(accessBlocks, true) > accessBudget) {
-    throw new Error(
-      "Rhub platform access section exceeds one page — split intro or link table manually",
+  ) =>
+    measureRhubPlatformPageHeight(
+      blocks,
+      showSectionTitle,
+      introParagraphs,
+      platformAccessIntro,
+      linkRows,
+      capabilities,
+      closing,
     );
-  }
 
-  const pages: RhubPlatformPagePlan[] = [
-    {
-      pageIndex: 0,
-      showSectionTitle: true,
-      blocks: accessBlocks,
-    },
-  ];
+  const pages: RhubPlatformPagePlan[] = [];
+  let pending: RhubPlatformBlock[] = [];
+  let showSectionTitle = true;
 
-  let capOffset = 0;
-  let tailPageIndex = 0;
-  while (capOffset < capabilities.length) {
-    const chunk: RhubPlatformBlock[] = [];
-    if (tailPageIndex === 0) {
-      chunk.push({ kind: "capabilitiesHeader" });
-    }
-    const take = Math.min(
-      MAX_RHUB_CAPABILITIES_PER_PAGE,
-      capabilities.length - capOffset,
-    );
-    for (let i = 0; i < take; i += 1) {
-      chunk.push({ kind: "capability", index: capOffset + i });
-    }
-    capOffset += take;
-    tailPageIndex += 1;
+  const flushPage = () => {
+    if (pending.length === 0) return;
     pages.push({
       pageIndex: pages.length,
-      showSectionTitle: false,
-      blocks: chunk,
+      showSectionTitle,
+      blocks: pending,
     });
+    pending = [];
+    showSectionTitle = false;
+  };
+
+  for (const block of allBlocks) {
+    const candidate = [...pending, block];
+    const chrome = showSectionTitle ? "sectionTitle" : "continuation";
+    const budget =
+      reportUsableHeight(chrome) - REPORT_LAYOUT_SAFETY_MARGIN;
+    const height = measurePage(candidate, showSectionTitle);
+
+    if (pending.length > 0 && height > budget) {
+      flushPage();
+      pending = [block];
+      const nextBudget =
+        reportUsableHeight("continuation") - REPORT_LAYOUT_SAFETY_MARGIN;
+      const nextHeight = measurePage(pending, false);
+      if (nextHeight > nextBudget) {
+        throw new Error(
+          `Rhub platform block "${block.kind}" exceeds one continuation page`,
+        );
+      }
+    } else {
+      pending = candidate;
+    }
   }
 
-  pages.push({
-    pageIndex: pages.length,
-    showSectionTitle: false,
-    blocks: [{ kind: "closing" }],
-  });
+  flushPage();
 
-  const introPacked = pages
-    .flatMap((page) => page.blocks)
-    .filter((block) => block.kind === "intro").length;
-  const capPacked = pages
-    .flatMap((page) => page.blocks)
-    .filter((block) => block.kind === "capability").length;
+  const packed = pages.flatMap((page) => page.blocks);
+  const introPacked = packed.filter((block) => block.kind === "intro").length;
+  const capPacked = packed.filter((block) => block.kind === "capability").length;
+  const hasClosing = packed.some((block) => block.kind === "closing");
 
-  if (introPacked !== introParagraphs.length || capPacked !== capabilities.length) {
+  if (
+    introPacked !== introParagraphs.length ||
+    capPacked !== capabilities.length ||
+    !hasClosing
+  ) {
     throw new Error(
-      `Rhub platform pagination error: packed ${introPacked}/${introParagraphs.length} intro paragraphs and ${capPacked}/${capabilities.length} capabilities`,
+      `Rhub platform pagination error: packed ${introPacked}/${introParagraphs.length} intro paragraphs, ${capPacked}/${capabilities.length} capabilities, closing=${hasClosing}`,
     );
   }
 
   for (const page of pages) {
-    const budget = reportUsableHeight(
-      page.showSectionTitle ? "sectionTitle" : "continuation",
-    );
+    const chrome = page.showSectionTitle ? "sectionTitle" : "continuation";
+    const budget = reportUsableHeight(chrome);
     const height = measurePage(page.blocks, page.showSectionTitle);
     if (height > budget) {
       throw new Error(
@@ -531,5 +550,77 @@ export function buildRhubPlatformPagePlans(
     }
   }
 
+  return pages;
+}
+
+export type ReportTocLayoutEntry = {
+  num?: number;
+  title: string;
+  isPartHeading?: boolean;
+  isBookletEmbed?: boolean;
+  isProgramDay?: boolean;
+};
+
+/** TOC page uses 20px more vertical padding than interior report pages. */
+export const REPORT_TOC_EXTRA_PADDING_Y = 20;
+
+export const REPORT_TOC_TITLE_BLOCK =
+  REPORT_TOC.title.fontSize + 6 + 3 + 20;
+
+export const REPORT_TOC_ENTRY_GAP = 2;
+
+const REPORT_TOC_LINE_HEIGHT_PX = Math.ceil(
+  REPORT_TOC.entry.fontSize * REPORT_TOC.entry.lineHeight,
+);
+
+/** Estimate one TOC row height (matches ConferenceReportTocPage padding). */
+export function estimateReportTocEntryHeight(
+  entry: ReportTocLayoutEntry,
+): number {
+  const verticalPadding = entry.isPartHeading ? 12 + 6 : 9 + 9;
+  const label = entry.isPartHeading
+    ? entry.title
+    : entry.isBookletEmbed
+      ? entry.title
+      : `${entry.num}. ${entry.title}`;
+  const titleColWidth = REPORT_CONTENT_WIDTH - 72 - 40 - 16;
+  const charsPerLine = Math.floor(titleColWidth / 7.1);
+  const lines = Math.max(1, Math.ceil(label.length / charsPerLine));
+  return verticalPadding + lines * REPORT_TOC_LINE_HEIGHT_PX + REPORT_TOC_ENTRY_GAP;
+}
+
+/** Usable vertical space for TOC rows on a given TOC page index. */
+export function reportTocUsableHeight(pageIndex: number): number {
+  let height = REPORT_CONTENT_HEIGHT - REPORT_TOC_EXTRA_PADDING_Y;
+  if (pageIndex === 0) height -= REPORT_TOC_TITLE_BLOCK;
+  return height - REPORT_LAYOUT_SAFETY_MARGIN;
+}
+
+/** Paginate the table of contents across as many A4 pages as needed. */
+export function chunkReportToc<T extends ReportTocLayoutEntry>(
+  entries: readonly T[],
+): T[][] {
+  if (entries.length === 0) return [];
+
+  const pages: T[][] = [];
+  let current: T[] = [];
+  let pageIndex = 0;
+  let used = 0;
+  const budget = () => reportTocUsableHeight(pageIndex);
+
+  for (const entry of entries) {
+    const entryHeight = estimateReportTocEntryHeight(entry);
+    if (current.length > 0 && used + entryHeight > budget()) {
+      pages.push(current);
+      pageIndex += 1;
+      current = [entry];
+      used = entryHeight;
+    } else {
+      current.push(entry);
+      used += entryHeight;
+    }
+  }
+
+  if (current.length > 0) pages.push(current);
   return pages;
 }

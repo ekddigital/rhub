@@ -40,6 +40,7 @@ import {
   buildPreConferencePagePlans,
   buildRhubPlatformPagePlans,
   chunkAttendanceVariable,
+  chunkReportToc,
   FLYER_LANDSCAPE_ASPECT,
   FLYER_PORTRAIT_ASPECT,
   type FlyerItem,
@@ -476,7 +477,6 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
   { num: 5, title: "Conference Committee", id: "committee" },
   { num: 6, title: "Conference Overview", id: "overview" },
   {
-    num: 6,
     title: "Conference Booklet — Introduction & Program Outline",
     id: "booklet-embed",
     isBookletEmbed: true,
@@ -494,7 +494,11 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
   ...REPORT_TOC_AFTER_FINANCE,
 ];
 
-/** Resolve interior start pages for each TOC row (cover = 1, TOC = 2, body from 3). */
+export function countReportTocPages(): number {
+  return chunkReportToc(REPORT_TOC).length;
+}
+
+/** Resolve interior start pages for each TOC row (cover = 1, TOC = 2+, body after TOC). */
 export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportTocEntry[] {
   const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
   const preConferencePages = buildPreConferencePages();
@@ -503,7 +507,7 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const fixed = getReportFixedPageCounts(runtime);
 
-  let page = 3;
+  let page = 2 + fixed.toc;
   const executiveStart = page;
   page += REPORT_FIXED_PAGES.executiveAndObjectives;
 
@@ -1095,7 +1099,7 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
   const certificatePage = 1;
 
   return {
-    toc: 1,
+    toc: countReportTocPages(),
     executiveAndObjectives: 1,
     preConference: buildPreConferencePages().length,
     venueAndAccommodation: buildVenueAndAccommodationPageCount(),
@@ -1111,6 +1115,7 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     receiptEvidence: receiptEvidencePages,
     attendanceStats: 1,
     keynoteCertificate: certificatePage,
+    outcomes: 1,
     challenges: 1,
     rhubPlatform: buildRhubPlatformPages().length,
     lessonsAndAdvisories: 1,
@@ -1155,6 +1160,7 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.receiptEvidence +
     fixed.attendanceStats +
     fixed.keynoteCertificate +
+    fixed.outcomes +
     fixed.challenges +
     fixed.rhubPlatform +
     fixed.lessonsAndAdvisories +
