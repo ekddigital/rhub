@@ -21,7 +21,7 @@ import {
   COOKING_TRANSFERS,
   COOKING_TRANSPORTATION,
   computeCookingBalance,
-  computeCookingExpenditure,
+  COOKING_EXPENDITURE_CERTIFIED,
   COOKING_FUNDS_DISBURSED,
   type CookingAppendixPagePlan,
 } from "@/lib/conf/cooking-report-data";
@@ -113,7 +113,7 @@ export const ATTENDANCE_STATS = {
 export const FINANCE_SUMMARY = {
   delegateFeesCollected: ATTENDANCE_STATS.totalFeesRmb,
   cookingFundsDisbursed: COOKING_FUNDS_DISBURSED,
-  cookingExpenditure: computeCookingExpenditure(),
+  cookingExpenditure: COOKING_EXPENDITURE_CERTIFIED,
   cookingBalance: computeCookingBalance(),
   iecRevenue: 2_365.0,
   iecExpenditure: 948.69,

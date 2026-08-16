@@ -101,6 +101,10 @@ export const COOKING_TRANSPORTATION = 911.57;
 /** Certified disbursement figure from the Cooking Committee report. */
 export const COOKING_FUNDS_DISBURSED = 18_113.03;
 
+/** Certified reconciliation totals from cooking.md §4 (line items sum higher; report uses certified figures). */
+export const COOKING_EXPENDITURE_CERTIFIED = 17_538.08;
+export const COOKING_BALANCE_CERTIFIED = 574.95;
+
 export const COOKING_CERTIFICATION = {
   preparedBy: "Cooking Committee",
   reviewedBy: "Kukor Brooks",
@@ -119,7 +123,8 @@ export type CookingAppendixPagePlan = {
   pageIndex: number;
   pageCount: number;
   showIntro: boolean;
-  showFundsReceived: boolean;
+  showFinancialSummary: boolean;
+  showCategorySummary: boolean;
   sections: CookingAppendixSection[];
   showTransfers: boolean;
   showTransportation: boolean;
@@ -155,7 +160,16 @@ export function computeCookingExpenditure(): number {
 }
 
 export function computeCookingBalance(): number {
-  return COOKING_FUNDS_DISBURSED - computeCookingExpenditure();
+  return COOKING_BALANCE_CERTIFIED;
+}
+
+/** Certified cooking finance summary — single source of truth for report and payments tool. */
+export function buildCertifiedCookingFinanceSummary() {
+  return {
+    cookingFundsDisbursed: COOKING_FUNDS_DISBURSED,
+    cookingExpenditure: COOKING_EXPENDITURE_CERTIFIED,
+    cookingBalance: COOKING_BALANCE_CERTIFIED,
+  } as const;
 }
 
 const COOKING_APPENDIX_SECTIONS: readonly CookingAppendixSection[] = [
@@ -197,7 +211,8 @@ export function buildCookingAppendixPages(
 
   pushPage({
     showIntro: true,
-    showFundsReceived: true,
+    showFinancialSummary: true,
+    showCategorySummary: true,
     sections: [],
     showTransfers: false,
     showTransportation: false,
@@ -237,7 +252,8 @@ export function buildCookingAppendixPages(
 
     pushPage({
       showIntro: false,
-      showFundsReceived: false,
+      showFinancialSummary: false,
+      showCategorySummary: false,
       sections: pageSections,
       showTransfers: false,
       showTransportation: false,
@@ -248,7 +264,8 @@ export function buildCookingAppendixPages(
 
   pushPage({
     showIntro: false,
-    showFundsReceived: false,
+    showFinancialSummary: false,
+    showCategorySummary: false,
     sections: [],
     showTransfers: true,
     showTransportation: true,

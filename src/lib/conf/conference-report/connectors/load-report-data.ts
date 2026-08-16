@@ -4,7 +4,6 @@ import { buildReportAttendanceStats } from "./delegates";
 import {
   loadReportApprovedBudgets,
   loadReportConferenceBudgetVsActual,
-  selectCookingApprovedBudget,
 } from "./budget";
 import {
   buildStaticCookingFinanceSummary,
@@ -32,24 +31,15 @@ const STATIC_IEC_FINANCE = {
 
 function buildFinanceSummary(args: {
   attendanceRows: readonly ReportAttendanceRow[];
-  cookingOverride?: Partial<
-    Pick<
-      ReportFinanceSummary,
-      "cookingFundsDisbursed" | "cookingExpenditure" | "cookingBalance"
-    >
-  >;
 }): ReportFinanceSummary {
   const stats = buildReportAttendanceStats(args.attendanceRows);
   const cooking = buildStaticCookingFinanceSummary();
 
   return {
     delegateFeesCollected: stats.totalFeesRmb,
-    cookingFundsDisbursed:
-      args.cookingOverride?.cookingFundsDisbursed ?? cooking.cookingFundsDisbursed,
-    cookingExpenditure:
-      args.cookingOverride?.cookingExpenditure ?? cooking.cookingExpenditure,
-    cookingBalance:
-      args.cookingOverride?.cookingBalance ?? cooking.cookingBalance,
+    cookingFundsDisbursed: cooking.cookingFundsDisbursed,
+    cookingExpenditure: cooking.cookingExpenditure,
+    cookingBalance: cooking.cookingBalance,
     ...STATIC_IEC_FINANCE,
   };
 }
@@ -82,18 +72,9 @@ export async function loadConferenceReportConnectorData(
 
   const attendance = resolveAttendance();
 
-  const cookingBudget = selectCookingApprovedBudget(budgetData.budgets);
-  const cookingFinanceOverride =
-    cookingBudget && cookingBudget.grandTotal > 0
-      ? {
-          cookingFundsDisbursed: cookingBudget.grandTotal,
-        }
-      : undefined;
-
   const budgetVsActual = loadReportConferenceBudgetVsActual();
   const financeSummary = buildFinanceSummary({
     attendanceRows: attendance.rows,
-    cookingOverride: cookingFinanceOverride,
   });
 
   return {

@@ -297,6 +297,9 @@ export const REPORT_SUBSECTION_TITLE_BLOCK =
 
 export const REPORT_TABLE_HEADER_HEIGHT = 26;
 
+/** Conservative margin so measured pagination stays below ReportA4Page overflow clip. */
+export const REPORT_LAYOUT_SAFETY_MARGIN = 64;
+
 /** Estimate height for a bulleted list item at interior width. */
 export function estimateReportListItemHeight(text: string): number {
   const charsPerLine = Math.floor(REPORT_CONTENT_WIDTH / 7.2);
@@ -306,18 +309,35 @@ export function estimateReportListItemHeight(text: string): number {
   );
 }
 
-/** Platform access table row — label plus description subtext in the first column. */
+/** §17 capability bullet — indented list with reduced wrap width. */
+export function estimateRhubCapabilityItemHeight(text: string): number {
+  const indentPx = 18;
+  const charsPerLine = Math.floor((REPORT_CONTENT_WIDTH - indentPx) / 6.6);
+  const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+  return (
+    lines * Math.ceil(REPORT_LIST_ITEM.fontSize * REPORT_LIST_ITEM.lineHeight) + 6
+  );
+}
+
+/** Platform access table row — label, description, and URL column wrapping. */
 export function estimateRhubLinkRowHeight(
   label: string,
   description: string,
+  url: string,
 ): number {
   const labelColWidth = Math.floor(REPORT_CONTENT_WIDTH * 0.48);
-  const charsPerLine = Math.floor(labelColWidth / 6.8);
-  const labelLines = Math.max(1, Math.ceil(label.length / charsPerLine));
-  const descLines = Math.max(1, Math.ceil(description.length / charsPerLine));
+  const urlColWidth = REPORT_CONTENT_WIDTH - labelColWidth;
+  const labelCharsPerLine = Math.floor(labelColWidth / 6.8);
+  const labelLines = Math.max(1, Math.ceil(label.length / labelCharsPerLine));
+  const descLines = Math.max(
+    1,
+    Math.ceil(description.length / labelCharsPerLine),
+  );
+  const urlCharsPerLine = Math.floor(urlColWidth / 6.2);
+  const urlLines = Math.max(1, Math.ceil(url.length / urlCharsPerLine));
   const lineHeight = Math.ceil(REPORT_TABLE.fontSize * 1.35);
   const padding = 12;
-  return padding + (labelLines + descLines) * lineHeight + 4;
+  return padding + Math.max(labelLines + descLines, urlLines) * lineHeight + 6;
 }
 
 /** Scale a portrait image to fit the remaining height on a report page. */
@@ -367,7 +387,7 @@ export function estimateRhubPlatformBlockHeight(
   block: RhubPlatformBlock,
   introParagraphs: readonly string[],
   platformAccessIntro: string,
-  linkRows: readonly { label: string; description: string }[],
+  linkRows: readonly { label: string; description: string; url: string }[],
   capabilities: readonly string[],
   closing: string,
 ): number {
@@ -381,13 +401,13 @@ export function estimateRhubPlatformBlockHeight(
     case "linkRow": {
       const row = linkRows[block.index];
       return row
-        ? estimateRhubLinkRowHeight(row.label, row.description)
+        ? estimateRhubLinkRowHeight(row.label, row.description, row.url)
         : REPORT_TABLE_HEADER_HEIGHT;
     }
     case "capabilitiesHeader":
-      return REPORT_SUBSECTION_TITLE_BLOCK + 4;
+      return REPORT_SUBSECTION_TITLE_BLOCK + 12;
     case "capability":
-      return estimateReportListItemHeight(capabilities[block.index] ?? "");
+      return estimateRhubCapabilityItemHeight(capabilities[block.index] ?? "");
     case "closing":
       return estimateBodyParagraphHeight(closing);
     default:
@@ -395,11 +415,14 @@ export function estimateRhubPlatformBlockHeight(
   }
 }
 
+/** Max capability bullets per §17 continuation page (keeps content above overflow clip). */
+const MAX_RHUB_CAPABILITIES_PER_PAGE = 5;
+
 /** Paginate §17 rhub platform content — intro + access table, then capabilities + acknowledgement. */
 export function buildRhubPlatformPagePlans(
   introParagraphs: readonly string[],
   platformAccessIntro: string,
-  linkRows: readonly { label: string; description: string }[],
+  linkRows: readonly { label: string; description: string; url: string }[],
   capabilities: readonly string[],
   closing: string,
 ): RhubPlatformPagePlan[] {
@@ -412,14 +435,6 @@ export function buildRhubPlatformPagePlans(
     ...linkRows.map(
       (_, index): RhubPlatformBlock => ({ kind: "linkRow", index }),
     ),
-  ];
-
-  const tailBlocks: RhubPlatformBlock[] = [
-    { kind: "capabilitiesHeader" },
-    ...capabilities.map(
-      (_, index): RhubPlatformBlock => ({ kind: "capability", index }),
-    ),
-    { kind: "closing" },
   ];
 
   const measurePage = (
@@ -462,42 +477,34 @@ export function buildRhubPlatformPagePlans(
     },
   ];
 
-  let tailOffset = 0;
-  while (tailOffset < tailBlocks.length) {
-    const budget = reportUsableHeight("continuation");
+  let capOffset = 0;
+  let tailPageIndex = 0;
+  while (capOffset < capabilities.length) {
     const chunk: RhubPlatformBlock[] = [];
-    let chunkHeight = REPORT_CONTINUATION_BLOCK;
-
-    while (tailOffset < tailBlocks.length) {
-      const block = tailBlocks[tailOffset];
-      const blockHeight = estimateRhubPlatformBlockHeight(
-        block,
-        introParagraphs,
-        platformAccessIntro,
-        linkRows,
-        capabilities,
-        closing,
-      );
-
-      if (chunk.length > 0 && chunkHeight + blockHeight > budget - 8) {
-        break;
-      }
-
-      chunk.push(block);
-      chunkHeight += blockHeight;
-      tailOffset += 1;
+    if (tailPageIndex === 0) {
+      chunk.push({ kind: "capabilitiesHeader" });
     }
-
-    if (chunk.length === 0) {
-      throw new Error("Rhub platform tail pagination stalled");
+    const take = Math.min(
+      MAX_RHUB_CAPABILITIES_PER_PAGE,
+      capabilities.length - capOffset,
+    );
+    for (let i = 0; i < take; i += 1) {
+      chunk.push({ kind: "capability", index: capOffset + i });
     }
-
+    capOffset += take;
+    tailPageIndex += 1;
     pages.push({
       pageIndex: pages.length,
       showSectionTitle: false,
       blocks: chunk,
     });
   }
+
+  pages.push({
+    pageIndex: pages.length,
+    showSectionTitle: false,
+    blocks: [{ kind: "closing" }],
+  });
 
   const introPacked = pages
     .flatMap((page) => page.blocks)
@@ -517,7 +524,7 @@ export function buildRhubPlatformPagePlans(
       page.showSectionTitle ? "sectionTitle" : "continuation",
     );
     const height = measurePage(page.blocks, page.showSectionTitle);
-    if (height > budget + 4) {
+    if (height > budget) {
       throw new Error(
         `Rhub platform page ${page.pageIndex + 1} exceeds budget: ${Math.round(height)}px > ${Math.round(budget)}px`,
       );

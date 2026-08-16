@@ -1,8 +1,4 @@
-import {
-  COOKING_FUNDS_DISBURSED,
-  computeCookingBalance,
-  computeCookingExpenditure,
-} from "@/lib/conf/cooking-report-data";
+import { buildCertifiedCookingFinanceSummary } from "@/lib/conf/cooking-report-data";
 import { buildPaymentReceiptPhotoEntries } from "@/lib/conf/payment-receipt-entries";
 import { RECEIPTS_PER_PAGE_MAX } from "@/lib/conf/document-receipt-photos";
 import { mapPaymentsForClient } from "@/lib/conf/payment-proof-urls";
@@ -58,11 +54,7 @@ export async function loadReportCookingPayments(confId: string): Promise<{
 }
 
 export function buildStaticCookingFinanceSummary() {
-  return {
-    cookingFundsDisbursed: COOKING_FUNDS_DISBURSED,
-    cookingExpenditure: computeCookingExpenditure(),
-    cookingBalance: computeCookingBalance(),
-  };
+  return buildCertifiedCookingFinanceSummary();
 }
 
 /** ~6 receipt screenshots per report appendix page (2×3 grid). */

@@ -2373,7 +2373,7 @@ export function ConferenceReportDocument({
               <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
             ))}
 
-          {page.showFundsReceived && (
+          {page.showFinancialSummary && (
             <table
               style={{
                 width: "100%",
@@ -2384,7 +2384,7 @@ export function ConferenceReportDocument({
             >
               <thead>
                 <tr style={{ background: C.blue, color: C.white }}>
-                  {["Description", "Amount (RMB)"].map((h) => (
+                  {["Financial Summary", "Amount (RMB)"].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -2398,22 +2398,47 @@ export function ConferenceReportDocument({
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                  <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
-                    Total Funds Disbursed
-                  </td>
-                  <td
-                    style={{
-                      padding: REPORT_TABLE_PROSE.cellPadding,
-                      textAlign: "right",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {formatRmb(financeSummary.cookingFundsDisbursed)}
-                  </td>
-                </tr>
+                {[
+                  ["Total Funds Disbursed", financeSummary.cookingFundsDisbursed],
+                  ["Total Expenditure", financeSummary.cookingExpenditure],
+                  ["Unexpended Balance", financeSummary.cookingBalance],
+                ].map(([label, value]) => (
+                  <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                      {label}
+                    </td>
+                    <td
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "right",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatRmb(Number(value))}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
+          )}
+
+          {page.showCategorySummary && (
+            <>
+              <div
+                style={{
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  fontWeight: 700,
+                  color: C.blue,
+                  marginBottom: "4px",
+                }}
+              >
+                Expenditure by Category
+              </div>
+              <CookingExpenditureByCategoryTable
+                categories={cookingBudgetCategories}
+                totalExpenditure={financeSummary.cookingExpenditure}
+              />
+            </>
           )}
 
           {page.sections.map((section) => (

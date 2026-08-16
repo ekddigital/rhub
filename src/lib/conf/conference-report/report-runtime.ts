@@ -1,6 +1,9 @@
 import {
   buildCookingAppendixPages,
   buildCookingBudgetCategories,
+  COOKING_BALANCE_CERTIFIED,
+  COOKING_EXPENDITURE_CERTIFIED,
+  COOKING_FUNDS_DISBURSED,
 } from "@/lib/conf/cooking-report-data";
 import type { ReceiptPhotoEntry } from "@/lib/conf/document-receipt-photos";
 import type { KeynoteCertificateData } from "@/lib/conf/keynote-certificate-data";
@@ -71,9 +74,9 @@ export function createReportRuntimeContext(
 
   const financeSummary: ReportFinanceSummary = connector?.financeSummary ?? {
     delegateFeesCollected: attendanceStats.totalFeesRmb,
-    cookingFundsDisbursed: 18_113.03,
-    cookingExpenditure: 17_538.08,
-    cookingBalance: 574.95,
+    cookingFundsDisbursed: COOKING_FUNDS_DISBURSED,
+    cookingExpenditure: COOKING_EXPENDITURE_CERTIFIED,
+    cookingBalance: COOKING_BALANCE_CERTIFIED,
     ...STATIC_IEC,
   };
 
