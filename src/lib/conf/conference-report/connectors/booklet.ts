@@ -3,6 +3,9 @@ import {
   DEFAULT_CONFERENCE_INTRO,
   DEFAULT_PROGRAM_OUTLINE_INTRO,
   LSUIC_OVERVIEW_PARAGRAPHS,
+  LSUIC_PAST_CONFERENCES,
+  LSUIC_PRESIDENT_HISTORY,
+  resolveLsuicOverviewBody,
 } from "@/lib/conf/booklet-conference-copy";
 import {
   resolveProgramOutline,
@@ -12,10 +15,20 @@ import {
   DEFAULT_CHAIRMAN_ADDRESS,
   DEFAULT_PRESIDENT_ADDRESS,
   resolveConferenceIntroBody,
-  resolveTextSectionBody,
 } from "@/lib/conf/resolve-booklet-section-content";
 import type { BookletSection } from "@/components/tools/conf/booklet/types";
 import type { ReportDataSource } from "./types";
+
+export type ReportBookletPresidentRow = {
+  no: number;
+  name: string;
+  term: string;
+};
+
+export type ReportBookletVenueRow = {
+  city: string;
+  year: string;
+};
 
 export type ReportBookletBlock = {
   key: string;
@@ -24,6 +37,11 @@ export type ReportBookletBlock = {
   speakerName?: string;
   speakerTitle?: string;
   paragraphs: string[];
+};
+
+export type ReportBookletOverviewTables = {
+  presidents: ReportBookletPresidentRow[];
+  venues: ReportBookletVenueRow[];
 };
 
 export type ReportBookletProgramDay = {
@@ -40,7 +58,7 @@ export type ReportBookletContent = {
   introduction: ReportBookletBlock;
   chairmanAddress: ReportBookletBlock;
   presidentAddress: ReportBookletBlock;
-  overview: ReportBookletBlock | null;
+  overview: (ReportBookletBlock & { tables: ReportBookletOverviewTables }) | null;
   programOutline: {
     welcomeTitle: string;
     intro: string;
@@ -98,6 +116,20 @@ function mapProgramDays(days: ProgramOutlineDay[]): ReportBookletProgramDay[] {
   }));
 }
 
+function mapOverviewTables(): ReportBookletOverviewTables {
+  return {
+    presidents: LSUIC_PRESIDENT_HISTORY.map((row, index) => ({
+      no: index + 1,
+      name: row.name,
+      term: row.term,
+    })),
+    venues: LSUIC_PAST_CONFERENCES.map((row) => ({
+      city: row.city,
+      year: row.year,
+    })),
+  };
+}
+
 function buildFromSections(
   sections: readonly BookletSection[],
   source: ReportDataSource,
@@ -119,7 +151,7 @@ function buildFromSections(
     presidentSection?.bodyText?.trim() || DEFAULT_PRESIDENT_ADDRESS;
 
   const overviewText = overviewSection
-    ? resolveTextSectionBody(overviewSection)
+    ? resolveLsuicOverviewBody(overviewSection.bodyText)
     : LSUIC_OVERVIEW_PARAGRAPHS;
 
   const resolvedProgram = resolveProgramOutline(programSection);
@@ -151,6 +183,7 @@ function buildFromSections(
           title: overviewSection?.title ?? "Overview of LSUIC",
           subtitle: overviewSection?.subtitle ?? undefined,
           paragraphs: splitParagraphs(overviewText),
+          tables: mapOverviewTables(),
         }
       : null,
     programOutline: {
@@ -279,12 +312,34 @@ export function paginateReportBookletProgramOutline(
   return pages.length > 0 ? pages : [{ showIntro: true, days: [] }];
 }
 
+/** LSUIC overview — page 1: intro + presidents; page 2: venues (matches booklet). */
+export function paginateReportBookletOverview(
+  overview: NonNullable<ReportBookletContent["overview"]>,
+): Array<{
+  paragraphs: string[];
+  showPresidents: boolean;
+  showVenues: boolean;
+}> {
+  return [
+    {
+      paragraphs: overview.paragraphs,
+      showPresidents: true,
+      showVenues: false,
+    },
+    {
+      paragraphs: [],
+      showPresidents: false,
+      showVenues: true,
+    },
+  ];
+}
+
 /** Estimate report pages for booklet embed sections (after §6 Overview). */
 export function countReportBookletPages(content: ReportBookletContent): number {
   let pages = 0;
   pages += chunkBookletParagraphs(content.introduction.paragraphs, 3).length;
   if (content.overview) {
-    pages += chunkBookletParagraphs(content.overview.paragraphs, 3).length;
+    pages += paginateReportBookletOverview(content.overview).length;
   }
   pages += Math.max(1, paginateReportBookletProgramOutline(content).length);
   return pages;
@@ -296,6 +351,15 @@ export function buildReportBookletPagePlans(content: ReportBookletContent) {
         kind: "block";
         block: ReportBookletBlock;
         paragraphs: string[];
+        pageIndex: number;
+        pageCount: number;
+      }
+    | {
+        kind: "overview";
+        block: NonNullable<ReportBookletContent["overview"]>;
+        paragraphs: string[];
+        showPresidents: boolean;
+        showVenues: boolean;
         pageIndex: number;
         pageCount: number;
       }
@@ -325,7 +389,18 @@ export function buildReportBookletPagePlans(content: ReportBookletContent) {
 
   pushBlock(content.introduction, 3);
   if (content.overview) {
-    pushBlock(content.overview, 3);
+    const overviewPages = paginateReportBookletOverview(content.overview);
+    overviewPages.forEach((page, pageIndex) => {
+      plans.push({
+        kind: "overview",
+        block: content.overview!,
+        paragraphs: page.paragraphs,
+        showPresidents: page.showPresidents,
+        showVenues: page.showVenues,
+        pageIndex,
+        pageCount: overviewPages.length,
+      });
+    });
   }
 
   const programPages = paginateReportBookletProgramOutline(content);

@@ -9,6 +9,9 @@ import {
 import {
   LIBERIAN_NATIONAL_ANTHEM,
   LSUIC_HISTORY_MILESTONES,
+  LSUIC_OVERVIEW_INTRO_PARAGRAPHS,
+  LSUIC_OVERVIEW_NO_CONFERENCE_NOTE,
+  LSUIC_OVERVIEW_VENUES_CLOSING,
   LSUIC_PAST_CONFERENCES,
   LSUIC_PRESIDENT_HISTORY,
 } from "@/lib/conf/booklet-conference-copy";
@@ -149,7 +152,7 @@ export function TextSection({
     : isOverviewContinuationPage
       ? [] // continuation page: tables replace the prose
       : showOverviewPresidents
-        ? paragraphs.slice(0, 2)
+        ? paragraphs.slice(0, LSUIC_OVERVIEW_INTRO_PARAGRAPHS.length)
         : paragraphs;
 
   return (
@@ -443,15 +446,21 @@ export function TextSection({
             <p
               style={{
                 marginTop: "10px",
+                marginBottom: "6px",
+                fontSize: "12.8px",
+                lineHeight: 1.56,
+              }}
+            >
+              {LSUIC_OVERVIEW_VENUES_CLOSING}
+            </p>
+            <p
+              style={{
                 marginBottom: 0,
                 fontSize: "12.8px",
                 lineHeight: 1.56,
               }}
             >
-              <strong>NB:</strong> There was no conference in 2007 because
-              conferences were originally held once every two years; during the
-              2008 conference in Wuhan, a referendum approved annual
-              conferences.
+              <strong>NB:</strong> {LSUIC_OVERVIEW_NO_CONFERENCE_NOTE}
             </p>
           </div>
         )}

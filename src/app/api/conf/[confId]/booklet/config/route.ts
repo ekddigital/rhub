@@ -8,7 +8,9 @@ import {
 } from "@/lib/conf/resolve-booklet-section-content";
 import {
   isStaleConferenceIntroBody,
+  isStaleLsuicOverviewBody,
   resolveConferenceIntroBody,
+  resolveLsuicOverviewBody,
   LIBERIAN_NATIONAL_ANTHEM,
   LSUIC_OVERVIEW_PARAGRAPHS,
   LSUIC_HISTORY_PARAGRAPHS,
@@ -937,15 +939,18 @@ export async function GET(
           }
 
           if (overviewExisting) {
+            const overviewBody = overviewExisting.bodyText?.trim()
+              ? isStaleLsuicOverviewBody(overviewExisting.bodyText)
+                ? resolveLsuicOverviewBody(overviewExisting.bodyText)
+                : overviewExisting.bodyText.trim()
+              : DEFAULT_LSUIC_OVERVIEW_BODY;
             await tx.confBookletSection.update({
               where: { id: overviewExisting.id },
               data: {
                 isEnabled: true,
                 subtitle:
                   overviewExisting.subtitle || OVERVIEW_SECTION_SUBTITLE,
-                bodyText:
-                  overviewExisting.bodyText?.trim() ||
-                  DEFAULT_LSUIC_OVERVIEW_BODY,
+                bodyText: overviewBody,
               },
             });
           }

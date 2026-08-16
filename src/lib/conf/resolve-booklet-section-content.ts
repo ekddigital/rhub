@@ -1,5 +1,8 @@
 import { resolveLeadersForBookletSection } from "@/lib/conf/resolve-booklet-leader";
-import { resolveConferenceIntroBody } from "@/lib/conf/booklet-conference-copy";
+import {
+  resolveConferenceIntroBody,
+  resolveLsuicOverviewBody,
+} from "@/lib/conf/booklet-conference-copy";
 import type {
   BookletData,
   BookletSection,
@@ -42,7 +45,9 @@ function normalizeLabel(value: string | null | undefined): string {
 export {
   DEFAULT_CONFERENCE_INTRO,
   isStaleConferenceIntroBody,
+  isStaleLsuicOverviewBody,
   resolveConferenceIntroBody,
+  resolveLsuicOverviewBody,
 } from "@/lib/conf/booklet-conference-copy";
 
 export function isConferenceIntroductionSection(
@@ -318,9 +323,16 @@ export function resolveRosterAddressPages(
   return pages;
 }
 
+function isLsuicOverviewSection(section: BookletSection): boolean {
+  return normalizeLabel(section.title).includes("overview of lsuic");
+}
+
 export function resolveTextSectionBody(section: BookletSection): string {
   if (isConferenceIntroductionSection(section)) {
     return resolveConferenceIntroBody(section.bodyText);
+  }
+  if (isLsuicOverviewSection(section)) {
+    return resolveLsuicOverviewBody(section.bodyText);
   }
   return trimContent(section.bodyText);
 }

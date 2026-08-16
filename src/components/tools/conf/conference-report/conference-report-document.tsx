@@ -26,6 +26,7 @@ import {
 import {
   ReportBookletBlockSection,
   ReportBookletContinuationLabel,
+  ReportBookletOverviewSection,
   ReportBookletProgramOutlineSection,
 } from "./ReportBookletSections";
 import {
@@ -1404,9 +1405,13 @@ export function ConferenceReportDocument({
               ? plan.pageIndex === 0
                 ? `Booklet — ${plan.block.title}`
                 : `Booklet — ${plan.block.title} (cont.)`
-              : plan.pageIndex === 0
-                ? "Booklet — Program Outline"
-                : "Booklet — Program Outline (cont.)"
+              : plan.kind === "overview"
+                ? plan.pageIndex === 0
+                  ? `Booklet — ${plan.block.title}`
+                  : `Booklet — ${plan.block.title} (cont.)`
+                : plan.pageIndex === 0
+                  ? "Booklet — Program Outline"
+                  : "Booklet — Program Outline (cont.)"
           }
         >
           {plan.kind === "block" ? (
@@ -1427,6 +1432,21 @@ export function ConferenceReportDocument({
                 showSource={
                   plan.pageIndex === 0 && plan.block.key === "introduction"
                 }
+              />
+            </>
+          ) : plan.kind === "overview" ? (
+            <>
+              {plan.pageIndex === 0 ? (
+                <SectionTitle>{plan.block.title}</SectionTitle>
+              ) : (
+                <ReportBookletContinuationLabel title={plan.block.title} />
+              )}
+              <ReportBookletOverviewSection
+                block={plan.block}
+                paragraphs={plan.paragraphs}
+                tables={plan.block.tables}
+                showPresidents={plan.showPresidents}
+                showVenues={plan.showVenues}
               />
             </>
           ) : (

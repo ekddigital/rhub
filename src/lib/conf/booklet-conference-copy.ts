@@ -70,13 +70,54 @@ export const PROGRAM_OUTLINE_INTRO_PARAGRAPHS = [
 export const DEFAULT_PROGRAM_OUTLINE_INTRO =
   PROGRAM_OUTLINE_INTRO_PARAGRAPHS.join("\n\n");
 
-/** Overview + historical reference section for LSUIC booklet pages. */
-export const LSUIC_OVERVIEW_PARAGRAPHS = [
+/** Overview intro prose — presidents and venues render from structured tables below. */
+export const LSUIC_OVERVIEW_INTRO_PARAGRAPHS = [
   "The Liberian Student Union in China (LSUIC) was established in July 2006 as a student-led organization committed to unity, academic excellence, leadership development, and welfare support for Liberian students across China. The union exists to strengthen communication among members, promote responsible representation, and build a constructive bridge between Liberian students, Chinese institutions, and Liberia's national interest.",
   "Over the years, LSUIC has grown from a small student network into a structured union with an elected National Executive Committee, city and provincial coordination, specialized committees, and annual general conferences that guide policy, leadership transition, and collective action. Through these structures, members support one another academically, socially, and professionally while preserving shared identity and service values.",
-  "Presidents of LSUIC (2006 - Present): Mr. Alexander Nuetah (2006-2010); Mr. Augustine F. Tokpa (2010-2011); Mr. Bernel S. Dennis (2011-2012); Dr. Presley K. Wesseh, Jr. (2012-2013); Ms. Patience M. Martor (2013-2014); Dr. Edwin N. Sumowar (2014-2015); Dr. Abimelech P. Gbatu (2015-2016); Mr. Mulbah Gbozee (2016-2017); Mr. Allen Bohr James (2017-2018); Dr. Charles Gbolie (2018-2019); Dr. Yamah Bavor King (2019-2020); Mr. Hassan Francis Whitfield (2020-2022); Mr. Emmet A. Johee Greene (2022-2023); Jacob Cephus Johnson (2023-2025); Hon. Gideon F. B. Solre (2025, 2 Weeks).",
-  "Past conference venues include Beijing, Wuhan, Tianjin, Shanghai, Changsha, Xuzhou, Hangzhou, Guangzhou, Nanjing, and other host cities over multiple years, including online-era transitions during 2020 and 2021. These annual gatherings remain central to LSUIC's identity: they renew leadership, strengthen democratic participation, and sustain institutional memory across generations.",
-].join("\n\n");
+] as const;
+
+export const LSUIC_OVERVIEW_PARAGRAPHS =
+  LSUIC_OVERVIEW_INTRO_PARAGRAPHS.join("\n\n");
+
+export const LSUIC_OVERVIEW_VENUES_CLOSING =
+  "These annual gatherings remain central to LSUIC's identity: they renew leadership, strengthen democratic participation, and sustain institutional memory across generations.";
+
+export const LSUIC_OVERVIEW_NO_CONFERENCE_NOTE =
+  "There was no conference in 2007 because conferences were originally held once every two years; during the 2008 conference in Wuhan, a referendum approved annual conferences.";
+
+const LEGACY_LSUIC_OVERVIEW_MARKERS = [
+  "Presidents of LSUIC (2006 - Present):",
+  "Past conference venues include Beijing",
+] as const;
+
+function normalizeOverviewCompare(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+export function isStaleLsuicOverviewBody(
+  bodyText: string | null | undefined,
+): boolean {
+  const trimmed = (bodyText ?? "").trim();
+  if (!trimmed) return false;
+
+  const normalized = normalizeOverviewCompare(trimmed);
+  const currentDefault = normalizeOverviewCompare(LSUIC_OVERVIEW_PARAGRAPHS);
+  if (normalized === currentDefault) return false;
+
+  return LEGACY_LSUIC_OVERVIEW_MARKERS.some((marker) =>
+    normalized.includes(normalizeOverviewCompare(marker)),
+  );
+}
+
+export function resolveLsuicOverviewBody(
+  bodyText: string | null | undefined,
+): string {
+  const trimmed = (bodyText ?? "").trim();
+  if (!trimmed || isStaleLsuicOverviewBody(trimmed)) {
+    return LSUIC_OVERVIEW_PARAGRAPHS;
+  }
+  return trimmed;
+}
 
 /** Union history section for booklet context and institutional continuity. */
 export const LSUIC_HISTORY_PARAGRAPHS = [
