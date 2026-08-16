@@ -14,6 +14,10 @@ import { REPORT_META } from "./content-data";
 const T = COVER_TYPOGRAPHY;
 const S = COVER_SPACING;
 
+/** Solid panels that match on-screen rgba overlays — html2canvas renders 8-digit hex + backdrop-filter as black. */
+const PDF_THEME_PANEL_BG = "#2a3348";
+const PDF_DETAILS_PANEL_BG = "#1a2744";
+
 export function ConferenceReportCoverPage() {
   return (
     <div
@@ -247,6 +251,8 @@ export function ConferenceReportCoverPage() {
         </div>
 
         <div
+          data-pdf-background={PDF_THEME_PANEL_BG}
+          data-pdf-border="1.5px solid #8a7340"
           style={{
             padding: `${S.themePaddingY}px ${S.themePaddingX}px`,
             borderRadius: "8px",
@@ -292,6 +298,8 @@ export function ConferenceReportCoverPage() {
         </div>
 
         <div
+          data-pdf-background={PDF_DETAILS_PANEL_BG}
+          data-pdf-border="1px solid #4a5568"
           style={{
             padding: `${S.detailsCardPaddingY}px ${S.detailsCardPaddingX}px`,
             borderRadius: "14px",

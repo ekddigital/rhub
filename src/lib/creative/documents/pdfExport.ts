@@ -525,6 +525,20 @@ function sanitizeClonedPageForCanvasCapture(
 ): void {
   const nodes = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
   for (const el of nodes) {
+    // backdrop-filter and 8-digit hex backgrounds render as opaque black in html2canvas
+    el.style.backdropFilter = "none";
+    el.style.setProperty("-webkit-backdrop-filter", "none");
+
+    const pdfBg = el.getAttribute("data-pdf-background");
+    if (pdfBg) {
+      el.style.background = pdfBg;
+      el.style.backgroundColor = pdfBg;
+    }
+    const pdfBorder = el.getAttribute("data-pdf-border");
+    if (pdfBorder) {
+      el.style.border = pdfBorder;
+    }
+
     const rect = el.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) {
       el.style.backgroundImage = "none";
