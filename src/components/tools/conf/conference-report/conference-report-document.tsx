@@ -1,10 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
 import { DocumentReceiptPhotosGrid } from "@/lib/conf/document-receipt-photos";
 import { chunkReportReceiptEntries } from "@/lib/conf/conference-report/connectors/payments";
-import {
-  chunkReportRoomPairings,
-  type ReportRuntimeContext,
-} from "@/lib/conf/conference-report/report-runtime";
+import { CONFERENCE_ATTENDANCE_XLSX_PUBLIC_PATH } from "@/lib/conf/conference-report/connectors/attendance-register-constants";
+import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 import type { ReportBudgetVsActualLine } from "@/lib/conf/conference-report/connectors/types";
 import { DocumentSignatureBlock } from "@/components/tools/conf/document-signature-block";
 import {
@@ -26,10 +24,6 @@ import {
   ReportBookletContinuationLabel,
   ReportBookletProgramOutlineSection,
 } from "./ReportBookletSections";
-import {
-  ReportRoomPairingsContinuationLabel,
-  ReportRoomPairingsTable,
-} from "./ReportRoomPairingsSection";
 import {
   ACKNOWLEDGEMENTS,
   buildCookingAppendixPages,
@@ -1073,7 +1067,6 @@ export function ConferenceReportDocument({
   const cookingBudgetCategories = runtime.cookingBudgetCategories;
   const budgetVsActual = runtime.budgetVsActual;
   const budgetVsActualTotals = runtime.budgetVsActualTotals;
-  const roomPairingChunks = chunkReportRoomPairings(runtime.roomPairings);
   const receiptAppendixChunks = chunkReportReceiptEntries(
     runtime.cookingReceiptEntries,
   );
@@ -1831,42 +1824,11 @@ export function ConferenceReportDocument({
             </div>
           )}
           <AttendanceTable rows={chunk} />
-        </ReportPage>
-      ))}
-
-      {roomPairingChunks.map((chunk, chunkIdx) => (
-        <ReportPage
-          key={`room-pairings-${chunkIdx}`}
-          pageNum={nextPage()}
-          sectionLabel={
-            chunkIdx === 0
-              ? "13. Room Assignments"
-              : "13. Room Assignments (cont.)"
-          }
-        >
-          {chunkIdx === 0 ? (
-            <SectionTitle>13. Full Attendance Register (cont.)</SectionTitle>
-          ) : (
-            <ReportRoomPairingsContinuationLabel />
-          )}
-          {chunkIdx === 0 && (
-            <div
-              style={{
-                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                fontWeight: 700,
-                color: C.blue,
-                marginBottom: "8px",
-              }}
-            >
-              Room Assignments and Pairings
-            </div>
-          )}
-          <ReportRoomPairingsTable rows={chunk} />
           {chunkIdx === 0 && (
             <BodyParagraph>
-              Source: Delegate workspace room assignments (
-              <ReportLink href="https://rhub.ekddigital.com/tools/conf/delegates">
-                rhub delegates tool
+              Source: Official Jinan 2026 registration and fees register (
+              <ReportLink href={CONFERENCE_ATTENDANCE_XLSX_PUBLIC_PATH}>
+                conference-attendance.xlsx
               </ReportLink>
               ).
             </BodyParagraph>

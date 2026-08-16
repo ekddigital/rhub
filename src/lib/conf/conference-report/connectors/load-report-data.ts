@@ -1,8 +1,6 @@
 import attendanceSnapshot from "@/components/tools/conf/conference-report/attendance.generated.json";
-import {
-  buildReportAttendanceStats,
-  loadReportDelegateData,
-} from "./delegates";
+import { loadReportAttendanceRegisterFromFile } from "./attendance-register";
+import { buildReportAttendanceStats } from "./delegates";
 import {
   loadReportApprovedBudgets,
   loadReportConferenceBudgetVsActual,
@@ -56,33 +54,33 @@ function buildFinanceSummary(args: {
   };
 }
 
-function resolveAttendance(
-  liveRows: ReportAttendanceRow[],
-  liveSource: ReportDataSource,
-): { rows: ReportAttendanceRow[]; source: ReportDataSource } {
-  if (liveRows.length > 0) {
-    return { rows: liveRows, source: liveSource };
+function resolveAttendance(): {
+  rows: ReportAttendanceRow[];
+  source: ReportDataSource;
+} {
+  const fromExcel = loadReportAttendanceRegisterFromFile();
+  if (fromExcel.attendanceRows.length > 0) {
+    return { rows: fromExcel.attendanceRows, source: "static" };
   }
-  return { rows: SNAPSHOT_ROWS, source: "snapshot" };
+  if (SNAPSHOT_ROWS.length > 0) {
+    return { rows: SNAPSHOT_ROWS, source: "snapshot" };
+  }
+  return { rows: [], source: "static" };
 }
 
 /** Aggregate live tool data for the conference report with certified static fallbacks. */
 export async function loadConferenceReportConnectorData(
   confId: string,
 ): Promise<ConferenceReportConnectorData> {
-  const [delegateData, budgetData, paymentData, certificateData, bookletData] =
+  const [budgetData, paymentData, certificateData, bookletData] =
     await Promise.all([
-      loadReportDelegateData(confId),
       loadReportApprovedBudgets(confId),
       loadReportCookingPayments(confId),
       Promise.resolve(loadReportKeynoteCertificate()),
       loadReportBookletContent(confId),
     ]);
 
-  const attendance = resolveAttendance(
-    delegateData.attendanceRows,
-    delegateData.source,
-  );
+  const attendance = resolveAttendance();
 
   const cookingBudget = selectCookingApprovedBudget(budgetData.budgets);
   const cookingFinanceOverride =
@@ -101,9 +99,6 @@ export async function loadConferenceReportConnectorData(
   return {
     attendanceRows: attendance.rows,
     attendanceSource: attendance.source,
-    roomPairings: delegateData.roomPairings,
-    roomPairingsSource:
-      delegateData.roomPairings.length > 0 ? delegateData.source : "static",
     approvedBudgets: budgetData.budgets,
     budgetsSource: budgetData.source,
     budgetVsActual: budgetVsActual.lines,

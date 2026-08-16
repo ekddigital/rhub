@@ -6,16 +6,15 @@ export type {
   ReportDataSource,
   ReportFinanceSummary,
   ReportPageCounts,
-  ReportRoomPairingRow,
 } from "./types";
 
 export {
   buildReportAttendanceStats,
-  chunkReportRoomPairings,
-  countReportRoomPairingPages,
   formatReportAttendanceRoomLabel,
   loadReportDelegateData,
 } from "./delegates";
+
+export { CONFERENCE_ATTENDANCE_XLSX_PUBLIC_PATH } from "./attendance-register-constants";
 
 export {
   loadReportApprovedBudgets,
@@ -42,8 +41,3 @@ export {
   loadReportKeynoteCertificate,
   REPORT_KEYNOTE_CERTIFICATE,
 } from "./certificates";
-
-export {
-  loadConferenceReportConnectorData,
-  REPORT_ATTENDANCE_SNAPSHOT,
-} from "./load-report-data";

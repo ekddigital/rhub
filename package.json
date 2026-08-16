@@ -21,7 +21,8 @@
     "setup:hotel-user": "tsx prisma/create-hotel-user.ts",
     "db:studio": "prisma studio",
     "test:delegate-uploads": "tsx tooling/test-delegate-upload-validation.ts",
-    "lsuic:roster-json": "tsx tooling/generate-lsuic-roster-json.ts"
+    "lsuic:roster-json": "tsx tooling/generate-lsuic-roster-json.ts",
+    "conf:attendance-json": "tsx tooling/generate-conference-attendance-json.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

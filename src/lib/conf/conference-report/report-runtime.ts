@@ -8,7 +8,6 @@ import { REPORT_KEYNOTE_CERTIFICATE } from "@/lib/conf/keynote-certificate-data"
 import type { AttendanceRow } from "@/components/tools/conf/conference-report/content-data";
 import {
   buildReportAttendanceStats,
-  chunkReportRoomPairings,
   loadReportConferenceBudgetVsActual,
 } from "@/lib/conf/conference-report/connectors";
 import {
@@ -24,13 +23,11 @@ import type {
   ReportBudgetVsActualTotals,
   ReportDataSource,
   ReportFinanceSummary,
-  ReportRoomPairingRow,
 } from "@/lib/conf/conference-report/connectors/types";
 import attendanceSnapshot from "@/components/tools/conf/conference-report/attendance.generated.json";
 
 export type ReportRuntimeSources = {
   attendance: ReportDataSource;
-  roomPairings: ReportDataSource;
   budgets: ReportDataSource;
   budgetVsActual: ReportDataSource;
   receipts: ReportDataSource;
@@ -42,7 +39,6 @@ export type ReportRuntimeContext = {
   attendanceRows: AttendanceRow[];
   attendanceStats: ReportAttendanceStats;
   financeSummary: ReportFinanceSummary;
-  roomPairings: ReportRoomPairingRow[];
   approvedBudgets: ReportApprovedBudget[];
   budgetVsActual: ReportBudgetVsActualLine[];
   budgetVsActualTotals: ReportBudgetVsActualTotals;
@@ -95,7 +91,6 @@ export function createReportRuntimeContext(
     attendanceRows,
     attendanceStats,
     financeSummary,
-    roomPairings: connector?.roomPairings ?? [],
     approvedBudgets: connector?.approvedBudgets ?? [],
     budgetVsActual: budgetVsActualData.lines,
     budgetVsActualTotals: budgetVsActualData.totals,
@@ -106,7 +101,6 @@ export function createReportRuntimeContext(
     cookingBudgetCategories: buildCookingBudgetCategories(),
     sources: {
       attendance: connector?.attendanceSource ?? "snapshot",
-      roomPairings: connector?.roomPairingsSource ?? "static",
       budgets: connector?.budgetsSource ?? "static",
       budgetVsActual: budgetVsActualData.source,
       receipts: connector?.receiptsSource ?? "static",
@@ -116,4 +110,4 @@ export function createReportRuntimeContext(
   };
 }
 
-export { chunkReportRoomPairings, buildCookingAppendixPages };
+export { buildCookingAppendixPages };

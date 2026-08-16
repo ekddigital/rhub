@@ -69,8 +69,6 @@ export type ReportAttendanceStats = {
 export type ConferenceReportConnectorData = {
   attendanceRows: ReportAttendanceRow[];
   attendanceSource: ReportDataSource;
-  roomPairings: ReportRoomPairingRow[];
-  roomPairingsSource: ReportDataSource;
   approvedBudgets: ReportApprovedBudget[];
   budgetsSource: ReportDataSource;
   budgetVsActual: ReportBudgetVsActualLine[];
@@ -87,6 +85,5 @@ export type ConferenceReportConnectorData = {
 };
 
 export type ReportPageCounts = {
-  roomPairingPages: number;
   receiptAppendixPages: number;
 };

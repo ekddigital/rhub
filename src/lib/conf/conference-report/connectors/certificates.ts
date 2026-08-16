@@ -5,6 +5,11 @@ import {
 } from "@/lib/conf/keynote-certificate-data";
 import type { ReportDataSource } from "./types";
 
+export {
+  KeynoteCertificateDocument,
+  KEYNOTE_CERTIFICATE_DESIGN_WIDTH,
+} from "@/components/tools/conf/keynote-certificate-document";
+
 /** Certificates tool uses in-memory defaults — shared static source for report embed. */
 export function loadReportKeynoteCertificate(): {
   certificate: KeynoteCertificateData;

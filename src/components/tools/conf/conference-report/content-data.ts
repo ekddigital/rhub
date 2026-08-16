@@ -28,7 +28,6 @@ import {
 import {
   countReportBookletPages,
   countReportReceiptAppendixPages,
-  countReportRoomPairingPages,
 } from "@/lib/conf/conference-report/connectors";
 import { buildStaticReportBookletContent } from "@/lib/conf/conference-report/connectors/booklet";
 import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
@@ -479,9 +478,6 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const preConferencePages = buildPreConferencePages();
   const programPages = buildReportProgramPages();
   const attendancePages = chunkAttendance(attendanceRows).length;
-  const roomPairingPages = runtime
-    ? countReportRoomPairingPages(runtime.roomPairings)
-    : 0;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const fixed = getReportFixedPageCounts(runtime);
   const appendixPages =
@@ -517,7 +513,7 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const financeStart = page;
   page += fixed.financeSummary;
   const registerStart = page;
-  page += attendancePages + roomPairingPages;
+  page += attendancePages;
   const guestsStart = page;
   page += fixed.keynoteCertificate;
   const outcomesStart = page++;
@@ -572,7 +568,7 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
         return {
           ...entry,
           startPage: registerStart,
-          pageSpan: attendancePages + roomPairingPages,
+          pageSpan: attendancePages,
         };
       case 14:
         return {
@@ -611,7 +607,7 @@ export const EXECUTIVE_SUMMARY = [
   "The Liberian Student Union in China (LSUIC) successfully convened its 20th Annual Conference & Anniversary at the Arcadia Spa Golf International Hotel in Jinan, Shandong Province, from 24 to 27 July 2026, under the theme Jinan 2026: Legacy and Influence.",
   "Delegates, national officers, conference committee members, veterans, guests, and distinguished representatives gathered for four days of fellowship, plenary business, elections, constitution review, Independence Day observance, sporting activities, and awards recognition. The assembly marked two decades of uninterrupted annual conferences.",
   "This unified report records conference attendance, financial reconciliation, program outcomes, operational challenges, platform support, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report (Appendix A).",
-  "A total of 109 registered delegate and guest records represent Liberian students and guests from more than 35 cities across China. All listed conference fees were fully collected (RMB 34,640 in delegate registrations), demonstrating strong financial compliance and delegate commitment.",
+  "A total of 116 registered delegate, guest, and table-ticket records represent Liberian students and guests from more than 35 cities across China. All listed conference fees were fully collected (RMB 36,590 in delegate registrations and table packages), demonstrating strong financial compliance and delegate commitment.",
 ] as const;
 
 export const CONFERENCE_OBJECTIVES = [
@@ -737,7 +733,7 @@ export const CONFERENCE_CHALLENGES = [
   {
     label: "Registration and payment reconciliation",
     detail:
-      "109 delegate and guest records across single-room, shared-room, veteran, March intake, and no-accommodation tiers required continuous fee tracking. All listed fees were collected (RMB 34,640), but reconciliation demanded disciplined record-keeping throughout the cycle.",
+      "116 delegate, guest, and table-ticket records across single-room, shared-room, veteran, March intake, no-accommodation, and VIP table tiers required continuous fee tracking. All listed fees were collected (RMB 36,590), but reconciliation demanded disciplined record-keeping throughout the cycle.",
   },
   {
     label: "Hybrid election administration",
@@ -792,7 +788,7 @@ export const RHUB_PLATFORM = {
     "Delegates, committee members, and election participants accessed rhub through the following entry points throughout the conference cycle:",
   capabilities: [
     "Public delegate registration portal with document uploads and payment declaration",
-    "Delegate profiles, room assignments, and fee tracking for 109 registered records",
+    "Delegate profiles and fee tracking for 116 registered records (official Excel attendance register)",
     "Conference finance, payments, budget, and audit modules for committee disbursements",
     "Booklet builder and downloadable participant materials",
     "Detailed program, navigation guide, and conference report generation (this document)",
@@ -1066,9 +1062,6 @@ export function chunkReportPhotos(
 export function computeReportTotalPages(runtime?: ReportRuntimeContext): number {
   const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
   const attendancePages = chunkAttendance(attendanceRows).length;
-  const roomPairingPages = runtime
-    ? countReportRoomPairingPages(runtime.roomPairings)
-    : 0;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS).length;
   const fixed = getReportFixedPageCounts(runtime);
@@ -1092,6 +1085,6 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.receiptAppendix +
     fixed.iecAppendix;
   return (
-    1 + fixedPages + programPages + attendancePages + roomPairingPages + photoPages
+    1 + fixedPages + programPages + attendancePages + photoPages
   );
 }

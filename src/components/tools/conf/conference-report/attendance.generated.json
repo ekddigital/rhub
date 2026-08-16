@@ -979,5 +979,68 @@
     "fee": "250",
     "paid": "250",
     "balance": "0"
+  },
+  {
+    "no": "110",
+    "name": "D. Omario Yarsiah",
+    "city": "Jinhua, Zhejiang",
+    "room": "Veteran Table",
+    "fee": "200",
+    "paid": "200",
+    "balance": "0"
+  },
+  {
+    "no": "111",
+    "name": "Andrew Koko Wejlah",
+    "city": "Nanjing, Jiangsu",
+    "room": "Veteran Table",
+    "fee": "200",
+    "paid": "200",
+    "balance": "0"
+  },
+  {
+    "no": "112",
+    "name": "James S. Ngafua",
+    "city": "Wenzhou, Zhejiang",
+    "room": "VIP Table",
+    "fee": "350",
+    "paid": "350",
+    "balance": "0"
+  },
+  {
+    "no": "113",
+    "name": "Albert B. Weah Weah",
+    "city": "Jinan, Shandong",
+    "room": "VIP Table",
+    "fee": "350",
+    "paid": "350",
+    "balance": "0"
+  },
+  {
+    "no": "114",
+    "name": "Ronell D. Atachie",
+    "city": "Hangzhou",
+    "room": "VIP Table",
+    "fee": "350",
+    "paid": "350",
+    "balance": "0"
+  },
+  {
+    "no": "115",
+    "name": "Helen G. Kwia",
+    "city": "Nantong, Jiangsu",
+    "room": "VIP Table",
+    "fee": "300",
+    "paid": "300",
+    "balance": "0"
+  },
+  {
+    "no": "116",
+    "name": "Isaac Younge",
+    "city": "Ningbo, Zhejiang",
+    "room": "VIP Table",
+    "fee": "200",
+    "paid": "200",
+    "balance": "0"
   }
 ]
