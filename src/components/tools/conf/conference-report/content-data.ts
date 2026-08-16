@@ -13,6 +13,7 @@ import {
 import {
   buildCookingAppendixPages,
   buildCookingBudgetCategories,
+  buildCookingExpenditureDetailPages,
   COOKING_CERTIFICATION,
   COOKING_COMMITTEE_NARRATIVE,
   COOKING_EQUIPMENT,
@@ -48,6 +49,7 @@ import {
 
 export {
   buildCookingAppendixPages,
+  buildCookingExpenditureDetailPages,
   COOKING_COMMITTEE_NARRATIVE,
   COOKING_EQUIPMENT,
   COOKING_FOOD_ITEMS,
@@ -426,32 +428,46 @@ export const REPORT_DAY_SECTIONS = [
 ] as const;
 
 export type ReportTocEntry = {
-  num: number;
+  num?: number;
   title: string;
   id?: string;
   startPage?: number;
   pageSpan?: number;
   isProgramDay?: boolean;
   isBookletEmbed?: boolean;
+  isPartHeading?: boolean;
 };
 
-const REPORT_TOC_AFTER_DAYS = [
-  { num: 11, title: "Election Report Summary" },
-  { num: 12, title: "Attendance and Finance Summary" },
-  { num: 13, title: "Full Delegate Register" },
-  { num: 14, title: "Distinguished Guests and Speakers" },
-  { num: 15, title: "Outcomes, Resolutions, and Recommendations" },
-  { num: 16, title: "Challenges Faced During the Conference" },
-  { num: 17, title: "EKD Digital Resources — Conference Management Platform" },
-  { num: 18, title: "Lessons Learned for Future Conferences" },
-  { num: 19, title: "Advisories and Recommendations for Future Conferences" },
-  { num: 20, title: "Photographic Record" },
-  { num: 21, title: "Acknowledgements" },
-  { num: 22, title: "Certification" },
-  { num: 23, title: "Appendices" },
+export const REPORT_PART_HEADINGS = {
+  II: "Part II — Conference Proceedings",
+  III: "Part III — Financial Report",
+  IV: "Part IV — Outcomes & Documentation",
+} as const;
+
+const REPORT_TOC_AFTER_ELECTION = [
+  { num: 12, title: "Financial Summary" },
+  { num: 13, title: "Conference Budget vs Actual" },
+  { num: 14, title: "Supporting Documents — Souvenir Proforma" },
+  { num: 15, title: "Cooking Committee Report" },
+  { num: 16, title: "Cooking Expenditure Detail" },
+  { num: 17, title: "Receipt Evidence" },
+  { num: 18, title: "Attendance and Fee Collection" },
 ] as const;
 
-/** Table of contents — mirrors jinan-2026-conference-report.md; program days match booklet Program Outline. */
+const REPORT_TOC_AFTER_FINANCE = [
+  { num: 19, title: "Distinguished Guests and Speakers" },
+  { num: 20, title: "Outcomes, Resolutions, and Recommendations" },
+  { num: 21, title: "Challenges Faced During the Conference" },
+  { num: 22, title: "EKD Digital Resources — Conference Management Platform" },
+  { num: 23, title: "Lessons Learned for Future Conferences" },
+  { num: 24, title: "Advisories and Recommendations for Future Conferences" },
+  { num: 25, title: "Photographic Record" },
+  { num: 26, title: "Acknowledgements" },
+  { num: 27, title: "Certification" },
+  { num: 28, title: "Appendices — IEC-2026 Election Report" },
+] as const;
+
+/** Table of contents — program days match booklet Program Outline; Part III consolidates all financial content. */
 export const REPORT_TOC: readonly ReportTocEntry[] = [
   { num: 1, title: "Executive Summary" },
   { num: 2, title: "Conference Objectives and Theme" },
@@ -465,12 +481,17 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
     id: "booklet-embed",
     isBookletEmbed: true,
   },
+  { title: REPORT_PART_HEADINGS.II, id: "part-ii", isPartHeading: true },
   ...REPORT_DAY_SECTIONS.map(({ sectionNum, title }) => ({
     num: sectionNum,
     title,
     isProgramDay: true,
   })),
-  ...REPORT_TOC_AFTER_DAYS,
+  { num: 11, title: "Election Report Summary" },
+  { title: REPORT_PART_HEADINGS.III, id: "part-iii", isPartHeading: true },
+  ...REPORT_TOC_AFTER_ELECTION,
+  { title: REPORT_PART_HEADINGS.IV, id: "part-iv", isPartHeading: true },
+  ...REPORT_TOC_AFTER_FINANCE,
 ];
 
 /** Resolve interior start pages for each TOC row (cover = 1, TOC = 2, body from 3). */
@@ -478,11 +499,9 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
   const preConferencePages = buildPreConferencePages();
   const programPages = buildReportProgramPages();
-  const attendancePages = chunkAttendance(attendanceRows).length;
+  const attendanceRegisterPages = chunkAttendance(attendanceRows).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const fixed = getReportFixedPageCounts(runtime);
-  const appendixPages =
-    fixed.cookingAppendix + fixed.receiptAppendix + fixed.iecAppendix;
 
   let page = 3;
   const executiveStart = page;
@@ -501,6 +520,8 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   );
   page += bookletPages;
 
+  const partIIStart = page++;
+
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
     const pageSpan = programPages.filter(
@@ -511,12 +532,20 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   }
 
   const electionStart = page++;
-  const financeStart = page;
-  page += fixed.financeSummary;
-  const registerStart = page;
-  page += attendancePages;
+  const partIIIStart = page++;
+  const financialSummaryStart = page++;
+  const budgetVsActualStart = page++;
+  const souvenirStart = page++;
+  const cookingReportStart = page++;
+  const cookingDetailStart = page;
+  page += fixed.cookingExpenditureDetail;
+  const receiptStart = page;
+  page += fixed.receiptEvidence;
+  const attendanceStart = page;
+  page += fixed.attendanceStats + attendanceRegisterPages;
+  const partIVStart = page++;
   const guestsStart = page;
-  page += fixed.keynoteCertificate;
+  page += fixed.guestsOutcomes + fixed.keynoteCertificate;
   const outcomesStart = page++;
   const challengesStart = page++;
   const rhubStart = page;
@@ -525,17 +554,30 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const acknowledgementsStart = page++;
   const photosStart = page;
   page += photoPages;
-  const certificationStart = page;
-  page += fixed.certification;
+  const certificationStart = page++;
   const appendixStart = page;
+  const iecAppendixPages = fixed.iecAppendix;
 
   return REPORT_TOC.map((entry) => {
+    if (entry.isPartHeading) {
+      switch (entry.id) {
+        case "part-ii":
+          return { ...entry, startPage: partIIStart, pageSpan: 1 };
+        case "part-iii":
+          return { ...entry, startPage: partIIIStart, pageSpan: 1 };
+        case "part-iv":
+          return { ...entry, startPage: partIVStart, pageSpan: 1 };
+        default:
+          return entry;
+      }
+    }
+
     if (entry.isBookletEmbed) {
       return { ...entry, startPage: bookletStart, pageSpan: bookletPages };
     }
 
     if (entry.isProgramDay) {
-      const info = dayPageInfo.get(entry.num);
+      const info = dayPageInfo.get(entry.num!);
       return info ? { ...entry, ...info } : entry;
     }
 
@@ -561,47 +603,61 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
       case 11:
         return { ...entry, startPage: electionStart, pageSpan: 1 };
       case 12:
-        return {
-          ...entry,
-          startPage: financeStart,
-          pageSpan: fixed.financeSummary,
-        };
+        return { ...entry, startPage: financialSummaryStart, pageSpan: 1 };
       case 13:
+        return { ...entry, startPage: budgetVsActualStart, pageSpan: 1 };
+      case 14:
+        return { ...entry, startPage: souvenirStart, pageSpan: 1 };
+      case 15:
+        return { ...entry, startPage: cookingReportStart, pageSpan: 1 };
+      case 16:
         return {
           ...entry,
-          startPage: registerStart,
-          pageSpan: attendancePages,
+          startPage: cookingDetailStart,
+          pageSpan: fixed.cookingExpenditureDetail,
         };
-      case 14:
+      case 17:
+        return {
+          ...entry,
+          startPage: receiptStart,
+          pageSpan: fixed.receiptEvidence,
+        };
+      case 18:
+        return {
+          ...entry,
+          startPage: attendanceStart,
+          pageSpan: fixed.attendanceStats + attendanceRegisterPages,
+        };
+      case 19:
         return {
           ...entry,
           startPage: guestsStart,
           pageSpan: 1 + fixed.keynoteCertificate,
         };
-      case 15:
+      case 20:
         return { ...entry, startPage: outcomesStart, pageSpan: 1 };
-      case 16:
+      case 21:
         return { ...entry, startPage: challengesStart, pageSpan: 1 };
-      case 17:
+      case 22:
         return {
           ...entry,
           startPage: rhubStart,
           pageSpan: fixed.rhubPlatform,
         };
-      case 18:
-      case 19:
-        return { ...entry, startPage: lessonsAdvisoriesStart, pageSpan: 1 };
-      case 20:
-        return { ...entry, startPage: photosStart, pageSpan: photoPages };
-      case 21:
-        return { ...entry, startPage: acknowledgementsStart, pageSpan: 1 };
-      case 22:
-        return { ...entry, startPage: certificationStart, pageSpan: 1 };
       case 23:
+      case 24:
+        return { ...entry, startPage: lessonsAdvisoriesStart, pageSpan: 1 };
+      case 25:
+        return { ...entry, startPage: photosStart, pageSpan: photoPages };
+      case 26:
+        return { ...entry, startPage: acknowledgementsStart, pageSpan: 1 };
+      case 27:
+        return { ...entry, startPage: certificationStart, pageSpan: 1 };
+      case 28:
         return {
           ...entry,
           startPage: appendixStart,
-          pageSpan: appendixPages,
+          pageSpan: iecAppendixPages,
         };
       default:
         return entry;
@@ -612,7 +668,7 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
 export const EXECUTIVE_SUMMARY = [
   "The Liberian Student Union in China (LSUIC) successfully convened its 20th Annual Conference & Anniversary at the Arcadia Spa Golf International Hotel in Jinan, Shandong Province, from 24 to 27 July 2026, under the theme Jinan 2026: Legacy and Influence.",
   "Delegates, national officers, conference committee members, veterans, guests, and distinguished representatives gathered for four days of fellowship, plenary business, elections, constitution review, Independence Day observance, sporting activities, and awards recognition. The assembly marked two decades of uninterrupted annual conferences.",
-  "This unified report records conference attendance, financial reconciliation, program outcomes, operational challenges, platform support, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report (Appendix A).",
+  "This unified report records conference attendance, financial reconciliation, program outcomes, operational challenges, platform support, photographic evidence, and recommendations for future conferences. Attendance figures are drawn from the official Jinan 2026 registration and fee records; catering expenditure is cross-referenced against the Cooking Committee financial report (Part III, Sections 15–16).",
   "A total of 116 registered delegate, guest, and table-ticket records represent Liberian students and guests from more than 35 cities across China. All listed conference fees were fully collected (RMB 36,590 in delegate registrations and table packages), demonstrating strong financial compliance and delegate commitment.",
 ] as const;
 
@@ -1041,7 +1097,7 @@ export function buildReportProgramPages(
 
 /** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
 export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
-  const receiptAppendixPages = runtime
+  const receiptEvidencePages = runtime
     ? countReportReceiptAppendixPages(runtime.cookingReceiptEntries.length)
     : 0;
   const bookletEmbedPages = runtime
@@ -1056,8 +1112,15 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     venueAndAccommodation: buildVenueAndAccommodationPageCount(),
     committeeAndOverview: 1,
     bookletEmbed: bookletEmbedPages,
+    partDividers: 3,
     electionSummary: 1,
-    financeSummary: 4,
+    financialSummary: 1,
+    budgetVsActual: 1,
+    souvenirProforma: 1,
+    cookingCommitteeReport: 1,
+    cookingExpenditureDetail: buildCookingExpenditureDetailPages().length,
+    receiptEvidence: receiptEvidencePages,
+    attendanceStats: 1,
     keynoteCertificate: certificatePage,
     guestsOutcomes: 1,
     challenges: 1,
@@ -1065,8 +1128,6 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     lessonsAndAdvisories: 1,
     acknowledgements: 1,
     certification: 1,
-    cookingAppendix: buildCookingAppendixPages().length,
-    receiptAppendix: receiptAppendixPages,
     iecAppendix: 2,
   } as const;
 }
@@ -1085,7 +1146,7 @@ export function chunkReportPhotos(
 
 export function computeReportTotalPages(runtime?: ReportRuntimeContext): number {
   const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
-  const attendancePages = chunkAttendance(attendanceRows).length;
+  const attendanceRegisterPages = chunkAttendance(attendanceRows).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS).length;
   const fixed = getReportFixedPageCounts(runtime);
@@ -1096,8 +1157,15 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.venueAndAccommodation +
     fixed.committeeAndOverview +
     fixed.bookletEmbed +
+    fixed.partDividers +
     fixed.electionSummary +
-    fixed.financeSummary +
+    fixed.financialSummary +
+    fixed.budgetVsActual +
+    fixed.souvenirProforma +
+    fixed.cookingCommitteeReport +
+    fixed.cookingExpenditureDetail +
+    fixed.receiptEvidence +
+    fixed.attendanceStats +
     fixed.keynoteCertificate +
     fixed.guestsOutcomes +
     fixed.challenges +
@@ -1105,10 +1173,8 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.lessonsAndAdvisories +
     fixed.acknowledgements +
     fixed.certification +
-    fixed.cookingAppendix +
-    fixed.receiptAppendix +
     fixed.iecAppendix;
   return (
-    1 + fixedPages + programPages + attendancePages + photoPages
+    1 + fixedPages + programPages + attendanceRegisterPages + photoPages
   );
 }

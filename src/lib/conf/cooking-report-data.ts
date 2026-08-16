@@ -276,3 +276,10 @@ export function buildCookingAppendixPages(
   const pageCount = pages.length;
   return pages.map((page) => ({ ...page, pageCount }));
 }
+
+/** Line-item pages only — skips the summary page duplicated in §15 Cooking Committee Report. */
+export function buildCookingExpenditureDetailPages(
+  rowsPerPage = 22,
+): CookingAppendixPagePlan[] {
+  return buildCookingAppendixPages(rowsPerPage).slice(1);
+}

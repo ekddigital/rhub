@@ -141,10 +141,11 @@ export function ConferenceReportTocPage({
           {entries.map((entry) => {
             const highlighted = Boolean(entry.isProgramDay);
             const hasPage = entry.startPage != null && entry.pageSpan != null;
+            const entryKey = entry.id ?? `${entry.num ?? "part"}-${entry.title}`;
 
             return (
               <div
-                key={entry.id ?? `${entry.num}-${entry.title}`}
+                key={entryKey}
                 style={{
                   display: "grid",
                   gridTemplateColumns: hasPage
@@ -152,9 +153,13 @@ export function ConferenceReportTocPage({
                     : "minmax(0, 1fr)",
                   columnGap: "8px",
                   alignItems: "center",
-                  padding: "9px 12px",
+                  padding: entry.isPartHeading ? "12px 12px 6px" : "9px 12px",
                   borderRadius: "6px",
-                  background: highlighted ? `${C.blue}08` : "transparent",
+                  background: entry.isPartHeading
+                    ? `${C.gold}12`
+                    : highlighted
+                      ? `${C.blue}08`
+                      : "transparent",
                   borderBottom: `1px solid ${C.border}50`,
                   flexShrink: 0,
                 }}
@@ -167,26 +172,31 @@ export function ConferenceReportTocPage({
                     minWidth: 0,
                   }}
                 >
-                  <div
-                    style={{
-                      width: "6px",
-                      height: "6px",
-                      borderRadius: "50%",
-                      background: highlighted ? C.red : C.border,
-                      flexShrink: 0,
-                      marginTop: "6px",
-                    }}
-                  />
+                  {!entry.isPartHeading && (
+                    <div
+                      style={{
+                        width: "6px",
+                        height: "6px",
+                        borderRadius: "50%",
+                        background: highlighted ? C.red : C.border,
+                        flexShrink: 0,
+                        marginTop: "6px",
+                      }}
+                    />
+                  )}
                   <div style={{ minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: `${REPORT_TOC.entry.fontSize}px`,
-                        fontWeight: highlighted ? 700 : 500,
-                        color: highlighted ? C.blue : "#111111",
+                        fontSize: entry.isPartHeading
+                          ? `${REPORT_TOC.entry.fontSize + 1}px`
+                          : `${REPORT_TOC.entry.fontSize}px`,
+                        fontWeight: entry.isPartHeading || highlighted ? 800 : 500,
+                        color: entry.isPartHeading ? C.blue : highlighted ? C.blue : "#111111",
                         lineHeight: REPORT_TOC.entry.lineHeight,
+                        letterSpacing: entry.isPartHeading ? "0.02em" : undefined,
                       }}
                     >
-                      {entry.num}. {entry.title}
+                      {entry.isPartHeading ? entry.title : `${entry.num}. ${entry.title}`}
                     </div>
                   </div>
                 </div>

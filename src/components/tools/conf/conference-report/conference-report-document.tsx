@@ -31,7 +31,7 @@ import {
 } from "./ReportBookletSections";
 import {
   ACKNOWLEDGEMENTS,
-  buildCookingAppendixPages,
+  buildCookingExpenditureDetailPages,
   buildPreConferencePages,
   buildReportProgramPages,
   buildRhubPlatformPages,
@@ -57,6 +57,7 @@ import {
   OUTCOMES,
   PROGRAM_GENERAL_NOTES,
   REPORT_META,
+  REPORT_PART_HEADINGS,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
   RESOLUTIONS_SUMMARY,
@@ -164,6 +165,67 @@ function ReportA4Page({
         totalPages={totalPages}
       />
     </div>
+  );
+}
+
+function ReportPartDividerPage({
+  partTitle,
+  partSubtitle,
+  pageNum,
+  totalPages,
+}: {
+  partTitle: string;
+  partSubtitle?: string;
+  pageNum: number;
+  totalPages: number;
+}) {
+  return (
+    <ReportA4Page pageNum={pageNum} sectionLabel={partTitle} totalPages={totalPages}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "0 48px",
+        }}
+      >
+        <div
+          style={{
+            width: "72px",
+            height: "4px",
+            background: `linear-gradient(90deg, ${C.red}, ${C.gold}, ${C.blue})`,
+            borderRadius: "2px",
+            marginBottom: "28px",
+          }}
+        />
+        <div
+          style={{
+            fontSize: "28px",
+            fontWeight: 800,
+            color: C.blue,
+            lineHeight: 1.25,
+            marginBottom: partSubtitle ? "16px" : 0,
+          }}
+        >
+          {partTitle}
+        </div>
+        {partSubtitle && (
+          <div
+            style={{
+              fontSize: `${REPORT_BODY.fontSize}px`,
+              lineHeight: REPORT_BODY.lineHeight,
+              color: REPORT_CERT.role.color,
+              maxWidth: "420px",
+            }}
+          >
+            {partSubtitle}
+          </div>
+        )}
+      </div>
+    </ReportA4Page>
   );
 }
 
@@ -1088,7 +1150,7 @@ export function ConferenceReportDocument({
   const venuePhotoChunks = chunkVenuePhotos();
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
   const preConferencePages = buildPreConferencePages();
-  const cookingAppendixPages = buildCookingAppendixPages();
+  const cookingDetailPages = buildCookingExpenditureDetailPages();
   const bookletPages = runtime.bookletPages;
   const rhubPlatformPages = buildRhubPlatformPages();
 
@@ -1467,6 +1529,13 @@ export function ConferenceReportDocument({
         </ReportPage>
       ))}
 
+      <ReportPartDividerPage
+        partTitle={REPORT_PART_HEADINGS.II}
+        partSubtitle="Detailed program schedule, plenary sessions, and election administration"
+        pageNum={nextPage()}
+        totalPages={totalPages}
+      />
+
       {/* Detailed program schedule — one section per day (§7–§10), sourced from Detailed Program */}
       {programPages.map((page) => (
         <ReportPage
@@ -1603,57 +1672,27 @@ export function ConferenceReportDocument({
         >
           Source: IEC-2026 Comprehensive Election Administrative Report, submitted{" "}
           {ELECTION_SUMMARY.reportSubmittedDate}. IEC financial reconciliation is
-          summarized in Section 12.
+          summarized in Section 12 (Financial Summary).
         </div>
       </ReportPage>
 
-      {/* Attendance & Finance — summary */}
-      <ReportPage pageNum={nextPage()} sectionLabel="Attendance & Finance">
-        <SectionTitle>12. Attendance and Finance Summary</SectionTitle>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "10px",
-            marginBottom: "14px",
-          }}
-        >
-          {[
-            ["Registered", attendanceStats.totalRegistered],
-            ["Cities represented", attendanceStats.uniqueCities],
-            ["Fully paid", attendanceStats.fullyPaid],
-            ["Veteran placements", attendanceStats.veteranPlacements],
-          ].map(([label, value]) => (
-            <div
-              key={String(label)}
-              style={{
-                padding: "10px 12px",
-                borderRadius: "8px",
-                background: "#F0F7FF",
-                border: `1px solid ${C.blue}22`,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: `${REPORT_STATS.label.fontSize}px`,
-                  color: REPORT_STATS.label.color,
-                  fontWeight: REPORT_STATS.label.fontWeight,
-                }}
-              >
-                {label}
-              </div>
-              <div
-                style={{
-                  fontSize: `${REPORT_STATS.value.fontSize}px`,
-                  fontWeight: REPORT_STATS.value.fontWeight,
-                  color: REPORT_STATS.value.color,
-                }}
-              >
-                {value}
-              </div>
-            </div>
-          ))}
-        </div>
+      <ReportPartDividerPage
+        partTitle={REPORT_PART_HEADINGS.III}
+        partSubtitle="Budget reconciliation, committee expenditure, receipt evidence, and fee collection"
+        pageNum={nextPage()}
+        totalPages={totalPages}
+      />
+
+      {/* §12 Financial Summary */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Financial Summary">
+        <SectionTitle>12. Financial Summary</SectionTitle>
+        <BodyParagraph>
+          This section consolidates all conference financial data: approved committee
+          budgets, revenue and expenditure totals, budget-vs-actual reconciliation,
+          Cooking Committee certification, supporting purchase documents, receipt
+          evidence, and delegate fee collection. Figures are drawn from the rhub
+          budget tool, certified committee reports, and the official attendance register.
+        </BodyParagraph>
 
         {runtime.approvedBudgets.length > 0 && (
           <>
@@ -1719,6 +1758,16 @@ export function ConferenceReportDocument({
           </>
         )}
 
+        <div
+          style={{
+            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+            fontWeight: 700,
+            color: C.blue,
+            marginBottom: "8px",
+          }}
+        >
+          Revenue and Expenditure Overview
+        </div>
         <table
           style={{
             width: "100%",
@@ -1774,11 +1823,10 @@ export function ConferenceReportDocument({
         </table>
       </ReportPage>
 
-      {/* §12 cont. — Budget vs Actual */}
+      {/* §13 — Budget vs Actual */}
       <ReportPage pageNum={nextPage()} sectionLabel="Budget vs Actual">
-        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <SectionTitle>13. Conference Budget vs Actual Spend</SectionTitle>
         <ReportKeepTogether>
-          <ReportSubsectionTitle>Conference Budget vs Actual Spend</ReportSubsectionTitle>
           <BodyParagraph>
             Line-item reconciliation of the approved conference budget against
             actual expenditure recorded during Jinan 2026. Items marked with no
@@ -1791,18 +1839,17 @@ export function ConferenceReportDocument({
         </ReportKeepTogether>
       </ReportPage>
 
-      {/* §12 cont. — Conference souvenir proforma invoice */}
+      {/* §14 — Conference souvenir proforma invoice */}
       <ReportPage pageNum={nextPage()} sectionLabel="Souvenir Purchase List">
-        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <SectionTitle>14. Supporting Documents — Souvenir Proforma</SectionTitle>
         <ReportSouvenirProformaSection />
       </ReportPage>
 
-      {/* §12 cont. — Cooking Committee report */}
+      {/* §15 — Cooking Committee report */}
       <ReportPage pageNum={nextPage()} sectionLabel="Cooking Committee Report">
-        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <SectionTitle>15. Cooking Committee Report</SectionTitle>
         <ReportKeepTogether>
-          <ReportSubsectionTitle>Cooking Committee Report</ReportSubsectionTitle>
-          {COOKING_COMMITTEE_NARRATIVE.slice(0, 2).map((paragraph) => (
+          {COOKING_COMMITTEE_NARRATIVE.map((paragraph) => (
             <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
           ))}
         </ReportKeepTogether>
@@ -1830,24 +1877,276 @@ export function ConferenceReportDocument({
             {financeSummary.cookingBalance.toLocaleString(undefined, {
               minimumFractionDigits: 2,
             })}
-            .
+            . Itemized expenditure records follow in Section 16; receipt
+            screenshots in Section 17.
           </BodyParagraph>
         </ReportKeepTogether>
       </ReportPage>
 
-      {/* Attendance register pages */}
+      {/* §16 — Cooking expenditure line items */}
+      {cookingDetailPages.map((page, pageIdx) => (
+        <ReportPage
+          key={`cooking-detail-${pageIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            pageIdx === 0
+              ? "Cooking Expenditure Detail"
+              : "Cooking Expenditure Detail (cont.)"
+          }
+        >
+          {pageIdx === 0 && (
+            <SectionTitle>16. Cooking Expenditure Detail</SectionTitle>
+          )}
+          {pageIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              16. Cooking Expenditure Detail — continued
+            </div>
+          )}
+
+          {page.sections.map((section) => (
+            <div key={section.key} style={{ marginBottom: "6px" }}>
+              <div
+                style={{
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  fontWeight: 700,
+                  color: C.blue,
+                  marginBottom: "4px",
+                }}
+              >
+                {section.title}
+              </div>
+              <CookingLineItemsTable items={section.items} />
+            </div>
+          ))}
+
+          {page.showTransfers && (
+            <>
+              <div
+                style={{
+                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                  fontWeight: 700,
+                  color: C.blue,
+                  marginBottom: "4px",
+                }}
+              >
+                D. Money Transfers / Reimbursements
+              </div>
+              <CookingReimbursementsTable />
+            </>
+          )}
+
+          {page.showTransportation && (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "8px",
+              }}
+            >
+              <tbody>
+                <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
+                  <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                    E. Transportation Expenses
+                  </td>
+                  <td
+                    style={{
+                      padding: REPORT_TABLE_PROSE.cellPadding,
+                      textAlign: "right",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {formatRmb(COOKING_TRANSPORTATION)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+
+          {page.showReconciliation && (
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "10px",
+              }}
+            >
+              <thead>
+                <tr style={{ background: C.blue, color: C.white }}>
+                  {["Financial Reconciliation", "Amount (RMB)"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "left",
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Funds Received", financeSummary.cookingFundsDisbursed],
+                  ["Less: Total Expenditure", financeSummary.cookingExpenditure],
+                  ["Closing Balance", financeSummary.cookingBalance],
+                ].map(([label, value]) => (
+                  <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                      {label}
+                    </td>
+                    <td
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "right",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatRmb(Number(value))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {page.showCertification && (
+            <BodyParagraph>
+              Certified by {COOKING_CERTIFICATION.reviewedBy},{" "}
+              {COOKING_CERTIFICATION.reviewedRole}, {COOKING_CERTIFICATION.reviewDate}.
+              Approved by the {COOKING_CERTIFICATION.approvedRole}.
+            </BodyParagraph>
+          )}
+        </ReportPage>
+      ))}
+
+      {/* §17 — Receipt evidence */}
+      {receiptAppendixChunks.map((chunk, pageIdx) => (
+        <ReportPage
+          key={`receipt-evidence-${pageIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            pageIdx === 0
+              ? "Receipt Evidence"
+              : "Receipt Evidence (cont.)"
+          }
+        >
+          {pageIdx === 0 && (
+            <SectionTitle>17. Receipt Evidence</SectionTitle>
+          )}
+          {pageIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              17. Receipt Evidence — continued
+            </div>
+          )}
+          {pageIdx === 0 && (
+            <BodyParagraph>
+              Receipt screenshots from approved Cooking Committee payment records (
+              <ReportLink href="https://rhub.ekddigital.com/tools/conf/payments">
+                rhub payments register
+              </ReportLink>
+              ).
+            </BodyParagraph>
+          )}
+          <DocumentReceiptPhotosGrid
+            entries={chunk}
+            availableHeight={receiptAppendixGridHeight(pageIdx)}
+          />
+        </ReportPage>
+      ))}
+
+      {/* §18 — Attendance and fee collection */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Attendance & Fees">
+        <SectionTitle>18. Attendance and Fee Collection</SectionTitle>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "10px",
+            marginBottom: "14px",
+          }}
+        >
+          {[
+            ["Registered", attendanceStats.totalRegistered],
+            ["Cities represented", attendanceStats.uniqueCities],
+            ["Fully paid", attendanceStats.fullyPaid],
+            ["Veteran placements", attendanceStats.veteranPlacements],
+          ].map(([label, value]) => (
+            <div
+              key={String(label)}
+              style={{
+                padding: "10px 12px",
+                borderRadius: "8px",
+                background: "#F0F7FF",
+                border: `1px solid ${C.blue}22`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: `${REPORT_STATS.label.fontSize}px`,
+                  color: REPORT_STATS.label.color,
+                  fontWeight: REPORT_STATS.label.fontWeight,
+                }}
+              >
+                {label}
+              </div>
+              <div
+                style={{
+                  fontSize: `${REPORT_STATS.value.fontSize}px`,
+                  fontWeight: REPORT_STATS.value.fontWeight,
+                  color: REPORT_STATS.value.color,
+                }}
+              >
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+        <BodyParagraph>
+          All listed conference fees were fully collected (RMB{" "}
+          {attendanceStats.totalFeesRmb.toLocaleString()} in delegate registrations
+          and table packages). The full delegate register with fee, payment, and
+          balance columns follows on subsequent pages.
+        </BodyParagraph>
+      </ReportPage>
+
       {attendanceChunks.map((chunk, chunkIdx) => (
         <ReportPage
           key={`attendance-${chunkIdx}`}
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "13. Delegate Register"
-              : "13. Delegate Register (cont.)"
+              ? "18. Delegate Register"
+              : "18. Delegate Register (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>13. Full Attendance Register</SectionTitle>
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              18. Attendance and Fee Collection — full delegate register
+            </div>
           )}
           {chunkIdx > 0 && (
             <div
@@ -1874,9 +2173,16 @@ export function ConferenceReportDocument({
         </ReportPage>
       ))}
 
+      <ReportPartDividerPage
+        partTitle={REPORT_PART_HEADINGS.IV}
+        partSubtitle="Ceremonial outcomes, operational review, documentation, and recommendations"
+        pageNum={nextPage()}
+        totalPages={totalPages}
+      />
+
       {/* Distinguished Guests */}
       <ReportPage pageNum={nextPage()} sectionLabel="Distinguished Guests">
-        <SectionTitle>14. Distinguished Guests and Speakers</SectionTitle>
+        <SectionTitle>19. Distinguished Guests and Speakers</SectionTitle>
         <table
           style={{
             width: "100%",
@@ -1911,7 +2217,7 @@ export function ConferenceReportDocument({
 
       {/* Outcomes + Resolutions */}
       <ReportPage pageNum={nextPage()} sectionLabel="Outcomes">
-        <SectionTitle>15. Outcomes and Resolutions</SectionTitle>
+        <SectionTitle>20. Outcomes and Resolutions</SectionTitle>
         {OUTCOMES.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
@@ -1935,7 +2241,7 @@ export function ConferenceReportDocument({
 
       {/* Challenges Faced */}
       <ReportPage pageNum={nextPage()} sectionLabel="Challenges">
-        <SectionTitle>16. Challenges Faced During the Conference</SectionTitle>
+        <SectionTitle>21. Challenges Faced During the Conference</SectionTitle>
         <BodyParagraph>
           The Jinan 2026 conference executed successfully within its four-day
           program, but several operational challenges required active management
@@ -1961,7 +2267,7 @@ export function ConferenceReportDocument({
         >
           {plan.showSectionTitle && (
             <SectionTitle>
-              17. EKD Digital Resources — Conference Management Platform
+              22. EKD Digital Resources — Conference Management Platform
             </SectionTitle>
           )}
           {plan.pageIndex > 0 && (
@@ -1973,7 +2279,7 @@ export function ConferenceReportDocument({
                 marginBottom: "8px",
               }}
             >
-              17. EKD Digital Resources — continued
+              22. EKD Digital Resources — continued
             </div>
           )}
 
@@ -2143,13 +2449,13 @@ export function ConferenceReportDocument({
 
       {/* Lessons Learned + Advisories */}
       <ReportPage pageNum={nextPage()} sectionLabel="Lessons & Advisories">
-        <SectionTitle>18. Lessons Learned for Future Conferences</SectionTitle>
+        <SectionTitle>23. Lessons Learned for Future Conferences</SectionTitle>
         {LESSONS_LEARNED.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
 
         <SectionTitle>
-          19. Advisories and Recommendations for Future Conferences
+          24. Advisories and Recommendations for Future Conferences
         </SectionTitle>
         <BodyParagraph>
           The Conference Committee and NEC plenary session recommend the
@@ -2175,7 +2481,7 @@ export function ConferenceReportDocument({
 
       {/* Acknowledgements */}
       <ReportPage pageNum={nextPage()} sectionLabel="Acknowledgements">
-        <SectionTitle>21. Acknowledgements</SectionTitle>
+        <SectionTitle>26. Acknowledgements</SectionTitle>
         <BodyParagraph>
           The Conference Committee extends sincere gratitude to:
         </BodyParagraph>
@@ -2202,12 +2508,12 @@ export function ConferenceReportDocument({
           pageNum={nextPage()}
           sectionLabel={
             chunkIdx === 0
-              ? "20. Photographic Record"
-              : "20. Photographic Record (cont.)"
+              ? "25. Photographic Record"
+              : "25. Photographic Record (cont.)"
           }
         >
           {chunkIdx === 0 && (
-            <SectionTitle>20. Conference Photographs</SectionTitle>
+            <SectionTitle>25. Conference Photographs</SectionTitle>
           )}
           {chunkIdx > 0 && (
             <div
@@ -2218,7 +2524,7 @@ export function ConferenceReportDocument({
                 marginBottom: "8px",
               }}
             >
-              20. Conference Photographs — continued
+              25. Conference Photographs — continued
             </div>
           )}
           <PhotoGrid
@@ -2231,13 +2537,13 @@ export function ConferenceReportDocument({
 
       {/* Certification */}
       <ReportPage pageNum={nextPage()} sectionLabel="Certification">
-        <SectionTitle>22. Certification</SectionTitle>
+        <SectionTitle>27. Certification</SectionTitle>
         <BodyParagraph>
           We hereby certify that this report accurately reflects the attendance,
           program execution, financial summary, and thematic outcomes of the
           LSUIC 20th Annual Conference held in Jinan, Shandong Province, from 24
-          to 27 July 2026. Committee financial data is cross-referenced against
-          the Cooking Committee report (Appendix A).
+          to 27 July 2026. Committee financial data is consolidated in Part III
+          (Sections 12–17), with itemized Cooking Committee records in Section 16.
         </BodyParagraph>
 
         {signatoryDraft && hasSignatories(signatoryDraft) ? (
@@ -2342,323 +2648,14 @@ export function ConferenceReportDocument({
         </div>
       </ReportPage>
 
-      {cookingAppendixPages.map((page, pageIdx) => (
-        <ReportPage
-          key={`cooking-appendix-${pageIdx}`}
-          pageNum={nextPage()}
-          sectionLabel={
-            pageIdx === 0
-              ? "Appendix A — Cooking Committee"
-              : "Appendix A (cont.)"
-          }
-        >
-          {pageIdx === 0 && (
-            <SectionTitle>23. Appendices — Appendix A</SectionTitle>
-          )}
-          {pageIdx > 0 && (
-            <div
-              style={{
-                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
-                fontWeight: REPORT_CONTINUATION.fontWeight,
-                color: REPORT_CONTINUATION.color,
-                marginBottom: "8px",
-              }}
-            >
-              Appendix A — Cooking Committee Financial Report (continued)
-            </div>
-          )}
-
-          {page.showIntro &&
-            COOKING_COMMITTEE_NARRATIVE.map((paragraph) => (
-              <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
-            ))}
-
-          {page.showFinancialSummary && (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
-                marginBottom: "10px",
-              }}
-            >
-              <thead>
-                <tr style={{ background: C.blue, color: C.white }}>
-                  {["Financial Summary", "Amount (RMB)"].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: REPORT_TABLE_PROSE.cellPadding,
-                        textAlign: "left",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["Total Funds Disbursed", financeSummary.cookingFundsDisbursed],
-                  ["Total Expenditure", financeSummary.cookingExpenditure],
-                  ["Unexpended Balance", financeSummary.cookingBalance],
-                ].map(([label, value]) => (
-                  <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
-                      {label}
-                    </td>
-                    <td
-                      style={{
-                        padding: REPORT_TABLE_PROSE.cellPadding,
-                        textAlign: "right",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {formatRmb(Number(value))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {page.showCategorySummary && (
-            <>
-              <div
-                style={{
-                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                  fontWeight: 700,
-                  color: C.blue,
-                  marginBottom: "4px",
-                }}
-              >
-                Expenditure by Category
-              </div>
-              <CookingExpenditureByCategoryTable
-                categories={cookingBudgetCategories}
-                totalExpenditure={financeSummary.cookingExpenditure}
-              />
-            </>
-          )}
-
-          {page.sections.map((section) => (
-            <div key={section.key} style={{ marginBottom: "6px" }}>
-              <div
-                style={{
-                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                  fontWeight: 700,
-                  color: C.blue,
-                  marginBottom: "4px",
-                }}
-              >
-                {section.title}
-              </div>
-              <CookingLineItemsTable items={section.items} />
-            </div>
-          ))}
-
-          {page.showTransfers && (
-            <>
-              <div
-                style={{
-                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                  fontWeight: 700,
-                  color: C.blue,
-                  marginBottom: "4px",
-                }}
-              >
-                D. Money Transfers / Reimbursements
-              </div>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: `${REPORT_TABLE.fontSize}px`,
-                  marginBottom: "8px",
-                }}
-              >
-                <thead>
-                  <tr style={{ background: "#F0F7FF" }}>
-                    {["Recipient", "Purpose", "Amount (RMB)"].map((h) => (
-                      <th
-                        key={h}
-                        style={{
-                          padding: REPORT_TABLE.cellPadding,
-                          textAlign: "left",
-                          fontWeight: 700,
-                          fontSize: `${REPORT_TABLE.headerFontSize}px`,
-                          color: C.blue,
-                        }}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {COOKING_REIMBURSEMENTS.map((row) => (
-                    <tr
-                      key={`${row.recipient}-${row.purpose}`}
-                      style={{ borderBottom: "1px solid #E5E7EB" }}
-                    >
-                      <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
-                        {row.recipient}
-                      </td>
-                      <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.purpose}</td>
-                      <td style={{ padding: REPORT_TABLE.cellPadding, textAlign: "right" }}>
-                        {formatRmb(row.amount)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          )}
-
-          {page.showTransportation && (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
-                marginBottom: "8px",
-              }}
-            >
-              <tbody>
-                <tr style={{ borderBottom: "1px solid #E5E7EB" }}>
-                  <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
-                    E. Transportation Expenses
-                  </td>
-                  <td
-                    style={{
-                      padding: REPORT_TABLE_PROSE.cellPadding,
-                      textAlign: "right",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {formatRmb(COOKING_TRANSPORTATION)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          )}
-
-          {page.showReconciliation && (
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
-                marginBottom: "10px",
-              }}
-            >
-              <thead>
-                <tr style={{ background: C.blue, color: C.white }}>
-                  {["Financial Reconciliation", "Amount (RMB)"].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: REPORT_TABLE_PROSE.cellPadding,
-                        textAlign: "left",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["Funds Received", financeSummary.cookingFundsDisbursed],
-                  ["Less: Total Expenditure", financeSummary.cookingExpenditure],
-                  ["Closing Balance", financeSummary.cookingBalance],
-                ].map(([label, value]) => (
-                  <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
-                      {label}
-                    </td>
-                    <td
-                      style={{
-                        padding: REPORT_TABLE_PROSE.cellPadding,
-                        textAlign: "right",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {formatRmb(Number(value))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-
-          {page.showCertification && (
-            <BodyParagraph>
-              Certified by {COOKING_CERTIFICATION.reviewedBy},{" "}
-              {COOKING_CERTIFICATION.reviewedRole}, {COOKING_CERTIFICATION.reviewDate}.
-              Approved by the {COOKING_CERTIFICATION.approvedRole}.
-            </BodyParagraph>
-          )}
-        </ReportPage>
-      ))}
-
-      {receiptAppendixChunks.map((chunk, pageIdx) => (
-        <ReportPage
-          key={`receipt-appendix-${pageIdx}`}
-          pageNum={nextPage()}
-          sectionLabel={
-            pageIdx === 0
-              ? "Appendix B — Receipt Photos"
-              : "Appendix B — Receipt Photos (cont.)"
-          }
-        >
-          {pageIdx === 0 && (
-            <SectionTitle>23. Appendices — Appendix B</SectionTitle>
-          )}
-          {pageIdx > 0 && (
-            <div
-              style={{
-                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
-                fontWeight: REPORT_CONTINUATION.fontWeight,
-                color: REPORT_CONTINUATION.color,
-                marginBottom: "8px",
-              }}
-            >
-              Appendix B — Cooking Committee Receipt Screenshots (continued)
-            </div>
-          )}
-          {pageIdx === 0 && (
-            <BodyParagraph>
-              Receipt screenshots from approved Cooking Committee payment records (
-              <ReportLink href="https://rhub.ekddigital.com/tools/conf/payments">
-                rhub payments register
-              </ReportLink>
-              ).
-            </BodyParagraph>
-          )}
-          <DocumentReceiptPhotosGrid
-            entries={chunk}
-            availableHeight={receiptAppendixGridHeight(pageIdx)}
-          />
-        </ReportPage>
-      ))}
-
-      <ReportPage pageNum={nextPage()} sectionLabel="Appendix C — IEC-2026">
-        <div
-          style={{
-            fontSize: `${REPORT_CONTINUATION.fontSize}px`,
-            fontWeight: REPORT_CONTINUATION.fontWeight,
-            color: REPORT_CONTINUATION.color,
-            marginBottom: "8px",
-          }}
-        >
-          Appendix C — IEC-2026 Election Report
-        </div>
+      <ReportPage pageNum={nextPage()} sectionLabel="Appendix — IEC-2026">
+        <SectionTitle>28. Appendices — IEC-2026 Election Report</SectionTitle>
         <BodyParagraph>
           Source: Independent Elections Commission comprehensive election administrative
           report, submitted {ELECTION_SUMMARY.reportSubmittedDate}. IEC-2026 administered
           hybrid in-person and online voting on {ELECTION_SUMMARY.electionDate}; newly
           elected officers were certified and inducted on {ELECTION_SUMMARY.certificationDate}.
+          IEC financial reconciliation is summarized in Section 12.
         </BodyParagraph>
 
         <div
@@ -2859,7 +2856,17 @@ export function ConferenceReportDocument({
         </table>
       </ReportPage>
 
-      <ReportPage pageNum={nextPage()} sectionLabel="Appendix C — IEC-2026 (cont.)">
+      <ReportPage pageNum={nextPage()} sectionLabel="Appendix — IEC-2026 (cont.)">
+        <div
+          style={{
+            fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+            fontWeight: REPORT_CONTINUATION.fontWeight,
+            color: REPORT_CONTINUATION.color,
+            marginBottom: "8px",
+          }}
+        >
+          28. Appendices — IEC-2026 Election Report (continued)
+        </div>
         <div
           style={{
             fontSize: `${REPORT_SUBSECTION.fontSize}px`,
