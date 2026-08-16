@@ -8,6 +8,7 @@ Archive for the LSUIC 20th Annual Conference & Anniversary (24–27 July 2026). 
 | --- | --- |
 | `cooking.md` | Cooking Committee financial report (markdown) |
 | `conference-attendance.xlsx` | Official delegate registration and fees register |
+| `lsuic-conference-souvenir-proforma-invoice-2026.png` | JAPIX ARC proforma invoice — conference souvenir purchase list (Invoice No. 960392, ¥2,645.00) |
 
 ## `documents/`
 

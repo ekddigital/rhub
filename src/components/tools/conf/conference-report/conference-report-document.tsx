@@ -20,6 +20,10 @@ import {
 } from "./ConferenceReportTocPage";
 import { ReportKeynoteCertificateSection } from "./ReportKeynoteCertificateSection";
 import {
+  CONFERENCE_SOUVENIR_BUDGET_ANCHOR,
+  ReportSouvenirProformaSection,
+} from "./ReportSouvenirProformaSection";
+import {
   ReportBookletBlockSection,
   ReportBookletContinuationLabel,
   ReportBookletProgramOutlineSection,
@@ -465,6 +469,11 @@ function BudgetVsActualTable({
           return (
             <tr
               key={row.item}
+              id={
+                row.item === "Conference souvenir"
+                  ? CONFERENCE_SOUVENIR_BUDGET_ANCHOR
+                  : undefined
+              }
               style={{ borderBottom: "1px solid #E5E7EB" }}
             >
               <td
@@ -1758,6 +1767,12 @@ export function ConferenceReportDocument({
             totals={budgetVsActualTotals}
           />
         </ReportKeepTogether>
+      </ReportPage>
+
+      {/* §12 cont. — Conference souvenir proforma invoice */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Souvenir Purchase List">
+        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <ReportSouvenirProformaSection />
       </ReportPage>
 
       {/* §12 cont. — Cooking Committee report */}

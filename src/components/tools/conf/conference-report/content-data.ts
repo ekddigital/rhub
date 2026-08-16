@@ -1040,7 +1040,7 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     committeeAndOverview: 1,
     bookletEmbed: bookletEmbedPages,
     electionSummary: 1,
-    financeSummary: 3,
+    financeSummary: 4,
     keynoteCertificate: certificatePage,
     guestsOutcomes: 1,
     challenges: 1,
