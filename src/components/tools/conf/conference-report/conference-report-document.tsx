@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { DocumentReceiptPhotosGrid } from "@/lib/conf/document-receipt-photos";
 import { chunkReportReceiptEntries } from "@/lib/conf/conference-report/connectors/payments";
 import {
@@ -198,6 +198,57 @@ function BodyParagraph({ children }: { children: ReactNode }) {
       {children}
     </p>
   );
+}
+
+/** Keep subsection heading + first block together for print and screen pagination. */
+function ReportKeepTogether({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        breakInside: "avoid",
+        pageBreakInside: "avoid",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ReportSubsectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+        fontWeight: 700,
+        color: C.blue,
+        marginBottom: "8px",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function reportSummaryRowCellStyle(
+  extra?: CSSProperties,
+): CSSProperties {
+  return {
+    padding: REPORT_TABLE.cellPadding,
+    fontWeight: 700,
+    color: C.white,
+    ...extra,
+  };
+}
+
+function reportSummaryProseRowCellStyle(
+  extra?: CSSProperties,
+): CSSProperties {
+  return {
+    padding: REPORT_TABLE_PROSE.cellPadding,
+    fontWeight: 700,
+    color: C.white,
+    ...extra,
+  };
 }
 
 function ReportLink({
@@ -470,46 +521,154 @@ function BudgetVsActualTable({
           );
         })}
         <tr style={{ background: C.blue, color: C.white }}>
-          <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 700 }}>
-            Totals
-          </td>
+          <td style={reportSummaryRowCellStyle()}>Totals</td>
           <td
-            style={{
-              padding: REPORT_TABLE.cellPadding,
+            style={reportSummaryRowCellStyle({
               textAlign: "right",
-              fontWeight: 700,
-            }}
+            })}
           >
             {formatRmb(totals.budgetTotal)}
           </td>
           <td
-            style={{
-              padding: REPORT_TABLE.cellPadding,
+            style={reportSummaryRowCellStyle({
               textAlign: "right",
-              fontWeight: 700,
-            }}
+            })}
           >
             {formatRmb(totals.actualTotal)}
           </td>
           <td
-            style={{
-              padding: REPORT_TABLE.cellPadding,
+            style={reportSummaryRowCellStyle({
               textAlign: "right",
-              fontWeight: 700,
-            }}
+            })}
           >
             {totals.netVariance >= 0 ? "+" : "−"}
             {formatRmb(Math.abs(totals.netVariance))}
           </td>
           <td
-            style={{
-              padding: REPORT_TABLE.cellPadding,
+            style={reportSummaryRowCellStyle({
               fontSize: `${REPORT_TABLE.headerFontSize}px`,
-            }}
+            })}
           >
             Over {formatRmb(totals.overBudget)} · Under {formatRmb(totals.underBudget)}
           </td>
         </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function CookingExpenditureByCategoryTable({
+  categories,
+  totalExpenditure,
+}: {
+  categories: ReportRuntimeContext["cookingBudgetCategories"];
+  totalExpenditure: number;
+}) {
+  return (
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+        marginBottom: "12px",
+      }}
+    >
+      <thead>
+        <tr style={{ background: "#F0F7FF" }}>
+          {["Category", "Amount (RMB)"].map((h) => (
+            <th
+              key={h}
+              style={{
+                padding: REPORT_TABLE_PROSE.cellPadding,
+                textAlign: "left",
+                fontWeight: 700,
+                color: C.blue,
+              }}
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {categories.map((row) => (
+          <tr key={row.label} style={{ borderBottom: "1px solid #E5E7EB" }}>
+            <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.label}</td>
+            <td
+              style={{
+                padding: REPORT_TABLE_PROSE.cellPadding,
+                textAlign: "right",
+                fontWeight: 600,
+              }}
+            >
+              {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </td>
+          </tr>
+        ))}
+        <tr style={{ background: C.blue, color: C.white }}>
+          <td style={reportSummaryProseRowCellStyle()}>
+            Total Cooking Committee expenditure
+          </td>
+          <td
+            style={reportSummaryProseRowCellStyle({
+              textAlign: "right",
+            })}
+          >
+            {totalExpenditure.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function CookingReimbursementsTable() {
+  return (
+    <table
+      style={{
+        width: "100%",
+        borderCollapse: "collapse",
+        fontSize: `${REPORT_TABLE.fontSize}px`,
+        marginBottom: "12px",
+      }}
+    >
+      <thead>
+        <tr style={{ background: "#F0F7FF" }}>
+          {["Recipient", "Purpose", "Amount (RMB)"].map((h) => (
+            <th
+              key={h}
+              style={{
+                padding: REPORT_TABLE.cellPadding,
+                textAlign: "left",
+                fontWeight: 700,
+                fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                color: C.blue,
+              }}
+            >
+              {h}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {COOKING_REIMBURSEMENTS.map((row) => (
+          <tr key={`${row.recipient}-${row.purpose}`} style={{ borderBottom: "1px solid #E5E7EB" }}>
+            <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
+              {row.recipient}
+            </td>
+            <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.purpose}</td>
+            <td
+              style={{
+                padding: REPORT_TABLE.cellPadding,
+                textAlign: "right",
+              }}
+            >
+              {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );
@@ -1590,170 +1749,59 @@ export function ConferenceReportDocument({
         </table>
       </ReportPage>
 
-      {/* Cooking Committee budget detail */}
+      {/* §12 cont. — Budget vs Actual */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Budget vs Actual">
+        <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
+        <ReportKeepTogether>
+          <ReportSubsectionTitle>Conference Budget vs Actual Spend</ReportSubsectionTitle>
+          <BodyParagraph>
+            Line-item reconciliation of the approved conference budget against
+            actual expenditure recorded during Jinan 2026. Items marked with no
+            actual amount were reallocated or covered under other budget lines.
+          </BodyParagraph>
+          <BudgetVsActualTable
+            lines={budgetVsActual}
+            totals={budgetVsActualTotals}
+          />
+        </ReportKeepTogether>
+      </ReportPage>
+
+      {/* §12 cont. — Cooking Committee report */}
       <ReportPage pageNum={nextPage()} sectionLabel="Cooking Committee Report">
         <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
-        <div
-          style={{
-            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-            fontWeight: 700,
-            color: C.blue,
-            marginBottom: "8px",
-          }}
-        >
-          Conference Budget vs Actual Spend
-        </div>
-        <BodyParagraph>
-          Line-item reconciliation of the approved conference budget against
-          actual expenditure recorded during Jinan 2026. Items marked with no
-          actual amount were reallocated or covered under other budget lines.
-        </BodyParagraph>
-        <BudgetVsActualTable
-          lines={budgetVsActual}
-          totals={budgetVsActualTotals}
-        />
+        <ReportKeepTogether>
+          <ReportSubsectionTitle>Cooking Committee Report</ReportSubsectionTitle>
+          {COOKING_COMMITTEE_NARRATIVE.slice(0, 2).map((paragraph) => (
+            <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
+          ))}
+        </ReportKeepTogether>
 
-        <div
-          style={{
-            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-            fontWeight: 700,
-            color: C.blue,
-            marginBottom: "8px",
-          }}
-        >
-          Cooking Committee Report
-        </div>
-        {COOKING_COMMITTEE_NARRATIVE.slice(0, 2).map((paragraph) => (
-          <BodyParagraph key={paragraph.slice(0, 40)}>{paragraph}</BodyParagraph>
-        ))}
+        <ReportKeepTogether>
+          <ReportSubsectionTitle>
+            Cooking Committee Expenditure by Category
+          </ReportSubsectionTitle>
+          <CookingExpenditureByCategoryTable
+            categories={cookingBudgetCategories}
+            totalExpenditure={financeSummary.cookingExpenditure}
+          />
+        </ReportKeepTogether>
 
-        <div
-          style={{
-            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-            fontWeight: 700,
-            color: C.blue,
-            marginBottom: "8px",
-          }}
-        >
-          Cooking Committee Expenditure by Category
-        </div>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
-            marginBottom: "12px",
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#F0F7FF" }}>
-              {["Category", "Amount (RMB)"].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
-                    textAlign: "left",
-                    fontWeight: 700,
-                    color: C.blue,
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {cookingBudgetCategories.map((row) => (
-              <tr key={row.label} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.label}</td>
-                <td
-                  style={{
-                    padding: REPORT_TABLE_PROSE.cellPadding,
-                    textAlign: "right",
-                    fontWeight: 600,
-                  }}
-                >
-                  {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-            ))}
-            <tr style={{ background: C.blue, color: C.white }}>
-              <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 700 }}>
-                Total Cooking Committee expenditure
-              </td>
-              <td
-                style={{
-                  padding: REPORT_TABLE_PROSE.cellPadding,
-                  textAlign: "right",
-                  fontWeight: 700,
-                }}
-              >
-                {financeSummary.cookingExpenditure.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div
-          style={{
-            fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-            fontWeight: 700,
-            color: C.blue,
-            marginBottom: "6px",
-          }}
-        >
-          Member Reimbursements
-        </div>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE.fontSize}px`,
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#F0F7FF" }}>
-              {["Recipient", "Purpose", "Amount (RMB)"].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: REPORT_TABLE.cellPadding,
-                    textAlign: "left",
-                    fontWeight: 700,
-                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
-                    color: C.blue,
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {COOKING_REIMBURSEMENTS.map((row) => (
-              <tr key={`${row.recipient}-${row.purpose}`} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
-                  {row.recipient}
-                </td>
-                <td style={{ padding: REPORT_TABLE.cellPadding }}>{row.purpose}</td>
-                <td
-                  style={{
-                    padding: REPORT_TABLE.cellPadding,
-                    textAlign: "right",
-                  }}
-                >
-                  {row.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <BodyParagraph>
-          Certified by Kukor Brooks, Cooking Committee Chairperson, 1 August 2026.
-          Funds disbursed: RMB {financeSummary.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })}; unexpended balance returned: RMB {financeSummary.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}.
-        </BodyParagraph>
+        <ReportKeepTogether>
+          <ReportSubsectionTitle>Member Reimbursements</ReportSubsectionTitle>
+          <CookingReimbursementsTable />
+          <BodyParagraph>
+            Certified by Kukor Brooks, Cooking Committee Chairperson, 1 August 2026.
+            Funds disbursed: RMB{" "}
+            {financeSummary.cookingFundsDisbursed.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
+            ; unexpended balance returned: RMB{" "}
+            {financeSummary.cookingBalance.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            })}
+            .
+          </BodyParagraph>
+        </ReportKeepTogether>
       </ReportPage>
 
       {/* Attendance register pages */}
