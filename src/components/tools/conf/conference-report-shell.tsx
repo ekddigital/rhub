@@ -12,8 +12,13 @@ import {
 } from "@/components/ui/card";
 import { ConferenceReportPreview } from "@/components/tools/conf/conference-report/ConferenceReportPreview";
 import { REPORT_META } from "@/components/tools/conf/conference-report/content-data";
+import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 
-export function ConferenceReportShell() {
+export function ConferenceReportShell({
+  runtime,
+}: {
+  runtime: ReportRuntimeContext;
+}) {
   return (
     <div className="space-y-6 py-6">
       <div className="flex items-center gap-4">
@@ -55,7 +60,7 @@ export function ConferenceReportShell() {
         </CardContent>
       </Card>
 
-      <ConferenceReportPreview />
+      <ConferenceReportPreview runtime={runtime} />
     </div>
   );
 }

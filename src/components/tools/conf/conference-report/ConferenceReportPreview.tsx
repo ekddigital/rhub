@@ -6,10 +6,11 @@ import { Download, Loader2, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BOOKLET_A4, C } from "../booklet/constants";
 import {
-  CONFERENCE_REPORT_TOTAL_PAGES,
+  computeConferenceReportTotalPages,
   ConferenceReportDocument,
 } from "./conference-report-document";
 import { REPORT_META } from "./content-data";
+import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 
 const PRINT_ROOT_ID = "conference-report-print-root";
 
@@ -17,7 +18,12 @@ function exportBasename(): string {
   return `lsuic-conference-report-${REPORT_META.confYear}`;
 }
 
-export function ConferenceReportPreview() {
+export function ConferenceReportPreview({
+  runtime,
+}: {
+  runtime: ReportRuntimeContext;
+}) {
+  const totalPages = computeConferenceReportTotalPages(runtime);
   const [zoom, setZoom] = useState(85);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -50,7 +56,7 @@ export function ConferenceReportPreview() {
 
       const pagesReady = await waitForBookletPagesInDom(
         PRINT_ROOT_ID,
-        CONFERENCE_REPORT_TOTAL_PAGES,
+        totalPages,
         { timeoutMs: 20_000 },
       );
       if (!pagesReady) {
@@ -180,7 +186,7 @@ export function ConferenceReportPreview() {
             Conference Report Preview
           </span>
           <span style={{ fontSize: "10px", color: C.muted }}>
-            {CONFERENCE_REPORT_TOTAL_PAGES} pages · A4 printable
+            {totalPages} pages · A4 printable
           </span>
         </div>
 
@@ -281,14 +287,14 @@ export function ConferenceReportPreview() {
             marginBottom: zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
           }}
         >
-          <ConferenceReportDocument gap={16} />
+          <ConferenceReportDocument gap={16} runtime={runtime} />
         </div>
       </div>
 
       {portalReady &&
         createPortal(
           <div id={PRINT_ROOT_ID}>
-            <ConferenceReportDocument gap={0} />
+            <ConferenceReportDocument gap={0} runtime={runtime} />
           </div>,
           document.body,
         )}

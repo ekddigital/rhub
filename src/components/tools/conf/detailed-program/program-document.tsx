@@ -10,8 +10,10 @@ import {
   type ProgramSlot,
 } from "./program-data";
 
-const FIRST_DAY_PAGE_CAPACITY = 96;
-const CONTINUED_DAY_PAGE_CAPACITY = 108;
+import {
+  BOOKLET_PROGRAM_PAGINATION,
+  splitProgramDaySlots,
+} from "@/lib/conf/detailed-program-pagination";
 
 const DAY_COLORS: Record<number, { accent: string; badge: string }> = {
   1: { accent: C.blue, badge: "#E8EEF8" },
@@ -244,49 +246,8 @@ function DayHeader({ day }: { day: ProgramDay }) {
   );
 }
 
-function estimateSlotUnits(slot: ProgramSlot): number {
-  const activityUnits = Math.ceil(slot.activity.length / 68) * 1.6;
-  const byUnits = slot.by ? Math.ceil(slot.by.length / 80) * 1.1 : 0;
-  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 66) * 1.1 : 0;
-  const subsUnits =
-    slot.subs?.reduce((sum, sub) => {
-      const subLabelUnits = Math.ceil(sub.label.length / 76) * 1.05;
-      const subByUnits = sub.by ? Math.ceil(sub.by.length / 76) * 0.7 : 0;
-      return sum + subLabelUnits + subByUnits;
-    }, 0) ?? 0;
-
-  return 5.2 + activityUnits + byUnits + mealUnits + subsUnits;
-}
-
 function splitDaySlots(slots: ProgramSlot[]): ProgramSlot[][] {
-  const pages: ProgramSlot[][] = [];
-  let currentPage: ProgramSlot[] = [];
-  let usedUnits = 0;
-
-  for (const slot of slots) {
-    const capacity =
-      pages.length === 0
-        ? FIRST_DAY_PAGE_CAPACITY
-        : CONTINUED_DAY_PAGE_CAPACITY;
-    const slotUnits = estimateSlotUnits(slot);
-    const wouldOverflow = usedUnits + slotUnits > capacity;
-
-    if (wouldOverflow && currentPage.length > 0) {
-      pages.push(currentPage);
-      currentPage = [slot];
-      usedUnits = slotUnits;
-      continue;
-    }
-
-    currentPage.push(slot);
-    usedUnits += slotUnits;
-  }
-
-  if (currentPage.length > 0) {
-    pages.push(currentPage);
-  }
-
-  return pages;
+  return splitProgramDaySlots(slots, BOOKLET_PROGRAM_PAGINATION);
 }
 
 const DAY_SLOT_PAGES = DETAILED_PROGRAM_DAYS.map((day) =>

@@ -10,18 +10,31 @@ import {
   loadLsuicLeadersRoster,
   stripHonorificDisplayName,
 } from "@/lib/conf/lsuic-leaders-roster";
-import attendanceRows from "./attendance.generated.json";
 import {
   buildCookingAppendixPages,
+  buildCookingBudgetCategories,
+  COOKING_CERTIFICATION,
   COOKING_COMMITTEE_NARRATIVE,
   COOKING_EQUIPMENT,
   COOKING_FOOD_ITEMS,
   COOKING_SEASONINGS,
   COOKING_TRANSFERS,
   COOKING_TRANSPORTATION,
-  COOKING_CERTIFICATION,
+  computeCookingBalance,
+  computeCookingExpenditure,
+  COOKING_FUNDS_DISBURSED,
   type CookingAppendixPagePlan,
-} from "./cooking-report-data";
+} from "@/lib/conf/cooking-report-data";
+import {
+  countReportReceiptAppendixPages,
+  countReportRoomPairingPages,
+} from "@/lib/conf/conference-report/connectors";
+import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
+import {
+  REPORT_PROGRAM_PAGINATION,
+  splitProgramDaySlots,
+} from "@/lib/conf/detailed-program-pagination";
+import attendanceRows from "./attendance.generated.json";
 import {
   buildPreConferencePagePlans,
   chunkAttendanceVariable,
@@ -97,9 +110,9 @@ export const ATTENDANCE_STATS = {
 
 export const FINANCE_SUMMARY = {
   delegateFeesCollected: ATTENDANCE_STATS.totalFeesRmb,
-  cookingFundsDisbursed: 18_113.03,
-  cookingExpenditure: 17_538.08,
-  cookingBalance: 574.95,
+  cookingFundsDisbursed: COOKING_FUNDS_DISBURSED,
+  cookingExpenditure: computeCookingExpenditure(),
+  cookingBalance: computeCookingBalance(),
   iecRevenue: 2_365.0,
   iecExpenditure: 948.69,
   iecBalanceTurnover: 1_416.31,
@@ -383,28 +396,7 @@ export function getIecParticipationMetrics() {
   } as const;
 }
 
-export const COOKING_BUDGET_CATEGORIES = [
-  {
-    label: "Food, meat, vegetables, and groceries",
-    amount: 8_170.29,
-  },
-  {
-    label: "Seasonings, baking supplies, and condiments",
-    amount: 1_414.42,
-  },
-  {
-    label: "Kitchen equipment and supplies",
-    amount: 3_274.81,
-  },
-  {
-    label: "Member reimbursements and transfers",
-    amount: 3_766.99,
-  },
-  {
-    label: "Transportation",
-    amount: 911.57,
-  },
-] as const;
+export const COOKING_BUDGET_CATEGORIES = buildCookingBudgetCategories();
 
 export const COOKING_REIMBURSEMENTS = COOKING_TRANSFERS;
 
@@ -472,13 +464,18 @@ export const REPORT_TOC: readonly ReportTocEntry[] = [
 ];
 
 /** Resolve interior start pages for each TOC row (cover = 1, TOC = 2, body from 3). */
-export function buildReportTocWithPages(): ReportTocEntry[] {
+export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportTocEntry[] {
+  const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
   const preConferencePages = buildPreConferencePages();
   const programPages = buildReportProgramPages();
-  const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
+  const attendancePages = chunkAttendance(attendanceRows).length;
+  const roomPairingPages = runtime
+    ? countReportRoomPairingPages(runtime.roomPairings)
+    : 0;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
-  const cookingAppendixPages = buildCookingAppendixPages().length;
-  const appendixPages = cookingAppendixPages + REPORT_FIXED_PAGES.iecAppendix;
+  const fixed = getReportFixedPageCounts(runtime);
+  const appendixPages =
+    fixed.cookingAppendix + fixed.receiptAppendix + fixed.iecAppendix;
 
   let page = 3;
   const executiveStart = page;
@@ -503,9 +500,11 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
 
   const electionStart = page++;
   const financeStart = page;
-  page += REPORT_FIXED_PAGES.financeSummary;
+  page += fixed.financeSummary;
   const registerStart = page;
-  page += attendancePages;
+  page += attendancePages + roomPairingPages;
+  const guestsStart = page;
+  page += fixed.keynoteCertificate;
   const outcomesStart = page++;
   const challengesStart = page++;
   const rhubStart = page++;
@@ -514,7 +513,7 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
   const photosStart = page;
   page += photoPages;
   const certificationStart = page;
-  page += REPORT_FIXED_PAGES.certification;
+  page += fixed.certification;
   const appendixStart = page;
 
   return REPORT_TOC.map((entry) => {
@@ -544,11 +543,20 @@ export function buildReportTocWithPages(): ReportTocEntry[] {
         return {
           ...entry,
           startPage: financeStart,
-          pageSpan: REPORT_FIXED_PAGES.financeSummary,
+          pageSpan: fixed.financeSummary,
         };
       case 13:
-        return { ...entry, startPage: registerStart, pageSpan: attendancePages };
+        return {
+          ...entry,
+          startPage: registerStart,
+          pageSpan: attendancePages + roomPairingPages,
+        };
       case 14:
+        return {
+          ...entry,
+          startPage: guestsStart,
+          pageSpan: 1 + fixed.keynoteCertificate,
+        };
       case 15:
         return { ...entry, startPage: outcomesStart, pageSpan: 1 };
       case 16:
@@ -949,52 +957,8 @@ export function buildPreConferencePages(): PreConferencePagePlan[] {
   return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
 }
 
-const REPORT_PROGRAM_FIRST_PAGE_CAPACITY = 96;
-const REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY = 108;
-
-function estimateReportSlotUnits(slot: ProgramSlot): number {
-  const activityUnits = Math.ceil(slot.activity.length / 88) * 1.15;
-  const byUnits = slot.by ? Math.ceil(slot.by.length / 96) * 0.85 : 0;
-  const mealUnits = slot.meal ? Math.ceil(slot.meal.length / 72) * 0.85 : 0;
-  const subsUnits =
-    slot.subs?.reduce((sum, sub) => {
-      const subLabelUnits = Math.ceil(sub.label.length / 84) * 0.95;
-      const subByUnits = sub.by ? Math.ceil(sub.by.length / 84) * 0.65 : 0;
-      return sum + subLabelUnits + subByUnits;
-    }, 0) ?? 0;
-
-  return 3.2 + activityUnits + byUnits + mealUnits + subsUnits;
-}
-
 function splitReportDaySlots(slots: readonly ProgramSlot[]): ProgramSlot[][] {
-  const pages: ProgramSlot[][] = [];
-  let currentPage: ProgramSlot[] = [];
-  let usedUnits = 0;
-
-  for (const slot of slots) {
-    const capacity =
-      pages.length === 0
-        ? REPORT_PROGRAM_FIRST_PAGE_CAPACITY
-        : REPORT_PROGRAM_CONTINUED_PAGE_CAPACITY;
-    const slotUnits = estimateReportSlotUnits(slot);
-    const wouldOverflow = usedUnits + slotUnits > capacity;
-
-    if (wouldOverflow && currentPage.length > 0) {
-      pages.push(currentPage);
-      currentPage = [slot];
-      usedUnits = slotUnits;
-      continue;
-    }
-
-    currentPage.push(slot);
-    usedUnits += slotUnits;
-  }
-
-  if (currentPage.length > 0) {
-    pages.push(currentPage);
-  }
-
-  return pages;
+  return splitProgramDaySlots(slots, REPORT_PROGRAM_PAGINATION);
 }
 
 export type ReportProgramPage = {
@@ -1033,7 +997,12 @@ export function buildReportProgramPages(
 }
 
 /** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
-export function getReportFixedPageCounts() {
+export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
+  const receiptAppendixPages = runtime
+    ? countReportReceiptAppendixPages(runtime.cookingReceiptEntries.length)
+    : 0;
+  const certificatePage = 1;
+
   return {
     toc: 1,
     executiveAndObjectives: 1,
@@ -1042,6 +1011,7 @@ export function getReportFixedPageCounts() {
     committeeAndOverview: 1,
     electionSummary: 1,
     financeSummary: 2,
+    keynoteCertificate: certificatePage,
     guestsOutcomes: 1,
     challenges: 1,
     rhubPlatform: 1,
@@ -1049,6 +1019,7 @@ export function getReportFixedPageCounts() {
     acknowledgements: 1,
     certification: 1,
     cookingAppendix: buildCookingAppendixPages().length,
+    receiptAppendix: receiptAppendixPages,
     iecAppendix: 2,
   } as const;
 }
@@ -1065,11 +1036,15 @@ export function chunkReportPhotos(
   return chunkReportImages(photos);
 }
 
-export function computeReportTotalPages(): number {
-  const attendancePages = chunkAttendance(ATTENDANCE_ROWS).length;
+export function computeReportTotalPages(runtime?: ReportRuntimeContext): number {
+  const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
+  const attendancePages = chunkAttendance(attendanceRows).length;
+  const roomPairingPages = runtime
+    ? countReportRoomPairingPages(runtime.roomPairings)
+    : 0;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS).length;
-  const fixed = getReportFixedPageCounts();
+  const fixed = getReportFixedPageCounts(runtime);
   const fixedPages =
     fixed.toc +
     fixed.executiveAndObjectives +
@@ -1078,6 +1053,7 @@ export function computeReportTotalPages(): number {
     fixed.committeeAndOverview +
     fixed.electionSummary +
     fixed.financeSummary +
+    fixed.keynoteCertificate +
     fixed.guestsOutcomes +
     fixed.challenges +
     fixed.rhubPlatform +
@@ -1085,6 +1061,9 @@ export function computeReportTotalPages(): number {
     fixed.acknowledgements +
     fixed.certification +
     fixed.cookingAppendix +
+    fixed.receiptAppendix +
     fixed.iecAppendix;
-  return 1 + fixedPages + programPages + attendancePages + photoPages;
+  return (
+    1 + fixedPages + programPages + attendancePages + roomPairingPages + photoPages
+  );
 }

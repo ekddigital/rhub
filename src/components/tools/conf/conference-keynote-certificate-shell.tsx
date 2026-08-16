@@ -14,70 +14,56 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONF_2026 } from "@/lib/conf/config";
 import {
   createDefaultSignatoryDraft,
   DocumentSignatoryControls,
   type SignatoryDraft,
 } from "@/components/tools/conf/document-signatory-controls";
+import { CONF_2026 } from "@/lib/conf/config";
+import {
+  KEYNOTE_CERTIFICATE_DEFAULTS,
+  KEYNOTE_CERTIFICATE_DEFAULT_SIGNATORIES,
+  buildKeynoteCertificateId,
+  formatKeynoteCertificateDisplayDate,
+} from "@/lib/conf/keynote-certificate-data";
 
-const TODAY_PROGRAM_DATE = "May 29, 2026";
-
-function formatDisplayDate(value: string): string {
-  if (!value) return TODAY_PROGRAM_DATE;
-  const parsed = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return TODAY_PROGRAM_DATE;
-  return parsed.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-function buildCertificateId(dateValue: string): string {
-  const datePart = (dateValue || "2026-05-29").replace(/-/g, "");
-  return `LSUIC-KN-${datePart}`;
+function createDefaultKeynoteSignatoryDraft(): SignatoryDraft {
+  const [s1, s2, s3] = KEYNOTE_CERTIFICATE_DEFAULT_SIGNATORIES;
+  return {
+    ...createDefaultSignatoryDraft(),
+    signatoryMode: "CUSTOM",
+    signatory1: { ...s1, sig: "", sigScale: 1 },
+    signatory2: { ...s2, sig: "", sigScale: 1 },
+    signatory3: { ...s3, sig: "", sigScale: 1 },
+  };
 }
 
 export function ConferenceKeynoteCertificateShell() {
-  const [speakerName, setSpeakerName] = useState("SUANON IFON FELIX MARCELLIN");
-  const [companyName, setCompanyName] = useState("EXANORA");
-  const [speakerTitle, setSpeakerTitle] = useState(
-    "Founder and Chief Executive Officer (CEO)",
+  const [speakerName, setSpeakerName] = useState<string>(
+    KEYNOTE_CERTIFICATE_DEFAULTS.speakerName,
   );
-  const [citationText, setCitationText] = useState(
-    "In heartfelt appreciation for delivering a keynote message and inspiring support during the fundraising program of the LSUIC 20th Annual Conference & Anniversary. As Founder and Chief Executive Officer (CEO) of EXANORA, your voice of leadership and service strengthened our unity and commitment to the Union's vision.",
+  const [companyName, setCompanyName] = useState<string>(
+    KEYNOTE_CERTIFICATE_DEFAULTS.companyName,
   );
-  const [issueDate, setIssueDate] = useState("2026-05-29");
-  const [signatureDraft, setSignatureDraft] = useState<SignatoryDraft>(() => ({
-    ...createDefaultSignatoryDraft(),
-    signatoryMode: "CUSTOM" as const,
-    signatory1: {
-      name: "Harris M Bowulo",
-      title: "General Secretary (Conference Committee)",
-      label: "Signed",
-      sig: "",
-      sigScale: 1,
-    },
-    signatory2: {
-      name: "Enoch Kwateh Dongbo",
-      title: "Chairman (Conference Committee)",
-      label: "Approved",
-      sig: "",
-      sigScale: 1,
-    },
-    signatory3: {
-      name: "Olano Teah Bloh",
-      title: "National President (NEC)",
-      label: "Attested",
-      sig: "",
-      sigScale: 1,
-    },
-  }));
+  const [speakerTitle, setSpeakerTitle] = useState<string>(
+    KEYNOTE_CERTIFICATE_DEFAULTS.speakerTitle,
+  );
+  const [citationText, setCitationText] = useState<string>(
+    KEYNOTE_CERTIFICATE_DEFAULTS.citationText,
+  );
+  const [issueDate, setIssueDate] = useState<string>(
+    KEYNOTE_CERTIFICATE_DEFAULTS.issueDate,
+  );
+  const [signatureDraft, setSignatureDraft] = useState<SignatoryDraft>(
+    createDefaultKeynoteSignatoryDraft,
+  );
 
-  const displayDate = useMemo(() => formatDisplayDate(issueDate), [issueDate]);
+  const displayDate = useMemo(
+    () => formatKeynoteCertificateDisplayDate(issueDate),
+    [issueDate],
+  );
   const certificateId = useMemo(
-    () => buildCertificateId(issueDate),
+    () => buildKeynoteCertificateId(issueDate),
     [issueDate],
   );
   const signatureSlots = useMemo(

@@ -1,4 +1,10 @@
 import type { ReactNode } from "react";
+import { DocumentReceiptPhotosGrid } from "@/lib/conf/document-receipt-photos";
+import { chunkReportReceiptEntries } from "@/lib/conf/conference-report/connectors/payments";
+import {
+  chunkReportRoomPairings,
+  type ReportRuntimeContext,
+} from "@/lib/conf/conference-report/report-runtime";
 import { BOOKLET_A4, C } from "../booklet/constants";
 import { PageHeader } from "../booklet/PageHeader";
 import { PageFooter } from "../booklet/PageFooter";
@@ -8,23 +14,30 @@ import {
   ConferenceReportTocPage,
   resolveReportTocEntries,
 } from "./ConferenceReportTocPage";
+import { ReportKeynoteCertificateSection } from "./ReportKeynoteCertificateSection";
 import {
-  ATTENDANCE_ROWS,
-  ATTENDANCE_STATS,
+  ReportRoomPairingsContinuationLabel,
+  ReportRoomPairingsTable,
+} from "./ReportRoomPairingsSection";
+import {
   ACKNOWLEDGEMENTS,
-  CONFERENCE_CHALLENGES,
+  buildCookingAppendixPages,
+  buildPreConferencePages,
+  buildReportProgramPages,
+  chunkAttendance,
+  chunkReportPhotos,
+  chunkVenuePhotos,
+  computeReportTotalPages,
   CONFERENCE_COMMITTEE,
+  CONFERENCE_CHALLENGES,
   CONFERENCE_OBJECTIVES,
-  COOKING_BUDGET_CATEGORIES,
   COOKING_CERTIFICATION,
   COOKING_COMMITTEE_NARRATIVE,
   COOKING_REIMBURSEMENTS,
   COOKING_TRANSPORTATION,
-  buildCookingAppendixPages,
   DISTINGUISHED_GUESTS,
   ELECTION_SUMMARY,
   EXECUTIVE_SUMMARY,
-  FINANCE_SUMMARY,
   FUTURE_ADVISORIES,
   getIecParticipationMetrics,
   IEC_COMMISSIONERS,
@@ -39,12 +52,6 @@ import {
   RHUB_PLATFORM,
   RHUB_PLATFORM_LINKS,
   VENUE_AND_ACCOMMODATION,
-  buildPreConferencePages,
-  buildReportProgramPages,
-  chunkAttendance,
-  chunkReportPhotos,
-  chunkVenuePhotos,
-  computeReportTotalPages,
   type AttendanceRow,
   type ReportImageItem,
 } from "./content-data";
@@ -76,16 +83,22 @@ import {
   REPORT_TABLE_PROSE,
 } from "./report-typography";
 
-export const CONFERENCE_REPORT_TOTAL_PAGES = computeReportTotalPages();
+export function computeConferenceReportTotalPages(
+  runtime: ReportRuntimeContext,
+): number {
+  return computeReportTotalPages(runtime);
+}
 
 function ReportA4Page({
   children,
   pageNum,
   sectionLabel,
+  totalPages,
 }: {
   children: ReactNode;
   pageNum: number;
   sectionLabel: string;
+  totalPages: number;
 }) {
   return (
     <div
@@ -123,7 +136,7 @@ function ReportA4Page({
         confName={REPORT_META.confName}
         confYear={REPORT_META.confYear}
         pageNum={pageNum}
-        totalPages={CONFERENCE_REPORT_TOTAL_PAGES}
+        totalPages={totalPages}
       />
     </div>
   );
@@ -704,9 +717,25 @@ function ProgramDayBlock({
   );
 }
 
-export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
-  const attendanceChunks = chunkAttendance(ATTENDANCE_ROWS);
-  const tocChunks = chunkReportToc(resolveReportTocEntries());
+export function ConferenceReportDocument({
+  gap = 0,
+  runtime,
+}: {
+  gap?: number;
+  runtime: ReportRuntimeContext;
+}) {
+  const totalPages = computeConferenceReportTotalPages(runtime);
+  const attendanceRows = runtime.attendanceRows;
+  const attendanceStats = runtime.attendanceStats;
+  const financeSummary = runtime.financeSummary;
+  const cookingBudgetCategories = runtime.cookingBudgetCategories;
+  const roomPairingChunks = chunkReportRoomPairings(runtime.roomPairings);
+  const receiptAppendixChunks = chunkReportReceiptEntries(
+    runtime.cookingReceiptEntries,
+  );
+
+  const attendanceChunks = chunkAttendance(attendanceRows);
+  const tocChunks = chunkReportToc(resolveReportTocEntries(runtime));
   const photoChunks = chunkReportPhotos(REPORT_PHOTOS);
   const venuePhotoChunks = chunkVenuePhotos();
   const programPages = buildReportProgramPages(REPORT_PROGRAM_DAYS);
@@ -715,6 +744,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
+
+  const ReportPage = (
+    props: Omit<Parameters<typeof ReportA4Page>[0], "totalPages">,
+  ) => <ReportA4Page {...props} totalPages={totalPages} />;
 
   return (
     <div
@@ -737,7 +770,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
       ))}
 
       {/* Executive Summary + Objectives */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Executive Summary">
+      <ReportPage pageNum={nextPage()} sectionLabel="Executive Summary">
         <SectionTitle>1. Executive Summary</SectionTitle>
         {EXECUTIVE_SUMMARY.map((p) => (
           <BodyParagraph key={p.slice(0, 40)}>{p}</BodyParagraph>
@@ -762,7 +795,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             • {obj}
           </div>
         ))}
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Pre-Conference Preparation */}
       {preConferencePages.map((plan) => {
@@ -777,7 +810,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           estimateBodyParagraphsHeight(plan.paragraphs);
 
         return (
-          <ReportA4Page
+          <ReportPage
             key={`pre-conf-${plan.pageIndex}`}
             pageNum={nextPage()}
             sectionLabel={
@@ -808,12 +841,12 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               flyers={plan.flyers}
               availableHeight={Math.max(200, flyerHeightBudget)}
             />
-          </ReportA4Page>
+          </ReportPage>
         );
       })}
 
       {/* Venue and Accommodation */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Venue & Accommodation">
+      <ReportPage pageNum={nextPage()} sectionLabel="Venue & Accommodation">
         <SectionTitle>4. Venue and Accommodation</SectionTitle>
         <BodyParagraph>
           The conference was hosted at the {VENUE_AND_ACCOMMODATION.nameEn} (
@@ -879,10 +912,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           </div>
         ))}
         <BodyParagraph>{VENUE_AND_ACCOMMODATION.travelNote}</BodyParagraph>
-      </ReportA4Page>
+      </ReportPage>
 
       {venuePhotoChunks.map((chunk, chunkIdx) => (
-        <ReportA4Page
+        <ReportPage
           key={`venue-photos-${chunkIdx}`}
           pageNum={nextPage()}
           sectionLabel={
@@ -911,11 +944,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             showSectionTitle={chunkIdx === 0}
             showContinuation={chunkIdx > 0}
           />
-        </ReportA4Page>
+        </ReportPage>
       ))}
 
       {/* Conference Committee + Overview (shared page) */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Committee & Overview">
+      <ReportPage pageNum={nextPage()} sectionLabel="Committee & Overview">
         <SectionTitle>5. Conference Committee</SectionTitle>
         <BodyParagraph>
           The LSUIC 2026 Conference Committee — constitutionally capped at eleven
@@ -1012,11 +1045,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Detailed program schedule — one section per day (§5–§8), sourced from Detailed Program */}
       {programPages.map((page) => (
-        <ReportA4Page
+        <ReportPage
           key={`program-${page.sectionNum}-${page.pageIndex}`}
           pageNum={nextPage()}
           sectionLabel={
@@ -1059,11 +1092,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                 {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
               </div>
             )}
-        </ReportA4Page>
+        </ReportPage>
       ))}
 
       {/* Election Report Summary */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Election Report">
+      <ReportPage pageNum={nextPage()} sectionLabel="Election Report">
         <SectionTitle>11. Election Report Summary</SectionTitle>
         <BodyParagraph>
           The Independent Elections Commission (IEC-2026) administered the 2026
@@ -1152,10 +1185,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           {ELECTION_SUMMARY.reportSubmittedDate}. IEC financial reconciliation is
           summarized in Section 12.
         </div>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Attendance & Finance — summary */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Attendance & Finance">
+      <ReportPage pageNum={nextPage()} sectionLabel="Attendance & Finance">
         <SectionTitle>12. Attendance and Finance Summary</SectionTitle>
         <div
           style={{
@@ -1166,10 +1199,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           }}
         >
           {[
-            ["Registered", ATTENDANCE_STATS.totalRegistered],
-            ["Cities represented", ATTENDANCE_STATS.uniqueCities],
-            ["Fully paid", ATTENDANCE_STATS.fullyPaid],
-            ["Veteran placements", ATTENDANCE_STATS.veteranPlacements],
+            ["Registered", attendanceStats.totalRegistered],
+            ["Cities represented", attendanceStats.uniqueCities],
+            ["Fully paid", attendanceStats.fullyPaid],
+            ["Veteran placements", attendanceStats.veteranPlacements],
           ].map(([label, value]) => (
             <div
               key={String(label)}
@@ -1202,6 +1235,70 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           ))}
         </div>
 
+        {runtime.approvedBudgets.length > 0 && (
+          <>
+            <div
+              style={{
+                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                fontWeight: 700,
+                color: C.blue,
+                marginBottom: "8px",
+              }}
+            >
+              Approved Committee Budgets (Budget Tool)
+            </div>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: `${REPORT_TABLE_PROSE.fontSize}px`,
+                marginBottom: "12px",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "#F0F7FF" }}>
+                  {["Budget", "Category", "Approved Total (RMB)"].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "left",
+                        fontWeight: 700,
+                        color: C.blue,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {runtime.approvedBudgets.map((budget) => (
+                  <tr key={budget.id} style={{ borderBottom: "1px solid #E5E7EB" }}>
+                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
+                      {budget.title}
+                    </td>
+                    <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>
+                      {budget.category}
+                    </td>
+                    <td
+                      style={{
+                        padding: REPORT_TABLE_PROSE.cellPadding,
+                        textAlign: "right",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {budget.grandTotal.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
         <table
           style={{
             width: "100%",
@@ -1226,13 +1323,13 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           </thead>
           <tbody>
             {[
-              ["Delegate fees collected", FINANCE_SUMMARY.delegateFeesCollected.toLocaleString()],
-              ["Cooking Committee — disbursed", FINANCE_SUMMARY.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["Cooking Committee — expended", FINANCE_SUMMARY.cookingExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["Cooking Committee — balance returned", FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC election revenue", FINANCE_SUMMARY.iecRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC election expenditure", FINANCE_SUMMARY.iecExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC balance turned over to NEC", FINANCE_SUMMARY.iecBalanceTurnover.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Delegate fees collected", financeSummary.delegateFeesCollected.toLocaleString()],
+              ["Cooking Committee — disbursed", financeSummary.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Cooking Committee — expended", financeSummary.cookingExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["Cooking Committee — balance returned", financeSummary.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC election revenue", financeSummary.iecRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC election expenditure", financeSummary.iecExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+              ["IEC balance turned over to NEC", financeSummary.iecBalanceTurnover.toLocaleString(undefined, { minimumFractionDigits: 2 })],
             ].map(([label, value]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
@@ -1255,10 +1352,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Cooking Committee budget detail */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Cooking Committee Report">
+      <ReportPage pageNum={nextPage()} sectionLabel="Cooking Committee Report">
         <SectionTitle>12. Attendance and Finance Summary (cont.)</SectionTitle>
         <div
           style={{
@@ -1310,7 +1407,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             </tr>
           </thead>
           <tbody>
-            {COOKING_BUDGET_CATEGORIES.map((row) => (
+            {cookingBudgetCategories.map((row) => (
               <tr key={row.label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td style={{ padding: REPORT_TABLE_PROSE.cellPadding }}>{row.label}</td>
                 <td
@@ -1335,7 +1432,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                   fontWeight: 700,
                 }}
               >
-                {FINANCE_SUMMARY.cookingExpenditure.toLocaleString(undefined, {
+                {financeSummary.cookingExpenditure.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                 })}
               </td>
@@ -1399,13 +1496,13 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         </table>
         <BodyParagraph>
           Certified by Kukor Brooks, Cooking Committee Chairperson, 1 August 2026.
-          Funds disbursed: RMB {FINANCE_SUMMARY.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })}; unexpended balance returned: RMB {FINANCE_SUMMARY.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}.
+          Funds disbursed: RMB {financeSummary.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })}; unexpended balance returned: RMB {financeSummary.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}.
         </BodyParagraph>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Attendance register pages */}
       {attendanceChunks.map((chunk, chunkIdx) => (
-        <ReportA4Page
+        <ReportPage
           key={`attendance-${chunkIdx}`}
           pageNum={nextPage()}
           sectionLabel={
@@ -1430,11 +1527,51 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             </div>
           )}
           <AttendanceTable rows={chunk} />
-        </ReportA4Page>
+        </ReportPage>
       ))}
 
-      {/* Distinguished Guests + Outcomes + Resolutions */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Outcomes">
+      {roomPairingChunks.map((chunk, chunkIdx) => (
+        <ReportPage
+          key={`room-pairings-${chunkIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            chunkIdx === 0
+              ? "13. Room Assignments"
+              : "13. Room Assignments (cont.)"
+          }
+        >
+          {chunkIdx === 0 ? (
+            <SectionTitle>13. Full Attendance Register (cont.)</SectionTitle>
+          ) : (
+            <ReportRoomPairingsContinuationLabel />
+          )}
+          {chunkIdx === 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                fontWeight: 700,
+                color: C.blue,
+                marginBottom: "8px",
+              }}
+            >
+              Room Assignments and Pairings
+            </div>
+          )}
+          <ReportRoomPairingsTable rows={chunk} />
+          {chunkIdx === 0 && (
+            <BodyParagraph>
+              Source: Delegate workspace room assignments (
+              <ReportLink href="https://rhub.ekddigital.com/tools/conf/delegates">
+                rhub delegates tool
+              </ReportLink>
+              ).
+            </BodyParagraph>
+          )}
+        </ReportPage>
+      ))}
+
+      {/* Distinguished Guests */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Distinguished Guests">
         <SectionTitle>14. Distinguished Guests and Speakers</SectionTitle>
         <table
           style={{
@@ -1462,7 +1599,14 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
+      </ReportPage>
 
+      <ReportPage pageNum={nextPage()} sectionLabel="Keynote Certificate">
+        <ReportKeynoteCertificateSection certificate={runtime.keynoteCertificate} />
+      </ReportPage>
+
+      {/* Outcomes + Resolutions */}
+      <ReportPage pageNum={nextPage()} sectionLabel="Outcomes">
         <SectionTitle>15. Outcomes and Resolutions</SectionTitle>
         {OUTCOMES.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
@@ -1483,10 +1627,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             </div>
           ))}
         </div>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Challenges Faced */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Challenges">
+      <ReportPage pageNum={nextPage()} sectionLabel="Challenges">
         <SectionTitle>16. Challenges Faced During the Conference</SectionTitle>
         <BodyParagraph>
           The Jinan 2026 conference executed successfully within its four-day
@@ -1498,10 +1642,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         {CONFERENCE_CHALLENGES.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
         ))}
-      </ReportA4Page>
+      </ReportPage>
 
       {/* EKD Digital Resources (rhub) */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Conference Platform">
+      <ReportPage pageNum={nextPage()} sectionLabel="Conference Platform">
         <SectionTitle>
           17. EKD Digital Resources — Conference Management Platform
         </SectionTitle>
@@ -1610,10 +1754,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
           </div>
         ))}
         <BodyParagraph>{RHUB_PLATFORM.closing}</BodyParagraph>
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Lessons Learned + Advisories */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Lessons & Advisories">
+      <ReportPage pageNum={nextPage()} sectionLabel="Lessons & Advisories">
         <SectionTitle>18. Lessons Learned for Future Conferences</SectionTitle>
         {LESSONS_LEARNED.map((item) => (
           <BulletItem key={item.label} label={item.label} detail={item.detail} />
@@ -1642,10 +1786,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             {idx + 1}. {item}
           </div>
         ))}
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Acknowledgements */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Acknowledgements">
+      <ReportPage pageNum={nextPage()} sectionLabel="Acknowledgements">
         <SectionTitle>21. Acknowledgements</SectionTitle>
         <BodyParagraph>
           The Conference Committee extends sincere gratitude to:
@@ -1664,11 +1808,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             • {item}
           </div>
         ))}
-      </ReportA4Page>
+      </ReportPage>
 
       {/* Photo highlight pages */}
       {photoChunks.map((chunk, chunkIdx) => (
-        <ReportA4Page
+        <ReportPage
           key={`photos-${chunkIdx}`}
           pageNum={nextPage()}
           sectionLabel={
@@ -1697,11 +1841,11 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             showSectionTitle={chunkIdx === 0}
             showContinuation={chunkIdx > 0}
           />
-        </ReportA4Page>
+        </ReportPage>
       ))}
 
       {/* Certification */}
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Certification">
+      <ReportPage pageNum={nextPage()} sectionLabel="Certification">
         <SectionTitle>22. Certification</SectionTitle>
         <BodyParagraph>
           We hereby certify that this report accurately reflects the attendance,
@@ -1805,10 +1949,10 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
         >
           Date: 13 August 2026
         </div>
-      </ReportA4Page>
+      </ReportPage>
 
       {cookingAppendixPages.map((page, pageIdx) => (
-        <ReportA4Page
+        <ReportPage
           key={`cooking-appendix-${pageIdx}`}
           pageNum={nextPage()}
           sectionLabel={
@@ -1874,7 +2018,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
                       fontWeight: 700,
                     }}
                   >
-                    {formatRmb(FINANCE_SUMMARY.cookingFundsDisbursed)}
+                    {formatRmb(financeSummary.cookingFundsDisbursed)}
                   </td>
                 </tr>
               </tbody>
@@ -2009,9 +2153,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               </thead>
               <tbody>
                 {[
-                  ["Funds Received", FINANCE_SUMMARY.cookingFundsDisbursed],
-                  ["Less: Total Expenditure", FINANCE_SUMMARY.cookingExpenditure],
-                  ["Closing Balance", FINANCE_SUMMARY.cookingBalance],
+                  ["Funds Received", financeSummary.cookingFundsDisbursed],
+                  ["Less: Total Expenditure", financeSummary.cookingExpenditure],
+                  ["Closing Balance", financeSummary.cookingBalance],
                 ].map(([label, value]) => (
                   <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                     <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, fontWeight: 600 }}>
@@ -2039,10 +2183,48 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
               Approved by the {COOKING_CERTIFICATION.approvedRole}.
             </BodyParagraph>
           )}
-        </ReportA4Page>
+        </ReportPage>
       ))}
 
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Appendix B — IEC-2026">
+      {receiptAppendixChunks.map((chunk, pageIdx) => (
+        <ReportPage
+          key={`receipt-appendix-${pageIdx}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            pageIdx === 0
+              ? "Appendix B — Receipt Photos"
+              : "Appendix B — Receipt Photos (cont.)"
+          }
+        >
+          {pageIdx === 0 && (
+            <SectionTitle>23. Appendices — Appendix B</SectionTitle>
+          )}
+          {pageIdx > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              Appendix B — Cooking Committee Receipt Screenshots (continued)
+            </div>
+          )}
+          {pageIdx === 0 && (
+            <BodyParagraph>
+              Receipt screenshots from approved Cooking Committee payment records (
+              <ReportLink href="https://rhub.ekddigital.com/tools/conf/payments">
+                rhub payments register
+              </ReportLink>
+              ).
+            </BodyParagraph>
+          )}
+          <DocumentReceiptPhotosGrid entries={chunk} availableHeight={520} />
+        </ReportPage>
+      ))}
+
+      <ReportPage pageNum={nextPage()} sectionLabel="Appendix C — IEC-2026">
         <div
           style={{
             fontSize: `${REPORT_CONTINUATION.fontSize}px`,
@@ -2051,7 +2233,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             marginBottom: "8px",
           }}
         >
-          Appendix B — IEC-2026 Election Report
+          Appendix C — IEC-2026 Election Report
         </div>
         <BodyParagraph>
           Source: Independent Elections Commission comprehensive election administrative
@@ -2256,9 +2438,9 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
-      </ReportA4Page>
+      </ReportPage>
 
-      <ReportA4Page pageNum={nextPage()} sectionLabel="Appendix B — IEC-2026 (cont.)">
+      <ReportPage pageNum={nextPage()} sectionLabel="Appendix C — IEC-2026 (cont.)">
         <div
           style={{
             fontSize: `${REPORT_SUBSECTION.fontSize}px`,
@@ -2338,7 +2520,7 @@ export function ConferenceReportDocument({ gap = 0 }: { gap?: number }) {
             ))}
           </tbody>
         </table>
-      </ReportA4Page>
+      </ReportPage>
     </div>
   );
 }

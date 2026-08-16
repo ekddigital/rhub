@@ -226,6 +226,8 @@ export function chunkReportToc(
 }
 
 /** TOC rows with computed page ranges for PDF preview. */
-export function resolveReportTocEntries(): ReportTocEntry[] {
-  return buildReportTocWithPages();
+export function resolveReportTocEntries(
+  runtime?: Parameters<typeof buildReportTocWithPages>[0],
+): ReportTocEntry[] {
+  return buildReportTocWithPages(runtime);
 }
