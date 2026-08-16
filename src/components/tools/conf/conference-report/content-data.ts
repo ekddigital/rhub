@@ -37,11 +37,13 @@ import {
 import attendanceRows from "./attendance.generated.json";
 import {
   buildPreConferencePagePlans,
+  buildRhubPlatformPagePlans,
   chunkAttendanceVariable,
   FLYER_LANDSCAPE_ASPECT,
   FLYER_PORTRAIT_ASPECT,
   type FlyerItem,
   type PreConferencePagePlan,
+  type RhubPlatformPagePlan,
 } from "./report-layout";
 
 export {
@@ -517,7 +519,8 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   page += fixed.keynoteCertificate;
   const outcomesStart = page++;
   const challengesStart = page++;
-  const rhubStart = page++;
+  const rhubStart = page;
+  page += fixed.rhubPlatform;
   const lessonsAdvisoriesStart = page++;
   const acknowledgementsStart = page++;
   const photosStart = page;
@@ -580,7 +583,11 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
       case 16:
         return { ...entry, startPage: challengesStart, pageSpan: 1 };
       case 17:
-        return { ...entry, startPage: rhubStart, pageSpan: 1 };
+        return {
+          ...entry,
+          startPage: rhubStart,
+          pageSpan: fixed.rhubPlatform,
+        };
       case 18:
       case 19:
         return { ...entry, startPage: lessonsAdvisoriesStart, pageSpan: 1 };
@@ -971,6 +978,16 @@ export function buildVenueAndAccommodationPageCount(): number {
   return 1 + chunkVenuePhotos().length;
 }
 
+export function buildRhubPlatformPages(): RhubPlatformPagePlan[] {
+  return buildRhubPlatformPagePlans(
+    RHUB_PLATFORM.intro,
+    RHUB_PLATFORM.platformAccessIntro,
+    RHUB_PLATFORM_LINKS,
+    RHUB_PLATFORM.capabilities,
+    RHUB_PLATFORM.closing,
+  );
+}
+
 export function buildPreConferencePages(): PreConferencePagePlan[] {
   return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
 }
@@ -1044,7 +1061,7 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     keynoteCertificate: certificatePage,
     guestsOutcomes: 1,
     challenges: 1,
-    rhubPlatform: 1,
+    rhubPlatform: buildRhubPlatformPages().length,
     lessonsAndAdvisories: 1,
     acknowledgements: 1,
     certification: 1,

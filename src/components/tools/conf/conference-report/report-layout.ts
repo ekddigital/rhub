@@ -2,8 +2,11 @@ import { BOOKLET_A4 } from "../booklet/constants";
 import {
   REPORT_BODY,
   REPORT_CONTINUATION,
+  REPORT_LIST_ITEM,
   REPORT_PHOTO,
   REPORT_SECTION_TITLE,
+  REPORT_SUBSECTION,
+  REPORT_TABLE,
 } from "./report-typography";
 
 /** Report A4Page content padding (top + bottom). */
@@ -287,4 +290,239 @@ export function chunkAttendanceVariable<T>(rows: readonly T[]): T[][] {
   }
 
   return chunks;
+}
+
+export const REPORT_SUBSECTION_TITLE_BLOCK =
+  REPORT_SUBSECTION.fontSize + 6;
+
+export const REPORT_TABLE_HEADER_HEIGHT = 26;
+
+/** Estimate height for a bulleted list item at interior width. */
+export function estimateReportListItemHeight(text: string): number {
+  const charsPerLine = Math.floor(REPORT_CONTENT_WIDTH / 7.2);
+  const lines = Math.max(1, Math.ceil(text.length / charsPerLine));
+  return (
+    lines * Math.ceil(REPORT_LIST_ITEM.fontSize * REPORT_LIST_ITEM.lineHeight) + 5
+  );
+}
+
+/** Platform access table row — label plus description subtext in the first column. */
+export function estimateRhubLinkRowHeight(
+  label: string,
+  description: string,
+): number {
+  const labelColWidth = Math.floor(REPORT_CONTENT_WIDTH * 0.48);
+  const charsPerLine = Math.floor(labelColWidth / 6.8);
+  const labelLines = Math.max(1, Math.ceil(label.length / charsPerLine));
+  const descLines = Math.max(1, Math.ceil(description.length / charsPerLine));
+  const lineHeight = Math.ceil(REPORT_TABLE.fontSize * 1.35);
+  const padding = 12;
+  return padding + (labelLines + descLines) * lineHeight + 4;
+}
+
+/** Scale a portrait image to fit the remaining height on a report page. */
+export function computeEmbeddedPortraitImageHeight(
+  aspectHeightOverWidth: number,
+  availableHeight: number,
+): number {
+  const naturalHeight = REPORT_CONTENT_WIDTH * aspectHeightOverWidth;
+  return Math.max(120, Math.min(naturalHeight, availableHeight));
+}
+
+const SOUVENIR_INVOICE_INTRO =
+  "The proforma invoice below records the conference souvenir procurement from JAPIX ARC — flag pins, delegate tags, wristbands, pens, keychains, notepads, tote bags, and banner — totaling ¥2,645.00, matching the Conference souvenir budget line in the table above.";
+
+const SOUVENIR_INVOICE_ASPECT = 1712 / 1202;
+
+/** Max invoice image height on the §12 souvenir page (section title + prose + caption). */
+export function souvenirInvoiceMaxImageHeight(): number {
+  const chrome =
+    REPORT_SECTION_TITLE_BLOCK +
+    REPORT_SUBSECTION_TITLE_BLOCK +
+    estimateBodyParagraphHeight(SOUVENIR_INVOICE_INTRO) +
+    REPORT_PHOTO_CAPTION_BLOCK +
+    16;
+  return computeEmbeddedPortraitImageHeight(
+    SOUVENIR_INVOICE_ASPECT,
+    reportUsableHeight("sectionTitle") - chrome,
+  );
+}
+
+export type RhubPlatformBlock =
+  | { kind: "intro"; index: number }
+  | { kind: "platformAccessHeader" }
+  | { kind: "platformAccessIntro" }
+  | { kind: "linkRow"; index: number }
+  | { kind: "capabilitiesHeader" }
+  | { kind: "capability"; index: number }
+  | { kind: "closing" };
+
+export type RhubPlatformPagePlan = {
+  pageIndex: number;
+  showSectionTitle: boolean;
+  blocks: readonly RhubPlatformBlock[];
+};
+
+export function estimateRhubPlatformBlockHeight(
+  block: RhubPlatformBlock,
+  introParagraphs: readonly string[],
+  platformAccessIntro: string,
+  linkRows: readonly { label: string; description: string }[],
+  capabilities: readonly string[],
+  closing: string,
+): number {
+  switch (block.kind) {
+    case "intro":
+      return estimateBodyParagraphHeight(introParagraphs[block.index] ?? "");
+    case "platformAccessHeader":
+      return REPORT_SUBSECTION_TITLE_BLOCK;
+    case "platformAccessIntro":
+      return estimateBodyParagraphHeight(platformAccessIntro);
+    case "linkRow": {
+      const row = linkRows[block.index];
+      return row
+        ? estimateRhubLinkRowHeight(row.label, row.description)
+        : REPORT_TABLE_HEADER_HEIGHT;
+    }
+    case "capabilitiesHeader":
+      return REPORT_SUBSECTION_TITLE_BLOCK + 4;
+    case "capability":
+      return estimateReportListItemHeight(capabilities[block.index] ?? "");
+    case "closing":
+      return estimateBodyParagraphHeight(closing);
+    default:
+      return 0;
+  }
+}
+
+/** Paginate §17 rhub platform content — intro + access table, then capabilities + acknowledgement. */
+export function buildRhubPlatformPagePlans(
+  introParagraphs: readonly string[],
+  platformAccessIntro: string,
+  linkRows: readonly { label: string; description: string }[],
+  capabilities: readonly string[],
+  closing: string,
+): RhubPlatformPagePlan[] {
+  const accessBlocks: RhubPlatformBlock[] = [
+    ...introParagraphs.map(
+      (_, index): RhubPlatformBlock => ({ kind: "intro", index }),
+    ),
+    { kind: "platformAccessHeader" },
+    { kind: "platformAccessIntro" },
+    ...linkRows.map(
+      (_, index): RhubPlatformBlock => ({ kind: "linkRow", index }),
+    ),
+  ];
+
+  const tailBlocks: RhubPlatformBlock[] = [
+    { kind: "capabilitiesHeader" },
+    ...capabilities.map(
+      (_, index): RhubPlatformBlock => ({ kind: "capability", index }),
+    ),
+    { kind: "closing" },
+  ];
+
+  const measurePage = (
+    blocks: readonly RhubPlatformBlock[],
+    showSectionTitle: boolean,
+  ): number => {
+    let height = showSectionTitle
+      ? REPORT_SECTION_TITLE_BLOCK
+      : REPORT_CONTINUATION_BLOCK;
+    let linkTableHeader = false;
+    for (const block of blocks) {
+      height += estimateRhubPlatformBlockHeight(
+        block,
+        introParagraphs,
+        platformAccessIntro,
+        linkRows,
+        capabilities,
+        closing,
+      );
+      if (block.kind === "linkRow" && !linkTableHeader) {
+        height += REPORT_TABLE_HEADER_HEIGHT;
+        linkTableHeader = true;
+      }
+    }
+    return height;
+  };
+
+  const accessBudget = reportUsableHeight("sectionTitle");
+  if (measurePage(accessBlocks, true) > accessBudget) {
+    throw new Error(
+      "Rhub platform access section exceeds one page — split intro or link table manually",
+    );
+  }
+
+  const pages: RhubPlatformPagePlan[] = [
+    {
+      pageIndex: 0,
+      showSectionTitle: true,
+      blocks: accessBlocks,
+    },
+  ];
+
+  let tailOffset = 0;
+  while (tailOffset < tailBlocks.length) {
+    const budget = reportUsableHeight("continuation");
+    const chunk: RhubPlatformBlock[] = [];
+    let chunkHeight = REPORT_CONTINUATION_BLOCK;
+
+    while (tailOffset < tailBlocks.length) {
+      const block = tailBlocks[tailOffset];
+      const blockHeight = estimateRhubPlatformBlockHeight(
+        block,
+        introParagraphs,
+        platformAccessIntro,
+        linkRows,
+        capabilities,
+        closing,
+      );
+
+      if (chunk.length > 0 && chunkHeight + blockHeight > budget - 8) {
+        break;
+      }
+
+      chunk.push(block);
+      chunkHeight += blockHeight;
+      tailOffset += 1;
+    }
+
+    if (chunk.length === 0) {
+      throw new Error("Rhub platform tail pagination stalled");
+    }
+
+    pages.push({
+      pageIndex: pages.length,
+      showSectionTitle: false,
+      blocks: chunk,
+    });
+  }
+
+  const introPacked = pages
+    .flatMap((page) => page.blocks)
+    .filter((block) => block.kind === "intro").length;
+  const capPacked = pages
+    .flatMap((page) => page.blocks)
+    .filter((block) => block.kind === "capability").length;
+
+  if (introPacked !== introParagraphs.length || capPacked !== capabilities.length) {
+    throw new Error(
+      `Rhub platform pagination error: packed ${introPacked}/${introParagraphs.length} intro paragraphs and ${capPacked}/${capabilities.length} capabilities`,
+    );
+  }
+
+  for (const page of pages) {
+    const budget = reportUsableHeight(
+      page.showSectionTitle ? "sectionTitle" : "continuation",
+    );
+    const height = measurePage(page.blocks, page.showSectionTitle);
+    if (height > budget + 4) {
+      throw new Error(
+        `Rhub platform page ${page.pageIndex + 1} exceeds budget: ${Math.round(height)}px > ${Math.round(budget)}px`,
+      );
+    }
+  }
+
+  return pages;
 }

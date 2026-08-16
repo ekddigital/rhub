@@ -34,6 +34,7 @@ import {
   buildCookingAppendixPages,
   buildPreConferencePages,
   buildReportProgramPages,
+  buildRhubPlatformPages,
   chunkAttendance,
   chunkReportPhotos,
   chunkVenuePhotos,
@@ -1089,6 +1090,7 @@ export function ConferenceReportDocument({
   const preConferencePages = buildPreConferencePages();
   const cookingAppendixPages = buildCookingAppendixPages();
   const bookletPages = runtime.bookletPages;
+  const rhubPlatformPages = buildRhubPlatformPages();
 
   let pageNum = 1;
   const nextPage = () => ++pageNum;
@@ -1947,116 +1949,197 @@ export function ConferenceReportDocument({
       </ReportPage>
 
       {/* EKD Digital Resources (rhub) */}
-      <ReportPage pageNum={nextPage()} sectionLabel="Conference Platform">
-        <SectionTitle>
-          17. EKD Digital Resources — Conference Management Platform
-        </SectionTitle>
-        <BodyParagraph>
-          The EKD Digital Resource Hub (rhub) — developed and operated by EKD Digital
-          — served as the integrated conference management platform for LSUIC Jinan
-          2026. From pre-conference mobilization through post-conference reporting,{" "}
-          the{" "}
-          <ReportLink href={RHUB_PLATFORM_LINKS[0].url}>
-            Conference Hub
-          </ReportLink>{" "}
-          provided a single operational environment for delegate data, finance,
-          communications, and program documentation.
-        </BodyParagraph>
-        <BodyParagraph>{RHUB_PLATFORM.intro[1]}</BodyParagraph>
-        <div
-          style={{
-            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
-            fontWeight: REPORT_SUBSECTION.fontWeight,
-            color: REPORT_SUBSECTION.color,
-            marginBottom: "6px",
-            marginTop: "2px",
-          }}
+      {rhubPlatformPages.map((plan) => (
+        <ReportPage
+          key={`rhub-platform-${plan.pageIndex}`}
+          pageNum={nextPage()}
+          sectionLabel={
+            plan.pageIndex === 0
+              ? "Conference Platform"
+              : "Conference Platform (cont.)"
+          }
         >
-          Platform access
-        </div>
-        <BodyParagraph>{RHUB_PLATFORM.platformAccessIntro}</BodyParagraph>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE.fontSize}px`,
-            marginBottom: "10px",
-          }}
-        >
-          <thead>
-            <tr style={{ background: C.blue, color: C.white }}>
-              {["Entry point", "URL"].map((h) => (
-                <th
-                  key={h}
-                  style={{
-                    padding: REPORT_TABLE.cellPadding,
-                    textAlign: "left",
-                    fontWeight: 700,
-                    fontSize: `${REPORT_TABLE.headerFontSize}px`,
-                  }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {RHUB_PLATFORM_LINKS.map((row, idx) => (
-              <tr
-                key={row.url}
-                style={{
-                  background: idx % 2 === 0 ? "#F8FAFC" : C.white,
-                  borderBottom: "1px solid #E5E7EB",
-                }}
-              >
-                <td style={{ padding: REPORT_TABLE.cellPadding, fontWeight: 600 }}>
-                  {row.label}
+          {plan.showSectionTitle && (
+            <SectionTitle>
+              17. EKD Digital Resources — Conference Management Platform
+            </SectionTitle>
+          )}
+          {plan.pageIndex > 0 && (
+            <div
+              style={{
+                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                fontWeight: REPORT_CONTINUATION.fontWeight,
+                color: REPORT_CONTINUATION.color,
+                marginBottom: "8px",
+              }}
+            >
+              17. EKD Digital Resources — continued
+            </div>
+          )}
+
+          {plan.blocks.map((block) => {
+            switch (block.kind) {
+              case "intro":
+                return (
+                  <BodyParagraph key={`rhub-intro-${block.index}`}>
+                    {block.index === 0 ? (
+                      <>
+                        The EKD Digital Resource Hub (rhub) — developed and
+                        operated by EKD Digital — served as the integrated
+                        conference management platform for LSUIC Jinan 2026.
+                        From pre-conference mobilization through post-conference
+                        reporting,{" "}
+                        <ReportLink href={RHUB_PLATFORM_LINKS[0].url}>
+                          Conference Hub
+                        </ReportLink>{" "}
+                        provided a single operational environment for delegate
+                        data, finance, communications, and program documentation.
+                      </>
+                    ) : (
+                      RHUB_PLATFORM.intro[block.index]
+                    )}
+                  </BodyParagraph>
+                );
+              case "platformAccessHeader":
+                return (
                   <div
+                    key="rhub-access-header"
                     style={{
-                      fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
-                      fontWeight: 400,
-                      color: REPORT_PROGRAM.footnote.color,
+                      fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+                      fontWeight: REPORT_SUBSECTION.fontWeight,
+                      color: REPORT_SUBSECTION.color,
+                      marginBottom: "6px",
                       marginTop: "2px",
-                      lineHeight: REPORT_PROGRAM.footnote.lineHeight,
                     }}
                   >
-                    {row.description}
+                    Platform access
                   </div>
-                </td>
-                <td style={{ padding: REPORT_TABLE.cellPadding }}>
-                  <ReportLink href={row.url}>{row.url}</ReportLink>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div
-          style={{
-            fontSize: `${REPORT_SUBSECTION.fontSize}px`,
-            fontWeight: REPORT_SUBSECTION.fontWeight,
-            color: REPORT_SUBSECTION.color,
-            marginBottom: "8px",
-            marginTop: "4px",
-          }}
-        >
-          Platform capabilities used for Jinan 2026
-        </div>
-        {RHUB_PLATFORM.capabilities.map((item) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "5px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {item}
-          </div>
-        ))}
-        <BodyParagraph>{RHUB_PLATFORM.closing}</BodyParagraph>
-      </ReportPage>
+                );
+              case "platformAccessIntro":
+                return (
+                  <BodyParagraph key="rhub-access-intro">
+                    {RHUB_PLATFORM.platformAccessIntro}
+                  </BodyParagraph>
+                );
+              case "linkRow":
+                if (block.index === 0) {
+                  return (
+                    <table
+                      key="rhub-links-table"
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        fontSize: `${REPORT_TABLE.fontSize}px`,
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <thead>
+                        <tr style={{ background: C.blue, color: C.white }}>
+                          {["Entry point", "URL"].map((h) => (
+                            <th
+                              key={h}
+                              style={{
+                                padding: REPORT_TABLE.cellPadding,
+                                textAlign: "left",
+                                fontWeight: 700,
+                                fontSize: `${REPORT_TABLE.headerFontSize}px`,
+                              }}
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {plan.blocks
+                          .filter(
+                            (entry): entry is { kind: "linkRow"; index: number } =>
+                              entry.kind === "linkRow",
+                          )
+                          .map(({ index }) => {
+                            const row = RHUB_PLATFORM_LINKS[index];
+                            return (
+                              <tr
+                                key={row.url}
+                                style={{
+                                  background:
+                                    index % 2 === 0 ? "#F8FAFC" : C.white,
+                                  borderBottom: "1px solid #E5E7EB",
+                                }}
+                              >
+                                <td
+                                  style={{
+                                    padding: REPORT_TABLE.cellPadding,
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {row.label}
+                                  <div
+                                    style={{
+                                      fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
+                                      fontWeight: 400,
+                                      color: REPORT_PROGRAM.footnote.color,
+                                      marginTop: "2px",
+                                      lineHeight:
+                                        REPORT_PROGRAM.footnote.lineHeight,
+                                    }}
+                                  >
+                                    {row.description}
+                                  </div>
+                                </td>
+                                <td style={{ padding: REPORT_TABLE.cellPadding }}>
+                                  <ReportLink href={row.url}>{row.url}</ReportLink>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  );
+                }
+                return null;
+              case "capabilitiesHeader":
+                return (
+                  <div
+                    key="rhub-capabilities-header"
+                    style={{
+                      fontSize: `${REPORT_SUBSECTION.fontSize}px`,
+                      fontWeight: REPORT_SUBSECTION.fontWeight,
+                      color: REPORT_SUBSECTION.color,
+                      marginBottom: "8px",
+                      marginTop: "4px",
+                    }}
+                  >
+                    Platform capabilities used for Jinan 2026
+                  </div>
+                );
+              case "capability":
+                return (
+                  <div
+                    key={`rhub-cap-${block.index}`}
+                    style={{
+                      fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                      color: REPORT_LIST_ITEM.color,
+                      marginBottom: "5px",
+                      paddingLeft: "10px",
+                      lineHeight: REPORT_LIST_ITEM.lineHeight,
+                    }}
+                  >
+                    • {RHUB_PLATFORM.capabilities[block.index]}
+                  </div>
+                );
+              case "closing":
+                return (
+                  <BodyParagraph key="rhub-closing">
+                    {RHUB_PLATFORM.closing}
+                  </BodyParagraph>
+                );
+              default:
+                return null;
+            }
+          })}
+        </ReportPage>
+      ))}
 
       {/* Lessons Learned + Advisories */}
       <ReportPage pageNum={nextPage()} sectionLabel="Lessons & Advisories">

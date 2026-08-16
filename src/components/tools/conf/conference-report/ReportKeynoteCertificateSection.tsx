@@ -1,23 +1,44 @@
 import type { KeynoteCertificateData } from "@/lib/conf/keynote-certificate-data";
 import {
+  KEYNOTE_CERTIFICATE_DESIGN_HEIGHT,
   KEYNOTE_CERTIFICATE_DESIGN_WIDTH,
   KeynoteCertificateDocument,
 } from "@/components/tools/conf/keynote-certificate-document";
 import { C } from "../booklet/constants";
-import { REPORT_CONTENT_WIDTH } from "./report-layout";
+import {
+  estimateBodyParagraphHeight,
+  REPORT_CONTENT_WIDTH,
+  reportUsableHeight,
+} from "./report-layout";
 import {
   REPORT_BODY,
   REPORT_SECTION_TITLE,
 } from "./report-typography";
 
-const CERTIFICATE_EMBED_SCALE = REPORT_CONTENT_WIDTH / KEYNOTE_CERTIFICATE_DESIGN_WIDTH;
+const CERTIFICATE_INTRO =
+  "During the pre-conference fundraising program, the Conference Committee presented the certificate below to the keynote speaker in recognition of leadership and support for LSUIC mobilization. This is the same certificate composed in the rhub Keynote Certificate tool.";
+
+function keynoteCertificateEmbedMetrics() {
+  const headerBlock =
+    REPORT_SECTION_TITLE.fontSize - 2 + REPORT_SECTION_TITLE.marginBottom;
+  const introHeight = estimateBodyParagraphHeight(CERTIFICATE_INTRO);
+  const availableForCert =
+    reportUsableHeight("none") - headerBlock - introHeight - 12;
+  const scaleByWidth = REPORT_CONTENT_WIDTH / KEYNOTE_CERTIFICATE_DESIGN_WIDTH;
+  const scaleByHeight = availableForCert / KEYNOTE_CERTIFICATE_DESIGN_HEIGHT;
+  const embedScale = Math.min(scaleByWidth, scaleByHeight);
+  return {
+    embedScale,
+    scaledHeight: Math.ceil(KEYNOTE_CERTIFICATE_DESIGN_HEIGHT * embedScale),
+  };
+}
 
 export function ReportKeynoteCertificateSection({
   certificate,
 }: {
   certificate: KeynoteCertificateData;
 }) {
-  const scaledHeightEstimate = Math.round(780 * CERTIFICATE_EMBED_SCALE);
+  const { embedScale, scaledHeight } = keynoteCertificateEmbedMetrics();
 
   return (
     <>
@@ -56,14 +77,14 @@ export function ReportKeynoteCertificateSection({
       <div
         style={{
           width: `${REPORT_CONTENT_WIDTH}px`,
-          height: `${scaledHeightEstimate}px`,
+          height: `${scaledHeight}px`,
           overflow: "hidden",
         }}
       >
         <div
           style={{
             width: `${KEYNOTE_CERTIFICATE_DESIGN_WIDTH}px`,
-            transform: `scale(${CERTIFICATE_EMBED_SCALE})`,
+            transform: `scale(${embedScale})`,
             transformOrigin: "top left",
           }}
         >

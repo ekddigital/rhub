@@ -1,5 +1,5 @@
 import { C } from "../booklet/constants";
-import { REPORT_CONTENT_WIDTH } from "./report-layout";
+import { REPORT_CONTENT_WIDTH, souvenirInvoiceMaxImageHeight } from "./report-layout";
 import {
   REPORT_BODY,
   REPORT_PHOTO,
@@ -11,11 +11,8 @@ export const CONFERENCE_SOUVENIR_PROFORMA_INVOICE_PATH =
 
 export const CONFERENCE_SOUVENIR_BUDGET_ANCHOR = "budget-conference-souvenir";
 
-/** Portrait proforma invoice — 1202×1712 px source. */
-const INVOICE_ASPECT = 1712 / 1202;
-
 export function ReportSouvenirProformaSection() {
-  const imageHeight = Math.round(REPORT_CONTENT_WIDTH * INVOICE_ASPECT);
+  const imageHeight = souvenirInvoiceMaxImageHeight();
 
   return (
     <>
@@ -54,10 +51,14 @@ export function ReportSouvenirProformaSection() {
         style={{
           width: `${REPORT_CONTENT_WIDTH}px`,
           maxWidth: "100%",
+          height: `${imageHeight}px`,
           borderRadius: "4px",
           border: `1px solid ${C.border}`,
           overflow: "hidden",
           background: "#F8FAFC",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,8 +66,10 @@ export function ReportSouvenirProformaSection() {
           src={CONFERENCE_SOUVENIR_PROFORMA_INVOICE_PATH}
           alt="JAPIX ARC proforma invoice for LSUIC Jinan 2026 conference souvenirs"
           style={{
-            width: "100%",
-            height: `${imageHeight}px`,
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
             objectFit: "contain",
             display: "block",
           }}
