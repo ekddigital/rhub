@@ -77,7 +77,7 @@ function toReceiptPhotoEntry(
 ): ReceiptPhotoEntry {
   const captionLine1 = lineItem
     ? `${receiptCaptionVendor(payment, lineItem)} · ${fmtRmb(receiptCaptionAmount(payment, lineItem))}`
-    : `${proof.fileName} · supplementary receipt`;
+    : proof.fileName;
 
   return {
     id: `proof-${proof.id}`,
@@ -119,7 +119,6 @@ export function buildPaymentReceiptPhotoEntries(
       }
     }
 
-    const orphans: PaymentProofRecord[] = [];
     for (const proof of payment.proofs ?? []) {
       if (seenProofIds.has(proof.id)) continue;
       seenProofIds.add(proof.id);
@@ -127,21 +126,7 @@ export function buildPaymentReceiptPhotoEntries(
       const linked = proof.lineItemId
         ? lineItemById.get(proof.lineItemId)
         : undefined;
-      if (linked) {
-        tagged.push({ proof, lineItem: linked });
-      } else {
-        orphans.push(proof);
-      }
-    }
-
-    const sortedOrphans = [...orphans].sort(
-      (a, b) => proofSortTime(a) - proofSortTime(b),
-    );
-    for (let i = 0; i < sortedOrphans.length; i++) {
-      tagged.push({
-        proof: sortedOrphans[i],
-        lineItem: lineItems[i],
-      });
+      tagged.push({ proof, lineItem: linked });
     }
 
     return tagged
