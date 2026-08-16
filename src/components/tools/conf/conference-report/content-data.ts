@@ -455,7 +455,7 @@ const REPORT_TOC_AFTER_ELECTION = [
 ] as const;
 
 const REPORT_TOC_AFTER_FINANCE = [
-  { num: 19, title: "Distinguished Guests and Speakers" },
+  { num: 19, title: "Keynote Certificate of Appreciation" },
   { num: 20, title: "Outcomes, Resolutions, and Recommendations" },
   { num: 21, title: "Challenges Faced During the Conference" },
   { num: 22, title: "EKD Digital Resources — Conference Management Platform" },
@@ -544,8 +544,8 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
   const attendanceStart = page;
   page += fixed.attendanceStats + attendanceRegisterPages;
   const partIVStart = page++;
-  const guestsStart = page;
-  page += fixed.guestsOutcomes + fixed.keynoteCertificate;
+  const keynoteCertStart = page;
+  page += fixed.keynoteCertificate;
   const outcomesStart = page++;
   const challengesStart = page++;
   const rhubStart = page;
@@ -631,8 +631,8 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
       case 19:
         return {
           ...entry,
-          startPage: guestsStart,
-          pageSpan: 1 + fixed.keynoteCertificate,
+          startPage: keynoteCertStart,
+          pageSpan: fixed.keynoteCertificate,
         };
       case 20:
         return { ...entry, startPage: outcomesStart, pageSpan: 1 };
@@ -685,17 +685,6 @@ export const PRE_CONFERENCE = [
   "Months before arrival, the Conference Committee published delegate registration guides, fee-structure flyers, countdown campaigns, online information sessions, and Legacy and Influence theme posters across LSUIC communication channels.",
   "Fundraising payment methods, delegate profile cards, badge designs, Miss LSUIC contestant calls, and conference merchandise were distributed to mobilize delegates from more than thirty-five cities.",
   "Standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, and the Independent Elections Commission (IEC) — were activated with disbursed allocations and pre-arrival coordination.",
-] as const;
-
-export const DISTINGUISHED_GUESTS = [
-  { role: "Ambassador of Liberia to the PRC", name: "H.E. Dudley McKinley Thomas" },
-  { role: "Independence Day Orator", name: "Hon. Joshua Bosco Barvor" },
-  { role: "Outgoing National President", name: "Hon. Olano Teah Bloh" },
-  { role: "Incoming National President", name: "Hon. Moses Kingsford Flomo" },
-  { role: "Conference Chair", name: "Enoch Kwateh Dongbo" },
-  { role: "General Secretary, Conference Committee", name: "Harris M. Bowulo" },
-  { role: "Cooking Committee Chair", name: "Kukor Brooks" },
-  { role: "Official Photographer", name: "K-Visuals Studio" },
 ] as const;
 
 export const OUTCOMES = [
@@ -1122,7 +1111,6 @@ export function getReportFixedPageCounts(runtime?: ReportRuntimeContext) {
     receiptEvidence: receiptEvidencePages,
     attendanceStats: 1,
     keynoteCertificate: certificatePage,
-    guestsOutcomes: 1,
     challenges: 1,
     rhubPlatform: buildRhubPlatformPages().length,
     lessonsAndAdvisories: 1,
@@ -1167,7 +1155,6 @@ export function computeReportTotalPages(runtime?: ReportRuntimeContext): number 
     fixed.receiptEvidence +
     fixed.attendanceStats +
     fixed.keynoteCertificate +
-    fixed.guestsOutcomes +
     fixed.challenges +
     fixed.rhubPlatform +
     fixed.lessonsAndAdvisories +

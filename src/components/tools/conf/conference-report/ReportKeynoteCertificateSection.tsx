@@ -8,22 +8,21 @@ import { C } from "../booklet/constants";
 import {
   estimateBodyParagraphHeight,
   REPORT_CONTENT_WIDTH,
+  REPORT_LAYOUT_SAFETY_MARGIN,
   reportUsableHeight,
 } from "./report-layout";
-import {
-  REPORT_BODY,
-  REPORT_SECTION_TITLE,
-} from "./report-typography";
+import { REPORT_BODY } from "./report-typography";
 
 const CERTIFICATE_INTRO =
   "During the pre-conference fundraising program, the Conference Committee presented the certificate below to the keynote speaker in recognition of leadership and support for LSUIC mobilization. This is the same certificate composed in the rhub Keynote Certificate tool.";
 
 function keynoteCertificateEmbedMetrics() {
-  const headerBlock =
-    REPORT_SECTION_TITLE.fontSize - 2 + REPORT_SECTION_TITLE.marginBottom;
-  const introHeight = estimateBodyParagraphHeight(CERTIFICATE_INTRO);
+  const introHeight =
+    estimateBodyParagraphHeight(CERTIFICATE_INTRO) + 12;
   const availableForCert =
-    reportUsableHeight("none") - headerBlock - introHeight - 12;
+    reportUsableHeight("sectionTitle") -
+    introHeight -
+    REPORT_LAYOUT_SAFETY_MARGIN / 2;
   const scaleByWidth = REPORT_CONTENT_WIDTH / KEYNOTE_CERTIFICATE_DESIGN_WIDTH;
   const scaleByHeight = availableForCert / KEYNOTE_CERTIFICATE_DESIGN_HEIGHT;
   const embedScale = Math.min(scaleByWidth, scaleByHeight);
@@ -42,16 +41,6 @@ export function ReportKeynoteCertificateSection({
 
   return (
     <>
-      <div
-        style={{
-          fontSize: `${REPORT_SECTION_TITLE.fontSize - 2}px`,
-          fontWeight: REPORT_SECTION_TITLE.fontWeight,
-          color: REPORT_SECTION_TITLE.color,
-          marginBottom: "10px",
-        }}
-      >
-        Keynote Certificate of Appreciation — Fundraising Session
-      </div>
       <p
         style={{
           fontSize: `${REPORT_BODY.fontSize}px`,

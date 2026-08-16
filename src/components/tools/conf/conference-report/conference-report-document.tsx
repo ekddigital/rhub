@@ -46,7 +46,6 @@ import {
   COOKING_COMMITTEE_NARRATIVE,
   COOKING_REIMBURSEMENTS,
   COOKING_TRANSPORTATION,
-  DISTINGUISHED_GUESTS,
   ELECTION_SUMMARY,
   EXECUTIVE_SUMMARY,
   FUTURE_ADVISORIES,
@@ -2180,38 +2179,10 @@ export function ConferenceReportDocument({
         totalPages={totalPages}
       />
 
-      {/* Distinguished Guests */}
-      <ReportPage pageNum={nextPage()} sectionLabel="Distinguished Guests">
-        <SectionTitle>19. Distinguished Guests and Speakers</SectionTitle>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            fontSize: `${REPORT_TABLE.fontSize}px`,
-            marginBottom: "12px",
-          }}
-        >
-          <tbody>
-            {DISTINGUISHED_GUESTS.map((g) => (
-              <tr key={g.name} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td
-                  style={{
-                    padding: REPORT_TABLE.cellPadding,
-                    fontWeight: 700,
-                    color: C.blue,
-                    width: "42%",
-                  }}
-                >
-                  {g.role}
-                </td>
-                <td style={{ padding: REPORT_TABLE.cellPadding }}>{g.name}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </ReportPage>
-
       <ReportPage pageNum={nextPage()} sectionLabel="Keynote Certificate">
+        <SectionTitle>
+          19. Keynote Certificate of Appreciation — Fundraising Session
+        </SectionTitle>
         <ReportKeynoteCertificateSection certificate={runtime.keynoteCertificate} />
       </ReportPage>
 

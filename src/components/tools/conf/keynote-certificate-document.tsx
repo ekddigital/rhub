@@ -157,4 +157,4 @@ export function KeynoteCertificateDocument({
 export const KEYNOTE_CERTIFICATE_DESIGN_WIDTH = 1100;
 
 /** Conservative design height at {@link KEYNOTE_CERTIFICATE_DESIGN_WIDTH} — used for report embed fit. */
-export const KEYNOTE_CERTIFICATE_DESIGN_HEIGHT = 920;
+export const KEYNOTE_CERTIFICATE_DESIGN_HEIGHT = 1120;
