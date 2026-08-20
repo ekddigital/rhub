@@ -412,8 +412,8 @@ export const DETAILED_PROGRAM_DAYS: ProgramDay[] = [DAY_1, DAY_2, DAY_3, DAY_4];
 export const PROGRAM_GENERAL_NOTES = [
   "All times are China Standard Time (CST / UTC+8).",
   "Dress code: Conference sessions: formal or smart business attire. Pool Party and sports: casual with Liberia's national colors (Red, White, Blue) encouraged. Awards Night: formal / semi-formal.",
-  "Conference room is located within the hotel. All plenary sessions will take place there unless otherwise announced.",
-  "Delegates are expected to be seated and ready 5 minutes before each session begins.",
-  "Mobile phones should be on silent during all formal sessions.",
-  "For travel assistance and emergencies, contact the Logistics Committee.",
+  "The conference room was located within the hotel. All plenary sessions took place there unless otherwise announced.",
+  "Delegates were expected to be seated and ready 5 minutes before each session began.",
+  "Mobile phones were kept on silent during all formal sessions.",
+  "For travel assistance and emergencies, delegates contacted the Logistics Committee.",
 ];

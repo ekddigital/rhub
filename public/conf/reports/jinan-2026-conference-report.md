@@ -1148,7 +1148,7 @@ Conference mobilization assets including theme posters, registration guides, fee
 
 1. All times are China Standard Time (CST / UTC+8).
 2. Dress code: Conference sessions — formal or smart business attire. Pool Party and sports — casual with Liberia's national colors (Red, White, Blue) encouraged. Awards Night — formal / semi-formal.
-3. Conference room is located within the hotel. All plenary sessions take place there unless otherwise announced.
-4. Delegates are expected to be seated and ready 5 minutes before each session begins.
-5. Mobile phones should be on silent during all formal sessions.
-6. For travel assistance and emergencies, contact the Logistics Committee.
+3. Conference room was located within the hotel. All plenary sessions took place there unless otherwise announced.
+4. Delegates were expected to be seated and ready 5 minutes before each session began.
+5. Mobile phones were kept on silent during all formal sessions.
+6. For travel assistance and emergencies, delegates contacted the Logistics Committee.
