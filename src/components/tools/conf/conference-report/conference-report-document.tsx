@@ -1455,7 +1455,7 @@ export function ConferenceReportDocument({
               ["Sub-theme", REPORT_META.subTheme],
               ["Dates", REPORT_META.dates],
               ["Venue", REPORT_META.venueEn],
-              ["Location", `${REPORT_META.city}, PRC`],
+              ["Location", REPORT_META.location],
               ["Conference Chair", "Enoch Kwateh Dongbo"],
             ].map(([label, value]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>

@@ -6,6 +6,7 @@ import { Download, Loader2, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BOOKLET_A4, C } from "../booklet/constants";
 import { BOOKLET_FONT_STACK, bookletFont } from "../booklet/booklet-fonts";
+import { warmupConferenceReportPdfExport } from "@/lib/conf/booklet-pdf-export-support";
 import {
   computeConferenceReportTotalPages,
   ConferenceReportDocument,
@@ -34,9 +35,7 @@ export function ConferenceReportPreview({
   const [portalReady, setPortalReady] = useState(false);
 
   useEffect(() => {
-    void import("@/lib/conf/navigation-pdf-export-support").then(({ warmupNavigationPdfExport }) =>
-      warmupNavigationPdfExport(),
-    );
+    void warmupConferenceReportPdfExport();
   }, []);
 
   useEffect(() => {
@@ -53,15 +52,15 @@ export function ConferenceReportPreview({
 
     try {
       const {
-        warmupNavigationPdfExport,
+        warmupConferenceReportPdfExport,
         settleAfterPrintRootUpdate,
         waitForBookletPagesInDom,
         waitForBookletImagesInDom,
         hideZeroSizeImages,
         normalizeBookletPagesForCapture,
-      } = await import("@/lib/conf/navigation-pdf-export-support");
+      } = await import("@/lib/conf/booklet-pdf-export-support");
 
-      await warmupNavigationPdfExport();
+      await warmupConferenceReportPdfExport();
       await settleAfterPrintRootUpdate();
 
       const pagesReady = await waitForBookletPagesInDom(
@@ -81,6 +80,8 @@ export function ConferenceReportPreview({
 
       await waitForBookletImagesInDom(PRINT_ROOT_ID);
       if (printRoot) hideZeroSizeImages(printRoot);
+
+      await warmupConferenceReportPdfExport();
 
       const { exportToPDF } =
         await import("@/lib/creative/documents/pdfExport");

@@ -3,6 +3,7 @@
  * fonts, static cover assets, React paint, and image decode in #booklet-print-root.
  */
 
+import { BOOKLET_FONT_STACK } from "@/components/tools/conf/booklet/booklet-fonts";
 import {
   preloadUrl,
   settleAfterPrintRootUpdate,
@@ -11,6 +12,12 @@ import {
 } from "./letter-pdf-batch-support";
 
 export { settleAfterPrintRootUpdate };
+
+/** CJK sample strings used in conference report §4 venue table. */
+const REPORT_CJK_FONT_SAMPLES = [
+  "齐河阿尔卡迪亚温泉高尔夫国际酒店",
+  "山东省德州市齐河县308国道国科球类中心旁",
+] as const;
 
 /** Static booklet assets referenced on cover / headers (same paths as booklet/constants ASSETS). */
 const BOOKLET_PDF_STATIC_ASSETS = [
@@ -29,6 +36,21 @@ export async function warmupBookletPdfExport(): Promise<void> {
   if (typeof document === "undefined") return;
   await document.fonts.ready;
   await Promise.all(BOOKLET_PDF_STATIC_ASSETS.map((src) => preloadUrl(src)));
+}
+
+/** Warm CJK faces before conference report html2canvas capture (print root is off-screen). */
+export async function warmupConferenceReportPdfExport(): Promise<void> {
+  if (typeof document === "undefined") return;
+
+  await warmupBookletPdfExport();
+
+  const fontLoads = REPORT_CJK_FONT_SAMPLES.flatMap((text) => [
+    document.fonts.load(`400 16px ${BOOKLET_FONT_STACK}`, text),
+    document.fonts.load(`700 16px ${BOOKLET_FONT_STACK}`, text),
+  ]);
+  await Promise.all(fontLoads);
+  await document.fonts.ready;
+  await new Promise((resolve) => setTimeout(resolve, 300));
 }
 
 export async function waitForBookletPagesInDom(

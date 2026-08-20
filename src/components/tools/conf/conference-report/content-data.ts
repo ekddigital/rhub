@@ -83,6 +83,7 @@ export const REPORT_META = {
     "https://k-visualsstudio.pixieset.com/lsuicjinan2026legacyandinfluenceday3/",
   reportDate: "13 August 2026",
   venueAddress: CONF_2026.address,
+  location: `${CONF_2026.venue}, ${CONF_2026.city}, ${CONF_2026.province}, PRC`,
 } as const;
 
 export type AttendanceRow = {
@@ -212,8 +213,8 @@ export const VENUE_HOTEL_PHOTOS: readonly ReportImageItem[] = [
     caption: "Conference hall — plenary seating",
   },
   {
-    src: "/conf/assets/hotel/f1a226969ddcd8e6e824f844c27bde80.jpg",
-    caption: "Conference hall — alternate setup",
+    src: "/conf/assets/hotel/dinner_hall1.png",
+    caption: "Conference hall — banquet reception setup",
   },
   {
     src: "/conf/assets/hotel/dinning_hall.jpg",
@@ -224,28 +225,24 @@ export const VENUE_HOTEL_PHOTOS: readonly ReportImageItem[] = [
     caption: "Dining hall — banquet seating",
   },
   {
-    src: "/conf/assets/hotel/dinner_hall1.png",
-    caption: "Dining hall — interior",
+    src: "/conf/assets/hotel/dinning_hall6.jpg",
+    caption: "Dining hall — booth seating section",
   },
   {
     src: "/conf/assets/hotel/dinner_hall2.jpg",
-    caption: "Dining hall — service area",
+    caption: "Dining hall — main seating area",
   },
   {
-    src: "/conf/assets/hotel/dinning_hall3.jpg",
-    caption: "Dining hall — additional seating",
+    src: "/conf/assets/hotel/dinning_hall7.png",
+    caption: "Dining hall — buffet service counter",
   },
   {
     src: "/conf/assets/hotel/dinning_hall5.jpg",
     caption: "Dining hall — interior view",
   },
   {
-    src: "/conf/assets/hotel/dinning_hall6.jpg",
+    src: "/conf/assets/hotel/dinning_hall3.jpg",
     caption: "Dining hall — seating layout",
-  },
-  {
-    src: "/conf/assets/hotel/dinning_hall7.png",
-    caption: "Dining hall — banquet setup",
   },
   {
     src: "/conf/assets/hotel/swimming_pool_at_night.png",
