@@ -327,7 +327,7 @@ The evening closed with delegate feedback, a vote of thanks from the Conference 
 | Time | Activity | Responsible | Location |
 | --- | --- | --- | --- |
 | 7:00 AM – 8:30 AM | Breakfast | Hotel Service | Hotel dining area |
-| 8:30 AM – 8:35 AM | Morning prayer and devotion | National Chaplain General — **Mitchell Vampelt** | Hotel conference room |
+| 8:30 AM – 8:35 AM | Morning prayer and devotion | National Vice President — **Hon. Ruphine M. Harmon** | Hotel conference room |
 | 8:30 AM – 8:35 AM | Call to Order — 20th Annual General Conference officially opened | Presiding Officer — Conference Chair / National President | Hotel conference room |
 | 8:35 AM – 8:45 AM | Reading and Adoption of the Conference Agenda | National Secretary General — **C. Nathaniel Willie II** | Hotel conference room |
 | 8:45 AM – 9:00 AM | Establishment of the Bar (Credentials Report) | National President — **Hon. Olano Teah Bloh** | Hotel conference room |
@@ -344,7 +344,7 @@ The evening closed with delegate feedback, a vote of thanks from the Conference 
 
 ### Narrative Summary
 
-The conference room hosted the formal governance agenda from **8:30 AM to 2:00 PM**, following breakfast and opening devotion led by **Mitchell Vampelt**. **C. Nathaniel Willie II** adopted the agenda; **Hon. Olano Teah Bloh** established the bar. **Noah Dave Mason Jr.** presented the National Financial Report (**9:30 – 9:50 AM**); the National President's Annual Report ran **9:55 AM – 10:55 AM**. Resolutions and IEC-conducted elections filled the remainder of the morning session through **2:00 PM**.
+The conference room hosted the formal governance agenda from **8:30 AM to 2:00 PM**, following breakfast and morning prayer and devotion led by **Hon. Ruphine M. Harmon**, National Vice President. **C. Nathaniel Willie II** adopted the agenda; **Hon. Olano Teah Bloh** established the bar. **Noah Dave Mason Jr.** presented the National Financial Report (**9:30 – 9:50 AM**); the National President's Annual Report ran **9:55 AM – 10:55 AM**. Resolutions and IEC-conducted elections filled the remainder of the morning session through **2:00 PM**.
 
 Following **Beans Toborgee** lunch and rest (**2:00 – 4:30 PM**), delegates reassembled for an **afternoon pool party** (**4:30 – 9:00 PM**) with **Pepper Soup with Rice and Fufu** served at **7:00 PM**. The pool party provided intentional balance between formal business and informal community building.
 

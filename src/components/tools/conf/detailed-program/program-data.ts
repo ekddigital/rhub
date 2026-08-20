@@ -141,7 +141,7 @@ const DAY_2: ProgramDay = {
     {
       time: "8:30 AM – 8:35 AM",
       activity: "Morning prayer and devotion.",
-      by: "National Chaplain General — Mitchell Vampelt",
+      by: "National Vice President - Hon. Ruphine M. Harmon",
     },
     {
       time: "8:30 AM – 8:35 AM",
