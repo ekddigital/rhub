@@ -336,7 +336,45 @@ function ReportLink({
   );
 }
 
-function BulletItem({ label, detail }: { label: string; detail: string }) {
+function ZhText({ children }: { children: ReactNode }) {
+  return <span lang="zh-Hans">{children}</span>;
+}
+
+function NumberedListItem({
+  index,
+  children,
+}: {
+  index: number;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+        fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+        color: REPORT_LIST_ITEM.color,
+        marginBottom: "6px",
+        lineHeight: REPORT_LIST_ITEM.lineHeight,
+      }}
+    >
+      <span style={{ fontWeight: 700, color: C.blue, flexShrink: 0, minWidth: "1.4em" }}>
+        {index}.
+      </span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+function NumberedLabelItem({
+  index,
+  label,
+  detail,
+}: {
+  index: number;
+  label: string;
+  detail: string;
+}) {
   return (
     <div
       style={{
@@ -346,16 +384,19 @@ function BulletItem({ label, detail }: { label: string; detail: string }) {
         alignItems: "flex-start",
       }}
     >
-      <div
+      <span
         style={{
-          width: "6px",
-          height: "6px",
-          borderRadius: "50%",
-          background: C.gold,
-          marginTop: "6px",
+          fontWeight: 700,
+          color: C.blue,
           flexShrink: 0,
+          minWidth: "1.4em",
+          fontSize: `${REPORT_BULLET.fontSize}px`,
+          lineHeight: REPORT_BULLET.lineHeight,
+          marginTop: "1px",
         }}
-      />
+      >
+        {index}.
+      </span>
       <div
         style={{
           fontSize: `${REPORT_BULLET.fontSize}px`,
@@ -1192,19 +1233,10 @@ export function ConferenceReportDocument({
           Theme: &ldquo;{REPORT_META.theme}&rdquo; · Sub-theme: &ldquo;
           {REPORT_META.subTheme}&rdquo;
         </BodyParagraph>
-        {CONFERENCE_OBJECTIVES.map((obj) => (
-          <div
-            key={obj.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "6px",
-              paddingLeft: "12px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {obj}
-          </div>
+        {CONFERENCE_OBJECTIVES.map((obj, idx) => (
+          <NumberedListItem key={obj.slice(0, 30)} index={idx + 1}>
+            {obj}
+          </NumberedListItem>
         ))}
       </ReportPage>
 
@@ -1261,9 +1293,10 @@ export function ConferenceReportDocument({
         <SectionTitle>4. Venue and Accommodation</SectionTitle>
         <BodyParagraph>
           The conference was hosted at the {VENUE_AND_ACCOMMODATION.nameEn} (
-          {VENUE_AND_ACCOMMODATION.nameZh}) in {VENUE_AND_ACCOMMODATION.location}.
-          Jinan — the City of Springs and capital of Shandong Province — provided a
-          fitting setting for LSUIC&apos;s twentieth anniversary assembly.
+          <ZhText>{VENUE_AND_ACCOMMODATION.nameZh}</ZhText>) in{" "}
+          {VENUE_AND_ACCOMMODATION.location}. Jinan — the City of Springs and capital of
+          Shandong Province — provided a fitting setting for LSUIC&apos;s twentieth
+          anniversary assembly.
         </BodyParagraph>
         <table
           style={{
@@ -1274,11 +1307,13 @@ export function ConferenceReportDocument({
           }}
         >
           <tbody>
-            {[
-              ["Hotel", VENUE_AND_ACCOMMODATION.nameEn],
-              ["Chinese name", VENUE_AND_ACCOMMODATION.nameZh],
-              ["Address", VENUE_AND_ACCOMMODATION.address],
-            ].map(([label, value]) => (
+            {(
+              [
+                ["Hotel", VENUE_AND_ACCOMMODATION.nameEn, false],
+                ["Chinese name", VENUE_AND_ACCOMMODATION.nameZh, true],
+                ["Address", VENUE_AND_ACCOMMODATION.address, true],
+              ] as const
+            ).map(([label, value, isZh]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
                   style={{
@@ -1292,7 +1327,7 @@ export function ConferenceReportDocument({
                   {label}
                 </td>
                 <td style={{ padding: REPORT_TABLE_PROSE.cellPadding, color: "#222" }}>
-                  {value}
+                  {isZh ? <ZhText>{value}</ZhText> : value}
                 </td>
               </tr>
             ))}
@@ -1308,19 +1343,10 @@ export function ConferenceReportDocument({
         >
           Conference facilities used
         </div>
-        {VENUE_AND_ACCOMMODATION.facilities.map((item) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "4px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {item}
-          </div>
+        {VENUE_AND_ACCOMMODATION.facilities.map((item, idx) => (
+          <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
+            {item}
+          </NumberedListItem>
         ))}
         <BodyParagraph>{VENUE_AND_ACCOMMODATION.travelNote}</BodyParagraph>
       </ReportPage>
@@ -1647,19 +1673,10 @@ export function ConferenceReportDocument({
             ))}
           </tbody>
         </table>
-        {ELECTION_SUMMARY.highlights.map((item) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "5px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {item}
-          </div>
+        {ELECTION_SUMMARY.highlights.map((item, idx) => (
+          <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
+            {item}
+          </NumberedListItem>
         ))}
         <div
           style={{
@@ -2189,23 +2206,19 @@ export function ConferenceReportDocument({
       {/* Outcomes + Resolutions */}
       <ReportPage pageNum={nextPage()} sectionLabel="Outcomes">
         <SectionTitle>20. Outcomes and Resolutions</SectionTitle>
-        {OUTCOMES.map((item) => (
-          <BulletItem key={item.label} label={item.label} detail={item.detail} />
+        {OUTCOMES.map((item, idx) => (
+          <NumberedLabelItem
+            key={item.label}
+            index={idx + 1}
+            label={item.label}
+            detail={item.detail}
+          />
         ))}
         <div style={{ marginTop: "8px" }}>
-          {RESOLUTIONS_SUMMARY.map((r) => (
-            <div
-              key={r.slice(0, 30)}
-              style={{
-                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                color: REPORT_LIST_ITEM.color,
-                marginBottom: "5px",
-                paddingLeft: "10px",
-                lineHeight: REPORT_LIST_ITEM.lineHeight,
-              }}
-            >
-              • {r}
-            </div>
+          {RESOLUTIONS_SUMMARY.map((r, idx) => (
+            <NumberedListItem key={r.slice(0, 30)} index={idx + 1}>
+              {r}
+            </NumberedListItem>
           ))}
         </div>
       </ReportPage>
@@ -2220,8 +2233,13 @@ export function ConferenceReportDocument({
           following items reflect documented constraints drawn from registration
           records, committee financial reports, and on-site program execution.
         </BodyParagraph>
-        {CONFERENCE_CHALLENGES.map((item) => (
-          <BulletItem key={item.label} label={item.label} detail={item.detail} />
+        {CONFERENCE_CHALLENGES.map((item, idx) => (
+          <NumberedLabelItem
+            key={item.label}
+            index={idx + 1}
+            label={item.label}
+            detail={item.detail}
+          />
         ))}
       </ReportPage>
 
@@ -2392,18 +2410,12 @@ export function ConferenceReportDocument({
                 );
               case "capability":
                 return (
-                  <div
+                  <NumberedListItem
                     key={`rhub-cap-${block.index}`}
-                    style={{
-                      fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                      color: REPORT_LIST_ITEM.color,
-                      marginBottom: "5px",
-                      paddingLeft: "10px",
-                      lineHeight: REPORT_LIST_ITEM.lineHeight,
-                    }}
+                    index={block.index + 1}
                   >
-                    • {RHUB_PLATFORM.capabilities[block.index]}
-                  </div>
+                    {RHUB_PLATFORM.capabilities[block.index]}
+                  </NumberedListItem>
                 );
               case "closing":
                 return (
@@ -2421,8 +2433,13 @@ export function ConferenceReportDocument({
       {/* Lessons Learned + Advisories */}
       <ReportPage pageNum={nextPage()} sectionLabel="Lessons & Advisories">
         <SectionTitle>23. Lessons Learned for Future Conferences</SectionTitle>
-        {LESSONS_LEARNED.map((item) => (
-          <BulletItem key={item.label} label={item.label} detail={item.detail} />
+        {LESSONS_LEARNED.map((item, idx) => (
+          <NumberedLabelItem
+            key={item.label}
+            index={idx + 1}
+            label={item.label}
+            detail={item.detail}
+          />
         ))}
 
         <SectionTitle>
@@ -2435,18 +2452,9 @@ export function ConferenceReportDocument({
           conference reporting standards.
         </BodyParagraph>
         {FUTURE_ADVISORIES.map((item, idx) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "6px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            {idx + 1}. {item}
-          </div>
+          <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
+            {item}
+          </NumberedListItem>
         ))}
       </ReportPage>
 
@@ -2456,19 +2464,10 @@ export function ConferenceReportDocument({
         <BodyParagraph>
           The Conference Committee extends sincere gratitude to:
         </BodyParagraph>
-        {ACKNOWLEDGEMENTS.map((item) => (
-          <div
-            key={item.slice(0, 30)}
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              color: REPORT_LIST_ITEM.color,
-              marginBottom: "6px",
-              paddingLeft: "10px",
-              lineHeight: REPORT_LIST_ITEM.lineHeight,
-            }}
-          >
-            • {item}
-          </div>
+        {ACKNOWLEDGEMENTS.map((item, idx) => (
+          <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
+            {item}
+          </NumberedListItem>
         ))}
       </ReportPage>
 
@@ -2857,19 +2856,10 @@ export function ConferenceReportDocument({
             >
               Electoral Process & Initiatives
             </div>
-            {IEC_ELECTORAL_INITIATIVES.map((item) => (
-              <div
-                key={item.slice(0, 30)}
-                style={{
-                  fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-                  color: REPORT_LIST_ITEM.color,
-                  marginBottom: "4px",
-                  paddingLeft: "10px",
-                  lineHeight: REPORT_LIST_ITEM.lineHeight,
-                }}
-              >
-                • {item}
-              </div>
+            {IEC_ELECTORAL_INITIATIVES.map((item, idx) => (
+              <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
+                {item}
+              </NumberedListItem>
             ))}
           </div>
 

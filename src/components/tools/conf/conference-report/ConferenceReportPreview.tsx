@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Download, Loader2, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BOOKLET_A4, C } from "../booklet/constants";
+import { BOOKLET_FONT_STACK, bookletFont } from "../booklet/booklet-fonts";
 import {
   computeConferenceReportTotalPages,
   ConferenceReportDocument,
@@ -31,6 +32,12 @@ export function ConferenceReportPreview({
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [portalReady, setPortalReady] = useState(false);
+
+  useEffect(() => {
+    void import("@/lib/conf/navigation-pdf-export-support").then(({ warmupNavigationPdfExport }) =>
+      warmupNavigationPdfExport(),
+    );
+  }, []);
 
   useEffect(() => {
     setPortalReady(true);
@@ -106,6 +113,7 @@ export function ConferenceReportPreview({
           width: ${BOOKLET_A4.width}px;
           pointer-events: none;
           z-index: -1;
+          font-family: ${BOOKLET_FONT_STACK};
         }
         #${PRINT_ROOT_ID},
         #${PRINT_ROOT_ID} * {
@@ -120,6 +128,7 @@ export function ConferenceReportPreview({
             height: auto !important;
             overflow: visible !important;
             background: white !important;
+            font-family: ${BOOKLET_FONT_STACK} !important;
           }
           body > :not(#${PRINT_ROOT_ID}) {
             display: none !important;
@@ -138,6 +147,11 @@ export function ConferenceReportPreview({
             transform: none !important;
             pointer-events: auto !important;
             z-index: auto !important;
+            font-family: ${BOOKLET_FONT_STACK} !important;
+          }
+          #${PRINT_ROOT_ID},
+          #${PRINT_ROOT_ID} * {
+            font-family: inherit !important;
           }
           #${PRINT_ROOT_ID} > div {
             display: block !important;
@@ -288,7 +302,9 @@ export function ConferenceReportPreview({
             width: `${BOOKLET_A4.width}px`,
             margin: "0 auto",
             marginBottom: zoom < 100 ? `${((zoom - 100) / 100) * 400}px` : "0",
+            fontFamily: BOOKLET_FONT_STACK,
           }}
+          className={bookletFont.className}
         >
           <ConferenceReportDocument gap={16} runtime={runtime} signatoryDraft={signatoryDraft} />
         </div>
@@ -296,7 +312,7 @@ export function ConferenceReportPreview({
 
       {portalReady &&
         createPortal(
-          <div id={PRINT_ROOT_ID}>
+          <div id={PRINT_ROOT_ID} className={bookletFont.className}>
             <ConferenceReportDocument gap={0} runtime={runtime} signatoryDraft={signatoryDraft} />
           </div>,
           document.body,
