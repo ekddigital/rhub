@@ -887,8 +887,11 @@ export const RHUB_PLATFORM = {
     "Certificates module and centralized conference documentation hub",
   ],
   closing:
-    "The Conference Committee acknowledges EKD Digital for providing rhub as the operational backbone of Jinan 2026. Platform support enabled accountable registration, transparent finance tracking, and reproducible post-conference documentation consistent with prior LSUIC reporting standards.",
+    "The Conference Committee, NEC, and LSUIC acknowledge EKD Digital for providing the EKD Digital Resource Hub, or \"rhub\" for short, as the operational backbone of Jinan 2026. Platform support enabled accountable registration, transparent finance tracking, and reproducible post-conference documentation consistent with prior LSUIC reporting standards.",
 } as const;
+
+export const ACKNOWLEDGEMENTS_INTRO =
+  "The Conference Committee, NEC, and LSUIC extend sincere gratitude to:";
 
 export const FUTURE_ADVISORIES = [
   "Publish unified post-conference reports within thirty days of adjournment, following the structure of this document.",
@@ -904,7 +907,7 @@ export const FUTURE_ADVISORIES = [
 export const ACKNOWLEDGEMENTS = [
   "His Excellency Dudley McKinley Thomas, Ambassador of the Republic of Liberia to the People's Republic of China, and the staff of the Embassy of Liberia in Beijing",
   "The National Executive Committee (NEC) and all standing and ad hoc committees — Cooking, Logistics, Welfare, Protocol, Press & Public Affairs, IEC, and others",
-  "EKD Digital for the EKD Digital Resource Hub (rhub) — conference management platform support throughout the Jinan 2026 cycle",
+  'EKD Digital for providing the EKD Digital Resource Hub, or "rhub" for short, as the operational backbone of Jinan 2026 — enabling accountable registration, transparent finance tracking, and reproducible post-conference documentation consistent with prior LSUIC reporting standards',
   "K-Visuals Studio for official conference photography and the Day 3 Pixieset gallery",
   "The Arcadia Spa Golf International Hotel management and staff",
   "Every delegate, veteran, guest, and volunteer who traveled to Jinan and contributed to a safe, dignified, and memorable twentieth conference",

@@ -31,6 +31,7 @@ import {
 } from "./ReportBookletSections";
 import {
   ACKNOWLEDGEMENTS,
+  ACKNOWLEDGEMENTS_INTRO,
   buildCookingExpenditureDetailPages,
   buildPreConferencePages,
   buildReportProgramPages,
@@ -2455,9 +2456,7 @@ export function ConferenceReportDocument({
       {/* Acknowledgements */}
       <ReportPage pageNum={nextPage()} sectionLabel="Acknowledgements">
         <SectionTitle>26. Acknowledgements</SectionTitle>
-        <BodyParagraph>
-          The Conference Committee extends sincere gratitude to:
-        </BodyParagraph>
+        <BodyParagraph>{ACKNOWLEDGEMENTS_INTRO}</BodyParagraph>
         {ACKNOWLEDGEMENTS.map((item, idx) => (
           <NumberedListItem key={item.slice(0, 30)} index={idx + 1}>
             {item}
