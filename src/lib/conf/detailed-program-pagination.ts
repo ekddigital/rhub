@@ -1,28 +1,52 @@
 import type { ProgramSlot } from "@/components/tools/conf/detailed-program/program-data";
 import {
   REPORT_CONTENT_HEIGHT,
+  REPORT_CONTENT_WIDTH,
   REPORT_CONTINUATION_BLOCK,
-  REPORT_LAYOUT_SAFETY_MARGIN,
   REPORT_SECTION_TITLE_BLOCK,
 } from "@/components/tools/conf/conference-report/report-layout";
+import { REPORT_PROGRAM } from "@/components/tools/conf/conference-report/report-typography";
 
 /** Usable A4 content height for conference report interior pages. */
 const REPORT_PAGE_CONTENT_PX = REPORT_CONTENT_HEIGHT;
 const REPORT_SECTION_TITLE_PX = REPORT_SECTION_TITLE_BLOCK;
 const REPORT_CONTINUATION_PX = REPORT_CONTINUATION_BLOCK;
-const REPORT_PROGRAM_SAFETY_PX = REPORT_LAYOUT_SAFETY_MARGIN;
+/** Tighter than general layout margin — program rows are measured directly. */
+const REPORT_PROGRAM_SAFETY_PX = 48;
 
 const REPORT_PROGRAM_TABLE_HEADER_PX = 30;
 const REPORT_PROGRAM_DAY_TITLE_PX = 22;
 const REPORT_PROGRAM_DAY_META_PX = 19;
 const REPORT_PROGRAM_DRESS_LINE_PX = 16;
-const REPORT_PROGRAM_ROW_BASE_PX = 28;
-const REPORT_PROGRAM_ACTIVITY_LINE_PX = 16;
-const REPORT_PROGRAM_SUB_PX = 16;
-const REPORT_PROGRAM_MEAL_PX = 16;
-const REPORT_PROGRAM_BY_LINE_PX = 14;
-const REPORT_PROGRAM_ACTIVITY_CHARS = 72;
-const REPORT_PROGRAM_BY_CHARS = 38;
+const REPORT_PROGRAM_CELL_PAD_Y = 10;
+const REPORT_PROGRAM_ROW_BORDER_PX = 1;
+const REPORT_PROGRAM_SUB_MARGIN_PX = 2;
+
+const REPORT_PROGRAM_ACTIVITY_COL_WIDTH = REPORT_CONTENT_WIDTH * 0.54;
+const REPORT_PROGRAM_BY_COL_WIDTH = REPORT_CONTENT_WIDTH * 0.28;
+
+const REPORT_PROGRAM_ACTIVITY_LINE_PX = Math.ceil(
+  REPORT_PROGRAM.activity.fontSize * REPORT_PROGRAM.activity.lineHeight,
+);
+const REPORT_PROGRAM_BY_LINE_PX = Math.ceil(
+  REPORT_PROGRAM.responsible.fontSize * 1.35,
+);
+const REPORT_PROGRAM_SUB_LINE_PX = Math.ceil(
+  REPORT_PROGRAM.subItem.fontSize * 1.35,
+);
+
+function reportProgramCharsPerLine(colWidth: number, fontSize: number): number {
+  return Math.max(16, Math.floor(colWidth / (fontSize * 0.55)));
+}
+
+const REPORT_PROGRAM_ACTIVITY_CHARS = reportProgramCharsPerLine(
+  REPORT_PROGRAM_ACTIVITY_COL_WIDTH,
+  REPORT_PROGRAM.activity.fontSize,
+);
+const REPORT_PROGRAM_BY_CHARS = reportProgramCharsPerLine(
+  REPORT_PROGRAM_BY_COL_WIDTH,
+  REPORT_PROGRAM.responsible.fontSize,
+);
 
 export type ProgramPaginationOptions = {
   firstPageCapacity: number;
@@ -80,29 +104,35 @@ function wrappedLines(text: string, charsPerLine: number): number {
 
 /** Pixel height of one rendered program row in the conference report. */
 export function estimateReportProgramSlotPx(slot: ProgramSlot): number {
-  let px = REPORT_PROGRAM_ROW_BASE_PX;
-  const activityLines = wrappedLines(slot.activity, REPORT_PROGRAM_ACTIVITY_CHARS);
-  px += Math.max(0, activityLines - 1) * REPORT_PROGRAM_ACTIVITY_LINE_PX;
+  let activityBlock =
+    wrappedLines(slot.activity, REPORT_PROGRAM_ACTIVITY_CHARS) *
+    REPORT_PROGRAM_ACTIVITY_LINE_PX;
 
   if (slot.meal) {
-    px +=
+    activityBlock +=
       wrappedLines(slot.meal, REPORT_PROGRAM_ACTIVITY_CHARS) *
-      REPORT_PROGRAM_MEAL_PX;
-  }
-  if (slot.by) {
-    px +=
-      wrappedLines(slot.by, REPORT_PROGRAM_BY_CHARS) * REPORT_PROGRAM_BY_LINE_PX;
+      REPORT_PROGRAM_ACTIVITY_LINE_PX;
   }
   if (slot.subs) {
-    px += slot.subs.reduce(
+    activityBlock += slot.subs.reduce(
       (sum, sub) =>
         sum +
+        REPORT_PROGRAM_SUB_MARGIN_PX +
         wrappedLines(sub.label, REPORT_PROGRAM_ACTIVITY_CHARS) *
-          REPORT_PROGRAM_SUB_PX,
+          REPORT_PROGRAM_SUB_LINE_PX,
       0,
     );
   }
-  return px;
+
+  const byBlock = slot.by
+    ? wrappedLines(slot.by, REPORT_PROGRAM_BY_CHARS) * REPORT_PROGRAM_BY_LINE_PX
+    : 0;
+
+  return (
+    REPORT_PROGRAM_CELL_PAD_Y +
+    Math.max(activityBlock, byBlock) +
+    REPORT_PROGRAM_ROW_BORDER_PX
+  );
 }
 
 function estimateReportProgramDayHeaderPx(
@@ -139,7 +169,11 @@ function reportProgramPageBudgetPx(
 }
 
 /** Merge a trailing orphan page (1–2 small rows) back onto the previous page. */
-function mergeReportProgramOrphans(pages: ProgramSlot[][]): ProgramSlot[][] {
+function mergeReportProgramOrphans(
+  pages: ProgramSlot[][],
+  dressCodeCount = 0,
+  dressCodeChars = 0,
+): ProgramSlot[][] {
   if (pages.length < 2) return pages;
 
   const last = pages[pages.length - 1];
@@ -152,7 +186,12 @@ function mergeReportProgramOrphans(pages: ProgramSlot[][]): ProgramSlot[][] {
   const prev = pages[pages.length - 2];
   const prevPx = prev.reduce((sum, slot) => sum + estimateReportProgramSlotPx(slot), 0);
   const combinedPx = prevPx + lastPx;
-  const budget = reportProgramPageBudgetPx(false) + 80;
+  const prevIsFirstPage = pages.length === 2;
+  const budget = reportProgramPageBudgetPx(
+    prevIsFirstPage,
+    dressCodeCount,
+    dressCodeChars,
+  );
 
   if (combinedPx <= budget) {
     return [...pages.slice(0, -2), [...prev, ...last]];
@@ -205,7 +244,7 @@ export function splitReportProgramDaySlots(
     pages.push(currentPage);
   }
 
-  return mergeReportProgramOrphans(pages);
+  return mergeReportProgramOrphans(pages, dressCodeCount, dressCodeChars);
 }
 
 /** Split one day's slots across pages — shared by detailed-program and conference report. */
