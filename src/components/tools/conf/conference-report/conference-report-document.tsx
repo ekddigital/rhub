@@ -47,7 +47,9 @@ import {
   COOKING_REIMBURSEMENTS,
   COOKING_TRANSPORTATION,
   ELECTION_SUMMARY,
+  buildFinanceOverviewRows,
   EXECUTIVE_SUMMARY,
+  formatFinanceOverviewAmount,
   FUTURE_ADVISORIES,
   getIecParticipationMetrics,
   IEC_COMMISSIONERS,
@@ -1807,15 +1809,7 @@ export function ConferenceReportDocument({
             </tr>
           </thead>
           <tbody>
-            {[
-              ["Delegate fees collected", financeSummary.delegateFeesCollected.toLocaleString()],
-              ["Cooking Committee — disbursed", financeSummary.cookingFundsDisbursed.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["Cooking Committee — expended", financeSummary.cookingExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["Cooking Committee — balance returned", financeSummary.cookingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC election revenue", financeSummary.iecRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC election expenditure", financeSummary.iecExpenditure.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-              ["IEC balance turned over to NEC", financeSummary.iecBalanceTurnover.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-            ].map(([label, value]) => (
+            {buildFinanceOverviewRows(financeSummary).map(([label, amount]) => (
               <tr key={label} style={{ borderBottom: "1px solid #E5E7EB" }}>
                 <td
                   style={{
@@ -1831,7 +1825,7 @@ export function ConferenceReportDocument({
                     textAlign: "right",
                   }}
                 >
-                  {value}
+                  {formatFinanceOverviewAmount(label, amount)}
                 </td>
               </tr>
             ))}

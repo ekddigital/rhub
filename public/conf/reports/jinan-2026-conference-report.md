@@ -610,13 +610,15 @@ The Cooking Committee was entrusted with planning, procuring, preparing, and ser
 
 The Cooking Committee maintained itemized records for all purchases and transfers (see Appendix A). Certified by **Kukor Brooks**, Cooking Committee Chairperson, 1 August 2026; approved by the Conference Committee Chairman.
 
-### 12.4 Conference Revenue Summary
+### 12.4 Revenue and Expenditure Overview
 
 | Description | Amount (RMB) |
 | --- | ---: |
-| Delegate registration fees collected | 34,640.00 |
-| Cooking Committee funds disbursed | 18,113.03 |
+| Delegate fees collected | 34,640 |
+| Cooking Committee balance turned over to NEC | 574.95 |
 | IEC election revenue | 2,365.00 |
+| IEC election expenditure | 948.69 |
+| IEC balance turned over to NEC | 1,416.31 |
 
 *Primary source: Official Jinan 2026 Conference Delegates and Fees register; Cooking Committee report; IEC-2026 financial report.*
 

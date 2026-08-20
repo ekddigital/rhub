@@ -124,6 +124,42 @@ export const FINANCE_SUMMARY = {
   iecBalanceTurnover: 1_416.31,
 } as const;
 
+export type FinanceOverviewSummary = {
+  delegateFeesCollected: number;
+  cookingBalance: number;
+  iecRevenue: number;
+  iecExpenditure: number;
+  iecBalanceTurnover: number;
+};
+
+export const FINANCE_OVERVIEW_LABELS = {
+  delegateFeesCollected: "Delegate fees collected",
+  cookingBalanceTurnover: "Cooking Committee balance turned over to NEC",
+  iecRevenue: "IEC election revenue",
+  iecExpenditure: "IEC election expenditure",
+  iecBalanceTurnover: "IEC balance turned over to NEC",
+} as const;
+
+/** High-level revenue and expenditure rows for §12 overview (mirrors IEC turnover pattern). */
+export function buildFinanceOverviewRows(
+  summary: FinanceOverviewSummary,
+): readonly [string, number][] {
+  return [
+    [FINANCE_OVERVIEW_LABELS.delegateFeesCollected, summary.delegateFeesCollected],
+    [FINANCE_OVERVIEW_LABELS.cookingBalanceTurnover, summary.cookingBalance],
+    [FINANCE_OVERVIEW_LABELS.iecRevenue, summary.iecRevenue],
+    [FINANCE_OVERVIEW_LABELS.iecExpenditure, summary.iecExpenditure],
+    [FINANCE_OVERVIEW_LABELS.iecBalanceTurnover, summary.iecBalanceTurnover],
+  ];
+}
+
+export function formatFinanceOverviewAmount(label: string, amount: number): string {
+  if (label === FINANCE_OVERVIEW_LABELS.delegateFeesCollected) {
+    return amount.toLocaleString();
+  }
+  return amount.toLocaleString(undefined, { minimumFractionDigits: 2 });
+}
+
 export type CommitteeMember = {
   role: string;
   name: string;
