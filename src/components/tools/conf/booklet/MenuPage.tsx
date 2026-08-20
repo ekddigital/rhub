@@ -29,7 +29,7 @@ const MENU_DAYS = [
     label: "DAY 4",
     day: "Departure",
     date: "July 27, 2026",
-    meals: ["Sandwich"],
+    meals: [],
   },
 ];
 

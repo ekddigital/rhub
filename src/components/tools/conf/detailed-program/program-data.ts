@@ -322,7 +322,6 @@ const DAY_3: ProgramDay = {
       activity: "Dinner service and formal networking.",
       by: "Cooking Committee",
       highlight: true,
-      meal: "Dinner service",
     },
     {
       time: "8:30 PM – 4:00 AM",
@@ -368,7 +367,6 @@ const DAY_4: ProgramDay = {
       activity: "Breakfast and room check-out preparation.",
       by: "All Delegates",
       highlight: true,
-      meal: "Sandwich",
     },
     {
       time: "8:30 AM – 9:30 AM",

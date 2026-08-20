@@ -260,7 +260,7 @@ The LSUIC 2026 Conference Committee — constitutionally capped at eleven appoin
 | 1 | Fri, 24 Jul | Arrival Day | Hotel reception · yard (golf course) | Liberian Dry Rice (4:30 PM) |
 | 2 | Sat, 25 Jul | Conference Business & Pool Party | Conference room · pool / spa | Beans Toborgee · Pepper Soup with Rice and Fufu |
 | 3 | Sun, 26 Jul | Independence Day, Sports & Awards Night | Sports grounds · conference venue | Pepper Kala · Awards Night banquet |
-| 4 | Mon, 27 Jul | Departure Day | Hotel reception · Jinan West Railway Station | Sandwich (breakfast) |
+| 4 | Mon, 27 Jul | Departure Day | Hotel reception · Jinan West Railway Station | Hotel breakfast |
 
 *All times China Standard Time (CST / UTC+8). Full slot-by-slot schedule in Sections 5–8 and Appendix D.*
 
@@ -472,7 +472,7 @@ The program closed with statements from the National President and the Conferenc
 
 | Time | Activity | Responsible | Location |
 | --- | --- | --- | --- |
-| 7:00 AM – 8:30 AM | Breakfast and room check-out preparation — **Sandwich** | All Delegates | Hotel dining area / room floors |
+| 7:00 AM – 8:30 AM | Breakfast and room check-out preparation | All Delegates | Hotel dining area / room floors |
 | 8:30 AM – 9:30 AM | Baggage coordination and final welfare check | Logistics Committee · Welfare Committee | Hotel reception |
 | 9:30 AM – 12:00 PM | Official hotel check-out — all rooms must be vacated by noon | All Delegates | Hotel reception |
 | As needed | Conference-arranged group transfers to Jinan West Railway Station | Logistics Committee | Hotel pickup point |
@@ -483,7 +483,7 @@ The program closed with statements from the National President and the Conferenc
 
 ### Narrative Summary
 
-Delegates completed breakfast (**Sandwich**, **7:00 – 8:30 AM**), baggage coordination, and official checkout **by 12:00 noon**. The Logistics Committee arranged group transfers to **Jinan West Railway Station** as needed. City and provincial coordinators confirmed safe arrival through ongoing follow-up.
+Delegates completed breakfast (**7:00 – 8:30 AM**), baggage coordination, and official checkout **by 12:00 noon**. The Logistics Committee arranged group transfers to **Jinan West Railway Station** as needed. City and provincial coordinators confirmed safe arrival through ongoing follow-up.
 
 Delegates returned to their respective cities carrying forward renewed commitments to service, leadership, and influence — the closing movement of the Legacy and Influence theme.
 
@@ -570,7 +570,7 @@ The Cooking Committee was entrusted with planning, procuring, preparing, and ser
 | 1 | Arrival Day | Liberian Dry Rice (4:30 PM) |
 | 2 | Conference Business & Pool Party | Beans Toborgee · Pepper Soup with Rice and Fufu |
 | 3 | Independence Day, Sports & Awards Night | Pepper Kala · Awards Night banquet |
-| 4 | Departure Day | Sandwich (breakfast) |
+| 4 | Departure Day | — |
 
 #### Statement of Funds Received
 
