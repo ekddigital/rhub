@@ -285,14 +285,14 @@ The LSUIC 2026 Conference Committee — constitutionally capped at eleven appoin
 | All Day | Delegates arrive and travel to the conference venue | All Delegates | In transit / venue arrival |
 | 11:00 AM – 8:00 PM | Arrival, check-in at hotel reception, room assignment, and welfare support desk | Logistics Committee · Welfare Committee | Hotel reception |
 | 2:00 PM – 4:00 PM | Rest window — delegates settle into rooms and explore hotel grounds | All Delegates | Hotel / logistics desk |
-| 4:10 PM – 4:15 PM | Opening Prayer | National Chaplain General / Designee | Hotel yard (near golf course) |
+| 4:10 PM – 4:15 PM | Opening Prayer | National Vice President — **Hon. Ruphine M. Harmon** | Hotel yard (near golf course) |
 | 4:30 PM | Lunch — **Liberian Dry Rice** | Cooking Committee | Hotel dining area |
 | 5:05 PM – 5:20 PM | Welcome Remarks — Meet and Greet official opening | National President / Conference Chair | Hotel yard |
 | 5:20 PM – 6:00 PM | Self-Introductions — all delegates introduce themselves | All Delegates | Hotel yard |
 | 6:00 PM – 6:20 PM | Conference orientation — four-day program overview, hotel ground rules, delegate expectations | Conference Chair — **Enoch Kwateh Dongbo** | Hotel yard |
 | 6:20 PM – 6:30 PM | Housekeeping announcements and logistics briefing for Day 2 | National Secretary General | Hotel yard |
 | 7:00 PM – 9:00 PM | Games, Fellowship, and informal networking | National Vice President — **Hon. Ruphine M. Harmon** | Hotel dining area |
-| 9:10 PM | Closing prayer — end of Day 1 | National Chaplain General / Designee | Hotel yard |
+| 9:10 PM | Closing prayer — end of Day 1 | National Vice President — **Hon. Ruphine M. Harmon** | Hotel yard |
 
 ### Narrative Summary
 
@@ -340,7 +340,7 @@ The evening closed with delegate feedback, a vote of thanks from the Conference 
 | 2:00 PM – 4:30 PM | Lunch and relaxation break — **Beans Toborgee** | Cooking Committee | Hotel / personal time |
 | 4:30 PM – 9:00 PM | Pool Party and Swimming | All Delegates | Hotel pool / spa area |
 | 7:00 PM | Dinner — **Pepper Soup with Rice and Fufu** | Cooking Committee | Hotel pool / spa area |
-| 9:00 PM | Closing Prayer — city and province caucus, check-ins, informal networking | National Chaplain General / Designee | Hotel pool / spa area |
+| 9:00 PM | Closing Prayer — city and province caucus, check-ins, informal networking | National Vice President — **Hon. Ruphine M. Harmon** | Hotel pool / spa area |
 
 ### Narrative Summary
 
@@ -373,7 +373,7 @@ Following **Beans Toborgee** lunch and rest (**2:00 – 4:30 PM**), delegates re
 | 9:00 AM – 2:00 PM | Sports Activities (Football and related games) | All Delegates · Sports Coordinator | Hotel sports grounds |
 | 1:30 PM | Lunch — **Pepper Kala** | Cooking Committee | Hotel sports grounds |
 | 4:00 PM – 4:20 PM | Red Carpet · Musical Interlude, DJ | Master of Ceremony (MC) · All Participants | Hotel conference venue |
-| 4:20 PM – 5:00 PM | Official Opening of the Independence Day Program (Opening Prayer and Call to Order) | National Chaplain General · Presiding Officer | Hotel conference venue |
+| 4:20 PM – 5:00 PM | Official Opening of the Independence Day Program (Opening Prayer and Call to Order) | National Vice President — **Hon. Ruphine M. Harmon** | Hotel conference venue |
 | 5:00 PM – 5:10 PM | Introduction of Guest Speaker | **Olive K. Kamara** | Hotel conference venue |
 | 5:10 PM – 5:40 PM | Independence Day Oration | **Hon. Joshua Bosco Barvor** | Hotel conference venue |
 | 5:40 PM – 6:00 PM | Recognition of The Liberian Embassy and Special Guests | **Hon. Olano Teah Bloh** | Hotel conference venue |
@@ -406,7 +406,7 @@ At **1:30 PM**, the Cooking Committee served **Pepper Kala** for lunch at the sp
 
 ### 7.2 Afternoon — Red Carpet and Official Opening
 
-From **4:00 PM**, delegates transitioned to the hotel conference venue for a **Red Carpet** reception with musical interlude and DJ accompaniment. At **4:20 PM**, the National Chaplain General opened the Independence Day program with prayer and call to order. **Olive K. Kamara** introduced the guest speaker at **5:00 PM**.
+From **4:00 PM**, delegates transitioned to the hotel conference venue for a **Red Carpet** reception with musical interlude and DJ accompaniment. At **4:20 PM**, **Hon. Ruphine M. Harmon**, National Vice President, opened the Independence Day program with prayer and call to order. **Olive K. Kamara** introduced the guest speaker at **5:00 PM**.
 
 ![Formal session — spoken word presentation](/conf/assets/before-after-conf/photos/formal-spoken-word-presentation.jpg)
 

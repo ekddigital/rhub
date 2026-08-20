@@ -74,7 +74,7 @@ const DAY_1: ProgramDay = {
     {
       time: "4:10 PM – 4:15 PM",
       activity: "Opening Prayer.",
-      by: "National Chaplain General / Designee",
+      by: "National Vice President - Hon. Ruphine M. Harmon",
     },
     {
       time: "4:30 PM",
@@ -113,7 +113,7 @@ const DAY_1: ProgramDay = {
     {
       time: "9:10 PM",
       activity: "Closing prayer — end of Day 1.",
-      by: "National Chaplain General / Designee",
+      by: "National Vice President - Hon. Ruphine M. Harmon",
     },
   ],
 };
@@ -214,7 +214,7 @@ const DAY_2: ProgramDay = {
       time: "9:00 PM",
       activity:
         "Closing Prayer - City and Province caucus, check-ins, informal networking.",
-      by: "National Chaplain General / Designee",
+      by: "National Vice President - Hon. Ruphine M. Harmon",
     },
   ],
 };
@@ -267,7 +267,7 @@ const DAY_3: ProgramDay = {
       time: "4:20 PM – 5:00 PM",
       activity:
         "Official Opening of the Independence Day Program (Opening Prayer and Call to Order).",
-      by: "National Chaplain General · Presiding Officer",
+      by: "National Vice President - Hon. Ruphine M. Harmon",
       highlight: true,
     },
     {
