@@ -775,18 +775,27 @@ Embassy staff, veterans, special invitees, institutional partners, and city chap
 | **Fellowship deepened** | Meet-and-greet, pool party, sports, shared meals, and awards night strengthened bonds across the Liberian student community in China. |
 | **Influence extended** | Delegates from dozens of cities returned with renewed purpose under the Jinan 2026 theme. |
 
-### 15.2 Resolutions (Plenary Session, 25 July)
+### 15.2 Historic Milestones and Resolutions
 
-The plenary session on 25 July adopted resolutions addressing:
+We are proud to have achieved some historic milestones during the annual conference in Jinan:
 
-- Continued strengthening of city chapter coordination and reporting to NEC
-- Support for academic excellence and welfare programs across provinces
-- Institutionalization of conference documentation and financial transparency standards
-- Endorsement of incoming NEC leadership and transition protocols
+1. **Adoption of the 2026 Amended Constitution** — The Assembly unanimously adopted this new legal framework, which will guide LSUIC for years to come.
+2. **Resolution Declaring "The Digital Era of LSUIC"** — The academic year 2025/26 is now officially recognized as the Digital Era of LSUIC, marking a paradigm shift from rhetoric to a technologically driven, transparent, and efficient Union. This will forever be referenced in all official documents as a reminder that the standard is on an exponential trajectory.
+3. **Launch of "How Far We Come"** — The first edition of this historic book was officially launched to preserve our Union's legacy, memories, and excellence.
+4. **Crowning of the First Miss LSUIC** — Queen Yvonne B. Blamoh made history as our first-ever Miss LSUIC, adding a new chapter to our cultural and social identity.
+
+### 15.3 Plenary Resolutions (25 July)
+
+The plenary session on 25 July also adopted resolutions addressing:
+
+1. Continued strengthening of city chapter coordination and reporting to NEC
+2. Support for academic excellence and welfare programs across provinces
+3. Institutionalization of conference documentation and financial transparency standards
+4. Endorsement of incoming NEC leadership and transition protocols
 
 *Full resolution text is maintained in the Conference Committee plenary minutes.*
 
-### 15.3 Recommendations for NEC and Future Conference Committees
+### 15.4 Recommendations for NEC and Future Conference Committees
 
 See **Section 19 — Advisories and Recommendations for Future Conferences** for the full forward-looking advisory list adopted by the Conference Committee.
 

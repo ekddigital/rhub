@@ -55,6 +55,8 @@ import {
   getIecParticipationMetrics,
   IEC_COMMISSIONERS,
   IEC_ELECTORAL_INITIATIVES,
+  HISTORIC_MILESTONES,
+  HISTORIC_MILESTONES_INTRO,
   LESSONS_LEARNED,
   OUTCOMES,
   PROGRAM_GENERAL_NOTES,
@@ -62,6 +64,7 @@ import {
   REPORT_PART_HEADINGS,
   REPORT_PHOTOS,
   REPORT_PROGRAM_DAYS,
+  RESOLUTIONS_PLENARY_INTRO,
   RESOLUTIONS_SUMMARY,
   RHUB_PLATFORM,
   RHUB_PLATFORM_LINKS,
@@ -2201,6 +2204,7 @@ export function ConferenceReportDocument({
       {/* Outcomes + Resolutions */}
       <ReportPage pageNum={nextPage()} sectionLabel="Outcomes">
         <SectionTitle>20. Outcomes and Resolutions</SectionTitle>
+        <ReportSubsectionTitle>Conference Outcomes</ReportSubsectionTitle>
         {OUTCOMES.map((item, idx) => (
           <NumberedLabelItem
             key={item.label}
@@ -2209,7 +2213,23 @@ export function ConferenceReportDocument({
             detail={item.detail}
           />
         ))}
+        <ReportKeepTogether>
+          <ReportSubsectionTitle>
+            Historic Milestones and Resolutions
+          </ReportSubsectionTitle>
+          <BodyParagraph>{HISTORIC_MILESTONES_INTRO}</BodyParagraph>
+        </ReportKeepTogether>
+        {HISTORIC_MILESTONES.map((item, idx) => (
+          <NumberedLabelItem
+            key={item.label}
+            index={idx + 1}
+            label={item.label}
+            detail={item.detail}
+          />
+        ))}
         <div style={{ marginTop: "8px" }}>
+          <ReportSubsectionTitle>Plenary Resolutions (25 July)</ReportSubsectionTitle>
+          <BodyParagraph>{RESOLUTIONS_PLENARY_INTRO}</BodyParagraph>
           {RESOLUTIONS_SUMMARY.map((r, idx) => (
             <NumberedListItem key={r.slice(0, 30)} index={idx + 1}>
               {r}

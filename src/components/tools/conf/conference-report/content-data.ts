@@ -762,6 +762,35 @@ export const OUTCOMES = [
   },
 ] as const;
 
+export const HISTORIC_MILESTONES_INTRO =
+  "We are proud to have achieved some historic milestones during the annual conference in Jinan:" as const;
+
+export const HISTORIC_MILESTONES = [
+  {
+    label: "Adoption of the 2026 Amended Constitution",
+    detail:
+      "The Assembly unanimously adopted this new legal framework, which will guide LSUIC for years to come.",
+  },
+  {
+    label: 'Resolution Declaring "The Digital Era of LSUIC"',
+    detail:
+      "The academic year 2025/26 is now officially recognized as the Digital Era of LSUIC, marking a paradigm shift from rhetoric to a technologically driven, transparent, and efficient Union. This will forever be referenced in all official documents as a reminder that the standard is on an exponential trajectory.",
+  },
+  {
+    label: 'Launch of "How Far We Come"',
+    detail:
+      "The first edition of this historic book was officially launched to preserve our Union's legacy, memories, and excellence.",
+  },
+  {
+    label: "Crowning of the First Miss LSUIC",
+    detail:
+      "Queen Yvonne B. Blamoh made history as our first-ever Miss LSUIC, adding a new chapter to our cultural and social identity.",
+  },
+] as const;
+
+export const RESOLUTIONS_PLENARY_INTRO =
+  "The plenary session on 25 July also adopted resolutions addressing:" as const;
+
 export const RESOLUTIONS_SUMMARY = [
   "Strengthen city chapter coordination and reporting to NEC.",
   "Support academic excellence and welfare programs across provinces.",
