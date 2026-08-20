@@ -387,17 +387,22 @@ export function ReportBookletProgramOutlineSection({
         </p>
       )}
       {days.map((day) => (
-        <div key={day.label} style={{ marginBottom: "8px" }}>
-          <div
-            style={{
-              fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
-              fontWeight: 700,
-              color: C.blue,
-              marginBottom: "4px",
-            }}
-          >
-            {day.label} · {day.dateLabel}
-          </div>
+        <div
+          key={`${day.label}-${day.isContinuation ? "cont" : "start"}-${day.activities[0]?.time ?? "empty"}`}
+          style={{ marginBottom: "8px" }}
+        >
+          {!day.isContinuation && (
+            <div
+              style={{
+                fontSize: `${REPORT_LIST_ITEM.fontSize}px`,
+                fontWeight: 700,
+                color: C.blue,
+                marginBottom: "4px",
+              }}
+            >
+              {day.label} · {day.dateLabel}
+            </div>
+          )}
           <table
             style={{
               width: "100%",

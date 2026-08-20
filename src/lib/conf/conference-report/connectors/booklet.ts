@@ -17,6 +17,18 @@ import {
   resolveConferenceIntroBody,
 } from "@/lib/conf/resolve-booklet-section-content";
 import type { BookletSection } from "@/components/tools/conf/booklet/types";
+import {
+  REPORT_CONTENT_HEIGHT,
+  REPORT_CONTENT_WIDTH,
+  REPORT_CONTINUATION_BLOCK,
+  REPORT_LAYOUT_SAFETY_MARGIN,
+} from "@/components/tools/conf/conference-report/report-layout";
+import {
+  REPORT_BODY,
+  REPORT_LIST_ITEM,
+  REPORT_SECTION_TITLE,
+  REPORT_TABLE,
+} from "@/components/tools/conf/conference-report/report-typography";
 import type { ReportDataSource } from "./types";
 
 export type ReportBookletPresidentRow = {
@@ -52,6 +64,8 @@ export type ReportBookletProgramDay = {
     activity: string;
     location: string;
   }>;
+  /** Mid-day table continuation — day header omitted; thead repeated. */
+  isContinuation?: boolean;
 };
 
 export type ReportBookletContent = {
@@ -231,77 +245,190 @@ export function chunkBookletParagraphs(
   return chunks.length > 0 ? chunks : [[]];
 }
 
-/** Report interior page budget (matches report-layout.ts). */
-const REPORT_PAGE_CONTENT_PX = 1123 - 61 - 33 - 28;
-const REPORT_PROGRAM_OUTLINE_SAFETY_PX = 12;
-const REPORT_PROGRAM_OUTLINE_TITLE_PX = 28;
-const REPORT_PROGRAM_OUTLINE_INTRO_LINE_PX = 26;
-const REPORT_PROGRAM_OUTLINE_INTRO_CHARS = 92;
-const REPORT_PROGRAM_OUTLINE_DAY_HEADER_PX = 24;
-const REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX = 32;
-const REPORT_PROGRAM_OUTLINE_ROW_LINE_PX = 17;
-const REPORT_PROGRAM_OUTLINE_ROW_PADDING_PX = 10;
-const REPORT_PROGRAM_OUTLINE_DAY_MARGIN_PX = 8;
-const REPORT_PROGRAM_OUTLINE_SOURCE_PX = 32;
+/** Measured from ReportBookletProgramOutlineSection table cells. */
+const REPORT_PROGRAM_OUTLINE_TABLE_LINE_PX = Math.ceil(
+  REPORT_TABLE.fontSize * 1.35,
+);
+const REPORT_PROGRAM_OUTLINE_ROW_V_PAD_PX = 10;
+const REPORT_PROGRAM_OUTLINE_ROW_BORDER_PX = 1;
+const REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX = 26;
+const REPORT_PROGRAM_OUTLINE_TIME_COL_PX = 120;
+const REPORT_PROGRAM_OUTLINE_LOCATION_COL_PX = 140;
 
-function estimateBookletProgramIntroHeaderPx(intro: string): number {
-  const lines = Math.max(
-    1,
-    Math.ceil(intro.trim().length / REPORT_PROGRAM_OUTLINE_INTRO_CHARS),
-  );
+function wrappedProgramOutlineLines(text: string, charsPerLine: number): number {
+  const normalized = text.trim();
+  if (!normalized) return 0;
+  return Math.max(1, Math.ceil(normalized.length / charsPerLine));
+}
+
+function estimateProgramOutlineTitlePx(): number {
+  return Math.ceil((REPORT_SECTION_TITLE.fontSize - 2) * 1.2) + 8;
+}
+
+function estimateProgramOutlineIntroBlockPx(intro: string): number {
+  const charsPerLine = Math.floor(REPORT_CONTENT_WIDTH / 9.5);
+  const linePx = Math.ceil(REPORT_BODY.fontSize * REPORT_BODY.lineHeight);
+  const lines = wrappedProgramOutlineLines(intro, charsPerLine);
+  return estimateProgramOutlineTitlePx() + lines * linePx + 10;
+}
+
+function estimateProgramOutlineSourcePx(): number {
   return (
-    REPORT_PROGRAM_OUTLINE_TITLE_PX +
-    lines * REPORT_PROGRAM_OUTLINE_INTRO_LINE_PX +
+    8 +
+    Math.ceil(REPORT_LIST_ITEM.fontSize * REPORT_LIST_ITEM.lineHeight) +
     8
   );
 }
 
-function estimateBookletProgramDayPx(day: ReportBookletProgramDay): number {
-  const rowsPx = day.activities.reduce((sum, row) => {
-    const activityLines = Math.max(
-      1,
-      Math.ceil(row.activity.length / 46),
-    );
-    const locationLines = Math.max(
-      1,
-      Math.ceil(row.location.length / 36),
-    );
-    const lines = Math.max(activityLines, locationLines);
-    return sum + REPORT_PROGRAM_OUTLINE_ROW_PADDING_PX + lines * REPORT_PROGRAM_OUTLINE_ROW_LINE_PX;
-  }, 0);
-
-  return (
-    REPORT_PROGRAM_OUTLINE_DAY_HEADER_PX +
-    REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX +
-    rowsPx +
-    REPORT_PROGRAM_OUTLINE_DAY_MARGIN_PX
+function estimateProgramOutlineRowPx(row: ReportBookletProgramDay["activities"][number]): number {
+  const activityColPx =
+    REPORT_CONTENT_WIDTH -
+    REPORT_PROGRAM_OUTLINE_TIME_COL_PX -
+    REPORT_PROGRAM_OUTLINE_LOCATION_COL_PX;
+  const activityChars = Math.floor(activityColPx / 7.2);
+  const locationChars = Math.floor(
+    REPORT_PROGRAM_OUTLINE_LOCATION_COL_PX / 7.2,
   );
+  const lines = Math.max(
+    wrappedProgramOutlineLines(row.activity, activityChars),
+    wrappedProgramOutlineLines(row.location, locationChars),
+    1,
+  );
+  return (
+    REPORT_PROGRAM_OUTLINE_ROW_V_PAD_PX +
+    lines * REPORT_PROGRAM_OUTLINE_TABLE_LINE_PX +
+    REPORT_PROGRAM_OUTLINE_ROW_BORDER_PX
+  );
+}
+
+function estimateProgramOutlineDayHeaderPx(isContinuation: boolean): number {
+  if (isContinuation) return 0;
+  return (
+    Math.ceil(REPORT_LIST_ITEM.fontSize * REPORT_LIST_ITEM.lineHeight) + 4 + 8
+  );
+}
+
+function estimateProgramOutlineDayPx(day: ReportBookletProgramDay): number {
+  const isContinuation = day.isContinuation === true;
+  let px =
+    estimateProgramOutlineDayHeaderPx(isContinuation) +
+    REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX;
+  px += day.activities.reduce(
+    (sum, row) => sum + estimateProgramOutlineRowPx(row),
+    0,
+  );
+  if (!isContinuation) px += 8;
+  return px;
+}
+
+function reportProgramOutlinePageBudget(pageIndex: number): number {
+  let budget = REPORT_CONTENT_HEIGHT - REPORT_LAYOUT_SAFETY_MARGIN;
+  if (pageIndex > 0) budget -= REPORT_CONTINUATION_BLOCK;
+  return budget;
+}
+
+function measureProgramOutlinePagePx(
+  page: { showIntro: boolean; days: readonly ReportBookletProgramDay[] },
+  pageIndex: number,
+  intro: string,
+): number {
+  let height = pageIndex > 0 ? REPORT_CONTINUATION_BLOCK : 0;
+  if (page.showIntro) {
+    height += estimateProgramOutlineIntroBlockPx(intro);
+    height += estimateProgramOutlineSourcePx();
+  }
+  for (const day of page.days) {
+    height += estimateProgramOutlineDayPx(day);
+  }
+  return height;
+}
+
+/** Split one day's table rows when a full day exceeds the remaining page budget. */
+function splitProgramOutlineDayRows(
+  day: ReportBookletProgramDay,
+  firstChunkBudget: number,
+): ReportBookletProgramDay[] {
+  const fullPx = estimateProgramOutlineDayPx(day);
+  if (fullPx <= firstChunkBudget) return [day];
+
+  const chunks: ReportBookletProgramDay[] = [];
+  let cursor = 0;
+  let isContinuation = false;
+
+  while (cursor < day.activities.length) {
+    const chunk: ReportBookletProgramDay = {
+      label: day.label,
+      dateLabel: day.dateLabel,
+      activities: [],
+      isContinuation,
+    };
+    const chunkBudget = isContinuation
+      ? reportProgramOutlinePageBudget(1)
+      : firstChunkBudget;
+    let usedPx =
+      estimateProgramOutlineDayHeaderPx(isContinuation) +
+      REPORT_PROGRAM_OUTLINE_TABLE_HEADER_PX;
+
+    while (cursor < day.activities.length) {
+      const row = day.activities[cursor];
+      const rowPx = estimateProgramOutlineRowPx(row);
+      if (usedPx + rowPx > chunkBudget && chunk.activities.length > 0) break;
+
+      chunk.activities.push(row);
+      usedPx += rowPx;
+      cursor += 1;
+
+      if (usedPx > chunkBudget && chunk.activities.length === 1) break;
+    }
+
+    if (chunk.activities.length === 0) break;
+    chunks.push(chunk);
+    isContinuation = true;
+  }
+
+  return chunks.length > 0 ? chunks : [day];
 }
 
 /** Pack program-outline days by estimated height instead of fixed 2-per-page. */
 export function paginateReportBookletProgramOutline(
   content: ReportBookletContent,
 ): Array<{ showIntro: boolean; days: ReportBookletProgramDay[] }> {
+  const introBlockPx =
+    estimateProgramOutlineIntroBlockPx(content.programOutline.intro) +
+    estimateProgramOutlineSourcePx();
+  const firstDayBudget = Math.max(
+    reportProgramOutlinePageBudget(0) - introBlockPx,
+    reportProgramOutlinePageBudget(1) / 2,
+  );
+
+  const expandedDays = content.programOutline.days.flatMap((day, index) =>
+    splitProgramOutlineDayRows(
+      day,
+      index === 0 ? firstDayBudget : reportProgramOutlinePageBudget(1),
+    ),
+  );
+
   const pages: Array<{ showIntro: boolean; days: ReportBookletProgramDay[] }> =
     [];
-  const budget = REPORT_PAGE_CONTENT_PX - REPORT_PROGRAM_OUTLINE_SAFETY_PX;
   let current: { showIntro: boolean; days: ReportBookletProgramDay[] } = {
     showIntro: true,
     days: [],
   };
-  let usedPx = estimateBookletProgramIntroHeaderPx(content.programOutline.intro);
-  if (current.showIntro) {
-    usedPx += REPORT_PROGRAM_OUTLINE_SOURCE_PX;
-  }
+  let pageIndex = 0;
+  let usedPx = introBlockPx;
 
-  for (const day of content.programOutline.days) {
-    const dayPx = estimateBookletProgramDayPx(day);
+  for (const dayChunk of expandedDays) {
+    const dayPx = estimateProgramOutlineDayPx(dayChunk);
+    const budget = reportProgramOutlinePageBudget(pageIndex);
+
     if (current.days.length > 0 && usedPx + dayPx > budget) {
       pages.push(current);
+      pageIndex += 1;
       current = { showIntro: false, days: [] };
-      usedPx = 0;
+      usedPx = REPORT_CONTINUATION_BLOCK;
     }
-    current.days.push(day);
+
+    current.days.push(dayChunk);
     usedPx += dayPx;
   }
 
@@ -309,7 +436,23 @@ export function paginateReportBookletProgramOutline(
     pages.push(current);
   }
 
-  return pages.length > 0 ? pages : [{ showIntro: true, days: [] }];
+  const result = pages.length > 0 ? pages : [{ showIntro: true, days: [] }];
+
+  result.forEach((page, idx) => {
+    const height = measureProgramOutlinePagePx(
+      page,
+      idx,
+      content.programOutline.intro,
+    );
+    const budget = reportProgramOutlinePageBudget(idx);
+    if (height > budget) {
+      throw new Error(
+        `Program outline page ${idx + 1} exceeds budget: ${Math.round(height)}px > ${Math.round(budget)}px`,
+      );
+    }
+  });
+
+  return result;
 }
 
 /** LSUIC overview — page 1: intro + presidents; page 2: venues (matches booklet). */

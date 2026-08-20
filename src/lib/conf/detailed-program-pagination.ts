@@ -1,10 +1,16 @@
 import type { ProgramSlot } from "@/components/tools/conf/detailed-program/program-data";
+import {
+  REPORT_CONTENT_HEIGHT,
+  REPORT_CONTINUATION_BLOCK,
+  REPORT_LAYOUT_SAFETY_MARGIN,
+  REPORT_SECTION_TITLE_BLOCK,
+} from "@/components/tools/conf/conference-report/report-layout";
 
 /** Usable A4 content height for conference report interior pages. */
-const REPORT_PAGE_CONTENT_PX = 1123 - 61 - 33 - 28;
-const REPORT_SECTION_TITLE_PX = 44;
-const REPORT_CONTINUATION_PX = 26;
-const REPORT_PROGRAM_SAFETY_PX = 24;
+const REPORT_PAGE_CONTENT_PX = REPORT_CONTENT_HEIGHT;
+const REPORT_SECTION_TITLE_PX = REPORT_SECTION_TITLE_BLOCK;
+const REPORT_CONTINUATION_PX = REPORT_CONTINUATION_BLOCK;
+const REPORT_PROGRAM_SAFETY_PX = REPORT_LAYOUT_SAFETY_MARGIN;
 
 const REPORT_PROGRAM_TABLE_HEADER_PX = 30;
 const REPORT_PROGRAM_DAY_TITLE_PX = 22;
