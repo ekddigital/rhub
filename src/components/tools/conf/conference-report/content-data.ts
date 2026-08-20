@@ -126,6 +126,7 @@ export const FINANCE_SUMMARY = {
 
 export type FinanceOverviewSummary = {
   delegateFeesCollected: number;
+  cookingExpenditure: number;
   cookingBalance: number;
   iecRevenue: number;
   iecExpenditure: number;
@@ -134,6 +135,7 @@ export type FinanceOverviewSummary = {
 
 export const FINANCE_OVERVIEW_LABELS = {
   delegateFeesCollected: "Delegate fees collected",
+  cookingExpenditure: "Cooking Committee expenditure",
   cookingBalanceTurnover: "Cooking Committee balance turned over to NEC",
   iecRevenue: "IEC election revenue",
   iecExpenditure: "IEC election expenditure",
@@ -146,6 +148,7 @@ export function buildFinanceOverviewRows(
 ): readonly [string, number][] {
   return [
     [FINANCE_OVERVIEW_LABELS.delegateFeesCollected, summary.delegateFeesCollected],
+    [FINANCE_OVERVIEW_LABELS.cookingExpenditure, summary.cookingExpenditure],
     [FINANCE_OVERVIEW_LABELS.cookingBalanceTurnover, summary.cookingBalance],
     [FINANCE_OVERVIEW_LABELS.iecRevenue, summary.iecRevenue],
     [FINANCE_OVERVIEW_LABELS.iecExpenditure, summary.iecExpenditure],

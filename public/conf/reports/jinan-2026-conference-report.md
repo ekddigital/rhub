@@ -615,6 +615,7 @@ The Cooking Committee maintained itemized records for all purchases and transfer
 | Description | Amount (RMB) |
 | --- | ---: |
 | Delegate fees collected | 34,640 |
+| Cooking Committee expenditure | 17,538.08 |
 | Cooking Committee balance turned over to NEC | 574.95 |
 | IEC election revenue | 2,365.00 |
 | IEC election expenditure | 948.69 |
