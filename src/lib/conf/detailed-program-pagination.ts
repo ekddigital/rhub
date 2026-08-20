@@ -1,4 +1,7 @@
-import type { ProgramSlot } from "@/components/tools/conf/detailed-program/program-data";
+import type {
+  ProgramDay,
+  ProgramSlot,
+} from "@/components/tools/conf/detailed-program/program-data";
 import {
   REPORT_CONTENT_HEIGHT,
   REPORT_CONTENT_WIDTH,
@@ -13,6 +16,8 @@ const REPORT_SECTION_TITLE_PX = REPORT_SECTION_TITLE_BLOCK;
 const REPORT_CONTINUATION_PX = REPORT_CONTINUATION_BLOCK;
 /** Tighter than general layout margin — program rows are measured directly. */
 const REPORT_PROGRAM_SAFETY_PX = 48;
+/** Keep slack so tall rows (e.g. Awards Night) do not clip at page bottom. */
+const REPORT_PROGRAM_MIN_PAGE_SLACK_PX = 32;
 
 const REPORT_PROGRAM_TABLE_HEADER_PX = 30;
 const REPORT_PROGRAM_DAY_TITLE_PX = 22;
@@ -47,6 +52,17 @@ const REPORT_PROGRAM_BY_CHARS = reportProgramCharsPerLine(
   REPORT_PROGRAM_BY_COL_WIDTH,
   REPORT_PROGRAM.responsible.fontSize,
 );
+const REPORT_PROGRAM_SUB_CHARS = reportProgramCharsPerLine(
+  REPORT_PROGRAM_ACTIVITY_COL_WIDTH,
+  REPORT_PROGRAM.subItem.fontSize,
+);
+const REPORT_PROGRAM_DRESS_CHARS = reportProgramCharsPerLine(
+  REPORT_CONTENT_WIDTH,
+  REPORT_PROGRAM.dressCode.fontSize,
+);
+
+/** Vertical gap between stacked program day blocks on one report page. */
+const REPORT_PROGRAM_SEGMENT_GAP_PX = 10;
 
 export type ProgramPaginationOptions = {
   firstPageCapacity: number;
@@ -104,21 +120,19 @@ function wrappedLines(text: string, charsPerLine: number): number {
 
 /** Pixel height of one rendered program row in the conference report. */
 export function estimateReportProgramSlotPx(slot: ProgramSlot): number {
+  const activityText = slot.meal
+    ? `${slot.activity} · ${slot.meal}`
+    : slot.activity;
   let activityBlock =
-    wrappedLines(slot.activity, REPORT_PROGRAM_ACTIVITY_CHARS) *
+    wrappedLines(activityText, REPORT_PROGRAM_ACTIVITY_CHARS) *
     REPORT_PROGRAM_ACTIVITY_LINE_PX;
 
-  if (slot.meal) {
-    activityBlock +=
-      wrappedLines(slot.meal, REPORT_PROGRAM_ACTIVITY_CHARS) *
-      REPORT_PROGRAM_ACTIVITY_LINE_PX;
-  }
   if (slot.subs) {
     activityBlock += slot.subs.reduce(
       (sum, sub) =>
         sum +
         REPORT_PROGRAM_SUB_MARGIN_PX +
-        wrappedLines(sub.label, REPORT_PROGRAM_ACTIVITY_CHARS) *
+        wrappedLines(sub.label, REPORT_PROGRAM_SUB_CHARS) *
           REPORT_PROGRAM_SUB_LINE_PX,
       0,
     );
@@ -135,18 +149,35 @@ export function estimateReportProgramSlotPx(slot: ProgramSlot): number {
   );
 }
 
+function reportProgramDressCodeChars(day: ProgramDay): number {
+  return day.dressCodes.reduce(
+    (sum, dc) => sum + dc.session.length + dc.code.length + 2,
+    0,
+  );
+}
+
 function estimateReportProgramDayHeaderPx(
   dressCodeCount: number,
   dressCodeChars = 0,
 ): number {
   const dressLines = dressCodeCount
-    ? Math.max(1, Math.ceil(Math.max(dressCodeChars, 40) / 78))
+    ? Math.max(
+        1,
+        Math.ceil(Math.max(dressCodeChars, 40) / REPORT_PROGRAM_DRESS_CHARS),
+      )
     : 0;
   return (
     REPORT_PROGRAM_DAY_TITLE_PX +
     REPORT_PROGRAM_DAY_META_PX +
     dressLines * REPORT_PROGRAM_DRESS_LINE_PX +
     5
+  );
+}
+
+export function estimateReportProgramDayHeaderPxForDay(day: ProgramDay): number {
+  return estimateReportProgramDayHeaderPx(
+    day.dressCodes.length,
+    reportProgramDressCodeChars(day),
   );
 }
 
@@ -245,6 +276,146 @@ export function splitReportProgramDaySlots(
   }
 
   return mergeReportProgramOrphans(pages, dressCodeCount, dressCodeChars);
+}
+
+export type ReportProgramPageSegment = {
+  sectionNum: number;
+  sectionTitle: string;
+  day: ProgramDay;
+  slots: ProgramSlot[];
+  showDayHeader: boolean;
+  showSectionTitle: boolean;
+  showContinuation: boolean;
+};
+
+export type ReportProgramPhysicalPage = {
+  segments: ReportProgramPageSegment[];
+};
+
+export type ReportProgramDaySection = {
+  sectionNum: number;
+  title: string;
+  day: number;
+};
+
+function reportProgramSegmentChromePx(
+  segment: Pick<
+    ReportProgramPageSegment,
+    "day" | "showDayHeader" | "showSectionTitle" | "showContinuation"
+  >,
+): number {
+  let px = REPORT_PROGRAM_TABLE_HEADER_PX;
+  if (segment.showSectionTitle) px += REPORT_SECTION_TITLE_PX;
+  if (segment.showContinuation) px += REPORT_CONTINUATION_PX;
+  if (segment.showDayHeader) px += estimateReportProgramDayHeaderPxForDay(segment.day);
+  return px;
+}
+
+function reportProgramSegmentSlotsPx(slots: readonly ProgramSlot[]): number {
+  return slots.reduce((sum, slot) => sum + estimateReportProgramSlotPx(slot), 0);
+}
+
+function reportProgramPhysicalPagePx(segments: readonly ReportProgramPageSegment[]): number {
+  let px = REPORT_PROGRAM_SAFETY_PX;
+  segments.forEach((segment, index) => {
+    if (index > 0) px += REPORT_PROGRAM_SEGMENT_GAP_PX;
+    px += reportProgramSegmentChromePx(segment);
+    px += reportProgramSegmentSlotsPx(segment.slots);
+  });
+  return px;
+}
+
+/** Paginate §7–§10 across physical pages; pack later days onto continuation pages when they fit. */
+export function buildReportProgramPhysicalPages(
+  days: readonly ProgramDay[],
+  sections: readonly ReportProgramDaySection[],
+): ReportProgramPhysicalPage[] {
+  const physicalPages: ReportProgramPhysicalPage[] = [];
+  let currentSegments: ReportProgramPageSegment[] = [];
+
+  const flushPage = () => {
+    if (currentSegments.length > 0) {
+      physicalPages.push({ segments: currentSegments });
+      currentSegments = [];
+    }
+  };
+
+  const canFitSegments = (segments: readonly ReportProgramPageSegment[]) => {
+    const px = reportProgramPhysicalPagePx(segments);
+    return px <= REPORT_PAGE_CONTENT_PX - REPORT_PROGRAM_MIN_PAGE_SLACK_PX;
+  };
+
+  for (const section of sections) {
+    const day = days.find((entry) => entry.day === section.day);
+    if (!day) continue;
+
+    let slotIndex = 0;
+    let dayPageIndex = 0;
+
+    while (slotIndex < day.slots.length) {
+      if (slotIndex === 0 && dayPageIndex === 0 && currentSegments.length > 0) {
+        const lastSegment = currentSegments[currentSegments.length - 1];
+        if (!lastSegment.showContinuation) {
+          flushPage();
+        } else {
+          const chromeOnly: ReportProgramPageSegment = {
+            sectionNum: section.sectionNum,
+            sectionTitle: section.title,
+            day,
+            slots: [],
+            showDayHeader: true,
+            showSectionTitle: true,
+            showContinuation: false,
+          };
+          if (
+            !canFitSegments([...currentSegments, chromeOnly])
+          ) {
+            flushPage();
+          }
+        }
+      }
+
+      const segmentShell: Omit<ReportProgramPageSegment, "slots"> = {
+        sectionNum: section.sectionNum,
+        sectionTitle: section.title,
+        day,
+        showDayHeader: dayPageIndex === 0,
+        showSectionTitle: dayPageIndex === 0,
+        showContinuation: dayPageIndex > 0,
+      };
+
+      const segmentSlots: ProgramSlot[] = [];
+      while (slotIndex < day.slots.length) {
+        const slot = day.slots[slotIndex];
+        const trialSegment: ReportProgramPageSegment = {
+          ...segmentShell,
+          slots: [...segmentSlots, slot],
+        };
+        if (!canFitSegments([...currentSegments, trialSegment])) break;
+        segmentSlots.push(slot);
+        slotIndex++;
+      }
+
+      if (segmentSlots.length === 0) {
+        flushPage();
+        segmentSlots.push(day.slots[slotIndex]);
+        slotIndex++;
+      }
+
+      currentSegments.push({
+        ...segmentShell,
+        slots: segmentSlots,
+      });
+      dayPageIndex++;
+
+      if (slotIndex < day.slots.length) {
+        flushPage();
+      }
+    }
+  }
+
+  flushPage();
+  return physicalPages;
 }
 
 /** Split one day's slots across pages — shared by detailed-program and conference report. */

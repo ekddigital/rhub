@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { DocumentReceiptPhotosGrid } from "@/lib/conf/document-receipt-photos";
 import { chunkReportReceiptEntries } from "@/lib/conf/conference-report/connectors/payments";
 import { CONFERENCE_ATTENDANCE_XLSX_PUBLIC_PATH } from "@/lib/conf/conference-report/connectors/attendance-register-constants";
@@ -1170,6 +1170,35 @@ function ProgramDayBlock({
   );
 }
 
+function programPageSectionLabel(
+  page: ReturnType<typeof buildReportProgramPages>[number],
+): string {
+  const first = page.segments[0];
+  if (!first) return "Program";
+  if (first.showSectionTitle) {
+    return `${first.sectionNum}. ${first.sectionTitle}`;
+  }
+  if (first.showContinuation) {
+    return `${first.sectionNum}. ${first.sectionTitle} (cont.)`;
+  }
+  return `${first.sectionNum}. ${first.sectionTitle}`;
+}
+
+function isLastDay4ProgramPage(
+  pages: ReturnType<typeof buildReportProgramPages>,
+  pageIndex: number,
+): boolean {
+  const hasDay4After = pages
+    .slice(pageIndex + 1)
+    .some((entry) =>
+      entry.segments.some((segment) => segment.sectionNum === 10),
+    );
+  return (
+    !hasDay4After &&
+    pages[pageIndex].segments.some((segment) => segment.sectionNum === 10)
+  );
+}
+
 export function ConferenceReportDocument({
   gap = 0,
   runtime,
@@ -1567,51 +1596,51 @@ export function ConferenceReportDocument({
         totalPages={totalPages}
       />
 
-      {/* Detailed program schedule — one section per day (§7–§10), sourced from Detailed Program */}
-      {programPages.map((page) => (
+      {/* Detailed program schedule — §7–§10; days may share continuation pages when they fit */}
+      {programPages.map((page, pageIndex) => (
         <ReportPage
-          key={`program-${page.sectionNum}-${page.pageIndex}`}
+          key={`program-${pageIndex}`}
           pageNum={nextPage()}
-          sectionLabel={
-            page.pageIndex === 0
-              ? `${page.sectionNum}. ${page.sectionTitle}`
-              : `${page.sectionNum}. ${page.sectionTitle} (cont.)`
-          }
+          sectionLabel={programPageSectionLabel(page)}
         >
-          {page.pageIndex === 0 ? (
-            <SectionTitle>
-              {page.sectionNum}. {page.sectionTitle}
-            </SectionTitle>
-          ) : (
+          {page.segments.map((segment, segmentIndex) => (
+            <Fragment key={`${segment.sectionNum}-${segmentIndex}`}>
+              {segment.showSectionTitle && (
+                <SectionTitle>
+                  {segment.sectionNum}. {segment.sectionTitle}
+                </SectionTitle>
+              )}
+              {segment.showContinuation && (
+                <div
+                  style={{
+                    fontSize: `${REPORT_CONTINUATION.fontSize}px`,
+                    fontWeight: REPORT_CONTINUATION.fontWeight,
+                    color: REPORT_CONTINUATION.color,
+                    marginBottom: "8px",
+                  }}
+                >
+                  {segment.sectionNum}. {segment.sectionTitle} — continued
+                </div>
+              )}
+              <ProgramDayBlock
+                day={segment.day}
+                slots={segment.slots}
+                showHeader={segment.showDayHeader}
+              />
+            </Fragment>
+          ))}
+          {isLastDay4ProgramPage(programPages, pageIndex) && (
             <div
               style={{
-                fontSize: `${REPORT_CONTINUATION.fontSize}px`,
-                fontWeight: REPORT_CONTINUATION.fontWeight,
-                color: REPORT_CONTINUATION.color,
-                marginBottom: "8px",
+                marginTop: "8px",
+                fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
+                color: REPORT_PROGRAM.footnote.color,
+                lineHeight: REPORT_PROGRAM.footnote.lineHeight,
               }}
             >
-              {page.sectionNum}. {page.sectionTitle} — continued
+              {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
             </div>
           )}
-          <ProgramDayBlock
-            day={page.day}
-            slots={page.slots}
-            showHeader={page.pageIndex === 0}
-          />
-          {page.sectionNum === 10 &&
-            page.pageIndex === page.pageCount - 1 && (
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontSize: `${REPORT_PROGRAM.footnote.fontSize}px`,
-                  color: REPORT_PROGRAM.footnote.color,
-                  lineHeight: REPORT_PROGRAM.footnote.lineHeight,
-                }}
-              >
-                {PROGRAM_GENERAL_NOTES.slice(0, 3).join(" · ")}
-              </div>
-            )}
         </ReportPage>
       ))}
 

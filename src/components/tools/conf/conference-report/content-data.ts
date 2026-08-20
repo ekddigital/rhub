@@ -33,7 +33,8 @@ import {
 import { buildStaticReportBookletContent } from "@/lib/conf/conference-report/connectors/booklet";
 import type { ReportRuntimeContext } from "@/lib/conf/conference-report/report-runtime";
 import {
-  splitReportProgramDaySlots,
+  buildReportProgramPhysicalPages,
+  type ReportProgramPhysicalPage,
 } from "@/lib/conf/detailed-program-pagination";
 import attendanceRows from "./attendance.generated.json";
 import {
@@ -538,7 +539,10 @@ export function countReportTocPages(): number {
 export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportTocEntry[] {
   const attendanceRows = runtime?.attendanceRows ?? ATTENDANCE_ROWS;
   const preConferencePages = buildPreConferencePages();
-  const programPages = buildReportProgramPages();
+  const programPhysicalPages = buildReportProgramPhysicalPages(
+    REPORT_PROGRAM_DAYS,
+    REPORT_DAY_SECTIONS,
+  );
   const attendanceRegisterPages = chunkAttendance(attendanceRows).length;
   const photoPages = chunkReportPhotos(REPORT_PHOTOS).length;
   const fixed = getReportFixedPageCounts(runtime);
@@ -562,13 +566,23 @@ export function buildReportTocWithPages(runtime?: ReportRuntimeContext): ReportT
 
   const partIIStart = page++;
 
+  const programSectionStart = page;
+  page += programPhysicalPages.length;
+
   const dayPageInfo = new Map<number, { startPage: number; pageSpan: number }>();
   for (const section of REPORT_DAY_SECTIONS) {
-    const pageSpan = programPages.filter(
-      (entry) => entry.sectionNum === section.sectionNum,
-    ).length;
-    dayPageInfo.set(section.sectionNum, { startPage: page, pageSpan });
-    page += pageSpan;
+    const pageIndices = programPhysicalPages.flatMap((physicalPage, index) =>
+      physicalPage.segments.some(
+        (segment) => segment.sectionNum === section.sectionNum,
+      )
+        ? [index]
+        : [],
+    );
+    if (pageIndices.length === 0) continue;
+    dayPageInfo.set(section.sectionNum, {
+      startPage: programSectionStart + pageIndices[0]!,
+      pageSpan: pageIndices.length,
+    });
   }
 
   const electionStart = page++;
@@ -1109,51 +1123,13 @@ export function buildPreConferencePages(): PreConferencePagePlan[] {
   return buildPreConferencePagePlans(PRE_CONFERENCE, PRE_CONFERENCE_FLYERS);
 }
 
-function splitReportDaySlots(day: ProgramDay): ProgramSlot[][] {
-  const dressCodeChars = day.dressCodes.reduce(
-    (sum, dc) => sum + dc.session.length + dc.code.length,
-    0,
-  );
-  return splitReportProgramDaySlots(
-    day.slots,
-    day.dressCodes.length,
-    dressCodeChars,
-  );
-}
+export type { ReportProgramPhysicalPage };
 
-export type ReportProgramPage = {
-  sectionNum: number;
-  sectionTitle: string;
-  day: ProgramDay;
-  slots: ProgramSlot[];
-  pageIndex: number;
-  pageCount: number;
-};
-
-/** One report section (§5–§8) per day; paginate long slot lists within a day. */
+/** §7–§10 program pages; later days may share a continuation page when they fit. */
 export function buildReportProgramPages(
   days: readonly ProgramDay[] = REPORT_PROGRAM_DAYS,
-): ReportProgramPage[] {
-  const pages: ReportProgramPage[] = [];
-
-  for (const section of REPORT_DAY_SECTIONS) {
-    const day = days.find((entry) => entry.day === section.day);
-    if (!day) continue;
-
-    const slotPages = splitReportDaySlots(day);
-    slotPages.forEach((slots, pageIndex) => {
-      pages.push({
-        sectionNum: section.sectionNum,
-        sectionTitle: section.title,
-        day,
-        slots,
-        pageIndex,
-        pageCount: slotPages.length,
-      });
-    });
-  }
-
-  return pages;
+): ReportProgramPhysicalPage[] {
+  return buildReportProgramPhysicalPages(days, REPORT_DAY_SECTIONS);
 }
 
 /** Fixed interior pages excluding cover, attendance chunks, photo chunks, and program chunks. */
