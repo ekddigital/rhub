@@ -55,5 +55,6 @@ export interface CertificateTemplate extends TemplateData {
     | "mission"
     | "baptism"
     | "award"
-    | "graduation";
+    | "graduation"
+    | "wedding";
 }

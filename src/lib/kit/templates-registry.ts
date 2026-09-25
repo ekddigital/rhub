@@ -126,6 +126,17 @@ export const kitTemplates: KitTemplateDefinition[] = [
     status: "beta",
   },
   {
+    id: "jicf-wedding-certificate",
+    category: "certificate",
+    title: "JICF Wedding Certificate",
+    description:
+      "Landscape official marriage record — editable fields, print, PNG, PDF",
+    outputs: ["pdf", "png", "print"],
+    implementation: "creative-certificates",
+    workspacePath: "/tools/kit/crt/jicf-wedding",
+    status: "live",
+  },
+  {
     id: "fom-certificate-builder",
     category: "certificate",
     title: "Certificate template builder",
@@ -134,7 +145,7 @@ export const kitTemplates: KitTemplateDefinition[] = [
     outputs: ["pdf", "png", "html"],
     implementation: "creative-certificates",
     workspacePath: "/tools/kit/crt",
-    status: "planned",
+    status: "live",
   },
   {
     id: "brand-brochure",

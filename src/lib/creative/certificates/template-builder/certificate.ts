@@ -47,6 +47,8 @@ export function generateCertificateId(
     if (nameUpper.includes("OUTSTANDING")) return "OUT";
     if (nameUpper.includes("CONTRIBUTION")) return "CON";
     if (nameUpper.includes("LEADERSHIP")) return "LED";
+    if (nameUpper.includes("WEDDING") || nameUpper.includes("MARRIAGE"))
+      return "WED";
     if (nameUpper.includes("SERVICE") || nameUpper.includes("FAITHFUL"))
       return "SRV";
     if (nameUpper.includes("VOLUNTEER")) return "VOL";

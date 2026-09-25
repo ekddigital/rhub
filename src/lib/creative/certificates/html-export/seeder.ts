@@ -94,6 +94,7 @@ function convertTemplateToDbFormat(
     excellence: "EXCELLENCE",
     service: "SERVICE",
     recognition: "RECOGNITION",
+    wedding: "RECOGNITION",
     award: "ACHIEVEMENT", // Map award to achievement
   };
 

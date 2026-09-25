@@ -205,106 +205,52 @@ export function CertificateRenderer({
     }
   };
 
-  // Replace template variables with actual certificate data
+  // Replace {{token}} placeholders. Wedding and other catalog fields live in metadata.
   const replaceVariables = (content: string): string => {
     const metadata = certificate.metadata || {};
+    const genderWord =
+      metadata.gender === "Male"
+        ? "his"
+        : metadata.gender === "Female"
+          ? "her"
+          : "his/her";
 
-    return (
-      content
-        // Basic certificate data
-        .replace(
-          /\{\{?recipientName\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${certificate.recipientName}</span>`
-        )
-        .replace(
-          /\{\{?issueDate\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${new Date(
-            certificate.issueDate
-          ).toLocaleDateString()}</span>`
-        )
-        .replace(
-          /\{\{?certificateId\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${certificate.certificateId}</span>`
-        )
-        .replace(
-          /\{\{?verificationUrl\}?\}/g,
-          `<span style="color: #0066cc; text-decoration: underline;">${verificationUrl}</span>`
-        )
-        .replace(
-          /\{\{?organizationName\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${certificate.organization.name}</span>`
-        )
+    const values: Record<string, string> = {
+      recipientName: certificate.recipientName,
+      issueDate: new Date(certificate.issueDate).toLocaleDateString(),
+      certificateId: certificate.certificateId,
+      verificationUrl,
+      organizationName: certificate.organization.name,
+      issuerName: String(metadata.issuerName || "Certificate Authority"),
+      position: String(metadata.position || "Position"),
+      gender: genderWord,
+      pastorName: String(metadata.pastorName || "Pastor"),
+      serviceYears: String(metadata.serviceYears || "1"),
+      volunteerHours: String(metadata.volunteerHours || "0"),
+      missionLocation: String(metadata.missionLocation || "Location"),
+      achievementArea: String(metadata.achievementArea || "Achievement"),
+      baptismDate: String(
+        metadata.baptismDate ||
+          new Date(certificate.issueDate).toLocaleDateString(),
+      ),
+      brideName: String(metadata.brideName || ""),
+      groomName: String(metadata.groomName || ""),
+      ceremonyDay: String(metadata.ceremonyDay || ""),
+      ceremonyMonth: String(metadata.ceremonyMonth || ""),
+      ceremonyYear: String(metadata.ceremonyYear || ""),
+      location: String(metadata.location || ""),
+      officiantName: String(metadata.officiantName || ""),
+      witness1Name: String(metadata.witness1Name || "★"),
+      witness2Name: String(metadata.witness2Name || "★"),
+      covenantText: String(metadata.covenantText || ""),
+    };
 
-        // Metadata fields
-        .replace(
-          /\{\{?issuerName\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.issuerName || "Certificate Authority"
-          }</span>`
-        )
-        .replace(
-          /\{\{?position\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.position || "Position"
-          }</span>`
-        )
-        .replace(
-          /\{\{?gender\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.gender === "Male"
-              ? "his"
-              : metadata.gender === "Female"
-              ? "her"
-              : "his/her"
-          }</span>`
-        )
-        .replace(
-          /\{\{?pastorName\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.pastorName || "Pastor"
-          }</span>`
-        )
-        .replace(
-          /\{\{?serviceYears\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.serviceYears || "1"
-          }</span>`
-        )
-        .replace(
-          /\{\{?volunteerHours\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.volunteerHours || "0"
-          }</span>`
-        )
-        .replace(
-          /\{\{?missionLocation\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.missionLocation || "Location"
-          }</span>`
-        )
-        .replace(
-          /\{\{?achievementArea\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.achievementArea || "Achievement"
-          }</span>`
-        )
-        .replace(
-          /\{\{?baptismDate\}?\}/g,
-          `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${
-            metadata.baptismDate ||
-            new Date(certificate.issueDate).toLocaleDateString()
-          }</span>`
-        )
-
-        // Clean up any remaining empty braces
-        .replace(/\{\s*\}/g, "")
-        .replace(/\{[^}]*\}/g, (match) => {
-          const content = match.slice(1, -1).trim();
-          return content
-            ? `<span style="border-bottom: 2px solid #1e40af; padding-bottom: 1px;">${content}</span>`
-            : "";
-        })
-    );
+    return content.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, key) => {
+      if (key in values) return values[key];
+      const fromMeta = metadata[key];
+      if (fromMeta != null && fromMeta !== "") return String(fromMeta);
+      return match;
+    });
   };
 
   // Replace image variables
@@ -477,7 +423,7 @@ export function CertificateRenderer({
       <div
         className={cn(
           "overflow-auto",
-          isFullscreen ? "h-[calc(100vh-60px)]" : "h-96"
+          isFullscreen ? "h-[calc(100vh-60px)]" : "min-h-96 max-h-[min(80vh,56rem)]"
         )}
       >
         <div className="min-h-full flex items-center justify-center p-8">

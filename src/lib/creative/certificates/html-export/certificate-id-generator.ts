@@ -47,6 +47,7 @@ export const CERTIFICATE_ID_PATTERNS = {
       excellence: "EXC",
       fellowship: "FEL",
       worship: "WOR",
+      wedding: "WED",
     },
   },
   EKD: {

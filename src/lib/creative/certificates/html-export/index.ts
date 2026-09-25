@@ -19,6 +19,7 @@ export { ALL_CERTIFICATE_TEMPLATES as CERTIFICATE_TEMPLATES } from "./templates"
 export {
   getCertificateTemplate,
   getCertificateTemplatesByCategory,
+  getCertificateTemplatesByOrganization,
 } from "./templates";
 
 // Convenience functions for common operations
@@ -33,6 +34,7 @@ import {
 import {
   getCertificateTemplate,
   getCertificateTemplatesByCategory,
+  getCertificateTemplatesByOrganization,
 } from "./templates";
 import type {
   CertificateGenerationOptions,
@@ -86,18 +88,7 @@ export function createCertificateId(
  * Get organization-specific templates
  */
 export function getOrganizationTemplates(organization: string) {
-  switch (organization.toLowerCase()) {
-    case "jicf":
-      return getCertificateTemplatesByCategory("jicf");
-    case "juls":
-      return getCertificateTemplatesByCategory("juls");
-    case "fom":
-      return getCertificateTemplatesByCategory("fom");
-    case "general":
-      return getCertificateTemplatesByCategory("general");
-    default:
-      return [];
-  }
+  return getCertificateTemplatesByOrganization(organization);
 }
 
 /**
@@ -117,6 +108,7 @@ export const CERTIFICATE_CATEGORIES = [
   "service",
   "participation",
   "excellence",
+  "wedding",
 ] as const;
 
 /**
