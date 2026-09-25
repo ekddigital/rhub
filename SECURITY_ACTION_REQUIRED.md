@@ -52,11 +52,11 @@ The following secrets are exposed in `.env` (local file, not in git):
 
 ```
 ❌ TO ROTATE:
-- Database Password: "Kwatehekd7!"
-- TTYD API Key: "api_98c15f98d934f1d7a09eef0273ee8d02a27dc527..."
-- NEXTAUTH_SECRET: "5qM1Wqb8AL1..."
-- Google OAuth Secret: "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"
-- EKDSend API Key: "ek_live_eaf1de330ddc2a4e7793707658cbd35262b7d59286cff93040d03a29f53fe6d2"
+- Database Password: [REDACTED]...
+- TTYD API Key: [REDACTED]...
+- NEXTAUTH_SECRET: [REDACTED]...
+- Google OAuth Secret: [REDACTED]...
+- EKDSend API Key: [REDACTED]...
 ```
 
 **Steps:**
