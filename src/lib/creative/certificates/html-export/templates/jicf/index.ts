@@ -7,14 +7,12 @@ import { jicfAppreciationCertificate } from "./appreciation";
 import { jicfAwardsCertificate } from "./awards";
 import { jicfCompletionCertificate } from "./completion";
 import { jicfServiceCertificate } from "./service";
-import { jicfWeddingCertificate } from "./wedding";
 
 // Export individual templates
 export { jicfAppreciationCertificate } from "./appreciation";
 export { jicfAwardsCertificate } from "./awards";
 export { jicfCompletionCertificate } from "./completion";
 export { jicfServiceCertificate } from "./service";
-export { jicfWeddingCertificate } from "./wedding";
 
 // Export constants
 export * from "./constants";
@@ -25,7 +23,6 @@ export const JICF_TEMPLATES = [
   jicfAwardsCertificate,
   jicfCompletionCertificate,
   jicfServiceCertificate,
-  jicfWeddingCertificate,
 ] as const;
 
 // Template lookup utilities

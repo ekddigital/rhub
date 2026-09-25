@@ -59,7 +59,7 @@ export const kitSurfaces: KitSurface[] = [
   {
     slug: "crt",
     title: "Certificates",
-    description: "JICF wedding record plus catalog templates — print / PDF",
+    description: "JICF catalog certificates — print / PDF",
     href: "/tools/kit/crt",
     status: "live",
     group: "print",
